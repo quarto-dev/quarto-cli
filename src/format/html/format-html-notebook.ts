@@ -20,7 +20,7 @@ import {
   kTheme,
   kTo,
 } from "../../config/constants.ts";
-import { Format, NotebookPublishOptions } from "../../config/types.ts";
+import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
 
 import {
   HtmlPostProcessResult,
@@ -338,7 +338,10 @@ interface NotebookViewConfig {
 }
 
 function notebookViewConfig(
-  notebookPublish?: boolean | NotebookPublishOptions | NotebookPublishOptions[],
+  notebookPublish?:
+    | boolean
+    | NotebookPreviewDescriptor
+    | NotebookPreviewDescriptor[],
 ) {
   const nbOptions: Record<string, NotebookViewOptions> = {};
   if (notebookPublish) {

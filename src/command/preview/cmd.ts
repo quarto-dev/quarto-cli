@@ -300,7 +300,7 @@ export const previewCommand = new Command()
               if (renderResult.error) {
                 throw renderResult.error;
               }
-              handleRenderResult(file, renderResult, project);
+              handleRenderResult(file, renderResult);
               if (projectPreviewServe(project) && renderResult.baseDir) {
                 touchPath = join(
                   renderResult.baseDir,

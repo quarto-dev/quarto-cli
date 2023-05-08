@@ -12,14 +12,14 @@ import {
   Format,
   FormatExtras,
   FormatLink,
-  NotebookPublishOptions,
+  NotebookPreviewDescriptor,
   PandocFlags,
 } from "../../../config/types.ts";
-import { kProjectRender, ProjectConfig, ProjectContext } from "../../types.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kFormatLinks,
   kNotebookLinks,
-  kNotebookView,
+  kNotebooks,
   kResources,
   kToc,
 } from "../../../config/constants.ts";
@@ -39,32 +39,26 @@ import { isAbsolute } from "path/mod.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import {
   PandocOptions,
+  RenderFile,
   RenderFlags,
+  RenderResult,
   RenderServices,
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
 import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
-
-const kManuscriptType = "manuscript";
+import { resolveInputTarget } from "../../project-index.ts";
+import {
+  kManuscriptType,
+  kManuscriptUrl,
+  kMecaArchive,
+  ManuscriptConfig,
+  ResolvedManuscriptConfig,
+} from "./manuscript-types.ts";
 
 const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
-
-const kManuscriptUrl = "manuscript-url";
-const kMecaArchive = "meca-archive";
-const kArticle = "article";
-const kNotebooks = "notebooks";
-
-const mecaFileName = (file: string, manuOpts: ManuscriptOptions) => {
-  if (typeof (manuOpts[kMecaArchive]) === "string") {
-    return manuOpts[kMecaArchive];
-  } else {
-    const [_, stem] = dirAndStem(file);
-    return `${stem}${kMecaSuffix}`;
-  }
-};
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
@@ -73,60 +67,74 @@ export const manuscriptProjectType: ProjectType = {
     config: ProjectConfig,
     _flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
-    let defaultRenderFile: string | undefined = undefined;
-    // Build the render list
-    const manuOpts = manuscriptOptions(config) || {};
-    if (manuOpts.article) {
-      // If there is an explicitly specified article file
-      defaultRenderFile = manuOpts.article;
-    } else {
-      // Locate a default target
-      const defaultArticleFiles = ["index.qmd", "index.ipynb"];
-      const defaultArticleFile = defaultArticleFiles.find((file) => {
-        return existsSync(join(projectDir, file));
-      });
-      if (defaultArticleFile !== undefined) {
-        defaultRenderFile = defaultArticleFile;
-      } else {
-        throw new Error(
-          "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
-        );
-      }
-    }
+    const manuscriptConfig = config[kManuscriptType] as ManuscriptConfig ||
+      undefined;
 
     // If the manuscript has resources, add those in
-    if (manuOpts[kResources]) {
+    if (manuscriptConfig[kResources]) {
       config.project.resources = config.project.resources || [];
       config.project.resources = Array.isArray(config.project.resources)
         ? config.project.resources
         : [config.project.resources];
-      if (Array.isArray(manuOpts[kResources])) {
-        config.project.resources.push(...manuOpts[kResources]);
+      if (Array.isArray(manuscriptConfig[kResources])) {
+        config.project.resources.push(...manuscriptConfig[kResources]);
       } else {
-        config.project.resources.push(manuOpts[kResources]);
+        config.project.resources.push(manuscriptConfig[kResources]);
       }
     }
 
-    // If the user isn't explicitly providing a notebook list
-    // then automatically create notebooks for the other items in
-    // the project
-    if (manuOpts[kNotebooks] === undefined) {
-      // Find project inputs that are not in the render list
-      // and move those over to the list of 'notebooks'
-      // that will be rendered alongside this article
-      const inputs = projectInputFiles(projectDir, config);
-      const absRenderFile = join(projectDir, defaultRenderFile);
-      const notebooks = inputs.files.filter((file) => {
-        return file !== absRenderFile;
-      });
-      manuOpts[kNotebooks] = notebooks;
+    // Ensure the article is the last file in the render list
+    const inputs = projectInputFiles(projectDir, config);
+    const article = articleFile(projectDir, manuscriptConfig);
+    const inputNotebooks = inputs.files.map((input) => {
+      return relative(projectDir, input);
+    }).filter((file) => {
+      return file !== article;
+    });
+    const renderList = [...inputNotebooks, article];
+    config.project.render = renderList;
+
+    // Compute the notebooks
+    const notebooks: NotebookPreviewDescriptor[] = [];
+    if (manuscriptConfig.notebooks !== undefined) {
+      const specifiedNotebooks = Array.isArray(manuscriptConfig.notebooks)
+        ? manuscriptConfig.notebooks
+        : [manuscriptConfig.notebooks];
+      notebooks.push(...resolveNotebookDescriptors(specifiedNotebooks));
+    }
+    if (inputNotebooks) {
+      notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
 
-    // Set the exact render file
-    config.project[kProjectRender] = [defaultRenderFile];
+    // Resolve into a ResolvedManuscriptConfig (once this has executed
+    // downstream code may use the resolved form of the config safely)
+    const resolvedManuscriptOptions: ResolvedManuscriptConfig = {
+      ...manuscriptConfig,
+      article,
+      notebooks,
+    };
+    config[kManuscriptType] = resolvedManuscriptOptions;
+
     return Promise.resolve(config);
   },
-
+  formatsForFile: (
+    formats: string[],
+    file: RenderFile,
+    project?: ProjectContext,
+  ): string[] => {
+    if (project && project.config) {
+      const manuscriptConfig = project
+        .config[kManuscriptType] as ResolvedManuscriptConfig;
+      const article = join(project.dir, manuscriptConfig.article);
+      const path = file.path;
+      if (path !== article) {
+        return ["ipynb"];
+      } else {
+        return formats;
+      }
+    }
+    return formats;
+  },
   create: (_title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "manuscript"));
     return {
@@ -155,10 +163,11 @@ export const manuscriptProjectType: ProjectType = {
       const filterParams: Record<string, unknown> = {};
 
       // See if there is an explicit manuscript URL
-      const manuOpts = manuscriptOptions(options.project.config);
-      if (manuOpts) {
+      const manuscriptConfig = options.project
+        .config?.[kManuscriptType] as ResolvedManuscriptConfig;
+      if (manuscriptConfig) {
         // Look up the base url used when rendering
-        let baseUrl = manuOpts[kManuscriptUrl];
+        let baseUrl = manuscriptConfig[kManuscriptUrl];
         if (baseUrl === undefined) {
           const ghContext = await gitHubContext(options.project.dir);
           baseUrl = ghContext.siteUrl;
@@ -184,8 +193,9 @@ export const manuscriptProjectType: ProjectType = {
     project?: ProjectContext,
   ) => {
     if (project) {
-      const manuOpts = manuscriptOptions(project.config);
-      if (manuOpts && manuOpts[kMecaArchive] !== false) {
+      const manuscriptConfig = project.config
+        ?.[kManuscriptType] as ResolvedManuscriptConfig;
+      if (manuscriptConfig && manuscriptConfig[kMecaArchive] !== false) {
         // Add an alternate link to a MECA bundle
         if (format.render[kFormatLinks] !== false) {
           const links: Array<string | FormatLink> = [];
@@ -194,47 +204,9 @@ export const manuscriptProjectType: ProjectType = {
           }
           links.push({
             title: kMecaFileLabel,
-            href: mecaFileName(source, manuOpts),
+            href: mecaFileName(source, manuscriptConfig),
           });
           format.render[kFormatLinks] = links;
-        }
-      }
-
-      // Resolve any notebooks that are being provided
-      if (manuOpts && manuOpts[kNotebooks] !== undefined) {
-        const resolveNb = (
-          nb: string | NotebookPublishOptions,
-        ): NotebookPublishOptions => {
-          if (typeof (nb) === "string") {
-            nb = { notebook: nb };
-          }
-          return nb;
-        };
-
-        const resolveNbs = (
-          nbs: Array<string | NotebookPublishOptions>,
-        ) => {
-          const resolvedNbs: NotebookPublishOptions[] = [];
-          for (const nb of nbs) {
-            resolvedNbs.push(resolveNb(nb));
-          }
-          return resolvedNbs;
-        };
-
-        // Forward the 'notebooks' key into `notebook-views` to configure
-        // the notebook behavior for this project
-        const notebooks = manuOpts[kNotebooks];
-        if (format.render[kNotebookView] === undefined) {
-          format.render[kNotebookView] = resolveNbs(notebooks);
-        } else if (typeof (format.render[kNotebookView]) !== "boolean") {
-          if (Array.isArray(format.render[kNotebookView])) {
-            format.render[kNotebookView].push(...resolveNbs(notebooks));
-          } else {
-            format.render[kNotebookView] = [
-              format.render[kNotebookView],
-              ...resolveNbs(notebooks),
-            ];
-          }
         }
       }
 
@@ -260,27 +232,72 @@ export const manuscriptProjectType: ProjectType = {
   },
   // format extras
   formatExtras: async (
-    _context: ProjectContext,
-    _source: string,
+    context: ProjectContext,
+    source: string,
     _flags: PandocFlags,
     format: Format,
     _services: RenderServices,
-  ) => {
+  ): Promise<FormatExtras> => {
     // defaults for all formats
     const extras: FormatExtras = {
       pandoc: {
         [kToc]: isHtmlOutput(format.pandoc),
       },
     };
+
+    // If the user isn't explicitly providing a notebook list
+    // then automatically create notebooks for the other items in
+    // the project
+    const manuscriptConfig = context.config
+      ?.[kManuscriptType] as ResolvedManuscriptConfig;
+    if (manuscriptConfig.article !== undefined) {
+      const article = manuscriptConfig.article;
+      const articleAbs = join(context.dir, article);
+
+      // For the root article, add the discovered notebooks to
+      // to the list of notebooks to show
+      if (source === articleAbs) {
+        const outputNbs: NotebookPreviewDescriptor[] = [];
+        const notebooks = manuscriptConfig.notebooks || [];
+        for (const notebook of notebooks) {
+          const target = await resolveInputTarget(
+            context,
+            relative(context.dir, notebook.notebook),
+            false,
+          );
+          if (target) {
+            outputNbs.push({
+              title: target.title,
+              notebook: target.outputHref,
+            });
+          }
+        }
+        extras[kNotebooks] = outputNbs;
+      }
+    }
+
     return Promise.resolve(extras);
+  },
+  renderResultFinalOutput: (
+    renderResults: RenderResult,
+  ) => {
+    if (renderResults.context) {
+      const manuscriptConfig = renderResults.context.config
+        ?.[kManuscriptType] as ResolvedManuscriptConfig;
+      const renderResult = renderResults.files.find((file) => {
+        return file.input === manuscriptConfig.article;
+      });
+      return renderResult;
+    }
   },
   postRender: async (
     context: ProjectContext,
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => {
-    const manuOpts = manuscriptOptions(context.config);
-    if (manuOpts && manuOpts[kMecaArchive] !== false) {
+    const manuscriptConfig = context.config
+      ?.[kManuscriptType] as ResolvedManuscriptConfig;
+    if (manuscriptConfig && manuscriptConfig[kMecaArchive] !== false) {
       const workingDir = globalTempContext().createDir();
 
       const outputDir = projectOutputDir(context);
@@ -389,7 +406,7 @@ export const manuscriptProjectType: ProjectType = {
         ];
 
         // Compress the working directory in a zip
-        const mecaName = mecaFileName(articlePath, manuOpts);
+        const mecaName = mecaFileName(articlePath, manuscriptConfig);
         const zipResult = await zip(filesToZip, mecaName, {
           cwd: workingDir,
         });
@@ -416,6 +433,48 @@ export const manuscriptProjectType: ProjectType = {
   },
 };
 
+const articleFile = (projectDir: string, config: ManuscriptConfig) => {
+  let defaultRenderFile: string | undefined = undefined;
+  // Build the render list
+  if (config.article) {
+    // If there is an explicitly specified article file
+    defaultRenderFile = config.article;
+  } else {
+    // Locate a default target
+    const defaultArticleFiles = ["index.qmd", "index.ipynb"];
+    const defaultArticleFile = defaultArticleFiles.find((file) => {
+      return existsSync(join(projectDir, file));
+    });
+    if (defaultArticleFile !== undefined) {
+      defaultRenderFile = defaultArticleFile;
+    } else {
+      throw new Error(
+        "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
+      );
+    }
+  }
+  return defaultRenderFile;
+};
+
+const resolveNotebookDescriptor = (
+  nb: string | NotebookPreviewDescriptor,
+): NotebookPreviewDescriptor => {
+  if (typeof (nb) === "string") {
+    nb = { notebook: nb };
+  }
+  return nb;
+};
+
+const resolveNotebookDescriptors = (
+  nbs: Array<string | NotebookPreviewDescriptor>,
+) => {
+  const resolvedNbs: NotebookPreviewDescriptor[] = [];
+  for (const nb of nbs) {
+    resolvedNbs.push(resolveNotebookDescriptor(nb));
+  }
+  return resolvedNbs;
+};
+
 const toMecaItem = (href: string, type: string): MecaItem => {
   const mediaType = contentType(href);
   return {
@@ -425,6 +484,15 @@ const toMecaItem = (href: string, type: string): MecaItem => {
       mediaType,
     },
   };
+};
+
+const mecaFileName = (file: string, config: ManuscriptConfig) => {
+  if (typeof (config[kMecaArchive]) === "string") {
+    return config[kMecaArchive];
+  } else {
+    const [_, stem] = dirAndStem(file);
+    return `${stem}${kMecaSuffix}`;
+  }
 };
 
 const mecaItemsForPath = (
@@ -453,26 +521,4 @@ const mecaItemsForPath = (
 
 const mecaType = (_path: string) => {
   return "manuscript_reference";
-};
-
-interface ManuscriptOptions {
-  [kManuscriptUrl]?: string;
-  [kMecaArchive]?: boolean | string;
-  [kArticle]?: string;
-  [kNotebooks]?: Array<string | NotebookPublishOptions>;
-  [kResources]?: string | string[];
-}
-
-const manuscriptOptions = (config?: ProjectConfig): ManuscriptOptions => {
-  if (config) {
-    const manuOpts = config[kManuscriptType] as ManuscriptOptions || undefined;
-    if (manuOpts[kNotebooks] !== undefined) {
-      manuOpts[kNotebooks] = Array.isArray(manuOpts[kNotebooks])
-        ? manuOpts[kNotebooks]
-        : [manuOpts[kNotebooks]];
-    }
-    return manuOpts;
-  } else {
-    return {};
-  }
 };

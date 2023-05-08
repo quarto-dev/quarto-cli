@@ -53,8 +53,7 @@ export interface ProjectType {
   renderResultFinalOutput?: (
     renderResults: RenderResult,
     relativeToInputDir?: string,
-    project?: ProjectContext,
-  ) => RenderResultFile;
+  ) => RenderResultFile | undefined;
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;

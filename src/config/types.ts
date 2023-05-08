@@ -134,6 +134,7 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebooks,
   kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
@@ -300,7 +301,7 @@ export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
 }
 
-export interface NotebookPublishOptions {
+export interface NotebookPreviewDescriptor {
   notebook: string;
   url?: string;
   title?: string;
@@ -319,6 +320,7 @@ export interface FormatExtras {
     post?: QuartoFilter[];
   };
   [kFilterParams]?: Record<string, unknown>;
+  [kNotebooks]?: NotebookPreviewDescriptor[];
   postprocessors?: Array<(output: string) => Promise<void>>;
   templateContext?: FormatTemplateContext;
   html?: {
@@ -429,8 +431,8 @@ export interface FormatRender {
   [kNotebookViewStyle]?: "document" | "notebook";
   [kNotebookView]?:
     | boolean
-    | NotebookPublishOptions
-    | NotebookPublishOptions[];
+    | NotebookPreviewDescriptor
+    | NotebookPreviewDescriptor[];
 }
 
 export interface FormatExecute {

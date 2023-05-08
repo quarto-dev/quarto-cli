@@ -422,7 +422,6 @@ export async function renderPandoc(
 export function renderResultFinalOutput(
   renderResults: RenderResult,
   relativeToInputDir?: string,
-  project?: ProjectContext,
 ) {
   // final output defaults to the first output of the first result
   // that isn't a supplemental render file (a file that wasn't explicitly
@@ -443,13 +442,12 @@ export function renderResultFinalOutput(
   }
 
   // Allow project types to provide this
-  if (project) {
-    const projType = projectType(project.config?.project.type);
+  if (renderResults.context) {
+    const projType = projectType(renderResults.context.config?.project.type);
     if (projType && projType.renderResultFinalOutput) {
       const projectResult = projType.renderResultFinalOutput(
         renderResults,
         relativeToInputDir,
-        project,
       );
       if (projectResult) {
         result = projectResult;
@@ -492,9 +490,13 @@ export function renderResultFinalOutput(
   }
 }
 
-export function renderResultUrlPath(renderResult: RenderResult) {
+export function renderResultUrlPath(
+  renderResult: RenderResult,
+) {
   if (renderResult.baseDir && renderResult.outputDir) {
-    const finalOutput = renderResultFinalOutput(renderResult);
+    const finalOutput = renderResultFinalOutput(
+      renderResult,
+    );
     if (finalOutput) {
       const targetPath = pathWithForwardSlashes(relative(
         join(renderResult.baseDir, renderResult.outputDir),

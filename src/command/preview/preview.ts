@@ -398,13 +398,11 @@ export function setPreviewFormat(
 export function handleRenderResult(
   file: string,
   renderResult: RenderResult,
-  project?: ProjectContext,
 ) {
   // print output created
   const finalOutput = renderResultFinalOutput(
     renderResult,
     dirname(file),
-    project,
   );
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
@@ -440,7 +438,7 @@ async function renderForPreview(
   }
 
   // print output created
-  const finalOutput = handleRenderResult(file, renderResult, project);
+  const finalOutput = handleRenderResult(file, renderResult);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();

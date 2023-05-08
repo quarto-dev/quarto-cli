@@ -157,6 +157,7 @@ export async function renderProject(
 
   // projResults to return
   const projResults: RenderResult = {
+    context,
     baseDir: projDir,
     outputDir: relative(projDir, projOutputDir),
     files: [],
