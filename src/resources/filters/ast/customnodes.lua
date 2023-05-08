@@ -224,7 +224,10 @@ _quarto.ast = {
           return nil
         end
         local content = result.content
-        if #content ~= 1 then
+        local n = #content
+        if n == 0 then
+          return nil
+        elseif n ~= 1 then
           return content
         else
           return content[1]

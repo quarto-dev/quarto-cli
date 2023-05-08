@@ -361,6 +361,8 @@ function calloutLatex(node)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
+
+  quarto.utils.dump { node = node }
   
 
   -- Discover notes in the callout and pull the contents out
@@ -546,6 +548,7 @@ function latexCalloutBoxSimple(title, type, icon)
   -- Add the titles and contents
   local calloutContents = pandoc.List({});
   if title ~= nil then 
+    quarto.utils.dump{title = title}
     tprepend(title.content, {pandoc.RawInline('latex', '\\textbf{')})
     tappend(title.content, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
     calloutContents:insert(pandoc.Para(title.content))
