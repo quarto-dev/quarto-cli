@@ -29,7 +29,10 @@ function run_emulated_filter(doc, filter)
     if (k == "Custom" or 
         k == "CustomInline" or 
         k == "CustomBlock" or
-        state.namedHandlers[k] ~= nil) then
+        state.namedHandlers[k] ~= nil or
+        -- we need custom handling to _avoid_ custom nodes as well.
+        k == "Div" or
+        k == "Span") then
       needs_custom = true
     end
   end
@@ -219,11 +222,14 @@ _quarto.ast = {
           return nil
         end
         local t = result.t
-        if not (t == "Div" or t == "Span") then
-          warn("Custom node content is not a Div or Span, but a " .. t)
+        -- if not (t == "Div" or t == "Span") then
+        --   warn("Custom node content is not a Div or Span, but a " .. t)
+        --   return nil
+        -- end
+        local content = result.content
+        if content == nil then
           return nil
         end
-        local content = result.content
         local n = #content
         if n == 0 then
           return nil

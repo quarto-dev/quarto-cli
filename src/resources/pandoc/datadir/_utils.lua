@@ -248,30 +248,43 @@ local function get_type(v)
 end
 
 local function as_inlines(v)
+  if v == nil then
+    return {}
+  end
   local t = pandoc.utils.type(v)
   if t == "Inlines" then
     return v
   elseif t == "Blocks" then
     return pandoc.utils.blocks_to_inlines(v)
-  end
-  local t = type(v)
-  if t == "table" then
-    return pandoc.utils.blocks_to_inlines(v)
-  else
+  elseif t == "Inline" then
+    return {v}
+  elseif t == "Block" then
     return pandoc.utils.blocks_to_inlines({v})
   end
+
+  error("as_inlines: invalid type: " .. t)
+  crash_with_stack_trace()
+  return nil
 end
 
 local function as_blocks(v)
+  if v == nil then
+    return {}
+  end
   local t = pandoc.utils.type(v)
   if t == "Blocks" then
     return v
-  end
-  if type(v) == "table" then
-    return pandoc.Blocks(v)
-  else
+  elseif t == "Inlines" then
+    return pandoc.Blocks({pandoc.Plain(v)})
+  elseif t == "Block" then
     return pandoc.Blocks({v})
+  elseif t == "Inline" then
+    return pandoc.Blocks({pandoc.Plain(v)})
   end
+
+  error("as_blocks: invalid type: " .. t)
+  crash_with_stack_trace()
+  return nil
 end
 
 return {

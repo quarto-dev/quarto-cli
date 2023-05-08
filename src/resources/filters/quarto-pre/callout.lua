@@ -828,6 +828,8 @@ end
 
 function resolveCalloutContents(node, require_title)
   local title = quarto.utils.as_inlines(node.title)
+  quarto.utils.dump { title = title, content = node.content }
+  quarto.utils.dump { node = node }
   local type = node.type
   
   local contents = pandoc.List({})
