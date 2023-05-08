@@ -202,8 +202,6 @@ local quartoPre = {
 
   { name = "flags", filter = compute_flags() },
 
-  { name = "index", filter = compute_indices() },
-
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
   -- this will need to change in the future; users will have to indicate
