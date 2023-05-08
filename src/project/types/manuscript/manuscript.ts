@@ -117,24 +117,6 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve(config);
   },
-  formatsForFile: (
-    formats: string[],
-    file: RenderFile,
-    project?: ProjectContext,
-  ): string[] => {
-    if (project && project.config) {
-      const manuscriptConfig = project
-        .config[kManuscriptType] as ResolvedManuscriptConfig;
-      const article = join(project.dir, manuscriptConfig.article);
-      const path = file.path;
-      if (path !== article) {
-        return ["ipynb"];
-      } else {
-        return formats;
-      }
-    }
-    return formats;
-  },
   create: (_title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "manuscript"));
     return {
@@ -187,6 +169,24 @@ export const manuscriptProjectType: ProjectType = {
       );
     }
   },
+  formatsForFile: (
+    formats: string[],
+    file: RenderFile,
+    project?: ProjectContext,
+  ): string[] => {
+    if (project && project.config) {
+      const manuscriptConfig = project
+        .config[kManuscriptType] as ResolvedManuscriptConfig;
+      const article = join(project.dir, manuscriptConfig.article);
+      const path = file.path;
+      if (path !== article) {
+        return ["ipynb"];
+      } else {
+        return formats;
+      }
+    }
+    return formats;
+  },
   filterFormat: (
     source: string,
     format: Format,
@@ -195,32 +195,35 @@ export const manuscriptProjectType: ProjectType = {
     if (project) {
       const manuscriptConfig = project.config
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
-      if (manuscriptConfig && manuscriptConfig[kMecaArchive] !== false) {
-        // Add an alternate link to a MECA bundle
-        if (format.render[kFormatLinks] !== false) {
-          const links: Array<string | FormatLink> = [];
-          if (typeof (format.render[kFormatLinks]) !== "boolean") {
-            links.push(...format.render[kFormatLinks] || []);
+
+      if (isArticle(source, project, manuscriptConfig)) {
+        if (manuscriptConfig && manuscriptConfig[kMecaArchive] !== false) {
+          // Add an alternate link to a MECA bundle
+          if (format.render[kFormatLinks] !== false) {
+            const links: Array<string | FormatLink> = [];
+            if (typeof (format.render[kFormatLinks]) !== "boolean") {
+              links.push(...format.render[kFormatLinks] || []);
+            }
+            links.push({
+              title: kMecaFileLabel,
+              href: mecaFileName(source, manuscriptConfig),
+            });
+            format.render[kFormatLinks] = links;
           }
-          links.push({
-            title: kMecaFileLabel,
-            href: mecaFileName(source, manuscriptConfig),
-          });
-          format.render[kFormatLinks] = links;
         }
-      }
 
-      // For JATS, default subarticles on (unless turned off explicitly)
-      if (
-        isJatsOutput(format.pandoc) &&
-        format.metadata[kJatsSubarticle] !== false
-      ) {
-        format.metadata[kJatsSubarticle] = true;
-      }
+        // For JATS, default subarticles on (unless turned off explicitly)
+        if (
+          isJatsOutput(format.pandoc) &&
+          format.metadata[kJatsSubarticle] !== false
+        ) {
+          format.metadata[kJatsSubarticle] = true;
+        }
 
-      // Enable google scholar, by default
-      if (format.metadata[kGoogleScholar] !== false) {
-        format.metadata[kGoogleScholar] = true;
+        // Enable google scholar, by default
+        if (format.metadata[kGoogleScholar] !== false) {
+          format.metadata[kGoogleScholar] = true;
+        }
       }
 
       return format;
@@ -251,12 +254,9 @@ export const manuscriptProjectType: ProjectType = {
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
     if (manuscriptConfig.article !== undefined) {
-      const article = manuscriptConfig.article;
-      const articleAbs = join(context.dir, article);
-
       // For the root article, add the discovered notebooks to
       // to the list of notebooks to show
-      if (source === articleAbs) {
+      if (isArticle(source, context, manuscriptConfig)) {
         const outputNbs: NotebookPreviewDescriptor[] = [];
         const notebooks = manuscriptConfig.notebooks || [];
         for (const notebook of notebooks) {
@@ -431,6 +431,17 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve();
   },
+};
+
+const isArticle = (
+  file: string,
+  project: ProjectContext,
+  manuscriptConfig: ResolvedManuscriptConfig,
+) => {
+  const articlePath = isAbsolute(file)
+    ? join(project.dir, manuscriptConfig.article)
+    : manuscriptConfig.article;
+  return file === articlePath;
 };
 
 const articleFile = (projectDir: string, config: ManuscriptConfig) => {
