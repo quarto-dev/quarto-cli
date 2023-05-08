@@ -11,6 +11,8 @@ import {
   RenderFile,
   RenderFlags,
   RenderOptions,
+  RenderResult,
+  RenderResultFile,
   RenderServices,
 } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
@@ -43,6 +45,11 @@ export interface ProjectType {
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
+  renderResultFinalOutput?: (
+    renderResults: RenderResult,
+    relativeToInputDir?: string,
+    project?: ProjectContext,
+  ) => RenderResultFile;
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;

@@ -395,9 +395,17 @@ export function setPreviewFormat(
   replacePandocArg(pandocArgs, "--to", format);
 }
 
-export function handleRenderResult(file: string, renderResult: RenderResult) {
+export function handleRenderResult(
+  file: string,
+  renderResult: RenderResult,
+  project?: ProjectContext,
+) {
   // print output created
-  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
+  const finalOutput = renderResultFinalOutput(
+    renderResult,
+    dirname(file),
+    project,
+  );
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
   }
@@ -432,7 +440,7 @@ async function renderForPreview(
   }
 
   // print output created
-  const finalOutput = handleRenderResult(file, renderResult);
+  const finalOutput = handleRenderResult(file, renderResult, project);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();

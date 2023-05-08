@@ -58,6 +58,8 @@ import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contain
 import { existsSync1 } from "../../core/file.ts";
 import { kNoteBookExtension } from "../../format/format-extensions.ts";
 import { NotebooksFormatExtension } from "../../format/format-extensions.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -420,6 +422,7 @@ export async function renderPandoc(
 export function renderResultFinalOutput(
   renderResults: RenderResult,
   relativeToInputDir?: string,
+  project?: ProjectContext,
 ) {
   // final output defaults to the first output of the first result
   // that isn't a supplemental render file (a file that wasn't explicitly
@@ -436,6 +439,21 @@ export function renderResultFinalOutput(
     if (fileResult.file === "index.html" && !fileResult.supplemental) {
       result = fileResult;
       break;
+    }
+  }
+
+  // Allow project types to provide this
+  if (project) {
+    const projType = projectType(project.config?.project.type);
+    if (projType && projType.renderResultFinalOutput) {
+      const projectResult = projType.renderResultFinalOutput(
+        renderResults,
+        relativeToInputDir,
+        project,
+      );
+      if (projectResult) {
+        result = projectResult;
+      }
     }
   }
 
