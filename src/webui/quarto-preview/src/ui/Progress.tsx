@@ -53,7 +53,7 @@ export const Progress: React.FC<ProgressProps> = (props: ProgressProps) => {
         onClose={() => setDismissed(true)}
         onCancel={() => { setDismissed(true); props.onCancel(); }}
         darkMode={props.darkMode}
-      />)
+      />
     </FluentProvider>
   );
 }
