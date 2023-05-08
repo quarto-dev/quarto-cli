@@ -24,7 +24,6 @@ import {
   PublishProvider,
 } from "../../publish/provider-types.ts";
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
-import { haveArrowKeys } from "../../core/platform.ts";
 
 export type AccountPrompt = "always" | "never" | "multiple";
 
@@ -110,42 +109,28 @@ export async function accountPrompt(
   _provider: PublishProvider,
   accounts: AccountToken[],
 ): Promise<AccountToken | undefined> {
-  // provide choice of all accounts if we have arrow keys
-  if (haveArrowKeys()) {
-    const options: SelectOption[] = accounts
-      .filter((account) => account.type !== AccountTokenType.Anonymous).map((
-        account,
-      ) => ({
-        name: accountTokenText(account),
-        value: account.token,
-      }));
-    const kAuthorize = "authorize";
-    options.push({
-      name: "Use another account...",
-      value: kAuthorize,
-    });
+  const options: SelectOption[] = accounts
+    .filter((account) => account.type !== AccountTokenType.Anonymous).map((
+      account,
+    ) => ({
+      name: accountTokenText(account),
+      value: account.token,
+    }));
+  const kAuthorize = "authorize";
+  options.push({
+    name: "Use another account...",
+    value: kAuthorize,
+  });
 
-    const result = await prompt([{
-      indent: "",
-      name: "token",
-      message: `Publish with account:`,
-      options,
-      type: Select,
-    }]);
-    if (result.token !== kAuthorize) {
-      return accounts.find((account) => account.token === result.token);
-    }
-    // no arrow keys -- just provide confirmation for default/hinted account
-  } else {
-    const result = await Confirm.prompt({
-      indent: "",
-      message: "Publish with account " + accountTokenText(accounts[0]),
-      default: true,
-      hint: "Press Enter to publish (or type 'n' to use another account)",
-    });
-    if (result) {
-      return accounts[0];
-    }
+  const result = await prompt([{
+    indent: "",
+    name: "token",
+    message: `Publish with account:`,
+    options,
+    type: Select,
+  }]);
+  if (result.token !== kAuthorize) {
+    return accounts.find((account) => account.token === result.token);
   }
 }
 
@@ -181,9 +166,7 @@ export async function manageAccounts() {
       checked: true,
     })),
     hint:
-      `Use the ${
-        haveArrowKeys() ? "arrow" : "'u' and 'd'"
-      } keys and spacebar to specify accounts you would like to remove.\n` +
+      `Use the arrow keys and spacebar to specify accounts you would like to remove.\n` +
       `   Press Enter to confirm the list of accounts you wish to remain available.`,
   });
 

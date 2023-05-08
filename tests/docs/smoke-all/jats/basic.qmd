@@ -1,0 +1,143 @@
+---
+title: Sample Document
+author: 
+  - id: cteague
+    name: Charles Teague
+    email: charles@posit.co
+    url: https://www.charlesteague.com
+    orcid: 0000-0001-8715-9476
+    affiliation: 
+      name: Posit, PBC
+      address: 250 Northern Ave
+      city: Boston
+      state: MA
+      postal-code: 02210
+      country: USA
+      url: https://www.posit.co
+    corresponding: true
+    equal-contributor: true
+    note: |
+      I would like to thank the academy and the screen actor's 
+      guild for this distinctive honor.
+    roles:
+      - Motivational Speaker
+      - Head Clown
+      - writing: supporting
+  - name: Norah Jones
+    email: norah@bluenote.com
+    equal-contributor: true
+    affiliation:
+      id: bn-records
+      name: Blue Note Records
+      address: 2220 Colorado Avenue
+      city: Santa Monica
+      state: CA
+      postal-code: 90404
+      country: USA
+      url: https://www.bluenote.com
+      isni: 0000000122600291
+    roles:
+      - writing: lead
+      - data curation : supporting
+  - name: Albert Einstein
+    orcid: 0000-0003-2125-060X
+    deceased: true
+    affiliation: Princeton University
+    roles:
+      - data curation: lead
+funding:
+  - id: award_id_23213
+    statement: "Special thanks to sloan foundation and all that."
+    open-access: "Miscellaneous text about open access that appears here"
+    source:
+      - "The Sloan Foundation"
+      - text: Cool Source
+        country: USA
+    recipient:
+      - ref: cteague
+      - name: Norah Jones
+      - institution: Blue Note Records
+      - John Hamm
+    investigator: 
+      - Norah Jones
+      - ref: bn-records
+  - This is another simple statement what is up bro
+citation:
+  container-id: AGU-SC
+  publisher: American Geophysical Union
+  publisher-location: Washington, D.C., USA
+  container-title: Space Weather
+  container-title-short: Space Weather
+  eissn: 1542-7390
+  type: article-journal
+  jats-type: article
+  article-id: AGU-identifier
+  doi: 10.3352/jeehp.2013.10.3
+  subject: Weather in Outer Space
+  categories: [space, weather, etc]
+  volume: 2
+  issue: 3
+  page: 45-54
+  issued: 1973-05
+license:
+  - cc by
+  - type: "non-commercial"
+    url: "https://www.elsevier.com/about/policies/open-access-licenses/elsevier-user-license"
+    text: "Elsevier user license"
+copyright:
+  year: 2022,2020
+  statement: ©Copyright; 2022, Charles Teague
+  holder: Charles Teague
+abstract: |
+  In vel luctus ligula, sit amet tincidunt ex. Aliquam erat volutpat. Nullam lacus mauris, luctus ut venenatis quis, vulputate et tellus. Vivamus vulputate cursus risus in placerat. In vel luctus ligula, sit amet tincidunt ex. Aliquam erat volutpat. Nullam lacus mauris, luctus ut venenatis quis, vulputate et tellus. Vivamus vulputate cursus risus in placerat. In vel luctus ligula, sit amet tincidunt ex. Aliquam erat volutpat. Nullam lacus mauris, luctus ut venenatis quis, vulputate et tellus. Vivamus vulputate cursus risus in placerat.
+bibliography: bibliography.bib
+execute:
+  echo: false
+keywords: [weather, space, mars]
+toc: true
+format:
+  jats:
+    variant: -element_citations
+  html: default
+  pdf: default
+  docx: default
+  ipynb: default
+_quarto:
+  tests:
+    jats:
+      ensureFileRegexMatches:
+        - 
+          - '<article-meta>' # basic JATS 
+          - '</article-meta>' # basic JATS 
+          - '<contrib contrib-type="author" equal-contrib="yes" corresp="yes">' #author
+          - '<string-name>Norah Jones</string-name>' #author
+          - '<copyright-statement>' #copright metadata
+          - '<kwd>weather</kwd>' # keywords
+          - '<funding-group>' #funding metadata
+          - '<boxed-text>[\s\S]*?<bold>Attention</bold>[\s\S]*?</boxed-text>' # callout
+          - '<mixed-citation>' #mixed citation
+          - '<xref alt="2013" rid="ref-Schubert13" ref-type="bibr">2013</xref>' #cite
+          - '<fig id="fig-line">[\s\S]*?<graphic.*?>[\s\S]*?<\/fig>' # regular figure
+          - '<role>Head Clown<\/role>' # role
+          - '"https:\/\/credit\.niso\.org\/contributor-roles\/writing-original-draft\/"'
+          - '"https:\/\/credit\.niso\.org\/contributor-roles\/data-curation\/"'
+        -
+          - '<graphic id="fig-line".*/>'
+---
+
+## Introduction {#sec-introduction}
+
+Integer odio velit, gravida ut nunc in, fringilla feugiat justo. Donec eu lorem at ex tristique porttitor id sit amet mauris. Phasellus lacinia sit amet risus vel iaculis. ^[Aenean eget enim ipsum. Proin euismod erat in dolor vehicula elementum.] 
+
+:::{.callout-warning}
+
+## Attention
+
+Pay attention to this callout to read important information that you should attend to. ^[Phasellus at augue feugiat, aliquet enim in, euismod nunc.]
+
+:::
+
+Nulla tempus tincidunt pretium. Aenean eget enim ipsum. Proin euismod erat in dolor vehicula elementum. Aliquam massa erat, bibendum nec sapien in, bibendum sollicitudin augue. Aliquam pretium massa in nibh eleifend, et ullamcorper urna suscipit. Phasellus at augue feugiat, aliquet enim in, euismod nunc. Donec quis nibh eleifend, lobortis nunc a, cursus tortor. See @Schubert13
+
+{{< embed computations.ipynb#fig-line >}}
+

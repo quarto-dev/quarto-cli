@@ -8,7 +8,7 @@ local function process_quarto_markdown_input_element(el)
   end
 end
 
-function extract_quarto_dom()
+function parse_md_in_html_rawblocks()
   return {
     Div = function(div)
       if div.attributes.qmd ~= nil or div.attributes["qmd-base64"] ~= nil then

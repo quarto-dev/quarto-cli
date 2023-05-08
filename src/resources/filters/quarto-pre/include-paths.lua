@@ -4,7 +4,7 @@
 --
 -- Copyright (C) 2022 Posit Software, PBC
 
-function includePaths() 
+function include_paths() 
   return {
     Link = function(el)
       local file = currentFileMetadataState().file

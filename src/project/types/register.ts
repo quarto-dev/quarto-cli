@@ -11,7 +11,9 @@ import { bookProjectType } from "./book/book.ts";
 import { defaultProjectType } from "./project-default.ts";
 import { websiteProjectType } from "./website/website.ts";
 import { registerProjectType } from "./project-types.ts";
+import { manuscriptProjectType } from "./manuscript/manuscript.ts";
 
 registerProjectType(bookProjectType);
 registerProjectType(defaultProjectType);
 registerProjectType(websiteProjectType);
+registerProjectType(manuscriptProjectType);

@@ -4,8 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { kOutputDivs, kVariant } from "../../config/constants.ts";
+import { kFrom, kOutputDivs, kToc, kVariant } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
+import { pandocFormat } from "../../core/pandoc/pandoc-formats.ts";
 import { createFormat, plaintextFormat } from "../formats-shared.ts";
 import { kGfmCommonmarkVariant } from "./format-markdown-consts.ts";
 
@@ -35,6 +36,18 @@ export function gfmFormat(): Format {
     },
     render: {
       [kVariant]: kGfmCommonmarkVariant,
+    },
+    resolveFormat: (format: Format) => {
+      if (format.pandoc[kToc] === true) {
+        // we need to add gfm_auto_identifiers to reader otherwise ids for toc are not valid
+        // see https://github.com/quarto-dev/quarto-cli/issues/4917 and
+        // https://github.com/jgm/pandoc/issues/8709
+        format.pandoc[kFrom] = pandocFormat(
+          format.pandoc[kFrom] || "markdown",
+          ["gfm_auto_identifiers"],
+          [],
+        );
+      }
     },
   });
 }

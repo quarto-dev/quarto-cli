@@ -1,7 +1,7 @@
 -- columns-preprocess.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-function columnsPreprocess() 
+function columns_preprocess() 
   return {
     Div = function(el)  
       

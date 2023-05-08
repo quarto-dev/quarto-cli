@@ -1,3 +1,5 @@
+// noinspection TypeScriptUnresolvedReference
+
 /*
  * format-html.ts
  *
@@ -20,7 +22,6 @@ import {
   kCodeLink,
   kFigResponsive,
   kFilterParams,
-  kFormatLinks,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -76,6 +77,7 @@ import {
   kSmoothScroll,
   kTabsets,
   kUtterances,
+  kXrefsHover,
   quartoBaseLayer,
   quartoGlobalCssVariableRules,
 } from "./format-html-shared.ts";
@@ -88,8 +90,9 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  buildGiscusThemeKeys,
   getDiscussionCategoryId,
-  getGithubDiscussionsMetadata,
+  getGithubDiscussionsMetadata, GiscusTheme, GiscusThemeToggleRecord,
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
@@ -114,7 +117,6 @@ export function htmlFormat(
     {
       render: {
         [kNotebookLinks]: true,
-        [kFormatLinks]: true,
       },
       resolveFormat: (format: Format) => {
         if (format.metadata[kMinimal] === true) {
@@ -244,6 +246,11 @@ export async function htmlFormatExtras(
   } else {
     options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
   }
+  if (featureDefaults.hoverXrefs) {
+    options.hoverXrefs = format.metadata[kXrefsHover] !== false;
+  } else {
+    options.hoverXrefs = format.metadata[kXrefsHover] || false;
+  }
   if (featureDefaults.figResponsive) {
     options.figResponsive = format.metadata[kFigResponsive] !== false;
   } else {
@@ -312,7 +319,7 @@ export async function htmlFormatExtras(
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes ||
-    options.codeAnnotations;
+    options.codeAnnotations || options.hoverXrefs;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -467,8 +474,17 @@ export async function htmlFormatExtras(
   // giscus
   if (options.giscus) {
     const giscus = options.giscus as Record<string, unknown>;
+
     giscus.category = giscus.category || "General";
-    giscus.theme = giscus.theme || "light";
+    giscus.theme = giscus.theme || "";
+
+    const themeToggleRecord:GiscusThemeToggleRecord =
+        buildGiscusThemeKeys(Boolean(options.darkModeDefault), giscus.theme as GiscusTheme)
+
+    giscus.baseTheme = themeToggleRecord.baseTheme;
+    giscus.altTheme = themeToggleRecord.altTheme;
+    giscus.theme = giscus.baseTheme;
+
     giscus.mapping = giscus.mapping || "title";
     giscus["reactions-enabled"] = giscus["reactions-enabled"] !== undefined
       ? giscus["reactions-enabled"]
@@ -572,6 +588,7 @@ function htmlFormatFeatureDefaults(
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
     codeAnnotations: !minimal,
+    hoverXrefs: !minimal,
   };
 }
 

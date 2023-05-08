@@ -1,5 +1,3 @@
-local kQuartoRawHtml = "quartoRawHtml"
-local rawHtmlVars = pandoc.List()
 local reactPreamble = pandoc.List()
 
 local function addPreamble(preamble)
@@ -44,25 +42,44 @@ local function tabset(node, filter)
   return tabs
 end
 
+local codeBlock = function(el, filename)
+  local lang = el.attr.classes[1]
+  local title = filename or el.attr.attributes["filename"] or el.attr.attributes["title"]  
+  local showLineNumbers = el.attr.classes:includes('number-lines')
+  if lang or title or showLineNumbers then
+    if not lang then
+      lang = 'text'
+    end
+    local code = "\n```" .. lang
+    if showLineNumbers then
+      code = code .. " showLineNumbers"
+    end
+    if title then
+      code = code .. " title=\"" .. title .. "\""
+    end
+    code = code .. "\n" .. el.text .. "\n```\n"
+
+    -- docusaures code block attributes don't conform to any syntax
+    -- that pandoc natively understands, so return the CodeBlock as
+    -- "raw" markdown (so it bypasses pandoc processing entirely)
+    return pandoc.RawBlock("markdown", code)
+
+  elseif #el.attr.classes == 0 then
+    el.attr.classes:insert('text')
+    return el
+  end
+
+  return nil
+end
+
 function Writer(doc, opts)
   local filter
   filter = {
+    CodeBlock = codeBlock,
+
     DecoratedCodeBlock = function(node)
       local el = node.code_block
-      local lang = el.attr.classes[1]
-      local title = node.filename or el.attr.attributes["filename"] or el.attr.attributes["title"] 
-
-      if lang and title then
-        return pandoc.RawBlock("markdown", 
-          "\n```" .. lang .. " title=\"" .. title .. "\"\n" ..
-          el.text .. "\n```\n"
-        )
-      elseif #el.attr.classes == 0 then
-        el.attr.classes:insert('text')
-        return el
-      end
-
-      return nil
+      return codeBlock(el, node.filename)
     end,
 
     Tabset = function(node)
@@ -82,17 +99,6 @@ function Writer(doc, opts)
   }
   
   doc = quarto._quarto.ast.walk(doc, filter)
-
-  -- insert exports at the top if we have them
-  if #rawHtmlVars > 0 then
-    local exports = ("export const %s =\n[%s];"):format(kQuartoRawHtml, 
-      table.concat(
-        rawHtmlVars:map(function(var) return '`'.. var .. '`' end), 
-        ","
-      )
-    )
-    doc.blocks:insert(1, pandoc.RawBlock("markdown", exports .. "\n"))
-  end
 
   -- insert react preamble if we have it
   if #reactPreamble > 0 then

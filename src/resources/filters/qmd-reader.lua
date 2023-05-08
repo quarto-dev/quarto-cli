@@ -5,10 +5,6 @@
 --
 -- Originally by Albert Krewinkel
 
-local break_quarto_md = require("breakquartomd")
-
-local profiler = require("profiler")
-
 local md_shortcode = require("lpegshortcode")
 
 -- Support the same format extensions as pandoc's Markdown reader
@@ -137,22 +133,19 @@ function Reader (inputs, opts)
   txt = parse_shortcodes(txt)
   local extensions = {}
 
-  for k, v in pairs(opts.extensions) do
-    extensions[v] = true
-  end
-
+  local flavor = {
+    format = "markdown",
+    extensions = {},
+  }
   if param("user-defined-from") then
-    local user_format = _quarto.format.parse_format(param("user-defined-from"))
-    for k, v in pairs(user_format.extensions) do
-      extensions[k] = v
+    flavor = _quarto.format.parse_format(param("user-defined-from"))
+  else 
+    for k, v in pairs(opts.extensions) do
+      flavor.extensions[v] = true
     end
   end
 
   -- Format flavor, i.e., which extensions should be enabled/disabled.
-  local flavor = {
-    format = "markdown",
-    extensions = extensions,
-  }
   local function restore_invalid_tags(tag)
     return tags[tag] or tag
   end
@@ -185,6 +178,5 @@ function Reader (inputs, opts)
       return i
     end,
   }
-
   return doc
 end

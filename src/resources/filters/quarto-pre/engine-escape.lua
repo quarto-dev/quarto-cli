@@ -3,7 +3,7 @@
 
 local kEngineEscapePattern = "{({+([^}]+)}+)}"
 
-function engineEscape()
+function engine_escape()
   return {
     CodeBlock = function(el)
 
@@ -29,7 +29,7 @@ function engineEscape()
   }
 end
 
-
+-- FIXME these should be determined dynamically
 local kHighlightClasses = {
   "abc",
   "actionscript",

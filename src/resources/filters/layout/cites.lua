@@ -2,7 +2,8 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
   
 
-function citesPreprocess()
+function cites_preprocess()
+  -- FIXME do we need parentheses here?
   if not _quarto.format.isLatexOutput() and marginCitations() then
     return { }
   end

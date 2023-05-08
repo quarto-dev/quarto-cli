@@ -40,6 +40,7 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 
@@ -55,10 +56,13 @@ export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
 
+export const kJatsSubarticleId = "jats-subarticle-id";
+
 export const kShortcodes = "shortcodes";
 
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
+export const kKeepTyp = "keep-typ";
 export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
@@ -140,6 +144,7 @@ export const kExecuteDefaultsKeys = [
 
 export const kRenderDefaultsKeys = [
   kKeepTex,
+  kKeepTyp,
   kKeepSource,
   kKeepHidden,
   kVariant,
@@ -178,6 +183,7 @@ export const kRenderDefaultsKeys = [
   kFormatResources,
   kFormatLinks,
   kNotebookLinks,
+  kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
 ];
@@ -412,6 +418,7 @@ export const kInputFiles = "input-files";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
 export const kWrap = "wrap";
+export const kColumns = "columns";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
 export const kEmbedResources = "embed-resources";
@@ -429,6 +436,7 @@ export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
+export const kSectionNumbering = "section-numbering";
 export const kNumberOffset = "number-offset";
 export const kShiftHeadingLevelBy = "shift-heading-level-by";
 export const kNumberDepth = "number-depth";
@@ -578,7 +586,7 @@ export const kPandocDefaultsKeys = [
   kPdfEngineOpts,
   kPdfEngineOpt,
   kWrap,
-  "columns",
+  kColumns,
   "dpi",
   "extract-media",
   kToc,

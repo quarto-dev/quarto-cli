@@ -5,6 +5,10 @@
 kLstCap = "lst-cap"
 -- local kDataCodeAnnonationClz = 'code-annotation-code'
 
+function isListingRef(identifier) 
+  return string.match(identifier, "^lst%-[^ ]+$")
+end
+
 -- process all listings
 function listings()
   

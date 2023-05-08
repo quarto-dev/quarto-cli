@@ -5,21 +5,20 @@
  */
 
 import { LogRecord } from "log/mod.ts";
-
+import { join } from "path/mod.ts";
 import * as ld from "./lodash.ts";
 
 import { renderEjs } from "./ejs.ts";
-import { maybeDisplaySocketError } from "./http.ts";
+import { httpContentResponse, maybeDisplaySocketError } from "./http.ts";
 import { FileResponse } from "./http-types.ts";
 import { LogEventsHandler } from "./log.ts";
-import { kLocalhost } from "./port-consts.ts";
 import { resourcePath } from "./resources.ts";
 import { isRStudioPreview, isRStudioServer } from "./platform.ts";
 import { kTextHtml } from "./mime.ts";
 
 export interface HttpDevServer {
   handle: (req: Request) => boolean;
-  connect: (req: Request) => Promise<Response | undefined>;
+  request: (req: Request) => Promise<Response | undefined>;
   injectClient: (
     req: Request,
     file: Uint8Array,
@@ -34,7 +33,6 @@ export interface HttpDevServer {
 }
 
 export function httpDevServer(
-  port: number,
   timeout: number,
   isRendering: () => boolean,
   stopServer: VoidFunction,
@@ -63,21 +61,35 @@ export function httpDevServer(
     }, timeout * 1000);
   }
 
-  // stream log events to clients
-  LogEventsHandler.onLog(async (logRecord: LogRecord, msg: string) => {
+  const broadcast = (msg: string) => {
     for (let i = clients.length - 1; i >= 0; i--) {
       const socket = clients[i].socket;
       try {
-        await socket.send(
-          "log:" + JSON.stringify({
-            ...logRecord,
-            msgFormatted: msg,
-          }),
-        );
+        socket.send(msg);
       } catch (_e) {
         // we don't want to recurse so we ignore errors here
       }
     }
+  };
+
+  // stream render events to clients
+  HttpDevServerRenderMonitor.monitor({
+    onRenderStart: (lastRenderTime?: number) => {
+      broadcast(`render:start:${lastRenderTime || 0}`);
+    },
+    onRenderStop: (success: boolean) => {
+      broadcast(`render:stop:${success}`);
+    },
+  });
+
+  // stream log events to clients
+  LogEventsHandler.onLog(async (logRecord: LogRecord, msg: string) => {
+    broadcast(
+      "log:" + JSON.stringify({
+        ...logRecord,
+        msgFormatted: msg,
+      }),
+    );
   });
 
   let injectClientInitialized = false;
@@ -90,22 +102,46 @@ export function httpDevServer(
     return iframeURL;
   };
 
+  const kQuartoPreviewJs = "quarto-preview.js";
   return {
     handle: (req: Request) => {
-      return req.headers.get("upgrade") === "websocket";
+      // handle requests for quarto-preview.js
+      const url = new URL(req.url);
+      if (url.pathname === `/${kQuartoPreviewJs}`) {
+        return true;
+      }
+
+      // handle websocket upgrade requests
+      if (req.headers.get("upgrade") === "websocket") {
+        return true;
+      }
+
+      return false;
     },
-    connect: (req: Request) => {
-      try {
-        const { socket, response } = Deno.upgradeWebSocket(req);
-        const client: Client = { socket };
-        if (onSocketClose) {
-          socket.onclose = onSocketClose;
+    request: async (req: Request) => {
+      const url = new URL(req.url);
+      if (url.pathname === `/${kQuartoPreviewJs}`) {
+        const path = resourcePath(join("preview", kQuartoPreviewJs));
+        const contents = await Deno.readFile(path);
+        return httpContentResponse(contents, "text/javascript");
+      } else {
+        try {
+          const { socket, response } = Deno.upgradeWebSocket(req);
+          const client: Client = { socket };
+          socket.onmessage = (ev: MessageEvent<string>) => {
+            if (ev.data === "stop") {
+              stopServer();
+            }
+          };
+          if (onSocketClose) {
+            socket.onclose = onSocketClose;
+          }
+          clients.push(client);
+          return Promise.resolve(response);
+        } catch (e) {
+          maybeDisplaySocketError(e);
+          return Promise.resolve(undefined);
         }
-        clients.push(client);
-        return Promise.resolve(response);
-      } catch (e) {
-        maybeDisplaySocketError(e);
-        return Promise.resolve(undefined);
       }
     },
     clientHtml: (
@@ -113,7 +149,6 @@ export function httpDevServer(
       inputFile?: string,
     ): string => {
       const script = devServerClientScript(
-        port,
         inputFile,
         isPresentation,
         getiFrameURL(req),
@@ -126,7 +161,6 @@ export function httpDevServer(
       inputFile?: string,
     ): FileResponse => {
       const script = devServerClientScript(
-        port,
         inputFile,
         isPresentation,
         getiFrameURL(req),
@@ -168,42 +202,49 @@ export function httpDevServer(
   };
 }
 
+export interface RenderMonitor {
+  onRenderStart: (lastRenderTime?: number) => void;
+  onRenderStop: (success: boolean) => void;
+}
+
+export class HttpDevServerRenderMonitor {
+  public static onRenderStart() {
+    this.renderStart_ = Date.now();
+    this.handlers_.forEach((handler) =>
+      handler.onRenderStart(this.lastRenderTime_)
+    );
+  }
+
+  public static onRenderStop(success: boolean) {
+    if (this.renderStart_) {
+      this.lastRenderTime_ = Date.now() - this.renderStart_;
+      this.renderStart_ = undefined;
+    }
+    this.handlers_.forEach((handler) => handler.onRenderStop(success));
+  }
+
+  public static monitor(handler: RenderMonitor) {
+    this.handlers_.push(handler);
+  }
+
+  private static handlers_ = new Array<RenderMonitor>();
+
+  private static renderStart_: number | undefined;
+  private static lastRenderTime_: number | undefined;
+}
+
 function devServerClientScript(
-  port: number,
   inputFile?: string,
   isPresentation?: boolean,
   iframeURL?: URL,
 ): string {
-  // core devserver
-  const devserver = [
-    renderEjs(devserverHtmlResourcePath("core"), {
-      localhost: kLocalhost,
-      port,
-    }),
-  ];
-  if (isPresentation) {
-    devserver.push(
-      renderEjs(devserverHtmlResourcePath("revealjs"), {}),
-    );
-  } else {
-    // viewer devserver
-    devserver.push(
-      renderEjs(devserverHtmlResourcePath("viewer"), {
-        inputFile: inputFile || "",
-      }),
-    );
-  }
-
-  if (iframeURL) {
-    devserver.push(
-      renderEjs(devserverHtmlResourcePath("iframe"), {
-        origin: devserverOrigin(iframeURL),
-        search: iframeURL.search,
-      }),
-    );
-  }
-
-  return devserver.join("\n");
+  const options = {
+    origin: iframeURL ? devserverOrigin(iframeURL) : null,
+    search: iframeURL ? iframeURL.search : null,
+    inputFile: inputFile || null,
+    isPresentation: !!isPresentation,
+  };
+  return renderEjs(resourcePath(`preview/quarto-preview.html`), options);
 }
 
 function devserverOrigin(iframeURL: URL) {
@@ -212,10 +253,6 @@ function devserverOrigin(iframeURL: URL) {
   } else {
     return iframeURL.origin;
   }
-}
-
-function devserverHtmlResourcePath(resource: string) {
-  return resourcePath(`editor/devserver/devserver-${resource}.html`);
 }
 
 export function viewerIFrameURL(req: Request) {

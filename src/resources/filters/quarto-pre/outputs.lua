@@ -1,7 +1,7 @@
 
 
-function outputs()
-  -- the param("output-divs", true) check is now done in indices.lua
+function unroll_cell_outputs()
+  -- the param("output-divs", true) check is now done in flags.lua
 
   return {
     -- unroll output divs for formats (like pptx) that don't support them

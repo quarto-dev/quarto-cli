@@ -44,8 +44,9 @@
 - name: papersize
   schema: string
   tags:
-    formats: [$pdf-all]
-  description: The paper size for the document.
+    formats: [$pdf-all, typst]
+  description: |
+    The paper size for the document.
 
 - name: layout
   schema:

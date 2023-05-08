@@ -39,6 +39,10 @@ import {
 } from "./output-tex.ts";
 import { formatOutputFile } from "../../core/render.ts";
 import { kYamlMetadataBlock } from "../../core/pandoc/pandoc-formats.ts";
+import {
+  typstPdfOutputRecipe,
+  useTypstPdfOutputRecipe,
+} from "./output-typst.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -77,6 +81,8 @@ export function outputRecipe(
     return quartoLatexmkOutputRecipe(input, output, options, format);
   } else if (useContextPdfOutputRecipe(format, options.flags)) {
     return contextPdfOutputRecipe(input, output, options, format);
+  } else if (useTypstPdfOutputRecipe(format)) {
+    return typstPdfOutputRecipe(input, output, options, format);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
@@ -196,5 +202,16 @@ export function outputRecipe(
 
     // return
     return recipe;
+  }
+}
+
+export function normalizeOutputPath(input: string, output: string) {
+  if (isAbsolute(output)) {
+    return output;
+  } else {
+    return relative(
+      dirname(input),
+      output,
+    );
   }
 }

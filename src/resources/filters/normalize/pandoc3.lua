@@ -12,7 +12,7 @@ function parse_pandoc3_figures()
     end
     return {
       traverse = "topdown",
-      BulletList = plain_figure_treatment,
+      BulletList = para_figure_treatment,
       BlockQuote = plain_figure_treatment,
       Table = plain_figure_treatment,
       Div = para_figure_treatment,
@@ -27,7 +27,7 @@ function parse_pandoc3_figures()
               for k, v in pairs(fig.attributes) do
                 image.attributes[k] = v
               end
-              indices.has_figure_divs = true
+              flags.has_figure_divs = true
               if fig.identifier ~= "" then
                 if not forwarded_id then
                   image.identifier = fig.identifier
@@ -55,11 +55,11 @@ function parse_pandoc3_figures()
 end
 
 function render_pandoc3_figures() 
-  -- only do this in jats because other formats emit <figure> inadvertently otherwise
+  -- only do this in jats and typst because other formats emit <figure> inadvertently otherwise
   -- with potentially bad captions.
   -- 
   -- this will change with new crossref system anyway.
-  if not _quarto.format.isJatsOutput() then
+  if not _quarto.format.isJatsOutput() and not _quarto.format.isTypstOutput() then
     return {}
   end
   

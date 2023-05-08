@@ -18,7 +18,6 @@ import {
   notebookMarkdownPlaceholder,
   parseNotebookAddress,
 } from "../jupyter/jupyter-embed.ts";
-import { dirname, isAbsolute, join } from "path/mod.ts";
 
 interface EmbedHandler {
   name: string;
@@ -83,7 +82,7 @@ const embedHandler: LanguageHandler = {
   languageName: "embed",
 
   type: "directive",
-  stage: "pre-engine",
+  stage: "post-engine",
 
   async directive(
     handlerContext: LanguageCellHandlerContext,

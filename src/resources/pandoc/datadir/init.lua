@@ -1264,6 +1264,10 @@ modify_lua_functions{
 
 -- Bootstrap our common libraries by adding our filter pandoc to the lib path
 local sharePath = os.getenv("QUARTO_SHARE_PATH");
+-- TODO: Need to ensure that we are resolving ahead of the other path
+-- and understand consequences
+-- Be aware of user filters which may be using require - need to be able load their modules safely
+-- Maybe namespace quarto modules somehow or alter path for user filters
 if sharePath ~= nil then 
   local sep = package.config:sub(1,1)
   package.path = package.path .. ";" .. sharePath .. sep .. 'pandoc' .. sep .. 'datadir' .. sep .. '?.lua'

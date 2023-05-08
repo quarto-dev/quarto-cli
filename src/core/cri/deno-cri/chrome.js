@@ -8,14 +8,7 @@
 
 import EventEmitter from "events/mod.ts";
 
-// const util = require('util');
-import { format as formatUrl, parse as parseUrl } from "node/url.ts";
-import { nextTick } from "node/_next_tick.ts";
-
-/* const formatUrl = require('url').format;
-const parseUrl = require('url').parse;
- */
-// const WebSocket = require('ws');
+import { nextTick } from "../../deno/next-tick.ts";
 
 import * as api from "./api.js";
 import * as defaults from "./defaults.js";
@@ -185,9 +178,9 @@ export default class Chrome extends EventEmitter {
       // fetch the WebSocket debugger URL
       const url = await this._fetchDebuggerURL(options);
       // allow the user to alter the URL
-      const urlObject = parseUrl(url);
+      const urlObject = new URL(url);
       urlObject.pathname = options.alterPath(urlObject.pathname);
-      this.webSocketUrl = formatUrl(urlObject);
+      this.webSocketUrl = urlObject.href;
       // update the connection parameters using the debugging URL
       options.host = urlObject.hostname;
       options.port = urlObject.port || options.port;

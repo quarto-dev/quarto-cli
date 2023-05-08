@@ -20,6 +20,7 @@ function run_emulated_filter(doc, filter)
   if doc == nil then
     return nil
   end
+
   local state = (preState or postState).extendedAstHandlers
   local needs_custom = false
   local sz = 0

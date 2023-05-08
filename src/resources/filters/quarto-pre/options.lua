@@ -5,7 +5,7 @@
 local allOptions = {}
 
 -- initialize options from 'crossref' metadata value
-function initOptions()
+function init_options()
   return {
     Meta = function(meta)
       if meta ~= nil then

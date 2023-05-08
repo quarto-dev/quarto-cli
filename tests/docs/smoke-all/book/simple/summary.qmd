@@ -1,0 +1,12 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - [".chapter-number",]
+---        
+
+# Summary
+
+In summary, this book has no content whatsoever.

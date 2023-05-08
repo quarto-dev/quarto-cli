@@ -1,0 +1,14 @@
+---
+format: html
+filters:
+  - quarto
+  - post_table_check.lua
+---
+
+```{=html}
+<table>
+```
+
+```{=html}
+</table>
+```

@@ -14,7 +14,12 @@ import * as colors from "fmt/colors.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import * as ld from "../../core/lodash.ts";
 
-import { kKeepMd, kTargetFormat } from "../../config/constants.ts";
+import {
+  kKeepMd,
+  kKeepTex,
+  kKeepTyp,
+  kTargetFormat,
+} from "../../config/constants.ts";
 
 import {
   kProjectExecuteDir,
@@ -274,11 +279,18 @@ export async function renderProject(
     // move or copy dir
     return (dir: string, copy = false) => {
       const targetDir = join(destinationDir, dir);
-      if (existsSync(targetDir)) {
-        Deno.removeSync(targetDir, { recursive: true });
-      }
       const srcDir = join(projDir, dir);
+      // Dont' remove the directory unless there is a source
+      // directory that we can relocate
+      //
+      // If we intend for the directory relocated to be used to
+      // remove directories, we should instead make a function that
+      // does that explicitly, rather than as a side effect of a missing
+      // src Dir
       if (existsSync(srcDir)) {
+        if (existsSync(targetDir)) {
+          Deno.removeSync(targetDir, { recursive: true });
+        }
         ensureDirSync(dirname(targetDir));
         if (copy) {
           copyTo(srcDir, targetDir);
@@ -321,7 +333,9 @@ export async function renderProject(
       }
 
       // files dir
-      const keepFiles = !!renderedFile.format.execute[kKeepMd];
+      const keepFiles = !!renderedFile.format.execute[kKeepMd] ||
+        !!renderedFile.format.render[kKeepTex] ||
+        !!renderedFile.format.render[kKeepTyp];
       keepLibsDir = keepLibsDir || keepFiles;
       if (renderedFile.supporting) {
         // lib-dir is handled separately for projects so filter it out of supporting
@@ -377,16 +391,27 @@ export async function renderProject(
       });
     }
 
-    // Perform the file operations (deepest folder first)
+    // Sort the operations in order from shallowest to deepest
+    // This means that parent directories will happen first (so for example
+    // foo_files will happen before foo_files/figure-html). This is
+    // desirable because if the order of operations is something like:
+    //
+    // foo_files/figure-html (move)
+    // foo_files             (move)
+    //
+    // The second operation overwrites the folder foo_files with a copy that is
+    // missing the figure_html directory. (Render a document to JATS and HTML
+    // as an example case)
     const sortedOperations = fileOperations.sort((a, b) => {
       if (a.src === b.src) {
         return 0;
       } else if (isSubdir(a.src, b.src)) {
-        return 1;
-      } else {
         return -1;
+      } else {
+        return 1;
       }
     });
+
     sortedOperations.forEach((op) => {
       op.performOperation();
     });
@@ -558,13 +583,14 @@ export async function renderProject(
           context,
           projType,
         );
-
         const file = outputDir
           ? join(outputDir, result.file)
           : join(projDir, result.file);
         return {
           file,
           format: result.format,
+          resources: result.resourceFiles,
+          supporting: result.supporting,
         };
       });
 
@@ -620,7 +646,6 @@ export async function renderProject(
       incremental,
     );
   }
-
   return projResults;
 }
 

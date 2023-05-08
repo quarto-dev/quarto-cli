@@ -124,7 +124,7 @@ _quarto.ast.add_handler({
 
 local calloutidx = 1
 
-function callout() 
+function docx_callout_and_table_fixup() 
   if not _quarto.format.isDocxOutput() then
     return {}
   end

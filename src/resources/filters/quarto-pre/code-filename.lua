@@ -13,43 +13,13 @@ local function codeBlockWithFilename(el, filename)
     filename = filename,
     code_block = el:clone()
   })
-  -- if _quarto.format.isHtmlOutput() then
-  --   local filenameEl = pandoc.Div({pandoc.Plain{
-  --     pandoc.RawInline("html", "<pre>"),
-  --     pandoc.Strong{pandoc.Str(filename)},
-  --     pandoc.RawInline("html", "</pre>")
-  --   }}, pandoc.Attr("", {"code-with-filename-file"}))
-  --   return pandoc.Div(
-  --     { filenameEl, el:clone() },
-  --     pandoc.Attr("", {"code-with-filename"})
-  --   )
-  -- else
-  --   return pandoc.Div(
-  --     { pandoc.Plain{pandoc.Strong{pandoc.Str(filename)}}, el:clone() },
-  --     pandoc.Attr("", {"code-with-filename"})
-  --   )
-  -- end
 end
 
-function codeFilename()
+function code_filename()
   local code_filename_filter = {
-    -- Div = function(div)
-    --   local filename = div.attributes["filename"]
-    --   if filename ~= nil and div.content[1].t == "CodeBlock" then
-    --     div.attributes["filename"] = nil
-    --     div.content[1] = codeBlockWithFilename(div.content[1], filename)
-    --     return div
-    --   end
-    --   return div
-    -- end,
-    -- CodeBlock = function(div)
-    --   local filename = div.attributes["filename"]
-    --   if filename ~= nil then
-    --     div.attributes["filename"] = nil
-    --     return codeBlockWithFilename(div, filename)
-    --   end
-    --   return div
-    -- end,
+    -- FIXME this should be a CodeBlock and Div filter instead of Blocks,
+    -- we're not splicing.
+    
     -- transform ast for 'filename'
     Blocks = function(blocks)
       local foundFilename = false

@@ -1,0 +1,14 @@
+project:
+  type: website
+
+website:
+  comments:
+    giscus:
+      repo: allenmanning/giscus-examples
+      theme: cobalt
+
+format:
+  html:
+    theme:
+      light: lightly
+      dark: darkly

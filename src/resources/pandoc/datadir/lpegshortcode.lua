@@ -13,6 +13,10 @@ end
 
 local id = function(s) return s end
 
+local function trim_end(s) 
+  return string.gsub(s, "%s*$", "") 
+end
+
 -- lpeg helpers
 local Space = lpeg.S(" \n\t")^0
 
@@ -44,7 +48,7 @@ local function md_escaped_shortcode(s)
 end
 
 local function md_string_param(s)
-  return "[]{." .. quarto_shortcode_class_prefix .. "-param data-raw=\"" .. escape(s) .. "\"}"
+  return "[]{." .. quarto_shortcode_class_prefix .. "-param data-raw=\"" .. escape(trim_end(s)) .. "\"}"
 end
 
 local function md_keyvalue_param(k, v)
@@ -161,7 +165,7 @@ local escaped_string = into_string(
     end
   end)
 
-  -- local unshortcode = lpeg.P("[]{.quarto-shortcode__-param data-raw=\"") * (lpeg.P("value") / id) * lpeg.P("\"}")
+-- local unshortcode = lpeg.P("[]{.quarto-shortcode__-param data-raw=\"") * (lpeg.P("value") / id) * lpeg.P("\"}")
 local unshortcode = lpeg.P({
   "Text",
   Text = into_string((lpeg.V("Shortcodespan") + lpeg.P(1) / id)^1),

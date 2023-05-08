@@ -19,7 +19,7 @@ import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
 import { Format } from "../../config/types.ts";
 import { isHtmlFileOutput, isLatexOutput } from "../../config/format.ts";
-import { kKeepMd, kKeepTex } from "../../config/constants.ts";
+import { kKeepMd, kKeepTex, kKeepTyp } from "../../config/constants.ts";
 
 import { filesDirLibDir, filesDirMediabagDir } from "./render-paths.ts";
 
@@ -48,7 +48,10 @@ export function renderCleanup(
   // if we aren't keeping the markdown or text and we are instructed to
   // clean supporting files then do it
   if (
-    !format.execute[kKeepMd] && !format.render[kKeepTex] && supporting
+    !format.execute[kKeepMd] &&
+    !format.render[kKeepTex] &&
+    !format.render[kKeepTyp] &&
+    supporting
   ) {
     // ammend supporting with lib dir (if it exists) for html formats
     if (isHtmlFileOutput(format.pandoc)) {

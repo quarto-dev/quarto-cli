@@ -1,0 +1,21 @@
+project:
+  type: book
+
+book:
+  title: "Simple"
+  author: "Norah Jones"
+  date: "4/26/2023"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    number-sections: false
+
+

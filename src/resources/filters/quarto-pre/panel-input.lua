@@ -1,7 +1,7 @@
 -- panel-input.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-function panelInput() 
+function bootstrap_panel_input() 
 
   return {
     Div = function(el)

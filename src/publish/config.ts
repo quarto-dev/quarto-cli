@@ -5,7 +5,7 @@
  */
 
 import { warning } from "log/mod.ts";
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 import { basename, dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -17,6 +17,7 @@ import { ProjectContext } from "../project/types.ts";
 import { PublishDeployments, PublishRecord } from "./types.ts";
 import { AccountToken } from "./provider-types.ts";
 import { writePublishRecord } from "./common/data.ts";
+import { existsSync1 } from "../core/file.ts";
 
 export function readPublishDeployments(
   source: string,
@@ -187,5 +188,5 @@ const kDefaultPublishDeploymentsFile = "_publish.yml";
 export function publishDeploymentsFile(dir: string): string | undefined {
   return [kDefaultPublishDeploymentsFile, "_publish.yaml"]
     .map((file) => join(dir, file))
-    .find(existsSync);
+    .find(existsSync1);
 }

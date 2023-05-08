@@ -1,9 +1,8 @@
 /*
-* format-html-scss.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-scss.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, isAbsolute, join } from "path/mod.ts";
@@ -481,6 +480,7 @@ const kCodeBorderLeft = "code-block-border-left";
 const kCodeBlockBackground = "code-block-bg";
 const kBackground = "background";
 const kForeground = "foreground";
+const kTogglePosition = "toggle-position";
 const kColor = "color";
 const kBorder = "border";
 
@@ -524,6 +524,20 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
             typeof (navbarForeground) === "string"
               ? asBootstrapColor
               : undefined,
+          ),
+        ),
+      );
+    }
+
+    // Forward the toggle-position
+    const navbarTogglePosition =
+      (navbar as Record<string, unknown>)[kTogglePosition];
+    if (navbarTogglePosition !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "navbar-toggle-position",
+            navbarTogglePosition,
           ),
         ),
       );

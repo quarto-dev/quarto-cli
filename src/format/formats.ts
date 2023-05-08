@@ -46,6 +46,7 @@ import {
   pandocMarkdownFormat,
 } from "./markdown/format-markdown.ts";
 import { jatsFormat } from "./jats/format-jats.ts";
+import { typstFormat } from "./typst/format-typst.ts";
 import { mergePandocVariant } from "../config/metadata.ts";
 import { writerFormatHandlers } from "./format-handlers.ts";
 
@@ -222,6 +223,10 @@ export function defaultWriterFormat(to: string): Format {
         break;
       case "csljson":
         writerFormat = bibliographyFormat("CSL-JSON", "csl");
+        break;
+
+      case "typst":
+        writerFormat = typstFormat();
         break;
 
       case "texttile":

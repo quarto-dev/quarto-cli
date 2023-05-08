@@ -28,7 +28,6 @@ import("./ast/runemulation.lua")
 import("./ast/traceexecution.lua")
 import("./ast/wrappedwriter.lua")
 
-import("./common/authors.lua")
 import("./common/base64.lua")
 import("./common/citations.lua")
 import("./common/colors.lua")
@@ -39,7 +38,6 @@ import("./common/filemetadata.lua")
 import("./common/format.lua")
 import("./common/latex.lua")
 import("./common/layout.lua")
-import("./common/license.lua")
 import("./common/list.lua")
 import("./common/log.lua")
 import("./common/lunacolors.lua")
@@ -85,7 +83,7 @@ import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
 
-import("./normalize/indices.lua")
+import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/pandoc3.lua")
@@ -105,6 +103,8 @@ import("./layout/table.lua")
 import("./layout/figures.lua")
 import("./layout/cites.lua")
 import("./layout/columns.lua")
+import("./layout/manuscript.lua")
+
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
 import("./crossref/index.lua")
@@ -120,6 +120,7 @@ import("./crossref/refs.lua")
 import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
+import("./crossref/jats.lua")
 --import("./crossref/crossref.lua")
 
 import("./quarto-pre/bibliography-formats.lua")
@@ -164,9 +165,9 @@ initShortcodeHandlers()
 
 local quartoInit = {
   { name = "init-configure-filters", filter = configureFilters() },
-  { name = "init-readIncludes", filter = readIncludes() },
-  { name = "init-metadataResourceRefs", filter = combineFilters({
-    fileMetadata(),
+  { name = "init-read-includes", filter = readIncludes() },
+  { name = "init-metadata-resource-refs", filter = combineFilters({
+    file_metadata(),
     resourceRefs()
   })},
 }
@@ -174,30 +175,32 @@ local quartoInit = {
 local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return preState.active_filters.normalization
-  end, normalizeFilter()) },
+  end, normalize_filter()) },
 
-  -- 2023-04-11: We want to combine these filters but extract_quarto_dom
+  -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
   -- can't be combined with parse_html_tables because combineFilters
   -- doesn't inspect the contents of the results in the inner loop.
   { name = "normalize-combined", filter = combineFilters({
       parse_html_tables(),
-      parseExtendedNodes(),
+      parse_extended_nodes(),
     })
   },
   { 
     name = "normalize-extractQuartoDom", 
-    filter = extract_quarto_dom(),
-    indices = {
-      "needs_dom_processing"
-    }
+    filter = parse_md_in_html_rawblocks(),
   },
 }
 
 local quartoPre = {
   -- quarto-pre
 
-  -- TODO we need to recompute indices on the results of the user filters
-  { name = "pre-quartoBeforeExtendedUserFilters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+  -- TODO we need to compute flags on the results of the user filters
+  { name = "pre-run-user-filters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+
+  -- do this early so we can compute maxHeading while in the big traversal
+  { name = "crossref-init-crossref-options", filter = init_crossref_options() },
+
+  { name = "flags", filter = compute_flags() },
 
   -- do this early so we can compute maxHeading while in the big traversal
   { name = "crossref-initCrossrefOptions", filter = initCrossrefOptions() },
@@ -208,102 +211,102 @@ local quartoPre = {
   -- recompute options object in case user filters have changed meta
   -- this will need to change in the future; users will have to indicate
   -- when they mutate options
-  { name = "pre-quartoAfterUserFilters", filter = initOptions() },
+  { name = "pre-read-options-again", filter = init_options() },
 
-  { name = "normalize-parse-pandoc3-figures", 
+  { name = "pre-parse-pandoc3-figures", 
     filter = parse_pandoc3_figures(), 
-    indices = { "has_pandoc3_figure" } 
+    flags = { "has_pandoc3_figure" } 
   },
 
-  { name = "pre-bibliographyFormats", filter = bibliographyFormats() }, 
+  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
   
-  { name = "pre-shortcodes_filter", 
+  { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
-    indices = { "has_shortcodes" } },
+    flags = { "has_shortcodes" } },
 
-  { name = "pre-tableMergeRawHtml", 
-    filter = tableMergeRawHtml(),
-    indices = { "has_partial_raw_html_tables" } },
+  { name = "pre-table-merge-raw-html", 
+    filter = table_merge_raw_html(),
+    flags = { "has_partial_raw_html_tables" } },
 
-  { name = "pre-tableRenderRawHtml", 
-    filter = tableRenderRawHtml(),
-    indices = { "has_raw_html_tables", "has_gt_tables" } },
+  { name = "pre-table-render-raw-html", 
+    filter = table_render_raw_html(),
+    flags = { "has_raw_html_tables", "has_gt_tables" } },
 
-  { name = "pre-tableColwidthCell", 
-    filter = tableColwidthCell(),
-    indices = { "has_tbl_colwidths" } },
+  { name = "pre-table-colwidth-cell", 
+    filter = table_colwidth_cell(),
+    flags = { "has_tbl_colwidths" } },
 
-  { name = "pre-tableColwidth", 
-    filter = tableColwidth(), 
-    indices = { "has_tables" } },
+  { name = "pre-table-colwidth", 
+    filter = table_colwidth(), 
+    flags = { "has_tables" } },
   
-  { name = "pre-tableClasses", 
-    filter = tableClasses(),
-    indices = { "has_tables" } },
+  { name = "pre-table-classes", 
+    filter = table_classes(),
+    flags = { "has_tables" } },
 
   { name = "pre-hidden", 
     filter = hidden(), 
-    indices = { "has_hidden" } },
+    flags = { "has_hidden" } },
 
-  { name = "pre-contentHidden", 
-    filter = contentHidden(),
-    indices = { "has_conditional_content" } },
+  { name = "pre-content-hidden", 
+    filter = content_hidden(),
+    flags = { "has_conditional_content" } },
 
-  { name = "pre-tableCaptions", 
-    filter = tableCaptions(),
-    indices = { "has_table_captions" } },
+  { name = "pre-table-captions", 
+    filter = table_captions(),
+    flags = { "has_table_captions" } },
 
-  { name = "pre-longtable_no_caption_fixup", 
+  { name = "pre-longtable-no-caption-fixup", 
     filter = longtable_no_caption_fixup(),
-    indices = { "has_longtable_no_caption_fixup" } },
+    flags = { "has_longtable_no_caption_fixup" } },
   
   { name = "pre-code-annotations", 
-    filter = code(),
-    indices = { "has_code_annotations" } },
+    filter = code_annotations(),
+    flags = { "has_code_annotations" } },
   
-  { name = "pre-code-annotations-meta", filter = codeMeta() },
+  { name = "pre-code-annotations-meta", filter = code_meta() },
 
-  { name = "pre-outputs", 
-    filter = outputs(),
-    indices = { "needs_output_unrolling" } },
+  { name = "pre-unroll-cell-outputs", 
+    filter = unroll_cell_outputs(),
+    flags = { "needs_output_unrolling" } },
 
-  { name = "pre-outputLocation", 
-    filter = outputLocation()
+  { name = "pre-output-location", 
+    filter = output_location()
   },
 
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
-    fileMetadata(),
-    indexBookFileTargets(),
-    bookNumbering(),
-    includePaths(),
-    resourceFiles(),
-    quartoPreFigures(),
-    quartoPreTheorems(),
-    callout(),
-    codeFilename(),
-    lineNumbers(),
-    engineEscape(),
-    panelInput(),
-    panelLayout(),
-    panelSidebar(),
-    inputTraits()
+    file_metadata(),
+    index_book_file_targets(),
+    book_numbering(),
+    include_paths(),
+    resource_files(),
+    quarto_pre_figures(),
+    quarto_pre_theorems(),
+    docx_callout_and_table_fixup(),
+    code_filename(),
+    line_numbers(),
+    engine_escape(),
+    bootstrap_panel_input(),
+    bootstrap_panel_layout(),
+    bootstrap_panel_sidebar(),
+    input_traits()
   }) },
 
   { name = "pre-combined-book-file-targets", filter = combineFilters({
-    fileMetadata(),
-    resolveBookFileTargets(),
+    file_metadata(),
+    resolve_book_file_targets(),
   }) },
 
-  { name = "pre-quartoPreMetaInject", filter = quartoPreMetaInject() },
-  { name = "pre-writeResults", filter = writeResults() },
-  { name = "pre-projectPaths", filter = projectPaths() }
+  { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
+  { name = "pre-write-results", filter = write_results() },
+  { name = "pre-project-paths", filter = project_paths() },
 }
 
 local quartoPost = {
   -- quarto-post
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
-    indices = { "has_output_cells" } },
+    flags = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
@@ -321,7 +324,12 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
-  { name = "post-render-jats", filter = jats() },
+  { name = "post-render-jats", filter = filterIf(function()
+    return preState.active_filters.jats_subarticle == nil or not preState.active_filters.jats_subarticle
+  end, jats()) },
+  { name = "post-render-jats-subarticle", filter = filterIf(function()
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+  end, jatsSubarticle()) },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
   { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
@@ -332,7 +340,7 @@ local quartoFinalize = {
     -- quarto-finalize
     { name = "finalize-fileMetadataAndMediabag", filter =
     combineFilters({
-      fileMetadata(),
+      file_metadata(),
       mediabag()
     })
   },
@@ -344,21 +352,22 @@ local quartoFinalize = {
 }
 
 local quartoLayout = {
-  { name = "layout-columnsPreprocess", filter = columnsPreprocess() },
+  { name = "manuscript filtering", filter = manuscript() },
+  { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
-  { name = "layout-citesPreprocess", filter = citesPreprocess() },
+  { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layoutPanels(), indices =
+  { name = "layout-panels", filter = layout_panels(), flags =
     { "has_layout_attributes", "has_tbl_parent" } },
-  { name = "layout-extendedFigures", filter = extendedFigures(), indices = 
+  { name = "layout-extended-figures", filter = extended_figures(), flags = 
     { "has_discoverable_figures", "has_figure_divs"} },
-  { name = "layout-metaInject", filter = layoutMetaInject() }
+  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
 }
 
 local quartoCrossref = {
 
-  { name = "crossref-preprocess", filter = crossrefPreprocess(),
-    indices = { 
+  { name = "crossref-preprocess", filter = crossref_preprocess(),
+    flags = { 
       "has_figure_or_table_ref", 
       "has_discoverable_figures",
       "has_table_with_long_captions",
@@ -366,22 +375,27 @@ local quartoCrossref = {
     } },
 
   { name = "crossref-preprocessTheorems", 
-    filter = crossrefPreprocessTheorems(),
-    indices = { "has_theorem_refs" } },
+    filter = crossref_preprocess_theorems(),
+    flags = { "has_theorem_refs" } },
+
+  { name = "pre-render-jats-subarticle", filter = filterIf(function()
+    -- FIXME if we're using the latter clause I think we don't need the former
+    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+    end, jats_subarticle_crossref()) },
 
   { name = "crossref-combineFilters", filter = combineFilters({
-    fileMetadata(),
+    file_metadata(),
     qmd(),
     sections(),
-    crossrefFigures(),
-    crossrefTables(),
+    crossref_figures(),
+    crossref_tables(),
     equations(),
     listings(),
-    crossrefTheorems(),
+    crossref_theorems(),
   })},
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),
-    indices = { "has_cites" } },
+    flags = { "has_cites" } },
     
   { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
   { name = "crossref-writeIndex", filter = writeIndex() },
@@ -399,7 +413,7 @@ tappend(filterList, quartoFinalize)
 
 local result = run_as_extended_ast({
   pre = {
-    initOptions()
+    init_options()
   },
   afterFilterPass = function() 
     -- After filter pass is called after each pass through a filter group

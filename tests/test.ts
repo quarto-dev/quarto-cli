@@ -120,7 +120,7 @@ export function test(test: TestDescriptor) {
   const ignore = test.context.ignore;
   const userSession = !runningInCI();
 
-  Deno.test({
+  const args: Deno.TestDefinition = {
     name: testName,
     async fn(context) {
       await initDenoDom();
@@ -258,7 +258,13 @@ export function test(test: TestDescriptor) {
     sanitizeExit,
     sanitizeOps,
     sanitizeResources,
-  });
+  };
+
+  // work around 1.32.5 bug: https://github.com/denoland/deno/issues/18784
+  if (args.ignore === undefined) {
+    delete args.ignore;
+  }
+  Deno.test(args);
 }
 
 function readExecuteOutput(log: string) {

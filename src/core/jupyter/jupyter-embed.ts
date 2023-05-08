@@ -33,7 +33,11 @@ import {
 } from "../../config/format.ts";
 import { resolveParams } from "../../command/render/flags.ts";
 import { RenderContext, RenderFlags } from "../../command/render/types.ts";
-import { JupyterAssets, JupyterCellOutput } from "../jupyter/types.ts";
+import {
+  JupyterAssets,
+  JupyterCell,
+  JupyterCellOutput,
+} from "../jupyter/types.ts";
 
 import { dirname, extname, join } from "path/mod.ts";
 import { languages } from "../handlers/base.ts";
@@ -53,11 +57,12 @@ export interface JupyterNotebookAddress {
   indexes?: number[];
 }
 
-export interface JupyterMarkdownOptions
-  extends Record<string, boolean | undefined> {
+export interface JupyterMarkdownOptions extends Record<string, unknown> {
   echo?: boolean;
   warning?: boolean;
   asis?: boolean;
+  preserveCellMetadata?: boolean;
+  filter?: (cell: JupyterCell) => boolean;
 }
 
 interface JupyterNotebookOutputCache extends ObjectWithLifetime {
@@ -150,7 +155,7 @@ export function notebookMarkdownPlaceholder(
 // rendered contents.
 export async function replaceNotebookPlaceholders(
   to: string,
-  input: string,
+  _input: string,
   context: RenderContext,
   flags: RenderFlags,
   markdown: string,
@@ -158,6 +163,7 @@ export async function replaceNotebookPlaceholders(
   const assetCache: Record<string, JupyterAssets> = {};
   let match = kPlaceholderRegex.exec(markdown);
   let includes;
+  const notebooks: string[] = [];
   while (match) {
     // Parse the address and if this is a notebook
     // then proceed with the replacement
@@ -223,8 +229,12 @@ export async function replaceNotebookPlaceholders(
         nbOutputs,
       );
 
+      if (nbMarkdown && !notebooks.includes(nbAddress.path)) {
+        notebooks.push(nbAddress.path);
+      }
+
       // Replace the placeholders with the rendered markdown
-      markdown = markdown.replaceAll(match[0], nbMarkdown);
+      markdown = markdown.replaceAll(match[0], nbMarkdown || "");
     }
     match = kPlaceholderRegex.exec(markdown);
   }
@@ -235,6 +245,7 @@ export async function replaceNotebookPlaceholders(
   });
 
   return {
+    notebooks,
     includes,
     markdown,
     supporting,
@@ -250,7 +261,7 @@ function resolveNbPath(input: string, path: string) {
 }
 
 // Gets the markdown for a specific notebook and set of options
-async function notebookMarkdown(
+export async function notebookMarkdown(
   inputPath: string,
   nbAddress: JupyterNotebookAddress,
   assets: JupyterAssets,
@@ -270,6 +281,11 @@ async function notebookMarkdown(
     outputs,
   );
 
+  // This notebook is empty
+  if (notebookInfo.outputs.length === 0) {
+    return undefined;
+  }
+
   // Wrap any injected cells with a div that includes a back link to
   // the notebook that originated the cells
   const notebookMarkdown = (
@@ -277,11 +293,12 @@ async function notebookMarkdown(
     cells: JupyterCellOutput[],
     title?: string,
   ) => {
+    const cellId = cells.length > 0 ? cells[0].id || "" : "";
     const markdown = [
       "",
       `:::{.quarto-embed-nb-cell notebook="${nbAddress.path}" ${
         title ? `notebook-title="${title}"` : ""
-      }}`,
+      } notebook-cellId="${cellId}"}`,
     ];
 
     const cellOutput = cells.map((cell) => cell.markdown).join("");
@@ -314,7 +331,7 @@ async function notebookMarkdown(
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
-      if (idx < 1 || idx >= notebookInfo.outputs.length) {
+      if (idx < 1 || idx > notebookInfo.outputs.length) {
         throw new Error(
           `The cell index ${idx} isn't within the range of cells`,
         );
@@ -416,6 +433,17 @@ async function getCachedNotebookInfo(
       });
     }
 
+    // Filter the cells, if applicable
+    if (options?.filter) {
+      notebook.cells = notebook.cells.filter((cell) => {
+        if (options?.filter) {
+          return options?.filter(cell);
+        } else {
+          return true;
+        }
+      });
+    }
+
     // Get the markdown for the notebook
     const format = context.format;
     const executeOptions = {
@@ -441,6 +469,7 @@ async function getCachedNotebookInfo(
         assets,
         execute: format.execute,
         keepHidden: format.render[kKeepHidden],
+        preserveCellMetadata: options?.preserveCellMetadata,
         toHtml: isHtmlCompatible(format),
         toLatex: isLatexOutput(format.pandoc),
         toMarkdown: isMarkdownOutput(format),
@@ -486,7 +515,9 @@ function notebookCacheKey(
 ) {
   const optionsKey = nbOptions
     ? Object.keys(nbOptions).reduce((current, key) => {
-      if (nbOptions[key] !== undefined) {
+      if (
+        nbOptions[key] !== undefined && typeof (nbOptions[key] === "boolean")
+      ) {
         return current + `${key}:${String(nbOptions[key])}`;
       } else {
         return current;

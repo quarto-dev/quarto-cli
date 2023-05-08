@@ -31,6 +31,7 @@ import {
   kCodeToolsShowAllCode,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
+  kColumns,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kCrossrefApxPrefix,
@@ -93,6 +94,7 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
+  kKeepTyp,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -132,6 +134,7 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
   kNumberOffset,
@@ -204,6 +207,7 @@ import {
   kVariant,
   kWarning,
   kWebtex,
+  kWrap,
 } from "./constants.ts";
 
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
@@ -378,6 +382,7 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepTex]?: boolean;
+  [kKeepTyp]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
@@ -418,8 +423,9 @@ export interface FormatRender {
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
-  [kFormatLinks]?: boolean | string[];
+  [kFormatLinks]?: boolean | Array<FormatLink | string>;
   [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookSubarticles]?: boolean;
   [kNotebookViewStyle]?: "document" | "notebook";
   [kNotebookView]?:
     | boolean
@@ -493,6 +499,8 @@ export interface FormatPandoc {
   [kTitlePrefix]?: string;
   [kSlideLevel]?: number;
   [kSyntaxDefinitions]?: string[];
+  [kColumns]?: number;
+  [kWrap]?: "none" | "auto" | "preserve" | number;
 }
 
 export interface PandocFlags {
@@ -632,4 +640,9 @@ export interface FormatLanguage {
 export interface FormatTemplateContext {
   template?: string;
   partials?: string[];
+}
+
+export interface FormatLink {
+  title: string;
+  href: string;
 }

@@ -50,6 +50,7 @@ import { imageSize } from "../../../core/image.ts";
 import { writeMetaTag } from "../../../format/html/format-html-shared.ts";
 import { joinUrl } from "../../../core/url.ts";
 import { truncateText } from "../../../core/text.ts";
+import { websiteImage } from "./website-config.ts";
 
 const kCard = "card";
 
@@ -177,7 +178,7 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined) {
-        metadata[kImage] = findPreviewImg(doc);
+        metadata[kImage] = findPreviewImg(doc) || websiteImage(project.config);
       }
 
       // cook up a description if one is not provided
@@ -510,8 +511,8 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
       // Meta values
       const metaVals = [{
         sel: 'meta[property="og:description"]',
-        key: kTwitterDesc,
-      }, { sel: 'meta[name="twitter:description"]', key: kOgDesc }];
+        key: kOgDesc,
+      }, { sel: 'meta[name="twitter:description"]', key: kTwitterDesc }];
 
       metaVals.forEach((metaVal) => {
         const renderedEl = rendered[metaVal.key];
