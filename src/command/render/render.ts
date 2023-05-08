@@ -58,6 +58,8 @@ import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contain
 import { existsSync1 } from "../../core/file.ts";
 import { kNoteBookExtension } from "../../format/format-extensions.ts";
 import { NotebooksFormatExtension } from "../../format/format-extensions.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -439,6 +441,20 @@ export function renderResultFinalOutput(
     }
   }
 
+  // Allow project types to provide this
+  if (renderResults.context) {
+    const projType = projectType(renderResults.context.config?.project.type);
+    if (projType && projType.renderResultFinalOutput) {
+      const projectResult = projType.renderResultFinalOutput(
+        renderResults,
+        relativeToInputDir,
+      );
+      if (projectResult) {
+        result = projectResult;
+      }
+    }
+  }
+
   // determine final output
   let finalInput = result.input;
   let finalOutput = result.file;
@@ -474,9 +490,13 @@ export function renderResultFinalOutput(
   }
 }
 
-export function renderResultUrlPath(renderResult: RenderResult) {
+export function renderResultUrlPath(
+  renderResult: RenderResult,
+) {
   if (renderResult.baseDir && renderResult.outputDir) {
-    const finalOutput = renderResultFinalOutput(renderResult);
+    const finalOutput = renderResultFinalOutput(
+      renderResult,
+    );
     if (finalOutput) {
       const targetPath = pathWithForwardSlashes(relative(
         join(renderResult.baseDir, renderResult.outputDir),

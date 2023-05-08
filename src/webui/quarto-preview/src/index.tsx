@@ -14,7 +14,6 @@
  */
 
 
-import { initializeFluent } from './ui/fluent';
 
 import { connectToServer } from './server/connection';
 import { navigationHandler } from './server/navigation';
@@ -24,6 +23,8 @@ import { handleExternalLinks } from "./frame/links";
 import { handleRevealMessages } from "./frame/reveal";
 import { handleViewerMessages } from "./frame/viewer";
 import { handleCommands } from './frame/commands';
+
+import './ui/fluent.css'
 
 export interface Options {
   origin: string | null,
@@ -38,9 +39,6 @@ function init(options: Options) {
 
     // detect dark mode
     const darkMode = detectDarkMode();
-
-    // intialize fluent 
-    initializeFluent(darkMode);
 
     // server connection
     const disconnect = connectToServer([

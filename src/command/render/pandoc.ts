@@ -32,6 +32,7 @@ import {
   kMarkdownAfterBody,
   kSassBundles,
   kTextHighlightingMode,
+  NotebookPreviewDescriptor,
 } from "../../config/types.ts";
 import {
   isAstOutput,
@@ -105,6 +106,8 @@ import {
   kKeepSource,
   kLinkColor,
   kMetadataFormat,
+  kNotebooks,
+  kNotebookView,
   kNumberOffset,
   kNumberSections,
   kPageTitle,
@@ -467,6 +470,27 @@ export async function runPandoc(
       };
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
+    }
+
+    // merge notebooks that have been provided by the document / user
+    // or by the project as format extras
+    if (extras[kNotebooks]) {
+      const documentNotebooks = options.format.render[kNotebookView];
+      // False means taht the user has explicitely disabled notebooks
+      if (documentNotebooks !== false) {
+        const userNotebooks = documentNotebooks === true
+          ? []
+          : Array.isArray(documentNotebooks)
+          ? documentNotebooks
+          : documentNotebooks !== undefined
+          ? [documentNotebooks]
+          : [];
+
+        options.format.render[kNotebookView] = [
+          ...extras[kNotebooks],
+          ...userNotebooks,
+        ];
+      }
     }
 
     // clean 'columns' from pandoc defaults to typst

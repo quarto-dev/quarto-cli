@@ -395,9 +395,15 @@ export function setPreviewFormat(
   replacePandocArg(pandocArgs, "--to", format);
 }
 
-export function handleRenderResult(file: string, renderResult: RenderResult) {
+export function handleRenderResult(
+  file: string,
+  renderResult: RenderResult,
+) {
   // print output created
-  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
+  const finalOutput = renderResultFinalOutput(
+    renderResult,
+    dirname(file),
+  );
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
   }

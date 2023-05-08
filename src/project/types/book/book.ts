@@ -1,9 +1,8 @@
 /*
-* book.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 
