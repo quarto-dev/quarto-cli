@@ -21,4 +21,5 @@ export interface ManuscriptConfig {
 export interface ResolvedManuscriptConfig extends ManuscriptConfig {
   article: string;
   notebooks: Array<NotebookPreviewDescriptor>;
+  mecaFile: string;
 }
