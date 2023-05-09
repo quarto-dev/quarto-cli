@@ -44,6 +44,10 @@ const kExecutionFiles = [
   "Dockerfile",
 ];
 
+const kReferencedFileType = "manuscript_reference";
+const kExecutionEnvironmentType = "execution_environment";
+const kResourceFileType = "manuscript_resource";
+
 export const createMecaBundle = async (
   mecaFile: string,
   context: ProjectContext,
@@ -117,10 +121,14 @@ export const createMecaBundle = async (
       // Copy to working dir
       const workingPath = toWorkingDir(absPath, file);
 
-      // Add to MECA bundle
-      manuscriptResources.push(
-        ...mecaItemsForPath(workingDir, workingPath),
+      // Make the MECA item
+      const mecaItem = toMecaItem(
+        file,
+        kExecutionEnvironmentType,
       );
+
+      // Add to MECA bundle
+      manuscriptResources.push(mecaItem);
 
       // Note to include in zip
       manuscriptZipFiles.push(workingPath);
@@ -155,7 +163,10 @@ export const createMecaBundle = async (
 
       // Add resource to manifest
       manuscriptResources.push(
-        ...mecaItemsForPath(workingDir, workingPath),
+        toMecaItem(
+          relPath,
+          kResourceFileType,
+        ),
       );
 
       // Note to include in zip
@@ -234,5 +245,5 @@ const mecaItemsForPath = (
 };
 
 const mecaType = (_path: string) => {
-  return "manuscript_reference";
+  return kReferencedFileType;
 };
