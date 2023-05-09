@@ -22,10 +22,9 @@ import {
   kNotebookLinks,
   kNotebooks,
   kResources,
-  kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
+import { isJatsOutput } from "../../../config/format.ts";
 import { existsSync } from "fs/mod.ts";
 import { isAbsolute } from "path/mod.ts";
 import {
@@ -52,6 +51,7 @@ import { createMecaBundle } from "./manuscript-meca.ts";
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
+const kMecaIcon = "archive";
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
@@ -202,6 +202,7 @@ export const manuscriptProjectType: ProjectType = {
             links.push({
               title: kMecaFileLabel,
               href: mecaFileName(source, manuscriptConfig),
+              icon: kMecaIcon,
             });
             format.render[kFormatLinks] = links;
           }
