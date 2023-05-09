@@ -1,6 +1,6 @@
 ## Giscus Dark Mode Themes
 
-- Add support for setting the Giscus light/dark themes. ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820))
+- ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820)): Add support for setting the Giscus light/dark themes.
 
 ## Languages
 
@@ -10,27 +10,27 @@
 ## HTML Format
 
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
-- Ensure appendix shows even when `page-layout` is custom ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)).
-- Properly set color of headings without using opacity ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)).
-- Properly apply column positioning to title metadata ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)).
+- ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
+- ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
+- ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 
 ## Website Listings
 
-- Properly compute the trimmed length of descriptions included in listings ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)).
+- ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
 
 ## Websites
 
-- Allow a a website project to provide a default image used in social metadata tags ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)).
+- ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a a website project to provide a default image used in social metadata tags.
 - Add support for `navbar > toggle-position` to control whether the responsive navbar toggle appears on the right or the left.
 
 ## Miscellaneous
 
-- don't report a non-existing version of Google Chrome in macOS ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened).
-- support `from: ` formats correctly ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)).
+- ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
+- ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)): support `from: ` formats correctly.
 
 ## Docusaurus Format
 
-- Support for `code-line-numbers` in Docusaurus output ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152)).
+- ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152)): Support for `code-line-numbers` in Docusaurus output.
 
 ## OJS engine
 
@@ -42,5 +42,5 @@
 
 ## Lua filters
 
-- Provide global environment `_G` to user filters ([#5466](https://github.com/quarto-dev/quarto-cli/issues/5466)).
-- ensure return type of `stripTrailingSpace` is always pandoc.List ([#5461](https://github.com/quarto-dev/quarto-cli/issues/5461)).
+- ([#5466](https://github.com/quarto-dev/quarto-cli/issues/5466)): Provide global environment `_G` to user filters.
+- ([#5461](https://github.com/quarto-dev/quarto-cli/issues/5461)): ensure return type of `stripTrailingSpace` is always `pandoc.List`.
