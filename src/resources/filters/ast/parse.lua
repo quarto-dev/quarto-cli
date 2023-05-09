@@ -14,7 +14,7 @@ local function parse(node)
   return node
 end
 
-function parseExtendedNodes() 
+function parse_extended_nodes() 
   return {
     Div = parse,
     Span = parse,

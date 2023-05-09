@@ -1,9 +1,8 @@
 /*
-* kerenels.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * kernels.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, join } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
@@ -43,7 +42,18 @@ export async function jupyterKernelspec(
   return kernelspecs.get(name);
 }
 
+let kJupyterKernelspecs: Map<string, JupyterKernelspec> | undefined = undefined;
 export async function jupyterKernelspecs(): Promise<
+  Map<string, JupyterKernelspec>
+> {
+  if (kJupyterKernelspecs) {
+    return kJupyterKernelspecs;
+  }
+  kJupyterKernelspecs = await computeJupyterKernelspecs();
+  return kJupyterKernelspecs;
+}
+
+async function computeJupyterKernelspecs(): Promise<
   Map<string, JupyterKernelspec>
 > {
   try {

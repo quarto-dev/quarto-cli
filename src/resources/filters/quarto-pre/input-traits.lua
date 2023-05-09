@@ -7,7 +7,7 @@ function addInputTrait(key, value)
 end
 
 local kPositionedRefs = 'positioned-refs'
-function inputTraits() 
+function input_traits() 
   return {
     Div = function(el) 
       local hasPositionedRefs = el.attr.identifier == 'refs'

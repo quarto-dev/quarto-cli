@@ -19,7 +19,7 @@ const inputCustom = docs(join("shortcodes", "custom.qmd"));
 const outputCustom = outputForInput(inputCustom, "html");
 testRender(inputCustom, "html", false, [
   ensureFileRegexMatches(outputCustom.outputPath, [
-    /<strong><em>bringit<\/em><\/strong>/,
+    /<strong>_bringit_<\/strong>/,
   ], [
     /\?shorty/,
   ]),

@@ -1,9 +1,8 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -12,6 +11,8 @@ import {
   RenderFile,
   RenderFlags,
   RenderOptions,
+  RenderResult,
+  RenderResultFile,
   RenderServices,
 } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
@@ -37,6 +38,11 @@ export interface ProjectType {
     format: Format,
     project?: ProjectContext,
   ) => Format;
+  formatsForFile?: (
+    formats: string[],
+    file: RenderFile,
+    project?: ProjectContext,
+  ) => string[];
   formatExtras?: (
     context: ProjectContext,
     input: string,
@@ -44,6 +50,10 @@ export interface ProjectType {
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
+  renderResultFinalOutput?: (
+    renderResults: RenderResult,
+    relativeToInputDir?: string,
+  ) => RenderResultFile | undefined;
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;

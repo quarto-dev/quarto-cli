@@ -3,19 +3,10 @@
 
 -- figures and tables support sub-references. mark them up before
 -- we proceed with crawling for cross-refs
-function crossrefPreprocess()
+function crossref_preprocess()
   
   return {
-
-    Header = function(el)
-      crossref.maxHeading = math.min(crossref.maxHeading, el.level)
-    end,
-
-    Pandoc = function(doc)
-      
-      -- initialize autolabels table
-      crossref.autolabels = pandoc.List()
-      
+    Pandoc = function(doc)      
       local walkRefs
       walkRefs = function(parentId)
         return {
@@ -36,6 +27,7 @@ function crossrefPreprocess()
                 -- mark as table parent if required
                 if isTableRef(el.attr.identifier) then
                   el.attr.classes:insert("tbl-parent")
+                  flags.has_tbl_parent = true -- to be able to early-out later on
                 end
                 el = _quarto.ast.walk(el, walkRefs(el.attr.identifier))
               end

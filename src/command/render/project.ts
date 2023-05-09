@@ -1,9 +1,8 @@
 /*
-* project.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
@@ -158,6 +157,7 @@ export async function renderProject(
 
   // projResults to return
   const projResults: RenderResult = {
+    context,
     baseDir: projDir,
     outputDir: relative(projDir, projOutputDir),
     files: [],

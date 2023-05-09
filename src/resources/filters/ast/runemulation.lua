@@ -3,63 +3,125 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
-local function run_emulated_filter_chain(doc, filters, afterFilterPass)
+local profiler = require('profiler')
+
+local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
-  if tisarray(filters) then
-    for i, v in ipairs(filters) do
-      local function callback()
-        doc = run_emulated_filter(doc, v, true)
+  -- print(os.clock(), " - starting")
+  for i, v in ipairs(filters) do
+    local function callback()
+      if v.flags then
+        if type(v.flags) ~= "table" then
+          error("filter " .. v.name .. " has invalid flags")
+          crash_with_stack_trace()
+        end
+        local can_skip = true
+        for _, index in ipairs(v.flags) do
+          if flags[index] == true then
+            can_skip = false
+          end
+        end
+        if can_skip then
+          -- print("          - Skipping", v.name)
+          return
+        end
       end
-      if v.scriptFile then
-        _quarto.withScriptFile(v.scriptFile, callback)
-      else
-        callback()
+      -- print(os.clock(), " - running", v.name)
+
+      if profiling then
+        profiler.category = v.name
       end
-      if afterFilterPass then
-        afterFilterPass()
+
+      doc = run_emulated_filter(doc, v.filter)
+
+      add_trace(doc, v.name)
+
+      if profiling then
+        profiler.category = ""
       end
     end
-  elseif type(filters) == "table" then
-    doc = run_emulated_filter(doc, filters, true)
+    if v.filter.scriptFile then
+      _quarto.withScriptFile(v.filter.scriptFile, callback)
+    else
+      callback()
+    end
     if afterFilterPass then
       afterFilterPass()
     end
-  else
-    error("Internal Error: run_emulated_filter_chain expected a table or array instead of " .. type(filters))
-    crash_with_stack_trace()
   end
   end_trace()
   return doc
 end
 
 local function emulate_pandoc_filter(filters, afterFilterPass)
+  local cached_paths
+  local profiler
+
+  local function get_paths(tmpdir)
+    if cached_paths then
+      return cached_paths
+    end
+    os.execute("quarto --paths > " .. tmpdir .. "paths.txt")
+    local paths_file = io.open(tmpdir .. "paths.txt", "r")
+    if paths_file == nil then
+      error("couldn't open paths file")
+    end
+    cached_paths = paths_file:read("l")
+    paths_file:close()
+    return cached_paths
+  end
+  
   return {
     traverse = 'topdown',
     Pandoc = function(doc)
-      local result
-      -- local profiling = true
-      if profiling then
-        local profiler = require('profiler')
-        profiler.start()
-        -- doc = to_emulated(doc)
-        doc = run_emulated_filter_chain(doc, filters, afterFilterPass)
-        -- doc = from_emulated(doc)
-
-        -- the installation happens in main.lua ahead of loaders
-        -- restore_pandoc_overrides(overrides_state)
-
-        -- this call is now a real pandoc.Pandoc call
-        profiler.stop()
-
-        profiler.report("profiler.txt")
-        crash_with_stack_trace() -- run a single file for now.
+      local profiling = option("profiler", false)
+      if not profiling then
+        return run_emulated_filter_chain(doc, filters, afterFilterPass), false
       end
-      return run_emulated_filter_chain(doc, filters, afterFilterPass), false
+      if profiler == nil then
+        profiler = require('profiler')
+      end
+      pandoc.system.with_temporary_directory("temp", function(tmpdir)
+        profiler.start(tmpdir .. "/prof.txt")
+        doc = run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
+        profiler.stop()
+        -- os.execute("cp " .. tmpdir .. "/prof.txt /tmp/prof.out")
+        local ts_source = get_paths(tmpdir) .. "/../../../tools/profiler/convert-to-perfetto.ts"
+        os.execute("quarto run " .. ts_source .. " " .. tmpdir .. "/prof.txt > " .. profiling)
+        return nil
+      end)
+      return doc, false
     end
   }
 end
 
 function run_as_extended_ast(specTable)
+
+  local function coalesce_filters(filterList)
+    local finalResult = {}
+  
+    for i, v in ipairs(filterList) do
+      if v.filter ~= nil then
+        -- v.filter._filter_name = v.name
+        table.insert(finalResult, v)
+      elseif v.filters ~= nil then
+        for j, innerV in pairs(v.filters) do
+          innerV._filter_name = string.format("%s-%s", v.name, j)
+          table.insert(finalResult, {
+            filter = innerV,
+            name = innerV._filter_name
+          })
+        end
+      else
+        print("Warning: filter " .. v.name .. " didn't declare filter or filters.")
+      end
+    end
+  
+    return finalResult
+  end
+
+  specTable.filters = coalesce_filters(specTable.filters)
+
   local pandocFilterList = {}
   if specTable.pre then
     for _, v in ipairs(specTable.pre) do
@@ -67,7 +129,11 @@ function run_as_extended_ast(specTable)
     end
   end
 
-  table.insert(pandocFilterList, emulate_pandoc_filter(specTable.filters, specTable.afterFilterPass))
+  table.insert(pandocFilterList, emulate_pandoc_filter(
+    specTable.filters,
+    specTable.afterFilterPass
+  ))
+
   if specTable.post then
     for _, v in ipairs(specTable.post) do
       table.insert(pandocFilterList, v)

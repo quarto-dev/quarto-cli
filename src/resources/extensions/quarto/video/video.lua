@@ -288,6 +288,7 @@ return {
     end
 
     if isEmpty(srcValue) then
+
       if #raw_args > 0 then
         srcValue = pandoc.utils.stringify(raw_args[1])
       else
@@ -298,7 +299,7 @@ return {
 
     if quarto.doc.is_format("html:js") then
       return htmlVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
-    elseif quarto.doc.isFormat("asciidoc") then
+    elseif quarto.doc.is_format("asciidoc") then
       return asciidocVideo(srcValue, heightValue, widthValue, titleValue, startValue, aspectRatio)
     else
       -- Fall-back to a link of the source

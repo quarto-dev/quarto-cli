@@ -1,7 +1,7 @@
 -- panel-layout.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-function panelLayout() 
+function bootstrap_panel_layout() 
 
   return {
     Div = function(el)

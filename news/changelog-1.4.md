@@ -15,6 +15,7 @@
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
 - Ensure appendix shows even when `page-layout` is custom ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)).
 - Properly set color of headings without using opacity ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)).
+- Properly apply column positioning to title metadata ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)).
 
 ## Website Listings
 
@@ -23,6 +24,7 @@
 ## Websites
 
 - Allow a a website project to provide a default image used in social metadata tags ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)).
+- Add support for `navbar > toggle-position` to control whether the responsive navbar toggle appears on the right or the left.
 
 ## Miscellaneous
 

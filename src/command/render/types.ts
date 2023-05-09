@@ -83,6 +83,7 @@ export interface RenderResourceFiles {
 }
 
 export interface RenderResult {
+  context?: ProjectContext;
   baseDir?: string;
   outputDir?: string;
   files: RenderResultFile[];

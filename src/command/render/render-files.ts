@@ -307,6 +307,7 @@ export async function renderFiles(
           options,
           true,
           project,
+          false,
         );
       } catch (e) {
         // bad YAML can cause failure before validation. We

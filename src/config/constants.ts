@@ -432,6 +432,7 @@ export const kFilters = "filters";
 export const kQuartoFilters = "quarto-filters";
 export const kFilterParams = "filter-params";
 export const kPdfEngine = "pdf-engine";
+export const kNotebooks = "notebooks";
 export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";

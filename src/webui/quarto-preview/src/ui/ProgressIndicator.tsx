@@ -14,27 +14,35 @@
  */
 
 
-import { IStyle, ProgressIndicator } from "@fluentui/react";
 import React from "react";
 
-export interface ProgressBarProps {
+import { ProgressBar, makeStyles } from "@fluentui/react-components";
+
+
+export interface ProgresIndicatorProps {
   visible: boolean;
 }
 
-export const ProgressBar: React.FC<ProgressBarProps> = (props) => {
-
-  const styles: IStyle = {
+const useStyles = makeStyles({
+  root: { 
     position: "fixed",
     top: 0,
     left: 0,
     right: 0
-  };
+  },
+});
+
+
+export const ProgressIndicator: React.FC<ProgresIndicatorProps> = (props) => {
+
+  const classes = useStyles();
 
   return (
     <>
-    {props.visible ? <ProgressIndicator barHeight={2} styles={{ root: styles, itemProgress: { padding: 0 } }} /> : null}
+    {props.visible ? <ProgressBar className={classes.root} /> : null}
     </>
   );
+
 }
 
 
