@@ -5,6 +5,6 @@ function Pandoc(doc)
     title = "Note title"
   })
   print(c)
-  doc.blocks:insert(pandoc.Plain(c))
+  doc.blocks:insert(c)
   return doc
 end

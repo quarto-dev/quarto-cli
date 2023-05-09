@@ -4,6 +4,7 @@
 -- flextable outputs consecutive html blocks so we merge them
 -- back together here so they can be processed by ourraw table
 -- caption handling
+
 function table_merge_raw_html()
   if not _quarto.format.isHtmlOutput() then
     return {}

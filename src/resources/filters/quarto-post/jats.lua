@@ -75,7 +75,7 @@ function jats()
       Meta = jatsMeta,
   
       -- clear out divs
-      Div = function(div) 
+      Div = function(div)
         return unrollDiv(div)
       end
     }  

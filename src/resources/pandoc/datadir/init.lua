@@ -1962,6 +1962,8 @@ quarto = {
    type = utils.type,
    resolve_path = resolvePathExt,
    resolve_path_relative_to_document = resolvePath,
+   as_inlines = utils.as_inlines,
+   as_blocks = utils.as_blocks
   },
   json = json,
   base64 = base64,

@@ -131,14 +131,6 @@ _quarto.ast.add_handler({
     end
   end,
 
-  inner_content = function(extended_node)
-    return {}
-  end,
-
-  set_inner_content = function(extended_node, values)
-    return extended_node
-  end,
-
   constructor = function(tbl)
     local caption = tbl.caption
     if tbl.code_block.attributes["lst-cap"] ~= nil then
