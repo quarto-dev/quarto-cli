@@ -18,8 +18,10 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
-import { ResolvedManuscriptConfig } from "./manuscript-types.ts";
-import { projectArtifactCreator } from "../../../command/create/artifacts/project.ts";
+import {
+  kEnvironmentFiles,
+  ResolvedManuscriptConfig,
+} from "./manuscript-types.ts";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
@@ -47,7 +49,7 @@ export const createMecaBundle = async (
   context: ProjectContext,
   outputDir: string,
   outputFiles: ProjectOutputFile[],
-  _manuscriptConfig: ResolvedManuscriptConfig,
+  manuscriptConfig: ResolvedManuscriptConfig,
 ) => {
   const workingDir = globalTempContext().createDir();
 
@@ -111,22 +113,33 @@ export const createMecaBundle = async (
       });
     }
 
-    // Find execution resources and include them in the bundle
-    kExecutionFiles.forEach((file) => {
-      const absPath = join(context.dir, file);
-      if (existsSync(absPath)) {
-        // Copy to working dir
-        const workingPath = toWorkingDir(absPath, file);
+    const addEnvFile = (file: string, absPath: string) => {
+      // Copy to working dir
+      const workingPath = toWorkingDir(absPath, file);
 
-        // Add to MECA bundle
-        manuscriptResources.push(
-          ...mecaItemsForPath(workingDir, workingPath),
-        );
+      // Add to MECA bundle
+      manuscriptResources.push(
+        ...mecaItemsForPath(workingDir, workingPath),
+      );
 
-        // Note to include in zip
-        manuscriptZipFiles.push(workingPath);
-      }
-    });
+      // Note to include in zip
+      manuscriptZipFiles.push(workingPath);
+    };
+
+    if (manuscriptConfig[kEnvironmentFiles]) {
+      manuscriptConfig[kEnvironmentFiles].forEach((file) => {
+        const absPath = join(context.dir, file);
+        addEnvFile(file, absPath);
+      });
+    } else {
+      // Find execution resources and include them in the bundle
+      kExecutionFiles.forEach((file) => {
+        const absPath = join(context.dir, file);
+        if (existsSync(absPath)) {
+          addEnvFile(file, absPath);
+        }
+      });
+    }
 
     // Copy resources
     const resources = [];

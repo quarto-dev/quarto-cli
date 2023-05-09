@@ -40,6 +40,7 @@ import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
+  kEnvironmentFiles,
   kManuscriptType,
   kManuscriptUrl,
   kMecaArchive,
@@ -99,6 +100,15 @@ export const manuscriptProjectType: ProjectType = {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
 
+    // Process any environment files
+    const userConfig = manuscriptConfig[kEnvironmentFiles] as
+      | string
+      | string[]
+      | undefined;
+    const environmentFiles = userConfig !== undefined
+      ? Array.isArray(userConfig) ? userConfig : [userConfig]
+      : undefined;
+
     // The name of the MECA file that will be produced (if enabled)
     const mecaFileOutput = mecaFileName(article, manuscriptConfig);
 
@@ -109,6 +119,7 @@ export const manuscriptProjectType: ProjectType = {
       article,
       notebooks,
       mecaFile: mecaFileOutput,
+      [kEnvironmentFiles]: environmentFiles,
     };
     config[kManuscriptType] = resolvedManuscriptOptions;
 

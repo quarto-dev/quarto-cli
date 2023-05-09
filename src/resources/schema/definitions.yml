@@ -2193,3 +2193,7 @@
           maybeArrayOf:
             schema: path
             description: "Additional file resources to be copied to output directory"
+        "environment":
+          maybeArrayOf:
+            schema: path
+            description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
