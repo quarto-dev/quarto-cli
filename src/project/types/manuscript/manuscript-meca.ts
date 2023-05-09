@@ -15,17 +15,39 @@ import { ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import { ResolvedManuscriptConfig } from "./manuscript-types.ts";
+import { projectArtifactCreator } from "../../../command/create/artifacts/project.ts";
+
+// REES Compatible execution files
+// from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
+const kExecutionFiles = [
+  "environment.yml",
+  "requirements.txt",
+  "renv.lock",
+  "Pipfile",
+  "Pipfile.lock",
+  "setup.py",
+  "Project.toml",
+  "REQUIRE",
+  "install.R",
+  "apt.txt",
+  "DESCRIPTION",
+  "postBuild",
+  "start",
+  "runtime.txt",
+  "default.nix",
+  "Dockerfile",
+];
 
 export const createMecaBundle = async (
   mecaFile: string,
   context: ProjectContext,
   outputDir: string,
   outputFiles: ProjectOutputFile[],
-  manuscriptConfig: ResolvedManuscriptConfig,
+  _manuscriptConfig: ResolvedManuscriptConfig,
 ) => {
   const workingDir = globalTempContext().createDir();
 
@@ -88,6 +110,23 @@ export const createMecaBundle = async (
         manuscriptZipFiles.push(workingPath);
       });
     }
+
+    // Find execution resources and include them in the bundle
+    kExecutionFiles.forEach((file) => {
+      const absPath = join(context.dir, file);
+      if (existsSync(absPath)) {
+        // Copy to working dir
+        const workingPath = toWorkingDir(absPath, file);
+
+        // Add to MECA bundle
+        manuscriptResources.push(
+          ...mecaItemsForPath(workingDir, workingPath),
+        );
+
+        // Note to include in zip
+        manuscriptZipFiles.push(workingPath);
+      }
+    });
 
     // Copy resources
     const resources = [];
