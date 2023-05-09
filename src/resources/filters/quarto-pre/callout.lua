@@ -361,8 +361,6 @@ function calloutLatex(node)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
-
-  quarto.utils.dump { node = node }
   
 
   -- Discover notes in the callout and pull the contents out
@@ -445,7 +443,6 @@ function calloutLatex(node)
     quarto.doc.include_text('in-header', '\\VerbatimFootnotes')
   end
   
-  quarto.utils.dump { calloutContents = calloutContents }
   return pandoc.Div(calloutContents)
 end
 
@@ -548,7 +545,6 @@ function latexCalloutBoxSimple(title, type, icon)
   -- Add the titles and contents
   local calloutContents = pandoc.List({});
   if title ~= nil then 
-    quarto.utils.dump{title = title}
     tprepend(title.content, {pandoc.RawInline('latex', '\\textbf{')})
     tappend(title.content, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
     calloutContents:insert(pandoc.Para(title.content))
@@ -828,8 +824,6 @@ end
 
 function resolveCalloutContents(node, require_title)
   local title = quarto.utils.as_inlines(node.title)
-  quarto.utils.dump { title = title, content = node.content }
-  quarto.utils.dump { node = node }
   local type = node.type
   
   local contents = pandoc.List({})
