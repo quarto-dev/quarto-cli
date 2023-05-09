@@ -233,15 +233,11 @@ export const manuscriptProjectType: ProjectType = {
     context: ProjectContext,
     source: string,
     _flags: PandocFlags,
-    format: Format,
+    _format: Format,
     _services: RenderServices,
   ): Promise<FormatExtras> => {
     // defaults for all formats
-    const extras: FormatExtras = {
-      pandoc: {
-        [kToc]: isHtmlOutput(format.pandoc),
-      },
-    };
+    const extras: FormatExtras = {};
 
     // If the user isn't explicitly providing a notebook list
     // then automatically create notebooks for the other items in
