@@ -54,6 +54,17 @@ const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
 const kMecaIcon = "archive";
 
+// Manscript projects are a multi file project that is composed into:
+// - a root article file
+//   by default index.ipynb/index.qmd unless specified in the project
+// - notebooks files
+//   All other executable files in the project directory are considered notebooks.
+//   The 'notebooks' can serve as sources for embeds or can accompany the main article
+//   as supplementary material
+//
+//   The notebooks will have a preview rendered and will also be download-able in the
+//   HTML preview in their source form.
+
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   config: (
@@ -125,7 +136,7 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve(config);
   },
-  create: (_title: string): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "manuscript"));
     return {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
@@ -135,11 +146,11 @@ export const manuscriptProjectType: ProjectType = {
           name: "index",
           content: [
             "---",
-            "title: My Manscript",
+            `title: ${title}`,
             "---",
             "",
-            "## Section 1",
-            "This is a section of my manuscript what up.",
+            "## Section",
+            "This is a simple placeholder for the manuscript's main document.",
           ].join("\n"),
         },
       ],
@@ -156,7 +167,6 @@ export const manuscriptProjectType: ProjectType = {
       const manuscriptConfig = options.project
         .config?.[kManuscriptType] as ResolvedManuscriptConfig;
       if (manuscriptConfig) {
-        // Look up the base url used when rendering
         let baseUrl = manuscriptConfig[kManuscriptUrl];
         if (baseUrl === undefined) {
           const ghContext = await gitHubContext(options.project.dir);
