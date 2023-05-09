@@ -17258,7 +17258,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Location for table of contents (`body`, `left`, or `right` (default)).\n"
+          description: {
+            short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
+            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`left` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+          }
         },
         {
           name: "toc-title",
@@ -28079,10 +28082,8 @@ function postProcessAnnotation(parse) {
   if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
     return postProcessAnnotation(parse.components[0]);
   } else {
-    return {
-      ...parse,
-      components: parse.components.map(postProcessAnnotation)
-    };
+    parse.components = parse.components.map(postProcessAnnotation);
+    return parse;
   }
 }
 function jsYamlParseLenient(yml) {

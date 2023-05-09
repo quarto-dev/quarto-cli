@@ -32,9 +32,16 @@
   default: "right"
   tags:
     formats: [$html-doc]
-  description: |
-    Location for table of contents (`body`, `left`, or `right` (default)).
-
+  description:
+    short: |
+      Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').
+    long: |
+      Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').
+      `body` - Show the Table of Contents in the center body of the document.
+      `left` - Show the Table of Contents in left margin of the document.
+      `left` - Show the Table of Contents in right margin of the document.
+      `left-body` - Show two Tables of Contents in both the center body and the left margin of the document.
+      `right-body` - Show two Tables of Contents in both the center body and the right margin of the document.
 - name: toc-title
   schema: string
   tags:
