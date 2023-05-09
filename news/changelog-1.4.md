@@ -43,3 +43,4 @@
 ## Lua filters
 
 - Provide global environment `_G` to user filters ([#5466](https://github.com/quarto-dev/quarto-cli/issues/5466)).
+- ensure return type of `stripTrailingSpace` is always pandoc.List ([#5461](https://github.com/quarto-dev/quarto-cli/issues/5461)).
