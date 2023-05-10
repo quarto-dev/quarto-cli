@@ -4,8 +4,8 @@
 
 ## Languages
 
-- Add Slovak translation (thanks @tom67)
-- Improve Italian translation of 'proof' (thanks @espinielli)
+- Add Slovak translation (author: @tom67)
+- Improve Italian translation of 'proof' (author: @espinielli)
 
 ## HTML Format
 
@@ -39,6 +39,7 @@
 ## Mermaid diagrams
 
 - Upgrade to 10.2.0-rc.2
+- ([#5426](https://github.com/quarto-dev/quarto-cli/issues/5426)): Don't escape mermaid output in markdown formats (author: @rcannood).
 
 ## Lua filters
 
