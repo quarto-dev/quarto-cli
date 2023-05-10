@@ -10,6 +10,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
+  kEcho,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -23,7 +24,13 @@ import {
 import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
 
 import {
+  ExecutedFile,
   HtmlPostProcessResult,
+  PandocRenderCompletion,
+  PandocRenderer,
+  RenderedFile,
+  RenderedFormat,
+  RenderOptions,
   RenderServices,
 } from "../../command/render/types.ts";
 
@@ -32,6 +39,8 @@ import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { renderPandoc } from "../../command/render/render.ts";
 
 interface NotebookView {
   title: string;
@@ -106,7 +115,7 @@ export function notebookViewPostProcessor() {
 }
 
 // Processes embeds within an HTML page and emits notebook previews as apprpriate
-export async function processNotebookEmbeds(
+export async function emplaceNotebookPreviews(
   input: string,
   doc: Document,
   format: Format,
@@ -119,12 +128,47 @@ export async function processNotebookEmbeds(
   const notebookView = format.render[kNotebookView] ?? true;
   const nbViewConfig = notebookViewConfig(notebookView);
 
+  const notebookViewStyle = format.render[kNotebookViewStyle];
+
+  // Embedded notebooks don't currently resolve notebooks
+  if (notebookViewStyle === "notebook") {
+    return { resources: [], supporting: [] };
+  }
+
+  const addInlineLineNotebookLink = inlineLinkGenerator(doc, format);
+
   if (nbViewConfig) {
     const previewer = nbPreviewer(nbViewConfig, format, services);
 
-    // Emit links to the notebooks inline (where the embedded content is located)
-    let count = 1;
     const linkedNotebooks: string[] = [];
+
+    // Look for computational cells provided by this document itself and if
+    // needed, synthesize a notebook for them (only do this if this is a root document
+    // and input itself is in the list of notebooks)
+    const inputNotebook = nbViewConfig.options(input);
+    if (inputNotebook) {
+      console.log({
+        notebookViewStyle,
+        inputNotebook,
+      });
+      const computationalNodes = doc.querySelectorAll("div.cell");
+      for (const computationalNode of computationalNodes) {
+        const computeEl = computationalNode as Element;
+        const cellId = computeEl.getAttribute("id");
+        linkedNotebooks.push(input);
+        const nbPreview = await previewer.preview(
+          input,
+          input,
+        );
+        addInlineLineNotebookLink(
+          computeEl,
+          nbPreview,
+          cellId,
+        );
+      }
+    }
+
+    // Emit links to the notebooks inline (where the embedded content is located)
     const notebookDivNodes = doc.querySelectorAll("[data-notebook]");
     for (const nbDivNode of notebookDivNodes) {
       const nbDivEl = nbDivNode as Element;
@@ -154,44 +198,7 @@ export async function processNotebookEmbeds(
 
         // Add a decoration to this div node
         if (inline) {
-          const id = "nblink-" + count++;
-
-          const nbLinkEl = doc.createElement("a");
-          nbLinkEl.classList.add("quarto-notebook-link");
-          nbLinkEl.setAttribute("id", `${id}`);
-
-          if (nbPreview.filename) {
-            nbLinkEl.setAttribute("download", nbPreview.filename);
-            nbLinkEl.setAttribute("href", nbPreview.href);
-          } else {
-            if (notebookCellId) {
-              nbLinkEl.setAttribute(
-                "href",
-                `${nbPreview.href}#${notebookCellId}`,
-              );
-            } else {
-              nbLinkEl.setAttribute("href", `${nbPreview.href}`);
-            }
-          }
-          nbLinkEl.appendChild(
-            doc.createTextNode(
-              `${format.language[kSourceNotebookPrefix]}: ${nbPreview.title}`,
-            ),
-          );
-
-          // If there is a figure caption, place the source after that
-          // otherwise just place it at the bottom of the notebook div
-          const nbParentEl = nbDivEl.parentElement;
-          if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
-            const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
-            if (figCapEl) {
-              figCapEl.after(nbLinkEl);
-            } else {
-              nbDivEl.appendChild(nbLinkEl);
-            }
-          } else {
-            nbDivEl.appendChild(nbLinkEl);
-          }
+          addInlineLineNotebookLink(nbDivEl, nbPreview, notebookCellId);
         }
       }
     }
@@ -276,6 +283,61 @@ export async function processNotebookEmbeds(
   }
 }
 
+const inlineLinkGenerator = (doc: Document, format: Format) => {
+  let count = 1;
+  return (
+    nbDivEl: Element,
+    nbPreview: NotebookPreview,
+    cellId?: string | null,
+  ) => {
+    const id = "nblink-" + count++;
+
+    const nbLinkEl = doc.createElement("a");
+    nbLinkEl.classList.add("quarto-notebook-link");
+    nbLinkEl.setAttribute("id", `${id}`);
+
+    if (nbPreview.filename) {
+      nbLinkEl.setAttribute("download", nbPreview.filename);
+      nbLinkEl.setAttribute("href", nbPreview.href);
+    } else {
+      if (cellId) {
+        nbLinkEl.setAttribute(
+          "href",
+          `${nbPreview.href}#${cellId}`,
+        );
+      } else {
+        nbLinkEl.setAttribute("href", `${nbPreview.href}`);
+      }
+    }
+    nbLinkEl.appendChild(
+      doc.createTextNode(
+        `${format.language[kSourceNotebookPrefix]}: ${nbPreview.title}`,
+      ),
+    );
+
+    // If there is a figure caption, place the source after that
+    // otherwise just place it at the bottom of the notebook div
+    const nbParentEl = nbDivEl.parentElement;
+    if (nbParentEl?.tagName.toLocaleLowerCase() === "figure") {
+      const figCapEl = nbDivEl.parentElement?.querySelector("figcaption");
+      if (figCapEl) {
+        figCapEl.after(nbLinkEl);
+      } else {
+        nbDivEl.appendChild(nbLinkEl);
+      }
+    } else {
+      nbDivEl.appendChild(nbLinkEl);
+    }
+  };
+};
+
+interface NotebookPreview {
+  title: string;
+  href: string;
+  filename?: string;
+  supporting?: string[];
+}
+
 const nbPreviewer = (
   nbViewConfig: NotebookViewConfig,
   format: Format,
@@ -290,15 +352,15 @@ const nbPreviewer = (
     nbPath: string,
     title?: string | null,
     nbPreviewFile?: string | null,
-  ) => {
+  ): Promise<NotebookPreview> => {
     const renderNotebook = async () => {
       const nbDir = dirname(nbPath);
       const filename = basename(nbPath);
       const inputDir = dirname(input);
       if (nbViewConfig) {
         // Read options for this notebook
-        const nbPreviewOptions = nbViewConfig.options(nbPath);
-
+        const nbPreviewOptions = nbViewConfig.options(nbPath) ||
+          { title: basename(nbPath) };
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
         const htmlPreview = await renderHtmlView(
           inputDir,
@@ -335,7 +397,7 @@ const nbPreviewer = (
 };
 
 interface NotebookViewConfig {
-  options: (notebook: string) => NotebookViewOptions;
+  options: (notebook: string) => NotebookViewOptions | undefined;
 }
 
 function notebookViewConfig(
@@ -355,8 +417,8 @@ function notebookViewConfig(
       });
     }
     return {
-      options: (notebook: string) => {
-        return nbOptions[notebook] || { title: basename(notebook) };
+      options: (notebook: string): NotebookViewOptions | undefined => {
+        return nbOptions[notebook];
       },
     };
   } else {

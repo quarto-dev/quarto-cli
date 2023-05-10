@@ -19,6 +19,7 @@ import {
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kFormatLinks,
+  kKeepHidden,
   kNotebookLinks,
   kNotebooks,
   kResources,
@@ -112,6 +113,12 @@ export const manuscriptProjectType: ProjectType = {
     if (inputNotebooks) {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
+    // TODO: Localize String
+    // TODO: deal with absolute vs. relative path here
+    notebooks.push({
+      notebook: join(projectDir, article),
+      title: "Document Computations",
+    });
 
     // Process any environment files
     const userConfig = manuscriptConfig[kEnvironmentFiles] as

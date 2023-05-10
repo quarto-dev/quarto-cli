@@ -84,7 +84,7 @@ import {
   isPresentationOutput,
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
-import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { extname } from "path/mod.ts";
 
@@ -338,7 +338,7 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      const notebookResults = await processNotebookEmbeds(
+      const notebookResults = await emplaceNotebookPreviews(
         input,
         doc,
         format,
