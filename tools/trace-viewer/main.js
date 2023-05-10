@@ -247,6 +247,12 @@ const convert = (data) => {
         caption: convertCaption(data.c[1]),
       };
     }
+    if (data.t === "DefinitionList") {
+      return {
+        t: data.t,
+        content: data.c.map(convert),
+      };
+    }
     throw new Error(`Can't handle type ${data.t}`);
   } else if (typeof data === "string") {
     return data;
