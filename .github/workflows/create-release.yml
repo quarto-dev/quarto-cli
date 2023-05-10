@@ -66,7 +66,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./news/changelog-${{steps.config.outputs.version}}.md
+          path: ./news/changelog-${{needs.configure.outputs.version}}.md
     
   make-source-tarball:
     runs-on: ubuntu-latest
@@ -87,7 +87,7 @@ jobs:
       
       - name: Compute Checksum
         run: |
-          CHECKSUM=$(sha256sum ./quarto-${{needs.configure.outputs.version}}.tar.gz)
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz)
           echo "checksum-source=$CHECKSUM" >> $GITHUB_OUTPUT
 
   make-tarball:
@@ -116,6 +116,13 @@ jobs:
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
 
+      - name: Compute Checksum
+        run: |
+          pushd package
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz)
+          echo "checksum-tarball=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
@@ -146,6 +153,13 @@ jobs:
           tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-arm64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
+          popd
+
+      - name: Compute Checksum
+        run: |
+          pushd package
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz)
+          echo "checksum-arm64-tarball=$CHECKSUM" >> $GITHUB_OUTPUT
           popd
 
       - name: Upload Artifact
@@ -190,7 +204,14 @@ jobs:
           gzip quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
-
+          
+      - name: Compute Checksum
+        run: |
+          pushd package
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz)
+          echo "checksum-rhel-tarball=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
