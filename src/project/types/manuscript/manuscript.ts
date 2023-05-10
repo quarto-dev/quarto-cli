@@ -19,11 +19,12 @@ import {
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kEcho,
+  kError,
   kFormatLinks,
-  kKeepHidden,
   kNotebookLinks,
   kNotebooks,
   kResources,
+  kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { isJatsOutput } from "../../../config/format.ts";
@@ -115,9 +116,8 @@ export const manuscriptProjectType: ProjectType = {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
     // TODO: Localize String
-    // TODO: deal with absolute vs. relative path here
     notebooks.push({
-      notebook: join(projectDir, article),
+      notebook: article,
       title: "Document Computations",
     });
 

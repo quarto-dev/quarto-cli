@@ -10,7 +10,6 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
-  kEcho,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -24,13 +23,7 @@ import {
 import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
 
 import {
-  ExecutedFile,
   HtmlPostProcessResult,
-  PandocRenderCompletion,
-  PandocRenderer,
-  RenderedFile,
-  RenderedFormat,
-  RenderOptions,
   RenderServices,
 } from "../../command/render/types.ts";
 
@@ -39,8 +32,6 @@ import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
-import { ProjectContext } from "../../project/types.ts";
-import { renderPandoc } from "../../command/render/render.ts";
 
 interface NotebookView {
   title: string;
@@ -140,21 +131,19 @@ export async function emplaceNotebookPreviews(
   if (nbViewConfig) {
     const previewer = nbPreviewer(nbViewConfig, format, services);
 
-    const linkedNotebooks: string[] = [];
-
     // Look for computational cells provided by this document itself and if
     // needed, synthesize a notebook for them (only do this if this is a root document
     // and input itself is in the list of notebooks)
-    const inputNotebook = nbViewConfig.options(input);
+    const inputNbPath = basename(input);
+    const inputNotebook = nbViewConfig.options(inputNbPath);
     if (inputNotebook) {
       const computationalNodes = doc.querySelectorAll("div.cell");
       for (const computationalNode of computationalNodes) {
         const computeEl = computationalNode as Element;
         const cellId = computeEl.getAttribute("id");
-        linkedNotebooks.push(input);
         const nbPreview = await previewer.preview(
           input,
-          input,
+          inputNbPath,
         );
         addInlineLineNotebookLink(
           computeEl,
@@ -183,8 +172,6 @@ export async function emplaceNotebookPreviews(
       nbDivEl.removeAttribute("data-notebook-preview-file");
 
       if (notebookPath) {
-        linkedNotebooks.push(notebookPath);
-
         const nbPreview = await previewer.preview(
           input,
           notebookPath,
