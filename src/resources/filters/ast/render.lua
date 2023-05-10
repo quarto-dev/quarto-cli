@@ -29,7 +29,6 @@ function render_extended_nodes()
       if handler.renderers then
         for _, renderer in ipairs(handler.renderers) do
           if renderer.condition(node) then
-            quarto.utils.dump { node = node, render = render }
             return renderer.render(node)
           end
         end
