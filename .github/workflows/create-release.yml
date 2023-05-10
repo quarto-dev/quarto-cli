@@ -87,7 +87,7 @@ jobs:
       
       - name: Compute Checksum
         run: |
-          CHECKSUM=sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz
+          CHECKSUM=$(sha256sum ./quarto-${{needs.configure.outputs.version}}.tar.gz)
           echo "checksum-source=$CHECKSUM" >> $GITHUB_OUTPUT
 
   make-tarball:
@@ -616,9 +616,7 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd          
 
-          pushd Source
-          sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-source-tarball.outputs.checksum}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
       - name: Attach Checksum
         id: attach-checksum
