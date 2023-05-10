@@ -18,6 +18,7 @@ import {
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
+  kEcho,
   kFormatLinks,
   kKeepHidden,
   kNotebookLinks,
@@ -142,6 +143,9 @@ export const manuscriptProjectType: ProjectType = {
       [kEnvironmentFiles]: environmentFiles,
     };
     config[kManuscriptType] = resolvedManuscriptOptions;
+
+    // Disable echo, by default
+    config[kEcho] = false;
 
     return Promise.resolve(config);
   },

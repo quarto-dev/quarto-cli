@@ -147,10 +147,6 @@ export async function emplaceNotebookPreviews(
     // and input itself is in the list of notebooks)
     const inputNotebook = nbViewConfig.options(input);
     if (inputNotebook) {
-      console.log({
-        notebookViewStyle,
-        inputNotebook,
-      });
       const computationalNodes = doc.querySelectorAll("div.cell");
       for (const computationalNode of computationalNodes) {
         const computeEl = computationalNode as Element;
@@ -467,6 +463,7 @@ async function renderHtmlView(
           },
           quiet: true,
         },
+        echo: true,
       },
     );
     if (rendered.error) {

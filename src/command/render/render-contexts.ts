@@ -542,6 +542,11 @@ async function resolveFormats(
       }
     }
 
+    // If options request, force echo
+    if (options.echo) {
+      userFormat.execute[kEcho] = true;
+    }
+
     // The format description
     const formatDesc = parseFormatString(format);
 
