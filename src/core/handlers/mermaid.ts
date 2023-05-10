@@ -425,7 +425,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       ) {
         return mappedConcat([
           "\n``` mermaid\n",
-          cellContent.value,
+          cellContent,
           "\n```\n",
         ]);
       } else {
