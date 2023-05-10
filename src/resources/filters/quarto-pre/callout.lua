@@ -59,24 +59,6 @@ _quarto.ast.add_handler({
   -- can store Blocks (and hence also Inlines implicitly).
   slots = { "title", "content" },
 
-  -- a function that renders the extendedNode into output
-  -- render = function(node)
-  --   if _quarto.format.isHtmlOutput() and hasBootstrap() then
-  --     local result = calloutDiv(node)
-  --     return result
-  --   elseif _quarto.format.isLatexOutput() then
-  --     return calloutLatex(node)
-  --   elseif _quarto.format.isDocxOutput() then
-  --     return calloutDocx(node)
-  --   elseif _quarto.format.isJatsOutput() then
-  --     return jatsCallout(node)
-  --   elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
-  --     return epubCallout(node)
-  --   else
-  --     return simpleCallout(node)
-  --   end
-  -- end,
-
   constructor = function(tbl)
     preState.hasCallouts = true
 
