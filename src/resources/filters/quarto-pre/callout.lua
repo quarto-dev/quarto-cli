@@ -40,7 +40,7 @@ _quarto.ast.add_handler({
     div.attr.attributes["collapse"] = nil
     div.attr.attributes["icon"] = nil
     local callout_type = calloutType(div)
-    div.attr.classes = div.attr.classes:filter(function(class) return not isCallout(class) end)    
+    div.attr.classes = div.attr.classes:filter(function(class) return not isCallout(class) end)
     return quarto.Callout({
       appearance = appearanceRaw,
       title = title,
@@ -51,6 +51,13 @@ _quarto.ast.add_handler({
       attr = old_attr,
     })
   end,
+
+  -- These fields will be stored in the extended ast node
+  -- and available in the object passed to the custom filters
+  -- They must store Pandoc AST data. "Inline" custom nodes
+  -- can store Inlines in these fields, "Block" custom nodes
+  -- can store Blocks (and hence also Inlines implicitly).
+  slots = { "title", "content" },
 
   -- a function that renders the extendedNode into output
   render = function(node)
@@ -67,30 +74,6 @@ _quarto.ast.add_handler({
       return epubCallout(node)
     else
       return simpleCallout(node)
-    end
-  end,
-
-  -- a function that takes the extended node and
-  -- returns a table with table-valued attributes
-  -- that represent inner content that should
-  -- be visible to filters.
-  inner_content = function(extended_node)
-    return {
-      content = extended_node.content,
-      title = extended_node.title
-    }
-  end,
-
-  -- a function that updates the extended node
-  -- with new inner content (as returned by filters)
-  -- table keys are a subset of those returned by inner_content
-  -- and represent changed values that need to be updated.    
-  set_inner_content = function(extended_node, values)
-    if values.title then
-      extended_node.title = values.title
-    end
-    if values.content then
-      extended_node.content = values.content
     end
   end,
 
@@ -122,7 +105,7 @@ _quarto.ast.add_handler({
       appearance = "simple"
     end
     local content = pandoc.Blocks({})
-    content:extend(tbl.content)
+    content:extend(quarto.utils.as_blocks(tbl.content))
     local title = tbl.title
     if type(title) == "string" then
       title = pandoc.Str(title)
@@ -259,8 +242,13 @@ local kCalloutDefaultMinimal = "minimal"
 function calloutDiv(node)
   -- the first heading is the title
   local div = pandoc.Div({})
-  div.content:extend(node.content)
-  local title = node.title
+  local c = quarto.utils.as_blocks(node.content)
+  if pandoc.utils.type(c) == "Blocks" then
+    div.content:extend(c)
+  else
+    div.content:insert(c)
+  end
+  local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
@@ -368,6 +356,7 @@ end
 -- Latex callout
 function calloutLatex(node)
   -- read and clear attributes
+  local lua_type = type
   local title = node.title
   local type = node.type
   local calloutAppearance = node.appearance
@@ -402,7 +391,7 @@ function calloutLatex(node)
     if title == nil then
       title = displayName(type)
     else
-      title = pandoc.write(pandoc.Pandoc(pandoc.Plain(title)), 'latex')
+      title = pandoc.write(pandoc.Pandoc(title), 'latex')
     end
     callout = latexCalloutBoxDefault(title, type, icon)
   else
@@ -415,8 +404,12 @@ function calloutLatex(node)
     calloutContents = pandoc.List({})
   end
 
-  tappend(calloutContents, nodeContent)
-  
+  if lua_type(nodeContent) == "table" then
+    tappend(calloutContents, nodeContent)
+  else
+    table.insert(calloutContents, nodeContent)
+  end
+
   if calloutContents[1] ~= nil and calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents, { pandoc.Plain(beginEnvironment) })
     tappend(calloutContents, { pandoc.Plain(endEnvironment) })
@@ -450,7 +443,6 @@ function calloutLatex(node)
     quarto.doc.include_text('in-header', '\\VerbatimFootnotes')
   end
   
-
   return pandoc.Div(calloutContents)
 end
 
@@ -553,9 +545,9 @@ function latexCalloutBoxSimple(title, type, icon)
   -- Add the titles and contents
   local calloutContents = pandoc.List({});
   if title ~= nil then 
-    tprepend(title, {pandoc.RawInline('latex', '\\textbf{')})
-    tappend(title, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
-    calloutContents:insert(pandoc.Para(title))
+    tprepend(title.content, {pandoc.RawInline('latex', '\\textbf{')})
+    tappend(title.content, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
+    calloutContents:insert(pandoc.Para(title.content))
   end
 
   -- the inlines
@@ -579,7 +571,7 @@ function calloutDocx(node)
 end
 
 function calloutDocxDefault(node, type, hasIcon)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local color = htmlColorForType(type)
   local backgroundColor = htmlBackgroundColorForType(type)
 
@@ -660,7 +652,7 @@ function calloutDocxDefault(node, type, hasIcon)
   calloutContents:insert(pandoc.Div(pandoc.RawBlock("openxml", tableMiddle)))  
 
   -- the main contents of the callout
-  local contents = node.content
+  local contents = quarto.utils.as_blocks(node.content)
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
@@ -689,7 +681,7 @@ end
 
 function calloutDocxSimple(node, type, hasIcon) 
   local color = htmlColorForType(type)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
 
   local tablePrefix = [[
     <w:tbl>
@@ -744,7 +736,7 @@ function calloutDocxSimple(node, type, hasIcon)
   
   -- convert to open xml paragraph
   local contents = pandoc.List({}) -- use as pandoc.List() for find_if
-  contents:extend(node.content)
+  contents:extend(quarto.utils.as_blocks(node.content))
   removeParagraphPadding(contents)
   
   -- ensure there are no nested callouts
@@ -762,7 +754,7 @@ function calloutDocxSimple(node, type, hasIcon)
 end
 
 function epubCallout(node)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
@@ -831,7 +823,7 @@ function simpleCallout(node)
 end
 
 function resolveCalloutContents(node, require_title)
-  local title = node.title
+  local title = quarto.utils.as_inlines(node.title)
   local type = node.type
   
   local contents = pandoc.List({})
@@ -847,7 +839,7 @@ function resolveCalloutContents(node, require_title)
   if title ~= nil then
     contents:insert(pandoc.Para(pandoc.Strong(title)))
   end
-  tappend(contents, node.content)
+  tappend(contents, quarto.utils.as_blocks(node.content))
 
   return contents
 end

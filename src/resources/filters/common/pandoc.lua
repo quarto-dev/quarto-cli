@@ -94,14 +94,16 @@ function markdownToInlines(str)
 end
 
 function stripTrailingSpace(inlines)
+  -- we always convert to pandoc.List to ensure a uniform
+  -- return type (and its associated methods)
   if #inlines > 0 then
     if inlines[#inlines].t == "Space" then
       return pandoc.List(tslice(inlines, 1, #inlines - 1))
     else
-      return inlines
+      return pandoc.List(inlines)
     end
   else
-    return inlines
+    return pandoc.List(inlines)
   end
 end
 

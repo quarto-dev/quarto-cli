@@ -178,6 +178,7 @@ export function revealjsFormat() {
             offset,
             format,
             services.temp,
+            project,
             {
               tabby: true,
               anchors: false,

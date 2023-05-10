@@ -11,8 +11,11 @@ _quarto.ast.add_handler({
   kind = "Inline",
 
   parse = function(span)
+<<<<<<< HEAD
     local inner_content = pandoc.List({})
 
+=======
+>>>>>>> main
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
         error("Unexpected span in a shortcode parse")
@@ -23,11 +26,17 @@ _quarto.ast.add_handler({
       -- is it a recursive shortcode?
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(el)
       if custom_data ~= nil then
+<<<<<<< HEAD
         local inner_index = #inner_content+1
         inner_content:insert(custom_data)
         return {
           type = "shortcode",
           value = inner_index
+=======
+        return {
+          type = "shortcode",
+          value = custom_data
+>>>>>>> main
         }
       end
 
@@ -46,12 +55,19 @@ _quarto.ast.add_handler({
         if value == nil then
           -- it's a recursive value
           value = el.content[1]
+<<<<<<< HEAD
           local inner_index = #inner_content+1
           inner_content:insert(value)
           return {
             type = "key-value-shortcode",
             key = key,
             value = inner_index
+=======
+          return {
+            type = "key-value-shortcode",
+            key = key,
+            value = value
+>>>>>>> main
           }
         else
           -- it's a plain value
@@ -60,6 +76,7 @@ _quarto.ast.add_handler({
             key = key,
             value = value
           }
+<<<<<<< HEAD
         end
       else
         error("Unexpected span in a shortcode parse")
@@ -185,6 +202,213 @@ local function handle_shortcode(shortcode_tbl, node)
   end
 
   return callShortcodeHandler(handler, shortcode_struct), shortcode_struct
+=======
+        end
+      else
+        error("Unexpected span in a shortcode parse")
+        quarto.log.output(el)
+        crash_with_stack_trace()
+      end
+    end)
+    local name = shortcode_content:remove(1)
+    if name.type == "param" then
+      name = name.value
+    end
+    return quarto.Shortcode({
+      name = name,
+      params = shortcode_content
+    })
+  end,
+
+  render = function(node)
+    print("Should not need to render a shortcode.")
+    crash_with_stack_trace()
+  end,
+
+  constructor = function(tbl)
+    return tbl
+  end,
+
+  inner_content = function(node)
+    local result = {}
+    if node.name.type == "shortcode" then
+      result.name = node.name
+    end
+    for i, v in ipairs(node.params) do
+      if v.type == "key-value-shortcode" then
+        result[i] = v.value
+      end
+    end
+    return result
+  end,
+
+  set_inner_content = function(node, new_content)
+    if new_content.name ~= nil then
+      node.name = new_content.name
+    end
+    for i, v in ipairs(node.params) do
+      if new_content[i] ~= nil then
+        node.params[i].value = new_content[i]
+        if type(new_content[i]) == "string" then
+          node.params[i].type = "key-value"
+        else
+          -- we should really validate here...
+          node.params[i].type = "key-value-shortcode"
+        end
+      end
+    end
+  end
+})
+
+local function handle_shortcode(shortcode_tbl)
+  local name
+  if type(shortcode_tbl.name) ~= "string" then
+    -- this is a recursive shortcode call
+    name = handle_shortcode(shortcode_tbl.name)
+
+    -- TODO check that this returns a string as it should
+  else 
+    name = shortcode_tbl.name
+  end
+
+  local args = {}
+  local raw_args = {}
+
+  for _, v in ipairs(shortcode_tbl.params) do
+    if v.type == "key-value" then
+      table.insert(args, { name = v.key, value = v.value })
+      table.insert(raw_args, v.value)
+    elseif v.type == "key-value-shortcode" then
+      local result = handle_shortcode(v.value)
+      table.insert(args, { name = v.key, value = result })
+      table.insert(raw_args, result)
+    elseif v.type == "shortcode" then
+      local result = handle_shortcode(v.value)
+      table.insert(args, { value = result })
+      table.insert(raw_args, result)
+    elseif v.type == "param" then
+      table.insert(args, { value = v.value })
+      table.insert(raw_args, v.value)
+    else
+      error("Unexpected shortcode param type")
+      quarto.log.output(v)
+      crash_with_stack_trace()
+    end
+  end
+
+  local shortcode_struct = {
+    args = args,
+    raw_args = raw_args,
+    name = name
+  }
+
+  local handler = handlerForShortcode(shortcode_struct)
+  if handler == nil then
+    return nil, shortcode_struct
+  end
+
+  return callShortcodeHandler(handler, shortcode_struct), shortcode_struct
+end
+
+local code_shortcode
+
+local function ensure_shortcode_parser()
+  if code_shortcode ~= nil then
+    return code_shortcode
+  end
+  
+end
+
+function shortcodes_filter()
+  local code_shortcode = shortcode_lpeg.make_shortcode_parser({
+    escaped = function(s) return "{{<" .. s .. ">}}" end,
+    string = function(s) return { value = s } end,
+    keyvalue = function(k, v) return { name = k, value = s } end,
+    shortcode = function(lst)
+      local name = table.remove(lst, 1).value
+      local raw_args = {}
+      for _, v in ipairs(lst) do
+        table.insert(raw_args, v.value)
+      end
+      local shortcode_struct = {
+        args = lst,
+        raw_args = raw_args,
+        name = name
+      }
+      local handler = handlerForShortcode(shortcode_struct)
+      if handler == nil then
+        return ""
+      end
+      local result = callShortcodeHandler(handler, shortcode_struct)
+      return pandoc.utils.stringify(result) 
+    end, 
+  })
+  
+  local block_handler = function(node)
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)
+    if t ~= "Shortcode" then
+      return nil
+    end
+    local result, struct = handle_shortcode(custom_data)
+    return shortcodeResultAsBlocks(result, struct.name)
+  end
+
+  local inline_handler = function(custom_data)
+    local result, struct = handle_shortcode(custom_data)
+    return shortcodeResultAsInlines(result, struct.name)
+  end
+
+  local code_handler = function(el)
+    -- don't process shortcodes in code output from engines
+    -- (anything in an engine processed code block was actually
+    --  proccessed by the engine, so should be printed as is)
+    if el.attr and el.attr.classes:includes("cell-code") then
+      return
+    end
+
+    -- don't process shortcodes if they are explicitly turned off
+    if el.attr and el.attr.attributes["shortcodes"] == "false" then
+      return
+    end
+
+    el.text = code_shortcode:match(el.text)
+    return el
+  end
+
+  local filter
+  filter = {
+    Pandoc = function(doc)
+      -- first walk them in block context
+      doc = _quarto.ast.walk(doc, {
+        Para = block_handler,
+        Plain = block_handler,
+        Code = code_handler,
+        RawBlock = code_handler,
+        CodeBlock = code_handler,
+      })
+
+      doc = _quarto.ast.walk(doc, {
+        Shortcode = inline_handler,
+        RawInline = function(inline)
+          if inline.format == "QUARTO_custom" then
+            return nil
+          end
+          return code_handler(inline)
+        end,
+        Image = function(el)
+          el.src = code_shortcode:match(el.src)
+          return el
+        end,
+        Link = function(el)
+          el.target = code_shortcode:match(el.target)
+          return el
+        end
+       })
+      return doc
+    end
+  }
+  return filter
+>>>>>>> main
 end
 
 function shortcodes_filter()
@@ -454,6 +678,7 @@ function callShortcodeHandler(handler, shortCode)
   end
 end
 
+<<<<<<< HEAD
 -- -- scans through a list of inlines, finds shortcodes, and processes them
 -- function transformShortcodeInlines(inlines, noRawInlines)
 --   local transformed = false
@@ -758,6 +983,8 @@ end
 -- end
 
 
+=======
+>>>>>>> main
 function shortcodeResultAsInlines(result, name)
   if result == nil then
     warn("Shortcode '" .. name .. "' not found")

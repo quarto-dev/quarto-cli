@@ -109,7 +109,7 @@ local function make_shortcode_parser(evaluator_table)
     end
     return (lpeg.P("\"") * lpeg.C((1 - lpeg.P("\""))^0) * lpeg.P("\"") * Space + 
       lpeg.P("'") * lpeg.C((1 - lpeg.P("'"))^0) * lpeg.P("'") * Space +
-      (- lpeg.S("'\"}>") * lpeg.C(((1 - skip) - lpeg.P(" "))^1) * Space)) / (capture or string_handler) -- function(s) return { type = "string", value = s } end
+      (- lpeg.S("'\"}>") * lpeg.C(((1 - skip) - lpeg.S(" \n\t"))^1) * Space)) / (capture or string_handler) -- function(s) return { type = "string", value = s } end
   end
 
   -- skip :/? as well so that URLs with = in them are not treated as key/value pairs

@@ -15,10 +15,38 @@ import { ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
-import { ResolvedManuscriptConfig } from "./manuscript-types.ts";
+import {
+  kEnvironmentFiles,
+  ResolvedManuscriptConfig,
+} from "./manuscript-types.ts";
+
+// REES Compatible execution files
+// from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
+const kExecutionFiles = [
+  "environment.yml",
+  "requirements.txt",
+  "renv.lock",
+  "Pipfile",
+  "Pipfile.lock",
+  "setup.py",
+  "Project.toml",
+  "REQUIRE",
+  "install.R",
+  "apt.txt",
+  "DESCRIPTION",
+  "postBuild",
+  "start",
+  "runtime.txt",
+  "default.nix",
+  "Dockerfile",
+];
+
+const kReferencedFileType = "manuscript_reference";
+const kExecutionEnvironmentType = "execution_environment";
+const kResourceFileType = "manuscript_resource";
 
 export const createMecaBundle = async (
   mecaFile: string,
@@ -89,6 +117,38 @@ export const createMecaBundle = async (
       });
     }
 
+    const addEnvFile = (file: string, absPath: string) => {
+      // Copy to working dir
+      const workingPath = toWorkingDir(absPath, file);
+
+      // Make the MECA item
+      const mecaItem = toMecaItem(
+        file,
+        kExecutionEnvironmentType,
+      );
+
+      // Add to MECA bundle
+      manuscriptResources.push(mecaItem);
+
+      // Note to include in zip
+      manuscriptZipFiles.push(workingPath);
+    };
+
+    if (manuscriptConfig[kEnvironmentFiles]) {
+      manuscriptConfig[kEnvironmentFiles].forEach((file) => {
+        const absPath = join(context.dir, file);
+        addEnvFile(file, absPath);
+      });
+    } else {
+      // Find execution resources and include them in the bundle
+      kExecutionFiles.forEach((file) => {
+        const absPath = join(context.dir, file);
+        if (existsSync(absPath)) {
+          addEnvFile(file, absPath);
+        }
+      });
+    }
+
     // Copy resources
     const resources = [];
     resources.push(...jatsArticle.resources);
@@ -103,7 +163,10 @@ export const createMecaBundle = async (
 
       // Add resource to manifest
       manuscriptResources.push(
-        ...mecaItemsForPath(workingDir, workingPath),
+        toMecaItem(
+          relPath,
+          kResourceFileType,
+        ),
       );
 
       // Note to include in zip
@@ -182,5 +245,5 @@ const mecaItemsForPath = (
 };
 
 const mecaType = (_path: string) => {
-  return "manuscript_reference";
+  return kReferencedFileType;
 };

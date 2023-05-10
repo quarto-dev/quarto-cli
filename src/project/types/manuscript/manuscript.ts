@@ -22,10 +22,9 @@ import {
   kNotebookLinks,
   kNotebooks,
   kResources,
-  kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
+import { isJatsOutput } from "../../../config/format.ts";
 import { existsSync } from "fs/mod.ts";
 import { isAbsolute } from "path/mod.ts";
 import {
@@ -41,6 +40,7 @@ import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
+  kEnvironmentFiles,
   kManuscriptType,
   kManuscriptUrl,
   kMecaArchive,
@@ -52,6 +52,18 @@ import { createMecaBundle } from "./manuscript-meca.ts";
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
+const kMecaIcon = "archive";
+
+// Manscript projects are a multi file project that is composed into:
+// - a root article file
+//   by default index.ipynb/index.qmd unless specified in the project
+// - notebooks files
+//   All other executable files in the project directory are considered notebooks.
+//   The 'notebooks' can serve as sources for embeds or can accompany the main article
+//   as supplementary material
+//
+//   The notebooks will have a preview rendered and will also be download-able in the
+//   HTML preview in their source form.
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
@@ -99,6 +111,15 @@ export const manuscriptProjectType: ProjectType = {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
 
+    // Process any environment files
+    const userConfig = manuscriptConfig[kEnvironmentFiles] as
+      | string
+      | string[]
+      | undefined;
+    const environmentFiles = userConfig !== undefined
+      ? Array.isArray(userConfig) ? userConfig : [userConfig]
+      : undefined;
+
     // The name of the MECA file that will be produced (if enabled)
     const mecaFileOutput = mecaFileName(article, manuscriptConfig);
 
@@ -109,12 +130,13 @@ export const manuscriptProjectType: ProjectType = {
       article,
       notebooks,
       mecaFile: mecaFileOutput,
+      [kEnvironmentFiles]: environmentFiles,
     };
     config[kManuscriptType] = resolvedManuscriptOptions;
 
     return Promise.resolve(config);
   },
-  create: (_title: string): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "manuscript"));
     return {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
@@ -124,11 +146,11 @@ export const manuscriptProjectType: ProjectType = {
           name: "index",
           content: [
             "---",
-            "title: My Manscript",
+            `title: ${title}`,
             "---",
             "",
-            "## Section 1",
-            "This is a section of my manuscript what up.",
+            "## Section",
+            "This is a simple placeholder for the manuscript's main document.",
           ].join("\n"),
         },
       ],
@@ -145,7 +167,6 @@ export const manuscriptProjectType: ProjectType = {
       const manuscriptConfig = options.project
         .config?.[kManuscriptType] as ResolvedManuscriptConfig;
       if (manuscriptConfig) {
-        // Look up the base url used when rendering
         let baseUrl = manuscriptConfig[kManuscriptUrl];
         if (baseUrl === undefined) {
           const ghContext = await gitHubContext(options.project.dir);
@@ -174,12 +195,10 @@ export const manuscriptProjectType: ProjectType = {
     if (project && project.config) {
       const manuscriptConfig = project
         .config[kManuscriptType] as ResolvedManuscriptConfig;
-      const article = join(project.dir, manuscriptConfig.article);
-      const path = file.path;
-      if (path !== article) {
-        return ["ipynb"];
-      } else {
+      if (isArticle(file.path, project, manuscriptConfig)) {
         return formats;
+      } else {
+        return ["ipynb"];
       }
     }
     return formats;
@@ -204,6 +223,7 @@ export const manuscriptProjectType: ProjectType = {
             links.push({
               title: kMecaFileLabel,
               href: mecaFileName(source, manuscriptConfig),
+              icon: kMecaIcon,
             });
             format.render[kFormatLinks] = links;
           }
@@ -235,15 +255,11 @@ export const manuscriptProjectType: ProjectType = {
     context: ProjectContext,
     source: string,
     _flags: PandocFlags,
-    format: Format,
+    _format: Format,
     _services: RenderServices,
   ): Promise<FormatExtras> => {
     // defaults for all formats
-    const extras: FormatExtras = {
-      pandoc: {
-        [kToc]: isHtmlOutput(format.pandoc),
-      },
-    };
+    const extras: FormatExtras = {};
 
     // If the user isn't explicitly providing a notebook list
     // then automatically create notebooks for the other items in

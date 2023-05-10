@@ -11211,6 +11211,12 @@ var require_yaml_intelligence_resources = __commonJS({
                     schema: "path",
                     description: "Additional file resources to be copied to output directory"
                   }
+                },
+                environment: {
+                  maybeArrayOf: {
+                    schema: "path",
+                    description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
+                  }
                 }
               }
             }
@@ -19527,6 +19533,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to generate a MECA bundle for this manuscript",
         "Additional file resources to be copied to output directory",
         "Additional file resources to be copied to output directory",
+        "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
+        "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
         {
           short: "Unique label for code cell",
           long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -21544,12 +21552,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158120,
+        _internalId: 158136,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158112,
+            _internalId: 158128,
             type: "enum",
             enum: [
               "png",
@@ -21565,7 +21573,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158119,
+            _internalId: 158135,
             type: "anyOf",
             anyOf: [
               {

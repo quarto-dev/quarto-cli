@@ -1,0 +1,14 @@
+---
+first: this_definitely_needs_to_be_in_the_document
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["this_definitely_needs_to_be_in_the_document"]
+        - []
+---
+
+A {{< meta
+first >}} code.
+
+Another {{< meta second >}} code.

@@ -634,7 +634,7 @@ function alternateLinks(
       const alternate = {
         title: userLink.title,
         href: userLink.href,
-        icon: fileBsIconForExt(userLink.href),
+        icon: userLink.icon || fileBsIconForExt(userLink.href),
         dlAttrValue: "",
       };
       alternateLinks.push(alternate);

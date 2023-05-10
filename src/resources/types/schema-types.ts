@@ -1153,6 +1153,9 @@ export type ManuscriptSchema = {
     | string /* Whether to generate a MECA bundle for this manuscript */;
   article?:
     string /* The input document that will serve as the root document for this manuscript */;
+  environment?: MaybeArrayOf<
+    string
+  > /* Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...) */;
   notebooks?: ((string | NotebookViewSchema))[];
   resources?: MaybeArrayOf<
     string

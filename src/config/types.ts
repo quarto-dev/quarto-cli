@@ -645,6 +645,7 @@ export interface FormatTemplateContext {
 }
 
 export interface FormatLink {
+  icon?: string;
   title: string;
   href: string;
 }
