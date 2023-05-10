@@ -54,6 +54,8 @@ const kMecaFileLabel = "MECA Archive";
 const kMecaSuffix = "-meca.zip";
 const kMecaIcon = "archive";
 
+const kOutputDir = "_manuscript";
+
 // Manscript projects are a multi file project that is composed into:
 // - a root article file
 //   by default index.ipynb/index.qmd unless specified in the project
@@ -157,7 +159,7 @@ export const manuscriptProjectType: ProjectType = {
       supporting: [],
     };
   },
-  outputDir: "_manuscript",
+  outputDir: kOutputDir,
   cleanOutputDir: true,
   filterParams: async (options: PandocOptions) => {
     if (options.project) {
@@ -227,19 +229,22 @@ export const manuscriptProjectType: ProjectType = {
             });
             format.render[kFormatLinks] = links;
           }
-        }
 
-        // For JATS, default subarticles on (unless turned off explicitly)
-        if (
-          isJatsOutput(format.pandoc) &&
-          format.metadata[kJatsSubarticle] !== false
-        ) {
-          format.metadata[kJatsSubarticle] = true;
-        }
+          // For JATS, default subarticles on (unless turned off explicitly)
+          if (
+            isJatsOutput(format.pandoc) &&
+            format.metadata[kJatsSubarticle] !== false
+          ) {
+            format.metadata[kJatsSubarticle] = true;
+          }
 
-        // Enable google scholar, by default
-        if (format.metadata[kGoogleScholar] !== false) {
-          format.metadata[kGoogleScholar] = true;
+          // Enable google scholar, by default
+          if (format.metadata[kGoogleScholar] !== false) {
+            format.metadata[kGoogleScholar] = true;
+          }
+        } else {
+          format.render[kKeepHidden] = true;
+          format.execute.echo = true;
         }
       }
 
