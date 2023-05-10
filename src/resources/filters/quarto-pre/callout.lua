@@ -16,7 +16,7 @@ end
 
 _quarto.ast.add_handler({
   -- use either string or array of strings
-  class_name = {"callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
+  class_name = { "callout", "callout-note", "callout-warning", "callout-important", "callout-caution", "callout-tip" },
 
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "Callout",
@@ -60,22 +60,22 @@ _quarto.ast.add_handler({
   slots = { "title", "content" },
 
   -- a function that renders the extendedNode into output
-  render = function(node)
-    if _quarto.format.isHtmlOutput() and hasBootstrap() then
-      local result = calloutDiv(node)
-      return result
-    elseif _quarto.format.isLatexOutput() then
-      return calloutLatex(node)
-    elseif _quarto.format.isDocxOutput() then
-      return calloutDocx(node)
-    elseif _quarto.format.isJatsOutput() then
-      return jatsCallout(node)
-    elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
-      return epubCallout(node)
-    else
-      return simpleCallout(node)
-    end
-  end,
+  -- render = function(node)
+  --   if _quarto.format.isHtmlOutput() and hasBootstrap() then
+  --     local result = calloutDiv(node)
+  --     return result
+  --   elseif _quarto.format.isLatexOutput() then
+  --     return calloutLatex(node)
+  --   elseif _quarto.format.isDocxOutput() then
+  --     return calloutDocx(node)
+  --   elseif _quarto.format.isJatsOutput() then
+  --     return jatsCallout(node)
+  --   elseif _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput() then
+  --     return epubCallout(node)
+  --   else
+  --     return simpleCallout(node)
+  --   end
+  -- end,
 
   constructor = function(tbl)
     preState.hasCallouts = true
@@ -354,7 +354,7 @@ function calloutDiv(node)
 end
 
 -- Latex callout
-function calloutLatex(node)
+calloutLatex = function(node)
   -- read and clear attributes
   local lua_type = type
   local title = node.title
@@ -995,3 +995,23 @@ function displayName(type)
   local defaultName = type:sub(1,1):upper()..type:sub(2)
   return param("callout-" .. type .. "-title", defaultName)
 end
+
+-- default renderer first
+_quarto.ast.add_renderer("Callout", function(_)
+  return true
+end, simpleCallout)
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isHtmlOutput() and hasBootstrap()
+end, calloutDiv)
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isLatexOutput()
+end, calloutLatex)
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isDocxOutput()
+end, calloutDocx)
+_quarto.ast.add_renderer("Callout", function(_) 
+  return _quarto.format.isJatsOutput()
+end, jatsCallout)
+_quarto.ast.add_renderer("Callout", function(_) 
+  return _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput()
+end, epubCallout)

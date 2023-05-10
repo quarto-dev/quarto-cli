@@ -140,8 +140,7 @@ function run_emulated_filter(doc, filter)
       if kind == "Inline" then
         return process_custom_preamble(custom_data, t, kind, custom)
       end
-      error("Custom node of type " .. t .. " is not an inline, but found in an inline context")
-      crash_with_stack_trace()
+      fatal("Custom node of type " .. t .. " is not an inline, but found in an inline context")
       return nil
     end
     if filter.Span ~= nil then
@@ -160,8 +159,7 @@ function create_custom_node_scaffold(t, context)
   elseif context == "Inline" then
     result = pandoc.Span({})
   else
-    error("Invalid context for custom node: " .. context)
-    crash_with_stack_trace()
+    fatal("Invalid context for custom node: " .. context)
   end
   n_custom_nodes = n_custom_nodes + 1
   local id = tostring(n_custom_nodes)
@@ -291,8 +289,7 @@ _quarto.ast = {
     local kind = div_or_span.attributes.__quarto_custom_context
     local handler = _quarto.ast.resolve_handler(t)
     if handler == nil then
-      error("Internal Error: handler not found for custom node " .. t)
-      crash_with_stack_trace()
+      fatal("Internal Error: handler not found for custom node " .. t)
     end
     local custom_data = _quarto.ast.custom_node_data[n]
     custom_data["__quarto_custom_node"] = div_or_span
@@ -303,13 +300,11 @@ _quarto.ast = {
   add_handler = function(handler)
     local state = (preState or postState).extendedAstHandlers
     if type(handler.constructor) == "nil" then
-      print("Internal Error: extended ast handler must have a constructor")
       quarto.utils.dump(handler)
-      crash_with_stack_trace()
+      fatal("Internal Error: extended ast handler must have a constructor")
     elseif type(handler.class_name) == "nil" then
-      print("ERROR: handler must define class_name")
       quarto.utils.dump(handler)
-      crash_with_stack_trace()
+      fatal("handler must define class_name")
     elseif type(handler.class_name) == "string" then
       state.namedHandlers[handler.class_name] = handler
     elseif type(handler.class_name) == "table" then
@@ -317,9 +312,8 @@ _quarto.ast = {
         state.namedHandlers[name] = handler
       end
     else
-      print("ERROR: class_name must be a string or an array of strings")
       quarto.utils.dump(handler)
-      crash_with_stack_trace()
+      fatal("ERROR: class_name must be a string or an array of strings")
     end
 
     local forwarder = { }
@@ -347,6 +341,19 @@ _quarto.ast = {
     state.namedHandlers[handler.ast_name] = handler
   end,
 
+  add_renderer = function(name, condition, renderer)
+    local handler = _quarto.ast.resolve_handler(name)
+    if handler == nil then
+      fatal("Internal Error in add_renderer: handler not found for custom node " .. name)
+    end
+    if handler.renderers == nil then
+      handler.renderers = { }
+    end
+    -- we insert renderers at the beginning of the list so that they have
+    -- a chance to gtrigger before the default ones
+    table.insert(handler.renderers, 1, { condition = condition, render = renderer })
+  end,
+
   resolve_handler = function(name)
     local state = (preState or postState).extendedAstHandlers
     if state.namedHandlers ~= nil then
@@ -362,8 +369,7 @@ _quarto.ast = {
     local function custom_walk(node)
       local handler = quarto._quarto.ast.resolve_handler(node.t)
       if handler == nil then
-        error("Internal Error: handler not found for custom node " .. node.t)
-        crash_with_stack_trace()
+        fatal("Internal Error: handler not found for custom node " .. node.t)
       end
       return handler.render(node)
     end

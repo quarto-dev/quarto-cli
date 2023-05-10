@@ -326,7 +326,7 @@ local quartoPost = {
     return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
   end, jatsSubarticle()) },
   { name = "post-render-asciidoc", filter = renderAsciidoc() },
-  { name = "post-renderExtendedNodes", filter = renderExtendedNodes() },
+  { name = "post-render_extended_nodes", filter = render_extended_nodes() },
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
