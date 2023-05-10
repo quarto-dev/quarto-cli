@@ -266,8 +266,7 @@ local function as_inlines(v)
     return pandoc.utils.blocks_to_inlines(v)
   end
 
-  error("as_inlines: invalid type: " .. t)
-  crash_with_stack_trace()
+  fatal("as_inlines: invalid type " .. t)
   return nil
 end
 
@@ -290,8 +289,7 @@ local function as_blocks(v)
     return pandoc.Blocks(v)
   end
 
-  error("as_blocks: invalid type: " .. t)
-  crash_with_stack_trace()
+  fatal("as_blocks: invalid type " .. t)
   return nil
 end
 

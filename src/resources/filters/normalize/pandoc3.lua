@@ -39,8 +39,7 @@ function parse_pandoc3_figures()
           }))
         else
           error("Couldn't parse figure:")
-          error(fig)
-          crash_with_stack_trace()
+          fatal(fig)
         end
       end
     }

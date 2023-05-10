@@ -18,7 +18,7 @@ function is_visible(node)
   elseif node.behavior == kContentHidden then
     return not match
   else
-    crash_with_stack_trace()
+    fatal("Internal Error: invalid behavior for conditional block: " .. node.behavior)
     return false
   end
 end

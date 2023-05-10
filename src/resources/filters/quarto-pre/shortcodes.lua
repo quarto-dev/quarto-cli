@@ -15,9 +15,8 @@ _quarto.ast.add_handler({
 
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
-        error("Unexpected span in a shortcode parse")
         quarto.log.output(el)
-        crash_with_stack_trace()
+        fatal("Unexpected span in a shortcode parse")
       end
 
       -- is it a recursive shortcode?
@@ -62,9 +61,8 @@ _quarto.ast.add_handler({
           }
         end
       else
-        error("Unexpected span in a shortcode parse")
         quarto.log.output(el)
-        crash_with_stack_trace()
+        fatal("Unexpected span in a shortcode parse")
       end
     end)
     local name = shortcode_content:remove(1)
@@ -86,8 +84,7 @@ _quarto.ast.add_handler({
   end,
 
   render = function(node)
-    print("Should not need to render a shortcode.")
-    crash_with_stack_trace()
+    fatal("Should not need to render a shortcode.")
   end,
 
   constructor = function(tbl)
@@ -109,9 +106,8 @@ local function handle_shortcode(shortcode_tbl, node)
     -- we need to handle this explicitly
 
     if type(shortcode_tbl.name) ~= "number" then
-      error("Unexpected shortcode name type")
       quarto.log.output(shortcode_tbl.name)
-      crash_with_stack_trace()
+      fatal("Unexpected shortcode name type " .. type(shortcode_tbl.name))
     end
 
     local shortcode_node = node.content[shortcode_tbl.name]
@@ -120,9 +116,8 @@ local function handle_shortcode(shortcode_tbl, node)
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(v)
       if custom_data ~= nil then
         if t ~= "Shortcode" then
-          error("Unexpected shortcode content type")
           quarto.log.output(t)
-          crash_with_stack_trace()
+          fatal("Unexpected shortcode content type " .. tostring(t))
         end
         -- we are not resolved, so resolve
         shortcode_node.content[i] = handle_shortcode(custom_data, v)
@@ -153,10 +148,9 @@ local function handle_shortcode(shortcode_tbl, node)
       if custom_data == nil then
         result = pandoc.utils.stringify(shortcode_node)
       elseif t ~= "Shortcode" then
-        error("Unexpected shortcode content type")
         quarto.log.output(custom_data)
         quarto.log.output(t)
-        crash_with_stack_trace()
+        fatal("Unexpected shortcode content type " .. tostring(t))
       else
         local result = handle_shortcode(custom_data, shortcode_node)
         result = pandoc.utils.stringify(result)
@@ -167,9 +161,8 @@ local function handle_shortcode(shortcode_tbl, node)
       table.insert(args, { value = v.value })
       table.insert(raw_args, v.value)
     else
-      error("Unexpected shortcode param type")
       quarto.log.output(v)
-      crash_with_stack_trace()
+      fatal("Unexpected shortcode param type " .. tostring(v.type))
     end
   end
 

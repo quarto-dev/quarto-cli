@@ -23,8 +23,7 @@ if os.getenv("QUARTO_TRACE_FILTERS") then
   function end_trace()
     local file = io.open("quarto-filter-trace.json", "w")
     if file == nil then
-      crash_with_stack_trace()
-      return
+      fatal("Unable to open quarto-filter-trace.json for writing")
     end
     file:write(quarto.json.encode({
       data = data

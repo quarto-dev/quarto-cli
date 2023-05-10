@@ -18,8 +18,7 @@ _quarto.ast.add_handler({
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
   parse = function(div)
-    print("internal error, should not have arrived here")
-    crash_with_stack_trace()
+    fatal("internal error, DecoratedCodeBlock has no native parser")
   end,
 
   -- a function that renders the extendedNode into output

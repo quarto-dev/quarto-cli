@@ -12,8 +12,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
     local function callback()
       if v.flags then
         if type(v.flags) ~= "table" then
-          error("filter " .. v.name .. " has invalid flags")
-          crash_with_stack_trace()
+          fatal("filter " .. v.name .. " has invalid flags")
         end
         local can_skip = true
         for _, index in ipairs(v.flags) do

@@ -17,3 +17,9 @@ function error(message)
   io.stderr:write(lunacolors.red("ERROR: " .. message .. "\n"))
 end
 
+function fatal(message)
+  io.stderr:write(lunacolors.red("ERROR: " .. message .. "\n"))
+  -- TODO write stack trace into log, and then exit.
+  crash_with_stack_trace()  
+end
+
