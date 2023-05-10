@@ -242,9 +242,6 @@ export const manuscriptProjectType: ProjectType = {
           if (format.metadata[kGoogleScholar] !== false) {
             format.metadata[kGoogleScholar] = true;
           }
-        } else {
-          format.render[kKeepHidden] = true;
-          format.execute.echo = true;
         }
       }
 
