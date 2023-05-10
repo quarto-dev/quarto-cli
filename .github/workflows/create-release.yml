@@ -240,6 +240,13 @@ jobs:
           pushd package/src/
           ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --arch aarch64 --log-level info
           popd
+          
+      - name: Compute Checksum
+        run: |
+          pushd package/out
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb)
+          echo "checksum-arm64-deb-installer=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -270,6 +277,13 @@ jobs:
           ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
           popd
 
+      - name: Compute Checksum
+        run: |
+          pushd package/out
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb)
+          echo "checksum-deb-installer=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
@@ -331,11 +345,25 @@ jobs:
           QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
           QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}
 
+      - name: Compute Checksum
+        run: |
+          pushd package/out
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-win.msi)
+          echo "checksum-win-installer=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: Windows Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
+
+      - name: Compute Checksum
+        run: |
+          pushd package/out
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-win.zip)
+          echo "checksum-win-zip=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
 
       - name: Upload Zip
         uses: actions/upload-artifact@v3
@@ -405,11 +433,25 @@ jobs:
           QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
+      - name: Compute Checksum
+        run: |
+          pushd package/out
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg)
+          echo "checksum-macos-installer=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: Mac Installer
           path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
+
+      - name: Compute Checksum
+        run: |
+          pushd package/out
+          CHECKSUM=$(sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz)
+          echo "checksum-macos-tarball=$CHECKSUM" >> $GITHUB_OUTPUT
+          popd
 
       - name: Upload Zip
         uses: actions/upload-artifact@v3
@@ -601,43 +643,22 @@ jobs:
       - name: Generate Checksums
         id: generate_checksum
         run: |
-          pushd Windows\ Installer
-          sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-installer-win.outputs.checksum-win-installer}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt          
+          echo ${{needs.make-installer-win.outputs.checksum-win-zip}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
-          pushd Windows\ Zip
-          sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-installer-mac.outputs.checksum-macos-tarball}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          echo ${{needs.make-installer-mac.outputs.checksum-macos-installer}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
-          pushd Mac\ Zip
-          sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-tarball-rhel.outputs.checksum-rhel-tarball}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
-          pushd Mac\ Installer
-          sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-installer-arm64-deb.outputs.checksum-arm64-deb-installer}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt           
+          echo ${{needs.make-installer-deb.outputs.checksum-deb-installer}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt                     
 
-          pushd RHEL\ Zip
-          sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd           
-           
-          pushd Deb\ Zip
-          sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-arm64-tarball.outputs.checksum-arm64-tarball}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          echo ${{needs.make-tarball.outputs.checksum-tarball}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
-          pushd Deb\ Arm64\ Zip
-          sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
+          echo ${{needs.make-source-tarball.outputs.checksum-source}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
-          pushd Deb\ Installer
-          sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
-
-          pushd Deb\ Arm64\ Installer
-          sha256sum quarto-${{needs.configure.outputs.version}}-linux-arm64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd          
-
-          echo ${{needs.make-source-tarball.outputs.checksum}} >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
 
       - name: Attach Checksum
         id: attach-checksum
