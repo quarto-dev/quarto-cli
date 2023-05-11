@@ -8,10 +8,16 @@ try {
 }
 
 // check if any of our repo files have a later time
-const command = new Deno.Command("git", { args: ["ls-files"] });
-const output = new TextDecoder().decode((await command.output()).stdout);
-const files = output.split("\n").filter((line) => line.length > 0);
-if (files.some((file) => Deno.statSync(file).mtime!.valueOf() > jsBuildTime)) {
+let build = false;
+try {
+  const command = new Deno.Command("git", { args: ["ls-files"] });
+  const output = new TextDecoder().decode((await command.output()).stdout);
+  const files = output.split("\n").filter((line) => line.length > 0);
+  build = files.some((file) => Deno.statSync(file).mtime!.valueOf() > jsBuildTime);
+} catch (error) {
+  build = true;
+}
+if (build) {
   const buildCommand = new Deno.Command(Deno.execPath(), {
     args: ["task", "build"],
   });
