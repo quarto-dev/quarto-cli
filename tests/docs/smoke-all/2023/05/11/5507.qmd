@@ -1,0 +1,13 @@
+---
+title: issue-5507
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ['"somevalue"']
+---
+
+```{.markdown shortcodes="false"}
+{{< meta somevalue >}}
+```

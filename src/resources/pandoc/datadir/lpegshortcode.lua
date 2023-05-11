@@ -161,7 +161,7 @@ local escaped_string = into_string(
     if unescaped ~= s then
       return s
     else
-      return s:gsub(2, -2)
+      return s:sub(2, -2)
     end
   end)
 
