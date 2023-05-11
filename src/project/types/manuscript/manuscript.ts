@@ -253,25 +253,25 @@ export const manuscriptProjectType: ProjectType = {
             });
             format.render[kFormatLinks] = links;
           }
+        }
 
-          // For JATS, default subarticles on (unless turned off explicitly)
-          if (
-            isJatsOutput(format.pandoc) &&
-            format.render[kNotebookSubarticles] !== false
-          ) {
-            format.render[kNotebookSubarticles] = true;
-          }
+        // For JATS, default subarticles on (unless turned off explicitly)
+        if (
+          isJatsOutput(format.pandoc) &&
+          format.render[kNotebookSubarticles] !== false
+        ) {
+          format.render[kNotebookSubarticles] = true;
+        }
 
-          // Enable google scholar, by default
-          if (format.metadata[kGoogleScholar] !== false) {
-            format.metadata[kGoogleScholar] = true;
-          }
+        // Enable google scholar, by default
+        if (format.metadata[kGoogleScholar] !== false) {
+          format.metadata[kGoogleScholar] = true;
+        }
 
-          // Enable the TOC for HTML output
-          if (isHtmlOutput(format.pandoc)) {
-            if (format.pandoc[kToc] !== false) {
-              format.pandoc[kToc] = true;
-            }
+        // Enable the TOC for HTML output
+        if (isHtmlOutput(format.pandoc)) {
+          if (format.pandoc[kToc] !== false) {
+            format.pandoc[kToc] = true;
           }
         }
       }
