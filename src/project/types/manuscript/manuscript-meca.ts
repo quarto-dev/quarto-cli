@@ -106,7 +106,7 @@ export const createMecaBundle = async (
       jatsArticle.supporting.forEach((file) => {
         const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
         const absPath = isAbsolute(file) ? file : join(outputDir, file);
-        const workingPath = toWorkingDir(absPath, relPath, true);
+        const workingPath = toWorkingDir(absPath, relPath, false);
 
         // Add Supporting files to manifest
         const items = mecaItemsForPath(workingDir, workingPath);
