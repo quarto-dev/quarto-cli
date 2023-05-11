@@ -102,20 +102,29 @@ export const createMecaBundle = async (
     // Move supporting files
     const manuscriptResources: MecaItem[] = [];
     const manuscriptZipFiles: string[] = [];
+    const addResource = (path: string) => {
+      const relPath = isAbsolute(path) ? relative(outputDir, path) : path;
+      const absPath = isAbsolute(path) ? path : join(outputDir, path);
+      const workingPath = toWorkingDir(absPath, relPath, false);
+
+      // Add Supporting files to manifest
+      const items = mecaItemsForPath(workingDir, workingPath);
+      manuscriptResources.push(...items);
+
+      // Note to include in zip
+      manuscriptZipFiles.push(workingPath);
+    };
+
+    // JATS Supporting files
     if (jatsArticle.supporting) {
-      jatsArticle.supporting.forEach((file) => {
-        const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
-        const absPath = isAbsolute(file) ? file : join(outputDir, file);
-        const workingPath = toWorkingDir(absPath, relPath, false);
-
-        // Add Supporting files to manifest
-        const items = mecaItemsForPath(workingDir, workingPath);
-        manuscriptResources.push(...items);
-
-        // Note to include in zip
-        manuscriptZipFiles.push(workingPath);
-      });
+      jatsArticle.supporting.forEach(addResource);
     }
+
+    // Add notebooks
+    const notebooks = manuscriptConfig.notebooks;
+    notebooks.forEach((notebook) => {
+      addResource(notebook.notebook);
+    });
 
     const addEnvFile = (file: string, absPath: string) => {
       // Copy to working dir
