@@ -24,9 +24,10 @@ import {
   kNotebooks,
   kNotebookSubarticles,
   kResources,
+  kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isJatsOutput } from "../../../config/format.ts";
+import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
 import { existsSync } from "fs/mod.ts";
 import { isAbsolute } from "path/mod.ts";
 import {
@@ -264,6 +265,13 @@ export const manuscriptProjectType: ProjectType = {
           // Enable google scholar, by default
           if (format.metadata[kGoogleScholar] !== false) {
             format.metadata[kGoogleScholar] = true;
+          }
+
+          // Enable the TOC for HTML output
+          if (isHtmlOutput(format.pandoc)) {
+            if (format.pandoc[kToc] !== false) {
+              format.pandoc[kToc] = true;
+            }
           }
         }
       }
