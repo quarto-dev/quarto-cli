@@ -50,6 +50,8 @@ _quarto.ast.add_handler({
     })
   end,
 
+  slots = { "node" },
+
   render = function(node)
     local el = node.node
     local visible = is_visible(node)
@@ -78,21 +80,6 @@ _quarto.ast.add_handler({
     return result
   end,
 
-  inner_content = function(tbl)
-    if is_visible(tbl) then
-      return {
-        content = tbl.node.content,
-      }
-    else
-      return {}
-    end
-  end,
-
-  set_inner_content = function(tbl, content)
-    if content.content ~= nil then
-      tbl.node.content = content.content
-    end
-  end
 })
 
 function content_hidden()
