@@ -115,7 +115,7 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
-export const outputCreated = (input: string, to: string): Verify => {
+export const outputCreated = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
     name: "Output Created",
     verify: (outputs: ExecuteOutput[]) => {
@@ -126,7 +126,7 @@ export const outputCreated = (input: string, to: string): Verify => {
       assert(outputCreatedMsg !== undefined, "No output created message");
 
       // Check for existence of the output
-      const outputFile = outputForInput(input, to);
+      const outputFile = outputForInput(input, to, projectOutDir);
       verifyPath(outputFile.outputPath);
       return Promise.resolve();
     },
@@ -298,22 +298,22 @@ export function requireLatexPackage(pkg: string, opts?: string): RegExp {
   }
 }
 
-export const noSupportingFiles = (input: string, to: string): Verify => {
+export const noSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
     name: "No Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
-      const outputFile = outputForInput(input, to);
+      const outputFile = outputForInput(input, to, projectOutDir);
       verifyNoPath(outputFile.supportPath);
       return Promise.resolve();
     },
   };
 };
 
-export const hasSupportingFiles = (input: string, to: string): Verify => {
+export const hasSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
     name: "Has Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
-      const outputFile = outputForInput(input, to);
+      const outputFile = outputForInput(input, to, projectOutDir);
       verifyPath(outputFile.supportPath);
       return Promise.resolve();
     },
