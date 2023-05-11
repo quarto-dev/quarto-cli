@@ -18,7 +18,7 @@ import { Format, PandocFlags } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { createFormat } from "../formats-shared.ts";
 
-import { warning } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { extname, join } from "path/mod.ts";
 import { reformat } from "../../core/xml.ts";
@@ -336,6 +336,7 @@ async function renderJatsSubarticle(
   nbFormat.metadata[kJatsSubarticleId] = subarticleId;
 
   // Run pandoc to render the notebook
+  info(`Creating sub-article`);
   const result = await runPandoc({
     markdown,
     source: inputMd,
@@ -346,6 +347,7 @@ async function renderJatsSubarticle(
     format: nbFormat,
     args: [],
     services: context.options.services,
+    quiet: true,
   }, []);
 
   // Run any post processors
