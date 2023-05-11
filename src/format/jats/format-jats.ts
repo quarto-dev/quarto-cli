@@ -222,6 +222,7 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         // Render the notebook into a JATS subarticle
         if (inputMdFile) {
           const jatsResult = await renderJatsSubarticle(
+            notebook,
             notebookId,
             inputMdFile,
             format,
@@ -230,8 +231,8 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
 
           // Forward the rendered JATS and result along
           subarticlePaths.push(jatsResult.afterBody);
-          if (jatsResult.supporting) {
-            subarticleSupporting.push(...jatsResult.supporting);
+          if (jatsResult.resources) {
+            subarticleResources.push(...jatsResult.resources);
           }
         }
       }
@@ -306,6 +307,7 @@ async function writeNotebookMarkdown(
 }
 
 async function renderJatsSubarticle(
+  notebook: NotebookSubarticle,
   subarticleId: string,
   inputMd: string,
   format: Format,
@@ -336,14 +338,14 @@ async function renderJatsSubarticle(
   nbFormat.metadata[kJatsSubarticleId] = subarticleId;
 
   // Run pandoc to render the notebook
-  info(`Creating sub-article`);
+  info(`Creating sub-article (${notebook.path})`);
   const result = await runPandoc({
     markdown,
     source: inputMd,
     keepYaml: false,
     output,
     mediabagDir: "",
-    libDir: "",
+    libDir: context.libDir,
     format: nbFormat,
     args: [],
     services: context.options.services,
@@ -359,6 +361,6 @@ async function renderJatsSubarticle(
 
   return {
     afterBody: output,
-    supporting: result?.resources,
+    resources: result?.resources,
   };
 }
