@@ -203,12 +203,7 @@ export function sassLayer(path: string): SassLayer {
 
 export function sassLayerFile(theme: string): SassLayer {
   // It is not a built in theme, so read the theme file and parse it.
-  let rawContents: string;
-  try {
-    rawContents = Deno.readTextFileSync(theme);
-  } catch (e) {
-    throw new Error(`The file ${theme} could not be read.`);
-  }
+  const rawContents = Deno.readTextFileSync(theme);
 
   return sassLayerStr(rawContents, theme);
 }
