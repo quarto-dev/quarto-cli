@@ -209,7 +209,7 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         subarticleResources.push(notebook.path);
 
         // Render the notebook to a markdown file
-        const inputMdFile = isJupyterNotebook(input)
+        const inputMdFile = isJupyterNotebook(notebook.path)
           ? await writeNotebookMarkdown(
             input,
             notebook,
