@@ -106,7 +106,7 @@ export const createMecaBundle = async (
       jatsArticle.supporting.forEach((file) => {
         const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
         const absPath = isAbsolute(file) ? file : join(outputDir, file);
-        const workingPath = toWorkingDir(absPath, relPath, false);
+        const workingPath = toWorkingDir(absPath, relPath, true);
 
         // Add Supporting files to manifest
         const items = mecaItemsForPath(workingDir, workingPath);
@@ -155,6 +155,12 @@ export const createMecaBundle = async (
     if (context.config?.project.resources) {
       resources.push(...context.config?.project.resources);
     }
+
+    // Add notebooks
+    const notebooks = manuscriptConfig.notebooks;
+    notebooks.forEach((notebook) => {
+      resources.push(notebook.notebook);
+    });
 
     resources.forEach((file) => {
       const relPath = isAbsolute(file) ? relative(context.dir, file) : file;
