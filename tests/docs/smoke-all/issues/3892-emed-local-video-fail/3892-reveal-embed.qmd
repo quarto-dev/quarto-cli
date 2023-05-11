@@ -1,0 +1,7 @@
+---
+format: 
+  revealjs:
+    embed-resources: true
+---
+
+{{< video local-video.mp4 >}}

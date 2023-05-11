@@ -1,0 +1,7 @@
+---
+format: 
+  html:
+    embed-resources: true
+---
+
+{{< video local-video.mp4 >}}
