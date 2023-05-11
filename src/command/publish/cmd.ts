@@ -25,17 +25,17 @@ import {
   projectInputFiles,
 } from "../../project/project-context.ts";
 
-import { projectIsWebsite } from "../../project/project-shared.ts";
+import {
+  projectIsManuscript,
+  projectIsWebsite,
+} from "../../project/project-shared.ts";
 
 import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
 import { AccountPrompt, manageAccounts, resolveAccount } from "./account.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
-import {
-  isInteractiveTerminal,
-  isServerSession,
-} from "../../core/platform.ts";
+import { isInteractiveTerminal, isServerSession } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -317,6 +317,10 @@ async function createPublishOptions(
   if (Deno.statSync(path).isDirectory) {
     if (project) {
       if (projectIsWebsite(project)) {
+        input = project;
+      } else if (
+        projectIsManuscript(project) && project.files.input.length > 0
+      ) {
         input = project;
       } else if (project.files.input.length === 1) {
         input = project.files.input[0];
