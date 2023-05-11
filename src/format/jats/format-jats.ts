@@ -31,7 +31,10 @@ import {
   JupyterMarkdownOptions,
   notebookMarkdown,
 } from "../../core/jupyter/jupyter-embed.ts";
-import { jupyterAssets } from "../../core/jupyter/jupyter.ts";
+import {
+  isJupyterNotebook,
+  jupyterAssets,
+} from "../../core/jupyter/jupyter.ts";
 import { runPandoc } from "../../command/render/pandoc.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { renderFormats } from "../../command/render/render-contexts.ts";
@@ -169,7 +172,6 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
     notebooks: string[],
     context: RenderContext,
   ) {
-
     if (format.render[kNotebookSubarticles] === true) {
       // The working directory that we'll use for rendering
       const wd = context.options.services.temp.createDir();
@@ -207,13 +209,15 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
         subarticleResources.push(notebook.path);
 
         // Render the notebook to a markdown file
-        const inputMdFile = await writeNotebookMarkdown(
-          input,
-          notebook,
-          format,
-          context,
-          wd,
-        );
+        const inputMdFile = isJupyterNotebook(input)
+          ? await writeNotebookMarkdown(
+            input,
+            notebook,
+            format,
+            context,
+            wd,
+          )
+          : input;
 
         // Render the notebook into a JATS subarticle
         if (inputMdFile) {
