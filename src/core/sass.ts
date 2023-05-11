@@ -1,9 +1,8 @@
 /*
-* sass.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * sass.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
@@ -204,7 +203,12 @@ export function sassLayer(path: string): SassLayer {
 
 export function sassLayerFile(theme: string): SassLayer {
   // It is not a built in theme, so read the theme file and parse it.
-  const rawContents = Deno.readTextFileSync(theme);
+  let rawContents: string;
+  try {
+    rawContents = Deno.readTextFileSync(theme);
+  } catch (e) {
+    throw new Error(`The file ${theme} could not be read.`);
+  }
 
   return sassLayerStr(rawContents, theme);
 }
