@@ -81,7 +81,23 @@ function jatsCallout(node)
 end
 
 function jats()
-  if not _quarto.format.isJatsOutput() then
+  if _quarto.format.isJatsOutput() then
+    return {
+      Meta = jatsMeta,
+  
+      -- clear out divs
+      Div = function(div)
+        if isTableDiv(div) then
+          local tbl = div.content[1]
+          tbl.identifier = div.identifier
+          return tbl
+        else
+          -- otherwise, if this is a div, we can unroll its contents
+          return unrollDiv(div)
+        end
+      end
+    }  
+  else 
     return {}
   end
 

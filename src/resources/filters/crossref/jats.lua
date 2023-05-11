@@ -14,7 +14,7 @@ function jats_subarticle_crossref()
     -- so that we form a unique identifier (sub-article ids still
     -- must be unique across the whole document)
 
-    -- TODO: Need to properly handle all cross referenceable typescd ..
+    -- TODO: Need to properly handle all cross referenceable types
     local function subArticleIdentifier(identifier)
       if isFigureRef(identifier) or isTableRef(identifier) or isListingRef(identifier) then
         local suffix = '-' .. subarticleId()
