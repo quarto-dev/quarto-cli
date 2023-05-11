@@ -19,12 +19,10 @@ import {
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kEcho,
-  kError,
   kFormatLinks,
   kNotebookLinks,
   kNotebooks,
   kResources,
-  kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { isJatsOutput } from "../../../config/format.ts";
@@ -51,9 +49,12 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { createMecaBundle } from "./manuscript-meca.ts";
+import { readLines } from "io/mod.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
+const kDocumentNotebookLabel = "Article Notebook";
+
 const kMecaSuffix = "-meca.zip";
 const kMecaIcon = "archive";
 
@@ -72,7 +73,7 @@ const kOutputDir = "_manuscript";
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
-  config: (
+  config: async (
     projectDir: string,
     config: ProjectConfig,
     _flags?: RenderFlags,
@@ -115,11 +116,16 @@ export const manuscriptProjectType: ProjectType = {
     if (inputNotebooks) {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
-    // TODO: Localize String
-    notebooks.push({
-      notebook: article,
-      title: "Document Computations",
-    });
+
+    // If there are computations in the main article, the add
+    // it as a notebook to be rendered with computations intact
+    // TODO: add an options for this
+    if (await hasComputations(join(projectDir, article))) {
+      notebooks.unshift({
+        notebook: article,
+        title: kDocumentNotebookLabel,
+      });
+    }
 
     // Process any environment files
     const userConfig = manuscriptConfig[kEnvironmentFiles] as
@@ -147,7 +153,7 @@ export const manuscriptProjectType: ProjectType = {
     // Disable echo, by default
     config[kEcho] = false;
 
-    return Promise.resolve(config);
+    return config;
   },
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "manuscript"));
@@ -381,6 +387,27 @@ const articleFile = (projectDir: string, config: ManuscriptConfig) => {
     }
   }
   return defaultRenderFile;
+};
+
+const codeHintRegexes = [/`+{[^\.]+.*}/, /.*"cell_type"\s*:\s*"code".*/];
+const hasComputations = async (file: string) => {
+  const reader = await Deno.open(file);
+  try {
+    for await (const line of readLines(reader)) {
+      if (line) {
+        if (
+          codeHintRegexes.find((regex) => {
+            return regex.exec(line);
+          })
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  } finally {
+    reader.close();
+  }
 };
 
 const resolveNotebookDescriptor = (
