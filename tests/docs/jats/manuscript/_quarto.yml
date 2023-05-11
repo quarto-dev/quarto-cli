@@ -1,0 +1,12 @@
+project:
+  type: manuscript
+
+manuscript:
+  resources:
+    - data/lapalma_ign.csv
+
+format:
+  html:
+    format-links: [jats, docx]
+  docx: default
+  jats: default
