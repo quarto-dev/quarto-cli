@@ -17253,7 +17253,9 @@ var require_yaml_intelligence_resources = __commonJS({
             enum: [
               "body",
               "left",
-              "right"
+              "right",
+              "left-body",
+              "right-body"
             ]
           },
           default: "right",
@@ -17262,7 +17264,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-doc"
             ]
           },
-          description: "Location for table of contents (`body`, `left`, or `right` (default)).\n"
+          description: {
+            short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
+            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`left` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+          }
         },
         {
           name: "toc-title",
@@ -20702,7 +20707,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
         },
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
-        "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
+        {
+          short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
+          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>left</code> - Show the Table of Contents in right\nmargin of the document. <code>left-body</code> - Show two Tables of\nContents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+        },
         "The title used for the table of contents.",
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
         "Print a list of figures in the document.",
