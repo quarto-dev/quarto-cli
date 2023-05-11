@@ -68,20 +68,33 @@ function unrollDiv(div, fnSkip)
   return blocks
 end
 
+function jatsCallout(node)
+  local contents = resolveCalloutContents(node, true)
+
+  local boxedStart = '<boxed-text>'
+  if node.id and node.id ~= "" then
+    boxedStart = "<boxed-text id='" .. node.id .. "'>"
+  end
+  contents:insert(1, pandoc.RawBlock('jats', boxedStart))
+  contents:insert(pandoc.RawBlock('jats', '</boxed-text>'))
+  return contents
+end
 
 function jats()
-  if _quarto.format.isJatsOutput() then
-    return {
-      Meta = jatsMeta,
-  
-      -- clear out divs
-      Div = function(div)
-        return unrollDiv(div)
-      end
-    }  
-  else 
+  if not _quarto.format.isJatsOutput() then
     return {}
   end
+
+  return {
+    Meta = jatsMeta,
+
+    -- clear out divs
+    Div = function(div)
+      return unrollDiv(div)
+    end,
+
+    Callout = jatsCallout,
+  }
 end
 
 function jatsSubarticle() 

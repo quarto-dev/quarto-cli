@@ -7,7 +7,6 @@ function wrapped_writer()
   return filterIf(function()
     return param("custom-writer")
   end, makeWrappedFilter(param("custom-writer"), function(handler)
-  
     local resultingStrs = {}
   
     local contentHandler = function(el)

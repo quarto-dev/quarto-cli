@@ -64,9 +64,11 @@ import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
 import("./quarto-post/cites.lua")
 import("./quarto-post/delink.lua")
+import("./quarto-post/docx.lua")
 import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
 import("./quarto-post/ipynb.lua")
+import("./quarto-post/latex.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
@@ -319,14 +321,22 @@ local quartoPost = {
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
+  
   { name = "post-render-jats", filter = filterIf(function()
     return preState.active_filters.jats_subarticle == nil or not preState.active_filters.jats_subarticle
   end, jats()) },
   { name = "post-render-jats-subarticle", filter = filterIf(function()
     return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
   end, jatsSubarticle()) },
-  { name = "post-render-asciidoc", filter = renderAsciidoc() },
+
+  -- format-specific rendering
+  { name = "post-render-asciidoc", filter = render_asciidoc() },
+  { name = "post-render-latex", filter = render_latex() },
+  { name = "post-render-docx", filter = render_docx() },
+
+  -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
+
   { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }

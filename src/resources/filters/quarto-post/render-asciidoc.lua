@@ -4,7 +4,7 @@
 
 local kAsciidocNativeCites = 'use-asciidoc-native-cites'
 
-function renderAsciidoc()   
+function render_asciidoc()   
 
   -- This only applies to asciidoc output
   if not quarto.doc.isFormat("asciidoc") then

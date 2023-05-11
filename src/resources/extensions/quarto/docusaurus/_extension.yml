@@ -31,3 +31,5 @@ contributes:
       html-math-method: webtex
       filters:
         - docusaurus.lua
+  shortcodes: # this is a hack, we just want to include this file
+    - docusaurus_renderers.lua
