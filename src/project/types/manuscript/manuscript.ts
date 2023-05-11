@@ -53,7 +53,7 @@ import { readLines } from "io/mod.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Article Notebook";
+const kDocumentNotebookLabel = "Inline Computations";
 
 const kMecaSuffix = "-meca.zip";
 const kMecaIcon = "archive";
