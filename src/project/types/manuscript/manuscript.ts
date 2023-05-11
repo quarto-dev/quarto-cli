@@ -22,6 +22,7 @@ import {
   kFormatLinks,
   kNotebookLinks,
   kNotebooks,
+  kNotebookSubarticles,
   kResources,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
@@ -255,9 +256,9 @@ export const manuscriptProjectType: ProjectType = {
           // For JATS, default subarticles on (unless turned off explicitly)
           if (
             isJatsOutput(format.pandoc) &&
-            format.metadata[kJatsSubarticle] !== false
+            format.render[kNotebookSubarticles] !== false
           ) {
-            format.metadata[kJatsSubarticle] = true;
+            format.render[kNotebookSubarticles] = true;
           }
 
           // Enable google scholar, by default
@@ -319,6 +320,15 @@ export const manuscriptProjectType: ProjectType = {
     }
 
     return Promise.resolve(extras);
+  },
+  notebooks: (context: ProjectContext) => {
+    const manuscriptConfig = context.config
+      ?.[kManuscriptType] as ResolvedManuscriptConfig;
+    if (manuscriptConfig) {
+      return manuscriptConfig.notebooks;
+    } else {
+      return [];
+    }
   },
   renderResultFinalOutput: (
     renderResults: RenderResult,

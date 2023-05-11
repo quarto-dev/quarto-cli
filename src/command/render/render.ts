@@ -58,7 +58,6 @@ import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contain
 import { existsSync1 } from "../../core/file.ts";
 import { kNoteBookExtension } from "../../format/format-extensions.ts";
 import { NotebooksFormatExtension } from "../../format/format-extensions.ts";
-import { ProjectContext } from "../../project/types.ts";
 import { projectType } from "../../project/types/project-types.ts";
 
 export async function renderPandoc(
@@ -141,10 +140,23 @@ export async function renderPandoc(
   const notebooksExtension = format.extensions
     ?.[kNoteBookExtension] as NotebooksFormatExtension | undefined;
   if (notebooksExtension) {
+    const notebooks = [...notebookResult.notebooks];
+
+    // Forward any project provided notebooks
+    const projType = projectType(context.project?.config?.project.type);
+    if (projType && projType.notebooks && context.project) {
+      const descriptors = projType.notebooks(context.project);
+      descriptors.forEach((desc) => {
+        notebooks.push(desc.notebook);
+      });
+    }
+
+    // Ensure that we have all notebooks (the ones injected above plus
+    // any explicitly declared notebooks)
     const extensionResult = await notebooksExtension.processNotebooks(
       context.target.source,
       format,
-      notebookResult.notebooks,
+      notebooks,
       context,
     );
 
