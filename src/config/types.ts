@@ -158,7 +158,6 @@ import {
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
   kResourcePath,
-  kResources,
   kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
