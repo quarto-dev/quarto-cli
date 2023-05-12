@@ -363,6 +363,7 @@ export async function renderProject(
               src: file,
               performOperation: () => {
                 moveFormatDir(file);
+                removeIfEmptyDir(dirname(file));
               },
             });
           });
