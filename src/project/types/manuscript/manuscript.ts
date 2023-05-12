@@ -21,15 +21,13 @@ import {
   kFormatLinks,
   kNotebookLinks,
   kNotebooks,
-  kNotebookSubarticles,
   kResources,
   kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 import {
   PandocOptions,
-  RenderFile,
   RenderFlags,
   RenderResult,
   RenderServices,
@@ -195,7 +193,8 @@ export const manuscriptProjectType: ProjectType = {
     if (options.project) {
       const filterParams: Record<string, unknown> = {};
 
-      // See if there is an explicit manuscript URL
+      // See if there is an explicit manuscript URL and if
+      // there isn't try resolving it using Github information
       const manuscriptConfig = options.project
         .config?.[kManuscriptType] as ResolvedManuscriptConfig;
       if (manuscriptConfig) {
@@ -209,6 +208,7 @@ export const manuscriptProjectType: ProjectType = {
         }
       }
 
+      // Forward along notebook link data
       if (options.format.render[kNotebookLinks] !== undefined) {
         filterParams[kNotebookLinks] = options.format.render[kNotebookLinks];
       }
@@ -246,6 +246,7 @@ export const manuscriptProjectType: ProjectType = {
       const manuscriptConfig = project.config
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
 
+      // Configure the root article of the manuscript
       if (isArticle(source, project, manuscriptConfig)) {
         const formats = project.config?.format
           ? Object.values(project.config?.format)
@@ -265,14 +266,6 @@ export const manuscriptProjectType: ProjectType = {
             });
             format.render[kFormatLinks] = links;
           }
-        }
-
-        // For JATS, default subarticles on (unless turned off explicitly)
-        if (
-          isJatsOutput(format.pandoc) &&
-          format.render[kNotebookSubarticles] !== false
-        ) {
-          format.render[kNotebookSubarticles] = true;
         }
 
         // Enable google scholar, by default

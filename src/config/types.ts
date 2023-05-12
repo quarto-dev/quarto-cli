@@ -158,6 +158,7 @@ import {
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
   kResourcePath,
+  kResources,
   kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
@@ -321,7 +322,9 @@ export interface FormatExtras {
   };
   [kFilterParams]?: Record<string, unknown>;
   [kNotebooks]?: NotebookPreviewDescriptor[];
-  postprocessors?: Array<(output: string) => Promise<void>>;
+  postprocessors?: Array<
+    (output: string) => Promise<{ supporting: string[] } | void>
+  >;
   templateContext?: FormatTemplateContext;
   html?: {
     [kDependencies]?: FormatDependency[];

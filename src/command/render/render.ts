@@ -305,9 +305,13 @@ export async function renderPandoc(
         : join(dirname(pandocOptions.source), pandocOptions.output);
 
       // run generic postprocessors
+      const postProcessSupporting: string[] = [];
       if (pandocResult.postprocessors) {
         for (const postprocessor of pandocResult.postprocessors) {
-          await postprocessor(outputFile);
+          const result = await postprocessor(outputFile);
+          if (result && result.supporting) {
+            postProcessSupporting.push(...result.supporting);
+          }
         }
       }
 
@@ -376,6 +380,10 @@ export async function renderPandoc(
       if (embedSupporting && embedSupporting.length > 0) {
         supporting = supporting || [];
         supporting.push(...embedSupporting);
+      }
+      if (postProcessSupporting && postProcessSupporting.length > 0) {
+        supporting = supporting || [];
+        supporting.push(...postProcessSupporting);
       }
 
       withTiming("render-cleanup", () =>

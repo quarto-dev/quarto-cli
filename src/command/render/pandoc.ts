@@ -32,7 +32,6 @@ import {
   kMarkdownAfterBody,
   kSassBundles,
   kTextHighlightingMode,
-  NotebookPreviewDescriptor,
 } from "../../config/types.ts";
 import {
   isAstOutput,
@@ -317,7 +316,9 @@ export async function runPandoc(
   }
 
   // see if there are extras
-  const postprocessors: Array<(output: string) => Promise<void>> = [];
+  const postprocessors: Array<
+    (output: string) => Promise<{ supporting: string[] } | void>
+  > = [];
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
