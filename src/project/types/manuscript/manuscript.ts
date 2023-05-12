@@ -28,6 +28,7 @@ import { projectOutputDir } from "../../project-shared.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
   PandocOptions,
+  RenderFile,
   RenderFlags,
   RenderResult,
   RenderServices,
@@ -232,7 +233,12 @@ export const manuscriptProjectType: ProjectType = {
       if (isArticle(file.path, project, manuscriptConfig)) {
         return formats;
       } else {
-        return formats;
+        // For notebooks, ignore them in the render list unless
+        // the format is JATS
+        //
+        // For HTML, the HTML format will take care of rendering.
+        // For all other formats, we don't need a copy
+        return ["jats"];
       }
     }
     return formats;
