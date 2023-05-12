@@ -1,3 +1,13 @@
+## New In This Patch Release
+
+- Properly position margin elements ([#5289](https://github.com/quarto-dev/quarto-cli/issues/5289)).
+- Improve chrome detection for MacOS ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214)).
+- Correctly hide section numbers in responsive HTML view of books, when requested ([#5306](https://github.com/quarto-dev/quarto-cli/issues/5306)).
+- Properly handle figures within lists ([#5317](https://github.com/quarto-dev/quarto-cli/issues/5317), [#5461](https://github.com/quarto-dev/quarto-cli/issues/5461)).
+- Do not hide banner style title block when in responsive view ([#5296](https://github.com/quarto-dev/quarto-cli/issues/5296)).
+- Ensure global environment is available to LUA filters ([#5466](https://github.com/quarto-dev/quarto-cli/issues/5466)).
+- Ensure RevealJS navigation works properly even when there is a section called 'Theme' ([#5455](https://github.com/quarto-dev/quarto-cli/issues/5455)).
+
 ## Confluence Publishing
 
 - Add support for publishing both documents and projects to Atlassian Confluence spaces and as children to Confluence pages.
