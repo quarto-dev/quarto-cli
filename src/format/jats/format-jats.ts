@@ -8,6 +8,7 @@ import {
   kDefaultImageExtension,
   kJatsSubarticleId,
   kLinkCitations,
+  kNotebookLinks,
   kNotebookSubarticles,
   kNotebookView,
   kOutputExt,
@@ -201,6 +202,7 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
 
       // Accumulate markdown files that will be rendered
       // into JATS sub-articles
+      info(`Creating sub-articles for Notebooks...`);
       for (let i = 0; i < subarticleNotebooks.length; i++) {
         const notebook = subarticleNotebooks[i];
         const notebookId = `nb-${i}`;
@@ -338,7 +340,7 @@ async function renderJatsSubarticle(
   nbFormat.metadata[kJatsSubarticleId] = subarticleId;
 
   // Run pandoc to render the notebook
-  info(`Creating sub-article (${notebook.path})`);
+  info(`> ${notebook.path}`);
   const result = await runPandoc({
     markdown,
     source: inputMd,

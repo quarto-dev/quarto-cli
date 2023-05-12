@@ -39,7 +39,6 @@ import {
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
-import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
@@ -53,6 +52,7 @@ import {
 import { createMecaBundle } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
 import { info } from "log/mod.ts";
+import { isOutputFile } from "../../../command/render/output.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
@@ -103,7 +103,16 @@ export const manuscriptProjectType: ProjectType = {
     const inputNotebooks = inputs.files.map((input) => {
       return relative(projectDir, input);
     }).filter((file) => {
-      return file !== article;
+      // Filter the article
+      if (file === article) {
+        return false;
+      }
+
+      // Filter output notebooks
+      if (isOutputFile(file, "ipynb")) {
+        return false;
+      }
+      return true;
     });
     const renderList = [...inputNotebooks, article];
     config.project.render = renderList;
