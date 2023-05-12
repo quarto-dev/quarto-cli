@@ -1,9 +1,8 @@
 /*
-* format-jats.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-jats.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   kDefaultImageExtension,
@@ -52,7 +51,6 @@ export function jatsFormat(displayName: string, ext: string): Format {
     },
     render: {
       [kVariant]: kElementsVariant,
-      [kNotebookSubarticles]: false,
     },
     formatExtras: (
       _input: string,
@@ -171,7 +169,8 @@ export const jatsNotebookExtension: NotebooksFormatExtension = {
     notebooks: string[],
     context: RenderContext,
   ) {
-    if (format.render[kNotebookSubarticles] !== false) {
+
+    if (format.render[kNotebookSubarticles] === true) {
       // The working directory that we'll use for rendering
       const wd = context.options.services.temp.createDir();
 

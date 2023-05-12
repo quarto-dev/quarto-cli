@@ -65,28 +65,30 @@ function initShortcodeHandlers()
   local shortcodeFiles = pandoc.List(param("shortcodes", {}))
   for _,shortcodeFile in ipairs(shortcodeFiles) do
     local env = setmetatable({}, {__index = shortcodeMetatable(shortcodeFile)})
-    local chunk, err = loadfile(shortcodeFile, "bt", env)
-    if chunk ~= nil and not err then
-      local result = chunk()
-      if result then
-        for k,v in pairs(result) do
-          handlers[k] = {
-            file = shortcodeFile,
-            handle = v
-          }
+    _quarto.withScriptFile(shortcodeFile, function()
+      local chunk, err = loadfile(shortcodeFile, "bt", env)
+      if chunk ~= nil and not err then
+        local result = chunk()
+        if result then
+          for k,v in pairs(result) do
+            handlers[k] = {
+              file = shortcodeFile,
+              handle = v
+            }
+          end
+        else
+          for k,v in pairs(env) do
+            handlers[k] = {
+              file = shortcodeFile,
+              handle = v
+            }
+          end
         end
       else
-        for k,v in pairs(env) do
-          handlers[k] = {
-            file = shortcodeFile,
-            handle = v
-          }
-        end
+        error(err)
+        os.exit(1)
       end
-    else
-      error(err)
-      os.exit(1)
-    end
+    end)
   end
 
 

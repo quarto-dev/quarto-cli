@@ -1,196 +1,206 @@
 ./smoke/directives/include-fixups.test.ts
         0.01 real         0.01 user         0.00 sys
 ./smoke/filters/filters.test.ts
-        2.04 real         1.77 user         0.38 sys
+        1.72 real         1.81 user         0.40 sys
 ./smoke/smoke-all.test.ts
-       99.84 real        84.48 user        20.23 sys
+      148.24 real       113.40 user        25.88 sys
 ./smoke/authors/author-name.test.ts
-        2.92 real         2.76 user         0.64 sys
+        3.00 real         2.73 user         0.69 sys
 ./smoke/yaml-intelligence/yaml-intelligence.test.ts
-        0.73 real         1.14 user         0.13 sys
+        0.65 real         0.89 user         0.17 sys
 ./smoke/yaml-intelligence/yaml-intelligence-folded-block-strings.test.ts
-        0.68 real         0.94 user         0.11 sys
+        0.60 real         0.75 user         0.16 sys
 ./smoke/render/render-code-highlighting.test.ts
-        1.68 real         1.88 user         0.28 sys
+        1.56 real         1.67 user         0.31 sys
 ./smoke/render/render-bibio.test.ts
-        1.24 real         1.39 user         0.24 sys
+        1.22 real         1.28 user         0.30 sys
 ./smoke/render/render-docx.test.ts
-        1.86 real         2.02 user         0.33 sys
+        1.75 real         1.82 user         0.36 sys
 ./smoke/render/render-commonmark.test.ts
-       15.78 real        11.92 user         4.36 sys
+       14.76 real        10.64 user         5.38 sys
 ./smoke/render/render-latex-output.test.ts
-        2.11 real         2.15 user         0.37 sys
+        1.99 real         1.93 user         0.42 sys
 ./smoke/render/render-plain.test.ts
-        1.42 real         1.65 user         0.30 sys
+        1.58 real         1.65 user         0.37 sys
 ./smoke/render/render-templates.test.ts
-       15.50 real        14.28 user         1.87 sys
+       14.63 real        13.40 user         1.87 sys
 ./smoke/render/render-page-layout.test.ts
-       10.52 real         9.48 user         1.01 sys
+       11.32 real         8.47 user         0.99 sys
 ./smoke/render/render-date.test.ts
-        1.75 real         1.86 user         0.38 sys
+        1.84 real         1.93 user         0.41 sys
 ./smoke/render/render-pdf.test.ts
-       85.27 real        60.00 user        10.74 sys
+      114.85 real        63.84 user        10.36 sys
 ./smoke/render/render-minimal.test.ts
-        0.91 real         1.14 user         0.18 sys
+        0.91 real         1.10 user         0.24 sys
 ./smoke/render/render-title-block.test.ts
-        2.38 real         2.33 user         0.51 sys
+        2.27 real         2.21 user         0.53 sys
 ./smoke/render/render-format-extension.test.ts
-       22.96 real        20.38 user         2.72 sys
+       23.46 real        18.88 user         2.75 sys
 ./smoke/render/render-ojs.test.ts
-        1.11 real         1.42 user         0.17 sys
+        1.07 real         1.27 user         0.23 sys
 ./smoke/render/render-jupyter.test.ts
-        3.83 real         3.81 user         0.50 sys
+        3.75 real         3.63 user         0.54 sys
 ./smoke/render/render-code-tools.test.ts
-        3.26 real         3.15 user         0.59 sys
+        3.22 real         3.07 user         0.61 sys
 ./smoke/render/render-reveal.test.ts
-        7.15 real         5.68 user         1.06 sys
+        8.68 real         5.18 user         1.04 sys
 ./smoke/render/render-freeze.test.ts
-        5.25 real         4.69 user         0.98 sys
+        5.39 real         4.71 user         1.02 sys
 ./smoke/render/render-r.test.ts
-        5.09 real         4.69 user         0.86 sys
+        4.76 real         4.35 user         0.77 sys
 ./smoke/render/render-callout.test.ts
-        1.70 real         1.81 user         0.31 sys
+        1.58 real         1.69 user         0.36 sys
 ./smoke/ojs/dependency-traversal.test.ts
-        1.09 real         1.39 user         0.17 sys
+        1.09 real         1.28 user         0.22 sys
 ./smoke/ojs/complex-layout.test.ts
-        1.95 real         2.23 user         0.28 sys
+        1.79 real         1.92 user         0.31 sys
 ./smoke/crossref/sections.test.ts
-        0.86 real         1.13 user         0.17 sys
+        0.87 real         1.09 user         0.22 sys
 ./smoke/crossref/thereoms.test.ts
-        1.13 real         1.38 user         0.20 sys
+        1.15 real         1.34 user         0.27 sys
 ./smoke/crossref/tables.test.ts
-        2.69 real         2.71 user         0.46 sys
+        2.61 real         2.56 user         0.49 sys
 ./smoke/crossref/figures.test.ts
-       36.89 real        32.53 user         7.13 sys
+       36.65 real        28.93 user         9.52 sys
 ./smoke/crossref/listings.test.ts
-        0.90 real         1.20 user         0.16 sys
+        1.04 real         1.09 user         0.24 sys
 ./smoke/crossref/unresolved.test.ts
-        0.85 real         1.13 user         0.17 sys
+        0.90 real         1.11 user         0.22 sys
 ./smoke/crossref/chapters.test.ts
-        0.90 real         1.21 user         0.16 sys
+        0.91 real         1.12 user         0.22 sys
 ./smoke/crossref/options.test.ts
-        1.09 real         1.33 user         0.22 sys
+        1.16 real         1.35 user         0.28 sys
 ./smoke/crossref/latex.test.ts
-        0.86 real         1.13 user         0.16 sys
+        0.88 real         1.01 user         0.22 sys
 ./smoke/crossref/syntax.test.ts
-        1.32 real         1.56 user         0.25 sys
+        1.38 real         1.51 user         0.31 sys
 ./smoke/crossref/docx.test.ts
-        0.93 real         1.15 user         0.16 sys
+        0.89 real         1.02 user         0.22 sys
 ./smoke/crossref/equations.test.ts
-        0.82 real         1.13 user         0.16 sys
+        0.88 real         1.09 user         0.23 sys
 ./smoke/shortcodes/shortcodes-core.test.ts
-        2.07 real         2.16 user         0.42 sys
+        2.34 real         2.30 user         0.51 sys
 ./smoke/extensions/extension-render-reveal.test.ts
-        1.68 real         1.75 user         0.41 sys
+        1.86 real         1.79 user         0.48 sys
 ./smoke/extensions/extension-render-doc.test.ts
-        3.09 real         3.12 user         0.53 sys
+        2.74 real         2.73 user         0.52 sys
 ./smoke/extensions/install.test.ts
-       16.32 real         3.07 user         1.15 sys
+       10.56 real         2.62 user         0.98 sys
 ./smoke/extensions/extension-render-journals.test.ts
-       47.02 real        35.51 user         4.38 sys
+       45.29 real        32.30 user         4.27 sys
 ./smoke/extensions/extension-render-project.test.ts
-        1.34 real         1.67 user         0.27 sys
+        1.54 real         1.67 user         0.37 sys
 ./smoke/env/check.test.ts
-        5.58 real         5.47 user         2.03 sys
+        5.07 real         4.26 user         2.96 sys
 ./smoke/env/install.test.ts
-        0.89 real         0.30 user         0.08 sys
+        1.49 real         0.28 user         0.15 sys
+./smoke/jats/render-jats.test.ts
+        1.27 real         1.34 user         0.32 sys
+./smoke/jats/render-manuscript.test.ts
+        3.48 real         1.46 user         0.35 sys
 ./smoke/project/project-simple.test.ts
-        1.14 real         1.38 user         0.23 sys
+        1.18 real         1.29 user         0.31 sys
 ./smoke/project/project-book.test.ts
-        5.61 real         5.38 user         0.83 sys
+        5.43 real         5.20 user         0.89 sys
 ./smoke/project/project-website.test.ts
-        1.43 real         1.66 user         0.28 sys
+        1.47 real         1.55 user         0.37 sys
 ./smoke/project/project-stdout.test.ts
-        1.16 real         1.44 user         0.22 sys
+        1.24 real         1.41 user         0.31 sys
 ./smoke/schema/load-yaml-schema-schema.test.ts
-        0.02 real         0.01 user         0.00 sys
+        0.01 real         0.01 user         0.00 sys
 ./smoke/book/render-book.test.ts
-       28.00 real        27.17 user         2.12 sys
+       27.32 real        23.06 user         2.89 sys
 ./smoke/site/render-navigation.test.ts
-        1.68 real         1.94 user         0.33 sys
+        1.67 real         1.80 user         0.39 sys
 ./smoke/site/render-site.test.ts
-       31.69 real        26.20 user         5.88 sys
+        1.60 real         1.73 user         0.37 sys
 ./smoke/site/render-blog.test.ts
-        2.18 real         2.31 user         0.41 sys
+        3.99 real         3.80 user         0.83 sys
+./smoke/site/render-site-themes.test.ts
+       31.23 real        25.28 user         5.93 sys
 ./smoke/site/render-listings.test.ts
-        4.59 real         4.45 user         0.78 sys
+        4.43 real         4.22 user         0.86 sys
 ./smoke/site/render-shortcode-navbar.test.ts
-        1.22 real         1.45 user         0.23 sys
+        1.17 real         1.38 user         0.29 sys
 ./smoke/yaml/core-yaml-dashes.test.ts
-        0.98 real         1.24 user         0.19 sys
+        0.97 real         1.14 user         0.26 sys
 ./smoke/run/stdlib-run-version.test.ts
-        0.65 real         0.49 user         0.17 sys
+        0.73 real         0.45 user         0.28 sys
 ./smoke/create/create.test.ts
-       23.65 real        24.22 user         4.37 sys
+       23.94 real        22.91 user         5.78 sys
 ./smoke/engine/include-engine-detection.test.ts
-        1.54 real         1.72 user         0.28 sys
+        1.73 real         1.76 user         0.38 sys
 ./smoke/scholar/render-scholar.test.ts
-        2.09 real         2.13 user         0.44 sys
+        2.18 real         2.05 user         0.54 sys
 ./smoke/convert/convert-empty-frontmatter.test.ts
-        1.21 real         1.29 user         0.24 sys
+        1.05 real         1.11 user         0.30 sys
 ./unit/yaml.test.ts
-        0.75 real         1.03 user         0.14 sys
+        0.71 real         0.91 user         0.20 sys
 ./unit/path.test.ts
-        0.33 real         0.28 user         0.07 sys
+        0.32 real         0.21 user         0.12 sys
 ./unit/pandoc-partition.test.ts
-        0.31 real         0.25 user         0.07 sys
+        0.31 real         0.20 user         0.12 sys
 ./unit/confluence.test.ts
-        0.37 real         0.30 user         0.09 sys
+        0.36 real         0.24 user         0.13 sys
 ./unit/yaml-intelligence/hover-info.test.ts
-        0.69 real         0.97 user         0.13 sys
+        0.70 real         0.95 user         0.19 sys
 ./unit/yaml-intelligence/annotated-yaml.test.ts
-        0.74 real         1.03 user         0.13 sys
+        0.70 real         0.88 user         0.20 sys
 ./unit/yaml-intelligence/error-colon-no-space.test.ts
-        0.74 real         1.00 user         0.13 sys
+        0.72 real         0.95 user         0.20 sys
 ./unit/mapped-strings/mapped-text.test.ts
-        0.31 real         0.27 user         0.07 sys
+        0.33 real         0.21 user         0.12 sys
 ./unit/mapped-strings/multiple-source.test.ts
-        0.31 real         0.25 user         0.06 sys
+        0.32 real         0.20 user         0.12 sys
 ./unit/pandoc.test.ts
-        0.31 real         0.25 user         0.07 sys
+        0.32 real         0.20 user         0.12 sys
 ./unit/paths/qualified-path.test.ts
-        0.30 real         0.25 user         0.06 sys
+        0.32 real         0.21 user         0.12 sys
 ./unit/text.test.ts
-        0.31 real         0.25 user         0.06 sys
+        0.31 real         0.20 user         0.11 sys
 ./unit/guess-chunk-options-format.test.ts
-        0.31 real         0.25 user         0.06 sys
+        0.31 real         0.20 user         0.11 sys
 ./unit/environment.test.ts
-        0.30 real         0.25 user         0.07 sys
+        0.31 real         0.20 user         0.11 sys
 ./unit/binary-search.test.ts
-        0.31 real         0.26 user         0.07 sys
+        0.32 real         0.20 user         0.11 sys
 ./unit/partition-cell-options.test.ts
-        0.64 real         0.91 user         0.10 sys
+        0.60 real         0.77 user         0.16 sys
 ./unit/pandoc-formats.test.ts
-        0.31 real         0.26 user         0.06 sys
+        0.31 real         0.20 user         0.11 sys
 ./unit/break-quarto-md/break-quarto-md.test.ts
-        0.67 real         1.00 user         0.11 sys
+        0.67 real         0.91 user         0.17 sys
 ./unit/filter-paths.test.ts
-        0.30 real         0.25 user         0.06 sys
+        0.31 real         0.20 user         0.11 sys
 ./unit/schema-validation/format-aliases.test.ts
-        0.68 real         0.97 user         0.13 sys
+        0.69 real         0.87 user         0.18 sys
 ./unit/schema-validation/hello-world.test.ts
-        0.73 real         1.02 user         0.13 sys
+        0.70 real         0.89 user         0.19 sys
 ./unit/schema-validation/format-pandoc-from-file-simple-tests.test.ts
-        0.69 real         0.99 user         0.13 sys
+        0.70 real         0.91 user         0.19 sys
 ./unit/schema-validation/error-narrowing.test.ts
-        0.68 real         0.97 user         0.13 sys
+        0.69 real         0.91 user         0.18 sys
 ./unit/schema-validation/simple.test.ts
-        0.68 real         0.98 user         0.13 sys
+        0.69 real         0.88 user         0.19 sys
 ./unit/schema-validation/format-execute.test.ts
         0.01 real         0.01 user         0.00 sys
 ./unit/schema-validation/error-location.test.ts
-        0.30 real         0.25 user         0.06 sys
+        0.31 real         0.20 user         0.11 sys
 ./unit/schema-validation/schema-schema.test.ts
-        1.78 real         2.30 user         0.23 sys
+        1.83 real         2.19 user         0.34 sys
 ./unit/schema-validation/schema-files.test.ts
-        0.77 real         1.06 user         0.13 sys
+        0.69 real         0.91 user         0.20 sys
 ./unit/schema-validation/schema-completions.test.ts
-        0.64 real         0.97 user         0.10 sys
+        0.60 real         0.77 user         0.16 sys
 ./unit/schema-validation/object-super.test.ts
-        0.68 real         0.98 user         0.13 sys
+        0.70 real         0.90 user         0.18 sys
+./unit/giscus.test.ts
+        0.31 real         0.20 user         0.11 sys
 ./integration/playwright-tests.test.ts
-       31.64 real        45.80 user         8.75 sys
+       25.16 real        26.40 user         4.95 sys
 ./integration/guess-chunk-options-format-document.test.ts
-        1.31 real         1.52 user         0.25 sys
+        1.37 real         1.47 user         0.31 sys
 ./integration/mermaid/github-issue-1340.test.ts
-        2.95 real         1.86 user         0.30 sys
+        5.65 real         1.89 user         0.37 sys
+./test.ts
+        0.31 real         0.18 user         0.13 sys

@@ -1,3 +1,7 @@
+
+local codeBlock = require('docusaurus_utils').codeBlock
+
+
 local reactPreamble = pandoc.List()
 
 local function addPreamble(preamble)
@@ -28,7 +32,12 @@ local function tabset(node, filter)
     local title = node.tabs[i].title
 
     tabs.content:insert(jsx(([[<TabItem value="%s">]]):format(pandoc.utils.stringify(title))))
-    tabs.content:extend(quarto._quarto.ast.walk(content, filter))
+    local result = quarto._quarto.ast.walk(content, filter)
+    if type(result) == "table" then
+      tabs.content:extend(result)
+    else
+      tabs.content:insert(result)
+    end
     tabs.content:insert(jsx("</TabItem>"))
   end
 
@@ -42,37 +51,7 @@ local function tabset(node, filter)
   return tabs
 end
 
-local codeBlock = function(el, filename)
-  local lang = el.attr.classes[1]
-  local title = filename or el.attr.attributes["filename"] or el.attr.attributes["title"]  
-  local showLineNumbers = el.attr.classes:includes('number-lines')
-  if lang or title or showLineNumbers then
-    if not lang then
-      lang = 'text'
-    end
-    local code = "\n```" .. lang
-    if showLineNumbers then
-      code = code .. " showLineNumbers"
-    end
-    if title then
-      code = code .. " title=\"" .. title .. "\""
-    end
-    code = code .. "\n" .. el.text .. "\n```\n"
-
-    -- docusaures code block attributes don't conform to any syntax
-    -- that pandoc natively understands, so return the CodeBlock as
-    -- "raw" markdown (so it bypasses pandoc processing entirely)
-    return pandoc.RawBlock("markdown", code)
-
-  elseif #el.attr.classes == 0 then
-    el.attr.classes:insert('text')
-    return el
-  end
-
-  return nil
-end
-
-function Writer(doc, opts)
+function Writer(doc, opts)  
   local filter
   filter = {
     CodeBlock = codeBlock,
@@ -92,7 +71,12 @@ function Writer(doc, opts)
       if node.title then
         admonition:insert(pandoc.Header(2, node.title))
       end
-      admonition:extend(quarto._quarto.ast.walk(node.content, filter))
+      local content = node.content
+      if type(content) == "table" then
+        admonition:extend(content)
+      else
+        admonition:insert(content)
+      end
       admonition:insert(pandoc.RawBlock("markdown", ":::\n"))
       return admonition
     end

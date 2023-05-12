@@ -3,22 +3,30 @@
 
 local lpeg = require('lpeg')
 
-local function escape(s)
-  return s:gsub("\\", "\\\\"):gsub("\"", "\\\"")
+local unshortcode
+
+local function escape(s, quote)
+  quote = quote or '"'
+  local result = s:gsub("\\", "\\\\"):gsub(quote, "\\" .. quote)
+  return result
 end
 
-local function unescape(s)
-  return s:gsub("\\\"", "\""):gsub("\\\\", "\\")
+local function unescape(s, quote)
+  quote = quote or '"'
+  local result = s:gsub("\\" .. quote, quote):gsub("\\\\", "\\")
+  return result
 end
 
 local id = function(s) return s end
 
 local function trim_end(s) 
-  return string.gsub(s, "%s*$", "") 
+  local result = string.gsub(s, "%s*$", "") 
+  return result
 end
 
 -- lpeg helpers
 local Space = lpeg.S(" \n\t")^0
+local Space1 = lpeg.S(" \n\t")^1
 
 local function untilS(s)
   return lpeg.C((1 - lpeg.P(s))^0) * lpeg.P(s)
@@ -47,11 +55,24 @@ local function md_escaped_shortcode(s)
   return "[]{." .. quarto_shortcode_class_prefix .. "-escaped data-value=\"" .. escape("{{<" .. s .. ">}}") .. "\"}"
 end
 
-local function md_string_param(s)
-  return "[]{." .. quarto_shortcode_class_prefix .. "-param data-raw=\"" .. escape(trim_end(s)) .. "\"}"
+local function into_dataset_value(s)
+  if s:sub(1, 1) == "'" then
+    value = escape(unescape(s:sub(2, -2), "'"), '"')
+  elseif s:sub(1, 1) == "\"" then
+    value = escape(unescape(s:sub(2, -2), '"'), '"')
+  else
+    value = s
+  end
+  return value
 end
 
-local function md_keyvalue_param(k, v)
+local function md_string_param(s)
+  local value = into_dataset_value(s)
+  local result = "[]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. value .. "\" data-raw=\"" .. escape(trim_end(s)) .. "\"}"
+  return result
+end
+
+local function md_keyvalue_param(k, connective, v)
   local recursive_key = false
   local recursive_value = false
 
@@ -65,19 +86,19 @@ local function md_keyvalue_param(k, v)
     if recursive_value then
       return "[" .. recursive_key .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param}"
     else
-      return "[" .. recursive_key .. "]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. escape(v) .. "\"}"
+      return "[" .. recursive_key .. "]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. into_dataset_value(v) .. "\"}"
     end
   else
     if recursive_value then
-      return "[" .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. escape(k) .. "\"}"
+      return "[" .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. into_dataset_value(k) .. "\"}"
     else
-      return "[]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. escape(k) .. "\"" .. 
-      " data-value=\"" .. escape(v) .. "\"}"
+      raw = k .. connective .. v
+      return "[]{." .. quarto_shortcode_class_prefix .. "-param data-raw=\"" .. escape(raw) .. "\" data-key=\"" .. into_dataset_value(k) .. "\"" .. " data-value=\"" .. into_dataset_value(v) .. "\"}"
     end
   end
 end
 
-local function md_shortcode(lst)
+local function md_shortcode(open, space, lst, close)
   local shortcode = {"["}
 
   for i = 1, #lst do
@@ -85,9 +106,31 @@ local function md_shortcode(lst)
   end
   table.insert(shortcode, "]{.")
   table.insert(shortcode, quarto_shortcode_class_prefix)
+  local raw = open .. space
+  for i = 1, #lst do
+    raw = raw .. unshortcode:match(lst[i])
+  end
+  raw = raw .. close
+  table.insert(shortcode, " data-raw=\"")
+  table.insert(shortcode, escape(raw))
+  table.insert(shortcode, "\"")
   table.insert(shortcode, "}")
   return table.concat(shortcode, "")
 end
+
+local double_quoted_string = into_string(lpeg.C("\"") * lpeg.C((1 - lpeg.P("\""))^0) * lpeg.C("\""))
+local single_quoted_string = into_string(lpeg.C("'")  * lpeg.C((1 - lpeg.P("'"))^0)  * lpeg.C("'"))
+local sc_string = (
+  double_quoted_string * Space + 
+  single_quoted_string * Space +
+  (- lpeg.S("'\"}>") * lpeg.C((1 - lpeg.S(" \n\t"))^1) * Space)
+) / id
+
+local sc_string_no_space = (
+  double_quoted_string + 
+  single_quoted_string +
+  (- lpeg.S("'\"}>") * lpeg.C((1 - lpeg.S(" \n\t"))^1))
+) / id
 
 local function make_shortcode_parser(evaluator_table)
   local escaped_handler = evaluator_table.escaped
@@ -96,24 +139,20 @@ local function make_shortcode_parser(evaluator_table)
   local shortcode_handler = evaluator_table.shortcode
 
   -- rules
-  local escaped_sc1 = lpeg.P("{{{<") * untilS(">}}}") / escaped_handler
+  local escaped_sc1 = lpeg.P("{{{<") * untilS(">}}}")   / escaped_handler
   local escaped_sc2 = lpeg.P("{{</*") * untilS("*/>}}") / escaped_handler
-
-  local sc_string = (lpeg.P("\"") * lpeg.C((1 - lpeg.P("\""))^0) * lpeg.P("\"") * Space + 
-    lpeg.P("'") * lpeg.C((1 - lpeg.P("'"))^0) * lpeg.P("'") * Space +
-    (- lpeg.S("'\"}>") * lpeg.C((1 - lpeg.P(" "))^1) * Space)) / id -- function(s) return { type = "string", value = s } end
 
   local function sc_string_skipping(skip, capture)
     if type(skip) == "string" then
       skip = lpeg.P(skip)
     end
-    return (lpeg.P("\"") * lpeg.C((1 - lpeg.P("\""))^0) * lpeg.P("\"") * Space + 
-      lpeg.P("'") * lpeg.C((1 - lpeg.P("'"))^0) * lpeg.P("'") * Space +
-      (- lpeg.S("'\"}>") * lpeg.C(((1 - skip) - lpeg.S(" \n\t"))^1) * Space)) / (capture or string_handler) -- function(s) return { type = "string", value = s } end
+    return (into_string(double_quoted_string) + 
+      into_string(single_quoted_string) +
+      (- lpeg.S("'\"}>") * lpeg.C(((1 - skip) - lpeg.S(" \n\t"))^1))) / (capture or string_handler) -- function(s) return { type = "string", value = s } end
   end
 
   -- skip :/? as well so that URLs with = in them are not treated as key/value pairs
-  local sc_keyvalue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.P("=") * Space * sc_string) / keyvalue_handler
+  local sc_keyvalue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.C(Space * lpeg.P("=") * Space) * sc_string_no_space) / keyvalue_handler
 
   local text
   if evaluator_table.ignore_pattern then
@@ -128,15 +167,21 @@ local function make_shortcode_parser(evaluator_table)
     "Text",
     Text = into_string(text),
     Nonshortcode = (1 - lpeg.P("{{{<") - lpeg.P("{{<")) / id,
-    KeyShortcodeValue = (sc_string_skipping(lpeg.S(":/?="), id) * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
+    KeyShortcodeValue = (sc_string_skipping(lpeg.S(":/?="), id) * Space * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
     Shortcode = escaped_sc1 + 
       escaped_sc2 +
-      ((lpeg.P("{{<") * 
-      Space * 
-      into_list(
-        (lpeg.V("Shortcode") + lpeg.V("KeyShortcodeValue") + sc_keyvalue + sc_string_skipping(">}}"))^1
-      ) * 
-      lpeg.P(">}}")) / shortcode_handler) * (Space / id)
+      ((
+        lpeg.C(lpeg.P("{{<")) * 
+        lpeg.C(Space) * 
+        into_list(
+          (lpeg.V("Shortcode") + 
+            lpeg.V("KeyShortcodeValue") + 
+            sc_keyvalue + 
+            (Space1 / id) +
+            (sc_string_skipping(">}}") * (Space / id))
+          )^1
+        ) * 
+        lpeg.C(Space * lpeg.P(">}}"))) / shortcode_handler) * (Space / id)
   })
 
   return sc
@@ -157,37 +202,82 @@ local escaped_string = into_string(
   ((lpeg.P("\\\\") +
   lpeg.P("\\\"") +
   (1 - lpeg.P("\""))) ^ 0) * lpeg.P("\"")) / function(s)
-    local unescaped = s:gsub("\\\"", "\""):gsub("\\\\", "\\")
-    if unescaped ~= s then
-      return s
-    else
-      return s:gsub(2, -2)
-    end
+    return s:gsub("\\\"", "\""):gsub("\\\\", "\\"):sub(2, -2)
   end)
 
 -- local unshortcode = lpeg.P("[]{.quarto-shortcode__-param data-raw=\"") * (lpeg.P("value") / id) * lpeg.P("\"}")
-local unshortcode = lpeg.P({
+unshortcode = lpeg.P({
   "Text",
   Text = into_string((lpeg.V("Shortcodespan") + lpeg.P(1) / id)^1),
   Nonshortcode = (1 - lpeg.P("["))^1 / id,
-  Shortcodekeyvalue = (lpeg.P("[]{.quarto-shortcode__-param data-key=") * escaped_string * Space * lpeg.P("data-value=") * escaped_string * lpeg.P("}")) /
-    function(k, v) return k .. "=" .. v end,
-  Shortcodestring = lpeg.P("[]{.quarto-shortcode__-param data-raw=") * escaped_string * lpeg.P("}"),
+  Shortcodekeyvalue = (lpeg.P("[]{.quarto-shortcode__-param data-raw=") * escaped_string * Space * lpeg.P("data-key=") * escaped_string * Space * lpeg.P("data-value=") * escaped_string * lpeg.P("}")) /
+    function(r, k, v) return r end,
+  Shortcodestring = (lpeg.P("[]{.quarto-shortcode__-param data-value=") * escaped_string * Space * lpeg.P("data-raw=") * escaped_string * lpeg.P("}")) /
+    function(v, r) return r end,
   -- Shortcodekeyvalue =
   Shortcodeescaped = lpeg.P("[]{.quarto-shortcode__-escaped data-value=") * 
       (escaped_string / function(s) return "{" .. unescape(s:sub(2, -2)) .. "}" end) * 
       lpeg.P("}"),
   Shortcodespan = lpeg.V"Shortcodeescaped" + lpeg.V"Shortcodekeyvalue" + lpeg.V"Shortcodestring" +
-  into_list(lpeg.P("[") * lpeg.V("Shortcodespan")^0 * lpeg.P("]{.quarto-shortcode__}") * Space) / function(lst)
-    return "{{< " .. table.concat(lst, " ") .. " >}}"
+  (lpeg.P("[") * (lpeg.V("Shortcodespan") * Space)^0 * (lpeg.P("]{.quarto-shortcode__") * Space * lpeg.P("data-raw=") * escaped_string * Space * lpeg.P("}"))) / function(...)
+    local args = {...}
+    return args[#args]
   end
 })
 
-return {
-  md_shortcode = md_shortcode,
-  make_shortcode_parser = make_shortcode_parser,
-  unshortcode = unshortcode -- for undoing shortcodes in non-markdown contexts
-}
+local function fail_at_line(msg)
+  local info = debug.getinfo(3, "Sl")
+  print(info.source .. ":" .. tostring(info.currentline) .. ": " .. msg)
+  os.exit(1)
+end
+
+local function expect_equals(v1, v2)
+  if v1 ~= v2 then
+    fail_at_line("Expected " .. v1 .. " to equal " .. v2)
+  end
+end
+local function expect_match(pattern, str)
+  if not pattern:match(str) then
+    fail_at_line("Expected " .. str .. " to match " .. tostring(pattern))
+  end
+end
+local function expect_no_match(pattern, str)
+  if pattern:match(str) then
+    fail_at_line("Expected " .. str .. " to not match " .. tostring(pattern))
+  end
+end
+
+if os.getenv("LUA_TESTING") ~= nil then
+  expect_match(single_quoted_string, "'asdf'")
+  expect_no_match(single_quoted_string, "\"asdf\"")
+  expect_match(double_quoted_string, "\"asdf\"")
+  expect_no_match(double_quoted_string, "'asdf'")
+  expect_match(sc_string, "\"asdf\"")
+  expect_match(sc_string, "'asdf'")
+  expect_match(sc_string, "asdf }}>")
+  expect_equals(sc_string:match("asdf }}>"), "asdf")
+
+  local unshortcode_tests = {
+    "{{< meta 'foo' >}}",
+    "{{< meta \"foo\" >}}",
+    "{{< meta bar >}}",
+    "{{< meta bar >}} {{< meta bar >}}",
+    "{{< meta   bar >}}",
+    "{{< meta foo = bar >}}",
+    "{{< meta\n  foo = bar >}}",
+    "{{< meta foo = 'bar' >}}",
+    '{{< meta foo = "bar" >}}',
+    "{{< kbd Shift-Ctrl-Q mac=Shift-Command-Q win=Shift-Control-Q linux=Shift-Ctrl-Q >}}",
+    "{{< meta k1=v1 k2=v2 >}}",
+    "{{< kbd Shift-Ctrl-Q mac=Shift-Command-Q win=Shift-Control-Q >}}",
+    '{{< video https://youtu.be/wo9vZccmqwc width="400" height="300" >}}',
+  }
+  for i, v in ipairs(unshortcode_tests) do
+    expect_equals(unshortcode:match(md_shortcode:match(v)), v)
+  end
+
+  -- print(md_shortcode:match("{{< meta 'foo' >}}\n{{< meta \"foo\" >}}\n{{< meta bar >}}"))  
+end
 
 -- print(md_shortcode:match([[
 -- Hello world.
@@ -216,3 +306,8 @@ return {
 -- print(unshortcode:match("[]{.quarto-shortcode__-escaped data-value=\"{{< meta foo >}}\"} with stuff"))
 -- print(unshortcode:match('./[[]{.quarto-shortcode__-param data-raw="meta"}[]{.quarto-shortcode__-param data-raw="bar"}]{.quarto-shortcode__}.html'))
 
+return {
+  md_shortcode = md_shortcode,
+  make_shortcode_parser = make_shortcode_parser,
+  unshortcode = unshortcode -- for undoing shortcodes in non-markdown contexts
+}

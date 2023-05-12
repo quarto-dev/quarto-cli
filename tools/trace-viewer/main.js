@@ -253,6 +253,13 @@ const convert = (data) => {
         content: data.c.map(convert),
       };
     }
+    if (data.t === "Math") {
+      return {
+        t: data.t,
+        displayType: data.c[0].t,
+        text: data.c[1],
+      };
+    }
     throw new Error(`Can't handle type ${data.t}`);
   } else if (typeof data === "string") {
     return data;

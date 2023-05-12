@@ -22,10 +22,12 @@ import {
   kFormatLinks,
   kNotebookLinks,
   kNotebooks,
+  kNotebookSubarticles,
   kResources,
+  kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isJatsOutput } from "../../../config/format.ts";
+import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
 import { existsSync } from "fs/mod.ts";
 import { isAbsolute } from "path/mod.ts";
 import {
@@ -50,10 +52,11 @@ import {
 } from "./manuscript-types.ts";
 import { createMecaBundle } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
+import { info } from "log/mod.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Article Notebook";
+const kDocumentNotebookLabel = "Inline Computations";
 
 const kMecaSuffix = "-meca.zip";
 const kMecaIcon = "archive";
@@ -78,8 +81,8 @@ export const manuscriptProjectType: ProjectType = {
     config: ProjectConfig,
     _flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
-    const manuscriptConfig = config[kManuscriptType] as ManuscriptConfig ||
-      undefined;
+    const manuscriptConfig =
+      (config[kManuscriptType] || {}) as ManuscriptConfig;
 
     // If the manuscript has resources, add those in
     if (manuscriptConfig[kResources]) {
@@ -232,7 +235,11 @@ export const manuscriptProjectType: ProjectType = {
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
 
       if (isArticle(source, project, manuscriptConfig)) {
-        if (manuscriptConfig && manuscriptConfig[kMecaArchive] !== false) {
+        const formats = project.config?.format
+          ? Object.values(project.config?.format)
+          : [];
+
+        if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
           // Add an alternate link to a MECA bundle
           if (format.render[kFormatLinks] !== false) {
             const links: Array<string | FormatLink> = [];
@@ -250,14 +257,21 @@ export const manuscriptProjectType: ProjectType = {
           // For JATS, default subarticles on (unless turned off explicitly)
           if (
             isJatsOutput(format.pandoc) &&
-            format.metadata[kJatsSubarticle] !== false
+            format.render[kNotebookSubarticles] !== false
           ) {
-            format.metadata[kJatsSubarticle] = true;
+            format.render[kNotebookSubarticles] = true;
           }
 
           // Enable google scholar, by default
           if (format.metadata[kGoogleScholar] !== false) {
             format.metadata[kGoogleScholar] = true;
+          }
+
+          // Enable the TOC for HTML output
+          if (isHtmlOutput(format.pandoc)) {
+            if (format.pandoc[kToc] !== false) {
+              format.pandoc[kToc] = true;
+            }
           }
         }
       }
@@ -315,6 +329,15 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve(extras);
   },
+  notebooks: (context: ProjectContext) => {
+    const manuscriptConfig = context.config
+      ?.[kManuscriptType] as ResolvedManuscriptConfig;
+    if (manuscriptConfig) {
+      return manuscriptConfig.notebooks;
+    } else {
+      return [];
+    }
+  },
   renderResultFinalOutput: (
     renderResults: RenderResult,
   ) => {
@@ -334,7 +357,13 @@ export const manuscriptProjectType: ProjectType = {
   ) => {
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
-    if (manuscriptConfig && manuscriptConfig[kMecaArchive] !== false) {
+    if (
+      shouldMakeMecaBundle(
+        outputFiles.map((file) => file.format),
+        manuscriptConfig,
+      )
+    ) {
+      info(`Creating ${kMecaFileLabel}...`);
       const mecaFileName = manuscriptConfig.mecaFile;
       const mecaBundle = await createMecaBundle(
         mecaFileName,
@@ -351,6 +380,7 @@ export const manuscriptProjectType: ProjectType = {
         );
       }
     }
+
     return Promise.resolve();
   },
 };
@@ -364,6 +394,26 @@ const isArticle = (
     ? join(project.dir, manuscriptConfig.article)
     : manuscriptConfig.article;
   return file === articlePath;
+};
+
+const shouldMakeMecaBundle = (
+  formats: Format[],
+  manuConfig?: ManuscriptConfig,
+) => {
+  if (!manuConfig || manuConfig[kMecaArchive] !== false) {
+    // See if it was explicitely on
+    if (manuConfig && manuConfig[kMecaArchive] === true) {
+      return true;
+    }
+
+    // See if we're producing JATS, then enable it
+    return formats.find((format) => {
+      return isJatsOutput(format.pandoc);
+    });
+  } else {
+    // Explicitely turned off
+    return false;
+  }
 };
 
 const articleFile = (projectDir: string, config: ManuscriptConfig) => {

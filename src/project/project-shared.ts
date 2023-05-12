@@ -25,6 +25,7 @@ import { projectType } from "./types/project-types.ts";
 import { ProjectType } from "./types/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 import { existsSync1 } from "../core/file.ts";
+import { kManuscriptType } from "./types/manuscript/manuscript-types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -191,6 +192,15 @@ export function projectIsWebsite(context?: ProjectContext): boolean {
   if (context) {
     const projType = projectType(context.config?.project?.[kProjectType]);
     return projectTypeIsWebsite(projType);
+  } else {
+    return false;
+  }
+}
+
+export function projectIsManuscript(context?: ProjectContext): boolean {
+  if (context) {
+    const projType = projectType(context.config?.project?.[kProjectType]);
+    return projType.type === kManuscriptType;
   } else {
     return false;
   }

@@ -139,7 +139,6 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
 end
 
 function makeWrappedLuaFilter(scriptFile, filterHandler)
-  local working_directory = pandoc.path.directory(scriptFile)
   return _quarto.withScriptFile(scriptFile, function()
     local env = setmetatable({}, {__index = shortcodeMetatable(scriptFile)})
     local chunk, err = loadfile(scriptFile, "bt", env)

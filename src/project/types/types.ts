@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
+import {
+  Format,
+  FormatExtras,
+  NotebookPreviewDescriptor,
+  PandocFlags,
+} from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import {
   PandocRenderer,
@@ -50,6 +55,9 @@ export interface ProjectType {
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
+  notebooks?: (
+    context: ProjectContext,
+  ) => NotebookPreviewDescriptor[];
   renderResultFinalOutput?: (
     renderResults: RenderResult,
     relativeToInputDir?: string,
