@@ -54,10 +54,10 @@ _quarto.ast.add_handler({
   slots = { "node" },
 
   render = function(node)
-    local el = node.node
     local visible = is_visible(node)
-    clearHiddenVisibleAttributes(el)
     if visible then
+      local el = node.node
+      clearHiddenVisibleAttributes(el)
       return el.content
     else
       return {}
