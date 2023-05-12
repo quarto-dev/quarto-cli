@@ -1310,8 +1310,7 @@ end
 local scriptFile = {}
 
 local function scriptDirs()
-   local dirs = {}
-   dirs[#dirs+1] = pandoc.path.directory(PANDOC_SCRIPT_FILE)
+   local dirs = { pandoc.path.directory(PANDOC_SCRIPT_FILE) }
    for i = 1, #scriptFile do
       dirs[#dirs+1] = pandoc.path.directory(scriptFile[i])
    end
@@ -1325,29 +1324,110 @@ local function scriptDir()
       -- hard fallback
       return pandoc.path.directory(PANDOC_SCRIPT_FILE)
    end
-   -- if scriptFile ~= nil then
-   --    return pandoc.path.directory(scriptFile)
-   -- else 
-   --    -- don't use return pandoc.path.directory(PANDOC_SCRIPT_FILE)
-   --    -- because we're now wrapped filters
-   --    -- but we guarantee that wrapped filters run on their own directories
-   --    return pandoc.system.get_working_directory()
-   -- end
 end
 
-local function scriptFileName()
-   if #scriptFile > 0 then
-      return pandoc.path.filename(scriptFile[#scriptFile])
-   else 
-      return pandoc.path.filename(PANDOC_SCRIPT_FILE)
+-- splits a string on a separator
+local function split(str, sep)
+   local fields = {}
+   
+   local sep = sep or " "
+   local pattern = string.format("([^%s]+)", sep)
+   local _ignored = string.gsub(str, pattern, function(c) fields[#fields + 1] = c end)
+   
+   return fields
+end
+
+function is_absolute_path(path)
+   if path:sub(1, pandoc.path.separator:len()) == pandoc.path.separator then
+      return true
    end
+   -- handle windows paths
+   if path:sub(2, 2) == ":" and path:sub(3, 3) == pandoc.path.separator then
+      return true
+   end
+   return false
 end
 
--- patch require to look in current scriptDirs
+local files_in_flight = {}
+function absolute_searcher(modname)
+   if not is_absolute_path(modname) then
+      return nil -- not an absolute path, let someone else handle it
+   end
+   local function loader()
+      file_to_load = modname .. '.lua'
+      if files_in_flight[file_to_load] then
+         error("Circular dependency detected when attempting to load module: " .. file_to_load)
+         error("The following files are involved:")
+         for k, v in pairs(files_in_flight) do
+            error("  " ..k)
+         end
+         os.exit(1)
+      end
+      files_in_flight[file_to_load] = true
+      local result = dofile(file_to_load)
+      files_in_flight[file_to_load] = nil
+      return result
+   end
+   return loader
+end
+table.insert(package.searchers, 1, absolute_searcher)
+
+-- TODO: Detect the root of the project and disallow paths
+-- which are both outside of the project root and outside
+-- quarto's own root
+local function resolve_relative_path(path)
+   local segments = split(path, pandoc.path.separator)
+   local resolved = {}
+   if path:sub(1, 1) == pandoc.path.separator then
+      resolved[1] = ""
+   end
+   for i = 1, #segments do
+      local segment = segments[i]
+      if segment == ".." then
+         resolved[#resolved] = nil
+      elseif segment ~= "." then
+         resolved[#resolved + 1] = segment
+      end
+   end
+   return table.concat(resolved, pandoc.path.separator)
+end
+
+-- patch require to look in current scriptDirs as well as supporting
+-- relative requires
 local orig_require = require
 function require(modname)
+   -- This supports relative requires. We need to resolve them carefully in two ways:
+   --
+   -- first, we need to ensure it is resolved relative to the current script.
+   -- second, we need to make sure that different paths that resolve to the
+   -- same file are cached as the same module.
+   --
+   -- this means we need to put ourselves in front of the standard require()
+   -- call, since it checks cache by `modname` and we need to make sure that
+   -- `modname` is always the same for the same file.
+   --
+   -- We achieve both by forcing the call to orig_require in relative requires
+   -- to always take a fully-qualified path.
+   --
+   -- This strategy is not going to work in general, in the presence of symlinks
+   -- and other things that can make two paths resolve to the same file. But
+   -- it's good enough for our purposes.
+   if modname:sub(1, 1) == "." then
+      local calling_file = debug.getinfo(2, "S").source:sub(2, -1)
+      local calling_dir = pandoc.path.directory(calling_file)
+      if calling_dir == "." then
+         -- resolve to current working directory
+         calling_dir = scriptDir()
+      end
+      if calling_dir == "." then
+         -- last-ditch effort, use the current working directory
+         calling_dir = pandoc.system.get_working_directory()
+      end
+      local resolved_path = resolve_relative_path(pandoc.path.normalize(pandoc.path.join({calling_dir, modname})))
+      return require(resolved_path)
+   end
    local old_path = package.path
-   local new_path = old_path
+   local new_path = package.path
    local dirs = scriptDirs()
    for i, v in ipairs(dirs) do
       new_path = new_path .. ';' .. pandoc.path.join({v, '?.lua'})
