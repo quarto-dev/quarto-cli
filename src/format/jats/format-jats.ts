@@ -15,7 +15,12 @@ import {
   kQuartoInternal,
   kVariant,
 } from "../../config/constants.ts";
-import { Format, PandocFlags } from "../../config/types.ts";
+import {
+  Format,
+  FormatPandoc,
+  Metadata,
+  PandocFlags,
+} from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { createFormat } from "../formats-shared.ts";
 
@@ -307,6 +312,22 @@ async function writeNotebookMarkdown(
     return inputMdFile;
   }
 }
+
+export const resolveJatsSubarticleMetadata = (
+  format: Format,
+  subArticleId: string,
+) => {
+  // Use the subarticle template
+  format.pandoc.template = formatResourcePath(
+    "jats",
+    join("pandoc", "subarticle", "template.xml"),
+  );
+
+  // Configure the JATS rendering
+  format.metadata[kLintXml] = false;
+  format.metadata[kJatsSubarticle] = true;
+  format.metadata[kJatsSubarticleId] = subArticleId;
+};
 
 async function renderJatsSubarticle(
   notebook: NotebookSubarticle,
