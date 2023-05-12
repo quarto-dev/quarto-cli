@@ -1,7 +1,8 @@
 -- parsehtml.lua
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
-local kDisableProcessing = "quarto-disable-processing"
+local patterns = require("../modules/patterns")
+local constants = require("../modules/constants")
 
 local function preprocess_table_text(src)
   -- html manipulation with regex is fraught, but those specific
@@ -25,7 +26,7 @@ function parse_html_tables()
       if _quarto.format.isRawHtml(el) then
         -- if we have a raw html table in a format that doesn't handle raw_html
         -- then have pandoc parse the table into a proper AST table block
-        local pat = htmlTablePattern()
+        local pat = patterns.html_table
         local i, j = string.find(el.text, pat)
         if i == nil then
           return nil
@@ -59,7 +60,7 @@ function parse_html_tables()
           _quarto.ast.walk(tableDoc, {
             Table = function(table)
               found = true
-              if table.attributes[kDisableProcessing] ~= nil then
+              if table.attributes[constants.kDisableProcessing] ~= nil then
                 skip = true
               end
             end,

@@ -1,6 +1,8 @@
 -- callout.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
+local constants = require("../modules/constants")
+
 function calloutType(div)
   for _, class in ipairs(div.attr.classes) do
     if isCallout(class) then 
@@ -216,10 +218,6 @@ function isCodeCellFigure(el)
   return isFigure
 end
 
-local kCalloutAppearanceDefault = "default"
-local kCalloutDefaultSimple = "simple"
-local kCalloutDefaultMinimal = "minimal"
-
 -- an HTML callout div
 function calloutDiv(node)
   -- the first heading is the title
@@ -236,7 +234,7 @@ function calloutDiv(node)
   local icon = node.icon
   local collapse = node.collapse
 
-  if calloutAppearance == kCalloutAppearanceDefault and title == nil then
+  if calloutAppearance == constants.kCalloutAppearanceDefault and title == nil then
     title = displayName(type)
   end
 
@@ -341,7 +339,7 @@ function epubCallout(node)
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
 
-  if calloutAppearance == kCalloutAppearanceDefault and title == nil then
+  if calloutAppearance == constants.kCalloutAppearanceDefault and title == nil then
     title = displayName(type)
   end
   
@@ -475,7 +473,7 @@ function docxCalloutImage(type)
 
   -- lookup the image
   if svg ~= nil then
-    local img = pandoc.Image({}, svg, '', {[kProjectResolverIgnore]="true"})
+    local img = pandoc.Image({}, svg, '', {[constants.kProjectResolverIgnore]="true"})
     img.attr.attributes["width"] = tostring(16 * scaleFactor)
     img.attr.attributes["height"] = tostring(16 * scaleFactor)
     return img

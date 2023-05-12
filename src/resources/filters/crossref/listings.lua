@@ -1,9 +1,7 @@
 -- listings.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
--- constants for list attributes
-kLstCap = "lst-cap"
--- local kDataCodeAnnonationClz = 'code-annotation-code'
+local constants = require("../modules/constants")
 
 function isListingRef(identifier) 
   return string.match(identifier, "^lst%-[^ ]+$")
@@ -16,7 +14,7 @@ function listings()
     DecoratedCodeBlock = function(node)
       local el = node.code_block
       local label = string.match(el.attr.identifier, "^lst%-[^ ]+$")
-      local caption = el.attr.attributes[kLstCap]
+      local caption = el.attr.attributes[constants.kLstCap]
       if label and caption then
         -- the listing number
         local order = indexNextOrder("lst")
@@ -36,7 +34,7 @@ function listings()
 
     CodeBlock = function(el)
       local label = string.match(el.attr.identifier, "^lst%-[^ ]+$")
-      local caption = el.attr.attributes[kLstCap]
+      local caption = el.attr.attributes[constants.kLstCap]
       if label and caption then
     
         -- the listing number

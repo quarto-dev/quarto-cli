@@ -1,7 +1,7 @@
 -- table-colwidth.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local kTblColwidths = "tbl-colwidths"
+local kTblColwidths = require("../modules/constants").kTblColWidths
 
 local function noWidths(ncol)
   local widths = {}

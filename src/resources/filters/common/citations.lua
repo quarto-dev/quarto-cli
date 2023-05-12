@@ -6,13 +6,7 @@
 -- restructured into the standard has
 -- format
 
-local kCitation = "citation"
-local kContainerId = "container-id"
-local kArticleId = "article-id"
-local kPage = "page"
-local kPageFirst = "page-first"
-local kPageLast = "page-last"
-
+local constants = require("../modules/constants")
 
 local function processTypedId(el) 
   if pandoc.utils.type(el) == "Inlines" then
@@ -42,24 +36,24 @@ end
 
 function processCitationMeta(meta)
   if meta then
-    local citationMeta = meta[kCitation]
+    local citationMeta = meta[constants.kCitation]
     if citationMeta then
 
-      local containerIds = citationMeta[kContainerId]
+      local containerIds = citationMeta[constants.kContainerId]
       if containerIds ~= nil then
-        meta[kCitation][kContainerId] = normalizeTypedId(containerIds)
+        meta[constants.kCitation][constants.kContainerId] = normalizeTypedId(containerIds)
       end
 
-      local articleIds = citationMeta[kArticleId]
+      local articleIds = citationMeta[constants.kArticleId]
       if articleIds ~= nil then
-        meta[kCitation][kArticleId] = normalizeTypedId(articleIds)
+        meta[constants.kCitation][constants.kArticleId] = normalizeTypedId(articleIds)
       end
 
-      if citationMeta[kPage] and citationMeta[kPageFirst] == nil and citationMeta[kPageLast] == nil then
-        local pagerange = split(pandoc.utils.stringify(citationMeta[kPage]), '-')
-        meta[kCitation][kPageFirst] = pandoc.Inlines(pagerange[1])
+      if citationMeta[constants.kPage] and citationMeta[constants.kPageFirst] == nil and citationMeta[constants.kPageLast] == nil then
+        local pagerange = split(pandoc.utils.stringify(citationMeta[constants.kPage]), '-')
+        meta[constants.kCitation][constants.kPageFirst] = pandoc.Inlines(pagerange[1])
         if pagerange[2] then
-          meta[kCitation][kPageLast] = pandoc.Inlines(pagerange[2])
+          meta[constants.kCitation][constants.kPageLast] = pandoc.Inlines(pagerange[2])
         end
       end
     end
