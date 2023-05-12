@@ -24,5 +24,5 @@ const input = docs(join("jats", "manuscript", "index.ipynb"));
 const output = outputForInput(input, "jats", projectOutDir);
 
 // Test the article and ensure that it validates
-testRender(input, "jats", true, [ensureXmlValidatesWithXsd(output.outputPath, xsdPath)], testContext, args, projectOutDir);
+testRender(input, "jats", false, [ensureXmlValidatesWithXsd(output.outputPath, xsdPath)], testContext, args, projectOutDir);
 
