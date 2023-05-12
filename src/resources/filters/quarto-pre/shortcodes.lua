@@ -13,6 +13,9 @@ _quarto.ast.add_handler({
   parse = function(span)
     local inner_content = pandoc.List({})
 
+    span.content = span.content:filter(function(el)
+      return el.t == "Span"
+    end)
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
         quarto.log.output(el)
@@ -31,10 +34,10 @@ _quarto.ast.add_handler({
       end
 
       -- is it a plain value?
-      if el.attributes["data-raw"] then
+      if el.attributes["data-key"] == nil and el.attributes["data-value"] then
         return {
           type = "param",
-          value = el.attributes["data-raw"]
+          value = el.attributes["data-value"]
         }
       end
 
@@ -185,8 +188,10 @@ function shortcodes_filter()
   local code_shortcode = shortcode_lpeg.make_shortcode_parser({
     escaped = function(s) return "{{<" .. s .. ">}}" end,
     string = function(s) return { value = s } end,
-    keyvalue = function(k, v) return { name = k, value = s } end,
-    shortcode = function(lst)
+    keyvalue = function(r, k, v) 
+      return { name = k, value = v } 
+    end,
+    shortcode = function(open, space, lst, close)
       local name = table.remove(lst, 1).value
       local raw_args = {}
       for _, v in ipairs(lst) do
