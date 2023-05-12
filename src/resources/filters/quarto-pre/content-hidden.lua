@@ -31,7 +31,7 @@ _quarto.ast.add_handler({
     local condition = pandoc.List({})
     local remaining_attributes = pandoc.List({})
     for i, v in ipairs(div.attributes) do
-      if constants.kConditions:find(v[1]) ~= nil then
+      if kConditions:find(v[1]) ~= nil then
         condition:insert(v)
       else
         remaining_attributes:insert(v)
