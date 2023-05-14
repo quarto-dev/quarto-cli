@@ -1,0 +1,23 @@
+title: "<The (missing) feature you want to discuss>"
+body:
+  - type: markdown
+    attributes: 
+      value: |
+        Make sure to check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) first to see if your feature request has already been discussed.
+        If it has, you can add a comment to the existing discussion instead of creating a new one.
+
+        After checking, if you are not sure if your feature request has already been discussed, you can still create a new discussion. 😉
+
+        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+
+        Finally, try to describe the best you can what you want to achieve and why you think it is important.
+        This will help us to understand your request and prioritise it.
+  - type: textarea
+    attributes:
+      label: Description
+      description: Start your discussion!
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "_Thanks for opening this feature request!_"

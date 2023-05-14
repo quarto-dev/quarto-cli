@@ -1,0 +1,41 @@
+title: "<Your question in one sentence (e.g., How do I preview documents with Quarto?)>"
+body:
+  - type: markdown
+    attributes: 
+      value: |
+        Make sure to check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a) first to see if your question/report has already been discussed.
+        If it has, you can add a comment to the existing discussion instead of creating a new one.
+
+        After checking, if you are not sure that your question/report has already been discussed, you can still create a new discussion. 😉
+  - type: textarea
+    attributes:
+      label: Description
+      description: Start your question/report!
+      placeholder: |
+          You can include Quarto document code which includes code blocks like this:
+
+          ````qmd
+          ---
+          title: "Hello Quarto!"
+          format: html
+          ---
+
+          ```py
+          print("Hello Quarto!")
+          ```
+          ````
+
+          ---
+
+          ### Additional information that can help us to help you
+
+          - What Quarto version are you using?  
+            You can find the version of Quarto you used by running `quarto --version` in your terminal.
+          - What operating system are you using?  
+            Linux Ubuntu 20.04, macOS 11.2.3, Windows 10, _etc._
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        _Thanks for opening this discussion either to ask for help or report a possible bug!_
