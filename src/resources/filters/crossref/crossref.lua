@@ -9,7 +9,9 @@ PANDOC_VERSION:must_be_at_least '2.13'
 -- global crossref state
 crossref = {
   usingTheorems = false,
-  startAppendix = nil
+  startAppendix = nil,
+  -- initialize autolabels table
+  autolabels = pandoc.List()
 }
 
 -- [import]
@@ -56,18 +58,18 @@ initCrossrefIndex()
 
 -- chain of filters
 return {
-  initCrossrefOptions(),
-  crossrefPreprocess(),
-  crossrefPreprocessTheorems(),
+  init_crossref_options(),
+  crossref_preprocess(),
+  crossref_preprocess_theorems(),
   combineFilters({
-    fileMetadata(),
+    file_metadata(),
     qmd(),
     sections(),
-    crossrefFigures(),
-    crossrefTables(),
+    crossref_figures(),
+    crossref_tables(),
     equations(),
     listings(),
-    crossrefTheorems(),
+    crossref_theorems(),
   }),
   resolveRefs(),
   crossrefMetaInject(),

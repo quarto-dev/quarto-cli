@@ -38,6 +38,7 @@ export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kCitationsHover = "citations-hover";
 export const kFootnotesHover = "footnotes-hover";
+export const kXrefsHover = "crossrefs-hover";
 export const kSmoothScroll = "smooth-scroll";
 
 // Code Annotation
@@ -366,6 +367,7 @@ export function setMainColumn(doc: Document, column: string) {
     "main.content",
     ".page-navigation",
     ".quarto-title-banner .quarto-title",
+    ".quarto-title-block .quarto-title-meta",
     "div[class^='quarto-about-']",
     "div[class*=' quarto-about-']",
   ];

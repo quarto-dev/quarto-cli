@@ -8,8 +8,8 @@
           schema: string
         type:
           string:
-            completions: [default, website, book]
-            description: "Project type (`default`, `website`, or `book`)"
+            completions: [default, website, book. manuscript]
+            description: "Project type (`default`, `website`, `book`, or `manuscript`)"
         render:
           arrayOf: path
           description: "Files to render (defaults to all files)"
@@ -63,6 +63,11 @@
       super:
         - resolveRef: book-schema
         - resolveRef: csl-item-shared
+
+- name: manuscript
+  description: Manuscript configuration
+  schema:
+    ref: manuscript-schema
 
 - name: type
   hidden: true

@@ -8516,6 +8516,23 @@ try {
                                   "transparent_dark",
                                   "preferred_color_scheme"
                                 ]
+                              },
+                              {
+                                object: {
+                                  closed: true,
+                                  properties: {
+                                    light: {
+                                      string: {
+                                        description: "The light theme name."
+                                      }
+                                    },
+                                    dark: {
+                                      string: {
+                                        description: "The dark theme name."
+                                      }
+                                    }
+                                  }
+                                }
                               }
                             ],
                             description: "The giscus theme to use when displaying comments."
@@ -9154,6 +9171,12 @@ try {
                 },
                 "cookie-consent": {
                   anyOf: [
+                    {
+                      enum: [
+                        "express",
+                        "implied"
+                      ]
+                    },
                     "boolean",
                     {
                       object: {
@@ -11121,6 +11144,84 @@ try {
                 }
               }
             }
+          },
+          {
+            id: "notebook-view-schema",
+            schema: {
+              object: {
+                properties: {
+                  notebook: {
+                    string: {
+                      description: "The path to the locally referenced notebook."
+                    }
+                  },
+                  title: {
+                    description: "The title of the notebook when viewed.",
+                    anyOf: [
+                      "string",
+                      "boolean"
+                    ]
+                  },
+                  url: {
+                    string: {
+                      description: "The url to use when viewing this notebook."
+                    }
+                  }
+                },
+                required: [
+                  "notebook"
+                ]
+              }
+            }
+          },
+          {
+            id: "manuscript-schema",
+            schema: {
+              object: {
+                closed: true,
+                properties: {
+                  article: {
+                    path: {
+                      description: "The input document that will serve as the root document for this manuscript"
+                    }
+                  },
+                  "manuscript-url": {
+                    string: {
+                      description: "The deployed url for this manuscript"
+                    }
+                  },
+                  "meca-archive": {
+                    anyOf: [
+                      "boolean",
+                      "string"
+                    ],
+                    description: "Whether to generate a MECA bundle for this manuscript"
+                  },
+                  notebooks: {
+                    arrayOf: {
+                      anyOf: [
+                        "string",
+                        {
+                          ref: "notebook-view-schema"
+                        }
+                      ]
+                    }
+                  },
+                  resources: {
+                    maybeArrayOf: {
+                      schema: "path",
+                      description: "Additional file resources to be copied to output directory"
+                    }
+                  },
+                  environment: {
+                    maybeArrayOf: {
+                      schema: "path",
+                      description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "schema/document-about.yml": [
@@ -11464,7 +11565,7 @@ try {
             default: false,
             description: {
               short: "Include a code tools menu (for hiding and showing code).",
-              long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearnce of code tools.\n"
+              long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearance of code tools.\n"
             }
           },
           {
@@ -12010,6 +12111,17 @@ try {
                 }
               ]
             }
+          },
+          {
+            name: "crossrefs-hover",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-files"
+              ]
+            },
+            default: true,
+            description: "Enables a hover popup for cross references that shows the item being referenced."
           }
         ],
         "schema/document-editor.yml": [
@@ -12084,6 +12196,15 @@ try {
                           }
                         },
                         description: "Markdown writing options for visual editor"
+                      },
+                      "render-on-save": {
+                        tags: {
+                          engine: [
+                            "jupyter"
+                          ]
+                        },
+                        schema: "boolean",
+                        description: "Automatically re-render for preview whenever document is saved (note that this requires a preview\nfor the saved document be already running). This option currently works only within VS Code.\n"
                       }
                     }
                   }
@@ -12091,6 +12212,18 @@ try {
               ]
             },
             description: "Visual editor configuration"
+          },
+          {
+            name: "zotero",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  maybeArrayOf: "string"
+                }
+              ]
+            },
+            description: "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
           }
         ],
         "schema/document-epub.yml": [
@@ -12405,7 +12538,6 @@ try {
         "schema/document-execute.yml": [
           {
             name: "engine",
-            hidden: true,
             schema: {
               string: {
                 completions: [
@@ -12670,7 +12802,8 @@ try {
               formats: [
                 "$html-doc",
                 "context",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
@@ -12700,7 +12833,8 @@ try {
               formats: [
                 "$html-doc",
                 "context",
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
             description: {
@@ -13878,10 +14012,11 @@ try {
             schema: "string",
             tags: {
               formats: [
-                "$pdf-all"
+                "$pdf-all",
+                "typst"
               ]
             },
-            description: "The paper size for the document."
+            description: "The paper size for the document.\n"
           },
           {
             name: "layout",
@@ -14312,7 +14447,31 @@ try {
               anyOf: [
                 "boolean",
                 {
-                  arrayOf: "string"
+                  maybeArrayOf: {
+                    anyOf: [
+                      "string",
+                      {
+                        object: {
+                          properties: {
+                            title: {
+                              string: {
+                                description: "The title for this alternative link."
+                              }
+                            },
+                            href: {
+                              string: {
+                                description: "The href for tihs alternative link."
+                              }
+                            }
+                          },
+                          required: [
+                            "title",
+                            "href"
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 }
               ]
             },
@@ -14345,6 +14504,19 @@ try {
             }
           },
           {
+            name: "notebook-subarticles",
+            tags: {
+              formats: [
+                "$jats-all"
+              ]
+            },
+            schema: "boolean",
+            description: {
+              short: "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
+              long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n"
+            }
+          },
+          {
             name: "notebook-view",
             tags: {
               formats: [
@@ -14356,30 +14528,12 @@ try {
                 "boolean",
                 {
                   maybeArrayOf: {
-                    object: {
-                      properties: {
-                        notebook: {
-                          string: {
-                            description: "The path to the locally referenced notebook."
-                          }
-                        },
-                        title: {
-                          description: "The title of the notebook when viewed.",
-                          anyOf: [
-                            "string",
-                            "boolean"
-                          ]
-                        },
-                        url: {
-                          string: {
-                            description: "The url to use when viewing this notebook."
-                          }
-                        }
-                      },
-                      required: [
-                        "notebook"
-                      ]
-                    }
+                    anyOf: [
+                      "string",
+                      {
+                        ref: "notebook-view-schema"
+                      }
+                    ]
                   }
                 }
               ]
@@ -14703,6 +14857,16 @@ try {
               short: "Offset for section headings in output (offsets are 0 by default)",
               long: 'Offset for section headings in output (offsets are 0 by default)\nThe first number is added to the section number for\ntop-level headings, the second for second-level headings, and so on.\nSo, for example, if you want the first top-level heading in your\ndocument to be numbered "6", specify `number-offset: 5`. If your\ndocument starts with a level-2 heading which you want to be numbered\n"1.5", specify `number-offset: [1,4]`. Implies `number-sections`\n'
             }
+          },
+          {
+            name: "section-numbering",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "string",
+            description: "Schema to use for numbering sections, e.g. `1.A.1`"
           },
           {
             name: "shift-heading-level-by",
@@ -15599,6 +15763,17 @@ try {
             description: "Filters to pre-process ipynb files before rendering to markdown"
           },
           {
+            name: "keep-typ",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            schema: "boolean",
+            default: false,
+            description: "Keep the intermediate typst file used during render."
+          },
+          {
             name: "keep-tex",
             tags: {
               formats: [
@@ -15808,12 +15983,54 @@ try {
             name: "margin",
             tags: {
               formats: [
-                "revealjs"
+                "revealjs",
+                "typst"
               ]
             },
-            schema: "number",
+            schema: {
+              anyOf: [
+                "number",
+                {
+                  object: {
+                    closed: true,
+                    properties: {
+                      x: {
+                        string: {
+                          description: "Horizontal margin (e.g. 5cm)"
+                        }
+                      },
+                      y: {
+                        string: {
+                          description: "Vertical margin (e.g. 5cm)"
+                        }
+                      },
+                      top: {
+                        string: {
+                          description: "Top margin (e.g. 5cm)"
+                        }
+                      },
+                      bottom: {
+                        string: {
+                          description: "Bottom margin (e.g. 5cm)"
+                        }
+                      },
+                      left: {
+                        string: {
+                          description: "Left margin (e.g. 5cm)"
+                        }
+                      },
+                      right: {
+                        string: {
+                          description: "Right margin (e.g. 5cm)"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
             default: 0.1,
-            description: "Factor of the display size that should remain empty around the content"
+            description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
           },
           {
             name: "min-scale",
@@ -16902,13 +17119,14 @@ try {
                 "!$office-all",
                 "!$odt-all",
                 "!$html-all",
-                "!$docbook-all"
+                "!$docbook-all",
+                "typst"
               ]
             },
             schema: "number",
             description: {
-              short: "Specify length of lines in characters.",
-              long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables.\n"
+              short: "For text formats, specify length of lines in characters. For `typst`, number of columns for body text.",
+              long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables. \n\nFor `typst`, number of columns for body text.\n"
             }
           },
           {
@@ -17036,7 +17254,9 @@ try {
               enum: [
                 "body",
                 "left",
-                "right"
+                "right",
+                "left-body",
+                "right-body"
               ]
             },
             default: "right",
@@ -17045,7 +17265,10 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Location for table of contents (`body`, `left`, or `right` (default)).\n"
+            description: {
+              short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
+              long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`left` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+            }
           },
           {
             name: "toc-title",
@@ -17341,6 +17564,7 @@ try {
               "tei",
               "texinfo",
               "textile",
+              "typst",
               "xwiki",
               "zimwiki",
               "md"
@@ -17514,9 +17738,9 @@ try {
                       completions: [
                         "default",
                         "website",
-                        "book"
+                        "book. manuscript"
                       ],
-                      description: "Project type (`default`, `website`, or `book`)"
+                      description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                     }
                   },
                   render: {
@@ -17601,6 +17825,13 @@ try {
                   }
                 ]
               }
+            }
+          },
+          {
+            name: "manuscript",
+            description: "Manuscript configuration",
+            schema: {
+              ref: "manuscript-schema"
             }
           },
           {
@@ -18233,6 +18464,7 @@ try {
           "tei",
           "texinfo",
           "textile",
+          "typst",
           "xwiki",
           "zimwiki"
         ],
@@ -18286,6 +18518,8 @@ try {
           "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
           "The giscus theme to use when displaying comments.",
+          "The light theme name.",
+          "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
@@ -19292,6 +19526,16 @@ try {
           "Specify a default profile and profile groups",
           "Default profile to apply if QUARTO_PROFILE is not defined.",
           "Define a profile group for which at least one profile is always\nactive.",
+          "The path to the locally referenced notebook.",
+          "The title of the notebook when viewed.",
+          "The url to use when viewing this notebook.",
+          "The input document that will serve as the root document for this\nmanuscript",
+          "The deployed url for this manuscript",
+          "Whether to generate a MECA bundle for this manuscript",
+          "Additional file resources to be copied to output directory",
+          "Additional file resources to be copied to output directory",
+          "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
+          "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
           {
             short: "Unique label for code cell",
             long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
@@ -19302,6 +19546,7 @@ try {
             short: "Notebook cell identifier",
             long: 'Notebook cell identifier. Note that if there is no cell\n<code>id</code> then <code>label</code> will be used as the cell\n<code>id</code> if it is present. See <a href="https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html" class="uri">https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html</a>\nfor additional details on cell ids.'
           },
+          "nbconvert tag to export cell",
           {
             short: "Whether to cache a code chunk.",
             long: "Whether to cache a code chunk. When evaluating code chunks for the\nsecond time, the cached chunks are skipped (unless they have been\nmodified), but the objects created in these chunks are loaded from\npreviously saved databases (<code>.rdb</code> and <code>.rdx</code>\nfiles), and these files are saved when a chunk is evaluated for the\nfirst time, or when cached files are not found (e.g., you may have\nremoved them by hand). Note that the filename consists of the chunk\nlabel with an MD5 digest of the R code and chunk options of the code\nchunk, which means any changes in the chunk will produce a different MD5\ndigest, and hence invalidate the cache."
@@ -19516,7 +19761,7 @@ try {
           },
           {
             short: "Include a code tools menu (for hiding and showing code).",
-            long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearnce of code tools."
+            long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearance of code tools."
           },
           {
             short: "Show a thick left border on code blocks.",
@@ -19615,6 +19860,7 @@ try {
           "Whether cross references should be hyper-linked.",
           "The title used for appendix.",
           "The delimiter beween appendix number and title.",
+          "Enables a hover popup for cross references that shows the item being\nreferenced.",
           "Visual editor configuration",
           "Default editing mode for document",
           "Markdown writing options for visual editor",
@@ -19624,6 +19870,8 @@ try {
           "Location to write references (<code>block</code>,\n<code>section</code>, or <code>document</code>)",
           "Write markdown links as references rather than inline.",
           "Unique prefix for references (<code>none</code> to prevent automatic\nprefixes)",
+          "Automatically re-render for preview whenever document is saved (note\nthat this requires a preview for the saved document be already running).\nThis option currently works only within VS Code.",
+          "Enable (<code>true</code>) or disable (<code>false</code>) Zotero for\na document. Alternatively, provide a list of one or more Zotero group\nlibraries to use with the document.",
           "The identifier for this publication.",
           "The identifier value.",
           "The identifier schema (e.g.&nbsp;<code>DOI</code>, <code>ISBN-A</code>,\netc.)",
@@ -20040,17 +20288,19 @@ try {
             short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
             long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
           },
+          "The title for this alternative link.",
+          "The href for tihs alternative link.",
+          "The title for this alternative link.",
+          "The href for tihs alternative link.",
           {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
+          {
+            short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+            long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
+          },
           "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
-          "The path to the locally referenced notebook.",
-          "The title of the notebook when viewed.",
-          "The url to use when viewing this notebook.",
-          "The path to the locally referenced notebook.",
-          "The title of the notebook when viewed.",
-          "The url to use when viewing this notebook.",
           "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "Mermaid diagram options",
@@ -20094,6 +20344,7 @@ try {
             short: "Offset for section headings in output (offsets are 0 by default)",
             long: "Offset for section headings in output (offsets are 0 by default) The\nfirst number is added to the section number for top-level headings, the\nsecond for second-level headings, and so on. So, for example, if you\nwant the first top-level heading in your document to be numbered \u201C6\u201D,\nspecify <code>number-offset: 5</code>. If your document starts with a\nlevel-2 heading which you want to be numbered \u201C1.5\u201D, specify\n<code>number-offset: [1,4]</code>. Implies\n<code>number-sections</code>"
           },
+          "Schema to use for numbering sections, e.g.&nbsp;<code>1.A.1</code>",
           {
             short: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
             long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
@@ -20237,6 +20488,7 @@ try {
           "Keep the markdown file generated by executing code",
           "Keep the notebook file generated from executing code.",
           "Filters to pre-process ipynb files before rendering to markdown",
+          "Keep the intermediate typst file used during render.",
           "Keep the intermediate tex file used during render.",
           {
             short: "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
@@ -20283,7 +20535,13 @@ try {
             short: "The \u2018normal\u2019 height of the presentation",
             long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
           },
-          "Factor of the display size that should remain empty around the\ncontent",
+          "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
+          "Horizontal margin (e.g.&nbsp;5cm)",
+          "Vertical margin (e.g.&nbsp;5cm)",
+          "Top margin (e.g.&nbsp;5cm)",
+          "Bottom margin (e.g.&nbsp;5cm)",
+          "Left margin (e.g.&nbsp;5cm)",
+          "Right margin (e.g.&nbsp;5cm)",
           "Bounds for smallest possible scale to apply to content",
           "Bounds for largest possible scale to apply to content",
           "Vertical centering of slides",
@@ -20418,8 +20676,8 @@ try {
             long: "Determine how text is wrapped in the output (the source code, not the\nrendered version)."
           },
           {
-            short: "Specify length of lines in characters.",
-            long: "Specify length of lines in characters. This affects text wrapping in\ngenerated source code (see <code>wrap</code>). It also affects\ncalculation of column widths for plain text tables."
+            short: "For text formats, specify length of lines in characters. For\n<code>typst</code>, number of columns for body text.",
+            long: "Specify length of lines in characters. This affects text wrapping in\ngenerated source code (see <code>wrap</code>). It also affects\ncalculation of column widths for plain text tables.\nFor <code>typst</code>, number of columns for body text."
           },
           {
             short: "Specify the number of spaces per tab (default is 4).",
@@ -20450,7 +20708,10 @@ try {
             long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
           },
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
-          "Location for table of contents (<code>body</code>, <code>left</code>,\nor <code>right</code> (default)).",
+          {
+            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
+            long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>left</code> - Show the Table of Contents in right\nmargin of the document. <code>left-body</code> - Show two Tables of\nContents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+          },
           "The title used for the table of contents.",
           "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
           "Print a list of figures in the document.",
@@ -20465,7 +20726,7 @@ try {
           "The width of the preview image for this document.",
           "The alt text for preview image on this page.",
           "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
           {
             short: "Working directory for computations",
@@ -20766,9 +21027,10 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
+          "Manuscript configuration",
           "internal-schema-hack",
           "Project configuration.",
-          "Project type (<code>default</code>, <code>website</code>, or\n<code>book</code>)",
+          "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
           {
             short: "Working directory for computations",
@@ -21069,8 +21331,8 @@ try {
             long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
-          "internal-schema-hack",
-          "nbconvert tag to export cell"
+          "Manuscript configuration",
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21294,12 +21556,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 152480,
+          _internalId: 158136,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 152472,
+              _internalId: 158128,
               type: "enum",
               enum: [
                 "png",
@@ -21315,7 +21577,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 152479,
+              _internalId: 158135,
               type: "anyOf",
               anyOf: [
                 {
@@ -27845,10 +28107,8 @@ ${reindented}
     if (parse.components.length === 1 && parse.start === parse.components[0].start && parse.end === parse.components[0].end) {
       return postProcessAnnotation(parse.components[0]);
     } else {
-      return {
-        ...parse,
-        components: parse.components.map(postProcessAnnotation)
-      };
+      parse.components = parse.components.map(postProcessAnnotation);
+      return parse;
     }
   }
   function jsYamlParseLenient(yml) {

@@ -1,0 +1,1139 @@
+<!-- ============================================================= -->
+<!--  MODULE:    Journal Publishing DTD Customize Content and      -->
+<!--             Attributes Module                                 -->
+<!--  VERSION:   ANSI/NISO JATS Version 1.2 (Z39.96-2019)          -->
+<!--  DATE:      February 2019                                     -->
+<!--                                                               -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                        TYPICAL INVOCATION                     -->
+<!--
+"-//NLM//DTD JATS (Z39.96) Journal Publishing DTD Customize Content and Attributes Module v1.2 20190208//EN"
+Delivered as file "JATS-journalpubcustom-models1.ent"              -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!-- SYSTEM:     Journal Publishing DTD of the JATS DTD Suite      -->
+<!--                                                               -->
+<!-- PURPOSE:    To declare the Parameter Entities (PEs) used to   -->
+<!--             over-ride the content models, parts of content    -->
+<!--             models, or attribute lists of the JATS DTD Suite  -->
+<!--                                                               -->
+<!--             Or-groups within models should use mixes or       -->
+<!--             classes rather than name elements directly.       -->
+<!--                                                               -->
+<!--             Note: Since PEs must be declared before they      -->
+<!--             are used, this module must be called before the   -->
+<!--             content modules that declare elements.            -->
+<!--                                                               -->
+<!-- TAG SET SPONSOR                                               -->
+<!--             National Center for Biotechnology                 -->
+<!--                Information (NCBI)                             -->
+<!--             National Library of Medicine (NLM)                -->
+<!--                                                               -->
+<!-- CREATED FOR:                                                  -->
+<!--             This DTD was created from the JATS DTD Suite.     -->
+<!--             Digital archives and publishers may use the       -->
+<!--             DTD as is for markup of journal literature or     -->
+<!--             related material for archiving and transferring   -->
+<!--             such material between archives or create a        -->
+<!--             custom XML DTD from the Suite for                 -->
+<!--             these purposes.                                   -->
+<!--                                                               -->
+<!--             This DTD is in the public domain. An organization -->
+<!--             that wishes to create its own DTD from the suite  -->
+<!--             may do so without permission from NLM.            -->
+<!--                                                               -->
+<!--             The suite has been set up to be extended using a  -->
+<!--             new DTD file and a new DTD-specific customization -->
+<!--             module to redefine the many Parameter Entities.   -->
+<!--             Do not modify the suite directly or redistribute  -->
+<!--             modified versions of the suite.                   -->
+<!--                                                               -->
+<!--             In the interest of maintaining consistency and    -->
+<!--             clarity for potential users, NLM requests:        -->
+<!--                                                               -->
+<!--             1. If you create a DTD from the JATS DTD Suite    -->
+<!--                and intend to stay compatible with the suite,  -->
+<!--                then please include the following statement    -->
+<!--                as a comment in all of your DTD modules:       -->
+<!--                   "Created from, and fully compatible with,   -->
+<!--                    the ANSI/NISO Z39.96 Journal Article Tag   -->
+<!--                    Suite (JATS)."                             -->
+<!--                                                               -->
+<!--             2. If you alter one or more modules of the suite, -->
+<!--                then please rename your version and all its    -->
+<!--                modules to avoid any confusion with the        -->
+<!--                original suite. Also, please include the       -->
+<!--                following statement as a comment in all your   -->
+<!--                DTD modules:                                   -->
+<!--                   "Based in part on, but not fully compatible -->
+<!--                    with, the ANSI/NISO Z39.96 Journal Article -->
+<!--                    Tag Suite (JATS)."                         -->
+<!--                                                               -->
+<!-- ORIGINAL CREATION DATE:                                       -->
+<!--             September 2004                                    -->
+<!--                                                               -->
+<!-- CREATED BY: Mulberry Technologies, Inc. for the NISO Z39.96   -->
+<!--             Working Group. Mulberry Technologies was          -->
+<!--             supported by National Center for Biotechnology    -->
+<!--             Information (NCBI), a center of the US National   -->
+<!--             Library of Medicine (NLM).                        -->
+<!--                                                               -->
+<!--             The Journal Publishing DTD is built from the      -->
+<!--             Archiving and Interchange DTD Suite.              -->
+<!--                                                               -->
+<!--             Suggestions for refinements and enhancements to   -->
+<!--             this DTD should be sent in email to:              -->
+<!--                 jats@ncbi.nlm.nih.gov                         -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!--                    DTD VERSION/CHANGE HISTORY                 -->
+<!-- ============================================================= -->
+<!--
+Version  Reason/Occasion                   (who) vx.x (yyyy-mm-dd)
+    ==============================================================
+     JATS Version 1.2 (ANSI/NISO Z39.96-2019)
+                                   (DAL/BTU) v1.2     (2019-02-08)
+    
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI vote on Feb 08, 2019, so it supersedes all Committee 
+     Drafts as well as the draft version JATS 1.2 2018 (the version
+     submitted for vote), becoming NISO JATS v1.2 20190208 
+     (ANSI/NISO Z39.96-2019).
+  
+ 39. JATS "1.2" becomes "v1.2 20190208" (final ANSI vote date)
+     "ANSI/NISO Z39.96-2015" becomes "ANSI/NISO Z39.96-2019"
+     
+   ==============================================================
+     JATS Version 1.2 (ANSI/NISO Z39.96-2018)
+     and BITS 2.1 (v2.0 20180401)
+                                   (DAL/BTU) v1.2     (2018-11-30)
+    
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the both the NISO and ANSI membership 
+     to be changed. This version of the NISO JATS was approved 
+     by ANSI and NISO vote, so it supersedes all Committee Drafts
+     and becoming NISO JATS 1.2 (ANSI/NISO Z39.96-2018).
+  
+ 38. BITS "2.1" and "v2.0 20180401" remains unchanged.
+     JATS "1.2d2" and "v1.2d2 20180401" became
+     JATS "1.2" and "v1.2 20181130" 
+
+    =============================================================
+     BITS Version 2.1                (DAL/BTU) v2.1    (2018-04-01)
+     JATS Version 1.2d2              (DAL/BTU) v1.2d2  (2018-04-01)
+
+     JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+     BITS is under continuous maintenance, and is modified at the
+     discretion of the working group.
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+
+ 37. PERSON GROUP TYPES  - Replaced the CDATA value for 
+     @person-group-type with list of values, parameter
+     entity %person-group-types;, reversing the decision
+     of Version 1.2d1.
+
+ 36. FOOTNOTES
+      - Made @fn-type from CDATA into a restricted list,
+        reversing the decision of version 1.2d1. 
+      - Added back the %fn-types; PE, which is used for values of
+        @fn-type
+      - Added new value "coi-statement", which is best practice
+        replacing value "conflict", which was left on the list.
+ 
+ 35. NON-MONETARY SUPPORT - Inside <article-meta> added new
+     <support-group> to hold both funding and
+     non-monetary support descriptions. <support-group> is 
+     both a peer to <funding-group> (backward compatibility)
+     and contains <funding-group>.
+ 
+ 34. PUBLICATION DATE-NOT-AVAILABLE - Inside <article-meta>, 
+     <front-stub>, <event>, and <event-desc>
+     added new element <pub-date-not-available>, as an 
+     alternative to <pub-date>. The meaning is that a 
+     publication date was (for whatever reason) not available. 
+     Presence of the element says nothing about publication 
+     status.
+ 
+ 33. BITS "2.0" and "v2.0 20151225" became
+     BITS "2.1" and "v2.1 20180401". 
+   
+     JATS "1.2d1" and "v1.2d1 20171231" became
+     JATS "1.2d2" and "v1.2d2 20180401". 
+
+     No module names were changed.
+ 
+    =============================================================
+     JATS Version 1.2d1 (ANSI/NISO Z39.96-2015)
+                                   (DAL/BTU) v1.2d1  (2017-12-31)
+ 
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+  
+ 32. JATS "1.2d1" and "v1.2d1 20170631" became
+     JATS "1.2d1" and "v1.2d1 20171231". 
+
+    =============================================================
+     JATS Version 1.2d1              (DAL/BTU) v1.2d1  (2017-06-31)
+
+     NISO JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+      
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee. This draft has not yet been given public review 
+     or voting. The formal public identifiers were changed in the 
+     modules and the catalogs.
+
+ 31. PERSON GROUP TYPES - Replaced the %person-group-types; parameter
+     entity (allauthors | assignee | author | compiler | curator | 
+     director | editor | guest-editor | illustrator | inventor |
+     research-assistant | translator | transed) with CDATA to allow
+     all types.
+
+ 30. ARTICLE META MODEL
+     - ARTICLE VERSION - Added new element <article-version>
+       inside <article-meta> to hold one version number for the 
+       article. <article-version> element may repeat inside
+       <article-version-alternatives> to hold version numbers 
+       from different systems.
+ 
+     - NO DATE - <pub-date> (optional repeatable) is now
+       followed by the optional new element 
+       <pub-date-not-available>. 
+ 
+     - PUBLICATION HISTORY - Added new element based on BITS,
+       <pub-history>, to hold <event>s as <history> holds
+       <date>s. New internal elements: <event>, <event-desc>
+
+ 29. FOOTNOTES
+      - Made @fn-type into a CDATA from a restricted list.
+        Deleted %fn-types; PE, which used to be used.
+
+ 28. PERSON-GROUP
+      - Removed string-name.class PE from PE person-group-elements
+        because <string-name> was added to name.class, which
+        person-group-elements already used.
+
+ 27. PERSON-GROUP - Made @person-group-type values into a parameter
+     entity and added values "illustrator" and "research-assistant".
+ 
+ 26. JATS became version "1.2d1" and "v1.2d1 20170631" 
+
+     =============================================================
+     JATS Version 1.1                (DAL/BTU) v1.1  (2015-12-15)
+
+     JATS is a continuing maintenance NISO Standard, which
+     requires voting by the ANSI and NISO memberships to be changed. 
+     JATS 1.1 was approved in late 2015, so the formal public 
+     identifiers were changed in the modules and the catalogs.
+     No model or attribute changes were made at this time. 
+ 
+ 25. JATS became version "1.1" and "v1.1 20151215"
+
+     =============================================================
+     JATS Version 1.1d3             (DAL/BTU) v1.1d3  (2015-03-01)
+   
+     The changes in this release are in response to NISO 
+     License and Indicators Recommended Practice.
+
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d3 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+     
+     This draft DTD represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+
+ 24. JATS became version "1.1d3" and "v1.1d3 20150301"
+
+     =============================================================
+     JATS Version 1.1d2              (DAL/BTU) v1.1d2 (2014-09-30)
+   
+     NISO JATS is a continuing maintenance NISO Standard, which 
+     requires voting by the NISO membership to be changed. This
+     Committee Draft 1.1d2 will be sent to the NISO voting
+     membership, to become (if approved) NISO JATS 1.1.
+     
+     This catalog represents an interim version of the
+     non-normative JATS DTD Suite, as an indication to JATS users
+     the decisions that have been made by the JATS Standing
+     Committee.
+ 
+ 23. <VOLUME> INSIDE <ARTICLE-META>
+   - Allowed <volume> to repeat inside <article-meta>, the types to 
+     be distinguished using @content-type
+   - Added new optional element <volume-issue-group> inside 
+     <article-meta) following all volume and issue elements
+     to hold volume-issue pairs (or n-tuples) when a second
+     and subsequent <volume> has its own related issue
+     information.
+   - Made <issue> repeatable, for those who choose not to use
+     the new wrapper element.
+ 
+ 32. VERSION ELEMENTS
+     The new element <version> uses the PE %-just-rendition,
+     but Authoring has set that PE to null, so the <version>
+     element added <sup> and <sub> to be like the content
+     of <edition>.
+ 
+ 31. VALUE LIST FOR PERSON-GROUP-TYPE
+     Added "curator" to the list of person-group role values.
+
+ 30. EDITION ELEMENTS - Added <sub> and <sup> to the model of
+     edition. These were needed now that the "Edition" element
+     has been renamed and repurposed as "Edition Statement".
+
+ 29. JATS became version "1.1d2" and "v1.1d2 20140930//EN"
+
+ 28. CONFERENCE LOCATION ELEMENTS AND PUBLISHER LOCATION ELEMENTS
+      - Added 3 new OPTIONAL elements: <city>, <state>, 
+        and <postal-code> by adding address.class
+   
+     =============================================================
+     NISO JATS Version 1.1d1           (DAL/BTU) v1.1 (2013-11-15)
+   
+     ANSI/NISO Z39.96-2012 (pre-release for V1.0 BITS; Version 1.1d1) 
+
+     NISO JATS Standing Committee met and answered the requests and
+     suggestions from the NISO request forms.
+
+     Details concerning ANSI/NISO Z39.96-2012 JATS-based DTDs,  
+     XSDs, RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.0/
+
+ 27. ON-BEHALF-OF NEW CONTENT
+     Added <xref>, <fn>, and <target> (the simple links) to 
+     <on-behalf-of>.
+
+ 26. ADDED <string-date> to <mixed-citation> and <element-citation>
+     through citation-elements.
+
+ 25. NEW ELEMENT <era>
+     Added to the model of <date>, optional following year,
+     through date-model.
+
+ 24. XML Base
+     Added the attribute @xml:base to the Global (common)
+     attributes used on all elements.
+
+ 23. INSTITUTION-WRAP ADDED
+     Added the element <institution-wrap> to the following elements
+     through the institution-wrap.class:
+      - <conf-sponsor>
+      - <publisher-name>
+      - <std-organization>
+
+ 22.  GLOBAL ATTRIBUTES - Added the new parameter entity 
+         %jats-common-atts;
+     to every element in this module. This PE adds (for now) the
+     @id attribute and the @xml:base attribute to every element,
+     whether metadata or narrative.
+     Since the @id in this parameter entity is optional, a second
+     parameter entity jats-common-atts-id-required was also added.
+     The two are kept in sync with the jats-base-atts parameter 
+     entity.
+     All attribute lists in this module changed.
+
+ 21. ABSTRACTS AND KEYWORDS ON NEW STRUCTURES
+     - Added <abstract> (through %abstract.class;) and <kwd-group> 
+       (through %kwd-group.class;) to the following elements:
+        - ack (through %ack-model;)
+        - fig (through %fig-model;)
+        - fig-group (through %fig-group-model;)
+
+     - Changed "abstract*" to "(%abstract.class;)*"
+       and "kwd-group*" to "(%kwd-group.class;)*" since those
+       classes now exist. Elements should have a limited number of
+       ways to be invoked.
+        - article-meta (through %article-meta-model;)
+
+ 20. ACKNOWLEDGMENT MODEL
+     - Added optional, repeatable <kwd-group> to the beginning of 
+       <ack> (through %ack-model;).
+   
+     =============================================================
+     NISO JATS Version 1.0             (DAL/BTU) v1.0 (2012-xx-xx)
+   
+     ANSI/NISO Z39.96-2012 (Version 1.0) 
+
+     Details concerning ANSI/NISO Z39.96-2012 JATS-based DTDs,  
+     XSDs, RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.0/
+   
+ 19. RELATED OBJECT - Added <related-object> everywhere
+     <related-article> was used, including inside 
+     <article-meta> using article-meta-model.
+
+ 18. CONTRIBUTOR MODEL - Added "contrib-id.class" to the beginning
+     at the <contrib> model, to hold identifiers for people,
+     such as publishers-specific IDs and ORCIDs.
+      
+ 17. STANDARDS ORGANIZATION - Added std-organization-elements
+     to reduce what was allowed in the names of standards bodies.
+   
+ 16. JOURNAL METADATA MODEL
+     - Added <issn-l> as an optional element to <journal-meta>
+     - Added contributors and affiliations to journal metadata through
+       contrib-group.class (which resolves to <contrib-group>) and 
+       aff-alternatives.class (which resolves to <aff> or
+       <aff-alternatives>), using the journal-meta-model.
+   
+ 15. JOURNAL METADATA MODEL
+      
+ 14. PARAGRAPH PARAMETER ENTITY SYNTAX CHANGE (no models changed)
+     Fixed content models that were stated as "p*" and "sec*"
+     to use the %just-para.class;, %sec.class, and %ref-list.class; 
+     classes. Element models that were changed include:
+      - abstract
+      - ack
+      - trans-abstract
+   
+ 13. Updated the DTD-version attribute to "1.0" and the formal
+     public identifier to the date: "v1.0 20120330//EN".
+
+     =============================================================
+     Version 0.4                       (DAL/BTU) v0.4 (2011-01-31)
+   
+     This Tag Set is in the process of becoming a NISO standard.
+     The version numbers are starting over from 0.4", as a Trial
+     Use Draft, to be made into "Version 1.0" when the Tag Suite 
+     becomes a NISO standard. Thus, the version number that would
+     have been "NLM Version 3.1 Draft" has become NISO JATS
+     "Version 0.4".
+
+     Details on NISO Trial Use Draft Version 0.4 are available at
+           http://jats.nlm.nih.gov/JATS-0.4.
+   
+ 12. Updated the DTD-version attribute to "0.4" 
+   
+ 11. Updated the public identifier to "v0.4 20110131", 
+     modified the formal public identifier to include "JATS (Z39.96)",
+     and the filename as delivered to include "JATS" and the
+     new version number "0".
+
+ 10. POSITION ATTRIBUTE - Added the value "background"
+
+  9. PREFORMAT - Added <alt-text> and <long-desc> to <preformat> by
+     adding %access.class; to %preformat-elements;
+
+  8. INITIALS - Removed the attribute over-ride for <surname> and
+     <given-names> to allow the use of @initials.
+
+  7. JOURNAL METADATA- Added <notes> to repeat within <journal-meta>
+     (through %journal-meta-model; and added @xml:lang and
+     @specific-use to the attributes of <notes> through %notes-atts;
+
+  6. AFFILIATION ALTERNATIVES - Added the element <aff-alternatives>
+     to <article-meta> through %article meta-model;. This element
+     will hold multiple <aff>s that are a representation of a
+     single affiliation, for example, the name of an institution
+     in two languages or two scripts.
+
+  5. PERSON-GROUP - Became a mixed-content model, so the parameter
+     entity %person-group-model: was changed to
+     %person-group-elements;, which will be mixed with #PCDATA
+     as defined in references.ent. The PE person-group-model has
+     been retained in references.ent for compatibility, but has been
+     set to the mixed model using person-group-elements.
+
+  4. @SPECIFIC-USE and @XML:LANG - Added the @specific-use and
+     @xml:lang to %display-atts;. Also added these attributes
+     to the following over-rides:
+      - inline-graphic through inline-graphic-atts (both)
+      - fn through fn-atts (added @specific-use, @xml:lang already
+          there)
+      - person-group through person-group-atts (both)
+
+  3. LABEL - Added optional <label> to <fig-group> using
+     %fig-group-model; as the first element in model, before caption
+
+  2. SELF URI - Added <self-uri> to <journal-meta> (directly
+     following <notes>) so that an XML document can point to the
+     journal home page.
+
+     =============================================================
+     Version 3.0                       (DAL/BTU) v3.0 (2007-10-31)
+
+     Version 3.0 is the first non-backward-compatible release.
+     In addition to the usual incremental changes, some
+     elements and attributes have been renamed and/or remodeled
+     to better meet user needs and to increase tag set consistency.
+     All module change histories are available through the Tag Suite
+     web site at http://dtd.nlm.nih.gov.
+
+     Details on version 3.0 are available at
+           http://dtd.nlm.nih.gov/3.0.
+
+  1. Updated public identifier to "v3.0 20071031//EN"              -->
+
+<!-- ============================================================= -->
+<!-- Details concerning 
+     ANSI/NISO Z39.96-2015 JATS-based DTDs, XSDs, 
+     RNGs and supporting documentation are available at
+           http://jats.nlm.nih.gov/1.1/                            -->
+
+
+<!-- ============================================================= -->
+<!--                    ATTRIBUTE VALUE LISTS                      -->
+<!-- ============================================================= -->
+
+<!--                    FOOTNOTE TYPE VALUES                       -->
+<!--                    Used to mark the semantics of the footnote,
+                        what information does this footnote convey.
+                                                                   -->
+<!ENTITY % fn-types     "abbr | coi-statement | com | con | conflict |
+                         corresp | current-aff | deceased |
+                         edited-by | equal |
+                         financial-disclosure | on-leave |
+                         participating-researchers |
+                         presented-at | presented-by |
+                         present-address | previously-at |
+                         study-group-members |
+                         supplementary-material |
+                         supported-by | other"                       >
+
+
+<!--                    PERSON GROUP TYPE VALUES                   -->
+<!--                    Used to name the type of  contributor(s),
+                        such as "editor".                         -->
+<!ENTITY % person-group-types     
+                        "allauthors | assignee | author | compiler | 
+                         curator | director | editor | guest-editor | 
+                         illustrator | inventor | research-assistant | 
+                         translator | transed"                       >
+ 
+
+<!-- ============================================================= -->
+<!--                    INLINE MIXES TO OVER-RIDE CONTENT MODELS   -->
+<!--                    (ELEMENTS TO BE ADDED TO #PCDATA IN MODELS)-->
+<!-- ============================================================= -->
+
+<!--                    ABBREVIATED JOURNAL TITLE ELEMENTS         -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <abbrev-journal-title>
+                        Removed the face markup, %just-rendition;  -->
+<!ENTITY % abbrev-journal-title-elements
+                        ""                                           >
+
+
+<!--                    CITATION ELEMENTS                          -->
+<!--                    Content for both types of citation. These
+                        elements may be mixed with #PCDATA in the
+                        <mixed-citation> element (in which all
+                        punctuation and spacing are left intact), and
+                        they also constitute the choices that can be
+                        used to form the all-element-content of the
+                        <element-citation> element (in which
+                        punctuation and spacing are removed).
+                        Design Note: All inline mixes begin with an
+                        OR bar.                                    -->
+<!ENTITY % citation-elements
+                        "%citation-additions.class; |
+                         %emphasis.class; | %inline-display.class; |
+                         %inline-math.class; | %label.class; |
+                         %phrase.class; | %references.class; |
+                         %subsup.class;"                             >
+
+
+<!--                    CONFERENCE ACRONYM ELEMENTS                -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        the conference acronym.
+                        Removed %simple-text;                      -->
+<!ENTITY % conf-acronym-elements
+                        ""                                           >
+
+
+<!--                    CONFERENCE LOCATION ELEMENTS               -->
+<!--                    Elements for use in the <conf-loc> element
+                        Removed %simple-text;                      -->
+<!ENTITY % conf-loc-elements
+                        "| %address.class;"                          >
+
+
+<!--                    CONFERENCE NAME ELEMENTS                   -->
+<!--                    Elements for use in the <conf-name> element.
+                        Removed %simple-text;                      -->
+<!ENTITY % conf-name-elements
+                        ""                                           >
+
+
+<!--                    CONFERENCE NUMBER ELEMENTS                 -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        the conference number.
+                        Removed %simple-text;                      -->
+<!ENTITY % conf-num-elements
+                        ""                                           >
+
+
+<!--                    CONFERENCE SPONSOR  ELEMENTS               -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        the conference sponsor.
+                        Removed %simple-text;                      -->
+<!ENTITY % conf-sponsor-elements
+                        "| %institution-wrap.class;"                 >
+
+
+<!--                    DEGREE(S) ELEMENTS                         -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        <degrees>
+                        Removed %just-rendition;                   -->
+<!ENTITY % degrees-elements
+                        ""                                           >
+
+
+<!--                    EDITION ELEMENTS                           -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        Removed %just-rendition;                   -->
+<!ENTITY % edition-elements
+                        "| %subsup.class;"                           >
+
+
+<!--                    FAX NUMBER ELEMENTS                        -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <fax>
+                        Removed %just-rendition;                   -->
+<!ENTITY % fax-elements
+                        ""                                           >
+
+
+<!--                    GIVEN (FIRST) NAMES ELEMENTS               -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <given-names>
+                        Removed %just-rendition;                   -->
+<!ENTITY % given-names-elements
+                        ""                                           >
+
+
+<!--                    INSTITUTION NAME ELEMENTS                  -->
+<!--                    Elements for use in the <institution>
+                        element
+                        Removed %break.class; and %emphasis.class; -->
+<!ENTITY % institution-elements
+                        "| %subsup.class;"                           >
+
+
+<!--                    ISSUE TITLE ELEMENTS                       -->
+<!--                    Elements for use with data characters inside
+                        the model for the <issue> element
+                        Removed %just-rendition;                   -->
+<!ENTITY % issue-elements
+                        ""                                           >
+
+
+<!--                    JOURNAL TITLE ELEMENTS                     -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <journal-title>
+                        Removed %just-rendition;                   -->
+<!ENTITY % journal-title-elements
+                        ""                                           >
+
+
+<!--                    KEYWORD CONTENT ELEMENTS                   -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a keyword <kwd>.                           -->
+<!ENTITY % kwd-elements
+                        "| %emphasis.class; | %phrase-content.class; |
+                         %subsup.class;"                             >
+
+
+<!--                    PATENT NUMBER ELEMENTS                     -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        <patent>
+                        Removed %just-rendition;                   -->
+<!ENTITY % patent-elements
+                        ""                                           >
+
+
+<!--                    PERSON GROUP MODEL                         -->
+<!--                    Content model for the <person-group> element
+                                                                   -->
+<!ENTITY % person-group-elements
+                        "| %name.class; | %person-group-info.class;" >
+
+
+<!--                    PHONE NUMBER ELEMENTS                      -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <phone number>
+                        Removed %just-rendition;                   -->
+<!ENTITY % phone-elements
+                        ""                                           >
+
+
+<!--                    PREFIX ELEMENTS                            -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <prefix>
+                        Removed %just-rendition;                   -->
+<!ENTITY % prefix-elements
+                        ""                                           >
+
+
+<!--                    PREFORMATTED TEXT ELEMENTS                 -->
+<!--                    Elements that may be used, along with data
+                        characters, inside the content model for the
+                        <preformat> element, in which whitespace,
+                        such as tabs, line feeds, and spaces will
+                        be preserved                               -->
+<!ENTITY % preformat-elements
+                        "| %access.class; | %address-link.class; |
+                         %display-back-matter.class; |
+                         %emphasis.class; | %phrase.class; |
+                         %subsup.class;"                             >
+
+
+<!--                    PUBLISHER'S LOCATION ELEMENTS              -->
+<!--                    Elements for use in the Publisher Location
+                        <publisher-loc> element
+                        Removed emphasis.class;, and %subsup.class;-->
+<!ENTITY % publisher-loc-elements
+                        "| %address.class; | %address-link.class;"   >
+
+
+<!--                    PUBLISHER'S NAME ELEMENTS                  -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <publisher-name>
+                        Removed %just-rendition;                   -->
+<!ENTITY % publisher-name-elements
+                        "| %institution-wrap.class;"                 >
+
+
+<!--                    STANDARDS ORGANIZATION ELEMENTS            -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        <std-organization>.
+                        Removed emphasis.class.                    -->
+<!ENTITY % std-organization-elements
+                        "| %institution-wrap.class; | %subsup.class;">
+
+
+<!--                    SUFFIX ELEMENTS                            -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <suffix>
+                        Removed %just-rendition;                   -->
+<!ENTITY % suffix-elements
+                        ""                                           >
+
+
+<!--                    SURNAME ELEMENTS                           -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <surname>
+                        Removed %just-rendition;                   -->
+<!ENTITY % surname-elements
+                        ""                                           >
+
+
+<!--                    URI ELEMENTS                               -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <uri>
+                        Removed %just-rendition;                   -->
+<!ENTITY % uri-elements
+                        ""                                           >
+
+
+<!--                    VERSION ELEMENTS                           -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        <version>                                  -->
+<!ENTITY % version-elements
+                        "| %subsup.class;"                           >
+
+
+<!--                    VOLUME NUMBER ELEMENTS                     -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        a <volume>
+                        Removed %just-rendition;                   -->
+<!ENTITY % volume-elements
+                        ""                                           >
+
+
+<!-- ============================================================= -->
+<!--                    OVER-RIDES OF CONTENT MODELS (FULL MODELS) -->
+<!-- ============================================================= -->
+
+
+<!--                    ABSTRACT MODEL                             -->
+<!--                    Abstracts may contain one or more paragraphs
+                        (as a typical abstract does) or titled
+                        sections, as is done in many physics
+                        articles.
+                        Unlike the default model in the base DTD
+                        Suite, this <abstract> requires that all
+                        sections in the abstract start with titles.-->
+<!ENTITY % abstract-model
+                        "(label?, title?, (%just-para.class;)*, 
+                          (%sec.class;)*)"                           >
+
+
+<!--                    ACKNOWLEDGMENTS MODEL                      -->
+<!--                    Content model for the <ack> element        -->
+<!ENTITY % ack-model    "(label?, title?,
+                          (%abstract.class;)*, (%kwd-group.class;)*,
+                          (%just-para.class;)*, 
+                          (%sec.class;)*, (%ref-list.class;)* )"     >
+
+
+<!--                    ANONYMOUS MODEL                            -->
+<!--                    Unlike in Green, <anonymous> is empty. When
+                        present, it is used to generate the text
+                        "anonymous" or "anon.", etc.               -->
+<!ENTITY % anonymous-model
+                        "EMPTY"                                      >
+
+
+<!--                    ARRAY CONTENT MODEL                        -->
+<!--                    The element used to contain material in
+                        rows and columns that is just a block insert
+                        into the text flow, not numbered or called a
+                        table, and not titled or captioned         -->
+<!ENTITY % array-model  "((%access.class; | %address-link.class;)*,
+                          ( (%just-base-display.class;)* |
+                            %tbody.class; ),
+                          (%display-back-matter.class;)* )"          >
+
+
+<!--                    ARTICLE METADATA MODEL                     -->
+<!--                    Full content model for the metadata that is
+                        specific to the article.
+                        Unlike in Archive DTD, some of the metadata
+                        is required here.                          -->
+<!ENTITY % article-meta-model
+                       "(article-id*, (%article-version.class;)?,
+                         article-categories?,
+                         title-group,
+                         ( %contrib-group.class; |
+                           %aff-alternatives.class;)*,
+                         author-notes?, ( (%pub-date.class;)+ | 
+                           pub-date-not-available?), 
+                         volume*, volume-id*, volume-series?,
+                         issue*, issue-id*, issue-title*,
+                         issue-sponsor*, issue-part?, 
+                         volume-issue-group*, isbn*,
+                         supplement?,
+                         ( (fpage, lpage?, page-range?) |
+                            elocation-id)?,
+                         (%address-link.class; | product |
+                          supplementary-material)*, 
+                         history?, pub-history?, permissions?, 
+                         self-uri*, (%related-article.class;)*, 
+                         (%abstract.class;)*, trans-abstract*, 
+                         (%kwd-group.class;)*, 
+                         funding-group*, support-group*,   
+                         conference*, counts?,
+                         custom-meta-group?)"                        >
+
+
+<!--                    CONFERENCE MODEL                           -->
+<!--                    The content model of the <conference>
+                        element                                    -->
+<!ENTITY % conference-model
+                        "(conf-date, (conf-name | conf-acronym )+,
+                         conf-num?, conf-loc?, conf-sponsor*,
+                         conf-theme?)"                               >
+
+
+<!--                    CONTRIBUTOR MODEL                          -->
+<!--                    Content model for the <contrib> element    -->
+<!ENTITY % contrib-model
+                        "((%contrib-id.class;)*, (%name.class;)*, 
+                          (%degree.class;)*,
+                          (%contrib-info.class;)* )"                 >
+
+
+<!--                    DATE ELEMENTS MODEL                        -->
+<!--                    The content models for elements that describe
+                        dates, such as Publication Date <pub-date> and
+                        History Dates <date>.  The <string-date>
+                        element holds dates for which months and
+                        years are not given, for example "first
+                        quarter", "spring", etc.
+                        Unlike the base DTD Suite, this <date>
+                        requires a <year> and may not take a string
+                        date as an alternative.                    -->
+<!ENTITY % date-model   "(((day?, month?) | season)?, year, era?)"   >
+
+
+<!--                    DEFINITION LIST: DEFINITION ITEM ELEMENTS  -->
+<!--                    The content model of a <def-item>.         -->
+<!ENTITY % def-item-model
+                        "(term, def*)"                               >
+
+
+<!--                    FIGURE-LIKE CONTENT MODEL                  -->
+<!--                    Content model for the Figure element and any
+                        similarly structured elements
+                        Made <label> and <caption> non-repeatable. -->
+<!ENTITY % fig-model    "((%id.class;)*, label?, (%caption.class;)?,
+                          (%abstract.class;)*, (%kwd-group.class;)*,
+                          (%access.class; | %address-link.class;)*,
+                          (%block-math.class; |
+                           %chem-struct-wrap.class; |
+                           %intable-para.class; |
+                           %just-table.class; | %just-para.class; |
+                           %list.class; | %simple-display.class;)*,
+                          (%display-back-matter.class;)* )"          >
+
+
+<!--                    FIGURE GROUP MODEL                         -->
+<!--                    Content model for a <fig-group>            -->
+<!ENTITY % fig-group-model
+                        "(label?, (%caption.class;)?,
+                          (%abstract.class;)*, (%kwd-group.class;)*,
+                          (%access.class; | %address-link.class;)*,
+                          (%fig-display.class; |
+                           %just-base-display.class;)* )"            >
+
+
+<!--                    JOURNAL METADATA MODEL                     -->
+<!--                    Content model for the journal metadata
+                        element <journal-meta>                     -->
+<!ENTITY % journal-meta-model
+                        "(journal-id+, journal-title-group*,
+                          (%contrib-group.class; |
+                          %aff-alternatives.class;)*,
+                          issn+, issn-l?, isbn*, publisher?, notes*,
+                          self-uri*)"                                >
+
+
+<!--                    LIST MODEL                                 -->
+<!--                    Content model for the <list> element       -->
+<!ENTITY % list-model   "(label?, title?, (%list-item.class;)+)"     >
+
+
+<!--                    ON BEHALF OF CONTENT ELEMENTS              -->
+<!--                    The elements that can be included along with
+                        data characters inside the content model of
+                        <on-behalf-of>
+                        Design Note: -%rendition-plus; begins with
+                        an OR bar, so this inline mix beguines with
+                        an OR bar.                                 -->
+<!ENTITY % on-behalf-of-elements
+                        "%rendition-plus; | %institution-wrap.class; |
+                         %simple-link.class;"                        >
+
+
+<!--                    REFERENCE ITEM MODEL                       -->
+<!--                    Content model for the <ref> element        -->
+<!ENTITY % ref-model    "(label?,
+                         (%citation.class; | %note.class;)+ )"       >
+
+
+<!--                    CONTENT MODEL FOR A STRUCTURAL SECTION     -->
+<!--                    The model for a section that requires that a
+                        either <title> or a <label> (which in some
+                        journals takes the place of a title) must be
+                        present. One or the other must be present
+                        for autogeneration of a Table of Contents or
+                        other navigation.                          -->
+<!ENTITY % sec-model    "(sec-meta?, ( (label, title?) | title ),
+                          (%para-level;)*,
+                          (%sec-level;)*,
+                          (%sec-back-matter-mix;)* )"                >
+
+
+<!--                    TRANSLATED ABSTRACT MODEL                  -->
+<!--                    Content model for an <trans-abstract>
+                        element                                    -->
+<!ENTITY % trans-abstract-model
+                        "(label?, title?, (%just-para.class;)*, 
+                          (%sec.class;)*)"                           >
+
+
+<!-- ============================================================= -->
+<!--                    DUPLICATE ATTRIBUTE DECLARATIONS           -->
+<!--                    (These are unchanged from the base Suite,  -->
+<!--                    but are used in attribute over-rides below)-->
+<!-- ============================================================= -->
+
+
+<!--                    COMMON ATTRIBUTES                          -->
+<!--                    These lists of attributes will be added to 
+                        nearly every element, in both the document 
+                        metadata and the document body, of the entire 
+                        Tag Set:
+                          - including table elements for both the 
+                              XHTML-inspired and OASIS-inspired
+                              table model elements
+                          - excluding only <mml:math> and 
+                              <xi:include> (whose namespaces JATS
+                              does not control).
+                           Great care should be taken to use these
+                        attributes judiciously, not as a shortcut to
+                        thinking through where an attribute should be
+                        used. Potential use cases include adding
+                        @xml:lang or some RDFa attribute to every 
+                        elements.                                  -->
+
+
+<!--                    JATS BASE ATTRIBUTES                       -->
+<!--                    Holds all the common attributes except @id.
+                        Used to keep the two common attribute lists 
+                        in sync. To add a global attribute, modify
+                        this list.                                 -->
+<!ENTITY % jats-base-atts
+            "xml:base   CDATA                             #IMPLIED"  >
+
+
+<!--                    JATS COMMON ATTRIBUTES                     -->
+<!--                    Holds all the common attributes, as defined in
+                        the base attribute parameter entity, plus an
+                        optional @id.                              -->
+<!ENTITY % jats-common-atts
+            "id         ID                                #IMPLIED 
+             %jats-base-atts;"                                       >
+
+
+<!--                    JATS COMMON ATTRIBUTES (ID REQUIRED)       -->
+<!--                    Holds all the common attributes, as defined in
+                        the base attribute parameter entity, plus a 
+                        required @id.                              -->
+<!ENTITY % jats-common-atts-id-required
+            "id         ID                                #REQUIRED
+             %jats-base-atts;"                                       >
+
+
+<!--                    DISPLAY ATTRIBUTES                         -->
+<!--                    Attributes used for several of the block
+                        display elements                           -->
+<!ENTITY % display-atts
+            "position   (anchor | background | float | margin)
+                                                          'float'
+             orientation
+                        (portrait | landscape)            'portrait'
+             specific-use
+                        CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED"  >
+
+
+<!--                    XLINK LINK ATTRIBUTES                      -->
+<!--                    Attributes for any element that must be a
+                        link                                       -->
+<!ENTITY % link-atts
+            "xmlns:xlink CDATA                            #IMPLIED
+             xlink:type  (simple)                         #IMPLIED
+             xlink:href  CDATA                            #REQUIRED
+             xlink:role  CDATA                            #IMPLIED
+             xlink:title CDATA                            #IMPLIED
+             xlink:show  (embed | new | none | other | replace)
+                                                          #IMPLIED
+             xlink:actuate
+                         (none | onLoad | onRequest | other)
+                                                          #IMPLIED"  >
+
+
+<!--                    MIGHT LINK XLINK ATTRIBUTES                -->
+<!--                    Attributes for any element that may be a link
+                        but need not be one                        -->
+<!ENTITY % might-link-atts
+            "xmlns:xlink CDATA                            #IMPLIED
+             xlink:type  (simple)                         #IMPLIED
+             xlink:href  CDATA                            #IMPLIED
+             xlink:role  CDATA                            #IMPLIED
+             xlink:title CDATA                            #IMPLIED
+             xlink:show  (embed | new | none | other | replace)
+                                                          #IMPLIED
+             xlink:actuate
+                         (none | onLoad | onRequest | other)
+                                                          #IMPLIED"  >
+
+
+<!-- ============================================================= -->
+<!--                    OVER-RIDES OF ATTRIBUTE LISTS              -->
+<!-- ============================================================= -->
+
+
+<!--                    FOOTNOTE ATTRIBUTES                        -->
+<!--                    Attribute list for Footnote element
+                        Unlike base, "fn-type" values have been made
+                        explicit and removed the symbol attribute  -->
+<!ENTITY % fn-atts
+            "%jats-common-atts;                                       
+             fn-type    (%fn-types;)                      #IMPLIED
+             specific-use
+                        CDATA                             #IMPLIED
+             symbol     CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED"  >
+
+
+<!--                    INLINE GRAPHIC ATTRIBUTES                  -->
+<!--                    Attributes for Inline Graphic
+                        <inline-graphic>                           -->
+<!ENTITY % inline-graphic-atts
+            "%jats-common-atts;                                       
+             content-type
+                       CDATA                              #IMPLIED
+             baseline-shift
+                       CDATA                              #IMPLIED
+             mimetype  CDATA                              #IMPLIED
+             mime-subtype
+                       CDATA                              #IMPLIED
+             specific-use
+                        CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED
+             %link-atts;"                                            >
+
+
+<!--                    PERSON GROUP ATTRIBUTES                    -->
+<!--                    Attributes for the <person-group> element  -->
+<!ENTITY % person-group-atts
+            "%jats-common-atts;                                       
+             person-group-type
+                        (%person-group-types;)            #IMPLIED
+             specific-use
+                        CDATA                             #IMPLIED
+             xml:lang   NMTOKEN                           #IMPLIED" >
+
+
+<!--                    SECTION ATTRIBUTES                         -->
+<!--                    Attribute list for Section element         -->
+<!ENTITY % sec-atts
+            "%jats-common-atts;                                       
+             xml:lang   NMTOKEN                            #IMPLIED
+             sec-type   CDATA                              #IMPLIED
+             specific-use
+                        CDATA                              #IMPLIED" >
+
+
+<!-- ================== End Publishing Content/ATT Override ====== -->

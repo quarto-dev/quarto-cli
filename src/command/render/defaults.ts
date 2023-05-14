@@ -1,12 +1,11 @@
 /*
-* defaults.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * defaults.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname } from "path/mod.ts";
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 

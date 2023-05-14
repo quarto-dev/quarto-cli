@@ -1,14 +1,13 @@
 /*
-* verify.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * verify.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -16,6 +15,8 @@ import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem } from "../src/core/path.ts";
+import { isWindows } from "../src/core/platform.ts";
+import { execProcess } from "../src/core/process.ts";
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -114,7 +115,7 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
-export const outputCreated = (input: string, to: string): Verify => {
+export const outputCreated = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
     name: "Output Created",
     verify: (outputs: ExecuteOutput[]) => {
@@ -125,7 +126,7 @@ export const outputCreated = (input: string, to: string): Verify => {
       assert(outputCreatedMsg !== undefined, "No output created message");
 
       // Check for existence of the output
-      const outputFile = outputForInput(input, to);
+      const outputFile = outputForInput(input, to, projectOutDir);
       verifyPath(outputFile.outputPath);
       return Promise.resolve();
     },
@@ -269,9 +270,9 @@ export const ensurePptxRegexMatches = (
         const slidePath = join(temp, "ppt", "slides");
         const slideFile = join(slidePath, `slide${slideNumber}.xml`);
         assert(
-          existsSync(slideFile), 
+          existsSync(slideFile),
           `Slide number ${slideNumber} is not in the Pptx`,
-        )
+        );
         const xml = await Deno.readTextFile(slideFile);
         regexes.forEach((regex) => {
           if (typeof regex === "string") {
@@ -297,22 +298,22 @@ export function requireLatexPackage(pkg: string, opts?: string): RegExp {
   }
 }
 
-export const noSupportingFiles = (input: string, to: string): Verify => {
+export const noSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
-    name: "No Supporting Files Dir",
+    name: "Verify No Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
-      const outputFile = outputForInput(input, to);
+      const outputFile = outputForInput(input, to, projectOutDir);
       verifyNoPath(outputFile.supportPath);
       return Promise.resolve();
     },
   };
 };
 
-export const hasSupportingFiles = (input: string, to: string): Verify => {
+export const hasSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
     name: "Has Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
-      const outputFile = outputForInput(input, to);
+      const outputFile = outputForInput(input, to, projectOutDir);
       verifyPath(outputFile.supportPath);
       return Promise.resolve();
     },
@@ -365,6 +366,30 @@ export const ensureHtmlSelectorSatisfies = (
         predicate(nodeList),
         `Selector ${selector} didn't satisfy predicate`,
       );
+    },
+  };
+};
+
+export const ensureXmlValidatesWithXsd = (
+  file: string,
+  xsdPath: string,
+): Verify => {
+  return {
+    name: "Validating XML",
+    verify: async (_output: ExecuteOutput[]) => {
+      if (!isWindows()) {
+        const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
+        const runOptions: Deno.RunOptions = {
+          cmd,
+          stderr: "piped",
+          stdout: "piped",
+        };
+        const result = await execProcess(runOptions);
+        assert(
+          result.success,
+          `Failed XSD Validation\n${result.stderr}`,
+        );
+      }
     },
   };
 };

@@ -2,10 +2,13 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- inject metadata
-function quartoPreMetaInject()
+function quarto_pre_meta_inject()
   return {
     Meta = function(meta)
 
+      -- FIXME: is _quarto.format.isLatexOutput() needed here?
+      --   and if so, isn't it needed below as well?
+      
       -- injection awesomebox for captions, if needed
       if preState.hasCallouts and _quarto.format.isLatexOutput() then
         metaInjectLatex(meta, function(inject)

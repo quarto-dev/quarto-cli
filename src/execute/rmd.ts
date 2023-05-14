@@ -1,9 +1,8 @@
 /*
-* rmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * rmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/exists.ts";
@@ -69,11 +68,18 @@ export const knitrEngine: ExecutionEngine = {
     if (markdown === undefined) {
       markdown = mappedStringFromFile(file);
     }
+    let metadata;
+    try {
+      metadata = readYamlFromMarkdown(markdown.value);
+    } catch (e) {
+      error(`Error reading metadata from ${file}.\n${e.message}`);
+      throw e;
+    }
     const target: ExecutionTarget = {
       source: file,
       input: file,
       markdown,
-      metadata: readYamlFromMarkdown(markdown.value),
+      metadata,
     };
     return Promise.resolve(target);
   },
@@ -112,7 +118,7 @@ export const knitrEngine: ExecutionEngine = {
             1;
           output = output.replace(
             /^Quitting from lines (\d+)-(\d+)/m,
-            `Quitting from lines ${newLine1}-${newLine2}`,
+            `\n\nQuitting from lines ${newLine1}-${newLine2}`,
           );
         }
 

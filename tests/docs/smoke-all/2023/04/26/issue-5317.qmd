@@ -1,0 +1,17 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["\\?@fig-figure1"]
+---
+
+- test
+
+  ![figure](./figure.png){#fig-figure1}
+
+![figure2](./figure.png){#fig-figure2}
+
+@fig-figure1 test @fig-figure2

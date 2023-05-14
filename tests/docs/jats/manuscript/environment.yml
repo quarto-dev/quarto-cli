@@ -1,0 +1,13 @@
+name: lapalma-earthquakes
+channels:
+  - conda-forge
+  - default
+dependencies:
+  - numpy
+  - matplotlib
+  - pandas
+  - scipy
+  - seaborn
+  - altair
+  - plotly
+  - jupyterlab-myst

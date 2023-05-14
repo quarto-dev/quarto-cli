@@ -1,5 +1,4 @@
 - name: engine
-  hidden: true
   schema:
     string:
       completions: [jupyter, knitr]

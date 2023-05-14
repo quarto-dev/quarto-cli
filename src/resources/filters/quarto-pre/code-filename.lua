@@ -9,33 +9,19 @@
 -- </div>
 
 local function codeBlockWithFilename(el, filename)
-  return pandoc.Plain(quarto.DecoratedCodeBlock({
+  return quarto.DecoratedCodeBlock({
     filename = filename,
     code_block = el:clone()
-  }))
-  -- if _quarto.format.isHtmlOutput() then
-  --   local filenameEl = pandoc.Div({pandoc.Plain{
-  --     pandoc.RawInline("html", "<pre>"),
-  --     pandoc.Strong{pandoc.Str(filename)},
-  --     pandoc.RawInline("html", "</pre>")
-  --   }}, pandoc.Attr("", {"code-with-filename-file"}))
-  --   return pandoc.Div(
-  --     { filenameEl, el:clone() },
-  --     pandoc.Attr("", {"code-with-filename"})
-  --   )
-  -- else
-  --   return pandoc.Div(
-  --     { pandoc.Plain{pandoc.Strong{pandoc.Str(filename)}}, el:clone() },
-  --     pandoc.Attr("", {"code-with-filename"})
-  --   )
-  -- end
+  })
 end
 
-function codeFilename() 
-  return {
+function code_filename()
+  local code_filename_filter = {
+    -- FIXME this should be a CodeBlock and Div filter instead of Blocks,
+    -- we're not splicing.
+    
+    -- transform ast for 'filename'
     Blocks = function(blocks)
-  
-      -- transform ast for 'filename'
       local foundFilename = false
       local newBlocks = pandoc.List()
       for _,block in ipairs(blocks) do
@@ -44,7 +30,8 @@ function codeFilename()
           if block.t == "CodeBlock" then
             foundFilename = true
             block.attributes["filename"] = nil
-            newBlocks:insert(codeBlockWithFilename(block, filename))
+            local code_block = codeBlockWithFilename(block, filename)
+            newBlocks:insert(code_block)
           elseif block.t == "Div" and block.content[1].t == "CodeBlock" then
             foundFilename = true
             block.attributes["filename"] = nil
@@ -57,7 +44,6 @@ function codeFilename()
           newBlocks:insert(block)
         end
       end
-    
       -- if we found a file name then return the modified list of blocks
       if foundFilename then
         return newBlocks
@@ -66,4 +52,5 @@ function codeFilename()
       end
     end
   }  
+  return code_filename_filter
 end

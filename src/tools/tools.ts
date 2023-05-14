@@ -64,19 +64,19 @@ export function installableTools(): string[] {
 export async function printToolInfo(name: string) {
   name = name || "";
   // Run the install
-  const installableTool = kInstallableTools[name.toLowerCase()];
-  if (installableTool) {
+  const tool = installableTool(name);
+  if (tool) {
     const response: Record<string, unknown> = {
-      name: installableTool.name,
-      installed: await installableTool.installed(),
-      version: await installableTool.installedVersion(),
-      directory: await installableTool.installDir(),
+      name: tool.name,
+      installed: await tool.installed(),
+      version: await tool.installedVersion(),
+      directory: await tool.installDir(),
     };
-    if (installableTool.binDir) {
-      response["bin-directory"] = await installableTool.binDir();
+    if (tool.binDir) {
+      response["bin-directory"] = await tool.binDir();
     }
-    if (response.installed && installableTool.verifyConfiguration) {
-      response["configuration"] = await installableTool.verifyConfiguration();
+    if (response.installed && tool.verifyConfiguration) {
+      response["configuration"] = await tool.verifyConfiguration();
     }
     Deno.stdout.writeSync(
       new TextEncoder().encode(JSON.stringify(response, null, 2) + "\n"),
@@ -103,8 +103,8 @@ export function checkToolRequirement(name: string) {
 export async function installTool(name: string, updatePath?: boolean) {
   name = name || "";
   // Run the install
-  const installableTool = kInstallableTools[name.toLowerCase()];
-  if (installableTool) {
+  const tool = installableTool(name);
+  if (tool) {
     if (checkToolRequirement(name)) {
       // Create a working directory for the installer to use
       const workingDir = Deno.makeTempDirSync();
@@ -115,14 +115,14 @@ export async function installTool(name: string, updatePath?: boolean) {
         context.info(`Installing ${name}`);
 
         // See if it is already installed
-        const alreadyInstalled = await installableTool.installed();
+        const alreadyInstalled = await tool.installed();
         if (alreadyInstalled) {
           // Already installed, do nothing
           context.error(`Install canceled - ${name} is already installed.`);
           return Promise.reject();
         } else {
           // Prereqs for this platform
-          const platformPrereqs = installableTool.prereqs.filter((prereq) =>
+          const platformPrereqs = tool.prereqs.filter((prereq) =>
             prereq.os.includes(Deno.build.os)
           );
 
@@ -136,13 +136,13 @@ export async function installTool(name: string, updatePath?: boolean) {
           }
 
           // Fetch the package information
-          const pkgInfo = await installableTool.preparePackage(context);
+          const pkgInfo = await tool.preparePackage(context);
 
           // Do the install
-          await installableTool.install(pkgInfo, context);
+          await tool.install(pkgInfo, context);
 
           // post install
-          const restartRequired = await installableTool.afterInstall(context);
+          const restartRequired = await tool.afterInstall(context);
 
           context.info("Installation successful");
           if (restartRequired) {
@@ -168,9 +168,9 @@ export async function installTool(name: string, updatePath?: boolean) {
 }
 
 export async function uninstallTool(name: string, updatePath?: boolean) {
-  const installableTool = kInstallableTools[name.toLowerCase()];
-  if (installableTool) {
-    const installed = await installableTool.installed();
+  const tool = installableTool(name);
+  if (tool) {
+    const installed = await tool.installed();
     if (installed) {
       const workingDir = Deno.makeTempDirSync();
       const context = installContext(workingDir, updatePath);
@@ -180,7 +180,7 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
 
       try {
         // The context for the installers
-        await installableTool.uninstall(context);
+        await tool.uninstall(context);
         info(`Uninstallation successful`);
       } catch (e) {
         logError(e);
@@ -197,32 +197,32 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
 
 export async function updateTool(name: string) {
   const summary = await toolSummary(name);
-  const installableTool = kInstallableTools[name];
+  const tool = installableTool(name);
 
-  if (installableTool && summary && summary.installed) {
+  if (tool && summary && summary.installed) {
     const workingDir = Deno.makeTempDirSync();
     const context = installContext(workingDir);
     try {
       context.info(
-        `Updating ${installableTool.name} from ${summary.installedVersion} to ${summary.latestRelease.version}`,
+        `Updating ${tool.name} from ${summary.installedVersion} to ${summary.latestRelease.version}`,
       );
 
       // Fetch the package
-      const pkgInfo = await installableTool.preparePackage(context);
+      const pkgInfo = await tool.preparePackage(context);
 
       context.info(`Removing ${summary.installedVersion}`);
 
       // Uninstall the existing version of the tool
-      await installableTool.uninstall(context);
+      await tool.uninstall(context);
 
       context.info(`Installing ${summary.latestRelease.version}`);
 
       // Install the new package
-      await installableTool.install(pkgInfo, context);
+      await tool.install(pkgInfo, context);
 
       context.info("Finishing update");
       // post install
-      const restartRequired = await installableTool.afterInstall(context);
+      const restartRequired = await tool.afterInstall(context);
 
       context.info("Update successful");
       if (restartRequired) {
@@ -237,7 +237,7 @@ export async function updateTool(name: string) {
     }
   } else {
     info(
-      `${name} is not installed use 'quarto install ${name} to install it.`,
+      `${name} is not installed use 'quarto install ${name.toLowerCase()} to install it.`,
     );
   }
 }

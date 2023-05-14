@@ -1,5 +1,7 @@
-local kQuartoRawHtml = "quartoRawHtml"
-local rawHtmlVars = pandoc.List()
+
+local codeBlock = require('docusaurus_utils').codeBlock
+
+
 local reactPreamble = pandoc.List()
 
 local function addPreamble(preamble)
@@ -12,7 +14,7 @@ local function jsx(content)
   return pandoc.RawBlock("markdown", content)
 end
 
-local function tabset(node)
+local function tabset(node, filter)
   -- note groupId
   local groupId = ""
   local group = node.attr.attributes["group"]
@@ -30,7 +32,12 @@ local function tabset(node)
     local title = node.tabs[i].title
 
     tabs.content:insert(jsx(([[<TabItem value="%s">]]):format(pandoc.utils.stringify(title))))
-    tabs.content:extend(content)
+    local result = quarto._quarto.ast.walk(content, filter)
+    if type(result) == "table" then
+      tabs.content:extend(result)
+    else
+      tabs.content:insert(result)
+    end
     tabs.content:insert(jsx("</TabItem>"))
   end
 
@@ -44,49 +51,38 @@ local function tabset(node)
   return tabs
 end
 
-function Writer(doc, opts)
-  
-  doc = quarto._quarto.ast.walk(doc, {
+function Writer(doc, opts)  
+  local filter
+  filter = {
+    CodeBlock = codeBlock,
+
     DecoratedCodeBlock = function(node)
       local el = node.code_block
-      local lang = el.attr.classes[1]
-      local title = node.filename or el.attr.attributes["filename"] or el.attr.attributes["title"] 
-
-      if lang and title then
-        return pandoc.RawBlock("markdown", 
-          "```" .. lang .. " title=\"" .. title .. "\"\n" ..
-          el.text .. "\n```\n"
-        )
-      elseif #el.attr.classes == 0 then
-        el.attr.classes:insert('text')
-        return el
-      end
-
-      return nil
+      return codeBlock(el, node.filename)
     end,
 
-    Tabset = tabset,
+    Tabset = function(node)
+      return tabset(node, filter)
+    end,
 
     Callout = function(node)
       local admonition = pandoc.List()
-      admonition:insert(pandoc.RawBlock("markdown", ":::" .. node.type))
-      admonition:insert(pandoc.Header(2, node.title))
-      admonition:extend(node.content)
-      admonition:insert(pandoc.RawBlock("markdown", ":::"))
-      return admonition  
+      admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
+      if node.title then
+        admonition:insert(pandoc.Header(2, node.title))
+      end
+      local content = node.content
+      if type(content) == "table" then
+        admonition:extend(content)
+      else
+        admonition:insert(content)
+      end
+      admonition:insert(pandoc.RawBlock("markdown", ":::\n"))
+      return admonition
     end
-  })
-
-  -- insert exports at the top if we have them
-  if #rawHtmlVars > 0 then
-    local exports = ("export const %s =\n[%s];"):format(kQuartoRawHtml, 
-      table.concat(
-        rawHtmlVars:map(function(var) return '`'.. var .. '`' end), 
-        ","
-      )
-    )
-    doc.blocks:insert(1, pandoc.RawBlock("markdown", exports .. "\n"))
-  end
+  }
+  
+  doc = quarto._quarto.ast.walk(doc, filter)
 
   -- insert react preamble if we have it
   if #reactPreamble > 0 then
@@ -97,6 +93,7 @@ function Writer(doc, opts)
   local extensions = {
     yaml_metadata_block = true,
     pipe_tables = true,
+    footnotes = true,
     tex_math_dollars = true,
     header_attributes = true,
     raw_html = true,

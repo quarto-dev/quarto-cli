@@ -2,8 +2,7 @@
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
 -- handle classes to pass to `<table>` element
-function tableClasses()
-
+function table_classes()
   return {
    
     Table = function(tbl)

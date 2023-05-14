@@ -1,0 +1,13 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - [".chapter-number",]
+---        
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

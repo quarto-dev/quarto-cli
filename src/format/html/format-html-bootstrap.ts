@@ -32,6 +32,7 @@ import {
 import {
   Format,
   FormatExtras,
+  FormatLink,
   kBodyEnvelope,
   kDependencies,
   kHtmlFinalizers,
@@ -77,13 +78,15 @@ import {
   isDocxOutput,
   isHtmlOutput,
   isIpynbOutput,
+  isJatsOutput,
   isMarkdownOutput,
   isPdfOutput,
   isPresentationOutput,
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
-import { processNotebookEmbeds } from "./format-html-notebook.ts";
+import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { extname } from "path/mod.ts";
 
 export function bootstrapFormatDependency() {
   const boostrapResource = (resource: string) =>
@@ -203,7 +206,6 @@ export function boostrapExtras(
           flags,
           services,
           offset,
-          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -216,7 +218,7 @@ export function boostrapExtras(
 // Find any elements that are using fancy layouts (columns)
 const getColumnLayoutElements = (doc: Document) => {
   return doc.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside, [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
+    '[class^="column-"], [class*=" column-"], aside:not(.footnotes), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
   );
 };
 
@@ -226,7 +228,6 @@ function bootstrapHtmlPostprocessor(
   flags: PandocFlags,
   services: RenderServices,
   offset?: string,
-  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -275,10 +276,19 @@ function bootstrapHtmlPostprocessor(
     }
 
     // move the toc if there is a sidebar
-    const toc = doc.querySelector('nav[role="doc-toc"]');
+    let toc = doc.querySelector('nav[role="doc-toc"]');
 
     const tocTarget = doc.getElementById("quarto-toc-target");
+
+    const useDoubleToc = (format.metadata[kTocLocation] as string)?.includes('-body') ?? false;
+
     if (toc && tocTarget) {
+      if(useDoubleToc) {
+        const clonedToc = toc.cloneNode(true);
+        toc.id = "TOC-body";
+        toc = clonedToc as Element;
+      }
+
       // activate selection behavior for this
       toc.classList.add("toc-active");
 
@@ -293,7 +303,8 @@ function bootstrapHtmlPostprocessor(
         }
       }
       // add nav-link class to the TOC links
-      const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
+      const tocLinks = doc.querySelectorAll('nav#TOC[role="doc-toc"] > ul a');
+
       for (let i = 0; i < tocLinks.length; i++) {
         // Mark the toc links as nav-links
         const tocLink = tocLinks[i] as Element;
@@ -337,12 +348,11 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
-      const notebookResults = await processNotebookEmbeds(
+      const notebookResults = await emplaceNotebookPreviews(
         input,
         doc,
         format,
         services,
-        project,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
@@ -443,6 +453,8 @@ function bootstrapHtmlPostprocessor(
 const fileDownloadAttr = (format: Format, path: string) => {
   if (isIpynbOutput(format.pandoc)) {
     return basename(path);
+  } else if (isJatsOutput(format.pandoc)) {
+    return basename(path);
   } else {
     return undefined;
   }
@@ -460,8 +472,28 @@ const fileBsIconName = (format: Format) => {
     return "file-code";
   } else if (isPresentationOutput(format.pandoc)) {
     return "file-slides";
+  } else if (isJatsOutput(format.pandoc)) {
+    return "filetype-xml";
   } else {
     return "file";
+  }
+};
+
+const fileBsIconForExt = (path: string) => {
+  const ext = extname(path);
+  switch (ext.toLowerCase()) {
+    case ".docx":
+      return "file-word";
+    case ".pdf":
+      return "file-pdf";
+    case ".ipynb":
+      return "journal-code";
+    case ".md":
+      return "file-code";
+    case ".xml":
+      return "filetype-xml";
+    default:
+      return "file";
   }
 };
 
@@ -492,80 +524,138 @@ function processAlternateFormatLinks(
       containerEl.appendChild(heading);
 
       const formatList = doc.createElement("ul");
+      const normalizedFormatLinks = (
+        unnormalizedLinks: unknown,
+      ): Array<string | FormatLink> | undefined => {
+        if (typeof (unnormalizedLinks) === "boolean") {
+          return undefined;
+        } else if (unnormalizedLinks !== undefined) {
+          const linksArr: unknown[] = Array.isArray(unnormalizedLinks)
+            ? unnormalizedLinks
+            : [unnormalizedLinks];
+          return linksArr as Array<string | FormatLink>;
+        } else {
+          return undefined;
+        }
+      };
+      const userLinks = normalizedFormatLinks(format.render[kFormatLinks]);
 
-      const formats = Array.isArray(format.render[kFormatLinks])
-        ? format.render[kFormatLinks]
-        : undefined;
+      // Don't include HTML output
+      const renderedFormats = options.renderedFormats.filter(
+        (renderedFormat) => {
+          return !isHtmlOutput(renderedFormat.format.pandoc, true);
+        },
+      );
 
-      const displayFormats = formats
-        ? options.renderedFormats.filter((renderedFormat) => {
-          const name = renderedFormat.format.identifier[kTargetFormat];
-          return !formats || (name && formats.includes(name));
-        }).sort((a, b) => {
-          if (
-            a.format.identifier[kTargetFormat] &&
-            b.format.identifier[kTargetFormat]
-          ) {
-            const aIdx = formats.indexOf(a.format.identifier[kTargetFormat]);
-            const bIdx = formats.indexOf(b.format.identifier[kTargetFormat]);
-            return aIdx - bIdx;
-          } else {
-            return 0;
-          }
-        })
-        : options.renderedFormats;
+      const altLinks = alternateLinks(
+        input,
+        renderedFormats,
+        userLinks,
+      );
 
-      const finalDisplayFormats = displayFormats.filter((renderedFormat) => {
-        return !isHtmlOutput(renderedFormat.format.pandoc, true);
-      });
-
-      for (const renderedFormat of finalDisplayFormats) {
+      for (const alternateLink of altLinks) {
         const li = doc.createElement("li");
 
-        const relPath = isAbsolute(renderedFormat.path)
-          ? relative(dirname(input), renderedFormat.path)
-          : renderedFormat.path;
-
         const link = doc.createElement("a");
-        link.setAttribute("href", relPath);
-        const dlAttrValue = fileDownloadAttr(
-          renderedFormat.format,
-          renderedFormat.path,
-        );
-        if (dlAttrValue) {
-          link.setAttribute("download", dlAttrValue);
+        link.setAttribute("href", alternateLink.href);
+        if (alternateLink.dlAttrValue) {
+          link.setAttribute("download", alternateLink.dlAttrValue);
         }
 
         const icon = doc.createElement("i");
         icon.classList.add("bi");
-        icon.classList.add(`bi-${fileBsIconName(renderedFormat.format)}`);
+        icon.classList.add(`bi-${alternateLink.icon}`);
         link.appendChild(icon);
-        link.appendChild(
-          doc.createTextNode(
-            `${
-              renderedFormat.format.identifier[kDisplayName] ||
-              renderedFormat.format.pandoc.to
-            }${
-              renderedFormat.format.identifier[kExtensionName]
-                ? ` (${renderedFormat.format.identifier[kExtensionName]})`
-                : ""
-            }`,
-          ),
-        );
+        link.appendChild(doc.createTextNode(alternateLink.title));
 
         li.appendChild(link);
         formatList.appendChild(li);
 
-        resources.push(renderedFormat.path);
+        resources.push(alternateLink.href);
       }
 
-      if (finalDisplayFormats.length > 0) {
+      if (altLinks.length > 0) {
         containerEl.appendChild(formatList);
         dlLinkTarget.appendChild(containerEl);
       }
     }
   }
 }
+
+interface AlternateLink {
+  title: string;
+  href: string;
+  icon: string;
+  dlAttrValue?: string;
+}
+
+function alternateLinks(
+  input: string,
+  formats: RenderedFormat[],
+  userLinks?: Array<string | FormatLink>,
+): AlternateLink[] {
+  const alternateLinks: AlternateLink[] = [];
+
+  const alternateLinkForFormat = (renderedFormat: RenderedFormat) => {
+    const relPath = isAbsolute(renderedFormat.path)
+      ? relative(dirname(input), renderedFormat.path)
+      : renderedFormat.path;
+    return {
+      title: `${
+        renderedFormat.format.identifier[kDisplayName] ||
+        renderedFormat.format.pandoc.to
+      }${
+        renderedFormat.format.identifier[kExtensionName]
+          ? ` (${renderedFormat.format.identifier[kExtensionName]})`
+          : ""
+      }`,
+      href: relPath,
+      icon: fileBsIconName(renderedFormat.format),
+      dlAttrValue: fileDownloadAttr(
+        renderedFormat.format,
+        renderedFormat.path,
+      ),
+    };
+  };
+
+  for (const userLink of userLinks || []) {
+    if (typeof (userLink) === "string") {
+      // We need to filter formats, otherwise, we'll deal
+      // with them below
+      const renderedFormat = formats.find((f) =>
+        f.format.identifier[kTargetFormat] === userLink
+      );
+      if (renderedFormat) {
+        // Just push through
+        alternateLinks.push(alternateLinkForFormat(renderedFormat));
+      }
+    } else {
+      // This an explicit link
+      const alternate = {
+        title: userLink.title,
+        href: userLink.href,
+        icon: userLink.icon || fileBsIconForExt(userLink.href),
+        dlAttrValue: "",
+      };
+      alternateLinks.push(alternate);
+    }
+  }
+
+  const userLinksHasFormat = userLinks &&
+    userLinks.some((link) => typeof (link) === "string");
+  if (!userLinksHasFormat) {
+    formats.forEach((renderedFormat) => {
+      const baseFormat = renderedFormat.format.identifier["base-format"];
+      if (!kExcludeFormatUnlessExplicit.includes(baseFormat || "html")) {
+        alternateLinks.push(alternateLinkForFormat(renderedFormat));
+      }
+    });
+  }
+
+  return alternateLinks;
+}
+
+const kExcludeFormatUnlessExplicit = ["jats"];
 
 function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
   return (doc: Document): Promise<void> => {
@@ -948,7 +1038,7 @@ const processMarginElsInCallouts = (doc: Document) => {
     }
 
     const marginNodes = calloutEl.querySelectorAll(
-      ".callout-body-container .column-margin, .callout-body-container aside, .callout-body-container .aside",
+      ".callout-body-container .column-margin, .callout-body-container aside:not(.footnotes), .callout-body-container .aside:not(.footnotes)",
     );
 
     if (marginNodes.length > 0) {
@@ -987,7 +1077,7 @@ const processMarginElsInTabsets = (doc: Document) => {
       const tabId = tabEl.id;
 
       const marginNodes = tabEl.querySelectorAll(
-        ".column-margin, aside, .aside",
+        ".column-margin, aside:not(.footnotes), .aside:not(.footnotes)",
       );
 
       if (tabId && marginNodes.length > 0) {
@@ -1149,7 +1239,9 @@ const isContainer = (el: Element | null) => {
 
 const isAlreadyInMargin = (el: Element): boolean => {
   const elInMargin = el.classList.contains("column-margin") ||
-    el.classList.contains("aside") || el.classList.contains("margin-caption");
+    (el.classList.contains("aside") &&
+      !el.classList.contains("footnotes")) ||
+    el.classList.contains("margin-caption");
   if (elInMargin) {
     return true;
   } else if (el.parentElement !== null) {

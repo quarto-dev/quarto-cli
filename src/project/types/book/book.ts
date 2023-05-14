@@ -1,9 +1,8 @@
 /*
-* book.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 
@@ -152,7 +151,7 @@ export const bookProjectType: ProjectType = {
     return !!format.extensions?.book;
   },
 
-  filterParams: (options: PandocOptions) => {
+  filterParams: async (options: PandocOptions) => {
     const bookExt = options.format.extensions?.book as BookExtension;
     const filterParams = bookExt.filterParams
       ? bookExt.filterParams(options)

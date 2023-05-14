@@ -38,7 +38,7 @@ const kHandlers: EmbedHandler[] = [
     handle(
       filename: string,
       params: Record<string, unknown>,
-      _handlerContext: LanguageCellHandlerContext,
+      handlerContext: LanguageCellHandlerContext,
     ) {
       const markdownFragments: EitherString[] = [];
 
@@ -46,12 +46,17 @@ const kHandlers: EmbedHandler[] = [
       const notebookAddress = parseNotebookAddress(filename);
       if (notebookAddress) {
         const outputs = params.outputs as string | undefined;
-        const placeHolder = notebookMarkdownPlaceholder(filename, {
-          echo: params.echo !== undefined ? params.echo as boolean : false,
-          warning: false,
-          asis: true,
-          eval: false,
-        }, outputs);
+        const placeHolder = notebookMarkdownPlaceholder(
+          handlerContext.options.context.target.input,
+          filename,
+          {
+            echo: params.echo !== undefined ? params.echo as boolean : false,
+            warning: false,
+            asis: true,
+            eval: false,
+          },
+          outputs,
+        );
 
         markdownFragments.push(placeHolder);
         return Promise.resolve({
@@ -77,7 +82,7 @@ const embedHandler: LanguageHandler = {
   languageName: "embed",
 
   type: "directive",
-  stage: "pre-engine",
+  stage: "post-engine",
 
   async directive(
     handlerContext: LanguageCellHandlerContext,

@@ -18,16 +18,12 @@
     ]
   },
   "lint": {
-    "files": {
-      "include": ["src/"]
-    },
+    "include": ["src/"],
     "rules": {
       "exclude": ["require-await", "no-inferrable-types"]
     }
   },
   "fmt": {
-    "files": {
-      "include": ["src/"]
-    }
+    "include": ["src/"]
   }
 }

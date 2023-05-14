@@ -193,9 +193,10 @@ export type ColumnType = "date" | "string" | "number" | "minutes";
 
 // Sources that provide Listing Items
 export enum ListingItemSource {
-  document = "document",
-  metadata = "metadata",
-  rawfile = "rawfile",
+  document = "document", // qmd input files
+  metadata = "metadata", // yaml metadata files
+  metadataDocument = "metadata-document", // yaml containing a list of input files
+  rawfile = "rawfile", // some other kind of file that we can't introspect much
 }
 
 // An individual listing item
@@ -472,15 +473,12 @@ export function readRenderedContents(
           if (currentLength > maxLen) {
             cloned.replaceChild(doc.createTextNode(""), childNode);
           } else if (currentLength + textNodeLen > maxLen) {
-            const nodeMaxLen = Math.min(
-              maxLen,
-              currentLength + textNodeLen - maxLen,
-            );
+            const availableChars = maxLen - currentLength;
             cloned.replaceChild(
               doc.createTextNode(
                 truncateText(
                   childNode.nodeValue || "",
-                  nodeMaxLen,
+                  availableChars,
                   "space",
                 ),
               ),

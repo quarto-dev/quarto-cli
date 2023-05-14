@@ -9,30 +9,36 @@ function render_raw(raw)
   local n = tonumber(parts[2])
   local handler = _quarto.ast.resolve_handler(t)
   if handler == nil then
-    error("Internal Error: handler not found for custom node " .. t)
-    crash_with_stack_trace()
+    fatal("Internal Error: handler not found for custom node " .. t)
   end
   local customNode = _quarto.ast.custom_node_data[n]
   return handler.render(customNode)
 end
 
-function renderExtendedNodes()
+function render_extended_nodes()
   if string.find(FORMAT, ".lua$") then
     return {} -- don't render in custom writers, so we can handle them in the custom writer code.
   end
 
-  local filter -- beware, it can't be a local initialization because of the recursive call to inner_walk
-  filter = {
-    Custom = function(node, raw)
+  return {
+    Custom = function(node)
       local handler = _quarto.ast.resolve_handler(node.t)
       if handler == nil then
-        error("Internal Error: handler not found for custom node " .. node.t)
-        crash_with_stack_trace()
+        fatal("Internal Error: handler not found for custom node " .. node.t)
       end
-      _quarto.ast.inner_walk(raw, filter)
-      return handler.render(node)
+      if handler.renderers then
+        for _, renderer in ipairs(handler.renderers) do
+          if renderer.condition(node) then
+            return renderer.render(node)
+          end
+        end
+        quarto.utils.dump(node)
+        fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
+      elseif handler.render ~= nil then
+        return handler.render(node)
+      else
+        fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function or renderers table")
+      end
     end
   }
-
-  return filter
 end

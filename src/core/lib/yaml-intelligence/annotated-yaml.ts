@@ -1,9 +1,8 @@
 /*
-* annotated-yaml.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * annotated-yaml.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { lineColToIndex } from "../text.ts";
 import { AnnotatedParse, JSONValue } from "../yaml-schema/types.ts";
@@ -48,10 +47,8 @@ function postProcessAnnotation(parse: AnnotatedParse): AnnotatedParse {
   ) {
     return postProcessAnnotation(parse.components[0]);
   } else {
-    return {
-      ...parse,
-      components: parse.components.map(postProcessAnnotation),
-    };
+    parse.components = parse.components.map(postProcessAnnotation);
+    return parse;
   }
 }
 

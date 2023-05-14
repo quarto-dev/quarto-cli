@@ -1,11 +1,10 @@
 /*
-* jupyter.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * jupyter.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 
 import {
   partitionYamlFrontMatter,
@@ -16,6 +15,7 @@ import { JupyterCell, JupyterCellOptions } from "../../core/jupyter/types.ts";
 import {
   jupyterAutoIdentifier,
   jupyterCellOptionsAsComment,
+  jupyterCellWithOptions,
   jupyterFromFile,
   mdEnsureTrailingNewline,
   mdFromContentCell,
@@ -53,20 +53,26 @@ export async function jupyterNotebookToMarkdown(
       // alias cell
       const cell = notebook.cells[i];
 
+      const cellWithOptions = jupyterCellWithOptions(
+        i,
+        kernelspec.language,
+        cell,
+      );
+
       // write markdown
       switch (cell.cell_type) {
         case "markdown":
-          md.push(...mdFromContentCell(cell));
+          md.push(...mdFromContentCell(cellWithOptions));
           break;
         case "raw":
           // see if this is the front matter
           if (frontMatter === undefined) {
             frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
             if (!frontMatter) {
-              md.push(...mdFromRawCell(cell));
+              md.push(...mdFromRawCell(cellWithOptions));
             }
           } else {
-            md.push(...mdFromRawCell(cell));
+            md.push(...mdFromRawCell(cellWithOptions));
           }
 
           break;

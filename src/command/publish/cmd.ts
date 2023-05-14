@@ -25,18 +25,17 @@ import {
   projectInputFiles,
 } from "../../project/project-context.ts";
 
-import { projectIsWebsite } from "../../project/project-shared.ts";
+import {
+  projectIsManuscript,
+  projectIsWebsite,
+} from "../../project/project-shared.ts";
 
 import { PublishCommandOptions } from "./options.ts";
 import { resolveDeployment } from "./deployment.ts";
 import { AccountPrompt, manageAccounts, resolveAccount } from "./account.ts";
 
 import { PublishOptions, PublishRecord } from "../../publish/types.ts";
-import {
-  haveArrowKeys,
-  isInteractiveTerminal,
-  isServerSession,
-} from "../../core/platform.ts";
+import { isInteractiveTerminal, isServerSession } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -226,31 +225,21 @@ async function publishAction(
     // new deployment, determine provider if needed
     const providers = publishProviders();
     if (!provider) {
-      if (haveArrowKeys()) {
-        // select provider
-        const result = await prompt([{
-          indent: "",
-          name: "provider",
-          message: "Provider:",
-          options: providers
-            .filter((provider) => !provider.hidden)
-            .map((provider) => ({
-              name: provider.description,
-              value: provider.name,
-            })),
-          type: Select,
-        }]);
-        if (result.provider) {
-          provider = findProvider(result.provider);
-        }
-      } else {
-        // no arrow keys so we require an explicit provider
-        throw new Error(
-          "You must specify a provider to publish to. For example:\n\n" +
-            providers.map((provider) => `quarto publish ${provider.name}`).join(
-              "\n",
-            ) + "\n",
-        );
+      // select provider
+      const result = await prompt([{
+        indent: "",
+        name: "provider",
+        message: "Provider:",
+        options: providers
+          .filter((provider) => !provider.hidden)
+          .map((provider) => ({
+            name: provider.description,
+            value: provider.name,
+          })),
+        type: Select,
+      }]);
+      if (result.provider) {
+        provider = findProvider(result.provider);
       }
     }
     if (provider) {
@@ -328,6 +317,10 @@ async function createPublishOptions(
   if (Deno.statSync(path).isDirectory) {
     if (project) {
       if (projectIsWebsite(project)) {
+        input = project;
+      } else if (
+        projectIsManuscript(project) && project.files.input.length > 0
+      ) {
         input = project;
       } else if (project.files.input.length === 1) {
         input = project.files.input[0];

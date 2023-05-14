@@ -6,7 +6,7 @@
 
 import * as ld from "../core/lodash.ts";
 
-import { existsSync } from "node/fs.ts";
+import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
@@ -27,6 +27,7 @@ import {
   kIpynbFilters,
   kKeepMd,
   kKeepTex,
+  kKeepTyp,
   kLanguageDefaults,
   kLanguageDefaultsKeys,
   kMetadataFile,
@@ -126,6 +127,7 @@ export function formatFromMetadata(
   if (debug) {
     mergedFormat.execute[kKeepMd] = true;
     mergedFormat.render[kKeepTex] = true;
+    mergedFormat.render[kKeepTyp] = true;
   }
 
   return mergedFormat;

@@ -15,17 +15,21 @@ end
 
 -- [/import]
 
-function normalizeFilter() 
+-- imported elements
+local authors = require 'modules/authors'
+local license = require 'modules/license'
+
+function normalize_filter() 
   return {
     Meta = function(meta)
       -- normalizes the author/affiliation metadata
-      local normalized = processAuthorMeta(meta)
+      local normalized = authors.processAuthorMeta(meta)
 
       -- normalizes the citation metadata
       normalized = processCitationMeta(normalized)
 
       -- normalizes the license metadata
-      normalized = processLicenseMeta(normalized)
+      normalized = license.processLicenseMeta(normalized)
 
       -- for JATs, forward keywords or categories to tags
       if _quarto.format.isJatsOutput() then

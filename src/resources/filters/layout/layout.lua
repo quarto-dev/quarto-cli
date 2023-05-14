@@ -9,7 +9,7 @@ layoutState = {
   hasColumns = false,
 }
 
-function layoutPanels()
+function layout_panels()
 
   return {
     Div = function(el)

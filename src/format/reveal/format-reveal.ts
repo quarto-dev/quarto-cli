@@ -178,12 +178,14 @@ export function revealjsFormat() {
             offset,
             format,
             services.temp,
+            project,
             {
               tabby: true,
               anchors: false,
               copyCode: true,
               hoverCitations: true,
               hoverFootnotes: true,
+              hoverXrefs: false,
               figResponsive: false,
             }, // tippy options
             {

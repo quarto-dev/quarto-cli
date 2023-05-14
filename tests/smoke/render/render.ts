@@ -38,17 +38,18 @@ export function testRender(
   addtlVerify?: Verify[],
   context?: TestContext,
   args?: string[],
+  projectOutDir?: string
 ) {
   // Verify that the output was created and
   // that supporting files are present or missing
   const verify: Verify[] = [];
   // If we're not rendering a folder but a single document, add some more assertions
   if (!input.match(/[\\/]$/)) {
-    verify.push(outputCreated(input, to));
+    verify.push(outputCreated(input, to, projectOutDir));
     if (noSupporting) {
-      verify.push(noSupportingFiles(input, to));
+      verify.push(noSupportingFiles(input, to, projectOutDir));
     } else {
-      verify.push(hasSupportingFiles(input, to));
+      verify.push(hasSupportingFiles(input, to, projectOutDir));
     }
   }
   if (addtlVerify) {
@@ -73,8 +74,8 @@ export function testRender(
   );
 }
 
-export function cleanoutput(input: string, to: string) {
-  const out = outputForInput(input, to);
+export function cleanoutput(input: string, to: string, projectOutDir?: string) {
+  const out = outputForInput(input, to, projectOutDir);
   if (existsSync(out.outputPath)) {
     Deno.removeSync(out.outputPath);
   }

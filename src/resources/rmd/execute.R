@@ -120,7 +120,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # we need ojs only if markdown has ojs code cells
   # inspect code cells for spaces after line breaks
 
-  needs_ojs <- grepl("^[[:space:]]*```+\\{ojs[^}]*\\}", markdown)
+  needs_ojs <- grepl("(\n|^)[[:space:]]*```+\\{ojs[^}]*\\}", markdown)
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
   if (!is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime")) &&

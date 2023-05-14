@@ -1,0 +1,12 @@
+---
+title: Simple Document
+format: pdf
+---
+
+## Url with encoding
+
+![](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2F9b7345d9-5f62-46dc-8062-d704c2c014a5_289x174.jpeg)
+
+## Simple Url
+
+![](https://quarto.org/quarto.png)

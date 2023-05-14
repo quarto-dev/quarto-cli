@@ -1,0 +1,55 @@
+name: "quarto-docker"
+description: "Build and push a Quarto Docker container to the GitHub Container Registry."
+inputs:
+  source:
+    description: "Full path to quarto file"
+    required: true
+  version:
+    description: "The version to tag the image with."
+    required: true
+  token:
+    description: "The token to authenticate to docker registry"
+    required: true
+  username:
+    description: "The username to authenticate to docker registry"
+    required: true
+  org:
+    description: "The GitHub orginization that will host Docker image"
+    required: true
+  name:
+    description: "The name of the Docker image"
+    required: true
+  daily:
+    description: "Apply the `daily` tag to the image."
+    required: false
+    default: true
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
+
+    - name: Create DockerFile
+      shell: bash
+      run: |
+        cat << 'EOF' >> Dockerfile
+        FROM ubuntu:22.04
+        COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
+        RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
+        EOF
+
+    - if: ${{ inputs.daily == 'false' }}
+      shell: bash
+      run: echo "LATEST_TAG=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
+
+    - if: ${{ inputs.daily == 'true' }}
+      shell: bash
+      run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
+
+    - name: Push image
+      shell: bash
+      run: |
+        echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
+        docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
+        docker push ${{ env.BASE_NM }} --all-tags

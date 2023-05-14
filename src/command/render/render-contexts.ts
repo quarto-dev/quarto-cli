@@ -207,9 +207,15 @@ export async function renderContexts(
   options: RenderOptions,
   forExecute: boolean,
   project?: ProjectContext,
+  cloneOptions: boolean = true,
 ): Promise<Record<string, RenderContext>> {
-  // clone options (b/c we will modify them)
-  options = ld.cloneDeep(options) as RenderOptions;
+  if (cloneOptions) {
+    // clone options (b/c we will modify them)
+    // we make it optional because some of the callers have
+    // actually just cloned it themselves and don't need to preserve
+    // the original
+    options = ld.cloneDeep(options) as RenderOptions;
+  }
 
   const { engine, target } = await fileExecutionEngineAndTarget(
     file.path,
@@ -438,6 +444,12 @@ async function resolveFormats(
     formats = projFormatKeys;
   }
 
+  // All the project type to manipulate the format list on a per
+  // file bases
+  if (projType.formatsForFile) {
+    formats = projType.formatsForFile(formats, file, project);
+  }
+
   // If the file itself has specified permissible
   // formats, filter the list of formats to only
   // include those formats
@@ -528,6 +540,11 @@ async function resolveFormats(
       if (userFormat.metadata[kServer] !== undefined) {
         userFormat.execute[kEcho] = false;
       }
+    }
+
+    // If options request, force echo
+    if (options.echo) {
+      userFormat.execute[kEcho] = true;
     }
 
     // The format description

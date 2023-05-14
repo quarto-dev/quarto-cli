@@ -12,7 +12,7 @@ end
 
 
 -- write results
-function writeResults()
+function write_results()
   return {
     Pandoc = function(doc)
       local jsonResults = quarto.json.encode(preState.results)
@@ -24,6 +24,7 @@ function writeResults()
         warn('Error writing LUA results file')
       end
 
+      -- FIXME: we don't use this anymore, remove it
       if os.getenv("QUARTO_PROFILER_OUTPUT") ~= nil then
 
         local jsonTimings = quarto.json.encode(timing_events)

@@ -14,21 +14,22 @@ import {
 } from "../../src/core/lib/yaml-validation/state.ts";
 
 import { breakQuartoMd } from "../../src/core/lib/break-quarto-md.ts";
-import { parse } from "encoding/yaml.ts";
+import { parse } from "yaml/mod.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
-  ensurePptxRegexMatches,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensurePptxRegexMatches,
   fileExists,
   noErrors,
   noErrorsOrWarnings,
 } from "../verify.ts";
-import { readYamlFromMarkdown } from "../../src/core/yaml.ts";
+import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { dirname, join, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -102,7 +103,9 @@ function resolveTestSpecs(
           checkWarnings = false;
           verifyFns.push(noErrors);
         } else {
-          const outputFile = outputForInput(input, format);
+          // See if there is a project and grab it's type
+          const projectOutDir = findProjectOutputDir(input);
+          const outputFile = outputForInput(input, format, projectOutDir);
           if (key === "fileExists") {
             for (
               const [path, file] of Object.entries(
@@ -187,4 +190,40 @@ for (
       },
     });
   }
+}
+
+function findProjectOutputDir(input: string) {
+  // See if there is a project and grab it's type
+  let dir = dirname(input);
+  let projectOutDir = undefined;
+  while (dir !== "" && dir !== "." && projectOutDir === undefined) {
+    const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
+      const yamlPath = join(dir, file);
+      if (existsSync(yamlPath)) {
+        return true;
+      }
+    });
+    if (filename) {
+      const yaml = readYaml(join(dir, filename));
+      let type = undefined;
+      try {
+        // deno-lint-ignore no-explicit-any
+        type = ((yaml as any).project as any).type;
+      } catch (error) {
+        throw new Error("Failed to read quarto project YAML", error);
+      }
+
+      switch (type) {
+        case "book":
+          projectOutDir = "_book";
+          break;
+        default:
+        case undefined:
+          break;
+      }
+    }
+
+    dir = dirname(dir);
+  }
+  return projectOutDir;
 }

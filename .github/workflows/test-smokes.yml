@@ -79,7 +79,7 @@ jobs:
       - name: Install missing system deps
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev
+          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev && sudo apt-get install -y libxml2-utils
 
       - name: Restore R packages
         working-directory: tests
@@ -116,6 +116,8 @@ jobs:
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v1
+        with:
+          version: 1.8.5
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v1

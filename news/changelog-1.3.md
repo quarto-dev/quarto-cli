@@ -49,6 +49,7 @@
 - Resolve Bootstrap responsive classes in tables ([#2997](https://github.com/quarto-dev/quarto-cli/issues/2997)).
 - Fine tuning of the appearance of computational and markdown table and more uniformly apply such styling.
 - Fine tuning of the appearance of header and body text.
+- Fix invalid figcaption DOM structure ([#5234](https://github.com/quarto-dev/quarto-cli/issues/5234)).
 
 ## Article Layout
 

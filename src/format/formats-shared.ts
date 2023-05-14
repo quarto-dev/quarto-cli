@@ -1,9 +1,8 @@
 /*
-* formats-shared.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * formats-shared.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { mergeConfigs } from "../core/config.ts";
 
@@ -44,6 +43,7 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
+  kKeepTyp,
   kLang,
   kLatexAutoInstall,
   kLatexAutoMk,
@@ -63,6 +63,7 @@ import {
   kOutputExt,
   kPageWidth,
   kPreferHtml,
+  kPreserveYaml,
   kQuartoVersion,
   kSelfContainedMath,
   kStandalone,
@@ -220,6 +221,7 @@ function defaultFormat(displayName: string): Format {
     },
     render: {
       [kKeepTex]: false,
+      [kKeepTyp]: false,
       [kKeepSource]: false,
       [kKeepHidden]: false,
       [kPreferHtml]: false,
@@ -236,6 +238,7 @@ function defaultFormat(displayName: string): Format {
       [kTblColwidths]: true,
       [kMergeIncludes]: true,
       [kInlineIncludes]: false,
+      [kPreserveYaml]: false,
       [kLatexAutoMk]: true,
       [kLatexAutoInstall]: true,
       [kLatexClean]: true,

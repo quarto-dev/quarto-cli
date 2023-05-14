@@ -52,8 +52,13 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kInlineIncludes,
+  kResourcePath,
 } from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
+import { existsSync1 } from "../../core/file.ts";
+import { kNoteBookExtension } from "../../format/format-extensions.ts";
+import { NotebooksFormatExtension } from "../../format/format-extensions.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 export async function renderPandoc(
   file: ExecutedFile,
@@ -116,9 +121,9 @@ export async function renderPandoc(
     executeResult.markdown,
   );
 
-  if (notebookResult.supporting) {
-    executeResult.supporting = executeResult.supporting || [];
-    executeResult.supporting.push(notebookResult.supporting);
+  const embedSupporting: string[] = [];
+  if (notebookResult.supporting.length) {
+    embedSupporting.push(...notebookResult.supporting);
   }
 
   // Map notebook includes to pandoc includes
@@ -130,6 +135,59 @@ export async function renderPandoc(
       ? [notebookResult.includes?.inHeader]
       : undefined,
   };
+
+  // Allow formats to process the notebooks
+  const notebooksExtension = format.extensions
+    ?.[kNoteBookExtension] as NotebooksFormatExtension | undefined;
+  if (notebooksExtension) {
+    const notebooks = [...notebookResult.notebooks];
+
+    // Forward any project provided notebooks
+    const projType = projectType(context.project?.config?.project.type);
+    if (projType && projType.notebooks && context.project) {
+      const descriptors = projType.notebooks(context.project);
+      descriptors.forEach((desc) => {
+        notebooks.push(desc.notebook);
+      });
+    }
+
+    // Ensure that we have all notebooks (the ones injected above plus
+    // any explicitly declared notebooks)
+    const extensionResult = await notebooksExtension.processNotebooks(
+      context.target.source,
+      format,
+      notebooks,
+      context,
+    );
+
+    // Inject any after body includes that the notebook provides
+    if (extensionResult.includes?.afterBody) {
+      pandocIncludes[kIncludeAfterBody] = pandocIncludes[kIncludeAfterBody] ||
+        [];
+      pandocIncludes[kIncludeAfterBody].push(
+        ...extensionResult.includes.afterBody,
+      );
+    }
+
+    // Inject any in header includes that the notebook provides
+    if (extensionResult.includes?.inHeader) {
+      pandocIncludes[kIncludeInHeader] = pandocIncludes[kIncludeInHeader] ||
+        [];
+      pandocIncludes[kIncludeInHeader].push(
+        ...extensionResult.includes.inHeader,
+      );
+    }
+
+    // Add any supporting dirs / files
+    if (extensionResult.supporting) {
+      executeResult.supporting = executeResult.supporting || [];
+      executeResult.supporting.push(...extensionResult.supporting);
+    }
+
+    if (extensionResult.resourceFiles) {
+      resourceFiles.push(...extensionResult.resourceFiles);
+    }
+  }
 
   // Inject dependencies
   format.pandoc = mergePandocIncludes(
@@ -247,9 +305,13 @@ export async function renderPandoc(
         : join(dirname(pandocOptions.source), pandocOptions.output);
 
       // run generic postprocessors
+      const postProcessSupporting: string[] = [];
       if (pandocResult.postprocessors) {
         for (const postprocessor of pandocResult.postprocessors) {
-          await postprocessor(outputFile);
+          const result = await postprocessor(outputFile);
+          if (result && result.supporting) {
+            postProcessSupporting.push(...result.supporting);
+          }
         }
       }
 
@@ -273,7 +335,10 @@ export async function renderPandoc(
         // If this is self-contained, run pandoc to 'suck in' the dependencies
         // which may have been added in the post processor
         if (selfContained && isHtmlFileOutput(format.pandoc)) {
-          await pandocIngestSelfContainedContent(outputFile);
+          await pandocIngestSelfContainedContent(
+            outputFile,
+            format.pandoc[kResourcePath],
+          );
         }
       });
 
@@ -312,6 +377,14 @@ export async function renderPandoc(
         supporting = supporting || [];
         supporting.push(...htmlPostProcessResult.supporting);
       }
+      if (embedSupporting && embedSupporting.length > 0) {
+        supporting = supporting || [];
+        supporting.push(...embedSupporting);
+      }
+      if (postProcessSupporting && postProcessSupporting.length > 0) {
+        supporting = supporting || [];
+        supporting.push(...postProcessSupporting);
+      }
 
       withTiming("render-cleanup", () =>
         renderCleanup(
@@ -348,7 +421,7 @@ export async function renderPandoc(
         markdown: executeResult.markdown,
         format,
         supporting: supporting
-          ? supporting.filter(existsSync).map((file: string) =>
+          ? supporting.filter(existsSync1).map((file: string) =>
             context.project ? relative(context.project.dir, file) : file
           )
           : undefined,
@@ -388,6 +461,20 @@ export function renderResultFinalOutput(
     }
   }
 
+  // Allow project types to provide this
+  if (renderResults.context) {
+    const projType = projectType(renderResults.context.config?.project.type);
+    if (projType && projType.renderResultFinalOutput) {
+      const projectResult = projType.renderResultFinalOutput(
+        renderResults,
+        relativeToInputDir,
+      );
+      if (projectResult) {
+        result = projectResult;
+      }
+    }
+  }
+
   // determine final output
   let finalInput = result.input;
   let finalOutput = result.file;
@@ -423,9 +510,13 @@ export function renderResultFinalOutput(
   }
 }
 
-export function renderResultUrlPath(renderResult: RenderResult) {
+export function renderResultUrlPath(
+  renderResult: RenderResult,
+) {
   if (renderResult.baseDir && renderResult.outputDir) {
-    const finalOutput = renderResultFinalOutput(renderResult);
+    const finalOutput = renderResultFinalOutput(
+      renderResult,
+    );
     if (finalOutput) {
       const targetPath = pathWithForwardSlashes(relative(
         join(renderResult.baseDir, renderResult.outputDir),

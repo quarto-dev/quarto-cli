@@ -1,0 +1,13 @@
+
+<script type="text/javascript" src="/quarto-preview.js"></script>
+<script type="text/javascript">
+  const options = {
+    origin: "<%- origin %>",
+    search: "<%- search %>",
+    inputFile: "<%- inputFile %>",
+    isPresentation: <%= isPresentation %>
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    window.QuartoPreview.init(options);
+  });
+</script>

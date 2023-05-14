@@ -1,9 +1,8 @@
 /*
-* format.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { kBaseFormat, kPreferHtml } from "../config/constants.ts";
 import { Format, FormatPandoc } from "./types.ts";
@@ -19,6 +18,15 @@ export function isPdfOutput(format: string | FormatPandoc): boolean {
 
 export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
+}
+
+export function isTypstOutput(format: string): boolean;
+export function isTypstOutput(format: FormatPandoc): boolean;
+export function isTypstOutput(format: string | FormatPandoc) {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+  return format === "typst";
 }
 
 export function isBeamerOutput(format: FormatPandoc) {

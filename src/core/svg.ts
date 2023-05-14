@@ -1,9 +1,8 @@
 /*
-* svg.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * svg.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { kFigHeight, kFigWidth } from "../config/constants.ts";
 import { Attr, Element, getDomParser } from "./deno-dom.ts";
@@ -23,12 +22,8 @@ export async function resolveSize(
   if (!svgEl) {
     throw new Error("Internal Error: need an svg element");
   }
-  const width = svgEl.getAttribute("width");
-  const height = svgEl.getAttribute("height");
-  if (!width || !height) {
-    // attempt to resolve figure dimensions via viewBox
-    throw new Error("Internal error: couldn't find figure dimensions");
-  }
+  let width = svgEl.getAttribute("width");
+  let height = svgEl.getAttribute("height");
   const getViewBox = () => {
     // work around https://github.com/b-fuze/deno-dom/issues/133
     const m = svg.match(/viewbox/i);
@@ -40,6 +35,18 @@ export async function resolveSize(
     if (lst.some(isNaN)) return undefined;
     return lst;
   };
+
+  if (!width || !height) {
+    // attempt to resolve figure dimensions via viewBox
+    const viewBox = getViewBox();
+    if (viewBox !== undefined) {
+      const [_mx, _my, vbWidth, vbHeight] = viewBox;
+      width = `${vbWidth}px`;
+      height = `${vbHeight}px`;
+    } else {
+      throw new Error("Internal error: couldn't find figure dimensions");
+    }
+  }
 
   let svgWidthInInches, svgHeightInInches;
 

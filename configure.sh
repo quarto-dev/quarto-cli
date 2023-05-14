@@ -32,7 +32,7 @@ DENO_BIN=${QUARTO_DENO=$QUARTO_BIN_PATH/tools/$DENO_DIR/deno}
 
 if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
   DENO_VERSION_NO_V=$(echo $DENO | sed 's/v//')
-  if [[ (! -f $DENO_BIN) || $($DENO_BIN --version | grep $DENO_VERSION_NO_V) == "" ]]; then
+  if [[ (! -f "$DENO_BIN") || $("$DENO_BIN" --version | grep $DENO_VERSION_NO_V) == "" ]]; then
     # Ensure directory is there for Deno
     echo "Bootstrapping Deno..."
 
@@ -79,9 +79,9 @@ else
 fi
 
 echo "Downloading Deno Stdlib"
-${QUARTO_PACKAGE_PATH}/scripts/deno_std/download.sh
+"${QUARTO_PACKAGE_PATH}/scripts/deno_std/download.sh"
 
-pushd $QUARTO_PACKAGE_PATH/src/
+pushd "$QUARTO_PACKAGE_PATH/src/"
 
 # Run the configure command to bootstrap installation
 ./quarto-bld configure --log-level info

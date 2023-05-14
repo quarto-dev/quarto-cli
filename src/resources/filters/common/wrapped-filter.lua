@@ -53,7 +53,9 @@ local function shortcodeMetatable(scriptFile)
     -- quarto global environment
     json = json,
     -- quarto functions
-    quarto = quarto
+    quarto = quarto,
+    -- global environment
+    _G = _G
   }
 end
 
@@ -137,7 +139,6 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
 end
 
 function makeWrappedLuaFilter(scriptFile, filterHandler)
-  local working_directory = pandoc.path.directory(scriptFile)
   return _quarto.withScriptFile(scriptFile, function()
     local env = setmetatable({}, {__index = shortcodeMetatable(scriptFile)})
     local chunk, err = loadfile(scriptFile, "bt", env)
@@ -210,7 +211,7 @@ function filterIf(condition, filter)
   return {
     Pandoc = function(doc)
       if condition() then
-        return doc:walk(filter)
+        return _quarto.ast.walk(doc, filter) -- doc:walk(filter)
       end
     end
   }

@@ -27,11 +27,17 @@ import {
   serveRedirect,
 } from "../../core/http.ts";
 import { HttpFileRequestOptions } from "../../core/http-types.ts";
-import { HttpDevServer, httpDevServer } from "../../core/http-devserver.ts";
+import {
+  HttpDevServer,
+  httpDevServer,
+  HttpDevServerRenderMonitor,
+} from "../../core/http-devserver.ts";
 import {
   isHtmlContent,
+  isMarkdownContent,
   isPdfContent,
   isTextContent,
+  isXmlContent,
   kTextXml,
 } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -59,7 +65,7 @@ import { renderFormats } from "../render/render-contexts.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
-import { Format, isPandocFilter } from "../../config/types.ts";
+import { Format, FormatPandoc, isPandocFilter } from "../../config/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -72,7 +78,11 @@ import {
 } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../core/path.ts";
 import {
   isJupyterHubServer,
   isRStudio,
@@ -90,7 +100,10 @@ import {
   textHighlightThemePath,
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
-import { monitorPreviewTerminationConditions } from "../../core/quarto.ts";
+import {
+  previewEnsureResources,
+  previewMonitorResources,
+} from "../../core/quarto.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 import {
   extensionFilesFromDirs,
@@ -101,11 +114,17 @@ import {
   kOutputFile,
   kPreviewMode,
   kPreviewModeRaw,
+  kTargetFormat,
 } from "../../config/constants.ts";
-import { isJatsOutput } from "../../config/format.ts";
+import {
+  isHtmlDocOutput,
+  isHtmlOutput,
+  isJatsOutput,
+} from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
 import { findOpenPort, waitForPort } from "../../core/port.ts";
+import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -161,11 +180,24 @@ export async function preview(
 
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
-  const render = async () => {
+  const render = async (to?: string) => {
+    const renderFlags = { ...flags, to: to || flags.to };
     const services = renderServices();
     try {
+      HttpDevServerRenderMonitor.onRenderStart();
       isRendering = true;
-      return await renderForPreview(file, services, flags, pandocArgs, project);
+      const result = await renderForPreview(
+        file,
+        services,
+        renderFlags,
+        pandocArgs,
+        project,
+      );
+      HttpDevServerRenderMonitor.onRenderStop(true);
+      return result;
+    } catch (error) {
+      HttpDevServerRenderMonitor.onRenderStop(false);
+      throw error;
     } finally {
       isRendering = false;
       services.cleanup();
@@ -184,9 +216,11 @@ export async function preview(
   const listener = Deno.listen({ port: options.port!, hostname: options.host });
   const stopServer = () => listener.close();
 
+  // ensure resources
+  previewEnsureResources(stopServer);
+
   // create client reloader
   const reloader = httpDevServer(
-    options.port!,
     options.timeout!,
     () => isRendering,
     stopServer,
@@ -251,7 +285,7 @@ export async function preview(
   await printBrowsePreviewMessage(options.host!, options.port!, initialPath);
 
   // watch for src changes in dev mode
-  monitorPreviewTerminationConditions(stopServer);
+  previewMonitorResources(stopServer);
 
   // serve project
   for await (const conn of listener) {
@@ -361,9 +395,15 @@ export function setPreviewFormat(
   replacePandocArg(pandocArgs, "--to", format);
 }
 
-export function handleRenderResult(file: string, renderResult: RenderResult) {
+export function handleRenderResult(
+  file: string,
+  renderResult: RenderResult,
+) {
   // print output created
-  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
+  const finalOutput = renderResultFinalOutput(
+    renderResult,
+    dirname(file),
+  );
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
   }
@@ -456,26 +496,36 @@ async function renderForPreview(
 }
 
 interface ChangeHandler {
-  render: () => Promise<void>;
+  render: () => Promise<RenderForPreviewResult | undefined>;
 }
 
 function createChangeHandler(
   result: RenderForPreviewResult,
   reloader: HttpDevServer,
-  render: () => Promise<RenderForPreviewResult>,
+  render: (to?: string) => Promise<RenderForPreviewResult | undefined>,
   renderOnChange: boolean,
 ): ChangeHandler {
-  const renderQueue = new PromiseQueue();
+  const renderQueue = new PromiseQueue<RenderForPreviewResult | undefined>();
   let watcher: Watcher | undefined;
   let lastResult = result;
 
   // render handler
-  const renderHandler = ld.debounce(async () => {
+  const renderHandler = async (to?: string) => {
     try {
-      await renderQueue.enqueue(async () => {
-        const result = await render();
-        sync(result);
+      // if we have an alternate format then stop the watcher (as the alternate
+      // output format will be one of the watched resource files!)
+      if (to && watcher) {
+        watcher.stop();
+      }
+      // render
+      const result = await renderQueue.enqueue(async () => {
+        return render(to);
       }, true);
+      if (result) {
+        sync(result);
+      }
+
+      return result;
     } catch (e) {
       if (e.message) {
         // jupyter notebooks being edited in juptyerlab sometimes get an
@@ -491,7 +541,7 @@ function createChangeHandler(
         logError(e);
       }
     }
-  }, 50);
+  };
 
   const sync = (result: RenderForPreviewResult) => {
     const requiresSync = !watcher || resultRequiresSync(result, lastResult);
@@ -505,7 +555,7 @@ function createChangeHandler(
       if (renderOnChange) {
         watches.push({
           files: [result.file],
-          handler: renderHandler,
+          handler: ld.debounce(renderHandler, 50),
         });
       }
 
@@ -513,7 +563,7 @@ function createChangeHandler(
       // the changes as they do w/ e.g. css files)
       watches.push({
         files: result.extensionFiles,
-        handler: renderHandler,
+        handler: ld.debounce(renderHandler, 50),
       });
 
       // reload on output or resource changed (but wait for
@@ -531,6 +581,7 @@ function createChangeHandler(
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);
+            return undefined;
           });
         }, 50),
       });
@@ -556,10 +607,11 @@ interface Watcher {
 }
 
 function previewWatcher(watches: Watch[]): Watcher {
+  existsSync;
   watches = watches.map((watch) => {
     return {
       ...watch,
-      files: watch.files.filter(existsSync).map((file) => {
+      files: watch.files.filter((s) => existsSync(s)).map((file) => {
         return normalizePath(file);
       }),
     };
@@ -605,7 +657,7 @@ function projectHtmlFileRequestHandler(
   flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -616,6 +668,7 @@ function projectHtmlFileRequestHandler(
       format,
       reloader,
       renderHandler,
+      context,
     ),
   );
 }
@@ -626,7 +679,7 @@ function htmlFileRequestHandler(
   flags: RenderFlags,
   format: Format,
   reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -647,16 +700,21 @@ function htmlFileRequestHandlerOptions(
   inputFile: string,
   flags: RenderFlags,
   format: Format,
-  reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  devserver: HttpDevServer,
+  renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
+  project?: ProjectContext,
 ): HttpFileRequestOptions {
+  // if we an alternate format on the fly we need to do a full re-render
+  // to get the correct state back. this flag will be set whenever
+  // we render an alternate format
+  let invalidateDevServerReRender = false;
   return {
     baseDir,
     defaultFile,
     printUrls: "404",
     onRequest: async (req: Request) => {
-      if (reloader.handle(req)) {
-        return Promise.resolve(reloader.connect(req));
+      if (devserver.handle(req)) {
+        return Promise.resolve(devserver.request(req));
       } else if (isPreviewTerminateRequest(req)) {
         exitWithCleanup(0);
       } else if (req.url.endsWith("/quarto-render/")) {
@@ -668,9 +726,10 @@ function htmlFileRequestHandlerOptions(
         const outputFile = format.pandoc[kOutputFile];
         const prevReq = previewRenderRequest(
           req,
-          !isBrowserPreviewable(outputFile) || reloader.hasClients(),
+          !isBrowserPreviewable(outputFile) || devserver.hasClients(),
         );
         if (
+          !invalidateDevServerReRender &&
           prevReq &&
           existsSync(prevReq.path) &&
           normalizePath(prevReq.path) === normalizePath(inputFile) &&
@@ -688,14 +747,12 @@ function htmlFileRequestHandlerOptions(
       }
     },
     onFile: async (file: string, req: Request) => {
+      // check for static response
       const staticResponse = await staticResource(format, baseDir, file);
-
-      const rawPreviewMode = format.metadata[kPreviewMode] === kPreviewModeRaw;
-
       if (staticResponse) {
         const resolveBody = () => {
           if (staticResponse.injectClient) {
-            const client = reloader.clientHtml(
+            const client = devserver.clientHtml(
               req,
               inputFile,
             );
@@ -713,25 +770,50 @@ function htmlFileRequestHandlerOptions(
           body,
           contentType: staticResponse.contentType,
         };
-      } else if (isHtmlContent(file)) {
+      }
+
+      // the 'format' passed to this function is for the default
+      // render target, however this could be a request for another
+      // render target (e.g. a link in the 'More Formats' section)
+      // some of these formats might require rendering and/or may
+      // have extended preview behavior (e.g. preview-type: raw)
+      // in this case try to lookup the format and perform a render
+      let renderFormat = format;
+      if (project) {
+        const input = await inputFileForOutputFile(
+          project,
+          relative(baseDir, file),
+        );
+        if (input) {
+          renderFormat = input.format;
+          if (renderFormat !== format && fileRequiresRender(input.file, file)) {
+            invalidateDevServerReRender = true;
+            await renderHandler(renderFormat.identifier[kTargetFormat]);
+          }
+        }
+      }
+
+      if (isHtmlContent(file)) {
         // does the provide an alternate preview file?
-        if (format.formatPreviewFile) {
-          file = format.formatPreviewFile(file, format);
+        if (renderFormat.formatPreviewFile) {
+          file = renderFormat.formatPreviewFile(file, renderFormat);
         }
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(req, fileContents, inputFile);
+        return devserver.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
-        if (!rawPreviewMode && isJatsOutput(format.pandoc)) {
+        const rawPreviewMode =
+          renderFormat.metadata[kPreviewMode] === kPreviewModeRaw;
+        if (!rawPreviewMode && isJatsOutput(renderFormat.pandoc)) {
           const xml = await jatsPreviewXml(file, req);
           return {
             contentType: kTextXml,
             body: new TextEncoder().encode(xml),
           };
         } else if (
-          !rawPreviewMode && format.identifier[kBaseFormat] === "gfm"
+          !rawPreviewMode && renderFormat.identifier[kBaseFormat] === "gfm"
         ) {
           const html = await gfmPreview(file, req);
-          return reloader.injectClient(
+          return devserver.injectClient(
             req,
             new TextEncoder().encode(html),
             inputFile,
@@ -739,11 +821,20 @@ function htmlFileRequestHandlerOptions(
         } else {
           const html = await textPreviewHtml(file, req);
           const fileContents = new TextEncoder().encode(html);
-          return reloader.injectClient(req, fileContents, inputFile);
+          return devserver.injectClient(req, fileContents, inputFile);
         }
       }
     },
   };
+}
+
+function fileRequiresRender(inputFile: string, outputFile: string) {
+  if (safeExistsSync(outputFile)) {
+    return (Deno.statSync(inputFile).mtime?.valueOf() || 0) >
+      (Deno.statSync(outputFile).mtime?.valueOf() || 0);
+  } else {
+    return true;
+  }
 }
 
 function resultReloadFiles(result: RenderForPreviewResult) {
@@ -757,7 +848,7 @@ function pdfFileRequestHandler(
   format: Format,
   port: number,
   reloader: HttpDevServer,
-  renderHandler: () => Promise<void>,
+  renderHandler: () => Promise<RenderForPreviewResult | undefined>,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(
@@ -872,16 +963,20 @@ async function textPreviewHtml(file: string, req: Request) {
 
 // Static reources provide a list of 'special' resources that we should
 // satisfy using internal resources
+const isJatsCompatibleOutput = (format?: string | FormatPandoc) =>
+  isJatsOutput(format) || isHtmlDocOutput(format);
 const kStaticResources = [
   {
     name: "quarto-jats-preview.css",
+    dir: "jats",
     contentType: "text/css",
-    isActive: isJatsOutput,
+    isActive: isJatsCompatibleOutput,
   },
   {
     name: "quarto-jats-html.xsl",
+    dir: "jats",
     contentType: "text/xsl",
-    isActive: isJatsOutput,
+    isActive: isJatsCompatibleOutput,
     injectClient: (contents: string, client: string) => {
       const protectedClient = client.replaceAll(
         /(<style.*?>)|(<script.*?>)/g,
@@ -915,7 +1010,8 @@ const staticResource = async (
   });
 
   if (resource) {
-    const path = resourcePath(join("preview", "jats", filename));
+    const dir = resource.dir ? join("preview", resource.dir) : "preview";
+    const path = resourcePath(join(dir, filename));
     const contents = await Deno.readFile(path);
     return {
       ...resource,

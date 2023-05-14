@@ -1,8 +1,8 @@
-
+-- docusaurus.lua
+-- Copyright (C) 2023 Posit Software, PBC
 
 local kQuartoRawHtml = "quartoRawHtml"
 local rawHtmlVars = pandoc.List()
-local reactPreamble = pandoc.List()
 
 function Pandoc(doc)
   -- insert exports at the top if we have them
@@ -14,12 +14,6 @@ function Pandoc(doc)
       )
     )
     doc.blocks:insert(1, pandoc.RawBlock("markdown", exports .. "\n"))
-  end
-
-  -- insert react preamble if we have it
-  if #reactPreamble > 0 then
-    local preamble = table.concat(reactPreamble, "\n")
-    doc.blocks:insert(1, pandoc.RawBlock("markdown", preamble .. "\n"))
   end
 
   return doc
@@ -58,23 +52,3 @@ function RawBlock(el)
   end
 end
 
-
-
--- transform pandoc "title" to docusaures title. for code blocks
--- with no class, give them one so that they aren't plain 4 space indented
-function CodeBlock(el)
-  local lang = el.attr.classes[1]
-  local title = el.attr.attributes["filename"] or el.attr.attributes["title"]  
-  if lang and title then
-    -- docusaures code block attributes don't conform to any syntax
-    -- that pandoc natively understands, so return the CodeBlock as
-    -- "raw" markdown (so it bypasses pandoc processing entirely)
-    return pandoc.RawBlock("markdown", 
-      "```" .. lang .. " title=\"" .. title .. "\"\n" ..
-      el.text .. "\n```\n"
-    )
-  elseif #el.attr.classes == 0 then
-    el.attr.classes:insert('text')
-    return el
-  end
-end

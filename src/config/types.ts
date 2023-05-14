@@ -31,6 +31,7 @@ import {
   kCodeToolsShowAllCode,
   kCodeToolsSourceCode,
   kCodeToolsViewSource,
+  kColumns,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kCrossrefApxPrefix,
@@ -93,6 +94,7 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
+  kKeepTyp,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -132,6 +134,8 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebooks,
+  kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
   kNumberOffset,
@@ -145,6 +149,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kPreserveYaml,
   kQuartoFilters,
   kReferenceLocation,
   kRelatedFormatsTitle,
@@ -152,6 +157,7 @@ import {
   kRepoActionLinksEdit,
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
+  kResourcePath,
   kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
@@ -202,6 +208,7 @@ import {
   kVariant,
   kWarning,
   kWebtex,
+  kWrap,
 } from "./constants.ts";
 
 import { HtmlPostProcessor, RenderServices } from "../command/render/types.ts";
@@ -294,7 +301,7 @@ export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
 }
 
-export interface NotebookPublishOptions {
+export interface NotebookPreviewDescriptor {
   notebook: string;
   url?: string;
   title?: string;
@@ -313,7 +320,10 @@ export interface FormatExtras {
     post?: QuartoFilter[];
   };
   [kFilterParams]?: Record<string, unknown>;
-  postprocessors?: Array<(output: string) => Promise<void>>;
+  [kNotebooks]?: NotebookPreviewDescriptor[];
+  postprocessors?: Array<
+    (output: string) => Promise<{ supporting: string[] } | void>
+  >;
   templateContext?: FormatTemplateContext;
   html?: {
     [kDependencies]?: FormatDependency[];
@@ -376,6 +386,7 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepTex]?: boolean;
+  [kKeepTyp]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
@@ -398,7 +409,8 @@ export interface FormatRender {
   [kTblColwidths]?: "auto" | boolean | number[];
   [kShortcodes]?: string[];
   [kMergeIncludes]?: boolean;
-  [kInlineIncludes]?: false;
+  [kInlineIncludes]?: boolean;
+  [kPreserveYaml]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;
@@ -415,13 +427,14 @@ export interface FormatRender {
   [kLinkExternalFilter]?: string;
   [kSelfContainedMath]?: boolean;
   [kFormatResources]?: string[];
-  [kFormatLinks]?: boolean | string[];
+  [kFormatLinks]?: boolean | Array<FormatLink | string>;
   [kNotebookLinks]?: boolean | "inline" | "global";
+  [kNotebookSubarticles]?: boolean;
   [kNotebookViewStyle]?: "document" | "notebook";
   [kNotebookView]?:
     | boolean
-    | NotebookPublishOptions
-    | NotebookPublishOptions[];
+    | NotebookPreviewDescriptor
+    | NotebookPreviewDescriptor[];
 }
 
 export interface FormatExecute {
@@ -465,6 +478,7 @@ export interface FormatPandoc {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kResourcePath]?: string[];
   [kReferenceLocation]?: string;
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
@@ -489,6 +503,8 @@ export interface FormatPandoc {
   [kTitlePrefix]?: string;
   [kSlideLevel]?: number;
   [kSyntaxDefinitions]?: string[];
+  [kColumns]?: number;
+  [kWrap]?: "none" | "auto" | "preserve" | number;
 }
 
 export interface PandocFlags {
@@ -628,4 +644,10 @@ export interface FormatLanguage {
 export interface FormatTemplateContext {
   template?: string;
   partials?: string[];
+}
+
+export interface FormatLink {
+  icon?: string;
+  title: string;
+  href: string;
 }

@@ -31,6 +31,7 @@ export interface RenderOptions {
   devServerReload?: boolean;
   previewServer?: boolean;
   setProjectDir?: boolean;
+  echo?: boolean;
 }
 
 export interface RenderServices {
@@ -53,7 +54,9 @@ export interface RunPandocResult {
   inputMetadata: Metadata;
   inputTraits: PandocInputTraits;
   resources: string[];
-  postprocessors?: Array<(output: string) => Promise<void>>;
+  postprocessors?: Array<
+    (output: string) => Promise<{ supporting: string[] } | void>
+  >;
   htmlPostprocessors: Array<HtmlPostProcessor>;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
 }
@@ -83,6 +86,7 @@ export interface RenderResourceFiles {
 }
 
 export interface RenderResult {
+  context?: ProjectContext;
   baseDir?: string;
   outputDir?: string;
   files: RenderResultFile[];

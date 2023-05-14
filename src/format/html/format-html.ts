@@ -1,3 +1,5 @@
+// noinspection TypeScriptUnresolvedReference
+
 /*
  * format-html.ts
  *
@@ -20,7 +22,6 @@ import {
   kCodeLink,
   kFigResponsive,
   kFilterParams,
-  kFormatLinks,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -76,6 +77,7 @@ import {
   kSmoothScroll,
   kTabsets,
   kUtterances,
+  kXrefsHover,
   quartoBaseLayer,
   quartoGlobalCssVariableRules,
 } from "./format-html-shared.ts";
@@ -88,8 +90,11 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  buildGiscusThemeKeys,
   getDiscussionCategoryId,
   getGithubDiscussionsMetadata,
+  GiscusTheme,
+  GiscusThemeToggleRecord,
 } from "../../core/giscus.ts";
 import { metadataPostProcessor } from "./format-html-meta.ts";
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
@@ -104,6 +109,7 @@ import {
 } from "./format-html-types.ts";
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
+import { projectIsBook } from "../../project/project-shared.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -114,7 +120,6 @@ export function htmlFormat(
     {
       render: {
         [kNotebookLinks]: true,
-        [kFormatLinks]: true,
       },
       resolveFormat: (format: Format) => {
         if (format.metadata[kMinimal] === true) {
@@ -145,7 +150,14 @@ export function htmlFormat(
 
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
-          await htmlFormatExtras(input, flags, offset, format, services.temp),
+          await htmlFormatExtras(
+            input,
+            flags,
+            offset,
+            format,
+            services.temp,
+            project,
+          ),
           themeFormatExtras(input, flags, format, services, offset, project),
           { [kFilterParams]: htmlFilterParams },
         );
@@ -165,6 +177,7 @@ export async function htmlFormatExtras(
   offset: string,
   format: Format,
   temp: TempContext,
+  project?: ProjectContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
@@ -244,6 +257,19 @@ export async function htmlFormatExtras(
   } else {
     options.hoverFootnotes = format.metadata[kFootnotesHover] || false;
   }
+
+  // Books don't currently support hover xrefs (since the content to preview in the xref
+  // is likely to be on another page and we don't want to do a full fetch of that page
+  // to get the preview)
+  if (project && projectIsBook(project)) {
+    options.hoverXrefs = false;
+  } else {
+    if (featureDefaults.hoverXrefs) {
+      options.hoverXrefs = format.metadata[kXrefsHover] !== false;
+    } else {
+      options.hoverXrefs = format.metadata[kXrefsHover] || false;
+    }
+  }
   if (featureDefaults.figResponsive) {
     options.figResponsive = format.metadata[kFigResponsive] !== false;
   } else {
@@ -312,7 +338,7 @@ export async function htmlFormatExtras(
 
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes ||
-    options.codeAnnotations;
+    options.codeAnnotations || options.hoverXrefs;
   if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
@@ -467,8 +493,19 @@ export async function htmlFormatExtras(
   // giscus
   if (options.giscus) {
     const giscus = options.giscus as Record<string, unknown>;
+
     giscus.category = giscus.category || "General";
-    giscus.theme = giscus.theme || "light";
+    giscus.theme = giscus.theme || "";
+
+    const themeToggleRecord: GiscusThemeToggleRecord = buildGiscusThemeKeys(
+      Boolean(options.darkModeDefault),
+      giscus.theme as GiscusTheme,
+    );
+
+    giscus.baseTheme = themeToggleRecord.baseTheme;
+    giscus.altTheme = themeToggleRecord.altTheme;
+    giscus.theme = giscus.baseTheme;
+
     giscus.mapping = giscus.mapping || "title";
     giscus["reactions-enabled"] = giscus["reactions-enabled"] !== undefined
       ? giscus["reactions-enabled"]
@@ -572,6 +609,7 @@ function htmlFormatFeatureDefaults(
     hoverFootnotes: !minimal,
     figResponsive: !minimal,
     codeAnnotations: !minimal,
+    hoverXrefs: !minimal,
   };
 }
 

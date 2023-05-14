@@ -1,0 +1,14 @@
+---
+title: Hello World
+number-sections: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["h2 >  .header-section-number", "h3 >  .header-section-number"]
+---
+
+## Section
+
+
+### Sub Section

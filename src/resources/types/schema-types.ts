@@ -132,7 +132,11 @@ the discussions feature must be enabled. */;
         | "dark_dimmed"
         | "transparent_dark"
         | "preferred_color_scheme"
-      ); /* The giscus theme to use when displaying comments. */
+      )
+      | {
+        dark?: string /* The dark theme name. */;
+        light?: string; /* The light theme name. */
+      }; /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
     assetRoot?: string /* The root URL from which assets are loaded. */;
@@ -351,7 +355,7 @@ For more about choosing storage options see [Storage](https://quarto.org/docs/we
 
 This is automatically detected based upon the `tracking-id`, but you may specify it. */
   } /* Enable Google Analytics for this website */;
-  "cookie-consent"?: boolean | {
+  "cookie-consent"?: ("express" | "implied") | boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
     palette?:
@@ -1136,6 +1140,28 @@ export type QuartoDevSchema = {
   _quarto?: { "trace-filters"?: string; tests?: SchemaObject };
 };
 
+export type NotebookViewSchema = {
+  notebook: string /* The path to the locally referenced notebook. */;
+  title?: string | boolean /* The title of the notebook when viewed. */;
+  url?: string; /* The url to use when viewing this notebook. */
+};
+
+export type ManuscriptSchema = {
+  "manuscript-url"?: string /* The deployed url for this manuscript */;
+  "meca-archive"?:
+    | boolean
+    | string /* Whether to generate a MECA bundle for this manuscript */;
+  article?:
+    string /* The input document that will serve as the root document for this manuscript */;
+  environment?: MaybeArrayOf<
+    string
+  > /* Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...) */;
+  notebooks?: ((string | NotebookViewSchema))[];
+  resources?: MaybeArrayOf<
+    string
+  >; /* Additional file resources to be copied to output directory */
+};
+
 export type ProjectConfig = {
   "execute-dir"?:
     | "file"
@@ -1154,7 +1180,8 @@ export type ProjectConfig = {
     string
   > /* Additional file resources to be copied to output directory */;
   title?: string;
-  type?: string; /* Project type (`default`, `website`, or `book`) */
+  type?:
+    string; /* Project type (`default`, `website`, `book`, or `manuscript`) */
 };
 
 export type BookProject = SchemaObject;

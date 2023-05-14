@@ -4,12 +4,12 @@
 -- process all equations
 function equations()
   return {
-    Para = processEquations,
-    Plain = processEquations
+    Para = process_equations,
+    Plain = process_equations
   }
 end
 
-function processEquations(blockEl)
+function process_equations(blockEl)
 
   -- alias inlines
   local inlines = blockEl.content
@@ -47,6 +47,11 @@ function processEquations(blockEl)
           targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
           targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
           targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
+        elseif _quarto.format.isTypstOutput() then
+          targetInlines:insert(pandoc.RawInline("typst", 
+            "#set math.equation(numbering: \"(" .. inlinesToString(numberOption("eq", order)) .. ")\"); " ..
+            "$ " .. eq.text .. " $ <" .. label .. "> #set math.equation(numbering: none)"
+          ))
         else
           local eqNumber = eqQquad
           local mathMethod = param("html-math-method", nil)

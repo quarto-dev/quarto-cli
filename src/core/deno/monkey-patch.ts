@@ -1,9 +1,8 @@
 /*
-* monkey-patch.ts
-*
-* Copyright (C) 2022-2023 Posit Software, PBC
-*
-*/
+ * monkey-patch.ts
+ *
+ * Copyright (C) 2022-2023 Posit Software, PBC
+ */
 
 import { debug } from "log/mod.ts";
 import { normalizePath } from "../path.ts";
@@ -79,3 +78,33 @@ Deno.makeTempFile = makeTempFile;
 Deno.makeTempFileSync = makeTempFileSync;
 Deno.makeTempDir = makeTempDir;
 Deno.makeTempDirSync = makeTempDirSync;
+
+const oldReadTextFile: typeof Deno.readTextFile = Deno.readTextFile;
+const oldReadTextFileSync: typeof Deno.readTextFileSync = Deno.readTextFileSync;
+
+Deno.readTextFile = async (
+  path: string | URL,
+  options?: Deno.ReadFileOptions,
+) => {
+  try {
+    const result = await oldReadTextFile(path, options);
+    return result;
+  } catch (err) {
+    if (err.message) {
+      err.message = err.message + "\n" + "Path: " + path;
+    }
+    throw err;
+  }
+};
+
+Deno.readTextFileSync = (path: string | URL) => {
+  try {
+    const result = oldReadTextFileSync(path);
+    return result;
+  } catch (err) {
+    if (err.message) {
+      err.message = err.message + "\n" + "Path: " + path;
+    }
+    throw err;
+  }
+};

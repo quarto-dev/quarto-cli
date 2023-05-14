@@ -124,7 +124,7 @@ local function annoteProvider(lang)
         return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, "")
       end,
       replaceAnnotation = function(line, annoteId, replacement)
-        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, replacement)
+        return line:gsub(patternEscape(expression.strip.prefix .. annoteId .. expression.strip.suffix), replacement)
       end,
       createComment = function(value) 
         if #commentChars == 0 then
@@ -313,7 +313,7 @@ function processAnnotation(line, annoteNumber, annotationProvider)
     return stripped
 end
 
-function codeMeta()
+function code_meta()
   return {
     Meta = function(meta)
       if _quarto.format.isLatexOutput() and hasAnnotations then
@@ -331,14 +331,14 @@ end
 
 -- The actual filter that will look for a code cell and then
 -- find its annotations, then process the subsequent OL
-function code() 
+function code_annotations()
   -- the localized strings
-  local language = param("language", nil);              
+  local language = param("language", nil)
 
   -- walk the blocks and look for annotated code
   -- process the list top down so that we see the outer
   -- code divs first
-  return {
+  local code_filter = {
     traverse = 'topdown',
     Blocks = function(blocks) 
 
@@ -547,7 +547,7 @@ function code()
                 local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {kCellAnnotationClass}))
                 pendingCodeCell.content:insert(2, dlDiv)
                 outputBlock(pendingCodeCell)
-                clearPending();
+                clearPending()
               else
                 outputBlockClearPending(dl)
               end
@@ -555,7 +555,7 @@ function code()
               if pendingCodeCell then
                 outputBlock(pendingCodeCell)
               end
-              clearPending();
+              clearPending()
             end
           else
             outputBlockClearPending(block)
@@ -563,6 +563,20 @@ function code()
         end
         return allOutputs()
       end
+    end
+  }
+
+  -- return code_filter
+  return {
+    Pandoc = function(doc)
+      local codeAnnotations = param(kCodeAnnotationsParam)
+
+      -- if code annotations is false, then don't even walk it
+      if codeAnnotations == false then
+        return nil
+      end
+      
+      return _quarto.ast.walk(doc, code_filter)
     end
   }
 end

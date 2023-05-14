@@ -27,7 +27,7 @@ import("../common/apishim.lua")
 return {
   readIncludes(),
   combineFilters({
-    fileMetadata(),
+    file_metadata(),
     resourceRefs()
   })
 }

@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
-function quartoPreFigures() 
+function quarto_pre_figures() 
   
   return {
    

@@ -10,7 +10,7 @@ import { info } from "log/mod.ts";
 
 import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
 
-import { stringify } from "encoding/yaml.ts";
+import { stringify } from "yaml/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -43,6 +43,7 @@ import {
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
+  isTypstOutput,
 } from "../../config/format.ts";
 import {
   isIncludeMetadata,
@@ -84,6 +85,7 @@ import {
   kAuthors,
   kClassOption,
   kColorLinks,
+  kColumns,
   kDate,
   kDateFormat,
   kDateModified,
@@ -103,6 +105,8 @@ import {
   kKeepSource,
   kLinkColor,
   kMetadataFormat,
+  kNotebooks,
+  kNotebookView,
   kNumberOffset,
   kNumberSections,
   kPageTitle,
@@ -312,7 +316,9 @@ export async function runPandoc(
   }
 
   // see if there are extras
-  const postprocessors: Array<(output: string) => Promise<void>> = [];
+  const postprocessors: Array<
+    (output: string) => Promise<{ supporting: string[] } | void>
+  > = [];
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
   const htmlRenderAfterBody: string[] = [];
@@ -465,6 +471,33 @@ export async function runPandoc(
       };
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
+    }
+
+    // merge notebooks that have been provided by the document / user
+    // or by the project as format extras
+    if (extras[kNotebooks]) {
+      const documentNotebooks = options.format.render[kNotebookView];
+      // False means taht the user has explicitely disabled notebooks
+      if (documentNotebooks !== false) {
+        const userNotebooks = documentNotebooks === true
+          ? []
+          : Array.isArray(documentNotebooks)
+          ? documentNotebooks
+          : documentNotebooks !== undefined
+          ? [documentNotebooks]
+          : [];
+
+        options.format.render[kNotebookView] = [
+          ...extras[kNotebooks],
+          ...userNotebooks,
+        ];
+      }
+    }
+
+    // clean 'columns' from pandoc defaults to typst
+    if (isTypstOutput(options.format.pandoc)) {
+      delete allDefaults[kColumns];
+      delete printAllDefaults[kColumns];
     }
 
     // The user template (if any)
@@ -735,6 +768,7 @@ export async function runPandoc(
   // crossref filter so we only do this if the user hasn't disabled the crossref filter
   if (
     !isLatexOutput(options.format.pandoc) &&
+    !isTypstOutput(options.format.pandoc) &&
     !isMarkdownOutput(options.format) && crossrefFilterActive(options)
   ) {
     delete allDefaults[kNumberSections];

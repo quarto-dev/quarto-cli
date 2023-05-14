@@ -18,7 +18,7 @@ function is_visible(node)
   elseif node.behavior == kContentHidden then
     return not match
   else
-    crash_with_stack_trace()
+    fatal("Internal Error: invalid behavior for conditional block: " .. node.behavior)
     return false
   end
 end
@@ -43,6 +43,7 @@ _quarto.ast.add_handler({
     end
     div.attributes = remaining_attributes
     div.classes = div.classes:filter(function(k) return k ~= kContentVisible and k ~= kContentHidden end)
+
     return quarto.ConditionalBlock({
       node = div,
       behavior = behavior,
@@ -50,11 +51,13 @@ _quarto.ast.add_handler({
     })
   end,
 
+  slots = { "node" },
+
   render = function(node)
-    local el = node.node
     local visible = is_visible(node)
-    clearHiddenVisibleAttributes(el)
     if visible then
+      local el = node.node
+      clearHiddenVisibleAttributes(el)
       return el.content
     else
       return {}
@@ -64,6 +67,7 @@ _quarto.ast.add_handler({
   constructor = function(tbl)
     local result = {
       node = tbl.node,
+      original_node = tbl.node:clone(), -- keep it around in case filters need to inspect it
       behavior = tbl.behavior,
       condition = pandoc.List({})
     };
@@ -75,27 +79,18 @@ _quarto.ast.add_handler({
       end
     end
 
+    if not is_visible(result) then
+      -- if the block is not visible, clear out the content
+      -- before filters are run on document
+      result.node.content = {}
+    end
+
     return result
   end,
 
-  inner_content = function(tbl)
-    if is_visible(tbl) then
-      return {
-        content = tbl.node.content,
-      }
-    else
-      return {}
-    end
-  end,
-
-  set_inner_content = function(tbl, content)
-    if content.content ~= nil then
-      tbl.node.content = content.content
-    end
-  end
 })
 
-function contentHidden()
+function content_hidden()
   local profiles = pandoc.List(param("quarto_profile", {}))
   return {
     -- Div = handleHiddenVisible(profiles),

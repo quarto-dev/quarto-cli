@@ -17,7 +17,7 @@ end
 -- relative paths if there is a project context. For HTML output, 
 -- these elements are dealt with in a post processor in website-resources.ts:resolveTag()
 -- but for non-HTML output, we fix these here.
-function projectPaths()
+function project_paths()
   return {
     Image = function(el)
       if el.attr.attributes[kProjectResolverIgnore] then

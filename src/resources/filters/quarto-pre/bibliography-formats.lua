@@ -2,8 +2,8 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
-function bibliographyFormats()
-  return  {
+function bibliography_formats()
+  return {
     Pandoc = function(doc)
       if _quarto.format.isBibliographyOutput() then
         doc.meta.references = pandoc.utils.references(doc)
