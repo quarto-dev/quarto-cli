@@ -1,5 +1,5 @@
 <sub-article article-type="notebook">
-<front-stub$if(jats-subarticle-id)$ id="$jats-subarticle-id$"$endif$>
+<front-stub>
 $if(title)$
 <title-group>
 <article-title>$title$</article-title>
@@ -8,12 +8,12 @@ $if(subtitle)$
 $endif$
 </title-group>
 $endif$
+${ authors.xml() }
 $if(abstract)$
 <abstract>
 $abstract$
 </abstract>
 $endif$
-${ authors.xml() }
 </front-stub>
 
 <body>
