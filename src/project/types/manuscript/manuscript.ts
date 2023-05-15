@@ -190,6 +190,7 @@ export const manuscriptProjectType: ProjectType = {
   },
   outputDir: kOutputDir,
   cleanOutputDir: true,
+  incrementalFormatPreviewing: true,
   filterParams: async (options: PandocOptions) => {
     if (options.project) {
       const filterParams: Record<string, unknown> = {};
