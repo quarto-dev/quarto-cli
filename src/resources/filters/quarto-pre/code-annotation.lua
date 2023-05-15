@@ -1,7 +1,7 @@
 -- code.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 -- for a given language, the comment character(s)
 local kLangCommentChars = {

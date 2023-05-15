@@ -1,7 +1,7 @@
 -- includes.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 function read_includes()
   return {

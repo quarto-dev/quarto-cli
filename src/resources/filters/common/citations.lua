@@ -6,7 +6,7 @@
 -- restructured into the standard has
 -- format
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 local function processTypedId(el) 
   if pandoc.utils.type(el) == "Inlines" then
@@ -30,7 +30,7 @@ local function normalizeTypedId(els)
     return { processTypedId(els )}
   else
     -- this is a single id, but is already a typed id
-    return { processTypedId(els)}
+    return { processTypedId(els) }
   end
 end
 

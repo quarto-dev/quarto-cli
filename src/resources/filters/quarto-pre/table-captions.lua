@@ -1,7 +1,7 @@
 -- table-captions.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local patterns = require("../modules/patterns")
+local patterns = require("modules/patterns")
 
 kTblCap = "tbl-cap"
 kTblSubCap = "tbl-subcap"

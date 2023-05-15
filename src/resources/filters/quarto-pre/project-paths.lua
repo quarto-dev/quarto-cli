@@ -1,7 +1,7 @@
 -- project_paths.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 local function resolveProjectPath(path)
   local offset = _quarto.projectOffset()

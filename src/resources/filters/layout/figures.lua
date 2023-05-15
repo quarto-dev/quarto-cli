@@ -1,7 +1,7 @@
 -- figures.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 -- extended figure features including fig-align, fig-env, etc.
 function extended_figures() 

@@ -5,7 +5,7 @@
 -- back together here so they can be processed by ourraw table
 -- caption handling
 
-local patterns = require("../modules/patterns")
+local patterns = require("modules/patterns")
 
 function table_merge_raw_html()
   if not _quarto.format.isHtmlOutput() then

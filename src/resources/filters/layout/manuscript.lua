@@ -1,7 +1,7 @@
 -- manuscript.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 function manuscript() 
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then

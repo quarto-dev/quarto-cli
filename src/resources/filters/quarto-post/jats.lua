@@ -3,7 +3,7 @@
 local normalizeAuthors = require 'modules/authors'
 local normalizeLicense = require 'modules/license'
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 local function isCell(el) 
   return el.classes:includes("cell") 

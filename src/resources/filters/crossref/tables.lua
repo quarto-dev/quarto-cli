@@ -5,7 +5,7 @@
 -- wrapped in a div so they can carry parent information and so that
 -- we can create a hyperef target for latex)
 
-local patterns = require("../modules/patterns")
+local patterns = require("modules/patterns")
 
 function crossref_tables()
   return {

@@ -2,7 +2,7 @@
 -- Copyright (C) 2022 Posit Software, PBC
 
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 local kConditions = pandoc.List({constants.kWhenFormat, constants.kUnlessFormat, constants.kWhenProfile, constants.kUnlessProfile})
 

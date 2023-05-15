@@ -3,7 +3,7 @@
 --
 -- renders AST nodes to LaTeX
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 function latexCalloutBoxDefault(title, type, icon) 
 

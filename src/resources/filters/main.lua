@@ -4,14 +4,6 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
-crossref = {
-  usingTheorems = false,
-  startAppendix = nil,
-
-  -- initialize autolabels table
-  autolabels = pandoc.List()
-}
-
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
@@ -123,7 +115,6 @@ import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
 import("./crossref/jats.lua")
---import("./crossref/crossref.lua")
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")

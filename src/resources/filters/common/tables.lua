@@ -1,7 +1,7 @@
 -- tables.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local patterns = require("../modules/patterns")
+local patterns = require("modules/patterns")
 
 function anonymousTblId()
   return "tbl-anonymous-" .. tostring(math.random(10000000))

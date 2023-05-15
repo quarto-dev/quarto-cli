@@ -5,8 +5,8 @@
 -- so that we can skip as many filters as possible
 -- when we don't need them
 
-local patterns = require("../modules/patterns")
-local constants = require("../modules/constants")
+local patterns = require("modules/patterns")
+local constants = require("modules/constants")
 
 flags = {}
 

@@ -1,7 +1,7 @@
 -- callout.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 function calloutType(div)
   for _, class in ipairs(div.attr.classes) do

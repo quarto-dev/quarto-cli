@@ -1,8 +1,8 @@
 -- parsehtml.lua
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
-local patterns = require("../modules/patterns")
-local constants = require("../modules/constants")
+local patterns = require("modules/patterns")
+local constants = require("modules/constants")
 
 local function preprocess_table_text(src)
   -- html manipulation with regex is fraught, but those specific

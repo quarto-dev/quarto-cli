@@ -1,7 +1,7 @@
 -- engine-escape.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local patterns = require("../modules/patterns")
+local patterns = require("modules/patterns")
 
 function engine_escape()
   return {

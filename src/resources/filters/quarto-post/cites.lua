@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 local discoveredCites = pandoc.List()
-local constants = require("../modules/constants")
+local constants = require("modules/constants")
 
 function indexCites()   
   return {
