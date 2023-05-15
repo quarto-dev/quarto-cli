@@ -57,7 +57,7 @@ import { articleFile, isArticle } from "./manuscript-config.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Inline Computations";
+const kDocumentNotebookLabel = "Code Cells";
 
 const kMecaIcon = "archive";
 
