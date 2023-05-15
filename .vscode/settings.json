@@ -14,5 +14,6 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": true,
-  "deno.importMap": "./src/import_map.json"
+  "deno.importMap": "./src/import_map.json",
+  "Lua.workspace.ignoreDir": [".vscode", "**/node_modules/*"]
 }

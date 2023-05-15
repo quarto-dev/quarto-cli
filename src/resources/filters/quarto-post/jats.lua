@@ -3,13 +3,7 @@
 local normalizeAuthors = require 'modules/authors'
 local normalizeLicense = require 'modules/license'
 
-local kTags = "tags"
-local kKeywords = "keywords"
-
-local kQuartoInternal = "quarto-internal"
-local kHasAuthorNotes = "has-author-notes"
-local kHasPermissions = "has-permissions"
-local kJatsSubarticleId = "jats-subarticle-id"
+local constants = require("modules/constants")
 
 local function isCell(el) 
   return el.classes:includes("cell") 
@@ -36,15 +30,15 @@ local function jatsMeta(meta)
     local hasLicense = meta[normalizeLicense.constants.license] ~= nil
     local hasPermissions = hasCopyright or hasLicense
 
-    if meta[kQuartoInternal] == nil then
-      meta[kQuartoInternal] = {}
+    if meta[constants.kQuartoInternal] == nil then
+      meta[constants.kQuartoInternal] = {}
     end
-    meta[kQuartoInternal][kHasAuthorNotes] = hasNotes;
-    meta[kQuartoInternal][kHasPermissions] = hasPermissions;
+    meta[constants.kQuartoInternal][constants.kHasAuthorNotes] = hasNotes;
+    meta[constants.kQuartoInternal][constants.kHasPermissions] = hasPermissions;
 
     -- normalize keywords into tags if they're present and tags aren't
-    if meta[kTags] == nil and meta[kKeywords] ~= nil and meta[kKeywords].t == "Table" then
-      meta[kKeywords] = meta[kTags]
+    if meta[constants.kTags] == nil and meta[constants.kKeywords] ~= nil and meta[constants.kKeywords].t == "Table" then
+      meta[constants.kKeywords] = meta[constants.kTags]
     end
 
     return meta
@@ -110,10 +104,6 @@ function jatsSubarticle()
 
   if _quarto.format.isJatsOutput() then
 
-    local kNoteBookCode = "notebook-code"
-    local kNoteBookContent = "notebook-content"
-    local kNoteBookOutput = "notebook-output"
-
     local isCodeCell = function(el) 
       return not el.classes:includes('markdown')
     end
@@ -172,20 +162,20 @@ function jatsSubarticle()
                   if (isCodeCellOutput(childEl)) then
                     childEl.identifier = parentId .. '-output-' .. count
                     count = count + 1
-                    return renderCellOutput(childEl, kNoteBookOutput)
+                    return renderCellOutput(childEl, constants.kNoteBookOutput)
                   end
                 end
               })
 
             -- render the cell
-            return renderCell(div, kNoteBookCode)
+            return renderCell(div, constants.kNoteBookCode)
           else
             if #div.content == 0 then
               -- eat empty markdown cells
               return {}
             else
               -- the is a valid markdown cell, let it through              
-              return renderCell(div, kNoteBookContent)
+              return renderCell(div, constants.kNoteBookContent)
             end
           end
         elseif isCodeCellOutput(div) then

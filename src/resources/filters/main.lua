@@ -4,14 +4,6 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
-crossref = {
-  usingTheorems = false,
-  startAppendix = nil,
-
-  -- initialize autolabels table
-  autolabels = pandoc.List()
-}
-
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
@@ -122,7 +114,6 @@ import("./crossref/refs.lua")
 import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
---import("./crossref/crossref.lua")
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
@@ -165,8 +156,8 @@ initCrossrefIndex()
 initShortcodeHandlers()
 
 local quartoInit = {
-  { name = "init-configure-filters", filter = configureFilters() },
-  { name = "init-read-includes", filter = readIncludes() },
+  { name = "init-configure-filters", filter = configure_filters() },
+  { name = "init-read-includes", filter = read_includes() },
   { name = "init-metadata-resource-refs", filter = combineFilters({
     file_metadata(),
     resourceRefs()

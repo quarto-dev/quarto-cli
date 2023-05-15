@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
-local kAsciidocNativeCites = 'use-asciidoc-native-cites'
+local kAsciidocNativeCites = require("modules/constants").kAsciidocNativeCites
 
 function render_asciidoc()   
 

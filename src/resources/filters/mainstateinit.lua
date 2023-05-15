@@ -19,3 +19,11 @@ preState = {
 
 postState = {
 }
+
+crossref = {
+  usingTheorems = false,
+  startAppendix = nil,
+
+  -- initialize autolabels table
+  autolabels = pandoc.List()
+}

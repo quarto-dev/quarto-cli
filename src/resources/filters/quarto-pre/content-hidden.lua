@@ -2,20 +2,16 @@
 -- Copyright (C) 2022 Posit Software, PBC
 
 
-local kContentVisible = "content-visible"
-local kContentHidden = "content-hidden"
-local kWhenFormat = "when-format"
-local kUnlessFormat = "unless-format"
-local kWhenProfile = "when-profile"
-local kUnlessProfile = "unless-profile"
-local kConditions = pandoc.List({kWhenFormat, kUnlessFormat, kWhenProfile, kUnlessProfile})
+local constants = require("modules/constants")
+
+local kConditions = pandoc.List({constants.kWhenFormat, constants.kUnlessFormat, constants.kWhenProfile, constants.kUnlessProfile})
 
 function is_visible(node)
   local profiles = pandoc.List(param("quarto_profile", {}))
   local match = propertiesMatch(node.condition, profiles)
-  if node.behavior == kContentVisible then
+  if node.behavior == constants.kContentVisible then
     return match
-  elseif node.behavior == kContentHidden then
+  elseif node.behavior == constants.kContentHidden then
     return not match
   else
     fatal("Internal Error: invalid behavior for conditional block: " .. node.behavior)
@@ -24,14 +20,14 @@ function is_visible(node)
 end
 
 _quarto.ast.add_handler({
-  class_name = { kContentVisible, kContentHidden },
+  class_name = { constants.kContentVisible, constants.kContentHidden },
   
   ast_name = "ConditionalBlock",
 
   kind = "Block",
 
   parse = function(div)
-    local behavior = div.classes:find(kContentVisible) or div.classes:find(kContentHidden)
+    local behavior = div.classes:find(constants.kContentVisible) or div.classes:find(constants.kContentHidden)
     local condition = pandoc.List({})
     local remaining_attributes = pandoc.List({})
     for i, v in ipairs(div.attributes) do
@@ -42,7 +38,7 @@ _quarto.ast.add_handler({
       end
     end
     div.attributes = remaining_attributes
-    div.classes = div.classes:filter(function(k) return k ~= kContentVisible and k ~= kContentHidden end)
+    div.classes = div.classes:filter(function(k) return k ~= constants.kContentVisible and k ~= constants.kContentHidden end)
 
     return quarto.ConditionalBlock({
       node = div,
@@ -102,10 +98,10 @@ end
 function handleHiddenVisible(profiles)
   return function(el)
     local visible
-    if el.attr.classes:find(kContentVisible) then
+    if el.attr.classes:find(constants.kContentVisible) then
       clearHiddenVisibleAttributes(el)
       visible = propertiesMatch(el.attributes, profiles)
-    elseif el.attr.classes:find(kContentHidden) then
+    elseif el.attr.classes:find(constants.kContentHidden) then
       clearHiddenVisibleAttributes(el)
       visible = not propertiesMatch(el.attributes, profiles)
     else
@@ -125,26 +121,26 @@ end
 -- or from the attributes of the element itself in the case of spans or codeblocks
 function propertiesMatch(properties, profiles)
   local match = true
-  if properties[kWhenFormat] ~= nil then
-    match = match and _quarto.format.isFormat(properties[kWhenFormat])
+  if properties[constants.kWhenFormat] ~= nil then
+    match = match and _quarto.format.isFormat(properties[constants.kWhenFormat])
   end
-  if properties[kUnlessFormat] ~= nil then
-    match = match and not _quarto.format.isFormat(properties[kUnlessFormat])
+  if properties[constants.kUnlessFormat] ~= nil then
+    match = match and not _quarto.format.isFormat(properties[constants.kUnlessFormat])
   end
-  if properties[kWhenProfile] ~= nil then
-    match = match and profiles:includes(properties[kWhenProfile])
+  if properties[constants.kWhenProfile] ~= nil then
+    match = match and profiles:includes(properties[constants.kWhenProfile])
   end
-  if properties[kUnlessProfile] ~= nil then
-    match = match and not profiles:includes(properties[kUnlessProfile])
+  if properties[constants.kUnlessProfile] ~= nil then
+    match = match and not profiles:includes(properties[constants.kUnlessProfile])
   end
   return match
 end
 
 function clearHiddenVisibleAttributes(el)
-  el.attributes[kUnlessFormat] = nil
-  el.attributes[kWhenFormat] = nil
-  el.attributes[kUnlessProfile] = nil
-  el.attributes[kWhenProfile] = nil
-  el.attr.classes = removeClass(el.attr.classes, kContentVisible)
-  el.attr.classes = removeClass(el.attr.classes, kContentHidden)
+  el.attributes[constants.kUnlessFormat] = nil
+  el.attributes[constants.kWhenFormat] = nil
+  el.attributes[constants.kUnlessProfile] = nil
+  el.attributes[constants.kWhenProfile] = nil
+  el.attr.classes = removeClass(el.attr.classes, constants.kContentVisible)
+  el.attr.classes = removeClass(el.attr.classes, constants.kContentHidden)
 end

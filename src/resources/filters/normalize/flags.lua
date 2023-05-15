@@ -5,6 +5,9 @@
 -- so that we can skip as many filters as possible
 -- when we don't need them
 
+local patterns = require("modules/patterns")
+local constants = require("modules/constants")
+
 flags = {}
 
 function needs_dom_processing(node)
@@ -14,10 +17,10 @@ function needs_dom_processing(node)
 end
 
 function compute_flags()
-  local table_pattern = htmlTablePattern()
-  local table_tag_pattern = htmlTableTagNamePattern()
-  local gt_table_pattern = htmlGtTablePattern()
-  local html_table_caption_pattern = htmlTableCaptionPattern()
+  local table_pattern = patterns.html_table
+  local table_tag_pattern = patterns.html_table_tag_name
+  local gt_table_pattern = patterns.html_gt_table
+  local html_table_caption_pattern = patterns.html_table_caption
   local latex_caption_pattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
 
   return {
@@ -110,7 +113,7 @@ function compute_flags()
         flags.has_output_cells = true
 
         -- tbl_colwidths
-        local tblColwidths = node.attr.attributes[kTblColwidths]
+        local tblColwidths = node.attr.attributes[constants.kTblColwidths]
         if tblColwidths ~= nil then
           flags.has_tbl_colwidths = true
         end

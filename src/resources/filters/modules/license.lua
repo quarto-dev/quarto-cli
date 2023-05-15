@@ -6,11 +6,7 @@
 -- restructured into the standard license
 -- format
 
-local kLicense = "license"
-local kCopyright = "copyright"
-
-local kYear = "year"
-
+local constants = require("./constants")
 
 local function ccLicenseUrl(type, lang, version) 
   local langStr = 'en'
@@ -96,8 +92,8 @@ local function processCopyright(el)
       statement = el
     }
   else 
-    if el[kYear] then
-      local year = el[kYear]
+    if el[constants.kYear] then
+      local year = el[constants.kYear]
       if pandoc.utils.type(year) == "Inlines" then
         local yearStr = pandoc.utils.stringify(year)
         if yearStr:find(',') then
@@ -107,7 +103,7 @@ local function processCopyright(el)
           for i, v in ipairs(yearStrs) do
             yearList:insert(pandoc.Inlines(v))
           end
-          el[kYear] = yearList
+          el[constants.kYear] = yearList
         elseif yearStr:find('-') then
           -- expands a range
           local years = split(yearStr, '-')
@@ -129,7 +125,7 @@ local function processCopyright(el)
             for i=start,finish do
               yearList:insert(pandoc.Inlines(string.format("%.0f",i)))
             end
-            el[kYear] = yearList
+            el[constants.kYear] = yearList
           end
         end
 
@@ -141,7 +137,7 @@ end
 
 local function processLicenseMeta(meta)
   if meta then
-    local licenseMeta = meta[kLicense]
+    local licenseMeta = meta[constants.kLicense]
     if licenseMeta then
       if pandoc.utils.type(licenseMeta) == "List" then
         local normalizedEls = {}
@@ -149,16 +145,16 @@ local function processLicenseMeta(meta)
           local normalized = processLicense(v, meta)
           tappend(normalizedEls, {normalized})
         end
-        meta[kLicense] = normalizedEls
+        meta[constants.kLicense] = normalizedEls
       elseif pandoc.utils.type(licenseMeta) == "Inlines" then
-        meta[kLicense] = {processLicense(licenseMeta, meta)}
+        meta[constants.kLicense] = {processLicense(licenseMeta, meta)}
       end
     end
 
 
-    local copyrightMeta = meta[kCopyright]
+    local copyrightMeta = meta[constants.kCopyright]
     if copyrightMeta then
-        meta[kCopyright] = processCopyright(copyrightMeta)
+        meta[constants.kCopyright] = processCopyright(copyrightMeta)
     end
   end
   return meta
@@ -168,8 +164,8 @@ end
 return {
   processLicenseMeta = processLicenseMeta,
   constants = {
-    license = kLicense,
-    copyright = kCopyright
+    license = constants.kLicense,
+    copyright = constants.kCopyright
   }
 }
 

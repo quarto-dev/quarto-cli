@@ -1,7 +1,7 @@
 -- delink.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local kDelinkClass = 'delink'
+local kDelinkClass = require("modules/constants").kDelinkClass
 
 function delink() 
   return {

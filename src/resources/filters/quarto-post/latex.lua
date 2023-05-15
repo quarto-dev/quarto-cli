@@ -3,9 +3,7 @@
 --
 -- renders AST nodes to LaTeX
 
-local kCalloutAppearanceDefault = "default"
-local kCalloutDefaultSimple = "simple"
-local kCalloutDefaultMinimal = "minimal"
+local constants = require("modules/constants")
 
 function latexCalloutBoxDefault(title, type, icon) 
 
@@ -160,7 +158,7 @@ function render_latex()
     
       -- generate the callout box
       local callout
-      if calloutAppearance == kCalloutAppearanceDefault then
+      if calloutAppearance == constants.kCalloutAppearanceDefault then
         if title == nil then
           title = displayName(type)
         else
