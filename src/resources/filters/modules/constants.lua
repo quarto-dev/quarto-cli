@@ -61,6 +61,8 @@ local kIncludeBeforeBody = "include-before-body"
 local kIncludeAfterBody = "include-after-body"
 local kIncludeInHeader = "include-in-header"
 
+local kCopyright = "copyright"
+local kLicense = "license"
 
 return {
   kCitation = kCitation,
@@ -120,4 +122,7 @@ return {
   kIncludeBeforeBody = kIncludeBeforeBody,
   kIncludeAfterBody = kIncludeAfterBody,
   kIncludeInHeader = kIncludeInHeader,
+
+  kCopyright = kCopyright,
+  kLicense = kLicense,
 }
