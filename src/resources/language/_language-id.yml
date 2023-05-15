@@ -37,6 +37,9 @@ code-tools-hide-all-code: "Sembunyikan Semua Kode"
 code-tools-view-source: "Lihat Sumber"
 code-tools-source-code: "Kode Sumber"
 
+code-line: "Baris"
+code-lines: "Baris"
+
 copy-button-tooltip: "Salin ke Papan Klip"
 copy-button-tooltip-success: "Disalin!"
 

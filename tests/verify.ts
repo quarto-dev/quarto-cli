@@ -300,7 +300,7 @@ export function requireLatexPackage(pkg: string, opts?: string): RegExp {
 
 export const noSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
   return {
-    name: "No Supporting Files Dir",
+    name: "Verify No Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
       const outputFile = outputForInput(input, to, projectOutDir);
       verifyNoPath(outputFile.supportPath);
