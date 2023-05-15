@@ -4,27 +4,6 @@
     "line-number-color": null,
     "line-number-background-color": null,
     "text-styles": {
-        "Annotation": {
-            "text-color": null,
-            "background-color": null,
-            "bold": false,
-            "italic": true,
-            "underline": false
-        },
-        "ControlFlow": {
-            "text-color": null,
-            "background-color": null,
-            "bold": true,
-            "italic": false,
-            "underline": false
-        },
-        "Error": {
-            "text-color": null,
-            "background-color": null,
-            "bold": true,
-            "italic": false,
-            "underline": false
-        },
         "Alert": {
             "text-color": null,
             "background-color": null,
@@ -32,40 +11,12 @@
             "italic": false,
             "underline": false
         },
-        "Preprocessor": {
-            "text-color": null,
-            "background-color": null,
-            "bold": true,
-            "italic": false,
-            "underline": false
-        },
-        "Information": {
+        "Annotation": {
             "text-color": null,
             "background-color": null,
             "bold": false,
             "italic": true,
             "underline": false
-        },
-        "Warning": {
-            "text-color": null,
-            "background-color": null,
-            "bold": false,
-            "italic": true,
-            "underline": false
-        },
-        "Documentation": {
-            "text-color": null,
-            "background-color": null,
-            "bold": false,
-            "italic": true,
-            "underline": false
-        },
-        "DataType": {
-            "text-color": null,
-            "background-color": null,
-            "bold": false,
-            "italic": false,
-            "underline": true
         },
         "Comment": {
             "text-color": null,
@@ -81,11 +32,60 @@
             "italic": true,
             "underline": false
         },
+        "ControlFlow": {
+            "text-color": null,
+            "background-color": null,
+            "bold": true,
+            "italic": false,
+            "underline": false
+        },
+        "DataType": {
+            "text-color": null,
+            "background-color": null,
+            "bold": false,
+            "italic": false,
+            "underline": true
+        },
+        "Documentation": {
+            "text-color": null,
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
+        "Error": {
+            "text-color": null,
+            "background-color": null,
+            "bold": true,
+            "italic": false,
+            "underline": false
+        },
+        "Information": {
+            "text-color": null,
+            "background-color": null,
+            "bold": false,
+            "italic": true,
+            "underline": false
+        },
         "Keyword": {
             "text-color": null,
             "background-color": null,
             "bold": true,
             "italic": false,
+            "underline": false
+        },
+        "Preprocessor": {
+            "text-color": null,
+            "background-color": null,
+            "bold": true,
+            "italic": false,
+            "underline": false
+        },
+        "Warning": {
+            "text-color": null,
+            "background-color": null,
+            "bold": false,
+            "italic": true,
             "underline": false
         }
     }
