@@ -90,7 +90,10 @@ function jats()
           -- otherwise, if this is a div, we can unroll its contents
           return unrollDiv(div)
         end
-      end
+      end,
+
+      Callout = jatsCallout,
+
     }  
   else 
     return {}
@@ -121,7 +124,7 @@ function jatsSubarticle()
 
     local function renderCell(el, type)
       local renderedCell = pandoc.List()
-      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. ensureValidIdentifier(el.identifier) .. '" sec-type="' .. type .. '">'))
+      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. ensureValidIdentifier(el.identifier) .. '" specific-use="' .. type .. '">'))
       for _i, v in ipairs(el.content) do
         renderedCell:insert(v)
       end
@@ -131,7 +134,7 @@ function jatsSubarticle()
 
     local function renderCellOutput(el, type)
       local renderedCell = pandoc.List()
-      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. el.identifier .. '" content-type="' .. type .. '">'))
+      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. el.identifier .. '" specific-use="' .. type .. '">'))
       for _i, v in ipairs(el.content) do
         renderedCell:insert(v)
       end

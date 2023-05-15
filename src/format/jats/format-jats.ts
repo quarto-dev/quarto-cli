@@ -17,20 +17,31 @@ import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { createFormat } from "../formats-shared.ts";
 
-import { warning } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { join, relative } from "path/mod.ts";
-import { reformat } from "../../core/xml.ts";
 import { RenderServices } from "../../command/render/types.ts";
-import { kJatsSubarticle } from "./format-jats-types.ts";
+import {
+  jatsDtd,
+  JatsRenderSubArticle,
+  JatsSubArticle,
+  jatsTagset,
+  kJatsSubarticle,
+  kLintXml,
+  subarticleTemplatePath,
+  xmlPlaceholder,
+} from "./format-jats-types.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { dirname } from "../../vendor/deno.land/std@0.185.0/path/win32.ts";
-import { copySync } from "../../vendor/deno.land/std@0.185.0/fs/copy.ts";
+
+import { dirname, join, relative } from "path/mod.ts";
+import { warning } from "log/mod.ts";
+import {
+  moveSubarticleSupportingPostProcessor,
+  reformatXmlPostProcessor,
+  renderSubarticlePostProcessor,
+} from "./format-jats-postprocess.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
 const kElementsVariant = "+element_citations";
-const kLintXml = "_lint-jats-xml-output";
 
 const kSubArticles = "subarticles";
 
@@ -49,7 +60,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       _flags: PandocFlags,
       format: Format,
       _libDir: string,
-      _services: RenderServices,
+      services: RenderServices,
       _offset?: string,
       _project?: ProjectContext,
     ) => {
@@ -89,62 +100,68 @@ export function jatsFormat(displayName: string, ext: string): Format {
       const afterBody: string[] = [];
       const subArticleResources: string[] = [];
       const subArticleSupporting: { from: string; toRelative: string }[] = [];
+      const subArticlesToRender: JatsRenderSubArticle[] = [];
       if (internalMetadata) {
         const subArticles = (internalMetadata[
           kSubArticles
-        ]) as JatsSubArticle[] | undefined;
+        ]) as Array<JatsSubArticle | JatsRenderSubArticle> | undefined;
 
         if (subArticles) {
           subArticles.forEach((subArticle) => {
-            // Inject the subarticle into the body
-            afterBody.push(subArticle.output);
+            if (!subArticle.render) {
+              // Inject the subarticle into the body
+              afterBody.push(subArticle.output);
 
-            // Add any resources
-            subArticleResources.push(...subArticle.resources);
+              // Add any resources
+              subArticleResources.push(...subArticle.resources);
 
-            // For supporting files, track them and then
-            // post rendering, relocate them to the parent directory
-            // as supporting files
-            subArticle.supporting.forEach((supporting) => {
-              const from = join(dirname(input), supporting);
-              const toRelative = join(
-                relative(dirname(subArticle.input), supporting),
+              // For supporting files, track them and then
+              // post rendering, relocate them to the parent directory
+              // as supporting files
+              subArticle.supporting.forEach((supporting) => {
+                const from = join(dirname(input), supporting);
+                const toRelative = join(
+                  relative(dirname(subArticle.input), supporting),
+                );
+                subArticleSupporting.push({ toRelative, from });
+              });
+            } else {
+              // Inject a placeholder
+              const placeholder = xmlPlaceholder(
+                subArticle.token,
+                subArticle.input,
               );
-              subArticleSupporting.push({ toRelative, from });
-            });
+              const placeholderFile = services.temp.createFile({
+                suffix: ".placeholder.xml",
+              });
+              Deno.writeTextFileSync(placeholderFile, placeholder);
+
+              afterBody.push(placeholderFile);
+              subArticlesToRender.push(subArticle);
+            }
           });
         }
       }
 
-      // Responsible for moving the supporting files
-      const moveSubarticleSupportingPostProcessor = (
-        supporting: { from: string; toRelative: string }[],
-      ) => {
-        return (output: string) => {
-          const supportingOut: string[] = [];
-          supporting.forEach((supp) => {
-            const outputPath = join(dirname(output), supp.toRelative);
-            copySync(supp.from, outputPath, { overwrite: true });
-            supportingOut.push(outputPath);
-          });
-          return {
-            supporting: supportingOut,
-          };
-        };
-      };
-
-      const reformatXmlPostProcessor = async (output: string) => {
-        await reformat(output);
-      };
-
       const postprocessors = [];
-      if (format.metadata[kLintXml] !== false) {
-        postprocessors.push(reformatXmlPostProcessor);
-      }
+
+      // Move subarticle supporting files
       if (subArticleSupporting.length > 0) {
         postprocessors.push(
           moveSubarticleSupportingPostProcessor(subArticleSupporting),
         );
+      }
+
+      // Render subarticles and place them in the root article in the correct position
+      if (subArticlesToRender.length > 0) {
+        postprocessors.push(
+          renderSubarticlePostProcessor(subArticlesToRender, services),
+        );
+      }
+
+      // Lint the XML
+      if (format.metadata[kLintXml] !== false) {
+        postprocessors.push(reformatXmlPostProcessor);
       }
 
       return {
@@ -165,55 +182,14 @@ export function jatsFormat(displayName: string, ext: string): Format {
   });
 }
 
-type JatsTagset = "archiving" | "publishing" | "authoring";
-interface DTDInfo {
-  name: string;
-  location: string;
-}
-
-const kTagSets: Record<string, JatsTagset> = {
-  "jats": "archiving",
-  "jats_archiving": "archiving",
-  "jats_publishing": "publishing",
-  "jats_articleauthoring": "authoring",
-};
-function jatsTagset(to: string): JatsTagset {
-  return kTagSets[to];
-}
-
-const kDJatsDtds: Record<JatsTagset, DTDInfo> = {
-  "archiving": {
-    name:
-      "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN",
-    location: "JATS-archivearticle1.dtd",
-  },
-  "publishing": {
-    name: "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN",
-    location: "JATS-publishing1.dtd",
-  },
-  "authoring": {
-    name: "-//NLM//DTD JATS (Z39.96) Article Authoring DTD v1.2 20190208//EN",
-    location: "JATS-articleauthoring1.dtd",
-  },
-};
-
-function jatsDtd(tagset: JatsTagset) {
-  return kDJatsDtds[tagset];
-}
-
-export interface JatsSubArticle {
-  input: string;
-  output: string;
-  supporting: string[];
-  resources: string[];
-}
-
 export const resolveEmbeddedSubarticles = (
   format: Format,
-  subArticles: JatsSubArticle[],
+  subArticles: Array<JatsSubArticle | JatsRenderSubArticle>,
 ) => {
   format.metadata = mergeConfigs(format.metadata, {
-    [kQuartoInternal]: { [kSubArticles]: subArticles },
+    [kQuartoInternal]: {
+      [kSubArticles]: subArticles,
+    },
   });
 };
 
@@ -222,10 +198,7 @@ export const resolveJatsSubarticleMetadata = (
   subArticleId: string,
 ) => {
   // Use the subarticle template
-  format.pandoc.template = formatResourcePath(
-    "jats",
-    join("pandoc", "subarticle", "template.xml"),
-  );
+  format.pandoc.template = subarticleTemplatePath;
 
   // Configure the JATS rendering
   format.metadata[kLintXml] = false;

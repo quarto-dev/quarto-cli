@@ -1,0 +1,21 @@
+---
+title: codefilename with beamer
+_quarto:
+  tests:
+    beamer: default
+---
+
+## Code block
+
+```{.python filename="matplotlib1.py"}
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+## Computation
+
+```{r}
+#| filename: dummy.R
+1 + 1
+```

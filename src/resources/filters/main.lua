@@ -114,7 +114,6 @@ import("./crossref/refs.lua")
 import("./crossref/meta.lua")
 import("./crossref/format.lua")
 import("./crossref/options.lua")
-import("./crossref/jats.lua")
 
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
@@ -373,11 +372,6 @@ local quartoCrossref = {
   { name = "crossref-preprocessTheorems", 
     filter = crossref_preprocess_theorems(),
     flags = { "has_theorem_refs" } },
-
-  { name = "pre-render-jats-subarticle", filter = filterIf(function()
-    -- FIXME if we're using the latter clause I think we don't need the former
-    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
-    end, jats_subarticle_crossref()) },
 
   { name = "crossref-combineFilters", filter = combineFilters({
     file_metadata(),
