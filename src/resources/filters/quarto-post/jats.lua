@@ -95,22 +95,14 @@ function jats()
           -- otherwise, if this is a div, we can unroll its contents
           return unrollDiv(div)
         end
-      end
+      end,
+
+      Callout = jatsCallout,
+
     }  
   else 
     return {}
   end
-
-  return {
-    Meta = jatsMeta,
-
-    -- clear out divs
-    Div = function(div)
-      return unrollDiv(div)
-    end,
-
-    Callout = jatsCallout,
-  }
 end
 
 function jatsSubarticle() 

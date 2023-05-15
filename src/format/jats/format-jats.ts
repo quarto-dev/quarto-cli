@@ -212,7 +212,6 @@ export function jatsFormat(displayName: string, ext: string): Format {
               // Replace the placeholder with the rendered subarticle
               const replaced = outputContents.replaceAll(placeholder, contents);
               Deno.writeTextFileSync(output, replaced);
-              console.log(placeholder);
 
               // Clean any output file
               Deno.removeSync(file.file);
