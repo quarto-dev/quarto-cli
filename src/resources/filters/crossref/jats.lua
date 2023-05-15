@@ -16,13 +16,9 @@ function jats_subarticle_crossref()
 
     -- TODO: Need to properly handle all cross referenceable types
     local function subArticleIdentifier(identifier)
-      if isFigureRef(identifier) or isTableRef(identifier) or isListingRef(identifier) then
-        local suffix = '-' .. subarticleId()
-        if not identifier:find(suffix .. '$') then
-          return identifier .. '-' .. subarticleId()
-        else
-          return identifier
-        end
+      local suffix = '-' .. subarticleId()
+      if not identifier:find(suffix .. '$') then
+        return identifier .. '-' .. subarticleId()
       else
         return identifier
       end
@@ -47,6 +43,16 @@ function jats_subarticle_crossref()
 
       Image = function(image)
         return maybeSubArticlifyId(image)
+      end,
+
+      Para = function(para)
+        -- This is here to deal with dollar math
+        -- it may be able to be removed which woudl be sweet
+        local lastInline = para.content[#para.content];
+        if lastInline.t == "Str" then
+          lastInline.text = lastInline.text:gsub('^{#(.*)}', '{#%1-' .. subarticleId() .. '}')
+          return para
+        end
       end,
 
       Cite = function(cite)
