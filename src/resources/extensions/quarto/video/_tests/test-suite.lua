@@ -221,6 +221,17 @@ function TestVimeoBuilder:testBasic()
   checkVimeoBuilder(params, expected)
 end
 
+function TestVimeoBuilder:testInternal()
+  local params = {
+    src = 'https://vimeo.com/548291210/fdcc90d662?share=copy'
+  }
+  local expected = {
+    snippet = '<iframe data-external="1" src="https://player.vimeo.com/video/548291210?h=fdcc90d662" frameborder="0" allow="autoplay; title="" fullscreen; picture-in-picture" allowfullscreen></iframe>',
+    type = VIDEO_TYPES.VIMEO, src='https://player.vimeo.com/video/548291210?h=fdcc90d662', videoId = '548291210' }
+
+  checkVimeoBuilder(params, expected)
+end
+
 function TestVimeoBuilder:testTitle()
   local params = {
     src = 'https://vimeo.com/548291210',

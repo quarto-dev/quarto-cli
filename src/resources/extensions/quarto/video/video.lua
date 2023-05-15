@@ -12,6 +12,17 @@ local interpolate = function(str, vars)
           end))
 end
 
+local function splitString (toSplit, delimiter)
+  if delimiter == nil then
+    delimiter = "%s"
+  end
+  local t={}
+  for str in string.gmatch(toSplit, "([^".. delimiter .."]+)") do
+    table.insert(t, str)
+  end
+  return t
+end
+
 local function isEmpty(s)
   return s == nil or s == ''
 end
@@ -60,16 +71,16 @@ local replaceCommonAttributes = function(snippet, params)
   return result
 end
 
-local checkEndMatch = function(value, matcherFront)
+local checkMatchStart = function(value, matcherFront)
   return string.match(value, matcherFront .. '(.-)$')
 end
 
 local youTubeBuilder = function(params)
   if not (params and params.src) then return nil end
   local src = params.src
-  match = checkEndMatch(src, 'https://www.youtube.com/embed/')
-  match = match or checkEndMatch(src, 'https://www.youtube%-nocookie.com/embed/')
-  match = match or checkEndMatch(src, 'https://youtu.be/')
+  match = checkMatchStart(src, 'https://www.youtube.com/embed/')
+  match = match or checkMatchStart(src, 'https://www.youtube%-nocookie.com/embed/')
+  match = match or checkMatchStart(src, 'https://youtu.be/')
   match = match or string.match(src, '%?v=(.-)&')
   match = match or string.match(src, '%?v=(.-)$')
 
@@ -116,10 +127,22 @@ local vimeoBuilder = function(params)
   if not (params and params.src) then return nil end
 
   local VIMEO_STANDARD = 'https://vimeo.com/'
-  local match = checkEndMatch(params.src, VIMEO_STANDARD)
+  local match = checkMatchStart(params.src, VIMEO_STANDARD)
   if not match then return nil end
 
-  params.src = 'https://player.vimeo.com/video/' .. match
+  local internalMatch = string.match(params.src, 'vimeo.com/(.-)?share=copy')
+
+  -- Internal Links
+  -- bug/5390-vimeo-newlink
+  if internalMatch then
+    videoId = splitString(internalMatch, '/')[1]
+    privacyHash = splitString(internalMatch, '/')[2]
+    params.src = 'https://player.vimeo.com/video/' .. videoId .. '?h=' .. privacyHash
+  else
+    videoId = match
+    params.src = 'https://player.vimeo.com/video/' .. videoId
+  end
+
 
   local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
 
@@ -128,7 +151,7 @@ local vimeoBuilder = function(params)
   result.snippet = replaceCommonAttributes(SNIPPET, params)
   result.type = VIDEO_TYPES.VIMEO
   result.src = params.src
-  result.videoId = match
+  result.videoId = videoId
 
   return result
 end
@@ -189,16 +212,16 @@ function formatAsciiDocVideo(src, type)
 end
 
 local function asciidocVideo(src, height, width, title, start, _aspectRatio)
-  local asciiDocVideoRawBlock = function(src, type) 
+  local asciiDocVideoRawBlock = function(src, type)
     return pandoc.RawBlock("asciidoc", formatAsciiDocVideo(src, type) .. '\n\n')
   end
 
-  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)  
-  if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then  
+  local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)
+  if videoSnippetAndType.type == VIDEO_TYPES.YOUTUBE then
     -- Use the video id to form an asciidoc video
     if videoSnippetAndType.videoId ~= nil then
       return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'youtube');
-    end    
+    end
   elseif videoSnippetAndType.type == VIDEO_TYPES.VIMEO then
     return asciiDocVideoRawBlock(videoSnippetAndType.videoId, 'vimeo');
   elseif videoSnippetAndType.type ==  VIDEO_TYPES.VIDEOJS then
