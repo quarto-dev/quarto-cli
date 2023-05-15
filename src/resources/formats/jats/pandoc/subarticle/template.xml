@@ -1,5 +1,5 @@
 <sub-article article-type="notebook">
-<front-stub>
+<front-stub$if(jats-subarticle-id)$ id="$jats-subarticle-id$"$endif$>
 $if(title)$
 <title-group>
 <article-title>$title$</article-title>
