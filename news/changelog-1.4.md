@@ -18,6 +18,10 @@
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 
+## RevealJS Format
+
+- [#5546](https://github.com/quarto-dev/quarto-cli/issues/5546): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
+
 ## Website Listings
 
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.

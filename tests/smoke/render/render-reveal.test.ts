@@ -71,6 +71,7 @@ testRender(input, "revealjs", false, [
     "#custom-divs-knitr-caption img.r-stretch",
     "#aside img.r-stretch",
     "#absolute img.r-stretch",
+    "#link img.r-stretch",
   ]),
 ]);
 
