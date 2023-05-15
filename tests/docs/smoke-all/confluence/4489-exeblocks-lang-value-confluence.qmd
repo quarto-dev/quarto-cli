@@ -1,0 +1,15 @@
+---
+title: Confluence Hello World
+format: confluence-publish
+validate-yaml: false
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - python
+---
+
+```{python}
+1 + 2
+```
