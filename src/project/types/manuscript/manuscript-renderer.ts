@@ -21,14 +21,16 @@ import {
 } from "./manuscript-types.ts";
 import { renderPandoc } from "../../../command/render/render.ts";
 import {
-  JatsRenderSubArticle,
-  JatsSubArticle,
   resolveEmbeddedSubarticles,
   resolveJatsSubarticleMetadata,
 } from "../../../format/jats/format-jats.ts";
 import { isArticle } from "./manuscript-config.ts";
 import { kNotebookSubarticles } from "../../../config/constants.ts";
 import { relative } from "path/mod.ts";
+import {
+  JatsRenderSubArticle,
+  JatsSubArticle,
+} from "../../../format/jats/format-jats-types.ts";
 
 // The manuscript renderer coordinates the rendering of the main article
 // and the notebooks.
