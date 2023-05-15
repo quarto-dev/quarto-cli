@@ -53,6 +53,15 @@ local kMermaidClz = 'mermaid'
 local kPositionedRefs = 'positioned-refs'
 local kTblColWidths = "tbl-colwidths"
 
+local kHeaderIncludes = "header-includes"
+local kIncludeBefore = "include-before"
+local kIncludeAfter = "include-after"
+
+local kIncludeBeforeBody = "include-before-body"
+local kIncludeAfterBody = "include-after-body"
+local kIncludeInHeader = "include-in-header"
+
+
 return {
   kCitation = kCitation,
   kContainerId = kContainerId,
@@ -102,5 +111,13 @@ return {
   kUnlessProfile = kUnlessProfile,
   kMermaidClz = kMermaidClz,
   kPositionedRefs = kPositionedRefs,
-  kTblColWidths = kTblColWidths
+  kTblColWidths = kTblColWidths,
+
+  kHeaderIncludes = kHeaderIncludes,
+  kIncludeBefore = kIncludeBefore,
+  kIncludeAfter = kIncludeAfter,
+
+  kIncludeBeforeBody = kIncludeBeforeBody,
+  kIncludeAfterBody = kIncludeAfterBody,
+  kIncludeInHeader = kIncludeInHeader,
 }

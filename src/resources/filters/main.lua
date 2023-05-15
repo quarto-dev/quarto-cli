@@ -166,8 +166,8 @@ initCrossrefIndex()
 initShortcodeHandlers()
 
 local quartoInit = {
-  { name = "init-configure-filters", filter = configureFilters() },
-  { name = "init-read-includes", filter = readIncludes() },
+  { name = "init-configure-filters", filter = configure_filters() },
+  { name = "init-read-includes", filter = read_includes() },
   { name = "init-metadata-resource-refs", filter = combineFilters({
     file_metadata(),
     resourceRefs()
