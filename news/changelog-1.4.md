@@ -36,6 +36,10 @@
 
 - ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152)): Support for `code-line-numbers` in Docusaurus output.
 
+## Beamer Format
+
+- [#5536](https://github.com/quarto-dev/quarto-cli/issues/5536): Correctly support Code Filename feature for Beamer output by fixing issue with float environment.
+
 ## OJS engine
 
 - Update observablehq's runtime to version 5.6.0.
