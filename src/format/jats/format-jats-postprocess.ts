@@ -25,6 +25,7 @@ import { dirAndStem } from "../../core/path.ts";
 
 import { dirname, join } from "path/mod.ts";
 import { copySync } from "fs/copy.ts";
+import { readLines } from "io/mod.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
@@ -78,6 +79,9 @@ export const renderSubarticlePostProcessor = (
         },
       );
 
+      // Read the subarticle
+      let outputContents = Deno.readTextFileSync(output);
+
       // There should be only one file. Grab it, and replace the placeholder
       // in the document with the rendered XML file, then delete it.
       if (rendered.files.length === 1) {
@@ -87,13 +91,21 @@ export const renderSubarticlePostProcessor = (
           subArticle.input,
         );
 
-        // Read the subarticle
-        const contents = Deno.readTextFileSync(file.file);
-        const outputContents = Deno.readTextFileSync(output);
+        // Process the subarticle to deal with ids and rids
+        const subArtReader = await Deno.open(file.file);
+        const subArtLines: string[] = [];
+        for await (let line of readLines(subArtReader)) {
+          // Process ids (add a suffix to all ids and rids)
+          line = line.replaceAll(kIdRegex, `$1id="$2-${subArticle.token}"`);
+          line = line.replaceAll(kRidRegex, `$1rid="$2-${subArticle.token}"`);
+          subArtLines.push(line);
+        }
 
         // Replace the placeholder with the rendered subarticle
-        const replaced = outputContents.replaceAll(placeholder, contents);
-        Deno.writeTextFileSync(output, replaced);
+        outputContents = outputContents.replaceAll(
+          placeholder,
+          subArtLines.join("\n"),
+        );
 
         // Clean any output file
         Deno.removeSync(file.file);
@@ -102,6 +114,11 @@ export const renderSubarticlePostProcessor = (
           "Rendered a single subarticle, but there was more than one!",
         );
       }
+
+      Deno.writeTextFileSync(output, outputContents);
     }
   };
 };
+
+const kIdRegex = /(\s+)id="([^"]*)"/g;
+const kRidRegex = /(\s+)rid="([^"]*)"/g;

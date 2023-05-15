@@ -9,7 +9,6 @@ local kKeywords = "keywords"
 local kQuartoInternal = "quarto-internal"
 local kHasAuthorNotes = "has-author-notes"
 local kHasPermissions = "has-permissions"
-local kJatsTitleBlockIdSuffix = "jats-title-block-id-suffix"
 local kJatsSubarticleId = "jats-subarticle-id"
 
 local function isCell(el) 
@@ -46,12 +45,6 @@ local function jatsMeta(meta)
     -- normalize keywords into tags if they're present and tags aren't
     if meta[kTags] == nil and meta[kKeywords] ~= nil and meta[kKeywords].t == "Table" then
       meta[kKeywords] = meta[kTags]
-    end
-
-    -- if a subarticle is available, create a suffix for ids in the title block
-    local subarticleId = param(kJatsSubarticleId, nil)
-    if subarticleId ~= nil then
-      meta[kJatsTitleBlockIdSuffix] = '-' .. subarticleId
     end
 
     return meta
