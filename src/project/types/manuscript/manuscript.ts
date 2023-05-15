@@ -7,7 +7,6 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { dirAndStem } from "../../../core/path.ts";
 import { join, relative } from "path/mod.ts";
 import {
   Format,
@@ -22,14 +21,11 @@ import {
   kFormatLinks,
   kNotebookLinks,
   kNotebooks,
-  kNotebookSubarticles,
   kResources,
   kToc,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
-import { existsSync } from "fs/mod.ts";
-import { isAbsolute } from "path/mod.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 import {
   PandocOptions,
   RenderFile,
@@ -39,26 +35,30 @@ import {
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
-import { kJatsSubarticle } from "../../../format/jats/format-jats-types.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
   kEnvironmentFiles,
   kManuscriptType,
   kManuscriptUrl,
-  kMecaArchive,
   ManuscriptConfig,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
-import { createMecaBundle } from "./manuscript-meca.ts";
+import {
+  createMecaBundle,
+  mecaFileName,
+  shouldMakeMecaBundle,
+} from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
 import { info } from "log/mod.ts";
+import { isOutputFile } from "../../../command/render/output.ts";
+import { manuscriptRenderer } from "./manuscript-renderer.ts";
+import { articleFile, isArticle } from "./manuscript-config.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
 const kDocumentNotebookLabel = "Inline Computations";
 
-const kMecaSuffix = "-meca.zip";
 const kMecaIcon = "archive";
 
 const kOutputDir = "_manuscript";
@@ -103,7 +103,16 @@ export const manuscriptProjectType: ProjectType = {
     const inputNotebooks = inputs.files.map((input) => {
       return relative(projectDir, input);
     }).filter((file) => {
-      return file !== article;
+      // Filter the article
+      if (file === article) {
+        return false;
+      }
+
+      // Filter output notebooks
+      if (isOutputFile(file, "ipynb")) {
+        return false;
+      }
+      return true;
     });
     const renderList = [...inputNotebooks, article];
     config.project.render = renderList;
@@ -185,7 +194,8 @@ export const manuscriptProjectType: ProjectType = {
     if (options.project) {
       const filterParams: Record<string, unknown> = {};
 
-      // See if there is an explicit manuscript URL
+      // See if there is an explicit manuscript URL and if
+      // there isn't try resolving it using Github information
       const manuscriptConfig = options.project
         .config?.[kManuscriptType] as ResolvedManuscriptConfig;
       if (manuscriptConfig) {
@@ -199,6 +209,7 @@ export const manuscriptProjectType: ProjectType = {
         }
       }
 
+      // Forward along notebook link data
       if (options.format.render[kNotebookLinks] !== undefined) {
         filterParams[kNotebookLinks] = options.format.render[kNotebookLinks];
       }
@@ -214,13 +225,20 @@ export const manuscriptProjectType: ProjectType = {
     file: RenderFile,
     project?: ProjectContext,
   ): string[] => {
+    // TODO: For HTML output, we may want to inject ipynb and force
+    // the notebook to be rendered to ipynb too
     if (project && project.config) {
       const manuscriptConfig = project
         .config[kManuscriptType] as ResolvedManuscriptConfig;
       if (isArticle(file.path, project, manuscriptConfig)) {
         return formats;
       } else {
-        return ["ipynb"];
+        // For notebooks, ignore them in the render list unless
+        // the format is JATS
+        //
+        // For HTML, the HTML format will take care of rendering.
+        // For all other formats, we don't need a copy
+        return ["jats"];
       }
     }
     return formats;
@@ -234,6 +252,7 @@ export const manuscriptProjectType: ProjectType = {
       const manuscriptConfig = project.config
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
 
+      // Configure the root article of the manuscript
       if (isArticle(source, project, manuscriptConfig)) {
         const formats = project.config?.format
           ? Object.values(project.config?.format)
@@ -253,25 +272,17 @@ export const manuscriptProjectType: ProjectType = {
             });
             format.render[kFormatLinks] = links;
           }
+        }
 
-          // For JATS, default subarticles on (unless turned off explicitly)
-          if (
-            isJatsOutput(format.pandoc) &&
-            format.render[kNotebookSubarticles] !== false
-          ) {
-            format.render[kNotebookSubarticles] = true;
-          }
+        // Enable google scholar, by default
+        if (format.metadata[kGoogleScholar] !== false) {
+          format.metadata[kGoogleScholar] = true;
+        }
 
-          // Enable google scholar, by default
-          if (format.metadata[kGoogleScholar] !== false) {
-            format.metadata[kGoogleScholar] = true;
-          }
-
-          // Enable the TOC for HTML output
-          if (isHtmlOutput(format.pandoc)) {
-            if (format.pandoc[kToc] !== false) {
-              format.pandoc[kToc] = true;
-            }
+        // Enable the TOC for HTML output
+        if (isHtmlOutput(format.pandoc)) {
+          if (format.pandoc[kToc] !== false) {
+            format.pandoc[kToc] = true;
           }
         }
       }
@@ -329,6 +340,7 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve(extras);
   },
+  pandocRenderer: manuscriptRenderer,
   notebooks: (context: ProjectContext) => {
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
@@ -385,60 +397,6 @@ export const manuscriptProjectType: ProjectType = {
   },
 };
 
-const isArticle = (
-  file: string,
-  project: ProjectContext,
-  manuscriptConfig: ResolvedManuscriptConfig,
-) => {
-  const articlePath = isAbsolute(file)
-    ? join(project.dir, manuscriptConfig.article)
-    : manuscriptConfig.article;
-  return file === articlePath;
-};
-
-const shouldMakeMecaBundle = (
-  formats: Format[],
-  manuConfig?: ManuscriptConfig,
-) => {
-  if (!manuConfig || manuConfig[kMecaArchive] !== false) {
-    // See if it was explicitely on
-    if (manuConfig && manuConfig[kMecaArchive] === true) {
-      return true;
-    }
-
-    // See if we're producing JATS, then enable it
-    return formats.find((format) => {
-      return isJatsOutput(format.pandoc);
-    });
-  } else {
-    // Explicitely turned off
-    return false;
-  }
-};
-
-const articleFile = (projectDir: string, config: ManuscriptConfig) => {
-  let defaultRenderFile: string | undefined = undefined;
-  // Build the render list
-  if (config.article) {
-    // If there is an explicitly specified article file
-    defaultRenderFile = config.article;
-  } else {
-    // Locate a default target
-    const defaultArticleFiles = ["index.qmd", "index.ipynb"];
-    const defaultArticleFile = defaultArticleFiles.find((file) => {
-      return existsSync(join(projectDir, file));
-    });
-    if (defaultArticleFile !== undefined) {
-      defaultRenderFile = defaultArticleFile;
-    } else {
-      throw new Error(
-        "Unable to determine the root input document for this manuscript. Please specify an `article` in your `_quarto.yml` file.",
-      );
-    }
-  }
-  return defaultRenderFile;
-};
-
 const codeHintRegexes = [/`+{[^\.]+.*}/, /.*"cell_type"\s*:\s*"code".*/];
 const hasComputations = async (file: string) => {
   const reader = await Deno.open(file);
@@ -477,13 +435,4 @@ const resolveNotebookDescriptors = (
     resolvedNbs.push(resolveNotebookDescriptor(nb));
   }
   return resolvedNbs;
-};
-
-const mecaFileName = (file: string, config: ManuscriptConfig) => {
-  if (typeof (config[kMecaArchive]) === "string") {
-    return config[kMecaArchive];
-  } else {
-    const [_, stem] = dirAndStem(file);
-    return `${stem}${kMecaSuffix}`;
-  }
 };

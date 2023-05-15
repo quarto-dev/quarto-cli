@@ -20,8 +20,12 @@ import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
   kEnvironmentFiles,
+  kMecaArchive,
+  ManuscriptConfig,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
+import { Format } from "../../../config/types.ts";
+import { dirAndStem } from "../../../core/path.ts";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
@@ -44,9 +48,40 @@ const kExecutionFiles = [
   "Dockerfile",
 ];
 
+const kMecaSuffix = "-meca.zip";
+
 const kReferencedFileType = "manuscript_reference";
 const kExecutionEnvironmentType = "execution_environment";
 const kResourceFileType = "manuscript_resource";
+
+export const shouldMakeMecaBundle = (
+  formats: Format[],
+  manuConfig?: ManuscriptConfig,
+) => {
+  if (!manuConfig || manuConfig[kMecaArchive] !== false) {
+    // See if it was explicitely on
+    if (manuConfig && manuConfig[kMecaArchive] === true) {
+      return true;
+    }
+
+    // See if we're producing JATS, then enable it
+    return formats.find((format) => {
+      return isJatsOutput(format.pandoc);
+    });
+  } else {
+    // Explicitely turned off
+    return false;
+  }
+};
+
+export const mecaFileName = (file: string, config: ManuscriptConfig) => {
+  if (typeof (config[kMecaArchive]) === "string") {
+    return config[kMecaArchive];
+  } else {
+    const [_, stem] = dirAndStem(file);
+    return `${stem}${kMecaSuffix}`;
+  }
+};
 
 export const createMecaBundle = async (
   mecaFile: string,
@@ -106,7 +141,7 @@ export const createMecaBundle = async (
       jatsArticle.supporting.forEach((file) => {
         const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
         const absPath = isAbsolute(file) ? file : join(outputDir, file);
-        const workingPath = toWorkingDir(absPath, relPath, true);
+        const workingPath = toWorkingDir(absPath, relPath, false);
 
         // Add Supporting files to manifest
         const items = mecaItemsForPath(workingDir, workingPath);

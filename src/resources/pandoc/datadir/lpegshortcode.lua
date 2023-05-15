@@ -216,7 +216,7 @@ unshortcode = lpeg.P({
     function(v, r) return r end,
   -- Shortcodekeyvalue =
   Shortcodeescaped = lpeg.P("[]{.quarto-shortcode__-escaped data-value=") * 
-      (escaped_string / function(s) return "{" .. unescape(s:sub(2, -2)) .. "}" end) * 
+      (escaped_string / function(s) return "{" .. unescape(s) .. "}" end) * 
       lpeg.P("}"),
   Shortcodespan = lpeg.V"Shortcodeescaped" + lpeg.V"Shortcodekeyvalue" + lpeg.V"Shortcodestring" +
   (lpeg.P("[") * (lpeg.V("Shortcodespan") * Space)^0 * (lpeg.P("]{.quarto-shortcode__") * Space * lpeg.P("data-raw=") * escaped_string * Space * lpeg.P("}"))) / function(...)
@@ -258,6 +258,7 @@ if os.getenv("LUA_TESTING") ~= nil then
   expect_equals(sc_string:match("asdf }}>"), "asdf")
 
   local unshortcode_tests = {
+    '{{{< meta >}}}',
     "{{< meta 'foo' >}}",
     "{{< meta \"foo\" >}}",
     "{{< meta bar >}}",

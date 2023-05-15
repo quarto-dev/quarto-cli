@@ -176,7 +176,7 @@ export function outputRecipe(
       // special case if the source will overwrite the destination (note: this
       // behavior can be customized with a custom output-ext)
       if (output === basename(context.target.source)) {
-        output = inputStem + ".out." + outputExt;
+        output = inputStem + `.${kOutExt}.` + outputExt;
       }
 
       // assign output
@@ -203,6 +203,11 @@ export function outputRecipe(
     // return
     return recipe;
   }
+}
+
+const kOutExt = "out";
+export function isOutputFile(path: string, ext: string) {
+  return path.endsWith(`.${kOutExt}.${ext}`);
 }
 
 export function normalizeOutputPath(input: string, output: string) {
