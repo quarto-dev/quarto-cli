@@ -495,11 +495,14 @@ function code_annotations()
                 -- for markdown / gfm we should drop the spans
                 local definition = nil
                 if _quarto.format.isHtmlOutput() then
-                  definition = pandoc.Span(definitionContent, {
-                    [constants.kDataCodeCellTarget] = pendingCellId,
-                    [constants.kDataCodeCellLines] = lineNumMeta.lineNumbers,
-                    [constants.kDataCodeCellAnnotation] = annotationToken
-                  });
+                  -- use an attribute list since it then guarantees that the
+                  -- order of the attributes is consistent from run to run
+                  local attribs = pandoc.AttributeList {
+                    {constants.kDataCodeCellTarget, pendingCellId},
+                    {constants.kDataCodeCellLines, lineNumMeta.lineNumbers},
+                    {constants.kDataCodeCellAnnotation, annotationToken}
+                  }
+                  definition = pandoc.Span(definitionContent, pandoc.Attr(attribs))
                 else 
                   definition = pandoc.Plain(definitionContent)
                 end
