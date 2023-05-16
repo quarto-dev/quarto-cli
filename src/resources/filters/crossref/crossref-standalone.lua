@@ -4,17 +4,13 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
--- global crossref state
-crossref = {
-  usingTheorems = false,
-  startAppendix = nil
-}
 
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+import("../mainstateinit.lua")
 import("index.lua")
 import("preprocess.lua")
 import("sections.lua")

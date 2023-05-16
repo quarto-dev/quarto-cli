@@ -1,8 +1,7 @@
 -- project_paths.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-
-kProjectResolverIgnore = 'project-resolve-ignore'
+local constants = require("modules/constants")
 
 local function resolveProjectPath(path)
   local offset = _quarto.projectOffset()
@@ -20,8 +19,8 @@ end
 function project_paths()
   return {
     Image = function(el)
-      if el.attr.attributes[kProjectResolverIgnore] then
-        el.attr.attributes[kProjectResolverIgnore] = ''
+      if el.attr.attributes[constants.kProjectResolverIgnore] then
+        el.attr.attributes[constants.kProjectResolverIgnore] = ''
         return el
       end
 
@@ -51,8 +50,8 @@ function project_paths()
     end,
 
     Link = function(el)
-      if el.attr.attributes[kProjectResolverIgnore] then
-        el.attr.attributes[kProjectResolverIgnore] = ''
+      if el.attr.attributes[constants.kProjectResolverIgnore] then
+        el.attr.attributes[constants.kProjectResolverIgnore] = ''
         return el
       end
 

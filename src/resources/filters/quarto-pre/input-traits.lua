@@ -1,18 +1,17 @@
 -- input-traits.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+local constants = require("modules/constants")
 
 function addInputTrait(key, value)
   preState.results.inputTraits[key] = value
 end
 
-local kPositionedRefs = 'positioned-refs'
 function input_traits() 
   return {
     Div = function(el) 
-      local hasPositionedRefs = el.attr.identifier == 'refs'
-      if (hasPositionedRefs) then
-        addInputTrait(kPositionedRefs, true) 
+      if el.attr.identifier == 'refs' then
+        addInputTrait(constants.kPositionedRefs, true) 
       end
     end
   }

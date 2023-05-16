@@ -8,12 +8,12 @@ $if(subtitle)$
 $endif$
 </title-group>
 $endif$
+${ authors.xml() }
 $if(abstract)$
 <abstract>
 $abstract$
 </abstract>
 $endif$
-${ authors.xml() }
 </front-stub>
 
 <body>

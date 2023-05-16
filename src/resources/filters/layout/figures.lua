@@ -1,6 +1,8 @@
 -- figures.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+local constants = require("modules/constants")
+
 -- extended figure features including fig-align, fig-env, etc.
 function extended_figures() 
   return {
@@ -38,18 +40,16 @@ function extended_figures()
   }
 end
 
-local kFigExtended = "fig.extended"
-
 function preventExtendedFigure(el)
-  el.attr.attributes[kFigExtended] = "false"
+  el.attr.attributes[constants.kFigExtended] = "false"
 end
 
 function forceExtendedFigure(el) 
-  el.attr.attributes[kFigExtended] = "true"
+  el.attr.attributes[constants.kFigExtended] = "true"
 end
 
 function shouldHandleExtended(el)
-  return el.attr.attributes[kFigExtended] ~= "false"
+  return el.attr.attributes[constants.kFigExtended] ~= "false"
 end
 
 -- By default, images without captions should be
@@ -75,7 +75,7 @@ function shouldHandleExtendedImage(el)
   end
 
   -- handle extended if it was explicitly enabled
-  if el.attr.attributes[kFigExtended] == "true" then
+  if el.attr.attributes[constants.kFigExtended] == "true" then
     return true
   end
 

@@ -1,23 +1,16 @@
 -- manuscript.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local kNotebook = "notebook"
-local kNotebookTitle = "notebook-title"
-local kNotebookCellId = "notebook-cellId"
-
-local kLangSourcePrefix = "source-notebooks-prefix"
-
-local kManuscriptUrl = "manuscript-url"
-local kNotebookLinks = "notebook-links"
+local constants = require("modules/constants")
 
 function manuscript() 
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
 
     local language = param("language", nil);
-    local notebookPrefix = language[kLangSourcePrefix]
+    local notebookPrefix = language[constants.kLangSourcePrefix]
 
-    local manuscriptUrl = param(kManuscriptUrl)
-    local notebookLinks = param(kNotebookLinks)
+    local manuscriptUrl = param(constants.kManuscriptUrl)
+    local notebookLinks = param(constants.kNotebookLinks)
 
     return {
 
@@ -29,7 +22,7 @@ function manuscript()
           return
         end
 
-        local nbPath = divEl.attributes[kNotebook]
+        local nbPath = divEl.attributes[constants.kNotebook]
         if manuscriptUrl ~= nil and nbPath ~= nil then
 
           -- Provide preview path for the preview generator - this
@@ -43,13 +36,13 @@ function manuscript()
 
 
           -- The title for the notebook
-          local nbTitle = divEl.attributes[kNotebookTitle]
+          local nbTitle = divEl.attributes[constants.kNotebookTitle]
           if nbTitle == nil then
             nbTitle = nbFileName
           end
 
           -- The Id
-          local cellId = divEl.attributes[kNotebookCellId];
+          local cellId = divEl.attributes[constants.kNotebookCellId];
           if cellId ~= nil then
             cellId = '#' .. cellId
           else

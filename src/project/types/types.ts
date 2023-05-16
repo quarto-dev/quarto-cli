@@ -63,6 +63,7 @@ export interface ProjectType {
     relativeToInputDir?: string,
   ) => RenderResultFile | undefined;
   projectFormatsOnly?: boolean;
+  incrementalFormatPreviewing?: boolean; // Use the input format for a requested output file in the preview server
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;
   filterParams?: (options: PandocOptions) => Promise<Metadata | undefined>;

@@ -1,7 +1,7 @@
 -- reveal.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local kShowNotes = 'showNotes'
+local kShowNotes = require("modules/constants").kShowNotes
 
 function reveal()
   if _quarto.format.isRevealJsOutput() then

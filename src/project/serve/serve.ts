@@ -5,7 +5,7 @@
  */
 
 import { info, warning } from "log/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync, format } from "fs/mod.ts";
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 import { MuxAsyncIterator } from "async/mod.ts";
@@ -78,7 +78,7 @@ import { resourceFilesFromFile } from "../../command/render/resources.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { htmlResourceResolverPostprocessor } from "../../project/types/website/website-resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { kResources } from "../../config/constants.ts";
+import { kResources, kTargetFormat } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
 import {
   RenderFlags,
@@ -538,6 +538,14 @@ async function internalPreviewServer(
             if (renderFlags?.to == "all") {
               renderFlags.to = isHtmlContent(file) ? "html" : "pdf";
             }
+
+            // When previewing, the project type can request that the format that produced
+            // the output that is being requested should always be used to render the file
+            if (projType.incrementalFormatPreviewing) {
+              renderFlags.to = inputFile.format.identifier[kTargetFormat];
+              delete renderFlags?.clean;
+            }
+
             const services = renderServices();
             try {
               result = await renderManager.submitRender(() =>

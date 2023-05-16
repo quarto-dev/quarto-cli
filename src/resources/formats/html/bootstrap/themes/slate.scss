@@ -35,7 +35,7 @@ $cyan:    #5bc0de !default;
     @return mix($gray-900, $gray-600, $weight);
 }
 $body-bg:                   body-mix(100%) !default;
-$body-color:                $gray-500 !default;
+$body-color:                body-mix(0%) !default;
 
 $contrast-bg: color-contrast($body-bg) !default;
 $contrast-fg: color-contrast($contrast-bg) !default;

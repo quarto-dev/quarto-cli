@@ -1,7 +1,7 @@
 -- engine-escape.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
-local kEngineEscapePattern = "{({+([^}]+)}+)}"
+local patterns = require("modules/patterns")
 
 function engine_escape()
   return {
@@ -9,7 +9,7 @@ function engine_escape()
 
       -- handle code block with 'escaped' language engine
       if #el.attr.classes == 1 then
-        local engine, lang = el.attr.classes[1]:match(kEngineEscapePattern)
+        local engine, lang = el.attr.classes[1]:match(patterns.engine_escape)
         if engine then
           el.text = "```" .. engine .. "\n" .. el.text .. "\n" .. "```"
           el.attr.classes[1] = "markdown"
@@ -18,7 +18,7 @@ function engine_escape()
       end
 
       -- handle escaped engines within a code block
-      el.text = el.text:gsub("```" .. kEngineEscapePattern, function(engine, lang)
+      el.text = el.text:gsub("```" .. patterns.engine_escape, function(engine, lang)
         if #el.attr.classes == 0 or not isHighlightClass(el.attr.classes[1]) then
           el.attr.classes:insert(1, "markdown")
         end

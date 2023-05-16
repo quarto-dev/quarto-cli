@@ -16,6 +16,7 @@ return {
       for k, v in pairs(kwargs) do
         table.insert(kwargs_strs, string.format('data-%s="%s"', osname(k), pandoc.utils.stringify(v)))
       end
+      table.sort(kwargs_strs) -- sort so that the output is deterministic
       local kwargs_str = table.concat(kwargs_strs)
 
       local default_arg_str

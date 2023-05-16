@@ -1,13 +1,13 @@
 -- cites.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local discoveredCites = pandoc.List() 
-local kRefsIndentifier = "refs-target-identifier"
+local discoveredCites = pandoc.List()
+local constants = require("modules/constants")
 
 function indexCites()   
   return {
     Div = function(el) 
-      local refsIndentifier = param(kRefsIndentifier)
+      local refsIndentifier = param(constants.kRefsIndentifier)
       if el.attr.identifier == 'refs' and refsIndentifier then 
         tappend(el.content, {pandoc.Plain(refsIndentifier)})
         return el;

@@ -9,9 +9,9 @@ You can contribute in many ways:
 - By submitting Pull Request (PR) to fix opened issues
 - By submitting Pull Request (PR) to suggest new features (it is considered good practice to open an issue for discussion before working on a pull request for a new feature).
 
-## To submit a contribution using a Pull Request:
+## To submit a contribution using a Pull Request
 
-1.  [Fork](https://github.com/quarto-dev/quarto-cli/fork) the repository, clone it locallly, and make your changes in a new branch specific to the PR. For example:
+1.  [Fork](https://github.com/quarto-dev/quarto-cli/fork) the repository, clone it locally, and make your changes in a new branch specific to the PR. For example:
 
     ```bash
     # clone your fork

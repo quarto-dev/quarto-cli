@@ -57,7 +57,7 @@ import { articleFile, isArticle } from "./manuscript-config.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Inline Computations";
+const kDocumentNotebookLabel = "Code Cells";
 
 const kMecaIcon = "archive";
 
@@ -190,6 +190,7 @@ export const manuscriptProjectType: ProjectType = {
   },
   outputDir: kOutputDir,
   cleanOutputDir: true,
+  incrementalFormatPreviewing: true,
   filterParams: async (options: PandocOptions) => {
     if (options.project) {
       const filterParams: Record<string, unknown> = {};

@@ -9,8 +9,6 @@ import { ProjectContext } from "../../types.ts";
 import { isJatsOutput } from "../../../config/format.ts";
 import {
   ExecutedFile,
-  OutputRecipe,
-  PandocOptions,
   PandocRenderCompletion,
   PandocRenderer,
   RenderedFile,
@@ -27,12 +25,12 @@ import {
   resolveJatsSubarticleMetadata,
 } from "../../../format/jats/format-jats.ts";
 import { isArticle } from "./manuscript-config.ts";
+import { kNotebookSubarticles } from "../../../config/constants.ts";
+import { relative } from "path/mod.ts";
 import {
-  kNotebookSubarticles,
-  kOutputFile,
-} from "../../../config/constants.ts";
-import { cloneDeep } from "../../../core/lodash.ts";
-import { basename, relative } from "path/mod.ts";
+  JatsRenderSubArticle,
+  JatsSubArticle,
+} from "../../../format/jats/format-jats-types.ts";
 
 // The manuscript renderer coordinates the rendering of the main article
 // and the notebooks.
@@ -48,7 +46,6 @@ export const manuscriptRenderer = (
   // Accumulate completions and files
   const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];
-  const renderCleanup: string[] = [];
 
   // Increment a notebook counter
   let nbCount = 1;
@@ -75,20 +72,35 @@ export const manuscriptRenderer = (
           )
         ) {
           // For the core article, provide the subarticles to be bundled
-          const jatsNotebooks = renderedFiles.filter((file) => {
-            return isJatsOutput(file.format.pandoc);
-          }).map((file) => {
-            return {
-              input: file.input,
-              output: file.file,
-              supporting: file.supporting || [],
-              resources: file.resourceFiles.files,
-            };
-          });
+          const jatsNotebooks: Array<JatsSubArticle | JatsRenderSubArticle> =
+            renderedFiles.filter((file) => {
+              return isJatsOutput(file.format.pandoc);
+            }).map((file) => {
+              return {
+                render: false,
+                input: file.input,
+                output: file.file,
+                supporting: file.supporting || [],
+                resources: file.resourceFiles.files,
+              };
+            });
 
           // If the core article is in the list of notebooks to be included
           // as subarticles, we need to perform a separate render of the
           // article as a subarticle notebook and embed that within the article
+          if (
+            manuscriptConfig.notebooks.find((nb) => {
+              return nb.notebook ===
+                relative(context.dir, executedFile.context.target.input);
+            })
+          ) {
+            // Add a notebook to render here
+            jatsNotebooks.push({
+              render: true,
+              input: executedFile.context.target.input,
+              token: "nb-article",
+            });
+          }
 
           resolveEmbeddedSubarticles(
             executedFile.recipe.format,
@@ -112,9 +124,6 @@ export const manuscriptRenderer = (
       }
     },
     onComplete: async () => {
-      renderCleanup.forEach((file) => {
-        Deno.removeSync(file);
-      });
       return {
         files: await Promise.resolve(renderedFiles),
       };

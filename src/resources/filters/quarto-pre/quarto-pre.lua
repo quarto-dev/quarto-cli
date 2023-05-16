@@ -4,25 +4,13 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
--- global state
-preState = {
-  usingBookmark = false,
-  usingTikz = false,
-  results = {
-    resourceFiles = pandoc.List({}),
-    inputTraits = {}
-  },
-  file = nil,
-  appendix = false,
-  fileSectionIds = {}
-}
-
-
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+
+import("../mainstateinit.lua")
 import("../common/colors.lua")
 import("../common/error.lua")
 import("../common/base64.lua")
@@ -125,4 +113,4 @@ local filterList = {
   { name = "project-paths", filter = project_paths()}
 }
 
-return capture_timings(filterList)
+return filterList
