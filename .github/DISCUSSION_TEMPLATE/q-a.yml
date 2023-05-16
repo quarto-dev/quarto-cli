@@ -3,10 +3,16 @@ body:
   - type: markdown
     attributes: 
       value: |
-        Make sure to check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a) first to see if your question/report has already been discussed.
-        If it has, you can add a comment to the existing discussion instead of creating a new one.
+        First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a) first to see if your question has already been asked.
+        If it has, please consider adding a comment to the existing discussion instead of creating a new one.
 
-        After checking, if you are not sure that your question/report has already been discussed, you can still create a new discussion. 😉
+        After checking, if you are not sure if your question has already been asked, please create a new discussion.
+        We look forward to hearing from you.
+
+        Finally, try to describe the best you can what you want to achieve or what is your issue, especially by providing a complete self-contained reproducible example (as demonstrated in the below form).
+        This will help us to understand your question and answer it.
+
+        _Thank you for opening this discussion either to ask for help or to report a possible bug!_
   - type: textarea
     attributes:
       label: Description
@@ -38,4 +44,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        _Thanks for opening this discussion either to ask for help or report a possible bug!_
+        _Thank you for opening this discussion either to ask for help or to report a possible bug!_
