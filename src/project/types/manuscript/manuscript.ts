@@ -57,7 +57,7 @@ import { articleFile, isArticle } from "./manuscript-config.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Code Cells";
+const kDocumentNotebookLabel = "Article Notebook";
 
 const kMecaIcon = "archive";
 
@@ -351,6 +351,7 @@ export const manuscriptProjectType: ProjectType = {
       return [];
     }
   },
+  previewSkipUnmodified: false,
   renderResultFinalOutput: (
     renderResults: RenderResult,
   ) => {

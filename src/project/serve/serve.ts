@@ -866,6 +866,8 @@ function renderErrorPage(e: Error) {
 async function serveFiles(
   project: ProjectContext,
 ): Promise<{ files: string[]; resourceFiles: string[] }> {
+  const projType = projectType(project.config?.project?.[kProjectType]);
+
   // one time denoDom init
   await initDenoDom();
 
@@ -877,7 +879,10 @@ async function serveFiles(
     const target = await resolveInputTarget(project, projRelative, false);
     if (target) {
       const outputFile = join(projectOutputDir(project), target?.outputHref);
-      if (isModifiedAfter(inputFile, outputFile)) {
+      if (
+        isModifiedAfter(inputFile, outputFile) ||
+        projType.previewSkipUnmodified === false // Project types can force not skipping the rendering of files
+      ) {
         // render this file
         files.push(inputFile);
       } else {

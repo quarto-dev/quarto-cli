@@ -58,6 +58,7 @@ export interface ProjectType {
   notebooks?: (
     context: ProjectContext,
   ) => NotebookPreviewDescriptor[];
+  previewSkipUnmodified?: boolean;
   renderResultFinalOutput?: (
     renderResults: RenderResult,
     relativeToInputDir?: string,
