@@ -26,6 +26,7 @@ import { dirAndStem } from "../../core/path.ts";
 import { dirname, join } from "path/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { readLines } from "io/mod.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
@@ -53,6 +54,7 @@ export const moveSubarticleSupportingPostProcessor = (
 export const renderSubarticlePostProcessor = (
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
+  project?: ProjectContext,
 ) => {
   return async (output: string) => {
     for (const subArticle of subArticles) {
@@ -77,6 +79,9 @@ export const renderSubarticlePostProcessor = (
           },
           echo: true,
         },
+        [],
+        undefined,
+        project,
       );
 
       // Read the subarticle

@@ -206,6 +206,7 @@ export function boostrapExtras(
           flags,
           services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -228,6 +229,7 @@ function bootstrapHtmlPostprocessor(
   flags: PandocFlags,
   services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -280,10 +282,11 @@ function bootstrapHtmlPostprocessor(
 
     const tocTarget = doc.getElementById("quarto-toc-target");
 
-    const useDoubleToc = (format.metadata[kTocLocation] as string)?.includes('-body') ?? false;
+    const useDoubleToc =
+      (format.metadata[kTocLocation] as string)?.includes("-body") ?? false;
 
     if (toc && tocTarget) {
-      if(useDoubleToc) {
+      if (useDoubleToc) {
         const clonedToc = toc.cloneNode(true);
         toc.id = "TOC-body";
         toc = clonedToc as Element;
@@ -353,6 +356,7 @@ function bootstrapHtmlPostprocessor(
         doc,
         format,
         services,
+        project,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
