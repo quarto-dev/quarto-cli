@@ -130,7 +130,6 @@ export async function resolveSassBundles(
       // look for a sentinel 'dark' value, extract variables
       const cssResult = processCssIntoExtras(cssPath, extras, temp);
       cssPath = cssResult.path;
-
       // Process attributes (forward on to the target)
       for (const bundle of target.bundles) {
         if (bundle.attribs) {
@@ -439,7 +438,10 @@ function processCssIntoExtras(
     );
 
     if (dirty) {
-      const cleanedCss = css.replaceAll(kVariablesRegex, "");
+      const cleanedCss = css.replaceAll(kVariablesRegex, "").replaceAll(
+        kSourceMappingRegex,
+        "",
+      );
       const newCssPath = temp.createFile({ suffix: ".css" });
 
       // Preserve the existing permissions if possible
@@ -471,6 +473,7 @@ function processCssIntoExtras(
 }
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
+const kSourceMappingRegex = /\/\*\# sourceMappingURL=.* \*\//g;
 
 // Attributes for the style tag
 // Note that we default disable the dark mode and rely on JS to enable it
