@@ -14,6 +14,7 @@ export interface ProjectWatcher {
     req: Request,
     file: Uint8Array,
     inputFile?: string,
+    contentType?: string,
   ) => FileResponse;
   hasClients: () => boolean;
   reloadClients: (output: boolean, reloadTarget?: string) => Promise<void>;

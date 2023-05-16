@@ -23,6 +23,7 @@ export interface HttpDevServer {
     req: Request,
     file: Uint8Array,
     inputFile?: string,
+    contentType?: string,
   ) => FileResponse;
   clientHtml: (
     req: Request,
@@ -159,6 +160,7 @@ export function httpDevServer(
       req: Request,
       file: Uint8Array,
       inputFile?: string,
+      contentType?: string,
     ): FileResponse => {
       const script = devServerClientScript(
         inputFile,
@@ -172,7 +174,7 @@ export function httpDevServer(
       fileWithScript.set(file);
       fileWithScript.set(scriptContents, file.length);
       return {
-        contentType: kTextHtml,
+        contentType: contentType || kTextHtml,
         body: fileWithScript,
       };
     },

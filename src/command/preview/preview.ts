@@ -34,10 +34,8 @@ import {
 } from "../../core/http-devserver.ts";
 import {
   isHtmlContent,
-  isMarkdownContent,
   isPdfContent,
   isTextContent,
-  isXmlContent,
   kTextXml,
 } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -116,11 +114,7 @@ import {
   kPreviewModeRaw,
   kTargetFormat,
 } from "../../config/constants.ts";
-import {
-  isHtmlDocOutput,
-  isHtmlOutput,
-  isJatsOutput,
-} from "../../config/format.ts";
+import { isHtmlDocOutput, isJatsOutput } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
 import { findOpenPort, waitForPort } from "../../core/port.ts";
