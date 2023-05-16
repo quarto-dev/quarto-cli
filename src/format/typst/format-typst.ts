@@ -1,14 +1,14 @@
 /*
-* format-typst.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-typst.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join } from "path/mod.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 import {
+  kCiteproc,
   kColumns,
   kDefaultImageExtension,
   kFigFormat,
@@ -40,6 +40,7 @@ export function typstFormat(): Format {
       standalone: true,
       [kDefaultImageExtension]: "svg",
       [kWrap]: "none",
+      [kCiteproc]: false,
     },
     formatExtras: (
       _input: string,
