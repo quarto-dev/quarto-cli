@@ -1,5 +1,5 @@
--- authors.lua
--- Copyright (C) 2020-2022 Posit Software, PBC
+-- normalize.lua
+-- Copyright (C) 2020-2023 Posit Software, PBC
 
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
@@ -18,6 +18,7 @@ end
 -- imported elements
 local authors = require 'modules/authors'
 local license = require 'modules/license'
+local shortcode_ast = require 'modules/astshortcode'
 
 function normalize_filter() 
   return {
@@ -41,6 +42,12 @@ function normalize_filter()
           end
         end
       end
+
+      -- parses the shortcodes that might be in the metadata
+      -- since they're not visible in the text that is available
+      -- to qmd-reader.lua
+
+      normalized = shortcode_ast.parse(normalized)
 
       return normalized
     end
