@@ -21,6 +21,7 @@ import {
   kFormatLinks,
   kNotebookLinks,
   kNotebooks,
+  kOutputFile,
   kResources,
   kToc,
 } from "../../../config/constants.ts";
@@ -226,8 +227,6 @@ export const manuscriptProjectType: ProjectType = {
     file: RenderFile,
     project?: ProjectContext,
   ): string[] => {
-    // TODO: For HTML output, we may want to inject ipynb and force
-    // the notebook to be rendered to ipynb too
     if (project && project.config) {
       const manuscriptConfig = project
         .config[kManuscriptType] as ResolvedManuscriptConfig;
@@ -281,9 +280,15 @@ export const manuscriptProjectType: ProjectType = {
         }
 
         // Enable the TOC for HTML output
-        if (isHtmlOutput(format.pandoc)) {
+        if (isHtmlOutput(format.pandoc, true)) {
           if (format.pandoc[kToc] !== false) {
             format.pandoc[kToc] = true;
+          }
+
+          if (format.pandoc[kOutputFile] === undefined) {
+            // If this is HTML version of article make sure it
+            // is targeting index.html as its output
+            format.pandoc[kOutputFile] = "index.html";
           }
         }
       }
