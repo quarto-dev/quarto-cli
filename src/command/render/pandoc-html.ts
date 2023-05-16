@@ -410,7 +410,10 @@ function processCssIntoExtras(
   temp: TempContext,
 ): CSSResult {
   extras.html = extras.html || {};
-  const css = Deno.readTextFileSync(cssPath);
+  const css = Deno.readTextFileSync(cssPath).replaceAll(
+    kSourceMappingRegex,
+    "",
+  );
 
   // Extract dark sentinel value
   const hasDarkSentinel = cssHasDarkModeSentinel(css);
@@ -438,10 +441,7 @@ function processCssIntoExtras(
     );
 
     if (dirty) {
-      const cleanedCss = css.replaceAll(kVariablesRegex, "").replaceAll(
-        kSourceMappingRegex,
-        "",
-      );
+      const cleanedCss = css.replaceAll(kVariablesRegex, "");
       const newCssPath = temp.createFile({ suffix: ".css" });
 
       // Preserve the existing permissions if possible
