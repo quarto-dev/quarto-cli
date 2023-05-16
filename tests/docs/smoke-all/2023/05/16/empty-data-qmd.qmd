@@ -1,0 +1,41 @@
+---
+title: "testing table"
+format: 
+   html:
+     keep-md: true
+   pdf:
+     keep-tex: true
+     number-sections: true
+_quarto:
+  tests:
+    html: null
+    pdf: null
+---
+
+## Introduction 
+
+
+```{=html}
+<table>
+<caption><span data-qmd="As described in @sec-content, computers are great."></span></caption>
+<thead>
+<tr>
+<th><span data-qmd="_Header 1_"></span></th>
+<th><span data-qmd="_Header 2_"></span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span data-qmd=""></span></td>
+<td>Regular output</td>
+</tr>
+</tbody>
+</table>
+```
+
+
+
+
+## Content {#sec-content}
+
+Some content here.
