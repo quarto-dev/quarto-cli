@@ -322,6 +322,9 @@ function code_annotations()
   -- the localized strings
   local language = param("language", nil)
 
+  -- an id counter to provide nice numeric ids to cell
+  local idCounter = 1
+
   -- walk the blocks and look for annotated code
   -- process the list top down so that we see the outer
   -- code divs first
@@ -341,7 +344,6 @@ function code_annotations()
         local pendingAnnotations = nil
         local pendingCellId = nil
         local pendingCodeCell = nil
-        local idCounter = 1
 
         local clearPending = function() 
           pendingAnnotations = nil
