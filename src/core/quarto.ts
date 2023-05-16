@@ -32,6 +32,10 @@ export const quartoConfig = {
   sharePath: () => getenv("QUARTO_SHARE_PATH"),
   isDebug: () => getenv("QUARTO_DEBUG", "false") === "true",
   version: () => {
+    const forceVersion = getenv("QUARTO_FORCE_VERSION", "");
+    if (forceVersion !== "") {
+      return forceVersion;
+    }
     const versionPath = join(getenv("QUARTO_SHARE_PATH"), "version");
     if (existsSync(versionPath)) {
       return Deno.readTextFileSync(versionPath);
