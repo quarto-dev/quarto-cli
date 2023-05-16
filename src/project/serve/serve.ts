@@ -885,7 +885,7 @@ async function serveFiles(
         // for monitoring during serve
 
         // resource files referenced in html
-        const files: string[] = [];
+        const outputResources: string[] = [];
         if (isHtmlContent(outputFile)) {
           const htmlInput = Deno.readTextFileSync(outputFile);
           const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
@@ -893,7 +893,7 @@ async function serveFiles(
             inputFile,
             project,
           );
-          files.push(...(await resolver(doc)).resources);
+          outputResources.push(...(await resolver(doc)).resources);
         }
 
         // partition markdown and read globs
@@ -913,7 +913,7 @@ async function serveFiles(
             project.dir,
             projectExcludeDirs(project),
             projRelative,
-            { files, globs },
+            { files: outputResources, globs },
             false, // selfContained,
             [join(dirname(projRelative), inputFilesDir(projRelative))],
             partitioned,
