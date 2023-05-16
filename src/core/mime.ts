@@ -1,9 +1,8 @@
 /*
-* mime.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * mime.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname } from "path/mod.ts";
 
@@ -54,6 +53,10 @@ export function isPdfContent(path?: string) {
   return !!path && contentType(path) === kApplicationPdf;
 }
 
+export function isDocxContent(path?: string) {
+  return !!path && contentType(path) === kDocxDocument;
+}
+
 export function isHtmlContent(path?: string) {
   return !!path && contentType(path) === kTextHtml;
 }
@@ -72,7 +75,6 @@ export function isTextContent(path?: string) {
       contentType(path) === kTextPlain ||
       contentType(path) === kTextXml);
 }
-
 
 const MEDIA_TYPES: Record<string, string> = {
   ".md": kTextMarkdown,

@@ -16,7 +16,14 @@ import * as ld from "../../core/lodash.ts";
 import { DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { openUrl } from "../../core/shell.ts";
-import { contentType, isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import {
+  contentType,
+  isDocxContent,
+  isHtmlContent,
+  isPdfContent,
+  isTextContent,
+  isXmlContent,
+} from "../../core/mime.ts";
 import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 
@@ -495,7 +502,10 @@ async function internalPreviewServer(
     // handle html file requests w/ re-renders
     onFile: async (file: string, req: Request) => {
       // if this is an html file or a pdf then re-render (using the freezer)
-      if (isHtmlContent(file) || isPdfContent(file)) {
+      if (
+        isHtmlContent(file) || isPdfContent(file) || isDocxContent(file) ||
+        isTextContent(file) || isXmlContent(file)
+      ) {
         // find the input file associated with this output and render it
         // if we can't find an input file for this .html file it may have
         // been an input added after the server started running, to catch
