@@ -3,12 +3,13 @@ body:
   - type: markdown
     attributes: 
       value: |
-        Make sure to check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) first to see if your feature request has already been discussed.
-        If it has, you can add a comment to the existing discussion instead of creating a new one.
+        First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) to see if your feature request has already been discussed.
+        If it has, please consider adding a comment to the existing discussion instead of creating a new one.
 
-        After checking, if you are not sure if your feature request has already been discussed, you can still create a new discussion. 😉
+        After checking, if you are not sure if your feature request has already been discussed, please create a new discussion.
+        We look forward to hearing from you.
 
-        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+        If you want to ask for help, please consider using the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a), as it is better suited for answering your question.
 
         Finally, try to describe the best you can what you want to achieve and why you think it is important.
         This will help us to understand your request and prioritise it.
@@ -20,4 +21,4 @@ body:
       required: true
   - type: markdown
     attributes:
-      value: "_Thanks for opening this feature request!_"
+      value: "_Thank you for opening this feature request!_"
