@@ -33,6 +33,7 @@ import {
   kPdfEngine,
   kQuartoFilters,
   kReferenceLocation,
+  kReferences,
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
@@ -668,8 +669,8 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
     return "citeproc";
   }
 
-  // No bibliography or refences, and no explicit request, so no engine specified
-  if (!metadata[kBibliography] && !metadata.references) {
+  // No bibliography or references, and no explicit request, so no engine specified
+  if (!metadata[kBibliography] && !metadata[kReferences]) {
     return null;
   }
 

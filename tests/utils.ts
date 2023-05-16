@@ -19,8 +19,9 @@ export function outputForInput(
   input: string,
   to: string,
   projectOutDir?: string,
+  ext?: string
 ) {
-  // TODO: Consider improving this (e.g. for cases like Beamer)
+  // TODO: Consider improving this (e.g. for cases like Beamer, or typst)
   const dir = dirname(input);
   let stem = basename(input, extname(input));
 
@@ -32,27 +33,35 @@ export function outputForInput(
     }`;
   }
 
-  let outputExt = baseFormat || "html";
-  if (baseFormat === "latex" || baseFormat == "context") {
-    outputExt = "tex";
-  }
-  if (baseFormat === "revealjs") {
-    outputExt = "html";
-  }
-  if (["commonmark", "gfm", "markdown"].some((f) => f === baseFormat)) {
-    outputExt = "md";
-  }
-  if (baseFormat === "csljson") {
-    outputExt = "csl";
-  }
-  if (baseFormat === "bibtex" || baseFormat === "biblatex") {
-    outputExt = "bib";
-  }
-  if (baseFormat === "jats") {
-    outputExt = "xml";
-  }
-  if (baseFormat === "asciidoc") {
-    outputExt = "adoc";
+  let outputExt;
+  if (ext) { 
+    outputExt = ext 
+  } else {
+    outputExt = baseFormat || "html";
+    if (baseFormat === "latex" || baseFormat == "context") {
+      outputExt = "tex";
+    }
+    if (baseFormat === "revealjs") {
+      outputExt = "html";
+    }
+    if (["commonmark", "gfm", "markdown"].some((f) => f === baseFormat)) {
+      outputExt = "md";
+    }
+    if (baseFormat === "csljson") {
+      outputExt = "csl";
+    }
+    if (baseFormat === "bibtex" || baseFormat === "biblatex") {
+      outputExt = "bib";
+    }
+    if (baseFormat === "jats") {
+      outputExt = "xml";
+    }
+    if (baseFormat === "asciidoc") {
+      outputExt = "adoc";
+    }
+    if (baseFormat === "typst") {
+      outputExt = "pdf";
+    }
   }
 
   const outputPath = projectOutDir
