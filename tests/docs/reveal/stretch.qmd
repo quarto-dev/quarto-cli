@@ -249,3 +249,7 @@ Something here as an aside
 See the feature https://quarto.org/docs/presentations/revealjs/advanced.html#absolute-position from
 
 ![](https://quarto.org/quarto.png){.absolute width=500}
+
+## No auto stretch if image is inside linke {#link}
+
+[![](https://quarto.org/docs/blog/posts/2023-04-26-1.3-release/arthur-chauvineau-Dn7P1U26ZkE-unsplash.jpeg)](https://google.com)

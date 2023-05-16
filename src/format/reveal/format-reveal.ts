@@ -787,7 +787,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           !imageEl.getAttribute("style")?.match("height:") &&
           !imageEl.hasAttribute("height") &&
           // do not add when .absolute is used
-          !imageEl.classList.contains("absolute")
+          !imageEl.classList.contains("absolute") &&
+          // do not add when image is inside a link
+          imageEl.parentElement?.nodeName !== "A"
         ) {
           imageEl.classList.add("r-stretch");
         }
