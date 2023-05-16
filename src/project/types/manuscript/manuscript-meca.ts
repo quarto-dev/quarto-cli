@@ -55,7 +55,7 @@ const kExecutionEnvironmentType = "execution_environment";
 const kResourceFileType = "manuscript_resource";
 
 export const shouldMakeMecaBundle = (
-  formats: Format[],
+  formats: Array<string | Format>,
   manuConfig?: ManuscriptConfig,
 ) => {
   if (!manuConfig || manuConfig[kMecaArchive] !== false) {
@@ -66,7 +66,11 @@ export const shouldMakeMecaBundle = (
 
     // See if we're producing JATS, then enable it
     return formats.find((format) => {
-      return isJatsOutput(format.pandoc);
+      if (typeof (format) === "string") {
+        return isJatsOutput(format);
+      } else {
+        return isJatsOutput(format.pandoc);
+      }
     });
   } else {
     // Explicitely turned off

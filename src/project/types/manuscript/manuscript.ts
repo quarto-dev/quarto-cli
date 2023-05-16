@@ -256,7 +256,7 @@ export const manuscriptProjectType: ProjectType = {
       // Configure the root article of the manuscript
       if (isArticle(source, project, manuscriptConfig)) {
         const formats = project.config?.format
-          ? Object.values(project.config?.format)
+          ? Object.keys(project.config?.format)
           : [];
 
         if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
