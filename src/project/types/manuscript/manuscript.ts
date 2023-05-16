@@ -269,6 +269,7 @@ export const manuscriptProjectType: ProjectType = {
               title: kMecaFileLabel,
               href: mecaFileName(source, manuscriptConfig),
               icon: kMecaIcon,
+              attr: { "data-meca-link": "true" },
             });
             format.render[kFormatLinks] = links;
           }

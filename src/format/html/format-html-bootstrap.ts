@@ -565,6 +565,12 @@ function processAlternateFormatLinks(
         if (alternateLink.dlAttrValue) {
           link.setAttribute("download", alternateLink.dlAttrValue);
         }
+        if (alternateLink.attr) {
+          for (const key of Object.keys(alternateLink.attr)) {
+            const value = alternateLink.attr[key];
+            link.setAttribute(key, value);
+          }
+        }
 
         const icon = doc.createElement("i");
         icon.classList.add("bi");
@@ -591,6 +597,7 @@ interface AlternateLink {
   href: string;
   icon: string;
   dlAttrValue?: string;
+  attr?: Record<string, string>;
 }
 
 function alternateLinks(
@@ -640,6 +647,7 @@ function alternateLinks(
         href: userLink.href,
         icon: userLink.icon || fileBsIconForExt(userLink.href),
         dlAttrValue: "",
+        attr: userLink.attr,
       };
       alternateLinks.push(alternate);
     }
