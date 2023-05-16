@@ -13,6 +13,8 @@ body:
 
         Finally, try to describe the best you can what you want to achieve and why you think it is important.
         This will help us to understand your request and prioritise it.
+
+        _Thank you for opening this feature request!_
   - type: textarea
     attributes:
       label: Description
@@ -21,4 +23,5 @@ body:
       required: true
   - type: markdown
     attributes:
-      value: "_Thank you for opening this feature request!_"
+      value: |
+        _Thank you for opening this feature request!_
