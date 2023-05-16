@@ -13,9 +13,8 @@ local interpolate = function(str, vars)
 end
 
 local function splitString (toSplit, delimiter)
-  if delimiter == nil then
-    delimiter = "%s"
-  end
+  delimiter = delimiter or "%s"
+
   local t={}
   for str in string.gmatch(toSplit, "([^".. delimiter .."]+)") do
     table.insert(t, str)
