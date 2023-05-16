@@ -17,6 +17,9 @@ _quarto:
           - "#vimeo-test-unlisted .quarto-video.ratio.ratio-16x9"
           - '#vimeo-test-unlisted iframe[src$="https://player.vimeo.com/video/548291297?h=fdcc90d662"]'
 
+          - "#vimeo-test-unlisted-share-copy .quarto-video.ratio.ratio-16x9"
+          - '#vimeo-test-unlisted-share-copy iframe[src$="https://player.vimeo.com/video/548291297?h=fdcc90d662"]'
+
           - '#youtube-dim-test iframe[src$="https://www.youtube.com/embed/wo9vZccmqwc"]'
           - '#youtube-dim-test iframe[width$="400"][height$="300"]'
 
@@ -60,6 +63,12 @@ _quarto:
 :::
 
 ::: {#vimeo-test-unlisted}
+
+{{< video https://vimeo.com/548291297/fdcc90d662 >}}
+
+:::
+
+::: {#vimeo-test-unlisted-share-copy}
 
 {{< video https://vimeo.com/548291297/fdcc90d662?share=copy >}}
 

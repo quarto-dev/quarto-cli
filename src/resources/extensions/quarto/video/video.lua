@@ -130,11 +130,10 @@ local vimeoBuilder = function(params)
   local match = checkMatchStart(params.src, VIMEO_STANDARD)
   if not match then return nil end
 
-  local internalMatch = string.match(params.src, 'vimeo.com/(.-)?share=copy')
-
   -- Internal Links
   -- bug/5390-vimeo-newlink
-  if internalMatch then
+  if string.find(match, '/') then
+    local internalMatch = string.gsub(match, "?(.*)", "" )
     videoId = splitString(internalMatch, '/')[1]
     privacyHash = splitString(internalMatch, '/')[2]
     params.src = 'https://player.vimeo.com/video/' .. videoId .. '?h=' .. privacyHash
