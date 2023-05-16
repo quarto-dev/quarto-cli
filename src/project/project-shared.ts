@@ -211,7 +211,8 @@ export function projectPreviewServe(context?: ProjectContext) {
 }
 
 export function projectIsServeable(context?: ProjectContext): boolean {
-  return projectIsWebsite(context) || !!projectPreviewServe(context);
+  return projectIsWebsite(context) || projectIsManuscript(context) ||
+    !!projectPreviewServe(context);
 }
 
 export function projectTypeIsWebsite(projType: ProjectType): boolean {
