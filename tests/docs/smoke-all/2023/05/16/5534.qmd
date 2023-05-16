@@ -1,0 +1,14 @@
+---
+title: Foo
+subtitle: What a {{< meta foo >}}
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["p.subtitle span.foo"]
+        - []
+foo: "[yeah]{.foo}"
+---
+
+## Hello.
+
