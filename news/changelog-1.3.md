@@ -1,6 +1,7 @@
 ## Fixed In This Release
 
-- Fix regression when publishing a document in a subfolder ([#5330](https://github.com/quarto-dev/quarto-cli/issues/5330)).
+- Fix error when publishing a document in a subfolder ([#5330](https://github.com/quarto-dev/quarto-cli/issues/5330)).
+- Fix duplicate bibliography when users enable `citeproc` directly. ([#5588](https://github.com/quarto-dev/quarto-cli/issues/5588)).
 
 ## Fixed In Previous Releases
 
