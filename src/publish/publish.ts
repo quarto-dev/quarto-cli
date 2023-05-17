@@ -234,7 +234,7 @@ export async function publishDocument(
               ...resultFile.supporting
                 .map((sf) => {
                   if (!isAbsolute(sf)) {
-                    return join(baseDir, sf);
+                    return relative(baseDir, sf);
                   } else {
                     return sf;
                   }
