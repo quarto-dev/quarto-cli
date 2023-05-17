@@ -339,9 +339,9 @@ function shortcodeResultAsInlines(result, name)
   elseif isBlockEl(result) then
     return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
   else
-    error("Unexepected result from shortcode " .. name .. "")
+    error("Unexpected result from shortcode " .. name .. "")
     quarto.log.output(result)
-    os.exit(1)
+    fatal("This is a bug in the shortcode. If this is a quarto shortcode, please report it at https://github.com/quarto-dev/quarto-cli")
   end
 end
   
@@ -371,8 +371,8 @@ function shortcodeResultAsBlocks(result, name)
   elseif isInlineEl(result) then
     return pandoc.Blocks( {pandoc.Para( {result} ) }) -- why not a plain?
   else
-    error("Unexepected result from shortcode " .. name .. "")
+    error("Unexpected result from shortcode " .. name .. "")
     quarto.log.output(result)
-    os.exit(1)
+    fatal("This is a bug in the shortcode. If this is a quarto shortcode, please report it at https://github.com/quarto-dev/quarto-cli")
   end
 end

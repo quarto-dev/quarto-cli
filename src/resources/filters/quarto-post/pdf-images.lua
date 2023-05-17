@@ -11,11 +11,9 @@ local function convert_svg(path)
   else 
     if results['command'] == nil then
       -- command not found
-      error("Failed when attempting to convert a SVG to a PDF for output. Please ensure that rsvg-convert is available on the path.")
-      os.exit(1)
+      fail("Could not convert a SVG to a PDF for output. Please ensure that rsvg-convert is available on the path.")
     else
-      error("Failed when attempting to convert a SVG to a PDF for output. An error occurred while attempting to run rsvg-convert.\nError code " .. tostring(results['error_code']) )
-      os.exit(1)
+      fail("Could not convert a SVG to a PDF for output. An error occurred while attempting to run rsvg-convert.\nError code " .. tostring(results['error_code']) )
     end
   end
 end
