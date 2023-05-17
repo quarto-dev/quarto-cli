@@ -31,44 +31,39 @@ export function handleMecaLinks(darkMode: boolean) {
 
     const mecaLinks = document.body.querySelectorAll('a[data-meca-link="true"]');
     for (let i=0; i < mecaLinks.length; i++) { 
-      const parent = globalThis.document.createElement("div");
-      const root = createRoot(parent);
-      root.render(
-        <MecaLinkDisabledMessage darkMode={darkMode} linkEl={mecaLinks[i]} onClosed={() => {
-          root.unmount();
-          parent.remove();  
-        }}/>
-      );  
+      const linkEl = mecaLinks[i];
+      linkEl.addEventListener("click", (e) => {
+        const parent = globalThis.document.createElement("div");
+        const root = createRoot(parent);
+        root.render(
+          <MecaLinkDisabledMessage darkMode={darkMode} linkEl={mecaLinks[i]} onClosed={() => {
+            root.unmount();
+            parent.remove();  
+          }}/>
+        );    
+        e.preventDefault();
+        return false;    
+      });
     }
 }
 
 const MecaLinkDisabledMessage: React.FC<DisabledLinkProps> = (props: DisabledLinkProps) => {
-  const [open, setOpen] = useState(false);
-  const handleOpenChange: PopoverProps["onOpenChange"] = (e, data) =>
+  const [open, setOpen] = useState(true);
+  const handleOpenChange: PopoverProps["onOpenChange"] = (_e, data) =>
     setOpen(data.open || false);
   
-  const handlePopoverClick = (event: Event) => {
-    setOpen(true);
-    event.preventDefault();
-    return false;
-  };
-
-  useEffect(() => {
-    props.linkEl.addEventListener("click", handlePopoverClick);
-      return () => {
-        props.linkEl.removeEventListener("click", handlePopoverClick);
-      }
-    }, []);
-
   return (
     <FluentProvider theme={props.darkMode ? webDarkTheme : webLightTheme}>
       <Popover open={open} 
               withArrow={true}
               closeOnScroll={true}
               onOpenChange={handleOpenChange} 
-              positioning={{target: props.linkEl, offset: { mainAxis: 0, crossAxis: -50}}}>
+              positioning={{target: props.linkEl, overflowBoundaryPadding: 30}}>
         <PopoverSurface>
-          <Label>This file is not available during preview (it will be included with the final rendered output).</Label>
+          <Label>
+            <strong>Preview Not Available</strong>
+            <p style={{marginBottom: 0}}>The MECA file is not available during preview.<br/>It will be included with the final rendered output.</p>
+          </Label>
         </PopoverSurface>
       </Popover>
       
