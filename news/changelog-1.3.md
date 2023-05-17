@@ -1,4 +1,8 @@
-## New In This Patch Release
+## Fixed In This Release
+
+- Fix regression when publishing a document in a subfolder ([#5330](https://github.com/quarto-dev/quarto-cli/issues/5330)).
+
+## Fixed In Previous Releases
 
 - Properly position margin elements ([#5289](https://github.com/quarto-dev/quarto-cli/issues/5289)).
 - Improve chrome detection for MacOS ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214)).
