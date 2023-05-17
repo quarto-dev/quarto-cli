@@ -166,7 +166,7 @@ local quartoInit = {
 
 local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
-    return preState.active_filters.normalization
+    return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
   -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
@@ -313,10 +313,10 @@ local quartoPost = {
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   
   { name = "post-render-jats", filter = filterIf(function()
-    return preState.active_filters.jats_subarticle == nil or not preState.active_filters.jats_subarticle
+    return quarto_global_state.active_filters.jats_subarticle == nil or not quarto_global_state.active_filters.jats_subarticle
   end, jats()) },
   { name = "post-render-jats-subarticle", filter = filterIf(function()
-    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+    return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
   end, jatsSubarticle()) },
 
   -- format-specific rendering

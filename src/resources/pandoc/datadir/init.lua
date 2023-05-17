@@ -2024,7 +2024,7 @@ quarto = {
       return hasBootstrap
     end,
     is_filter_active = function(filter)
-      return preState.active_filters[filter]
+      return quarto_global_state.active_filters[filter]
     end,
 
     output_file = outputFile(),

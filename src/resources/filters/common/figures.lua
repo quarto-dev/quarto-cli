@@ -117,9 +117,7 @@ function createFigureDiv(paraEl, fig)
   -- if the image is a .tex file we need to tex \input 
   if latexIsTikzImage(fig) then
     paraEl = pandoc.walk_block(paraEl, {
-      Image = function(image)
-        return latexFigureInline(image, preState)
-      end
+      Image = latexFigureInline
     })
   end
   
@@ -164,12 +162,12 @@ function latexIsTikzImage(image)
   return _quarto.format.isLatexOutput() and string.find(image.src, "%.tex$")
 end
 
-function latexFigureInline(image, state)
+function latexFigureInline(image)
   -- if this is a tex file (e.g. created w/ tikz) then use \\input
   if latexIsTikzImage(image) then
     
     -- be sure to inject \usepackage{tikz}
-    state.usingTikz = true
+    quarto_global_state.usingTikz = true
     
     -- base input
     local input = "\\input{" .. image.src .. "}"
