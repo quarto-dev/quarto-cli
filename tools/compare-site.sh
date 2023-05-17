@@ -21,7 +21,7 @@ remove_numbers () {
 
   find . -name "*.ipynb" -type f -exec gsed -i "s/\"id\"\: \"[0-9a-f-]\+\"/\"id\": \"uuid\"/g" {} \;
   gsed -i "s/<lastmod>.\\+<\/lastmod>//g" sitemap.xml
-  cd ../..=
+  cd ../..
 }
 
 rm -rf __compare
@@ -35,5 +35,7 @@ version=$v2
 remove_numbers
 
 echo "Diff output:"
+cd __compare
 diff -r _site_$v1 _site_$v2
+cd ..
 
