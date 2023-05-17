@@ -238,10 +238,12 @@ end
 local function get_type(v)
   local pandoc_type = pandoc.utils.type(v)
   if pandoc_type == "Inline" then
-    -- check if this is a custom AST node
-    if v.t == "RawInline" and v.format == "QUARTO_custom" then
-      local s, e = v.text:find("%a+$")
-      return "Custom" .. v.text:sub(s, e)
+    if v.t == "Span" and v.attributes.__quarto_custom == "true" then
+      return "CustomInline"
+    end
+  elseif pandoc_type == "Block" then
+    if v.t == "Div" and v.attributes.__quarto_custom == "true" then
+      return "CustomBlock"
     end
   end
   return pandoc_type

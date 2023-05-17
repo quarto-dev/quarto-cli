@@ -51,18 +51,6 @@ function table_render_raw_html()
       if hasGtHtmlTable(el) then
         el.text = respecifyGtCSS(el.text)
       end
-      if _quarto.format.isRawHtml(el) then
-        -- if we have a raw html table in a format that doesn't handle raw_html
-        -- then have pandoc parse the table into a proper AST table block
-        if not _quarto.format.isHtmlOutput() and not _quarto.format.isMarkdownWithHtmlOutput() and not _quarto.format.isIpynbOutput() then
-          local tableBegin,tableBody,tableEnd = el.text:match(htmlTablePattern())
-          if tableBegin then
-            local tableHtml = tableBegin .. "\n" .. tableBody .. "\n" .. tableEnd
-            local tableDoc = pandoc.read(tableHtml, "html")
-            return tableDoc.blocks
-          end
-        end
-      end
       return el
     end
   }
