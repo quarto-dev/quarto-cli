@@ -10,6 +10,7 @@
 
 - Add Slovak translation (author: @tom67)
 - Improve Italian translation of 'proof' (author: @espinielli)
+- Add Greek translation (author: @cultab)
 
 ## HTML Format
 
