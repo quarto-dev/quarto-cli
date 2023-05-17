@@ -169,6 +169,10 @@ local quartoNormalize = {
     return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
+  { name = "pre-table-merge-raw-html", 
+    filter = table_merge_raw_html()
+  },
+  
   -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
   -- can't be combined with parse_html_tables because combineFilters
   -- doesn't inspect the contents of the results in the inner loop.
@@ -210,10 +214,6 @@ local quartoPre = {
   { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
-
-  { name = "pre-table-merge-raw-html", 
-    filter = table_merge_raw_html(),
-    flags = { "has_partial_raw_html_tables" } },
 
   { name = "pre-table-render-raw-html", 
     filter = table_render_raw_html(),
