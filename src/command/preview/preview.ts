@@ -63,7 +63,7 @@ import { renderFormats } from "../render/render-contexts.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 
-import { Format, FormatPandoc, isPandocFilter } from "../../config/types.ts";
+import { Format, isPandocFilter } from "../../config/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -94,7 +94,6 @@ import { watchForFileChanges } from "../../core/watch.ts";
 import {
   formatResourcePath,
   pandocBinaryPath,
-  resourcePath,
   textHighlightThemePath,
 } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
@@ -114,11 +113,13 @@ import {
   kPreviewModeRaw,
   kTargetFormat,
 } from "../../config/constants.ts";
-import { isHtmlDocOutput, isJatsOutput } from "../../config/format.ts";
+import { isJatsOutput } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kLocalhost } from "../../core/port-consts.ts";
 import { findOpenPort, waitForPort } from "../../core/port.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
+import { staticResource } from "../../preview/preview-static.ts";
+import { jatsPreviewXml } from "../../preview/preview-jats.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -742,7 +743,7 @@ function htmlFileRequestHandlerOptions(
     },
     onFile: async (file: string, req: Request) => {
       // check for static response
-      const staticResponse = await staticResource(format, baseDir, file);
+      const staticResponse = await staticResource(baseDir, file);
       if (staticResponse) {
         const resolveBody = () => {
           if (staticResponse.injectClient) {
@@ -953,83 +954,6 @@ async function textPreviewHtml(file: string, req: Request) {
   } else {
     throw new Error();
   }
-}
-
-// Static reources provide a list of 'special' resources that we should
-// satisfy using internal resources
-const isJatsCompatibleOutput = (format?: string | FormatPandoc) =>
-  isJatsOutput(format) || isHtmlDocOutput(format);
-const kStaticResources = [
-  {
-    name: "quarto-jats-preview.css",
-    dir: "jats",
-    contentType: "text/css",
-    isActive: isJatsCompatibleOutput,
-  },
-  {
-    name: "quarto-jats-html.xsl",
-    dir: "jats",
-    contentType: "text/xsl",
-    isActive: isJatsCompatibleOutput,
-    injectClient: (contents: string, client: string) => {
-      const protectedClient = client.replaceAll(
-        /(<style.*?>)|(<script.*?>)/g,
-        (substring: string) => {
-          return `${substring}\n<![CDATA[`;
-        },
-      ).replaceAll(
-        /(<\/style.*?>)|(<\/script.*?>)/g,
-        (substring: string) => {
-          return `]]>\n${substring}`;
-        },
-      ).replaceAll("data-micromodal-close", 'data-micromodal-close="true"');
-
-      const bodyContents = contents.replace(
-        "<!-- quarto-after-body -->",
-        protectedClient,
-      );
-      return new TextEncoder().encode(bodyContents);
-    },
-  },
-];
-
-const staticResource = async (
-  format: Format,
-  baseDir: string,
-  file: string,
-) => {
-  const filename = relative(baseDir, file);
-  const resource = kStaticResources.find((resource) => {
-    return resource.isActive(format.pandoc) && resource.name === filename;
-  });
-
-  if (resource) {
-    const dir = resource.dir ? join("preview", resource.dir) : "preview";
-    const path = resourcePath(join(dir, filename));
-    const contents = await Deno.readFile(path);
-    return {
-      ...resource,
-      contents,
-    };
-  }
-};
-
-async function jatsPreviewXml(file: string, _request: Request) {
-  const fileContents = await Deno.readTextFile(file);
-
-  // Attach the stylesheet
-  let xmlContents = fileContents.replace(
-    /<\?xml version="1.0" encoding="utf-8"\s*\?>/,
-    '<?xml version="1.0" encoding="utf-8" ?>\n<?xml-stylesheet href="quarto-jats-html.xsl" type="text/xsl" ?>',
-  );
-
-  // Strip the DTD to disable the fetching of the DTD and validation (for preview)
-  xmlContents = xmlContents.replace(
-    /<!DOCTYPE((.|\n)*?)>/,
-    "",
-  );
-
-  return xmlContents;
 }
 
 async function gfmPreview(file: string, request: Request) {
