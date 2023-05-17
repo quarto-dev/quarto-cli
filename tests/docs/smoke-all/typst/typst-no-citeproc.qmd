@@ -4,7 +4,6 @@ format: typst
 output-ext: typ
 bibliography: refs.bib
 bibliographystyle: "chicago-author-date"
-citeproc: false
 _quarto:
   tests: 
     typst:
