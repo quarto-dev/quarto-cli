@@ -9,8 +9,9 @@ v1=$1
 v2=99.9.9
 
 remove_numbers () {
-  mv _site _site_$version
-  cd _site_$version
+  mkdir -p __compare
+  mv _site __compare/_site_$version
+  cd __compare/_site_$version
   # remove files that make no sense to compare
   rm docs/download/_prerelease.json
   rm _redirects
@@ -20,8 +21,10 @@ remove_numbers () {
 
   find . -name "*.ipynb" -type f -exec gsed -i "s/\"id\"\: \"[0-9a-f-]\+\"/\"id\": \"uuid\"/g" {} \;
   gsed -i "s/<lastmod>.\\+<\/lastmod>//g" sitemap.xml
-  cd ..
+  cd ../..=
 }
+
+rm -rf __compare
 
 QUARTO_FORCE_VERSION=0.0.0 qv $v1 render
 version=$v1 
