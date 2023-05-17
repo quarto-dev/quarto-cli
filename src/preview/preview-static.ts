@@ -5,14 +5,8 @@
  */
 
 import { join, relative } from "path/mod.ts";
-import { jatsStaticResources } from "./preview-jats.ts";
 import { resourcePath } from "../core/resources.ts";
-
-// Static reources provide a list of 'special' resources that we should
-// satisfy using internal resources
-const kStaticResources = [
-  ...jatsStaticResources(),
-];
+import { jatsStaticResources } from "./preview-text.ts";
 
 export const staticResource = async (
   baseDir: string,
@@ -33,3 +27,9 @@ export const staticResource = async (
     };
   }
 };
+
+// Static reources provide a list of 'special' resources that we should
+// satisfy using internal resources
+const kStaticResources = [
+  ...jatsStaticResources(),
+];
