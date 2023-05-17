@@ -270,6 +270,7 @@ export const manuscriptProjectType: ProjectType = {
               href: mecaFileName(source, manuscriptConfig),
               icon: kMecaIcon,
               attr: { "data-meca-link": "true" },
+              order: 1000,
             });
             format.render[kFormatLinks] = links;
           }
