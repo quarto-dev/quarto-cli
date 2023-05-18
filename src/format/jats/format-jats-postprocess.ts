@@ -79,6 +79,7 @@ export const renderSubarticlePostProcessor = (
             quiet: true,
           },
           echo: true,
+          warning: true,
         },
         [],
         undefined,

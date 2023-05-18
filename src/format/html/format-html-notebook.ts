@@ -458,6 +458,7 @@ async function renderHtmlView(
           quiet: true,
         },
         echo: true,
+        warning: true,
       },
       [],
       undefined,
