@@ -29,8 +29,9 @@
 
 ## Websites
 
-- ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a a website project to provide a default image used in social metadata tags.
+- ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a website project to provide a default image used in social metadata tags.
 - Add support for `navbar > toggle-position` to control whether the responsive navbar toggle appears on the right or the left.
+- ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
 
 ## Miscellaneous
 

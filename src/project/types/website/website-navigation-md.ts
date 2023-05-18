@@ -1,9 +1,8 @@
 /*
-* website-navigation-md.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-navigation-md.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { dirname, extname, isAbsolute, join } from "path/mod.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 
@@ -67,7 +66,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
 }
 
 function title(format: Format) {
-  const site = (format.metadata[kWebsite] as Metadata);
+  const site = format.metadata[kWebsite] as Metadata;
   if (
     site &&
     site[kTitle] &&
@@ -630,7 +629,7 @@ const footerHandler = (context: NavigationPipelineContext) => {
           addEntry("right", context.navigation.footer.right);
         }
 
-        return { inlines: markdown };
+        return { blocks: markdown };
       }
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
