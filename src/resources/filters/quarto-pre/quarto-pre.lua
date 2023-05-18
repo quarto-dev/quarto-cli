@@ -74,7 +74,7 @@ local filterList = {
   { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
   { name = "shortCodesInlines", filter = shortCodesInlines() },
   { name = "table_merge_raw_html", filter = table_merge_raw_html() },
-  { name = "table_render_raw_html", filter = table_render_raw_html() },
+  { name = "table_respecify_gt_css", filter = table_respecify_gt_css() },
   { name = "table_colwidth_cell", filter = table_colwidth_cell() },
   { name = "table_colwidth", filter = table_colwidth() },
   { name = "hidden", filter = hidden() },

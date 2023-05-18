@@ -215,10 +215,6 @@ local quartoPre = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-table-render-raw-html", 
-    filter = table_render_raw_html(),
-    flags = { "has_raw_html_tables", "has_gt_tables" } },
-
   { name = "pre-table-colwidth-cell", 
     filter = table_colwidth_cell(),
     flags = { "has_tbl_colwidths" } },
@@ -268,6 +264,7 @@ local quartoPre = {
     bootstrap_panel_input(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
+    table_respecify_gt_css(),
     table_colwidth(), 
     table_classes(),
     input_traits(),

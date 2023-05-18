@@ -45,7 +45,7 @@ function respecifyGtCSS(text)
   return text:gsub("\n#" .. v, "\n:where(#" .. v .. ")")
 end
 
-function table_render_raw_html()
+function table_respecify_gt_css()
   return {
     RawBlock = function(el)
       if hasGtHtmlTable(el) then
