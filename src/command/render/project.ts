@@ -190,9 +190,7 @@ export async function renderProject(
   }
 
   // run pre-render step if we are rendering all files
-  if (
-    filesToRender.length > 0 && context.config?.project?.[kProjectPreRender]
-  ) {
+  if (context.config?.project?.[kProjectPreRender]) {
     await runPreRender(
       projDir,
       asArray(context.config?.project?.[kProjectPreRender]!),
@@ -604,10 +602,7 @@ export async function renderProject(
     }
 
     // run post-render if this isn't incremental
-    if (
-      filesToRender.length > 0 &&
-      context.config?.project?.[kProjectPostRender]
-    ) {
+    if (context.config?.project?.[kProjectPostRender]) {
       await runPostRender(
         projDir,
         asArray(context.config?.project?.[kProjectPostRender]!),
