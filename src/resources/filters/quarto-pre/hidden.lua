@@ -41,46 +41,43 @@ function hidden()
     CodeBlock = stripHidden
   }
 
-  if keepHidden and removeHidden == kNone and clearHiddenClz == kNone and not _quarto.format.isHtmlOutput() then
-    return stripHiddenCellFilter
-  else 
-    -- Allow additional control of what to do with hidden code and warnings
-    -- in the output. This allows rendering with echo/warning=false and keep-hidden=true
-    -- to do some additional custom processing (for example, marking all as hidden, but
-    -- but then removing the hidden elements from the output). 
-    if removeHidden ~= kNone or clearHiddenClz ~= kNone then
+  -- Allow additional control of what to do with hidden code and warnings
+  -- in the output. This allows rendering with echo/warning=false and keep-hidden=true
+  -- to do some additional custom processing (for example, marking all as hidden, but
+  -- but then removing the hidden elements from the output). 
+  if removeHidden ~= kNone or clearHiddenClz ~= kNone then
+    local function remove(thing) 
+      return removeHidden == kAll or removeHidden == thing
+    end
 
-      local function remove(thing) 
-        return removeHidden == kAll or removeHidden == thing
-      end
+    local function clear(thing)
+      return clearHiddenClz == kAll or clearHiddenClz == thing
+    end
 
-      local function clear(thing)
-        return clearHiddenClz == kAll or clearHiddenClz == thing
-      end
-
-      local function clearOrRemoveEl(el) 
-        if isWarning(el) then
-          if remove(KWarning) then
-            return stripHidden(el)
-          elseif clear(kWarning) then
-            return clearHiddenClasses(el)
-          end
-        else
-          if remove(kCode) then
-            return stripHidden(el)
-          elseif clear(kCode) then
-            return clearHiddenClasses(el)
-          end
+    local function clearOrRemoveEl(el) 
+      if isWarning(el) then
+        if remove(KWarning) then
+          return stripHidden(el)
+        elseif clear(kWarning) then
+          return clearHiddenClasses(el)
+        end
+      else
+        if remove(kCode) then
+          return stripHidden(el)
+        elseif clear(kCode) then
+          return clearHiddenClasses(el)
         end
       end
-
-      return {
-        Div = clearOrRemoveEl,
-        CodeBlock = clearOrRemoveEl
-      }
-    else
-      return {}
     end
+
+    return {
+      Div = clearOrRemoveEl,
+      CodeBlock = clearOrRemoveEl
+    }
+  elseif keepHidden and not _quarto.format.isHtmlOutput() then
+    return stripHiddenCellFilter
+  else
+    return {}
   end
 end
 
