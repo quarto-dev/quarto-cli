@@ -687,18 +687,24 @@ async function runScripts(
 
     const handler = handlerForScript(script);
     if (handler) {
-      await handler.run(script, args.splice(1), undefined, {
+      const result = await handler.run(script, args.splice(1), undefined, {
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,
       });
+      if (!result.success) {
+        throw new Error();
+      }
     } else {
-      await execProcess({
+      const result = await execProcess({
         cmd: args,
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,
       });
+      if (!result.success) {
+        throw new Error();
+      }
     }
   }
   if (scripts.length > 0) {

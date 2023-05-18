@@ -35,6 +35,7 @@
 
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
 - ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)): support `from: ` formats correctly.
+- Exit if project pre or post render script fails
 
 ## Docusaurus Format
 
