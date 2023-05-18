@@ -69,48 +69,85 @@ import("project-paths.lua")
 initShortcodeHandlers()
 
 local filterList = {
-  { name = "init", filter = init_options() },
-  { name = "bibliography_formats", filter = bibliography_formats() },
-  { name = "shortCodesBlocks", filter = shortCodesBlocks() } ,
-  { name = "shortCodesInlines", filter = shortCodesInlines() },
-  { name = "table_merge_raw_html", filter = table_merge_raw_html() },
-  { name = "table_respecify_gt_css", filter = table_respecify_gt_css() },
-  { name = "table_colwidth_cell", filter = table_colwidth_cell() },
-  { name = "table_colwidth", filter = table_colwidth() },
-  { name = "hidden", filter = hidden() },
-  { name = "content_hidden", filter = content_hidden() },
-  { name = "table_captions", filter = table_captions() },
-  { name = "code-annotations", filter = combineFilters({
-    code_meta(),
-    code_annotations(),
-    })},
-  { name = "outputs", filter = unroll_cell_outputs() },
-  { name = "outputLocation", filter = output_location() },
-  { name = "combined-figures-theorems-etc", filter = combineFilters({
+
+  { name = "flags", filter = compute_flags() },
+
+  -- https://github.com/quarto-dev/quarto-cli/issues/5031
+  -- recompute options object in case user filters have changed meta
+  -- this will need to change in the future; users will have to indicate
+  -- when they mutate options
+  { name = "pre-read-options-again", filter = init_options() },
+
+  { name = "pre-parse-pandoc3-figures", 
+    filter = parse_pandoc3_figures(), 
+    flags = { "has_pandoc3_figure" } 
+  },
+
+  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
+  
+  { name = "pre-shortcodes-filter", 
+    filter = shortcodes_filter(),
+    flags = { "has_shortcodes" } },
+
+  { name = "pre-table-colwidth-cell", 
+    filter = table_colwidth_cell(),
+    flags = { "has_tbl_colwidths" } },
+
+  { name = "pre-hidden", 
+    filter = hidden(), 
+    flags = { "has_hidden" } },
+
+  { name = "pre-content-hidden", 
+    filter = content_hidden(),
+    flags = { "has_conditional_content" } },
+
+  { name = "pre-table-captions", 
+    filter = table_captions(),
+    flags = { "has_table_captions" } },
+
+  { name = "pre-longtable-no-caption-fixup", 
+    filter = longtable_no_caption_fixup(),
+    flags = { "has_longtable_no_caption_fixup" } },
+  
+  { name = "pre-code-annotations", 
+    filter = code_annotations(),
+    flags = { "has_code_annotations" } },
+  
+  { name = "pre-code-annotations-meta", filter = code_meta() },
+
+  { name = "pre-unroll-cell-outputs", 
+    filter = unroll_cell_outputs(),
+    flags = { "needs_output_unrolling" } },
+
+  { name = "pre-output-location", 
+    filter = output_location()
+  },
+
+  { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
     file_metadata(),
     index_book_file_targets(),
     book_numbering(),
     include_paths(),
     resource_files(),
-    figures(),
-    theorems(),
-    callout(),
+    quarto_pre_figures(),
+    quarto_pre_theorems(),
+    docx_callout_and_table_fixup(),
     code_filename(),
     line_numbers(),
     engine_escape(),
     bootstrap_panel_input(),
-    panelTabset(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
-    input_traits()
-  }) },
-  { name = "combined-book-file-targets", filter = combineFilters({
-    file_metadata(),
+    table_respecify_gt_css(),
+    table_colwidth(), 
+    table_classes(),
+    input_traits(),
     resolve_book_file_targets(),
+    project_paths()
   }) },
-  { name = "quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
-  { name = "write-results", filter = write_results() },
-  { name = "project-paths", filter = project_paths()}
+
+  { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
+  { name = "pre-write-results", filter = write_results() },
 }
 
 return filterList
