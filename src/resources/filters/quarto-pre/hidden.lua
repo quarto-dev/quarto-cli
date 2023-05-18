@@ -12,6 +12,10 @@ local kClearHiddenClasses = "clear-hidden-classes"
 
 function hidden()
 
+  local keepHidden = param(kKeepHidden, false)
+  local removeHidden = param(kRemoveHidden, "none")
+  local clearHiddenClz = param(kClearHiddenClasses, "none")
+
   local function stripHidden(el)
     if el.attr.classes:find("hidden") then
       return {}
@@ -37,15 +41,13 @@ function hidden()
     CodeBlock = stripHidden
   }
 
-  if param(kKeepHidden, false) and not _quarto.format.isHtmlOutput() then
+  if keepHidden and removeHidden == kNone and clearHiddenClz == kNone and not _quarto.format.isHtmlOutput() then
     return stripHiddenCellFilter
   else 
     -- Allow additional control of what to do with hidden code and warnings
     -- in the output. This allows rendering with echo/warning=false and keep-hidden=true
     -- to do some additional custom processing (for example, marking all as hidden, but
     -- but then removing the hidden elements from the output). 
-    local removeHidden = param(kRemoveHidden, "none")
-    local clearHiddenClz = param(kClearHiddenClasses, "none")
     if removeHidden ~= kNone or clearHiddenClz ~= kNone then
 
       local function remove(thing) 

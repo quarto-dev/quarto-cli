@@ -298,50 +298,52 @@ export const manuscriptProjectType: ProjectType = {
             // is targeting index.html as its output
             format.pandoc[kOutputFile] = "index.html";
           }
-
-          // Implement manuscript echo handling using
-          // keep hidden (echo the code and remove hidden code)
-          const userEcho = format.execute.echo;
-          const userWarning = format.execute.warning;
-
-          const clearVal: string[] = [];
-          const removeVal: string[] = [];
-
-          // If the user enables echo, just remove the hidden classes
-          // If the user doesn't enable echo, just remove the hidden output
-          format.execute.echo = false;
-          format.execute.warning = false;
-          format.render[kKeepHidden] = true;
-
-          if (userEcho === true) {
-            clearVal.push("code");
-          } else {
-            removeVal.push("code");
-          }
-
-          if (userWarning === true) {
-            clearVal.push("warning");
-          } else {
-            removeVal.push("warning");
-          }
-
-          const resolveValue = (vals: string[]) => {
-            if (vals.length === 0) {
-              return "none";
-            } else if (vals.length === 1) {
-              return vals[0];
-            } else {
-              return "all";
-            }
-          };
-          format.metadata[kClearHiddenClasses] = resolveValue(clearVal);
-          format.metadata[kRemoveHidden] = resolveValue(removeVal);
-        } else {
-          // For non-article elements of this project, enable echo
-          format.execute.echo = true;
-          format.metadata[kClearHiddenClasses] = true;
-          format.metadata[kKeepHidden] = true;
         }
+
+        // Implement manuscript echo handling using
+        // keep hidden (echo the code and remove hidden code)
+        const userEcho = format.execute.echo;
+        const userWarning = format.execute.warning;
+
+        const clearVal: string[] = [];
+        const removeVal: string[] = [];
+
+        // If the user enables echo, just remove the hidden classes
+        // If the user doesn't enable echo, just remove the hidden output
+        format.execute.echo = false;
+        format.execute.warning = false;
+        format.render[kKeepHidden] = true;
+
+        if (userEcho === true) {
+          clearVal.push("code");
+        } else {
+          removeVal.push("code");
+        }
+
+        if (userWarning === true) {
+          clearVal.push("warning");
+        } else {
+          removeVal.push("warning");
+        }
+
+        const resolveValue = (vals: string[]) => {
+          if (vals.length === 0) {
+            return "none";
+          } else if (vals.length === 1) {
+            return vals[0];
+          } else {
+            return "all";
+          }
+        };
+        format.metadata[kClearHiddenClasses] = resolveValue(clearVal);
+        format.metadata[kRemoveHidden] = resolveValue(removeVal);
+      } else {
+        // For non-article elements of this project, enable echo
+        format.execute.echo = false;
+        format.execute.warning = false;
+        format.render[kKeepHidden] = true;
+        format.metadata[kClearHiddenClasses] = "all";
+        format.metadata[kRemoveHidden] = "none";
       }
 
       return format;
