@@ -526,13 +526,13 @@ async function quartoFilterParams(
   }
 
   const removeHidden = format.metadata[kRemoveHidden];
-  if (removeHidden === true) {
-    params[kRemoveHidden] = true;
+  if (removeHidden) {
+    params[kRemoveHidden] = removeHidden;
   }
 
   const clearHiddenClasses = format.metadata[kClearHiddenClasses];
-  if (clearHiddenClasses === true) {
-    params[kClearHiddenClasses] = true;
+  if (clearHiddenClasses) {
+    params[kClearHiddenClasses] = clearHiddenClasses;
   }
 
   // Provide other params that may be useful to filters

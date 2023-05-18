@@ -27,6 +27,7 @@ import {
   kRemoveHidden,
   kResources,
   kToc,
+  kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
@@ -169,6 +170,7 @@ export const manuscriptProjectType: ProjectType = {
 
     // Disable echo, by default
     config[kEcho] = false;
+    config[kWarning] = false;
 
     return config;
   },
@@ -300,16 +302,40 @@ export const manuscriptProjectType: ProjectType = {
           // Implement manuscript echo handling using
           // keep hidden (echo the code and remove hidden code)
           const userEcho = format.execute.echo;
+          const userWarning = format.execute.warning;
+
+          const clearVal: string[] = [];
+          const removeVal: string[] = [];
 
           // If the user enables echo, just remove the hidden classes
           // If the user doesn't enable echo, just remove the hidden output
           format.execute.echo = false;
+          format.execute.warning = false;
           format.render[kKeepHidden] = true;
+
           if (userEcho === true) {
-            format.metadata[kClearHiddenClasses] = true;
+            clearVal.push("code");
           } else {
-            format.metadata[kRemoveHidden] = true;
+            removeVal.push("code");
           }
+
+          if (userWarning === true) {
+            clearVal.push("warning");
+          } else {
+            removeVal.push("warning");
+          }
+
+          const resolveValue = (vals: string[]) => {
+            if (vals.length === 0) {
+              return "none";
+            } else if (vals.length === 1) {
+              return vals[0];
+            } else {
+              return "all";
+            }
+          };
+          format.metadata[kClearHiddenClasses] = resolveValue(clearVal);
+          format.metadata[kRemoveHidden] = resolveValue(removeVal);
         } else {
           // For non-article elements of this project, enable echo
           format.execute.echo = true;
