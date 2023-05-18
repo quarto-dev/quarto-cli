@@ -20,6 +20,8 @@ import {
   logError,
   logOptions,
 } from "./core/log.ts";
+import { debug } from "log/mod.ts";
+
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { removeFlags } from "./core/flags.ts";
 import { quartoConfig } from "./core/quarto.ts";
@@ -98,6 +100,8 @@ export async function quarto(
   ) {
     args = [args[0], kCliffyImplicitCwd, ...args.slice(1)];
   }
+
+  debug("Quarto version: " + quartoConfig.version());
 
   const quartoCommand = new Command()
     .name("quarto")

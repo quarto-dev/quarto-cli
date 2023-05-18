@@ -22,6 +22,7 @@ import {
   StringChunk,
   StringMapResult,
 } from "./text-types.ts";
+import { InternalError } from "./error.ts";
 
 export type {
   EitherString,
@@ -148,8 +149,8 @@ export function asMappedString(
       },
     };
   } else if (fileName !== undefined) {
-    throw new Error(
-      "Internal error: can't change the fileName of an existing MappedString",
+    throw new InternalError(
+      "can't change the fileName of an existing MappedString",
     );
   } else {
     return str;
@@ -211,7 +212,7 @@ export function mappedIndexToLineCol(eitherText: EitherString) {
   return function (offset: number) {
     const mapResult = text.map(offset, true);
     if (mapResult === undefined) {
-      throw new Error("Internal Error: bad offset in mappedIndexRowCol");
+      throw new InternalError("bad offset in mappedIndexRowCol");
     }
     const { index, originalString } = mapResult;
 

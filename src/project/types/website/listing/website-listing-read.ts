@@ -107,6 +107,7 @@ import { mergeConfigs } from "../../../../core/config.ts";
 import { globToRegExp } from "../../../../core/lib/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
+import { InternalError } from "../../../../core/lib/error.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -961,7 +962,7 @@ async function listItemFromFile(
   listing: ListingDehydrated,
 ) {
   if (!isAbsolute(input)) {
-    throw new Error(`Internal Error: input path ${input} must be absolute.`);
+    throw new InternalError(`input path ${input} must be absolute.`);
   }
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(

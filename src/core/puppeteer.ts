@@ -9,6 +9,7 @@ import { which } from "./path.ts";
 import { error, info } from "log/mod.ts";
 import { fetcher } from "../tools/impl/chromium.ts";
 import { existsSync } from "fs/mod.ts";
+import { UnreachableError } from "./lib/error.ts";
 
 // deno-lint-ignore no-explicit-any
 let puppeteerImport: any = undefined;
@@ -135,7 +136,7 @@ export async function withPuppeteerBrowserAndPage<T>(
       }
     }
   }
-  throw new Error("Internal Error - shouldn't have arrived here.");
+  throw new UnreachableError();
 }
 
 export async function inPuppeteer(
@@ -176,7 +177,7 @@ export async function inPuppeteer(
       }
     }
   }
-  throw new Error("Internal Error - shouldn't have arrived here.");
+  throw new UnreachableError();
 }
 
 export async function withHeadlessBrowser<T>(

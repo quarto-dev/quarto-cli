@@ -55,6 +55,7 @@ import { info } from "log/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
 import { manuscriptRenderer } from "./manuscript-renderer.ts";
 import { articleFile, isArticle } from "./manuscript-config.ts";
+import { InternalError } from "../../../core/lib/error.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
@@ -217,8 +218,8 @@ export const manuscriptProjectType: ProjectType = {
       }
       return filterParams;
     } else {
-      throw new Error(
-        "Internal Error: Filters params being requested for project without providing a project.",
+      throw new InternalError(
+        "Filters params being requested for project without providing a project.",
       );
     }
   },
@@ -297,8 +298,8 @@ export const manuscriptProjectType: ProjectType = {
 
       return format;
     } else {
-      throw new Error(
-        "Internal Error: Filter format being called for project without providing a project.",
+      throw new InternalError(
+        "Filter format being called for project without providing a project.",
       );
     }
   },

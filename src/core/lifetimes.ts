@@ -1,9 +1,10 @@
 /*
-* lifetimes.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * lifetimes.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
+
+import { InternalError } from "./lib/error.ts";
 
 export interface ObjectWithLifetime {
   cleanup(): Promise<void> | void;
@@ -31,9 +32,7 @@ export function waitUntilNamedLifetime(name: string): Promise<Lifetime> {
 
 export function createNamedLifetime(name: string): Lifetime {
   if (_globalLifetimes[name] !== undefined) {
-    throw new Error(
-      `Internal Error: lifetime ${name} already exists. This is a bug in Quarto.`,
-    );
+    throw new InternalError(`Lifetime ${name} already exists.`);
   }
   const lifetime = new Lifetime();
   lifetime.attach({

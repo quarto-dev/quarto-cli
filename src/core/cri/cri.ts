@@ -13,6 +13,7 @@ import { Semaphore } from "../lib/semaphore.ts";
 import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 import { sleep } from "../async.ts";
+import { InternalError } from "../lib/error.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -49,7 +50,7 @@ export function withCriClient<T>(
   return criSemaphore.runExclusive(async () => {
     const lifetime = getNamedLifetime("render-file");
     if (lifetime === undefined) {
-      throw new Error("Internal Error: named lifetime render-file not found");
+      throw new InternalError("named lifetime render-file not found");
     }
     let client: CriClient;
     if (lifetime.get("cri-client") === undefined) {

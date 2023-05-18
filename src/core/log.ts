@@ -1,9 +1,8 @@
 /*
-* log.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * log.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync } from "fs/mod.ts";
 import { dirname } from "path/mod.ts";
@@ -17,7 +16,7 @@ import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
 import { error, getLogger, setup, warning } from "log/mod.ts";
-import { asErrorEx } from "./lib/error.ts";
+import { asErrorEx, InternalError } from "./lib/error.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
 
@@ -291,6 +290,13 @@ export function logError(e: unknown) {
   // print error name if requested
   let message = err.printName ? `${err.name}: ${err.message}` : err.message;
 
+  if (e instanceof InternalError) {
+    // always print stack information of internal errors
+    message = message +
+      `\n\nThis is a bug in quarto. We apologize for the inconvenience.
+Please consider reporting it at https://github.com/quarto-dev/quarto-cli. Thank you!`;
+  }
+
   // print the stack if requested or if this is a debug build
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true" ||
     getenv("QUARTO_PRINT_STACK", "false") === "true";
@@ -298,7 +304,8 @@ export function logError(e: unknown) {
     if (!message) {
       message = err.stack;
     } else {
-      message = message + "\n\n" + err.stack;
+      message = message + "\n\nStack trace:\n" +
+        err.stack.split("\n").slice(1).join("\n");
     }
   }
 

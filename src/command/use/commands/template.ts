@@ -22,6 +22,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schem
 import { createTempContext } from "../../../core/temp.ts";
 import { copyExtensions } from "../../../extension/install.ts";
 import { kExtensionDir } from "../../../extension/constants.ts";
+import { InternalError } from "../../../core/lib/error.ts";
 
 const kRootTemplateName = "template.qmd";
 
@@ -151,8 +152,8 @@ async function stageTemplate(
     }
   } else {
     if (typeof source.resolvedTarget !== "string") {
-      throw new Error(
-        "Internal error: local resolved extension should always have a string target.",
+      throw new InternalError(
+        "Local resolved extension should always have a string target.",
       );
     }
 

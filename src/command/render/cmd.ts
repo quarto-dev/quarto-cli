@@ -17,6 +17,7 @@ import { renderServices } from "./render-services.ts";
 
 import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
+import { InternalError } from "../../core/lib/error.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -128,7 +129,7 @@ export const renderCommand = new Command()
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
     if (options === undefined) {
-      throw new Error("Internal error, expected `options` to be an object");
+      throw new InternalError("Expected `options` to be an object");
     }
     delete options.clean;
 

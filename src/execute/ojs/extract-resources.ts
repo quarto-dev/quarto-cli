@@ -1,9 +1,8 @@
 /*
-* extract-resources.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * extract-resources.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import * as colors from "fmt/colors.ts";
 import { dirname, fromFileUrl, relative, resolve } from "path/mod.ts";
@@ -28,6 +27,7 @@ import { resourcePath } from "../../core/resources.ts";
 import { error } from "log/mod.ts";
 import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
+import { InternalError } from "../../core/lib/error.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -241,9 +241,9 @@ export async function extractResolvedResourceFilenamesFromQmd(
 }
 
 /*
-  * literalFileAttachments walks the AST to extract the filenames
-  * in 'FileAttachment(string)' expressions
-  */
+ * literalFileAttachments walks the AST to extract the filenames
+ * in 'FileAttachment(string)' expressions
+ */
 // deno-lint-ignore no-explicit-any
 const literalFileAttachments = (parse: any) => {
   const result: string[] = [];
@@ -371,7 +371,7 @@ async function resolveImport(
         // this is an internal error, but we do the best we can by simply printing out the
         // error as we know it
         console.log(errStr);
-        throw new Error();
+        throw new InternalError("Internal error in deno ojs cell compilation.");
       }
 
       const badFile = fromFileUrl(m[1]);
@@ -433,8 +433,8 @@ quarto will only generate javascript files in ${
   );
 
   if (typeof jsSource === "undefined") {
-    throw new Error(
-      `Internal error: esbuild compilation of file ${file} failed`,
+    throw new InternalError(
+      `esbuild compilation of file ${file} failed`,
     );
   }
 

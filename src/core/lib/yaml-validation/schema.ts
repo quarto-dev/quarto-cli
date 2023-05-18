@@ -1,12 +1,12 @@
 /*
-* schema.ts
-*
-* JSON Schema core definitions
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * schema.ts
+ *
+ * JSON Schema core definitions
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
+import { InternalError } from "../error.ts";
 import {
   AllOfSchema,
   AnyOfSchema,
@@ -78,15 +78,15 @@ export function hasSchemaDefinition(key: string): boolean {
 
 export function getSchemaDefinition(key: string): ConcreteSchema {
   if (definitionsObject[key] === undefined) {
-    throw new Error(`Internal Error: Schema ${key} not found.`);
+    throw new InternalError(`Schema ${key} not found.`);
   }
   return definitionsObject[key];
 }
 
 export function setSchemaDefinition(schema: ConcreteSchema) {
   if (schema.$id === undefined) {
-    throw new Error(
-      "Internal Error, setSchemaDefinition needs $id",
+    throw new InternalError(
+      "setSchemaDefinition needs $id",
     );
   }
   // FIXME it's possible that without ajv we actually want to reset
@@ -116,8 +116,8 @@ export function expandAliasesFrom(
     if (el.startsWith("$")) {
       const v = aliases[el.slice(1)];
       if (v === undefined) {
-        throw new Error(
-          `Internal Error: ${el} doesn't have an entry in the aliases map`,
+        throw new InternalError(
+          `${el} doesn't have an entry in the aliases map`,
         );
       }
       lst.push(...v);

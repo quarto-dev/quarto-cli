@@ -1,10 +1,10 @@
 /*
-* parsing.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * parsing.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
+import { UnreachableError } from "../error.ts";
 import { asMappedString, MappedString, mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { lineColToIndex, lines } from "../text.ts";
@@ -203,7 +203,7 @@ export function getYamlIndentTree(code: string) {
       prevPredecessor = i;
       indentation = lineIndent;
     } else {
-      throw new Error("Internal error, should never have arrived here");
+      throw new UnreachableError();
     }
   }
   return {

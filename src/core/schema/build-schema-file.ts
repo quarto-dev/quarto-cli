@@ -1,12 +1,11 @@
 /*
-* build-schema-file.ts
-*
-* Collects the existing schemas and builds a single JSON file with
-* their description
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * build-schema-file.ts
+ *
+ * Collects the existing schemas and builds a single JSON file with
+ * their description
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { resourcePath } from "../resources.ts";
 import {
@@ -36,6 +35,7 @@ import { languages, languageSchema } from "../handlers/base.ts";
 import { idSchema } from "../lib/yaml-schema/common.ts";
 import { kLangCommentChars } from "../lib/partition-cell-options.ts";
 import { generateTypesFromSchemas } from "./types-from-schema.ts";
+import { InternalError } from "../lib/error.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -136,7 +136,7 @@ async function createHtmlDescriptions(): Promise<
   );
 
   if (!pandocResult.success) {
-    throw new Error("Internal error - couldn't run pandoc");
+    throw new InternalError("Couldn't run pandoc");
   }
 
   await initDenoDom();
