@@ -227,10 +227,6 @@ local quartoPre = {
     filter = table_colwidth(), 
     flags = { "has_tables" } },
   
-  { name = "pre-table-classes", 
-    filter = table_classes(),
-    flags = { "has_tables" } },
-
   { name = "pre-hidden", 
     filter = hidden(), 
     flags = { "has_hidden" } },
@@ -277,6 +273,7 @@ local quartoPre = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     input_traits(),
+    table_classes(),
     resolve_book_file_targets(),
     project_paths()
   }) },
