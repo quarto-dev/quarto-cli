@@ -5,6 +5,7 @@
  */
 
 import {
+  kClearHiddenClasses,
   kDefaultImageExtension,
   kIncludeAfterBody,
   kJatsSubarticleId,
@@ -204,4 +205,8 @@ export const resolveJatsSubarticleMetadata = (
   format.metadata[kLintXml] = false;
   format.metadata[kJatsSubarticle] = true;
   format.metadata[kJatsSubarticleId] = subArticleId;
+
+  // Configure keep behavior of the subarticle
+  format.metadata[kClearHiddenClasses] = true;
+  format.execute.echo = true;
 };

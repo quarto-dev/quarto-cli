@@ -17,11 +17,14 @@ import {
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
+  kClearHiddenClasses,
   kEcho,
   kFormatLinks,
+  kKeepHidden,
   kNotebookLinks,
   kNotebooks,
   kOutputFile,
+  kRemoveHidden,
   kResources,
   kToc,
 } from "../../../config/constants.ts";
@@ -293,6 +296,25 @@ export const manuscriptProjectType: ProjectType = {
             // is targeting index.html as its output
             format.pandoc[kOutputFile] = "index.html";
           }
+
+          // Implement manuscript echo handling using
+          // keep hidden (echo the code and remove hidden code)
+          const userEcho = format.execute.echo;
+
+          // If the user enables echo, just remove the hidden classes
+          // If the user doesn't enable echo, just remove the hidden output
+          format.execute.echo = false;
+          format.render[kKeepHidden] = true;
+          if (userEcho === true) {
+            format.metadata[kClearHiddenClasses] = true;
+          } else {
+            format.metadata[kRemoveHidden] = true;
+          }
+        } else {
+          // For non-article elements of this project, enable echo
+          format.execute.echo = true;
+          format.metadata[kClearHiddenClasses] = true;
+          format.metadata[kKeepHidden] = true;
         }
       }
 

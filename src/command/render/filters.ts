@@ -10,6 +10,7 @@ import {
   kBibliography,
   kCitationLocation,
   kCiteMethod,
+  kClearHiddenClasses,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -33,6 +34,7 @@ import {
   kPdfEngine,
   kQuartoFilters,
   kReferenceLocation,
+  kRemoveHidden,
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
@@ -521,6 +523,16 @@ async function quartoFilterParams(
   const keepHidden = format.render[kKeepHidden];
   if (keepHidden) {
     params[kKeepHidden] = kKeepHidden;
+  }
+
+  const removeHidden = format.metadata[kRemoveHidden];
+  if (removeHidden === true) {
+    params[kRemoveHidden] = true;
+  }
+
+  const clearHiddenClasses = format.metadata[kClearHiddenClasses];
+  if (clearHiddenClasses === true) {
+    params[kClearHiddenClasses] = true;
   }
 
   // Provide other params that may be useful to filters

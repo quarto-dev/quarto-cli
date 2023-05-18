@@ -10,6 +10,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
+  kClearHiddenClasses,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -452,6 +453,7 @@ async function renderHtmlView(
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
+            [kClearHiddenClasses]: true,
           },
           quiet: true,
         },
