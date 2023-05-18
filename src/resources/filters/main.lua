@@ -223,10 +223,6 @@ local quartoPre = {
     filter = table_colwidth_cell(),
     flags = { "has_tbl_colwidths" } },
 
-  { name = "pre-table-colwidth", 
-    filter = table_colwidth(), 
-    flags = { "has_tables" } },
-  
   { name = "pre-hidden", 
     filter = hidden(), 
     flags = { "has_hidden" } },
@@ -272,8 +268,9 @@ local quartoPre = {
     bootstrap_panel_input(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
-    input_traits(),
+    table_colwidth(), 
     table_classes(),
+    input_traits(),
     resolve_book_file_targets(),
     project_paths()
   }) },
