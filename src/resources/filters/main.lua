@@ -276,17 +276,13 @@ local quartoPre = {
     bootstrap_panel_input(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
-    input_traits()
-  }) },
-
-  { name = "pre-combined-book-file-targets", filter = combineFilters({
-    file_metadata(),
+    input_traits(),
     resolve_book_file_targets(),
+    project_paths()
   }) },
 
   { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
   { name = "pre-write-results", filter = write_results() },
-  { name = "pre-project-paths", filter = project_paths() },
 }
 
 local quartoPost = {
