@@ -7,7 +7,7 @@
 import { dirname, relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { debug, info, warning } from "log/mod.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
@@ -159,6 +159,7 @@ export const renderCommand = new Command()
     // issue a warning.
     if (!input || input === kCliffyImplicitCwd) {
       input = Deno.cwd();
+      debug(`Render: Using current directory (${input}) as implicit input`);
       const firstArg = args.find((arg) =>
         arg.endsWith(".qmd") || arg.endsWith(".ipynb")
       );
@@ -172,7 +173,6 @@ export const renderCommand = new Command()
         );
       }
     }
-
     const inputs = [input!];
     const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
     if (firstPandocArg !== -1) {

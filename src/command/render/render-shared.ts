@@ -79,7 +79,8 @@ export async function render(
       );
     } else {
       throw new Error(
-        "The specified directory ('" + path + "') is not a Quarto project",
+        "The specified directory ('" + path +
+          "') is not a Quarto project.\n(If you have not specified a path, quarto will attempt to render the entire current directory as a project.)",
       );
     }
   } else if (context?.config) {
