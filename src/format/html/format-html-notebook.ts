@@ -148,11 +148,13 @@ export async function emplaceNotebookPreviews(
           input,
           inputNbPath,
         );
-        addInlineLineNotebookLink(
-          computeEl,
-          nbPreview,
-          cellId,
-        );
+        if (inline) {
+          addInlineLineNotebookLink(
+            computeEl,
+            nbPreview,
+            cellId,
+          );
+        }
       }
     }
 
