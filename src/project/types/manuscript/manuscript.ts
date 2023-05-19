@@ -400,15 +400,6 @@ export const manuscriptProjectType: ProjectType = {
     return Promise.resolve(extras);
   },
   pandocRenderer: manuscriptRenderer,
-  notebooks: (context: ProjectContext) => {
-    const manuscriptConfig = context.config
-      ?.[kManuscriptType] as ResolvedManuscriptConfig;
-    if (manuscriptConfig) {
-      return manuscriptConfig.notebooks;
-    } else {
-      return [];
-    }
-  },
   previewSkipUnmodified: false,
   renderResultFinalOutput: (
     renderResults: RenderResult,
