@@ -409,7 +409,7 @@ const nbPreviewer = (
           inputDir,
           nbAbsPath,
           {
-            title: title || descriptor?.title || basename(nbPath),
+            title: descriptor?.title || title || basename(nbPath),
             previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
             url: descriptor?.url,
             downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
