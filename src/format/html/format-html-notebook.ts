@@ -12,7 +12,6 @@ import * as ld from "../../core/lodash.ts";
 import {
   kClearHiddenClasses,
   kDownloadUrl,
-  kIPynbTitleBlockTemplate,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -43,6 +42,7 @@ import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { projectIsBook } from "../../project/project-shared.ts";
 
 interface NotebookView {
   title: string;
@@ -341,6 +341,8 @@ const nbPreviewer = (
   services: RenderServices,
   project?: ProjectContext,
 ) => {
+  const isBook = projectIsBook(project);
+
   const nbPreviews: Record<
     string,
     { href: string; title: string; supporting?: string[]; filename?: string }
@@ -388,7 +390,7 @@ const nbPreviewer = (
         // Render an output version of the notebook
         let downloadUrl = undefined;
         let downloadFileName = undefined;
-        if (!descriptor?.[kDownloadUrl]) {
+        if (!descriptor?.[kDownloadUrl] && !isBook) {
           const outputNb = await renderOutputNotebook(
             inputDir,
             nbAbsPath,
