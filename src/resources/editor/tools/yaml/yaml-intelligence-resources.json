@@ -8530,6 +8530,16 @@
       "description": "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
     },
     {
+      "name": "bibliographystyle",
+      "schema": "string",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": "The bibliography style to use (e.g. `#set bibliography(style: \"apa\")`) when using typst built-in citation system (e.g when not `citeproc: true`)."
+    },
+    {
       "name": "biblio-title",
       "schema": "string",
       "tags": {
@@ -14307,7 +14317,8 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack"
+    "internal-schema-hack",
+    "The bibliography style to use\n(e.g.&nbsp;<code>#set bibliography(style: \"apa\")</code>) when using typst\nbuilt-in citation system (e.g when not <code>citeproc: true</code>)."
   ],
   "schema/external-schemas.yml": [
     {
@@ -14531,12 +14542,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 158136,
+    "_internalId": 158138,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 158128,
+        "_internalId": 158130,
         "type": "enum",
         "enum": [
           "png",
@@ -14552,7 +14563,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 158135,
+        "_internalId": 158137,
         "type": "anyOf",
         "anyOf": [
           {
