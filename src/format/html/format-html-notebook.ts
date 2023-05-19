@@ -447,7 +447,7 @@ async function renderHtmlView(
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
       path: options.downloadUrl || basename(nbAbsPath),
-      filename: options.downloadUrl ? undefined : basename(nbAbsPath),
+      filename: basename(nbAbsPath),
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
