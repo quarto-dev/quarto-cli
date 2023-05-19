@@ -45,6 +45,8 @@ export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 
 export const kKeepHidden = "keep-hidden";
+export const kRemoveHidden = "remove-hidden";
+export const kClearHiddenClasses = "clear-hidden-classes";
 
 export const kExecuteEnabled = "enabled";
 export const kExecuteIpynb = "ipynb";
@@ -147,6 +149,8 @@ export const kRenderDefaultsKeys = [
   kKeepTyp,
   kKeepSource,
   kKeepHidden,
+  kRemoveHidden,
+  kClearHiddenClasses,
   kVariant,
   kOutputExt,
   kOutputDivs,

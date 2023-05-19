@@ -1,12 +1,33 @@
 // deno-lint-ignore-file no-explicit-any
 /*
-* error.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * error.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { mappedIndexToLineCol, MappedString } from "./mapped-text.ts";
+
+export class InternalError extends Error {
+  constructor(
+    message: string,
+    printName = true,
+    printStack = true,
+  ) {
+    super(message);
+    this.name = "Internal Error";
+    this.printName = printName;
+    this.printStack = printStack;
+  }
+
+  public readonly printName: boolean;
+  public readonly printStack: boolean;
+}
+
+export class UnreachableError extends InternalError {
+  constructor() {
+    super("Unreachable code was reached.", true, true);
+  }
+}
 
 export class ErrorEx extends Error {
   constructor(

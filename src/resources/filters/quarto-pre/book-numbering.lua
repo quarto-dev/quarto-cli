@@ -31,7 +31,7 @@ function book_numbering()
               appendixPara.content:insert(pandoc.RawInline('latex', '}\n\\appendix'))
               return appendixPara
             elseif bookItemType == "chapter" and bookItemDepth == 0 then
-              preState.usingBookmark = true
+              quarto_global_state.usingBookmark = true
               local bookmarkReset = pandoc.Div({
                 pandoc.RawInline('latex', '\\bookmarksetup{startatroot}\n'),
                 el

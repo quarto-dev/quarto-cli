@@ -15,7 +15,7 @@ end
 function write_results()
   return {
     Pandoc = function(doc)
-      local jsonResults = quarto.json.encode(preState.results)
+      local jsonResults = quarto.json.encode(quarto_global_state.results)
       local rfile = io.open(resultsFile(), "w")
       if rfile then
         rfile:write(jsonResults)

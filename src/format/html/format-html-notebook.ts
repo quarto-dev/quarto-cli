@@ -10,6 +10,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
+  kClearHiddenClasses,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -32,6 +33,7 @@ import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 interface NotebookView {
   title: string;
@@ -111,6 +113,7 @@ export async function emplaceNotebookPreviews(
   doc: Document,
   format: Format,
   services: RenderServices,
+  project?: ProjectContext,
 ) {
   const inline = format.render[kNotebookLinks] === "inline" ||
     format.render[kNotebookLinks] === true;
@@ -129,7 +132,7 @@ export async function emplaceNotebookPreviews(
   const addInlineLineNotebookLink = inlineLinkGenerator(doc, format);
 
   if (nbViewConfig) {
-    const previewer = nbPreviewer(nbViewConfig, format, services);
+    const previewer = nbPreviewer(nbViewConfig, format, services, project);
 
     // Look for computational cells provided by this document itself and if
     // needed, synthesize a notebook for them (only do this if this is a root document
@@ -325,6 +328,7 @@ const nbPreviewer = (
   nbViewConfig: NotebookViewConfig,
   format: Format,
   services: RenderServices,
+  project?: ProjectContext,
 ) => {
   const nbPreviews: Record<
     string,
@@ -352,6 +356,7 @@ const nbPreviewer = (
           format,
           services,
           nbPreviewFile !== null ? nbPreviewFile : undefined,
+          project,
         );
         return {
           title: htmlPreview.title,
@@ -417,6 +422,7 @@ async function renderHtmlView(
   format: Format,
   services: RenderServices,
   previewFileName?: string,
+  project?: ProjectContext,
 ): Promise<NotebookView> {
   if (options.href === undefined) {
     // Use the special `embed` template for this render
@@ -447,14 +453,21 @@ async function renderHtmlView(
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
+            [kClearHiddenClasses]: true,
           },
           quiet: true,
         },
         echo: true,
+        warning: true,
       },
+      [],
+      undefined,
+      project,
     );
     if (rendered.error) {
-      throw new Error(`Failed to render preview for notebook ${nbAbsPath}`);
+      throw new Error(`Failed to render preview for notebook ${nbAbsPath}`, {
+        cause: rendered.error,
+      });
     }
 
     const nbRelPath = relative(inputDir, nbAbsPath);

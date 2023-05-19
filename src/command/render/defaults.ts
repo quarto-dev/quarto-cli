@@ -49,6 +49,7 @@ export async function generateDefaults(
         ...(allDefaults[kFilters] || []),
       ],
       options,
+      allDefaults,
     );
     if (resolvedFilters) {
       allDefaults[kFilters] = resolvedFilters.quartoFilters;

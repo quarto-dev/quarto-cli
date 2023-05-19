@@ -19,6 +19,11 @@ function parse_md_in_html_rawblocks()
     Span = function(span)
       if span.attributes.qmd ~= nil or span.attributes["qmd-base64"] ~= nil then
         local doc = process_quarto_markdown_input_element(span)
+        if #doc.blocks < 1 then
+          return pandoc.Span({})
+          -- error("process_quarto_markdown_input_element called with empty element")
+          -- error(span.attributes.qmd)
+        end
         return doc.blocks[1].content
       end
     end

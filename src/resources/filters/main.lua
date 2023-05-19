@@ -118,10 +118,8 @@ import("./crossref/options.lua")
 import("./quarto-pre/bibliography-formats.lua")
 import("./quarto-pre/book-links.lua")
 import("./quarto-pre/book-numbering.lua")
-import("./quarto-pre/callout.lua")
 import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
-import("./quarto-pre/content-hidden.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
 import("./quarto-pre/hidden.lua")
@@ -135,19 +133,21 @@ import("./quarto-pre/outputs.lua")
 import("./quarto-pre/panel-input.lua")
 import("./quarto-pre/panel-layout.lua")
 import("./quarto-pre/panel-sidebar.lua")
-import("./quarto-pre/panel-tabset.lua")
 import("./quarto-pre/project-paths.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
 import("./quarto-pre/shortcodes-handlers.lua")
-import("./quarto-pre/shortcodes.lua")
 import("./quarto-pre/table-classes.lua")
 import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
 
+import("./customnodes/shortcodes.lua")
+import("./customnodes/content-hidden.lua")
 import("./customnodes/decoratedcodeblock.lua")
+import("./customnodes/callout.lua")
+import("./customnodes/panel-tabset.lua")
 
 -- [/import]
 
@@ -166,9 +166,13 @@ local quartoInit = {
 
 local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
-    return preState.active_filters.normalization
+    return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
+  { name = "pre-table-merge-raw-html", 
+    filter = table_merge_raw_html()
+  },
+  
   -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
   -- can't be combined with parse_html_tables because combineFilters
   -- doesn't inspect the contents of the results in the inner loop.
@@ -211,25 +215,9 @@ local quartoPre = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-table-merge-raw-html", 
-    filter = table_merge_raw_html(),
-    flags = { "has_partial_raw_html_tables" } },
-
-  { name = "pre-table-render-raw-html", 
-    filter = table_render_raw_html(),
-    flags = { "has_raw_html_tables", "has_gt_tables" } },
-
   { name = "pre-table-colwidth-cell", 
     filter = table_colwidth_cell(),
     flags = { "has_tbl_colwidths" } },
-
-  { name = "pre-table-colwidth", 
-    filter = table_colwidth(), 
-    flags = { "has_tables" } },
-  
-  { name = "pre-table-classes", 
-    filter = table_classes(),
-    flags = { "has_tables" } },
 
   { name = "pre-hidden", 
     filter = hidden(), 
@@ -276,17 +264,16 @@ local quartoPre = {
     bootstrap_panel_input(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
-    input_traits()
-  }) },
-
-  { name = "pre-combined-book-file-targets", filter = combineFilters({
-    file_metadata(),
+    table_respecify_gt_css(),
+    table_colwidth(), 
+    table_classes(),
+    input_traits(),
     resolve_book_file_targets(),
+    project_paths()
   }) },
 
   { name = "pre-quarto-pre-meta-inject", filter = quarto_pre_meta_inject() },
   { name = "pre-write-results", filter = write_results() },
-  { name = "pre-project-paths", filter = project_paths() },
 }
 
 local quartoPost = {
@@ -313,10 +300,10 @@ local quartoPost = {
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   
   { name = "post-render-jats", filter = filterIf(function()
-    return preState.active_filters.jats_subarticle == nil or not preState.active_filters.jats_subarticle
+    return quarto_global_state.active_filters.jats_subarticle == nil or not quarto_global_state.active_filters.jats_subarticle
   end, jats()) },
   { name = "post-render-jats-subarticle", filter = filterIf(function()
-    return preState.active_filters.jats_subarticle ~= nil and preState.active_filters.jats_subarticle
+    return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
   end, jatsSubarticle()) },
 
   -- format-specific rendering

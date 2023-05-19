@@ -35,6 +35,10 @@ QUARTO_SRC_PATH="$QUARTO_ROOT/src"
 DEV_PATH=$QUARTO_SRC_PATH/quarto.ts
 if [ -f "$DEV_PATH" ]; then
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
+    if [ "$QUARTO_FORCE_VERSION" != "" ]; then
+      echo $QUARTO_FORCE_VERSION
+      exit 0
+    fi
     echo "99.9.9"
     exit 0
   fi
@@ -100,6 +104,10 @@ else
   fi
 
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
+    if [ "$QUARTO_FORCE_VERSION" != "" ]; then
+      echo $QUARTO_FORCE_VERSION
+      exit 0
+    fi
     echo `cat "$QUARTO_SHARE_PATH/version"`
     exit 0
   fi

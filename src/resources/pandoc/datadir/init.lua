@@ -1955,8 +1955,7 @@ quarto = {
     attach_to_dependency = function(name, pathOrFileObj)
 
       if name == nil then
-         error("The target dependency name for an attachment cannot be nil. Please provide a valid dependency name.")
-         os.exit(1)
+         fail("The target dependency name for an attachment cannot be nil. Please provide a valid dependency name.")
       end
 
       -- path can be a string or an obj { name, path }
@@ -1965,8 +1964,7 @@ quarto = {
 
          -- validate that there is at least a path
          if pathOrFileObj.path == nil then
-            error("Error attaching to dependency '" .. name .. "'.\nYou must provide a 'path' when adding an attachment to a dependency.")
-            os.exit(1)
+            fail("Error attaching to dependency '" .. name .. "'.\nYou must provide a 'path' when adding an attachment to a dependency.")
          end
 
          -- resolve a name, if one isn't provided
@@ -2024,7 +2022,7 @@ quarto = {
       return hasBootstrap
     end,
     is_filter_active = function(filter)
-      return preState.active_filters[filter]
+      return quarto_global_state.active_filters[filter]
     end,
 
     output_file = outputFile(),

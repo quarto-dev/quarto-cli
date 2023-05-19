@@ -44,6 +44,7 @@ import {
 } from "../yaml-schema/types.ts";
 
 import { formatLineRange, lines } from "../text.ts";
+import { InternalError } from "../error.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -90,8 +91,8 @@ export function getBadKey(error: LocalizedError): string | undefined {
   }
   const result = error.violatingObject.result;
   if (typeof result !== "string") {
-    throw new Error(
-      "Internal Error: propertyNames error has a violating non-string.",
+    throw new InternalError(
+      "propertyNames error has a violating non-string.",
     );
   }
   return result;
@@ -142,9 +143,6 @@ function navigate(
       }
     }
     return annotation;
-    // throw new Error(
-    //   `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
-    // );
   } else if (
     ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !==
       -1
@@ -164,7 +162,6 @@ function navigate(
     );
   } else {
     return annotation;
-    // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
 }
 
@@ -740,8 +737,8 @@ function checkForNearbyRequired(
   schemaCall(schema, {
     object(s: ObjectSchema) {
       if (s.required === undefined) {
-        throw new Error(
-          "Internal Error: required schema error without a required field",
+        throw new InternalError(
+          "required schema error without a required field",
         );
       }
       // find required properties.
@@ -752,7 +749,7 @@ function checkForNearbyRequired(
       }
     },
   }, (_) => {
-    throw new Error("Internal Error: required error on a non-object schema");
+    throw new InternalError("required error on a non-object schema");
   });
 
   for (const missingKey of missingKeys) {
@@ -888,6 +885,10 @@ export function createSourceContext(
   src: MappedString,
   location: Range,
 ): string {
+  if (src.value.length === 0) {
+    // if the file is empty, don't try to create a source context
+    return "";
+  }
   const startMapResult = src.map(location.start, true);
   const endMapResult = src.map(location.end, true);
 
@@ -907,14 +908,14 @@ export function createSourceContext(
   }
 
   if (startMapResult === undefined || endMapResult === undefined) {
-    throw new Error(
-      "Internal Error: createSourceContext called with bad location.",
+    throw new InternalError(
+      `createSourceContext called with bad location ${location.start}-${location.end}.`,
     );
   }
 
   if (startMapResult.originalString !== endMapResult.originalString) {
-    throw new Error(
-      "Internal Error: don't know how to create source context across different source files",
+    throw new InternalError(
+      "don't know how to create source context across different source files",
     );
   }
   const originalString = startMapResult.originalString;

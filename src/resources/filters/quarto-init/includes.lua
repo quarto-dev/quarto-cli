@@ -51,8 +51,7 @@ function readIncludeFiles(meta, includes, target)
       -- read file contents
       local f = io.open(pandoc.utils.stringify(file), "r")
       if f == nil then 
-        error("Error resolving " .. target .. "- unable to open file " .. file)
-        os.exit(1)
+        fail("Error resolving " .. target .. "- unable to open file " .. file)
       end
       local contents = f:read("*all")
       f:close()

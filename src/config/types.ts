@@ -650,4 +650,6 @@ export interface FormatLink {
   icon?: string;
   title: string;
   href: string;
+  order?: number;
+  attr?: Record<string, string>;
 }

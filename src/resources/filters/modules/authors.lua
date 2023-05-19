@@ -318,8 +318,7 @@ local function validateRefs(authors, affiliations)
     if author[kAffiliations] then
       for i,affiliation in ipairs(author[kAffiliations]) do
         if not tcontains(affilIds, affiliation[kRef]) then
-          error("Undefined affiliation '" .. pandoc.utils.stringify(affiliation[kRef]) .. "' for author '" .. pandoc.utils.stringify(author[kName][kLiteralName]) .. "'.")
-          os.exit(1)
+          fail("Undefined affiliation '" .. pandoc.utils.stringify(affiliation[kRef]) .. "' for author '" .. pandoc.utils.stringify(author[kName][kLiteralName]) .. "'.")
         end
       end
     end
@@ -493,13 +492,11 @@ local function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliati
         if author then
           return { [kName] = author[kName] }
         else
-          error("Invalid funding ref " .. refStr)
-          os.exit(1)
+          fail("Invalid funding ref " .. refStr)
         end
       end
     else
-      error("Invalid value for " .. keyName)
-      os.exit(1)
+      fail("Invalid value for " .. keyName)
     end
   end
 end

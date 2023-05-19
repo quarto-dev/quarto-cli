@@ -160,10 +160,6 @@ function compute_flags()
       if el.text:find("%{%{%<") then
         flags.has_shortcodes = true
       end
-
-      if el.format == "QUARTO_custom" and el.text:find("Shortcode") then
-        flags.has_shortcodes = true
-      end
     end,
     Image = function(node)
       if node.src:find("%{%{%<") then

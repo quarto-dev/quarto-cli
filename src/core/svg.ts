@@ -6,6 +6,7 @@
 
 import { kFigHeight, kFigWidth } from "../config/constants.ts";
 import { Attr, Element, getDomParser } from "./deno-dom.ts";
+import { InternalError } from "./lib/error.ts";
 import { EitherString, MappedString } from "./lib/text-types.ts";
 import { asMappedString, mappedDiff } from "./mapped-text.ts";
 import { inInches } from "./units.ts";
@@ -20,7 +21,7 @@ export async function resolveSize(
   const dom = (await getDomParser()).parseFromString(svg, "text/html");
   const svgEl = dom?.querySelector("svg");
   if (!svgEl) {
-    throw new Error("Internal Error: need an svg element");
+    throw new InternalError("Couldn't find an svg element in svg string");
   }
   let width = svgEl.getAttribute("width");
   let height = svgEl.getAttribute("height");
@@ -44,7 +45,7 @@ export async function resolveSize(
       width = `${vbWidth}px`;
       height = `${vbHeight}px`;
     } else {
-      throw new Error("Internal error: couldn't find figure dimensions");
+      throw new InternalError("couldn't determine svg dimensions");
     }
   }
 
@@ -66,7 +67,7 @@ export async function resolveSize(
     svgWidthInInches = vbWidth / 96;
     svgHeightInInches = vbHeight / 96;
   } else {
-    throw new Error("Internal Error: Couldn't resolve width and height of SVG");
+    throw new InternalError("Couldn't resolve width and height of SVG");
   }
 
   const svgWidthOverHeight = svgWidthInInches / svgHeightInInches;

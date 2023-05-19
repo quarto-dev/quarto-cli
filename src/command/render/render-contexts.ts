@@ -50,6 +50,7 @@ import {
   kServer,
   kTargetFormat,
   kTheme,
+  kWarning,
 } from "../../config/constants.ts";
 import {
   formatLanguage,
@@ -545,6 +546,11 @@ async function resolveFormats(
     // If options request, force echo
     if (options.echo) {
       userFormat.execute[kEcho] = true;
+    }
+
+    // If options request, force warning
+    if (options.warning) {
+      userFormat.execute[kWarning] = true;
     }
 
     // The format description

@@ -85,8 +85,7 @@ function initShortcodeHandlers()
           end
         end
       else
-        error(err)
-        os.exit(1)
+        fail(err)
       end
     end)
   end

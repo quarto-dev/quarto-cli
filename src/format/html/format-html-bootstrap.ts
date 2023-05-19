@@ -206,6 +206,7 @@ export function boostrapExtras(
           flags,
           services,
           offset,
+          project,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -228,6 +229,7 @@ function bootstrapHtmlPostprocessor(
   flags: PandocFlags,
   services: RenderServices,
   offset?: string,
+  project?: ProjectContext,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -280,10 +282,11 @@ function bootstrapHtmlPostprocessor(
 
     const tocTarget = doc.getElementById("quarto-toc-target");
 
-    const useDoubleToc = (format.metadata[kTocLocation] as string)?.includes('-body') ?? false;
+    const useDoubleToc =
+      (format.metadata[kTocLocation] as string)?.includes("-body") ?? false;
 
     if (toc && tocTarget) {
-      if(useDoubleToc) {
+      if (useDoubleToc) {
         const clonedToc = toc.cloneNode(true);
         toc.id = "TOC-body";
         toc = clonedToc as Element;
@@ -353,6 +356,7 @@ function bootstrapHtmlPostprocessor(
         doc,
         format,
         services,
+        project,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
@@ -552,14 +556,23 @@ function processAlternateFormatLinks(
         renderedFormats,
         userLinks,
       );
-
-      for (const alternateLink of altLinks) {
+      for (
+        const alternateLink of altLinks.sort(({ order: a }, { order: b }) =>
+          a - b
+        )
+      ) {
         const li = doc.createElement("li");
 
         const link = doc.createElement("a");
         link.setAttribute("href", alternateLink.href);
         if (alternateLink.dlAttrValue) {
           link.setAttribute("download", alternateLink.dlAttrValue);
+        }
+        if (alternateLink.attr) {
+          for (const key of Object.keys(alternateLink.attr)) {
+            const value = alternateLink.attr[key];
+            link.setAttribute(key, value);
+          }
         }
 
         const icon = doc.createElement("i");
@@ -586,7 +599,9 @@ interface AlternateLink {
   title: string;
   href: string;
   icon: string;
+  order: number;
   dlAttrValue?: string;
+  attr?: Record<string, string>;
 }
 
 function alternateLinks(
@@ -596,7 +611,10 @@ function alternateLinks(
 ): AlternateLink[] {
   const alternateLinks: AlternateLink[] = [];
 
-  const alternateLinkForFormat = (renderedFormat: RenderedFormat) => {
+  const alternateLinkForFormat = (
+    renderedFormat: RenderedFormat,
+    order: number,
+  ) => {
     const relPath = isAbsolute(renderedFormat.path)
       ? relative(dirname(input), renderedFormat.path)
       : renderedFormat.path;
@@ -611,6 +629,7 @@ function alternateLinks(
       }`,
       href: relPath,
       icon: fileBsIconName(renderedFormat.format),
+      order,
       dlAttrValue: fileDownloadAttr(
         renderedFormat.format,
         renderedFormat.path,
@@ -618,6 +637,7 @@ function alternateLinks(
     };
   };
 
+  let count = 1;
   for (const userLink of userLinks || []) {
     if (typeof (userLink) === "string") {
       // We need to filter formats, otherwise, we'll deal
@@ -627,7 +647,7 @@ function alternateLinks(
       );
       if (renderedFormat) {
         // Just push through
-        alternateLinks.push(alternateLinkForFormat(renderedFormat));
+        alternateLinks.push(alternateLinkForFormat(renderedFormat, count));
       }
     } else {
       // This an explicit link
@@ -636,9 +656,12 @@ function alternateLinks(
         href: userLink.href,
         icon: userLink.icon || fileBsIconForExt(userLink.href),
         dlAttrValue: "",
+        order: userLink.order || count,
+        attr: userLink.attr,
       };
       alternateLinks.push(alternate);
     }
+    count++;
   }
 
   const userLinksHasFormat = userLinks &&
@@ -647,8 +670,9 @@ function alternateLinks(
     formats.forEach((renderedFormat) => {
       const baseFormat = renderedFormat.format.identifier["base-format"];
       if (!kExcludeFormatUnlessExplicit.includes(baseFormat || "html")) {
-        alternateLinks.push(alternateLinkForFormat(renderedFormat));
+        alternateLinks.push(alternateLinkForFormat(renderedFormat, count));
       }
+      count++;
     });
   }
 

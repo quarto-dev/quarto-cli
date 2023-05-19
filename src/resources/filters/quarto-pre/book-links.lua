@@ -11,8 +11,8 @@ function index_book_file_targets()
             local file = currentFileMetadataState().file
             if file ~= nil then   
               local filename = file.bookItemFile;
-              if filename ~= nil and preState.fileSectionIds[filename] == nil then
-                preState.fileSectionIds[filename] = el.identifier
+              if filename ~= nil and quarto_global_state.fileSectionIds[filename] == nil then
+                quarto_global_state.fileSectionIds[filename] = el.identifier
               end
             end
           end
@@ -54,7 +54,7 @@ function resolve_book_file_targets()
             
             -- Paths are always using '/' separator (even on windows)
             linkTarget = linkTarget:gsub("\\", "/")
-            local sectionId = preState.fileSectionIds[linkTarget];
+            local sectionId = quarto_global_state.fileSectionIds[linkTarget];
             if sectionId ~= nil then
               el.target = '#' .. sectionId
             end

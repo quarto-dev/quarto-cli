@@ -1,13 +1,12 @@
 /*
-*
-* ojs-tools.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * ojs-tools.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { make, simple } from "acorn/walk";
 import { error } from "log/mod.ts";
+import { InternalError } from "../../core/lib/error.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
@@ -39,7 +38,9 @@ const walkerBase = make({
       }
     } else {
       error("I don't know how to walk this node", node);
-      throw new Error("Internal error while walking OJS source");
+      throw new InternalError(
+        `OJS traversal: I don't know how to walk this node: ${node}`,
+      );
     }
   },
 });

@@ -1,18 +1,17 @@
 /*
-*
-* schema-navigation.ts
-*
-* functions to navigate schema
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * schema-navigation.ts
+ *
+ * functions to navigate schema
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { resolveSchema } from "./resolve.ts";
 
 import { prefixes } from "../regexp.js";
 
 import { schemaType } from "../yaml-schema/types.ts";
+import { InternalError } from "../error.ts";
 
 // NB we have _three_ schema navigation functions which behave
 // differently and are needed in different cases
@@ -54,8 +53,8 @@ export function navigateSchemaByInstancePath(
       const patternPropMatch = matchPatternProperties(
         subSchema,
         key,
-        allowPartialMatches !== undefined && 
-        allowPartialMatches &&
+        allowPartialMatches !== undefined &&
+          allowPartialMatches &&
           index === path.length - 1, // allow prefix matches only if it's the last entry
       );
       if (patternPropMatch) {
@@ -111,12 +110,12 @@ export function navigateSchemaBySchemaPathSingle(
   // deno-lint-ignore no-explicit-any
 ): any {
   const ensurePathFragment = (
-    fragment: (number | string),
-    expected: (number | string),
+    fragment: number | string,
+    expected: number | string,
   ) => {
     if (fragment !== expected) {
-      throw new Error(
-        `Internal Error in navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`,
+      throw new InternalError(
+        `navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`,
       );
     }
   };
@@ -125,8 +124,8 @@ export function navigateSchemaBySchemaPathSingle(
   const inner = (subschema: any, index: number): any => {
     subschema = resolveSchema(subschema);
     if (subschema === undefined) {
-      throw new Error(
-        `Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`,
+      throw new InternalError(
+        `navigateSchemaBySchemaPathSingle: invalid path navigation`,
       );
     }
     if (index === path.length) {
@@ -152,15 +151,15 @@ export function navigateSchemaBySchemaPathSingle(
         } else if (path[index + 1] === "additionalProperties") {
           return inner(subschema.additionalProperties, index + 2);
         } else {
-          throw new Error(
-            `Internal Error in navigateSchemaBySchemaPathSingle: bad path fragment ${
+          throw new InternalError(
+            `navigateSchemaBySchemaPathSingle: bad path fragment ${
               path[index]
             } in object navigation`,
           );
         }
       default:
-        throw new Error(
-          `Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`,
+        throw new InternalError(
+          `navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`,
         );
     }
   };

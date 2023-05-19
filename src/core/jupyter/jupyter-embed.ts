@@ -1,9 +1,8 @@
 /*
-* jupyter-embed.ts
-*
-* Copyright (C) 2022 by RStudio, PBC
-*
-*/
+ * jupyter-embed.ts
+ *
+ * Copyright (C) 2022 by RStudio, PBC
+ */
 
 import { resourcePath } from "../resources.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
@@ -50,6 +49,7 @@ import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
 import { normalizePath, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
+import { InternalError } from "../lib/error.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -381,7 +381,7 @@ async function getCachedNotebookInfo(
   // improve performance
   const lifetime = getNamedLifetime(kRenderFileLifeTime);
   if (lifetime === undefined) {
-    throw new Error("Internal Error: named lifetime render-file not found");
+    throw new InternalError("named lifetime render-file not found");
   }
   const nbCache =
     lifetime.get(kNotebookCache) as unknown as JupyterNotebookOutputCache ||

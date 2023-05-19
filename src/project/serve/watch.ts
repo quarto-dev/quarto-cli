@@ -332,8 +332,13 @@ export function watchProject(
       return devServer.handle(req);
     },
     request: devServer.request,
-    injectClient: (req: Request, file: Uint8Array, inputFile?: string) => {
-      return devServer.injectClient(req, file, inputFile);
+    injectClient: (
+      req: Request,
+      file: Uint8Array,
+      inputFile?: string,
+      contentType?: string,
+    ) => {
+      return devServer.injectClient(req, file, inputFile, contentType);
     },
     clientHtml: (req: Request, inputFile?: string) => {
       return devServer.clientHtml(req, inputFile);

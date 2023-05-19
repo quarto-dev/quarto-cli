@@ -1,9 +1,8 @@
 /*
-* definitions.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * definitions.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { idSchema, refSchema } from "./common.ts";
 import { getYamlIntelligenceResource } from "../yaml-intelligence/resources.ts";
@@ -22,13 +21,14 @@ import {
 } from "../yaml-validation/schema.ts";
 
 import { ConcreteSchema, JSONValue, Schema } from "./types.ts";
+import { InternalError } from "../error.ts";
 
 export function defineCached(
   thunk: () => Promise<
     { schema: ConcreteSchema; errorHandlers: ValidatorErrorHandlerFunction[] }
   >,
   schemaId: string,
-): (() => Promise<ConcreteSchema>) {
+): () => Promise<ConcreteSchema> {
   let schema: ConcreteSchema;
 
   return async () => {
@@ -81,7 +81,7 @@ export async function loadSchemaDefinitions(yaml: JSONValue[]) {
   await Promise.all(yaml.map(async (yamlSchema) => {
     const schema = convertFromYaml(yamlSchema);
     if (schema.$id === undefined) {
-      throw new Error(`Internal error: unnamed schema in definitions`);
+      throw new InternalError(`Unnamed schema in definitions`);
     }
     setSchemaDefinition(schema);
   }));

@@ -1,17 +1,17 @@
 /*
-* common.ts
-*
-* Common JSON Schema objects that make up a schema combinator library.
-*
-* These are not strictly JSON Schemas (they have extra fields for
-* auto-completions, etc) but core/lib/schema.ts includes a
-* `normalizeSchema()` call that takes a schema produced here and
-* returns a valid JSON Schema object.
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * common.ts
+ *
+ * Common JSON Schema objects that make up a schema combinator library.
+ *
+ * These are not strictly JSON Schemas (they have extra fields for
+ * auto-completions, etc) but core/lib/schema.ts includes a
+ * `normalizeSchema()` call that takes a schema produced here and
+ * returns a valid JSON Schema object.
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
+import { InternalError, UnreachableError } from "../error.ts";
 import { CaseConvention, resolveCaseConventionRegex } from "../text.ts";
 
 import {
@@ -80,7 +80,7 @@ export function anySchema(description?: string): AnySchema {
 
 export function enumSchema(...args: JSONValue[]): EnumSchema {
   if (args.length === 0) {
-    throw new Error("Internal Error: Empty enum schema not supported.");
+    throw new InternalError("Empty enum schema not supported.");
   }
   return {
     ...internalId(),
@@ -223,10 +223,10 @@ export function objectSchema(params: {
       baseSchema = [baseSchema];
     }
     if (baseSchema.some((s) => s.type !== "object")) {
-      throw new Error("Internal Error: can only extend other object Schema");
+      throw new InternalError("Attempted to extend a non-object schema");
     }
     if (baseSchema.length <= 0) {
-      throw new Error("Internal Error: base schema must be non-empty");
+      throw new InternalError("base schema cannot be empty list");
     }
     // deno-lint-ignore no-explicit-any
     let temp: any = {
@@ -237,7 +237,7 @@ export function objectSchema(params: {
     }
     result = temp;
     if (result === undefined) {
-      throw new Error("Internal Error: result should not be undefined");
+      throw new UnreachableError();
     }
     // remove $id from base schema to avoid names from getting multiplied
     if (result.$id) {
