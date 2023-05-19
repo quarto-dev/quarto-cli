@@ -12,6 +12,7 @@ import * as ld from "../../core/lodash.ts";
 import {
   kClearHiddenClasses,
   kDownloadUrl,
+  kIPynbTitleBlockTemplate,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -29,23 +30,24 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { StringReader } from "https://deno.land/std@0.185.0/io/string_reader.ts";
 
 interface NotebookView {
   title: string;
   href: string;
   supporting?: string[];
-}
-
-interface NotebookViewOptions {
-  title: string;
-  href?: string;
 }
 
 const kQuartoNbClass = "quarto-notebook";
@@ -380,6 +382,29 @@ const nbPreviewer = (
         const descriptor: NotebookPreviewDescriptor | undefined =
           nbDescriptors[nbPath];
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
+
+        const supporting: string[] = [];
+
+        // Render an output version of the notebook
+        let downloadUrl = undefined;
+        let downloadFileName = undefined;
+        if (!descriptor?.[kDownloadUrl]) {
+          const outputNb = await renderOutputNotebook(
+            inputDir,
+            nbAbsPath,
+            services,
+            project,
+          );
+          downloadUrl = outputNb.href;
+
+          // Ensure that the output file name for this notebook preview is an `.ipynb`
+          if (extname(nbAbsPath) !== ".ipynb") {
+            downloadFileName = `${basename(nbAbsPath)}.ipynb`;
+          }
+
+          supporting.push(...outputNb.supporting);
+        }
+
         const htmlPreview = await renderHtmlView(
           inputDir,
           nbAbsPath,
@@ -387,16 +412,21 @@ const nbPreviewer = (
             title: title || descriptor?.title || basename(nbPath),
             previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
             url: descriptor?.url,
-            downloadUrl: descriptor?.[kDownloadUrl],
+            downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
+            downloadFileName,
           },
           format,
           services,
           project,
         );
+        if (htmlPreview.supporting) {
+          supporting.push(...htmlPreview.supporting);
+        }
+
         return {
           title: htmlPreview.title,
           href: htmlPreview.href,
-          supporting: htmlPreview.supporting,
+          supporting,
         };
       } else {
         return {
@@ -426,6 +456,59 @@ export interface HtmlNotebookPreviewOptions {
   url?: string;
   previewFileName: string;
   downloadUrl?: string;
+  downloadFileName?: string;
+}
+
+async function renderOutputNotebook(
+  inputDir: string,
+  nbAbsPath: string,
+  services: RenderServices,
+  project?: ProjectContext,
+): Promise<{ href: string; supporting: string[] }> {
+  // The target output file name
+  const [_dir, stem] = dirAndStem(nbAbsPath);
+  const outputFileName = `${stem}.out.ipynb`;
+
+  // Render the notebook and update the path
+  const rendered = await renderFiles(
+    [{ path: nbAbsPath, formats: ["ipynb"] }],
+    {
+      services,
+      flags: {
+        metadata: {
+          [kTo]: "ipynb",
+          [kOutputFile]: outputFileName,
+          [kClearHiddenClasses]: true,
+        },
+        quiet: true,
+      },
+      echo: true,
+      warning: true,
+    },
+    [],
+    undefined,
+    project,
+  );
+  if (rendered.error) {
+    throw new Error(`Failed to render output ipynb for notebook ${nbAbsPath}`, {
+      cause: rendered.error,
+    });
+  }
+
+  const supporting = [];
+  for (const renderedFile of rendered.files) {
+    supporting.push(join(inputDir, renderedFile.file));
+    if (renderedFile.supporting) {
+      supporting.push(...renderedFile.supporting.map((file) => {
+        return isAbsolute(file) ? file : join(inputDir, file);
+      }));
+    }
+  }
+
+  return {
+    href: outputFileName,
+    supporting,
+  };
 }
 
 // Renders an HTML preview of a notebook
@@ -447,7 +530,7 @@ async function renderHtmlView(
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
       path: options.downloadUrl || basename(nbAbsPath),
-      filename: basename(nbAbsPath),
+      filename: options.downloadFileName || basename(nbAbsPath),
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
@@ -482,14 +565,9 @@ async function renderHtmlView(
       });
     }
 
-    const nbRelPath = relative(inputDir, nbAbsPath);
-    const nbPreviewPath = join(
-      inputDir,
-      dirname(nbRelPath),
-      options.previewFileName,
-    );
-    const supporting = [nbPreviewPath];
+    const supporting = [];
     for (const renderedFile of rendered.files) {
+      supporting.push(join(inputDir, renderedFile.file));
       if (renderedFile.supporting) {
         supporting.push(...renderedFile.supporting.map((file) => {
           return isAbsolute(file) ? file : join(inputDir, file);
@@ -497,12 +575,12 @@ async function renderHtmlView(
       }
     }
 
+    const nbRelPath = relative(inputDir, nbAbsPath);
     return {
       title: options.title,
       href: pathWithForwardSlashes(
         join(dirname(nbRelPath), options.previewFileName),
       ),
-      // notebook to be included as supporting file
       supporting,
     };
   } else {
