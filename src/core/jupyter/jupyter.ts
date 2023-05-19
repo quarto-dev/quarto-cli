@@ -1326,7 +1326,7 @@ async function mdFromCodeCell(
     }
 
     if (typeof cell.options[kCellLstCap] === "string") {
-      md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
+      md.push(` lst-cap=\"${cell.options[kCellLstCap]}\"`);
     }
     if (typeof cell.options[kCodeFold] !== "undefined") {
       md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);

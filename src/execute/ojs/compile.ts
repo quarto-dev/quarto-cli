@@ -1,9 +1,8 @@
 /*
-* compile.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * compile.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import * as ld from "../../core/lodash.ts";
 import { dirname, join, relative, resolve } from "path/mod.ts";
@@ -425,7 +424,7 @@ export async function ojsCompile(
         attrs.push(`output="all"`);
       }
       if (cell.options?.[kCellLstCap]) {
-        attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);
+        attrs.push(`lst-cap="${cell.options?.[kCellLstCap]}"`);
       }
       const {
         classes,
@@ -526,8 +525,8 @@ export async function ojsCompile(
       // then pandoc will clobber our classes and our runtime error
       // reporting things will break anyway. So just don't emit
       // the source in that case.
-      const shouldEmitSource = (echoVal !== "fenced" &&
-        !(echoVal === false && isHtmlMarkdown));
+      const shouldEmitSource = echoVal !== "fenced" &&
+        !(echoVal === false && isHtmlMarkdown);
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
