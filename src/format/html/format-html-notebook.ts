@@ -139,20 +139,29 @@ export async function emplaceNotebookPreviews(
     // needed, synthesize a notebook for them (only do this if this is a root document
     // and input itself is in the list of notebooks)
     const inputNbPath = basename(input);
-    const computationalNodes = doc.querySelectorAll("div.cell");
-    for (const computationalNode of computationalNodes) {
-      const computeEl = computationalNode as Element;
-      const cellId = computeEl.getAttribute("id");
-      const nbPreview = await previewer.preview(
-        input,
-        inputNbPath,
-      );
-      if (inline) {
-        addInlineLineNotebookLink(
-          computeEl,
-          nbPreview,
-          cellId,
+    if (previewer.descriptor(inputNbPath)) {
+      const computationalNodes = doc.querySelectorAll("div.cell");
+      for (const computationalNode of computationalNodes) {
+        const computeEl = computationalNode as Element;
+        const cellId = computeEl.getAttribute("id");
+        const nbPreview = await previewer.preview(
+          input,
+          inputNbPath,
         );
+
+        // If this is a cell _in_ a source notebook, it will not be parented
+        // by an embed cell
+        if (inline) {
+          if (
+            !computeEl.parentElement?.classList.contains("quarto-embed-nb-cell")
+          ) {
+            addInlineLineNotebookLink(
+              computeEl,
+              nbPreview,
+              cellId,
+            );
+          }
+        }
       }
     }
 
@@ -349,6 +358,12 @@ const nbPreviewer = (
   }
   const renderPreview = nbView !== false;
 
+  const descriptor = (
+    notebook: string,
+  ) => {
+    return nbDescriptors[notebook];
+  };
+
   const preview = async (
     input: string,
     nbPath: string,
@@ -402,6 +417,7 @@ const nbPreviewer = (
   return {
     preview,
     previews: nbPreviews,
+    descriptor,
   };
 };
 
