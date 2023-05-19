@@ -15554,6 +15554,16 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
         },
         {
+          name: "bibliographystyle",
+          schema: "string",
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: 'The bibliography style to use (e.g. `#set bibliography(style: "apa")`) when using typst built-in citation system (e.g when not `citeproc: true`).'
+        },
+        {
           name: "biblio-title",
           schema: "string",
           tags: {
@@ -20442,6 +20452,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of options for BibLaTeX.",
         "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
         "The bibliography style to use\n(e.g.&nbsp;<code>\\bibliographystyle{dinat}</code>) when using\n<code>natbib</code> or <code>biblatex</code>.",
+        'The bibliography style to use\n(e.g.&nbsp;<code>#set bibliography(style: "apa")</code>) when using typst\nbuilt-in citation system (e.g when not <code>citeproc: true</code>).',
         "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
         "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
         {
@@ -21555,12 +21566,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158136,
+        _internalId: 158274,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158128,
+            _internalId: 158266,
             type: "enum",
             enum: [
               "png",
@@ -21576,7 +21587,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158135,
+            _internalId: 158273,
             type: "anyOf",
             anyOf: [
               {
@@ -21657,6 +21668,201 @@ function glb(array, value, compare) {
   }
   return left;
 }
+
+// ../ranged-text.ts
+function matchAll(str2, regex) {
+  let match;
+  regex = new RegExp(regex);
+  const result = [];
+  while ((match = regex.exec(str2)) != null) {
+    result.push(match);
+  }
+  return result;
+}
+function rangedLines(text, includeNewLines = false) {
+  const regex = /\r?\n/g;
+  const result = [];
+  let startOffset = 0;
+  if (!includeNewLines) {
+    for (const r of matchAll(text, regex)) {
+      result.push({
+        substring: text.substring(startOffset, r.index),
+        range: {
+          start: startOffset,
+          end: r.index
+        }
+      });
+      startOffset = r.index + r[0].length;
+    }
+    result.push({
+      substring: text.substring(startOffset, text.length),
+      range: {
+        start: startOffset,
+        end: text.length
+      }
+    });
+    return result;
+  } else {
+    const matches = matchAll(text, regex);
+    let prevOffset = 0;
+    for (const r of matches) {
+      const stringEnd = r.index + r[0].length;
+      result.push({
+        substring: text.substring(prevOffset, stringEnd),
+        range: {
+          start: prevOffset,
+          end: stringEnd
+        }
+      });
+      prevOffset = stringEnd;
+    }
+    result.push({
+      substring: text.substring(prevOffset, text.length),
+      range: {
+        start: prevOffset,
+        end: text.length
+      }
+    });
+    return result;
+  }
+}
+
+// ../mapped-text.ts
+function mappedSubstring(source, start, end) {
+  if (typeof source === "string") {
+    source = asMappedString(source);
+  }
+  const value = source.value.substring(start, end);
+  const mappedSource2 = source;
+  return {
+    value,
+    map: (index, closest) => {
+      if (closest) {
+        index = Math.max(0, Math.min(value.length, index - 1));
+      }
+      if (index === 0 && index === value.length) {
+        return mappedSource2.map(index + start, closest);
+      }
+      if (index < 0 || index >= value.length) {
+        return void 0;
+      }
+      return mappedSource2.map(index + start, closest);
+    }
+  };
+}
+function mappedString(source, pieces, fileName) {
+  if (typeof source === "string") {
+    source = asMappedString(source, fileName);
+  }
+  const mappedPieces = pieces.map((piece) => {
+    if (typeof piece === "string") {
+      return asMappedString(piece);
+    } else if (piece.value !== void 0) {
+      return piece;
+    } else {
+      const { start, end } = piece;
+      return mappedSubstring(source, start, end);
+    }
+  });
+  return mappedConcat(mappedPieces);
+}
+function asMappedString(str2, fileName) {
+  if (typeof str2 === "string") {
+    return {
+      value: str2,
+      fileName,
+      map: function(index, closest) {
+        if (closest) {
+          index = Math.min(str2.length - 1, Math.max(0, index));
+        }
+        if (index < 0 || index >= str2.length) {
+          return void 0;
+        }
+        return {
+          index,
+          originalString: this
+        };
+      }
+    };
+  } else if (fileName !== void 0) {
+    throw new InternalError(
+      "can't change the fileName of an existing MappedString"
+    );
+  } else {
+    return str2;
+  }
+}
+function mappedConcat(strings) {
+  if (strings.length === 0) {
+    return {
+      value: "",
+      map: (_index, _closest) => void 0
+    };
+  }
+  if (strings.every((s) => typeof s === "string")) {
+    return asMappedString(strings.join(""));
+  }
+  const mappedStrings = strings.map((s) => {
+    if (typeof s === "string") {
+      return asMappedString(s);
+    } else
+      return s;
+  });
+  let currentOffset = 0;
+  const offsets = [0];
+  for (const s of mappedStrings) {
+    currentOffset += s.value.length;
+    offsets.push(currentOffset);
+  }
+  const value = mappedStrings.map((s) => s.value).join("");
+  return {
+    value,
+    map: (offset, closest) => {
+      if (closest) {
+        offset = Math.max(0, Math.min(offset, value.length - 1));
+      }
+      if (offset === 0 && offset == value.length && mappedStrings.length) {
+        return mappedStrings[0].map(0, closest);
+      }
+      if (offset < 0 || offset >= value.length) {
+        return void 0;
+      }
+      const ix = glb(offsets, offset);
+      const v = mappedStrings[ix];
+      return v.map(offset - offsets[ix]);
+    }
+  };
+}
+function mappedIndexToLineCol(eitherText) {
+  const text = asMappedString(eitherText);
+  return function(offset) {
+    const mapResult = text.map(offset, true);
+    if (mapResult === void 0) {
+      throw new InternalError("bad offset in mappedIndexRowCol");
+    }
+    const { index, originalString } = mapResult;
+    return indexToLineCol(originalString.value)(index);
+  };
+}
+function mappedLines(str2, keepNewLines = false) {
+  const lines2 = rangedLines(str2.value, keepNewLines);
+  return lines2.map((v) => mappedString(str2, [v.range]));
+}
+
+// ../error.ts
+var InternalError = class extends Error {
+  constructor(message, printName = true, printStack = true) {
+    super(message);
+    this.name = "Internal Error";
+    this.printName = printName;
+    this.printStack = printStack;
+  }
+};
+var UnreachableError = class extends InternalError {
+  constructor() {
+    super("Unreachable code was reached.", true, true);
+  }
+};
 
 // ../external/colors.ts
 var Deno2;
@@ -21761,7 +21967,7 @@ function locationString(loc) {
 function lines(text) {
   return text.split(/\r?\n/);
 }
-function* matchAll(text, regexp) {
+function* matchAll2(text, regexp) {
   if (!regexp.global) {
     throw new Error("matchAll requires global regexps");
   }
@@ -21772,7 +21978,7 @@ function* matchAll(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll(text, /\r?\n/g)) {
+  for (const match of matchAll2(text, /\r?\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -21883,8 +22089,8 @@ function detectCaseConvention(key) {
 function resolveCaseConventionRegex(keys, conventions) {
   if (conventions !== void 0) {
     if (conventions.length === 0) {
-      throw new Error(
-        "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`"
+      throw new InternalError(
+        "resolveCaseConventionRegex requires nonempty `conventions`"
       );
     }
     return {
@@ -21945,186 +22151,6 @@ function toCapitalizationCase(str2) {
     /_(.)/g,
     (_match, p1) => p1.toLocaleUpperCase()
   );
-}
-
-// ../ranged-text.ts
-function matchAll2(str2, regex) {
-  let match;
-  regex = new RegExp(regex);
-  const result = [];
-  while ((match = regex.exec(str2)) != null) {
-    result.push(match);
-  }
-  return result;
-}
-function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
-  const result = [];
-  let startOffset = 0;
-  if (!includeNewLines) {
-    for (const r of matchAll2(text, regex)) {
-      result.push({
-        substring: text.substring(startOffset, r.index),
-        range: {
-          start: startOffset,
-          end: r.index
-        }
-      });
-      startOffset = r.index + r[0].length;
-    }
-    result.push({
-      substring: text.substring(startOffset, text.length),
-      range: {
-        start: startOffset,
-        end: text.length
-      }
-    });
-    return result;
-  } else {
-    const matches = matchAll2(text, regex);
-    let prevOffset = 0;
-    for (const r of matches) {
-      const stringEnd = r.index + r[0].length;
-      result.push({
-        substring: text.substring(prevOffset, stringEnd),
-        range: {
-          start: prevOffset,
-          end: stringEnd
-        }
-      });
-      prevOffset = stringEnd;
-    }
-    result.push({
-      substring: text.substring(prevOffset, text.length),
-      range: {
-        start: prevOffset,
-        end: text.length
-      }
-    });
-    return result;
-  }
-}
-
-// ../mapped-text.ts
-function mappedSubstring(source, start, end) {
-  if (typeof source === "string") {
-    source = asMappedString(source);
-  }
-  const value = source.value.substring(start, end);
-  const mappedSource2 = source;
-  return {
-    value,
-    map: (index, closest) => {
-      if (closest) {
-        index = Math.max(0, Math.min(value.length, index - 1));
-      }
-      if (index === 0 && index === value.length) {
-        return mappedSource2.map(index + start, closest);
-      }
-      if (index < 0 || index >= value.length) {
-        return void 0;
-      }
-      return mappedSource2.map(index + start, closest);
-    }
-  };
-}
-function mappedString(source, pieces, fileName) {
-  if (typeof source === "string") {
-    source = asMappedString(source, fileName);
-  }
-  const mappedPieces = pieces.map((piece) => {
-    if (typeof piece === "string") {
-      return asMappedString(piece);
-    } else if (piece.value !== void 0) {
-      return piece;
-    } else {
-      const { start, end } = piece;
-      return mappedSubstring(source, start, end);
-    }
-  });
-  return mappedConcat(mappedPieces);
-}
-function asMappedString(str2, fileName) {
-  if (typeof str2 === "string") {
-    return {
-      value: str2,
-      fileName,
-      map: function(index, closest) {
-        if (closest) {
-          index = Math.min(str2.length - 1, Math.max(0, index));
-        }
-        if (index < 0 || index >= str2.length) {
-          return void 0;
-        }
-        return {
-          index,
-          originalString: this
-        };
-      }
-    };
-  } else if (fileName !== void 0) {
-    throw new Error(
-      "Internal error: can't change the fileName of an existing MappedString"
-    );
-  } else {
-    return str2;
-  }
-}
-function mappedConcat(strings) {
-  if (strings.length === 0) {
-    return {
-      value: "",
-      map: (_index, _closest) => void 0
-    };
-  }
-  if (strings.every((s) => typeof s === "string")) {
-    return asMappedString(strings.join(""));
-  }
-  const mappedStrings = strings.map((s) => {
-    if (typeof s === "string") {
-      return asMappedString(s);
-    } else
-      return s;
-  });
-  let currentOffset = 0;
-  const offsets = [0];
-  for (const s of mappedStrings) {
-    currentOffset += s.value.length;
-    offsets.push(currentOffset);
-  }
-  const value = mappedStrings.map((s) => s.value).join("");
-  return {
-    value,
-    map: (offset, closest) => {
-      if (closest) {
-        offset = Math.max(0, Math.min(offset, value.length - 1));
-      }
-      if (offset === 0 && offset == value.length && mappedStrings.length) {
-        return mappedStrings[0].map(0, closest);
-      }
-      if (offset < 0 || offset >= value.length) {
-        return void 0;
-      }
-      const ix = glb(offsets, offset);
-      const v = mappedStrings[ix];
-      return v.map(offset - offsets[ix]);
-    }
-  };
-}
-function mappedIndexToLineCol(eitherText) {
-  const text = asMappedString(eitherText);
-  return function(offset) {
-    const mapResult = text.map(offset, true);
-    if (mapResult === void 0) {
-      throw new Error("Internal Error: bad offset in mappedIndexRowCol");
-    }
-    const { index, originalString } = mapResult;
-    return indexToLineCol(originalString.value)(index);
-  };
-}
-function mappedLines(str2, keepNewLines = false) {
-  const lines2 = rangedLines(str2.value, keepNewLines);
-  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // parsing.ts
@@ -22256,7 +22282,7 @@ function getYamlIndentTree(code2) {
       prevPredecessor = i;
       indentation = lineIndent;
     } else {
-      throw new Error("Internal error, should never have arrived here");
+      throw new UnreachableError();
     }
   }
   return {
@@ -25145,7 +25171,7 @@ function schemaCall(s, d, other) {
   if (other) {
     return other(s);
   }
-  throw new Error(`Internal Error: dispatch failed for type ${st}`);
+  throw new InternalError(`Dispatch failed for type ${st}`);
 }
 function schemaDocString(d) {
   if (typeof d === "string") {
@@ -25190,14 +25216,14 @@ function hasSchemaDefinition(key) {
 }
 function getSchemaDefinition(key) {
   if (definitionsObject[key] === void 0) {
-    throw new Error(`Internal Error: Schema ${key} not found.`);
+    throw new InternalError(`Schema ${key} not found.`);
   }
   return definitionsObject[key];
 }
 function setSchemaDefinition(schema2) {
   if (schema2.$id === void 0) {
-    throw new Error(
-      "Internal Error, setSchemaDefinition needs $id"
+    throw new InternalError(
+      "setSchemaDefinition needs $id"
     );
   }
   if (definitionsObject[schema2.$id] === void 0) {
@@ -25216,8 +25242,8 @@ function expandAliasesFrom(lst, defs) {
     if (el.startsWith("$")) {
       const v = aliases[el.slice(1)];
       if (v === void 0) {
-        throw new Error(
-          `Internal Error: ${el} doesn't have an entry in the aliases map`
+        throw new InternalError(
+          `${el} doesn't have an entry in the aliases map`
         );
       }
       lst.push(...v);
@@ -25253,8 +25279,8 @@ function resolveSchema(schema2, visit, hasRef, next) {
         ref: (s) => getSchemaDefinition(s.$ref)
       });
       if (result === void 0) {
-        throw new Error(
-          "Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}"
+        throw new InternalError(
+          "couldn't resolve schema ${JSON.stringify(cursor)}"
         );
       }
       return result;
@@ -27138,16 +27164,16 @@ function navigateSchemaByInstancePath(schema2, path, allowPartialMatches) {
 function navigateSchemaBySchemaPathSingle(schema2, path) {
   const ensurePathFragment = (fragment, expected) => {
     if (fragment !== expected) {
-      throw new Error(
-        `Internal Error in navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`
+      throw new InternalError(
+        `navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`
       );
     }
   };
   const inner = (subschema, index) => {
     subschema = resolveSchema(subschema);
     if (subschema === void 0) {
-      throw new Error(
-        `Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`
+      throw new InternalError(
+        `navigateSchemaBySchemaPathSingle: invalid path navigation`
       );
     }
     if (index === path.length) {
@@ -27173,13 +27199,13 @@ function navigateSchemaBySchemaPathSingle(schema2, path) {
         } else if (path[index + 1] === "additionalProperties") {
           return inner(subschema.additionalProperties, index + 2);
         } else {
-          throw new Error(
-            `Internal Error in navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`
+          throw new InternalError(
+            `navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`
           );
         }
       default:
-        throw new Error(
-          `Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`
+        throw new InternalError(
+          `navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`
         );
     }
   };
@@ -27481,8 +27507,8 @@ function getBadKey(error) {
   }
   const result = error.violatingObject.result;
   if (typeof result !== "string") {
-    throw new Error(
-      "Internal Error: propertyNames error has a violating non-string."
+    throw new InternalError(
+      "propertyNames error has a violating non-string."
     );
   }
   return result;
@@ -27885,8 +27911,8 @@ function checkForNearbyRequired(error, _parse, _schema) {
   schemaCall(schema2, {
     object(s) {
       if (s.required === void 0) {
-        throw new Error(
-          "Internal Error: required schema error without a required field"
+        throw new InternalError(
+          "required schema error without a required field"
         );
       }
       for (const r of s.required) {
@@ -27896,7 +27922,7 @@ function checkForNearbyRequired(error, _parse, _schema) {
       }
     }
   }, (_) => {
-    throw new Error("Internal Error: required error on a non-object schema");
+    throw new InternalError("required error on a non-object schema");
   });
   for (const missingKey of missingKeys) {
     let bestCorrection;
@@ -27975,6 +28001,9 @@ function checkForNearbyCorrection(error, parse, _schema) {
   return error;
 }
 function createSourceContext(src, location) {
+  if (src.value.length === 0) {
+    return "";
+  }
   const startMapResult = src.map(location.start, true);
   const endMapResult = src.map(location.end, true);
   const locF = mappedIndexToLineCol(src);
@@ -27991,13 +28020,13 @@ function createSourceContext(src, location) {
     };
   }
   if (startMapResult === void 0 || endMapResult === void 0) {
-    throw new Error(
-      "Internal Error: createSourceContext called with bad location."
+    throw new InternalError(
+      `createSourceContext called with bad location ${location.start}-${location.end}.`
     );
   }
   if (startMapResult.originalString !== endMapResult.originalString) {
-    throw new Error(
-      "Internal Error: don't know how to create source context across different source files"
+    throw new InternalError(
+      "don't know how to create source context across different source files"
     );
   }
   const originalString = startMapResult.originalString;
@@ -28207,8 +28236,8 @@ function buildJsYamlAnnotation(mappedYaml) {
     };
   }
   if (results.length !== 1) {
-    throw new Error(
-      `Internal Error - expected a single result, got ${results.length} instead`
+    throw new InternalError(
+      `Expected a single result, got ${results.length} instead`
     );
   }
   JSON.stringify(results[0]);
@@ -28399,7 +28428,7 @@ function locateCursor(annotation, position) {
   let innermostAnnotation;
   let keyOrValue;
   const result = [];
-  const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
+  const kInternalLocateError = "Cursor outside bounds in sequence locate";
   function locate(node) {
     if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
       for (let i = 0; i < node.components.length; i += 2) {
@@ -28434,7 +28463,7 @@ function locateCursor(annotation, position) {
           }
         }
       }
-      throw new Error(kInternalLocateError);
+      throw new InternalError(kInternalLocateError);
     } else {
       if (node.kind !== "<<EMPTY>>") {
         keyOrValue = "value";
@@ -28470,7 +28499,7 @@ function locateAnnotation(annotation, position, kind) {
     if (typeof value === "number") {
       const inner = annotation.components[value];
       if (inner === void 0) {
-        throw new Error("Internal Error: invalid path for locateAnnotation");
+        throw new InternalError("invalid path for locateAnnotation");
       }
       annotation = inner;
     } else {
@@ -28492,7 +28521,7 @@ function locateAnnotation(annotation, position, kind) {
         }
       }
       if (!found) {
-        throw new Error("Internal Error: invalid path for locateAnnotation");
+        throw new InternalError("invalid path for locateAnnotation");
       }
     }
   }
@@ -28552,7 +28581,7 @@ function makeInitializer(thunk) {
   };
 }
 var initializer = () => {
-  throw new Error("initializer not set!!");
+  throw new InternalError("initializer not set!!");
 };
 async function initState() {
   await initializer();
@@ -28959,13 +28988,13 @@ function validateObject(value, schema2, context) {
         }
       }
     }
-    throw new Error(`Internal Error, couldn't locate key ${key}`);
+    throw new InternalError(`Couldn't locate key ${key}`);
   };
   const inspectedProps = /* @__PURE__ */ new Set();
   if (schema2.closed) {
     result = context.withSchemaPath("closed", () => {
       if (schema2.properties === void 0) {
-        throw new Error("Internal Error: closed schemas need properties");
+        throw new InternalError("Closed schemas need properties");
       }
       let innerResult = true;
       for (const key of ownProperties) {
@@ -29222,7 +29251,7 @@ function anySchema(description) {
 }
 function enumSchema(...args) {
   if (args.length === 0) {
-    throw new Error("Internal Error: Empty enum schema not supported.");
+    throw new InternalError("Empty enum schema not supported.");
   }
   return {
     ...internalId(),
@@ -29329,10 +29358,10 @@ function objectSchema(params = {}) {
       baseSchema = [baseSchema];
     }
     if (baseSchema.some((s) => s.type !== "object")) {
-      throw new Error("Internal Error: can only extend other object Schema");
+      throw new InternalError("Attempted to extend a non-object schema");
     }
     if (baseSchema.length <= 0) {
-      throw new Error("Internal Error: base schema must be non-empty");
+      throw new InternalError("base schema cannot be empty list");
     }
     let temp = {
       ...internalId()
@@ -29342,7 +29371,7 @@ function objectSchema(params = {}) {
     }
     result = temp;
     if (result === void 0) {
-      throw new Error("Internal Error: result should not be undefined");
+      throw new UnreachableError();
     }
     if (result.$id) {
       delete result.$id;
@@ -29779,8 +29808,8 @@ function setYamlIntelligenceResources(resources) {
 }
 function getYamlIntelligenceResource(filename) {
   if (_resources[filename] === void 0) {
-    throw new Error(
-      `Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`
+    throw new InternalError(
+      `getYamlIntelligenceResource called with missing resource ${filename}`
     );
   }
   return _resources[filename];
@@ -30086,7 +30115,7 @@ function convertFromObject(yaml) {
         params.namingConvention = "dash-case";
         break;
       default:
-        throw new Error("Internal Error: this should have failed validation");
+        throw new InternalError("This should have failed validation");
     }
   } else {
     params.namingConvention = schema2.namingConvention;
@@ -30192,8 +30221,8 @@ function convertFromYaml(yaml) {
       return fun(yaml);
     }
   }
-  throw new Error(
-    "Internal Error: Cannot convert object; this should have failed validation."
+  throw new InternalError(
+    "Cannot convert object; this should have failed validation."
   );
 }
 function objectSchemaFromFieldsObject(fields, exclude) {
@@ -30366,7 +30395,7 @@ async function loadSchemaDefinitions(yaml) {
   await Promise.all(yaml.map(async (yamlSchema) => {
     const schema2 = convertFromYaml(yamlSchema);
     if (schema2.$id === void 0) {
-      throw new Error(`Internal error: unnamed schema in definitions`);
+      throw new InternalError(`Unnamed schema in definitions`);
     }
     setSchemaDefinition(schema2);
   }));
@@ -30421,7 +30450,7 @@ var makeEngineSchema = (engine) => idSchema(
         case "object":
           return engineTag.indexOf(engine) !== -1;
         default:
-          throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+          throw new InternalError(`bad engine tag ${engineTag}`);
       }
     }
   ),

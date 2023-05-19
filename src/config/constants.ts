@@ -513,6 +513,7 @@ export const kCsl = "csl";
 export const kNoCite = "nocite";
 export const kCss = "css";
 export const kBibliography = "bibliography";
+export const kReferences = "references";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
 export const kIncludeAfter = "include-after";

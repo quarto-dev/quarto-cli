@@ -1,14 +1,18 @@
 /*
-* output-typst.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * output-typst.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join, normalize, relative } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
-import { kKeepTyp, kOutputExt, kOutputFile } from "../../config/constants.ts";
+import {
+  kKeepTyp,
+  kOutputExt,
+  kOutputFile,
+  kVariant,
+} from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -33,7 +37,7 @@ export function typstPdfOutputRecipe(
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
-  // cacluate output and args for pandoc (this is an intermediate file
+  // calculate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .typ)
   const [inputDir, inputStem] = dirAndStem(input);
   const output = inputStem + ".typ";
@@ -46,7 +50,7 @@ export function typstPdfOutputRecipe(
   }
 
   // when pandoc is done, we need to run the pdf generator and then copy the
-  // ouptut to the user's requested destination
+  // output to the user's requested destination
   const complete = async () => {
     // input file is pandoc's output
     const input = join(inputDir, output);
@@ -94,7 +98,7 @@ export function typstPdfOutputRecipe(
     : normalizeOutputPath(input, join(inputDir, inputStem + ".pdf"));
 
   // return recipe
-  return {
+  const recipe: OutputRecipe = {
     output,
     keepYaml: false,
     args,
@@ -102,4 +106,21 @@ export function typstPdfOutputRecipe(
     complete,
     finalOutput: pdfOutput ? relative(inputDir, pdfOutput) : undefined,
   };
+
+  // if we have some variant declared, resolve it
+  // (use for opt-out citations extension)
+  if (format.render?.[kVariant]) {
+    const to = format.pandoc.to;
+    const variant = format.render[kVariant];
+
+    recipe.format = {
+      ...recipe.format,
+      pandoc: {
+        ...recipe.format.pandoc,
+        to: `${to}${variant}`,
+      },
+    };
+  }
+
+  return recipe;
 }
