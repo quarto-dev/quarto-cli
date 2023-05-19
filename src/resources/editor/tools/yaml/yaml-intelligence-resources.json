@@ -8530,14 +8530,6 @@
       "description": "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
     },
     {
-      "name": "bibliographystyle",
-      "schema": "string",
-      "tags": {
-        "formats": ["typst"]
-      },
-      "description": "The bibliography style to use (e.g. `#set bibliography(style: \"apa\")`) when using typst's built-in citation system (e.g when not `citeproc: true`)."
-    },
-    {
       "name": "biblio-title",
       "schema": "string",
       "tags": {
