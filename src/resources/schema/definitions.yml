@@ -2166,6 +2166,9 @@
         url:
           string:
             description: "The url to use when viewing this notebook."
+        download-url:
+          string:
+            description: "The url to use when downloading the notebook from the preview"
       required: [notebook]
 
 - id: manuscript-schema

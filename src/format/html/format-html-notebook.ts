@@ -11,6 +11,7 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   kClearHiddenClasses,
+  kDownloadUrl,
   kNotebookLinks,
   kNotebookView,
   kNotebookViewStyle,
@@ -371,6 +372,7 @@ const nbPreviewer = (
             title: title || descriptor?.title || basename(nbPath),
             previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
             url: descriptor?.url,
+            downloadUrl: descriptor?.[kDownloadUrl],
           },
           format,
           services,
@@ -428,8 +430,8 @@ async function renderHtmlView(
     );
     const embedTemplate = renderEjs(embedHtmlEjs, {
       title: options.title,
-      path: basename(nbAbsPath),
-      filename: basename(nbAbsPath),
+      path: options.downloadUrl || basename(nbAbsPath),
+      filename: options.downloadUrl ? undefined : basename(nbAbsPath),
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);

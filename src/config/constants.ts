@@ -43,6 +43,7 @@ export const kNotebookLinks = "notebook-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
+export const kDownloadUrl = "download-url";
 
 export const kKeepHidden = "keep-hidden";
 export const kRemoveHidden = "remove-hidden";
