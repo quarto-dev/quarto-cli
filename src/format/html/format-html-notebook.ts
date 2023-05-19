@@ -34,6 +34,7 @@ import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { StringReader } from "https://deno.land/std@0.185.0/io/string_reader.ts";
 
 interface NotebookView {
   title: string;
@@ -120,7 +121,6 @@ export async function emplaceNotebookPreviews(
   const global = format.render[kNotebookLinks] === "global" ||
     format.render[kNotebookLinks] === true;
   const notebookView = format.render[kNotebookView] ?? true;
-  const nbViewConfig = notebookViewConfig(notebookView);
 
   const notebookViewStyle = format.render[kNotebookViewStyle];
 
@@ -131,30 +131,27 @@ export async function emplaceNotebookPreviews(
 
   const addInlineLineNotebookLink = inlineLinkGenerator(doc, format);
 
-  if (nbViewConfig) {
-    const previewer = nbPreviewer(nbViewConfig, format, services, project);
+  if (notebookView !== false) {
+    const previewer = nbPreviewer(notebookView, format, services, project);
 
     // Look for computational cells provided by this document itself and if
     // needed, synthesize a notebook for them (only do this if this is a root document
     // and input itself is in the list of notebooks)
     const inputNbPath = basename(input);
-    const inputNotebook = nbViewConfig.options(inputNbPath);
-    if (inputNotebook) {
-      const computationalNodes = doc.querySelectorAll("div.cell");
-      for (const computationalNode of computationalNodes) {
-        const computeEl = computationalNode as Element;
-        const cellId = computeEl.getAttribute("id");
-        const nbPreview = await previewer.preview(
-          input,
-          inputNbPath,
+    const computationalNodes = doc.querySelectorAll("div.cell");
+    for (const computationalNode of computationalNodes) {
+      const computeEl = computationalNode as Element;
+      const cellId = computeEl.getAttribute("id");
+      const nbPreview = await previewer.preview(
+        input,
+        inputNbPath,
+      );
+      if (inline) {
+        addInlineLineNotebookLink(
+          computeEl,
+          nbPreview,
+          cellId,
         );
-        if (inline) {
-          addInlineLineNotebookLink(
-            computeEl,
-            nbPreview,
-            cellId,
-          );
-        }
       }
     }
 
@@ -180,8 +177,8 @@ export async function emplaceNotebookPreviews(
         const nbPreview = await previewer.preview(
           input,
           notebookPath,
-          title,
-          notebookPreviewFile,
+          title === null ? undefined : title,
+          notebookPreviewFile === null ? undefined : notebookPreviewFile,
         );
 
         // Add a decoration to this div node
@@ -327,7 +324,7 @@ interface NotebookPreview {
 }
 
 const nbPreviewer = (
-  nbViewConfig: NotebookViewConfig,
+  nbView: boolean | NotebookPreviewDescriptor | NotebookPreviewDescriptor[],
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
@@ -336,28 +333,47 @@ const nbPreviewer = (
     string,
     { href: string; title: string; supporting?: string[]; filename?: string }
   > = {};
+
+  const nbDescriptors: Record<string, NotebookPreviewDescriptor> = {};
+  if (nbView) {
+    if (typeof (nbView) !== "boolean") {
+      asArray(nbView).forEach((view) => {
+        const existingView = nbDescriptors[view.notebook];
+        nbDescriptors[view.notebook] = {
+          ...existingView,
+          ...view,
+        };
+      });
+    }
+  }
+  const renderPreview = nbView !== false;
+
   const preview = async (
     input: string,
     nbPath: string,
-    title?: string | null,
-    nbPreviewFile?: string | null,
+    title?: string,
+    nbPreviewFile?: string,
   ): Promise<NotebookPreview> => {
+    // Renders the notebook preview
     const renderNotebook = async () => {
       const nbDir = dirname(nbPath);
       const filename = basename(nbPath);
       const inputDir = dirname(input);
-      if (nbViewConfig) {
+      if (renderPreview) {
         // Read options for this notebook
-        const nbPreviewOptions = nbViewConfig.options(nbPath) ||
-          { title: basename(nbPath) };
+        const descriptor: NotebookPreviewDescriptor | undefined =
+          nbDescriptors[nbPath];
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
         const htmlPreview = await renderHtmlView(
           inputDir,
           nbAbsPath,
-          nbPreviewOptions,
+          {
+            title: title || descriptor?.title || basename(nbPath),
+            previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
+            url: descriptor?.url,
+          },
           format,
           services,
-          nbPreviewFile !== null ? nbPreviewFile : undefined,
           project,
         );
         return {
@@ -374,6 +390,7 @@ const nbPreviewer = (
       }
     };
 
+    // Render each notebook only once
     if (!nbPreviews[nbPath]) {
       nbPreviews[nbPath] = await renderNotebook();
     }
@@ -386,47 +403,24 @@ const nbPreviewer = (
   };
 };
 
-interface NotebookViewConfig {
-  options: (notebook: string) => NotebookViewOptions | undefined;
-}
-
-function notebookViewConfig(
-  notebookPublish?:
-    | boolean
-    | NotebookPreviewDescriptor
-    | NotebookPreviewDescriptor[],
-) {
-  const nbOptions: Record<string, NotebookViewOptions> = {};
-  if (notebookPublish) {
-    if (typeof (notebookPublish) !== "boolean") {
-      asArray(notebookPublish).forEach((pub) => {
-        nbOptions[pub.notebook] = {
-          title: pub.title || basename(pub.notebook),
-          href: pub.url,
-        };
-      });
-    }
-    return {
-      options: (notebook: string): NotebookViewOptions | undefined => {
-        return nbOptions[notebook];
-      },
-    };
-  } else {
-    return undefined;
-  }
+export interface HtmlNotebookPreviewOptions {
+  title: string;
+  url?: string;
+  previewFileName: string;
+  downloadUrl?: string;
 }
 
 // Renders an HTML preview of a notebook
 async function renderHtmlView(
   inputDir: string,
   nbAbsPath: string,
-  options: NotebookViewOptions,
+  options: HtmlNotebookPreviewOptions,
   format: Format,
   services: RenderServices,
-  previewFileName?: string,
   project?: ProjectContext,
 ): Promise<NotebookView> {
-  if (options.href === undefined) {
+  // Compute the preview title
+  if (options.url === undefined) {
     // Use the special `embed` template for this render
     const embedHtmlEjs = formatResourcePath(
       "html",
@@ -441,8 +435,6 @@ async function renderHtmlView(
     Deno.writeTextFileSync(templatePath, embedTemplate);
 
     // Render the notebook and update the path
-    const filename = previewFileName || basename(nbAbsPath);
-    const nbPreviewFile = `${filename}.html`;
     const rendered = await renderFiles(
       [{ path: nbAbsPath, formats: ["html"] }],
       {
@@ -451,7 +443,7 @@ async function renderHtmlView(
           metadata: {
             [kTo]: "html",
             [kTheme]: format.metadata[kTheme],
-            [kOutputFile]: nbPreviewFile,
+            [kOutputFile]: options.previewFileName,
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
@@ -473,7 +465,11 @@ async function renderHtmlView(
     }
 
     const nbRelPath = relative(inputDir, nbAbsPath);
-    const nbPreviewPath = join(inputDir, dirname(nbRelPath), nbPreviewFile);
+    const nbPreviewPath = join(
+      inputDir,
+      dirname(nbRelPath),
+      options.previewFileName,
+    );
     const supporting = [nbPreviewPath];
     for (const renderedFile of rendered.files) {
       if (renderedFile.supporting) {
@@ -485,14 +481,16 @@ async function renderHtmlView(
 
     return {
       title: options.title,
-      href: pathWithForwardSlashes(join(dirname(nbRelPath), nbPreviewFile)),
+      href: pathWithForwardSlashes(
+        join(dirname(nbRelPath), options.previewFileName),
+      ),
       // notebook to be included as supporting file
       supporting,
     };
   } else {
     return {
       title: options.title,
-      href: options.href,
+      href: options.url,
     };
   }
 }

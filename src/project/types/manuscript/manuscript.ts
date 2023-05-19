@@ -376,21 +376,22 @@ export const manuscriptProjectType: ProjectType = {
         const outputNbs: NotebookPreviewDescriptor[] = [];
         const notebooks = manuscriptConfig.notebooks || [];
         for (const notebook of notebooks) {
-          let title = notebook.title;
-          if (title === undefined) {
+          // Use the input to create a title for the notebook
+          // if needed
+          const createTitle = async () => {
             const target = await resolveInputTarget(
               context,
               relative(context.dir, notebook.notebook),
               false,
             );
             if (target) {
-              title = target.title;
+              return target.title;
             }
-          }
+          };
 
           outputNbs.push({
-            title,
-            notebook: notebook.notebook,
+            ...notebook,
+            title: notebook.title || await createTitle(),
           });
         }
         extras[kNotebooks] = outputNbs;
