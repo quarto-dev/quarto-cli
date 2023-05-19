@@ -20452,6 +20452,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of options for BibLaTeX.",
         "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
         "The bibliography style to use\n(e.g.&nbsp;<code>\\bibliographystyle{dinat}</code>) when using\n<code>natbib</code> or <code>biblatex</code>.",
+        'The bibliography style to use\n(e.g.&nbsp;<code>#set bibliography(style: "apa")</code>) when using typst\nbuilt-in citation system (e.g when not <code>citeproc: true</code>).',
         "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
         "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
         {
@@ -21341,8 +21342,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        'The bibliography style to use\n(e.g.&nbsp;<code>#set bibliography(style: "apa")</code>) when using typst\nbuilt-in citation system (e.g when not <code>citeproc: true</code>).'
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21566,12 +21566,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158138,
+        _internalId: 158274,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158130,
+            _internalId: 158266,
             type: "enum",
             enum: [
               "png",
@@ -21587,7 +21587,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158137,
+            _internalId: 158273,
             type: "anyOf",
             anyOf: [
               {
