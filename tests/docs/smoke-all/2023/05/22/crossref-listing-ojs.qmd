@@ -1,0 +1,19 @@
+---
+title: listing within R chunks
+format: html
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.quarto-xref[href="#lst-code-source"]', 'div#lst-code-source.listing']
+        - []
+---
+
+```{ojs}
+//| lst-label: lst-code-source
+//| lst-cap: Some code source
+1 + 1
+```
+
+See @lst-code-source.
