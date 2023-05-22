@@ -423,9 +423,6 @@ export async function ojsCompile(
       if (outputVal === "all") {
         attrs.push(`output="all"`);
       }
-      if (cell.options?.[kCellLstCap]) {
-        attrs.push(`lst-cap="${cell.options?.[kCellLstCap]}"`);
-      }
       const {
         classes,
         attrs: otherAttrs,
