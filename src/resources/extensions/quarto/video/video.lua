@@ -71,7 +71,7 @@ local replaceCommonAttributes = function(snippet, params)
 end
 
 local checkMatchStart = function(value, matcherFront)
-  return string.match(value, matcherFront .. '(.-)$')
+  return string.match(value, '^' .. matcherFront .. '(.-)$')
 end
 
 local youTubeBuilder = function(params)
@@ -193,6 +193,7 @@ local getSnippetFromBuilders = function(src, height, width, title, start)
 end
 
 local helpers = {
+  ["checkMatchStart"] = checkMatchStart,
   ["youTubeBuilder"] = youTubeBuilder,
   ["brightcoveBuilder"] = brightcoveBuilder,
   ["vimeoBuilder"] = vimeoBuilder,

@@ -14,6 +14,32 @@ function TestModules:testHelpersExist()
   lu.assertNotIsNil(helpers)
 end
 
+TestCheckMatchStart = {}
+function TestCheckMatchStart:testEmpty()
+  local result = helpers.checkMatchStart('', '')
+  lu.assertEquals(result, '')
+end
+
+function TestCheckMatchStart:testSimple()
+  local result = helpers.checkMatchStart('fake-src', 'fake')
+  lu.assertEquals(result, '-src')
+end
+
+function TestCheckMatchStart:testNoMatch()
+  local result = helpers.checkMatchStart('123', '456')
+  lu.assertEquals(result, nil)
+end
+
+function TestCheckMatchStart:testNoStartMatch()
+  local result = helpers.checkMatchStart('123456', '456')
+  lu.assertEquals(result, nil)
+end
+
+function TestCheckMatchStart:testPartialMatch()
+  local result = helpers.checkMatchStart('456', '4')
+  lu.assertEquals(result, '56')
+end
+
 TestYouTubeBuilder = {}
 local checkYouTubeBuilder = function(params, expected)
   result = helpers.youTubeBuilder(params)
@@ -396,6 +422,5 @@ function TestAsciidocVideo:textLocal()
   expected = 'video::foo/bar.mp4[]'
   lu.assertEquals(result, expected)
 end
-
 
 os.exit(lu.LuaUnit.run())
