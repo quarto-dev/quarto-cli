@@ -35,7 +35,7 @@ function listings()
     -- Handle listings attributes on outer cell divs
     Div = function(div) 
       if div.classes:includes('cell') then
-        if div.content and div.content[1].tag == "CodeBlock" then
+        if #div.content > 0 and div.content[1].tag == "CodeBlock" then
 
           local label = div.attr.identifier
           local caption = div.attr.attributes[constants.kLstCap]
