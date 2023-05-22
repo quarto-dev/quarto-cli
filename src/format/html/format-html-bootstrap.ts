@@ -237,6 +237,7 @@ function bootstrapHtmlPostprocessor(
       inputMetadata: Metadata;
       inputTraits: PandocInputTraits;
       renderedFormats: RenderedFormat[];
+      quiet?: boolean;
     },
   ): Promise<HtmlPostProcessResult> => {
     // Resources used in this post processor
@@ -357,6 +358,7 @@ function bootstrapHtmlPostprocessor(
         format,
         services,
         project,
+        options.quiet,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);

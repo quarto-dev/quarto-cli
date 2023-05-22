@@ -98,7 +98,6 @@ import {
 } from "../../core/timing.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { InternalError } from "../../core/lib/error.ts";
 
 export async function renderExecute(
   context: RenderContext,

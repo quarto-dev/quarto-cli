@@ -72,6 +72,7 @@ export type HtmlPostProcessor = (
     inputMetadata: Metadata;
     inputTraits: PandocInputTraits;
     renderedFormats: RenderedFormat[];
+    quiet?: boolean;
   },
 ) => Promise<HtmlPostProcessResult>;
 
