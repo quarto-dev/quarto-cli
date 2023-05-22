@@ -3,7 +3,7 @@ title: Short title
 _quarto:
   tests:
     beamer:
-      title-short: Shortitle works
+      title-short: Short title works
 ---
 
 ## Foo

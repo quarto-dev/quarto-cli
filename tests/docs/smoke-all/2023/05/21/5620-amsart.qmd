@@ -4,10 +4,12 @@ _quarto:
   tests:
     pdf:
       documentclass: amsart
-      title-short: Shortitle works
+      title-short: Short title works
 ---
 
 ## Foo
+
+\pagebreak
 
 ## Bar
 
