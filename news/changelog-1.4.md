@@ -32,6 +32,7 @@
 - ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a website project to provide a default image used in social metadata tags.
 - Add support for `navbar > toggle-position` to control whether the responsive navbar toggle appears on the right or the left.
 - ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
+- ([#5624](https://github.com/quarto-dev/quarto-cli/issues/56562404)): Add support for localized Cookie Consent (using either the document's language or by specifying the language explicitly under the cookie consent key).
 
 ## Miscellaneous
 

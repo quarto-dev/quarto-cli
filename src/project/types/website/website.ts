@@ -1,9 +1,8 @@
 /*
-* website.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join } from "path/mod.ts";
 
@@ -169,7 +168,7 @@ export const websiteProjectType: ProjectType = {
       // pagetitle for home page if it has no title
       const offset = projectOffset(project, source);
       const [_dir, stem] = dirAndStem(source);
-      const home = (stem === "index" && offset === ".");
+      const home = stem === "index" && offset === ".";
       if (
         home && !format.metadata[kTitle] && !format.metadata[kPageTitle] &&
         title
@@ -279,7 +278,11 @@ export const websiteProjectType: ProjectType = {
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
         extras[kIncludeInHeader]?.push(analyticsDependency);
       }
-      const cookieDep = cookieConsentDependencies(project, services.temp);
+      const cookieDep = cookieConsentDependencies(
+        project,
+        format,
+        services.temp,
+      );
       if (cookieDep) {
         // Inline script
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];

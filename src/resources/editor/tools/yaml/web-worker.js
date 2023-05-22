@@ -9214,6 +9214,13 @@ try {
                             schema: "string",
                             description: "The url to the website\u2019s cookie or privacy policy."
                           },
+                          language: {
+                            schema: "string",
+                            description: {
+                              short: "The language to be used when diplaying the cookie consent prompt (defaults to document language).",
+                              long: "The language to be used when diplaying the cookie consent prompt specified using an IETF language tag.\n\nIf not specified, the document language will be used.\n"
+                            }
+                          },
                           "prefs-text": {
                             schema: "string",
                             description: {
@@ -11165,6 +11172,11 @@ try {
                   url: {
                     string: {
                       description: "The url to use when viewing this notebook."
+                    }
+                  },
+                  "download-url": {
+                    string: {
+                      description: "The url to use when downloading the notebook from the preview"
                     }
                   }
                 },
@@ -21567,12 +21579,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158274,
+          _internalId: 158280,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158266,
+              _internalId: 158272,
               type: "enum",
               enum: [
                 "png",
@@ -21588,7 +21600,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158273,
+              _internalId: 158279,
               type: "anyOf",
               anyOf: [
                 {
