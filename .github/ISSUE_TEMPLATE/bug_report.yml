@@ -80,3 +80,7 @@ body:
         ```bash
         quarto check
         ```
+  
+  - type: markdown
+    attributes:
+      value: "_Thanks for submitting this bug report!_"
