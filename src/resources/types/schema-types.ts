@@ -358,6 +358,7 @@ This is automatically detected based upon the `tracking-id`, but you may specify
   "cookie-consent"?: ("express" | "implied") | boolean | {
     "policy-url"?: string;
     "prefs-text"?: string;
+    language?: string;
     palette?:
       | "light"
       | "dark" /* Whether to use a dark or light appearance for the consent banner (`light` or `dark`). */;
@@ -1141,6 +1142,8 @@ export type QuartoDevSchema = {
 };
 
 export type NotebookViewSchema = {
+  "download-url"?:
+    string /* The url to use when downloading the notebook from the preview */;
   notebook: string /* The path to the locally referenced notebook. */;
   title?: string | boolean /* The title of the notebook when viewed. */;
   url?: string; /* The url to use when viewing this notebook. */

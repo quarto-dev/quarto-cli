@@ -722,6 +722,14 @@
                 policy-url:
                   schema: string
                   description: "The url to the website’s cookie or privacy policy."
+                language:
+                  schema: string
+                  description:
+                    short: "The language to be used when diplaying the cookie consent prompt (defaults to document language)."
+                    long: |
+                      The language to be used when diplaying the cookie consent prompt specified using an IETF language tag.
+
+                      If not specified, the document language will be used.
                 prefs-text:
                   schema: string
                   description:
@@ -2166,6 +2174,9 @@
         url:
           string:
             description: "The url to use when viewing this notebook."
+        download-url:
+          string:
+            description: "The url to use when downloading the notebook from the preview"
       required: [notebook]
 
 - id: manuscript-schema

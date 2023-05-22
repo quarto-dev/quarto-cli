@@ -1,13 +1,12 @@
 /*
-* website-analytics.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-analytics.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document } from "../../../core/deno-dom.ts";
 import { join } from "path/mod.ts";
-import { kTitle } from "../../../config/constants.ts";
-import { Metadata } from "../../../config/types.ts";
+import { kLang, kTitle } from "../../../config/constants.ts";
+import { Format, Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { ProjectContext } from "../../types.ts";
@@ -16,6 +15,7 @@ import {
   kHtmlEmptyPostProcessResult,
 } from "../../../command/render/constants.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
+import { kLanguage } from "./listing/website-listing-shared.ts";
 
 // tracking id for google analytics
 // GA3 calls this 'tracking id'
@@ -54,6 +54,7 @@ interface CookieConsentConfiguration {
   style: string;
   palette: string;
   policyUrl?: string;
+  language?: string;
 }
 
 export function scriptTagWithConsent(
@@ -126,6 +127,7 @@ export function websiteAnalyticsScriptFile(
 // see: https://www.cookieconsent.com
 export function cookieConsentDependencies(
   project: ProjectContext,
+  format: Format,
   temp: TempContext,
 ) {
   const siteMeta = project.config?.[kWebsite] as Metadata;
@@ -133,7 +135,7 @@ export function cookieConsentDependencies(
     // The site title
     const title = siteMeta[kTitle] as string || "";
 
-    let configuration = undefined;
+    let configuration: CookieConsentConfiguration | undefined = undefined;
     let changePrefsText: string | undefined = undefined;
     const consent = siteMeta[kCookieConsent];
     if (typeof (consent) === "object") {
@@ -144,11 +146,20 @@ export function cookieConsentDependencies(
         cookieMeta[kCookieConsentStyle] as string,
         cookieMeta[kCookieConsentPalette] as string,
         cookieMeta[kCookieConsentPolicyUrl] as string | undefined,
+        cookieMeta[kLanguage] as string | undefined ||
+          format.metadata[kLang] as string | undefined,
       );
       changePrefsText = cookieMeta[kCookiePrefsText] as string;
     } else if (consent) {
       // treat consent as a boolean
-      configuration = cookieConsentConfiguration(title);
+      configuration = cookieConsentConfiguration(
+        title,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        format.metadata[kLang] as string | undefined,
+      );
     }
 
     if (configuration) {
@@ -233,13 +244,15 @@ function cookieConsentConfiguration(
   style?: string,
   palette?: string,
   policyUrl?: string,
-) {
+  language?: string,
+): CookieConsentConfiguration {
   return {
     siteName: "",
     type: type || "implied",
     style: style || "simple",
     palette: palette || "light",
     policyUrl,
+    language,
   };
 }
 
@@ -347,6 +360,10 @@ function cookieConsentScript(
     ? `,\n"website_privacy_policy_url":"${config.policyUrl}"`
     : "";
 
+  const language = config.language !== undefined
+    ? `,\n"language":"${config.language}"`
+    : "";
+
   return `
 <script type="text/javascript" charset="UTF-8">
 document.addEventListener('DOMContentLoaded', function () {
@@ -359,6 +376,7 @@ cookieconsent.run({
   "notice_banner_reject_button_hide":false,
   "preferences_center_close_button_hide":false,
   "website_name":"${config.siteName}"${privacyJs}
+  ${language}
   });
 });
 </script> 

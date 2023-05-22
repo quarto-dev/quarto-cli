@@ -56,8 +56,6 @@ import {
 } from "../../config/constants.ts";
 import { pandocIngestSelfContainedContent } from "../../core/pandoc/self-contained.ts";
 import { existsSync1 } from "../../core/file.ts";
-import { kNoteBookExtension } from "../../format/format-extensions.ts";
-import { NotebooksFormatExtension } from "../../format/format-extensions.ts";
 import { projectType } from "../../project/types/project-types.ts";
 
 export async function renderPandoc(
@@ -135,59 +133,6 @@ export async function renderPandoc(
       ? [notebookResult.includes?.inHeader]
       : undefined,
   };
-
-  // Allow formats to process the notebooks
-  const notebooksExtension = format.extensions
-    ?.[kNoteBookExtension] as NotebooksFormatExtension | undefined;
-  if (notebooksExtension) {
-    const notebooks = [...notebookResult.notebooks];
-
-    // Forward any project provided notebooks
-    const projType = projectType(context.project?.config?.project.type);
-    if (projType && projType.notebooks && context.project) {
-      const descriptors = projType.notebooks(context.project);
-      descriptors.forEach((desc) => {
-        notebooks.push(desc.notebook);
-      });
-    }
-
-    // Ensure that we have all notebooks (the ones injected above plus
-    // any explicitly declared notebooks)
-    const extensionResult = await notebooksExtension.processNotebooks(
-      context.target.source,
-      format,
-      notebooks,
-      context,
-    );
-
-    // Inject any after body includes that the notebook provides
-    if (extensionResult.includes?.afterBody) {
-      pandocIncludes[kIncludeAfterBody] = pandocIncludes[kIncludeAfterBody] ||
-        [];
-      pandocIncludes[kIncludeAfterBody].push(
-        ...extensionResult.includes.afterBody,
-      );
-    }
-
-    // Inject any in header includes that the notebook provides
-    if (extensionResult.includes?.inHeader) {
-      pandocIncludes[kIncludeInHeader] = pandocIncludes[kIncludeInHeader] ||
-        [];
-      pandocIncludes[kIncludeInHeader].push(
-        ...extensionResult.includes.inHeader,
-      );
-    }
-
-    // Add any supporting dirs / files
-    if (extensionResult.supporting) {
-      executeResult.supporting = executeResult.supporting || [];
-      executeResult.supporting.push(...extensionResult.supporting);
-    }
-
-    if (extensionResult.resourceFiles) {
-      resourceFiles.push(...extensionResult.resourceFiles);
-    }
-  }
 
   // Inject dependencies
   format.pandoc = mergePandocIncludes(
