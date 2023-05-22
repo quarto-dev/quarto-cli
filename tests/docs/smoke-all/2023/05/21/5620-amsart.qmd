@@ -1,0 +1,13 @@
+---
+title: Short title
+_quarto:
+  tests:
+    pdf:
+      documentclass: amsart
+      title-short: Shortitle works
+---
+
+## Foo
+
+## Bar
+

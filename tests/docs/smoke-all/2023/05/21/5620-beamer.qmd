@@ -1,0 +1,12 @@
+---
+title: Short title
+_quarto:
+  tests:
+    beamer:
+      title-short: Shortitle works
+---
+
+## Foo
+
+## Bar
+
