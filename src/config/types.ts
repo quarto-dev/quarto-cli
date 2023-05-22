@@ -52,6 +52,7 @@ import {
   kCss,
   kDfPrint,
   kDisplayName,
+  kDownloadUrl,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -305,6 +306,7 @@ export interface NotebookPreviewDescriptor {
   notebook: string;
   url?: string;
   title?: string;
+  [kDownloadUrl]?: string;
 }
 
 export interface FormatExtras {
@@ -650,4 +652,6 @@ export interface FormatLink {
   icon?: string;
   title: string;
   href: string;
+  order?: number;
+  attr?: Record<string, string>;
 }

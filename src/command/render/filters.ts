@@ -10,6 +10,7 @@ import {
   kBibliography,
   kCitationLocation,
   kCiteMethod,
+  kClearHiddenClasses,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
@@ -33,6 +34,8 @@ import {
   kPdfEngine,
   kQuartoFilters,
   kReferenceLocation,
+  kReferences,
+  kRemoveHidden,
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
@@ -523,6 +526,16 @@ async function quartoFilterParams(
     params[kKeepHidden] = kKeepHidden;
   }
 
+  const removeHidden = format.metadata[kRemoveHidden];
+  if (removeHidden) {
+    params[kRemoveHidden] = removeHidden;
+  }
+
+  const clearHiddenClasses = format.metadata[kClearHiddenClasses];
+  if (clearHiddenClasses) {
+    params[kClearHiddenClasses] = clearHiddenClasses;
+  }
+
   // Provide other params that may be useful to filters
   params[kCiteMethod] = citeMethod(options);
   params[kPdfEngine] = pdfEngine(options);
@@ -585,6 +598,7 @@ const kQuartoCiteProcMarker = "citeproc";
 export async function resolveFilters(
   filters: QuartoFilter[],
   options: PandocOptions,
+  pandoc: FormatPandoc,
 ): Promise<QuartoFilterSpec | undefined> {
   // build list of quarto filters
 
@@ -619,8 +633,8 @@ export async function resolveFilters(
     // If we're explicitely adding the citeproc filter, turn off
     // citeproc: true so it isn't run twice
     // See https://github.com/quarto-dev/quarto-cli/issues/2393
-    if (options.format.pandoc.citeproc === true) {
-      delete options.format.pandoc.citeproc;
+    if (pandoc.citeproc === true) {
+      delete pandoc.citeproc;
     }
 
     quartoFilters.push(kQuartoCiteProcMarker);
@@ -668,8 +682,8 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
     return "citeproc";
   }
 
-  // No bibliography or refences, and no explicit request, so no engine specified
-  if (!metadata[kBibliography] && !metadata.references) {
+  // No bibliography or references, and no explicit request, so no engine specified
+  if (!metadata[kBibliography] && !metadata[kReferences]) {
     return null;
   }
 

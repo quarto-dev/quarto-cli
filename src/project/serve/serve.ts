@@ -5,7 +5,7 @@
  */
 
 import { info, warning } from "log/mod.ts";
-import { existsSync, format } from "fs/mod.ts";
+import { existsSync } from "fs/mod.ts";
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 import { MuxAsyncIterator } from "async/mod.ts";
@@ -16,7 +16,13 @@ import * as ld from "../../core/lodash.ts";
 import { DOMParser, initDenoDom } from "../../core/deno-dom.ts";
 
 import { openUrl } from "../../core/shell.ts";
-import { contentType, isHtmlContent, isPdfContent } from "../../core/mime.ts";
+import {
+  contentType,
+  isDocxContent,
+  isHtmlContent,
+  isPdfContent,
+  isTextContent,
+} from "../../core/mime.ts";
 import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 
@@ -111,6 +117,8 @@ import { kLocalhost } from "../../core/port-consts.ts";
 import { ProjectServe } from "../../resources/types/schema-types.ts";
 import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
+import { staticResource } from "../../preview/preview-static.ts";
+import { previewTextContent } from "../../preview/preview-text.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -494,8 +502,32 @@ async function internalPreviewServer(
 
     // handle html file requests w/ re-renders
     onFile: async (file: string, req: Request) => {
-      // if this is an html file or a pdf then re-render (using the freezer)
-      if (isHtmlContent(file) || isPdfContent(file)) {
+      // check for static response
+      const baseDir = projectOutputDir(project);
+
+      const staticResponse = await staticResource(baseDir, file);
+      if (staticResponse) {
+        const resolveBody = () => {
+          if (staticResponse.injectClient) {
+            const contents = new TextDecoder().decode(staticResponse.contents);
+            return staticResponse.injectClient(
+              contents,
+              watcher.clientHtml(req),
+            );
+          } else {
+            return staticResponse.contents;
+          }
+        };
+        const body = resolveBody();
+        const response = {
+          body,
+          contentType: staticResponse.contentType,
+        };
+        return response;
+      } else if (
+        isHtmlContent(file) || isPdfContent(file) || isDocxContent(file) ||
+        isTextContent(file)
+      ) {
         // find the input file associated with this output and render it
         // if we can't find an input file for this .html file it may have
         // been an input added after the server started running, to catch
@@ -596,6 +628,14 @@ async function internalPreviewServer(
             req,
             fileContents,
             projInputFile,
+          );
+        } else if (isTextContent(file) && inputFile) {
+          return previewTextContent(
+            file,
+            inputFile.file,
+            inputFile.format,
+            req,
+            watcher.injectClient,
           );
         } else {
           return { contentType: contentType(file), body: fileContents };
@@ -866,6 +906,8 @@ function renderErrorPage(e: Error) {
 async function serveFiles(
   project: ProjectContext,
 ): Promise<{ files: string[]; resourceFiles: string[] }> {
+  const projType = projectType(project.config?.project?.[kProjectType]);
+
   // one time denoDom init
   await initDenoDom();
 
@@ -877,7 +919,10 @@ async function serveFiles(
     const target = await resolveInputTarget(project, projRelative, false);
     if (target) {
       const outputFile = join(projectOutputDir(project), target?.outputHref);
-      if (isModifiedAfter(inputFile, outputFile)) {
+      if (
+        isModifiedAfter(inputFile, outputFile) ||
+        projType.previewSkipUnmodified === false // Project types can force not skipping the rendering of files
+      ) {
         // render this file
         files.push(inputFile);
       } else {
@@ -885,7 +930,7 @@ async function serveFiles(
         // for monitoring during serve
 
         // resource files referenced in html
-        const files: string[] = [];
+        const outputResources: string[] = [];
         if (isHtmlContent(outputFile)) {
           const htmlInput = Deno.readTextFileSync(outputFile);
           const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
@@ -893,7 +938,7 @@ async function serveFiles(
             inputFile,
             project,
           );
-          files.push(...(await resolver(doc)).resources);
+          outputResources.push(...(await resolver(doc)).resources);
         }
 
         // partition markdown and read globs
@@ -913,7 +958,7 @@ async function serveFiles(
             project.dir,
             projectExcludeDirs(project),
             projRelative,
-            { files, globs },
+            { files: outputResources, globs },
             false, // selfContained,
             [join(dirname(projRelative), inputFilesDir(projRelative))],
             partitioned,

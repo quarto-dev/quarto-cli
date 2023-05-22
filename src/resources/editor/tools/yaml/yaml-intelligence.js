@@ -11,6 +11,31 @@ function getLocalPath(filename) {
   return result.toString();
 }
 
+// ../external/colors.ts
+var Deno2;
+try {
+  Deno2 = globalThis.Deno;
+} catch (_e) {
+}
+var noColor = typeof (Deno2 && Deno2.noColor) === "boolean" ? Deno2.noColor : true;
+var ANSI_PATTERN = new RegExp(
+  [
+    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
+  ].join("|"),
+  "g"
+);
+
+// ../error.ts
+var InternalError = class extends Error {
+  constructor(message, printName = true, printStack = true) {
+    super(message);
+    this.name = "Internal Error";
+    this.printName = printName;
+    this.printStack = printStack;
+  }
+};
+
 // web-worker-manager.ts
 function clientStubs(calls, worker) {
   let callId = 0;
@@ -33,7 +58,7 @@ function clientStubs(calls, worker) {
   worker.onmessage = function(e) {
     const { result: result2, exception, id } = e.data;
     if (promises[id] === void 0) {
-      throw new Error(`Internal Error: bad call id ${id} in web worker RPC`);
+      throw new InternalError(`bad call id ${id} in web worker RPC`);
     }
     const { resolve, reject } = promises[id];
     delete promises[id];

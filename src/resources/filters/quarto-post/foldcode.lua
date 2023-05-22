@@ -13,7 +13,7 @@ function foldCode()
             block.attr.attributes["code-summary"] = nil
             if fold ~= "none" then 
               local blocks = pandoc.List()
-              postState.codeFoldingCss =  _quarto.format.isHtmlOutput()
+              quarto_global_state.codeFoldingCss =  _quarto.format.isHtmlOutput()
               local open = ""
               if fold == "show" then
                 open = " open"

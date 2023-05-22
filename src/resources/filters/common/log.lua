@@ -15,16 +15,16 @@ function info(message)
   io.stderr:write(message .. "\n")
 end
 
-function warn(message) 
-  io.stderr:write(lunacolors.yellow("WARNING (" .. caller_info() .. ") " .. message .. "\n"))
+function warn(message, offset) 
+  io.stderr:write(lunacolors.yellow("WARNING (" .. caller_info(offset) .. ") " .. message .. "\n"))
 end
 
-function error(message)
-  io.stderr:write(lunacolors.red("ERROR (" .. caller_info() .. ") " .. message .. "\n"))
+function error(message, offset)
+  io.stderr:write(lunacolors.red("ERROR (" .. caller_info(offset) .. ") " .. message .. "\n"))
 end
 
-function fatal(message)
-  io.stderr:write(lunacolors.red("FATAL (" .. caller_info() .. ") " ..message .. "\n"))
+function fatal(message, offset)
+  io.stderr:write(lunacolors.red("FATAL (" .. caller_info(offset) .. ") " ..message .. "\n"))
   -- TODO write stack trace into log, and then exit.
   crash_with_stack_trace()  
 end

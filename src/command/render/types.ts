@@ -32,6 +32,7 @@ export interface RenderOptions {
   previewServer?: boolean;
   setProjectDir?: boolean;
   echo?: boolean;
+  warning?: boolean;
 }
 
 export interface RenderServices {

@@ -90,6 +90,7 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
+import { debug } from "https://deno.land/std@0.185.0/log/mod.ts";
 
 export async function projectContext(
   path: string,
@@ -243,6 +244,7 @@ export async function projectContext(
           return undefined;
         }
 
+        debug(`projectContext: Found Quarto project in ${dir}`);
         return {
           dir,
           engines,
@@ -260,6 +262,7 @@ export async function projectContext(
         };
       } else {
         const { files, engines } = projectInputFiles(dir);
+        debug(`projectContext: Found Quarto project in ${dir}`);
         return {
           dir,
           engines,
@@ -301,6 +304,7 @@ export async function projectContext(
             ];
             context.files.input = [input];
           }
+          debug(`projectContext: Found Quarto project in ${originalDir}`);
           return context;
         } else {
           return undefined;

@@ -26,7 +26,7 @@ end
 
 -- function to record a file resource
 function recordFileResource(res)
-  preState.results.resourceFiles:insert(res)
+  quarto_global_state.results.resourceFiles:insert(res)
 end
 
 

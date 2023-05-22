@@ -1,13 +1,13 @@
 /*
-* state.ts
-*
-* Helpers to manage the global state required by the yaml intelligence
-* code
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * state.ts
+ *
+ * Helpers to manage the global state required by the yaml intelligence
+ * code
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
+import { InternalError } from "../error.ts";
 import { Semaphore } from "../semaphore.ts";
 
 export function makeInitializer(
@@ -30,7 +30,7 @@ export function makeInitializer(
 let initializer: () => Promise<void> = () => {
   // can't call "err" here because we don't know if we're in the IDE or CLI
   // this should be an internal error anyway.
-  throw new Error("initializer not set!!");
+  throw new InternalError("initializer not set!!");
 };
 
 export async function initState() {

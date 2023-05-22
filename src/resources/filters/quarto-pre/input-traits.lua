@@ -4,7 +4,7 @@
 local constants = require("modules/constants")
 
 function addInputTrait(key, value)
-  preState.results.inputTraits[key] = value
+  quarto_global_state.results.inputTraits[key] = value
 end
 
 function input_traits() 

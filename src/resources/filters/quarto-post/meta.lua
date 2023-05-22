@@ -6,7 +6,7 @@ function quartoPostMetaInject()
   return {
     Meta = function(meta)
       metaInjectLatex(meta, function(inject)
-        if postState.usingTikz then
+        if quarto_global_state.usingTikz then
           inject(usePackage("tikz"))
         end
       end)

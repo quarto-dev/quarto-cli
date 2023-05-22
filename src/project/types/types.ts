@@ -55,9 +55,7 @@ export interface ProjectType {
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
-  notebooks?: (
-    context: ProjectContext,
-  ) => NotebookPreviewDescriptor[];
+  previewSkipUnmodified?: boolean;
   renderResultFinalOutput?: (
     renderResults: RenderResult,
     relativeToInputDir?: string,

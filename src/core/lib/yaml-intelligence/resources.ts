@@ -1,12 +1,12 @@
 /*
-* resources.ts
-*
-* Manages all resources needed to create/validate YAML schema, including schemas themselves
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * resources.ts
+ *
+ * Manages all resources needed to create/validate YAML schema, including schemas themselves
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
+import { InternalError } from "../error.ts";
 import { globToRegExp } from "../glob.ts";
 
 export type YamlIntelligenceResources = Record<string, unknown>;
@@ -30,8 +30,8 @@ export function exportYamlIntelligenceResources(pretty = false): string {
 
 export function getYamlIntelligenceResource(filename: string): unknown {
   if (_resources[filename] === undefined) {
-    throw new Error(
-      `Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`,
+    throw new InternalError(
+      `getYamlIntelligenceResource called with missing resource ${filename}`,
     );
   }
   return _resources[filename];

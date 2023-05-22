@@ -8530,6 +8530,16 @@
       "description": "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
     },
     {
+      "name": "bibliographystyle",
+      "schema": "string",
+      "tags": {
+        "formats": [
+          "typst"
+        ]
+      },
+      "description": "The bibliography style to use (e.g. `#set bibliography(style: \"apa\")`) when using typst built-in citation system (e.g when not `citeproc: true`)."
+    },
+    {
       "name": "biblio-title",
       "schema": "string",
       "tags": {
@@ -13418,6 +13428,7 @@
     "A list of options for BibLaTeX.",
     "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
     "The bibliography style to use\n(e.g.&nbsp;<code>\\bibliographystyle{dinat}</code>) when using\n<code>natbib</code> or <code>biblatex</code>.",
+    "The bibliography style to use\n(e.g.&nbsp;<code>#set bibliography(style: \"apa\")</code>) when using typst\nbuilt-in citation system (e.g when not <code>citeproc: true</code>).",
     "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
     "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
     {
@@ -14531,12 +14542,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 158136,
+    "_internalId": 158274,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 158128,
+        "_internalId": 158266,
         "type": "enum",
         "enum": [
           "png",
@@ -14552,7 +14563,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 158135,
+        "_internalId": 158273,
         "type": "anyOf",
         "anyOf": [
           {

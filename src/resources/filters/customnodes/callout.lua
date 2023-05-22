@@ -29,7 +29,7 @@ _quarto.ast.add_handler({
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
   parse = function(div)
-    preState.hasCallouts = true
+    quarto_global_state.hasCallouts = true
     local title = markdownToInlines(div.attr.attributes["title"])
     if not title or #title == 0 then
       title = resolveHeadingCaption(div)
@@ -62,7 +62,7 @@ _quarto.ast.add_handler({
   slots = { "title", "content" },
 
   constructor = function(tbl)
-    preState.hasCallouts = true
+    quarto_global_state.hasCallouts = true
 
     local t = tbl.type
     local iconDefault = true

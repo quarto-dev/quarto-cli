@@ -1,11 +1,10 @@
 /*
-* from-yaml.ts
-*
-* Functions to convert YAML to JSON Schema
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * from-yaml.ts
+ *
+ * Functions to convert YAML to JSON Schema
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import {
   getSchemaDefinition,
@@ -55,6 +54,7 @@ import {
 } from "./validated-yaml.ts";
 
 import { Schema } from "../yaml-schema/types.ts";
+import { InternalError } from "../error.ts";
 
 function setBaseSchemaProperties(
   // deno-lint-ignore no-explicit-any
@@ -347,7 +347,7 @@ function convertFromObject(yaml: any): ConcreteSchema {
         params.namingConvention = "dash-case";
         break;
       default:
-        throw new Error("Internal Error: this should have failed validation");
+        throw new InternalError("This should have failed validation");
     }
   } else {
     params.namingConvention = schema.namingConvention;
@@ -502,8 +502,8 @@ export function convertFromYaml(yaml: any): ConcreteSchema {
       return fun(yaml);
     }
   }
-  throw new Error(
-    "Internal Error: Cannot convert object; this should have failed validation.",
+  throw new InternalError(
+    "Cannot convert object; this should have failed validation.",
   );
 }
 
@@ -679,9 +679,9 @@ export function objectRefSchemaFromContextGlob(
       // this is 'basename(path, ".yml")', but I don't want to pull the whole import
       // + os dependency into /lib
       const pathContext = path.split("/").slice(-1)[0].slice(0, -4);
-      const schemaContexts = (((field !== undefined &&
+      const schemaContexts = ((field !== undefined &&
         field.tags !== undefined &&
-        field.tags.contexts) || []) as string[]);
+        field.tags.contexts) || []) as string[];
 
       if (pathContext.match(regexp)) {
         return true;

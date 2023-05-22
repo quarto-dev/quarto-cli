@@ -25,6 +25,7 @@ import {
 } from "../yaml-schema/types.ts";
 
 import { errorKeyword } from "../yaml-validation/errors.ts";
+import { InternalError } from "../error.ts";
 
 function checkForEqualsInChunk(
   error: LocalizedError,
@@ -95,7 +96,7 @@ const makeEngineSchema = (engine: string): ConcreteSchema =>
           case "object":
             return (engineTag as string[]).indexOf(engine) !== -1;
           default:
-            throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+            throw new InternalError(`bad engine tag ${engineTag}`);
         }
       },
     ),

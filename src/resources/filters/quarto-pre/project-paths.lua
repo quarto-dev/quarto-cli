@@ -30,16 +30,16 @@ function project_paths()
       if el.src then
         local resolvedPath = resolveProjectPath(el.src)
         if resolvedPath ~= nil then
-          el.src = resolvedPath;
+          el.src = resolvedPath
           resolved = true
         end
       end
 
       -- Resolve image data-src
       if el.attributes['data-src'] then
-        local resolvedPath = resolveProjectPath(el.src)
+        local resolvedPath = resolveProjectPath(el.attributes['data-src'])
         if resolvedPath ~= nil then
-          el.attributes['data-src'] = resolvedPath;
+          el.attributes['data-src'] = resolvedPath
           resolved = true
         end
       end

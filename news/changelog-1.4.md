@@ -10,6 +10,7 @@
 
 - Add Slovak translation (author: @tom67)
 - Improve Italian translation of 'proof' (author: @espinielli)
+- Add Greek translation (author: @cultab)
 
 ## HTML Format
 
@@ -18,19 +19,26 @@
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 
+## RevealJS Format
+
+- [#5546](https://github.com/quarto-dev/quarto-cli/issues/5546): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
+
 ## Website Listings
 
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
 
 ## Websites
 
-- ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a a website project to provide a default image used in social metadata tags.
+- ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a website project to provide a default image used in social metadata tags.
 - Add support for `navbar > toggle-position` to control whether the responsive navbar toggle appears on the right or the left.
+- ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
 
 ## Miscellaneous
 
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
 - ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)): support `from: ` formats correctly.
+- Exit if project pre or post render script fails
+- Use InternalError in typescript code, and offer a more helpful error message when an internal error happens.
 
 ## Docusaurus Format
 

@@ -20,6 +20,7 @@ import { load as jsYamlParse } from "../external/js-yaml.js";
 import { QuartoJSONSchema } from "./js-yaml-schema.ts";
 import { createSourceContext } from "../yaml-validation/errors.ts";
 import { tidyverseInfo } from "../errors.ts";
+import { InternalError } from "../error.ts";
 
 // deno-lint-ignore no-explicit-any
 type TreeSitterParse = any;
@@ -224,8 +225,8 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
     };
   }
   if (results.length !== 1) {
-    throw new Error(
-      `Internal Error - expected a single result, got ${results.length} instead`,
+    throw new InternalError(
+      `Expected a single result, got ${results.length} instead`,
     );
   }
 
@@ -498,8 +499,7 @@ export function locateCursor(
   let innermostAnnotation: AnnotatedParse;
   let keyOrValue: "key" | "value";
   const result: (string | number)[] = [];
-  const kInternalLocateError =
-    "Internal error: cursor outside bounds in sequence locate?";
+  const kInternalLocateError = "Cursor outside bounds in sequence locate";
 
   function locate(node: AnnotatedParse): void {
     if (
@@ -531,7 +531,6 @@ export function locateCursor(
       failedLast = true;
 
       return;
-      // throw new Error("Internal error: cursor outside bounds in mapping locate?");
     } else if (
       node.kind === "block_sequence" || node.kind === "flow_sequence"
     ) {
@@ -555,7 +554,7 @@ export function locateCursor(
         }
       }
 
-      throw new Error(kInternalLocateError);
+      throw new InternalError(kInternalLocateError);
     } else {
       if (node.kind !== "<<EMPTY>>") {
         keyOrValue = "value";
@@ -601,7 +600,7 @@ export function locateAnnotation(
     if (typeof value === "number") {
       const inner = annotation.components[value];
       if (inner === undefined) {
-        throw new Error("Internal Error: invalid path for locateAnnotation");
+        throw new InternalError("invalid path for locateAnnotation");
       }
       annotation = inner;
     } else {
@@ -627,7 +626,7 @@ export function locateAnnotation(
         }
       }
       if (!found) {
-        throw new Error("Internal Error: invalid path for locateAnnotation");
+        throw new InternalError("invalid path for locateAnnotation");
       }
     }
   }
@@ -675,9 +674,6 @@ export function navigate(
       }
     }
     return annotation;
-    // throw new Error(
-    //   `Internal error: searchKey ${searchKey} (path: ${path}) not found in mapping object`,
-    // );
   } else if (
     ["sequence", "block_sequence", "flow_sequence"].indexOf(annotation.kind) !==
       -1
@@ -697,6 +693,5 @@ export function navigate(
     );
   } else {
     return annotation;
-    // throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
 }

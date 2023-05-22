@@ -6,7 +6,7 @@ function tikz()
     return {
       Image = function(image)
         if latexIsTikzImage(image) then
-          return latexFigureInline(image, postState)
+          return latexFigureInline(image)
         end
       end
     }

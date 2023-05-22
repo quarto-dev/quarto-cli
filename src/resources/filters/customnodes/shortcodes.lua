@@ -258,12 +258,7 @@ function shortcodes_filter()
 
       doc = _quarto.ast.walk(doc, {
         Shortcode = inline_handler,
-        RawInline = function(inline)
-          if inline.format == "QUARTO_custom" then
-            return nil
-          end
-          return code_handler(inline)
-        end,
+        RawInline = code_handler,
         Image = function(el)
           el.src = code_shortcode:match(el.src)
           return el
@@ -324,12 +319,7 @@ function shortcodeResultAsInlines(result, name)
     return {}
   end
   local type = quarto.utils.type(result)
-  if type == "CustomBlock" then
-    error("Custom AST Block returned from shortcode, but Inline was expected")
-    os.exit(1)
-  elseif type == "CustomInline" then
-    return pandoc.Inlines( { result })
-  elseif type == "Inlines" then
+  if type == "Inlines" then
     return result
   elseif type == "Blocks" then
     return pandoc.utils.blocks_to_inlines(result, { pandoc.Space() })
@@ -349,9 +339,9 @@ function shortcodeResultAsInlines(result, name)
   elseif isBlockEl(result) then
     return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
   else
-    error("Unexepected result from shortcode " .. name .. "")
+    error("Unexpected result from shortcode " .. name .. "")
     quarto.log.output(result)
-    os.exit(1)
+    fatal("This is a bug in the shortcode. If this is a quarto shortcode, please report it at https://github.com/quarto-dev/quarto-cli")
   end
 end
   
@@ -361,9 +351,7 @@ function shortcodeResultAsBlocks(result, name)
     return {}
   end
   local type = quarto.utils.type(result)
-  if type == "CustomBlock" or type == "CustomInline" then
-    return pandoc.Blocks({pandoc.Plain(result)})
-  elseif type == "Blocks" then
+  if type == "Blocks" then
     return result
   elseif type == "Inlines" then
     return pandoc.Blocks( {pandoc.Para(result) }) -- why not a plain?
@@ -383,8 +371,8 @@ function shortcodeResultAsBlocks(result, name)
   elseif isInlineEl(result) then
     return pandoc.Blocks( {pandoc.Para( {result} ) }) -- why not a plain?
   else
-    error("Unexepected result from shortcode " .. name .. "")
+    error("Unexpected result from shortcode " .. name .. "")
     quarto.log.output(result)
-    os.exit(1)
+    fatal("This is a bug in the shortcode. If this is a quarto shortcode, please report it at https://github.com/quarto-dev/quarto-cli")
   end
 end

@@ -1,11 +1,10 @@
 /*
-* validator.ts
-*
-* main validator class.
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * validator.ts
+ *
+ * main validator class.
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import {
   AllOfSchema,
@@ -33,6 +32,7 @@ import { resolveSchema } from "./resolve.ts";
 
 import { MappedString } from "../text-types.ts";
 import { createLocalizedError } from "./errors.ts";
+import { InternalError } from "../error.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -561,13 +561,13 @@ function validateObject(
         }
       }
     }
-    throw new Error(`Internal Error, couldn't locate key ${key}`);
+    throw new InternalError(`Couldn't locate key ${key}`);
   };
   const inspectedProps: Set<string> = new Set();
   if (schema.closed) {
     result = context.withSchemaPath("closed", () => {
       if (schema.properties === undefined) {
-        throw new Error("Internal Error: closed schemas need properties");
+        throw new InternalError("Closed schemas need properties");
       }
       let innerResult = true;
       for (const key of ownProperties) {

@@ -62,7 +62,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       _libDir: string,
       services: RenderServices,
       _offset?: string,
-      _project?: ProjectContext,
+      project?: ProjectContext,
     ) => {
       // Provide a template and partials
       const templateDir = formatResourcePath("jats", "pandoc");
@@ -155,7 +155,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       // Render subarticles and place them in the root article in the correct position
       if (subArticlesToRender.length > 0) {
         postprocessors.push(
-          renderSubarticlePostProcessor(subArticlesToRender, services),
+          renderSubarticlePostProcessor(subArticlesToRender, services, project),
         );
       }
 

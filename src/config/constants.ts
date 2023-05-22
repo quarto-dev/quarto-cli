@@ -43,8 +43,11 @@ export const kNotebookLinks = "notebook-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
+export const kDownloadUrl = "download-url";
 
 export const kKeepHidden = "keep-hidden";
+export const kRemoveHidden = "remove-hidden";
+export const kClearHiddenClasses = "clear-hidden-classes";
 
 export const kExecuteEnabled = "enabled";
 export const kExecuteIpynb = "ipynb";
@@ -147,6 +150,8 @@ export const kRenderDefaultsKeys = [
   kKeepTyp,
   kKeepSource,
   kKeepHidden,
+  kRemoveHidden,
+  kClearHiddenClasses,
   kVariant,
   kOutputExt,
   kOutputDivs,
@@ -509,6 +514,7 @@ export const kCsl = "csl";
 export const kNoCite = "nocite";
 export const kCss = "css";
 export const kBibliography = "bibliography";
+export const kReferences = "references";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
 export const kIncludeAfter = "include-after";

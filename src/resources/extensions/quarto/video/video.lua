@@ -314,8 +314,7 @@ return {
       if #raw_args > 0 then
         srcValue = pandoc.utils.stringify(raw_args[1])
       else
-        print("No video source specified for video shortcode")
-        os.exit(1)
+        fail("No video source specified for video shortcode")        
       end
     end
 

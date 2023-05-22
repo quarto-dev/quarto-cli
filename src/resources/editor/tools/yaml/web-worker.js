@@ -15555,6 +15555,16 @@ try {
             description: "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
           },
           {
+            name: "bibliographystyle",
+            schema: "string",
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: 'The bibliography style to use (e.g. `#set bibliography(style: "apa")`) when using typst built-in citation system (e.g when not `citeproc: true`).'
+          },
+          {
             name: "biblio-title",
             schema: "string",
             tags: {
@@ -20443,6 +20453,7 @@ try {
           "A list of options for BibLaTeX.",
           "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
           "The bibliography style to use\n(e.g.&nbsp;<code>\\bibliographystyle{dinat}</code>) when using\n<code>natbib</code> or <code>biblatex</code>.",
+          'The bibliography style to use\n(e.g.&nbsp;<code>#set bibliography(style: "apa")</code>) when using typst\nbuilt-in citation system (e.g when not <code>citeproc: true</code>).',
           "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
           "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
           {
@@ -21556,12 +21567,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158136,
+          _internalId: 158274,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158128,
+              _internalId: 158266,
               type: "enum",
               enum: [
                 "png",
@@ -21577,7 +21588,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158135,
+              _internalId: 158273,
               type: "anyOf",
               anyOf: [
                 {
@@ -21622,19 +21633,6 @@ try {
     }
   });
 
-  // web-worker-manager.ts
-  function workerCallback(calls) {
-    return async function(e) {
-      const { callName, args, id } = e.data;
-      try {
-        const result = await calls[callName](...args);
-        postMessage({ result, id });
-      } catch (e2) {
-        postMessage({ exception: e2, id });
-      }
-    };
-  }
-
   // ../binary-search.ts
   function glb(array, value, compare) {
     compare = compare || ((a, b) => a - b);
@@ -21670,6 +21668,64 @@ try {
       }
     }
     return left;
+  }
+
+  // ../ranged-text.ts
+  function matchAll(str2, regex) {
+    let match;
+    regex = new RegExp(regex);
+    const result = [];
+    while ((match = regex.exec(str2)) != null) {
+      result.push(match);
+    }
+    return result;
+  }
+  function rangedLines(text, includeNewLines = false) {
+    const regex = /\r?\n/g;
+    const result = [];
+    let startOffset = 0;
+    if (!includeNewLines) {
+      for (const r of matchAll(text, regex)) {
+        result.push({
+          substring: text.substring(startOffset, r.index),
+          range: {
+            start: startOffset,
+            end: r.index
+          }
+        });
+        startOffset = r.index + r[0].length;
+      }
+      result.push({
+        substring: text.substring(startOffset, text.length),
+        range: {
+          start: startOffset,
+          end: text.length
+        }
+      });
+      return result;
+    } else {
+      const matches = matchAll(text, regex);
+      let prevOffset = 0;
+      for (const r of matches) {
+        const stringEnd = r.index + r[0].length;
+        result.push({
+          substring: text.substring(prevOffset, stringEnd),
+          range: {
+            start: prevOffset,
+            end: stringEnd
+          }
+        });
+        prevOffset = stringEnd;
+      }
+      result.push({
+        substring: text.substring(prevOffset, text.length),
+        range: {
+          start: prevOffset,
+          end: text.length
+        }
+      });
+      return result;
+    }
   }
 
   // ../external/colors.ts
@@ -21775,7 +21831,7 @@ ${heading}`;
   function lines(text) {
     return text.split(/\r?\n/);
   }
-  function* matchAll(text, regexp) {
+  function* matchAll2(text, regexp) {
     if (!regexp.global) {
       throw new Error("matchAll requires global regexps");
     }
@@ -21786,7 +21842,7 @@ ${heading}`;
   }
   function* lineOffsets(text) {
     yield 0;
-    for (const match of matchAll(text, /\r?\n/g)) {
+    for (const match of matchAll2(text, /\r?\n/g)) {
       yield match.index + match[0].length;
     }
   }
@@ -21897,8 +21953,8 @@ ${heading}`;
   function resolveCaseConventionRegex(keys, conventions) {
     if (conventions !== void 0) {
       if (conventions.length === 0) {
-        throw new Error(
-          "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`"
+        throw new InternalError(
+          "resolveCaseConventionRegex requires nonempty `conventions`"
         );
       }
       return {
@@ -21961,64 +22017,6 @@ ${heading}`;
     );
   }
 
-  // ../ranged-text.ts
-  function matchAll2(str2, regex) {
-    let match;
-    regex = new RegExp(regex);
-    const result = [];
-    while ((match = regex.exec(str2)) != null) {
-      result.push(match);
-    }
-    return result;
-  }
-  function rangedLines(text, includeNewLines = false) {
-    const regex = /\r?\n/g;
-    const result = [];
-    let startOffset = 0;
-    if (!includeNewLines) {
-      for (const r of matchAll2(text, regex)) {
-        result.push({
-          substring: text.substring(startOffset, r.index),
-          range: {
-            start: startOffset,
-            end: r.index
-          }
-        });
-        startOffset = r.index + r[0].length;
-      }
-      result.push({
-        substring: text.substring(startOffset, text.length),
-        range: {
-          start: startOffset,
-          end: text.length
-        }
-      });
-      return result;
-    } else {
-      const matches = matchAll2(text, regex);
-      let prevOffset = 0;
-      for (const r of matches) {
-        const stringEnd = r.index + r[0].length;
-        result.push({
-          substring: text.substring(prevOffset, stringEnd),
-          range: {
-            start: prevOffset,
-            end: stringEnd
-          }
-        });
-        prevOffset = stringEnd;
-      }
-      result.push({
-        substring: text.substring(prevOffset, text.length),
-        range: {
-          start: prevOffset,
-          end: text.length
-        }
-      });
-      return result;
-    }
-  }
-
   // ../mapped-text.ts
   function mappedSubstring(source, start, end) {
     if (typeof source === "string") {
@@ -22077,8 +22075,8 @@ ${heading}`;
         }
       };
     } else if (fileName !== void 0) {
-      throw new Error(
-        "Internal error: can't change the fileName of an existing MappedString"
+      throw new InternalError(
+        "can't change the fileName of an existing MappedString"
       );
     } else {
       return str2;
@@ -22130,7 +22128,7 @@ ${heading}`;
     return function(offset) {
       const mapResult = text.map(offset, true);
       if (mapResult === void 0) {
-        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
+        throw new InternalError("bad offset in mappedIndexRowCol");
       }
       const { index, originalString } = mapResult;
       return indexToLineCol(originalString.value)(index);
@@ -22139,6 +22137,34 @@ ${heading}`;
   function mappedLines(str2, keepNewLines = false) {
     const lines2 = rangedLines(str2.value, keepNewLines);
     return lines2.map((v) => mappedString(str2, [v.range]));
+  }
+
+  // ../error.ts
+  var InternalError = class extends Error {
+    constructor(message, printName = true, printStack = true) {
+      super(message);
+      this.name = "Internal Error";
+      this.printName = printName;
+      this.printStack = printStack;
+    }
+  };
+  var UnreachableError = class extends InternalError {
+    constructor() {
+      super("Unreachable code was reached.", true, true);
+    }
+  };
+
+  // web-worker-manager.ts
+  function workerCallback(calls) {
+    return async function(e) {
+      const { callName, args, id } = e.data;
+      try {
+        const result = await calls[callName](...args);
+        postMessage({ result, id });
+      } catch (e2) {
+        postMessage({ exception: e2, id });
+      }
+    };
   }
 
   // parsing.ts
@@ -22270,7 +22296,7 @@ ${heading}`;
         prevPredecessor = i;
         indentation = lineIndent;
       } else {
-        throw new Error("Internal error, should never have arrived here");
+        throw new UnreachableError();
       }
     }
     return {
@@ -25159,7 +25185,7 @@ ${heading}`;
     if (other) {
       return other(s);
     }
-    throw new Error(`Internal Error: dispatch failed for type ${st}`);
+    throw new InternalError(`Dispatch failed for type ${st}`);
   }
   function schemaDocString(d) {
     if (typeof d === "string") {
@@ -25204,14 +25230,14 @@ ${heading}`;
   }
   function getSchemaDefinition(key) {
     if (definitionsObject[key] === void 0) {
-      throw new Error(`Internal Error: Schema ${key} not found.`);
+      throw new InternalError(`Schema ${key} not found.`);
     }
     return definitionsObject[key];
   }
   function setSchemaDefinition(schema2) {
     if (schema2.$id === void 0) {
-      throw new Error(
-        "Internal Error, setSchemaDefinition needs $id"
+      throw new InternalError(
+        "setSchemaDefinition needs $id"
       );
     }
     if (definitionsObject[schema2.$id] === void 0) {
@@ -25230,8 +25256,8 @@ ${heading}`;
       if (el.startsWith("$")) {
         const v = aliases[el.slice(1)];
         if (v === void 0) {
-          throw new Error(
-            `Internal Error: ${el} doesn't have an entry in the aliases map`
+          throw new InternalError(
+            `${el} doesn't have an entry in the aliases map`
           );
         }
         lst.push(...v);
@@ -25267,8 +25293,8 @@ ${heading}`;
           ref: (s) => getSchemaDefinition(s.$ref)
         });
         if (result === void 0) {
-          throw new Error(
-            "Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}"
+          throw new InternalError(
+            "couldn't resolve schema ${JSON.stringify(cursor)}"
           );
         }
         return result;
@@ -27152,16 +27178,16 @@ ${heading}`;
   function navigateSchemaBySchemaPathSingle(schema2, path) {
     const ensurePathFragment = (fragment, expected) => {
       if (fragment !== expected) {
-        throw new Error(
-          `Internal Error in navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`
+        throw new InternalError(
+          `navigateSchemaBySchemaPathSingle: ${fragment} !== ${expected}`
         );
       }
     };
     const inner = (subschema, index) => {
       subschema = resolveSchema(subschema);
       if (subschema === void 0) {
-        throw new Error(
-          `Internal Error in navigateSchemaBySchemaPathSingle: invalid path navigation`
+        throw new InternalError(
+          `navigateSchemaBySchemaPathSingle: invalid path navigation`
         );
       }
       if (index === path.length) {
@@ -27187,13 +27213,13 @@ ${heading}`;
           } else if (path[index + 1] === "additionalProperties") {
             return inner(subschema.additionalProperties, index + 2);
           } else {
-            throw new Error(
-              `Internal Error in navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`
+            throw new InternalError(
+              `navigateSchemaBySchemaPathSingle: bad path fragment ${path[index]} in object navigation`
             );
           }
         default:
-          throw new Error(
-            `Internal Error in navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`
+          throw new InternalError(
+            `navigateSchemaBySchemaPathSingle: can't navigate schema type ${st}`
           );
       }
     };
@@ -27495,8 +27521,8 @@ ${heading}`;
     }
     const result = error.violatingObject.result;
     if (typeof result !== "string") {
-      throw new Error(
-        "Internal Error: propertyNames error has a violating non-string."
+      throw new InternalError(
+        "propertyNames error has a violating non-string."
       );
     }
     return result;
@@ -27899,8 +27925,8 @@ ${reindented}
     schemaCall(schema2, {
       object(s) {
         if (s.required === void 0) {
-          throw new Error(
-            "Internal Error: required schema error without a required field"
+          throw new InternalError(
+            "required schema error without a required field"
           );
         }
         for (const r of s.required) {
@@ -27910,7 +27936,7 @@ ${reindented}
         }
       }
     }, (_) => {
-      throw new Error("Internal Error: required error on a non-object schema");
+      throw new InternalError("required error on a non-object schema");
     });
     for (const missingKey of missingKeys) {
       let bestCorrection;
@@ -27989,6 +28015,9 @@ ${reindented}
     return error;
   }
   function createSourceContext(src, location) {
+    if (src.value.length === 0) {
+      return "";
+    }
     const startMapResult = src.map(location.start, true);
     const endMapResult = src.map(location.end, true);
     const locF = mappedIndexToLineCol(src);
@@ -28005,13 +28034,13 @@ ${reindented}
       };
     }
     if (startMapResult === void 0 || endMapResult === void 0) {
-      throw new Error(
-        "Internal Error: createSourceContext called with bad location."
+      throw new InternalError(
+        `createSourceContext called with bad location ${location.start}-${location.end}.`
       );
     }
     if (startMapResult.originalString !== endMapResult.originalString) {
-      throw new Error(
-        "Internal Error: don't know how to create source context across different source files"
+      throw new InternalError(
+        "don't know how to create source context across different source files"
       );
     }
     const originalString = startMapResult.originalString;
@@ -28221,8 +28250,8 @@ ${tidyverseInfo(
       };
     }
     if (results.length !== 1) {
-      throw new Error(
-        `Internal Error - expected a single result, got ${results.length} instead`
+      throw new InternalError(
+        `Expected a single result, got ${results.length} instead`
       );
     }
     JSON.stringify(results[0]);
@@ -28413,7 +28442,7 @@ ${tidyverseInfo(
     let innermostAnnotation;
     let keyOrValue;
     const result = [];
-    const kInternalLocateError = "Internal error: cursor outside bounds in sequence locate?";
+    const kInternalLocateError = "Cursor outside bounds in sequence locate";
     function locate(node) {
       if (node.kind === "block_mapping" || node.kind === "flow_mapping" || node.kind === "mapping") {
         for (let i = 0; i < node.components.length; i += 2) {
@@ -28448,7 +28477,7 @@ ${tidyverseInfo(
             }
           }
         }
-        throw new Error(kInternalLocateError);
+        throw new InternalError(kInternalLocateError);
       } else {
         if (node.kind !== "<<EMPTY>>") {
           keyOrValue = "value";
@@ -28484,7 +28513,7 @@ ${tidyverseInfo(
       if (typeof value === "number") {
         const inner = annotation.components[value];
         if (inner === void 0) {
-          throw new Error("Internal Error: invalid path for locateAnnotation");
+          throw new InternalError("invalid path for locateAnnotation");
         }
         annotation = inner;
       } else {
@@ -28506,7 +28535,7 @@ ${tidyverseInfo(
           }
         }
         if (!found) {
-          throw new Error("Internal Error: invalid path for locateAnnotation");
+          throw new InternalError("invalid path for locateAnnotation");
         }
       }
     }
@@ -28566,7 +28595,7 @@ ${tidyverseInfo(
     };
   }
   var initializer = () => {
-    throw new Error("initializer not set!!");
+    throw new InternalError("initializer not set!!");
   };
   async function initState() {
     await initializer();
@@ -28973,13 +29002,13 @@ ${tidyverseInfo(
           }
         }
       }
-      throw new Error(`Internal Error, couldn't locate key ${key}`);
+      throw new InternalError(`Couldn't locate key ${key}`);
     };
     const inspectedProps = /* @__PURE__ */ new Set();
     if (schema2.closed) {
       result = context.withSchemaPath("closed", () => {
         if (schema2.properties === void 0) {
-          throw new Error("Internal Error: closed schemas need properties");
+          throw new InternalError("Closed schemas need properties");
         }
         let innerResult = true;
         for (const key of ownProperties) {
@@ -29236,7 +29265,7 @@ ${tidyverseInfo(
   }
   function enumSchema(...args) {
     if (args.length === 0) {
-      throw new Error("Internal Error: Empty enum schema not supported.");
+      throw new InternalError("Empty enum schema not supported.");
     }
     return {
       ...internalId(),
@@ -29343,10 +29372,10 @@ ${tidyverseInfo(
         baseSchema = [baseSchema];
       }
       if (baseSchema.some((s) => s.type !== "object")) {
-        throw new Error("Internal Error: can only extend other object Schema");
+        throw new InternalError("Attempted to extend a non-object schema");
       }
       if (baseSchema.length <= 0) {
-        throw new Error("Internal Error: base schema must be non-empty");
+        throw new InternalError("base schema cannot be empty list");
       }
       let temp = {
         ...internalId()
@@ -29356,7 +29385,7 @@ ${tidyverseInfo(
       }
       result = temp;
       if (result === void 0) {
-        throw new Error("Internal Error: result should not be undefined");
+        throw new UnreachableError();
       }
       if (result.$id) {
         delete result.$id;
@@ -29793,8 +29822,8 @@ ${tidyverseInfo(
   }
   function getYamlIntelligenceResource(filename) {
     if (_resources[filename] === void 0) {
-      throw new Error(
-        `Internal Error: getYamlIntelligenceResource called with missing resource ${filename}`
+      throw new InternalError(
+        `getYamlIntelligenceResource called with missing resource ${filename}`
       );
     }
     return _resources[filename];
@@ -30100,7 +30129,7 @@ ${tidyverseInfo(
           params.namingConvention = "dash-case";
           break;
         default:
-          throw new Error("Internal Error: this should have failed validation");
+          throw new InternalError("This should have failed validation");
       }
     } else {
       params.namingConvention = schema2.namingConvention;
@@ -30206,8 +30235,8 @@ ${tidyverseInfo(
         return fun(yaml);
       }
     }
-    throw new Error(
-      "Internal Error: Cannot convert object; this should have failed validation."
+    throw new InternalError(
+      "Cannot convert object; this should have failed validation."
     );
   }
   function objectSchemaFromFieldsObject(fields, exclude) {
@@ -30380,7 +30409,7 @@ ${tidyverseInfo(
     await Promise.all(yaml.map(async (yamlSchema) => {
       const schema2 = convertFromYaml(yamlSchema);
       if (schema2.$id === void 0) {
-        throw new Error(`Internal error: unnamed schema in definitions`);
+        throw new InternalError(`Unnamed schema in definitions`);
       }
       setSchemaDefinition(schema2);
     }));
@@ -30435,7 +30464,7 @@ ${tidyverseInfo(
           case "object":
             return engineTag.indexOf(engine) !== -1;
           default:
-            throw new Error(`Internal Error: bad engine tag ${engineTag}`);
+            throw new InternalError(`bad engine tag ${engineTag}`);
         }
       }
     ),

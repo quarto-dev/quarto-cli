@@ -1,11 +1,11 @@
 /*
-* text.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * text.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { glb } from "./binary-search.ts";
+import { InternalError } from "./error.ts";
 import { quotedStringColor } from "./errors.ts";
 
 export function lines(text: string): string[] {
@@ -193,8 +193,8 @@ export function resolveCaseConventionRegex(
 } {
   if (conventions !== undefined) {
     if (conventions.length === 0) {
-      throw new Error(
-        "Internal Error: resolveCaseConventionRegex requires nonempty `conventions`",
+      throw new InternalError(
+        "resolveCaseConventionRegex requires nonempty `conventions`",
       );
     }
     // conventions were specified, we use them
@@ -281,7 +281,7 @@ export function normalizeCaseConvention(str: string): CaseConvention {
   };
   const result = map[str];
   if (result === undefined) {
-    throw new Error(`Internal Error: ${str} is not a valid case convention`);
+    throw new InternalError(`${str} is not a valid case convention`);
   }
   return result;
 }

@@ -26,6 +26,7 @@ import {
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
 import { dirAndStem } from "../../../core/path.ts";
+import { inputFileForOutputFile } from "../../project-index.ts";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
@@ -55,7 +56,7 @@ const kExecutionEnvironmentType = "execution_environment";
 const kResourceFileType = "manuscript_resource";
 
 export const shouldMakeMecaBundle = (
-  formats: Format[],
+  formats: Array<string | Format>,
   manuConfig?: ManuscriptConfig,
 ) => {
   if (!manuConfig || manuConfig[kMecaArchive] !== false) {
@@ -66,7 +67,11 @@ export const shouldMakeMecaBundle = (
 
     // See if we're producing JATS, then enable it
     return formats.find((format) => {
-      return isJatsOutput(format.pandoc);
+      if (typeof (format) === "string") {
+        return isJatsOutput(format);
+      } else {
+        return isJatsOutput(format.pandoc);
+      }
     });
   } else {
     // Explicitely turned off
@@ -100,9 +105,20 @@ export const createMecaBundle = async (
     });
   });
 
-  const jatsArticle = outputFiles.find((output) => {
-    return isJatsOutput(output.format.identifier["base-format"] || "html");
-  });
+  // Find the JATS article
+  // Look back to front since the article should be the last rendered file
+  let jatsArticle;
+  for (const outputFile of outputFiles.reverse()) {
+    if (isJatsOutput(outputFile.format.pandoc)) {
+      const input = await inputFileForOutputFile(context, outputFile.file);
+      if (input) {
+        if (input.file === manuscriptConfig.article) {
+          jatsArticle = outputFile;
+          break;
+        }
+      }
+    }
+  }
 
   if (jatsArticle) {
     // Move the output to the working directory
@@ -129,7 +145,7 @@ export const createMecaBundle = async (
 
     // Move the JATS article to the working directory
     const articlePath = toWorkingDir(
-      jatsArticle?.file,
+      jatsArticle.file,
       relative(outputDir, jatsArticle?.file),
       false,
     );

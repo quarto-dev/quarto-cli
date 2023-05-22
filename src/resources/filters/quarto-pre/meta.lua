@@ -10,7 +10,7 @@ function quarto_pre_meta_inject()
       --   and if so, isn't it needed below as well?
       
       -- injection awesomebox for captions, if needed
-      if preState.hasCallouts and _quarto.format.isLatexOutput() then
+      if quarto_global_state.hasCallouts and _quarto.format.isLatexOutput() then
         metaInjectLatex(meta, function(inject)
           inject(
             usePackageWithOption("tcolorbox", "skins,breakable")
@@ -36,14 +36,14 @@ function quarto_pre_meta_inject()
       end
 
       metaInjectLatex(meta, function(inject)
-        if preState.usingTikz then
+        if quarto_global_state.usingTikz then
           inject(usePackage("tikz"))
         end
       end)
 
 
       metaInjectLatex(meta, function(inject)
-        if preState.usingBookmark then
+        if quarto_global_state.usingBookmark then
           inject(
             usePackage("bookmark")
           )    

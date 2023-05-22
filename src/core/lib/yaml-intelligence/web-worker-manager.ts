@@ -1,11 +1,12 @@
 /*
-* web-worker-manager.ts
-*
-* enables RPC-style for web workers
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * web-worker-manager.ts
+ *
+ * enables RPC-style for web workers
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
+
+import { InternalError } from "../error.ts";
 
 // TODO figure out typings. This is meant to be (...args: any[]) => any
 // deno-lint-ignore no-explicit-any
@@ -45,7 +46,7 @@ export function clientStubs(
   worker.onmessage = function (e: any) {
     const { result, exception, id } = e.data;
     if (promises[id] === undefined) {
-      throw new Error(`Internal Error: bad call id ${id} in web worker RPC`);
+      throw new InternalError(`bad call id ${id} in web worker RPC`);
     }
     const { resolve, reject } = promises[id];
     delete promises[id];

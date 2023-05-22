@@ -131,7 +131,6 @@ end
 function Reader (inputs, opts)
   local txt, tags = escape_invalid_tags(tostring(inputs))
   txt = parse_shortcodes(txt)
-  local extensions = {}
 
   local flavor = {
     format = "markdown",

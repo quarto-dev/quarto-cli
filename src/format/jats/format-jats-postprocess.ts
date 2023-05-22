@@ -26,6 +26,7 @@ import { dirAndStem } from "../../core/path.ts";
 import { dirname, join } from "path/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { readLines } from "io/mod.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
@@ -53,6 +54,7 @@ export const moveSubarticleSupportingPostProcessor = (
 export const renderSubarticlePostProcessor = (
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
+  project?: ProjectContext,
 ) => {
   return async (output: string) => {
     for (const subArticle of subArticles) {
@@ -60,6 +62,7 @@ export const renderSubarticlePostProcessor = (
       const [_dir, stem] = dirAndStem(output);
       const outputFile = `${stem}.subarticle.xml`;
 
+      const subArticleDir = dirname(subArticle.input);
       const rendered = await renderFiles(
         [{ path: subArticle.input, formats: ["jats"] }],
         {
@@ -76,7 +79,11 @@ export const renderSubarticlePostProcessor = (
             quiet: true,
           },
           echo: true,
+          warning: true,
         },
+        [],
+        undefined,
+        project,
       );
 
       // Read the subarticle
@@ -85,14 +92,14 @@ export const renderSubarticlePostProcessor = (
       // There should be only one file. Grab it, and replace the placeholder
       // in the document with the rendered XML file, then delete it.
       if (rendered.files.length === 1) {
-        const file = rendered.files[0];
+        const file = join(subArticleDir, rendered.files[0].file);
         const placeholder = xmlPlaceholder(
           subArticle.token,
           subArticle.input,
         );
 
         // Process the subarticle to deal with ids and rids
-        const subArtReader = await Deno.open(file.file);
+        const subArtReader = await Deno.open(file);
         const subArtLines: string[] = [];
         for await (let line of readLines(subArtReader)) {
           // Process ids (add a suffix to all ids and rids)
@@ -108,7 +115,7 @@ export const renderSubarticlePostProcessor = (
         );
 
         // Clean any output file
-        Deno.removeSync(file.file);
+        Deno.removeSync(file);
       } else {
         throw new Error(
           "Rendered a single subarticle, but there was more than one!",

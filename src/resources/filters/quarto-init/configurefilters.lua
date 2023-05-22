@@ -4,7 +4,7 @@
 function configure_filters()
   return {
     Meta = function(meta)
-      preState.active_filters = param("active-filters")
+      quarto_global_state.active_filters = param("active-filters")
     end
   }
 end

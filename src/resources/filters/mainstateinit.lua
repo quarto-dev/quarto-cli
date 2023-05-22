@@ -4,7 +4,7 @@
 -- Copyright (C) 2022 by RStudio, PBC
 
 -- global state
-preState = {
+quarto_global_state = {
   usingBookmark = false,
   usingTikz = false,
   results = {
@@ -15,9 +15,6 @@ preState = {
   appendix = false,
   fileSectionIds = {},
   emulatedNodeHandlers = {}
-}
-
-postState = {
 }
 
 crossref = {

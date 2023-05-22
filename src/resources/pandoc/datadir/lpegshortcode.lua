@@ -84,9 +84,9 @@ local function md_keyvalue_param(k, connective, v)
   end
   if recursive_key then
     if recursive_value then
-      return "[" .. recursive_key .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param}"
+      return "[" .. k .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param}"
     else
-      return "[" .. recursive_key .. "]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. into_dataset_value(v) .. "\"}"
+      return "[" .. k .. "]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. into_dataset_value(v) .. "\"}"
     end
   else
     if recursive_value then

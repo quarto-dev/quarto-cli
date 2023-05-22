@@ -1,13 +1,13 @@
 /*
-* qualified-path.ts
-*
-* Path objects that hold additional information about their status
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * qualified-path.ts
+ *
+ * Path objects that hold additional information about their status
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { join, relative, resolve } from "path/mod.ts";
+import { UnreachableError } from "./lib/error.ts";
 
 export class InvalidPathError extends Error {
   constructor(msg: string) {
@@ -174,7 +174,7 @@ function toRelativePath(
           absPath,
         );
       } else {
-        throw new Error("Internal Error, should never arrive here.");
+        throw new UnreachableError();
       }
   }
 
@@ -224,7 +224,7 @@ function toProjectRelativePath(
       break;
     default:
       if (!path.value.startsWith("/")) {
-        throw new Error("Internal Error, should never arrive here.");
+        throw new UnreachableError();
       } else {
         // relative -> absolute -> project-relative
         value = `/${

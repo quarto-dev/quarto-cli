@@ -7,7 +7,7 @@
 import { dirname, relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { debug, info, warning } from "log/mod.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
@@ -17,6 +17,7 @@ import { renderServices } from "./render-services.ts";
 
 import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
+import { InternalError } from "../../core/lib/error.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -128,7 +129,7 @@ export const renderCommand = new Command()
     // remove implicit clean argument (re-injected based on what the user
     // actually passes in flags.ts)
     if (options === undefined) {
-      throw new Error("Internal error, expected `options` to be an object");
+      throw new InternalError("Expected `options` to be an object");
     }
     delete options.clean;
 
@@ -159,6 +160,7 @@ export const renderCommand = new Command()
     // issue a warning.
     if (!input || input === kCliffyImplicitCwd) {
       input = Deno.cwd();
+      debug(`Render: Using current directory (${input}) as implicit input`);
       const firstArg = args.find((arg) =>
         arg.endsWith(".qmd") || arg.endsWith(".ipynb")
       );
@@ -172,7 +174,6 @@ export const renderCommand = new Command()
         );
       }
     }
-
     const inputs = [input!];
     const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
     if (firstPandocArg !== -1) {

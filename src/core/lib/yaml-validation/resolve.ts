@@ -1,13 +1,13 @@
 /*
-* resolve.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * resolve.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { getSchemaDefinition } from "./schema.ts";
 
 import { ConcreteSchema, schemaCall } from "../yaml-schema/types.ts";
+import { InternalError } from "../error.ts";
 
 export function maybeResolveSchema(
   schema: ConcreteSchema,
@@ -47,8 +47,8 @@ export function resolveSchema(
         ref: (s) => getSchemaDefinition(s.$ref),
       });
       if (result === undefined) {
-        throw new Error(
-          "Internal Error, couldn't resolve schema ${JSON.stringify(cursor)}",
+        throw new InternalError(
+          "couldn't resolve schema ${JSON.stringify(cursor)}",
         );
       }
       return result;

@@ -21,7 +21,7 @@ function run_emulated_filter(doc, filter)
     return nil
   end
 
-  local state = (preState or postState).extendedAstHandlers
+  local state = quarto_global_state.extended_ast_handlers
   local needs_custom = false
   local sz = 0
   for k, v in pairs(filter) do
@@ -298,7 +298,7 @@ _quarto.ast = {
   end,
   
   add_handler = function(handler)
-    local state = (preState or postState).extendedAstHandlers
+    local state = quarto_global_state.extended_ast_handlers
     if type(handler.constructor) == "nil" then
       quarto.utils.dump(handler)
       fatal("Internal Error: extended ast handler must have a constructor")
@@ -355,7 +355,7 @@ _quarto.ast = {
   end,
 
   resolve_handler = function(name)
-    local state = (preState or postState).extendedAstHandlers
+    local state = quarto_global_state.extended_ast_handlers
     if state.namedHandlers ~= nil then
       return state.namedHandlers[name]
     end
@@ -386,16 +386,13 @@ _quarto.ast = {
 
 quarto._quarto = _quarto
 
-function constructExtendedAstHandlerState()
+function construct_extended_ast_handler_state()
   local state = {
     namedHandlers = {},
   }
 
-  if preState ~= nil then
-    preState.extendedAstHandlers = state
-  end
-  if postState ~= nil then
-    postState.extendedAstHandlers = state
+  if quarto_global_state ~= nil then
+    quarto_global_state.extended_ast_handlers = state
   end
 
   for _, handler in ipairs(handlers) do
@@ -403,4 +400,4 @@ function constructExtendedAstHandlerState()
   end
 end
 
-constructExtendedAstHandlerState()
+construct_extended_ast_handler_state()
