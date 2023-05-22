@@ -24,6 +24,10 @@
 
 - [#5546](https://github.com/quarto-dev/quarto-cli/issues/5546): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
 
+## PDF Format
+
+- [#5620](https://github.com/quarto-dev/quarto-cli/discussions/5620): Add `title-short` option.
+ 
 ## Website Listings
 
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
