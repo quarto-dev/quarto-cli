@@ -52,7 +52,7 @@ local quarto_shortcode_class_prefix = "quarto-shortcode__"
 -- evaluators
 local function md_escaped_shortcode(s)
   -- escaped shortcodes bring in whitespace
-  return "[]{." .. quarto_shortcode_class_prefix .. "-escaped data-value=\"" .. escape("{{<" .. s .. ">}}") .. "\"}"
+  return "[]{." .. quarto_shortcode_class_prefix .. "-escaped data-is-shortcode=\"1\" data-value=\"" .. escape("{{<" .. s .. ">}}") .. "\"}"
 end
 
 local function into_dataset_value(s)
@@ -68,7 +68,7 @@ end
 
 local function md_string_param(s)
   local value = into_dataset_value(s)
-  local result = "[]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. value .. "\" data-raw=\"" .. escape(trim_end(s)) .. "\"}"
+  local result = "[]{." .. quarto_shortcode_class_prefix .. "-param data-is-shortcode=\"1\" data-value=\"" .. value .. "\" data-raw=\"" .. escape(trim_end(s)) .. "\"}"
   return result
 end
 
@@ -84,16 +84,16 @@ local function md_keyvalue_param(k, connective, v)
   end
   if recursive_key then
     if recursive_value then
-      return "[" .. k .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param}"
+      return "[" .. k .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param data-is-shortcode=\"1\"}"
     else
-      return "[" .. k .. "]{." .. quarto_shortcode_class_prefix .. "-param data-value=\"" .. into_dataset_value(v) .. "\"}"
+      return "[" .. k .. "]{." .. quarto_shortcode_class_prefix .. "-param data-is-shortcode=\"1\" data-value=\"" .. into_dataset_value(v) .. "\"}"
     end
   else
     if recursive_value then
-      return "[" .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param data-key=\"" .. into_dataset_value(k) .. "\"}"
+      return "[" .. v .. "]{." .. quarto_shortcode_class_prefix .. "-param data-is-shortcode=\"1\" data-key=\"" .. into_dataset_value(k) .. "\"}"
     else
       raw = k .. connective .. v
-      return "[]{." .. quarto_shortcode_class_prefix .. "-param data-raw=\"" .. escape(raw) .. "\" data-key=\"" .. into_dataset_value(k) .. "\"" .. " data-value=\"" .. into_dataset_value(v) .. "\"}"
+      return "[]{." .. quarto_shortcode_class_prefix .. "-param data-is-shortcode=\"1\" data-raw=\"" .. escape(raw) .. "\" data-key=\"" .. into_dataset_value(k) .. "\"" .. " data-value=\"" .. into_dataset_value(v) .. "\"}"
     end
   end
 end
@@ -106,6 +106,7 @@ local function md_shortcode(open, space, lst, close)
   end
   table.insert(shortcode, "]{.")
   table.insert(shortcode, quarto_shortcode_class_prefix)
+  table.insert(shortcode, " data-is-shortcode=\"1\"")
   local raw = open .. space
   for i = 1, #lst do
     raw = raw .. unshortcode:match(lst[i])
@@ -187,7 +188,6 @@ local function make_shortcode_parser(evaluator_table)
   return sc
 end
 
--- FIXME we need a separate parser for non-markdown contexts.
 md_shortcode = make_shortcode_parser({
   escaped = md_escaped_shortcode,
   string = md_string_param,
@@ -210,16 +210,16 @@ unshortcode = lpeg.P({
   "Text",
   Text = into_string((lpeg.V("Shortcodespan") + lpeg.P(1) / id)^1),
   Nonshortcode = (1 - lpeg.P("["))^1 / id,
-  Shortcodekeyvalue = (lpeg.P("[]{.quarto-shortcode__-param data-raw=") * escaped_string * Space * lpeg.P("data-key=") * escaped_string * Space * lpeg.P("data-value=") * escaped_string * lpeg.P("}")) /
+  Shortcodekeyvalue = (lpeg.P("[]{.quarto-shortcode__-param data-is-shortcode=\"1\" data-raw=") * escaped_string * Space * lpeg.P("data-key=") * escaped_string * Space * lpeg.P("data-value=") * escaped_string * lpeg.P("}")) /
     function(r, k, v) return r end,
-  Shortcodestring = (lpeg.P("[]{.quarto-shortcode__-param data-value=") * escaped_string * Space * lpeg.P("data-raw=") * escaped_string * lpeg.P("}")) /
+  Shortcodestring = (lpeg.P("[]{.quarto-shortcode__-param data-is-shortcode=\"1\" data-value=") * escaped_string * Space * lpeg.P("data-raw=") * escaped_string * lpeg.P("}")) /
     function(v, r) return r end,
   -- Shortcodekeyvalue =
-  Shortcodeescaped = lpeg.P("[]{.quarto-shortcode__-escaped data-value=") * 
+  Shortcodeescaped = lpeg.P("[]{.quarto-shortcode__-escaped data-is-shortcode=\"1\" data-value=") * 
       (escaped_string / function(s) return "{" .. unescape(s) .. "}" end) * 
       lpeg.P("}"),
   Shortcodespan = lpeg.V"Shortcodeescaped" + lpeg.V"Shortcodekeyvalue" + lpeg.V"Shortcodestring" +
-  (lpeg.P("[") * (lpeg.V("Shortcodespan") * Space)^0 * (lpeg.P("]{.quarto-shortcode__") * Space * lpeg.P("data-raw=") * escaped_string * Space * lpeg.P("}"))) / function(...)
+  (lpeg.P("[") * (lpeg.V("Shortcodespan") * Space)^0 * (lpeg.P("]{.quarto-shortcode__ data-is-shortcode=\"1\"") * Space * lpeg.P("data-raw=") * escaped_string * Space * lpeg.P("}"))) / function(...)
     local args = {...}
     return args[#args]
   end
@@ -277,35 +277,8 @@ if os.getenv("LUA_TESTING") ~= nil then
     expect_equals(unshortcode:match(md_shortcode:match(v)), v)
   end
 
-  -- print(md_shortcode:match("{{< meta 'foo' >}}\n{{< meta \"foo\" >}}\n{{< meta bar >}}"))  
+  print("Tests passed")
 end
-
--- print(md_shortcode:match([[
--- Hello world.
-
--- Some text here.
-
--- {{< foo bar baz {{< meta foo >}} bah=asdf bam="boom" 'long key'='long value' >}}
-
--- {{</* foo bar baz */>}}
-
--- {{{< more escaped stuff >}}}
-
--- Some more text here.
-
--- Goodbye world.
--- ]]))
-
--- p(lpeg.match(md_shortcode, "{{</* foo bar baz */>}}"))
-
--- p(lpeg.match(md_shortcode, "{{< foo bar baz {{< meta foo >}} bah=asdf bam=\"boom\" 'long key'='long value' >}}"))
-
--- print(md_shortcode:match('[{{< fa brands r-project >}} This is R]{.hidden render-id="quarto-int-navbar:{{< fa brands r-project >}} This is R"}'))
--- print(unshortcode:match("[]{.quarto-shortcode__-param data-raw=\"value\"}"))
--- print(unshortcode:match("[]{.quarto-shortcode__-param data-key=\"key\" data-value=\"value\"}"))
--- print(unshortcode:match("[[]{.quarto-shortcode__-param data-raw=\"meta\"}]{.quarto-shortcode__}"))
--- print(unshortcode:match("[]{.quarto-shortcode__-escaped data-value=\"{{< meta foo >}}\"} with stuff"))
--- print(unshortcode:match('./[[]{.quarto-shortcode__-param data-raw="meta"}[]{.quarto-shortcode__-param data-raw="bar"}]{.quarto-shortcode__}.html'))
 
 return {
   md_shortcode = md_shortcode,
