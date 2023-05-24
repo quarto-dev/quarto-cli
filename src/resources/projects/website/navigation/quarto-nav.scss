@@ -40,10 +40,11 @@ $sidebar-anim-duration: 0.15s !default;
 
 $navbar-toggle-position: left !default;
 
-$navbar-toggler-order: if($navbar-toggle-position == "left", 1, 3) !default;
-$navbar-title-order: if($navbar-toggle-position == "left", 2, 2) !default;
-$navbar-search-order: if($navbar-toggle-position == "left", 3, 1) !default;
-$navbar-menu-order: if($navbar-toggle-position == "left", 4, 4) !default;
+$navbar-toggler-order: if($navbar-toggle-position == "left", 1, 4) !default;
+$navbar-title-order: if($navbar-toggle-position == "left", 2, 3) !default;
+$navbar-search-order: if($navbar-toggle-position == "left", 4, 1) !default;
+$navbar-tools-order: if($navbar-toggle-position == "left", 3, 2) !default;
+$navbar-menu-order: if($navbar-toggle-position == "left", 20, 20) !default;
 
 /*-- scss:mixins --*/
 
@@ -155,6 +156,10 @@ header.headroom--unpinned {
       #quarto-search {
         margin-right: 0.5em;
       }
+
+      .quarto-navbar-tools .dropdown-menu {
+        left: 0;
+      }
     }
   }
 }
@@ -187,6 +192,7 @@ nav .nav-item.compact .nav-link {
 
 .navbar {
   .quarto-navbar-tools {
+    order: $navbar-tools-order;
     div.dropdown {
       display: inline-block;
     }
@@ -195,16 +201,6 @@ nav .nav-item.compact .nav-link {
     }
     .quarto-navigation-tool:hover {
       color: $navbar-hl;
-    }
-
-    @include media-breakpoint-down(lg) {
-      margin-top: 0.25em;
-      padding-top: 0.75em;
-      display: block;
-      color: solid theme-dim($navbar-fg, 50%) 1px;
-      text-align: center;
-      vertical-align: middle;
-      margin-right: auto;
     }
   }
 }
