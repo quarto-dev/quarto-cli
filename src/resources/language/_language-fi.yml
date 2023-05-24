@@ -58,7 +58,7 @@ search-more-matches-text: "tulosta tässä dokumentissa"
 search-clear-button-title: "Tyhjennä"
 search-detached-cancel-button-title: "Peruuta"
 search-submit-button-title: "Lähetä"
-search: "Hae"
+search-label: "Hae"
 
 toggle-section: "Vaihda osio"
 toggle-sidebar: "Vaihda sivupalkki"

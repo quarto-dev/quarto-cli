@@ -58,7 +58,7 @@ search-more-matches-text: "weitere Treffer in diesem Dokument"
 search-clear-button-title: "Zurücksetzen"
 search-detached-cancel-button-title: "Abbrechen"
 search-submit-button-title: "Abschicken"
-search: "Suchen"
+search-label: "Suchen"
 
 toggle-section: "Abschnitt umschalten"
 toggle-sidebar: "Seitenleiste umschalten"

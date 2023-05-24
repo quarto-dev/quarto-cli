@@ -58,7 +58,7 @@ search-more-matches-text: "more matches in this document"
 search-clear-button-title: "Clear"
 search-detached-cancel-button-title: "Cancel"
 search-submit-button-title: "Submit"
-search: "Search"
+search-label: "Search"
 
 toggle-section: "Toggle section"
 toggle-sidebar: "Toggle sidebar navigation"

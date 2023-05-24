@@ -58,7 +58,7 @@ search-more-matches-text: "bu belgede daha fazla eşleşmeler"
 search-clear-button-title: "Temizle"
 search-detached-cancel-button-title: "İptal et"
 search-submit-button-title: "Göndermek"
-search: "Aramak"
+search-label: "Aramak"
 
 toggle-section: "Bölümü değiştir"
 toggle-sidebar: "Kenar çubuğunu değiştir"

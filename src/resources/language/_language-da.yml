@@ -58,7 +58,7 @@ search-more-matches-text: "andre resultater i dette dokument"
 search-clear-button-title: "Ryd"
 search-detached-cancel-button-title: "Fortryd"
 search-submit-button-title: "Indsend"
-search: "Søg"
+search-label: "Søg"
 
 toggle-section: "Skift sektion"
 toggle-sidebar: "Skift sidebjælke"

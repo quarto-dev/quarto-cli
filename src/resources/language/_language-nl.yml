@@ -58,7 +58,7 @@ search-more-matches-text: "meer overeenkomsten in dit document"
 search-clear-button-title: "Wissen"
 search-detached-cancel-button-title: "Annuleren"
 search-submit-button-title: "Verzenden"
-search: "Zoeken"
+search-label: "Zoeken"
 
 toggle-section: "Schakel sectie"
 toggle-sidebar: "Schakel zijbalk in"

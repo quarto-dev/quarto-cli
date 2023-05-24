@@ -58,7 +58,7 @@ search-more-matches-text: "więcej dopasowań w tym dokumencie"
 search-clear-button-title: "Wyczyść"
 search-detached-cancel-button-title: "Anuluj"
 search-submit-button-title: "Zatwierdź"
-search: "Szukaj"
+search-label: "Szukaj"
 
 toggle-section: "Przełącz sekcję"
 toggle-sidebar: "Przełącz pasek boczny"
