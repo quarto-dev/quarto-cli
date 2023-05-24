@@ -172,13 +172,14 @@ function Reader (inputs, opts)
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
     Link = function (l)
-      if l.target:match("data%-is%-shortcode%=%\"1%\"") then
+      print(l.target)
+      if l.target:match("data%-is%-shortcode%=%%221%%22") then
         l.target = md_shortcode.unshortcode:match(urldecode(l.target))
         return l
       end
     end,
     Image = function (i)
-      if i.src:match("data%-is%-shortcode%=%\"1%\"") then
+      if i.src:match("data%-is%-shortcode%=%%221%%22") then
         i.src = md_shortcode.unshortcode:match(urldecode(i.src))
         return i
       end
