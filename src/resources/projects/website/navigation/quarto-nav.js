@@ -233,7 +233,7 @@ window.document.addEventListener("DOMContentLoaded", function () {
     // Fixup any sharing links that require urls
     // Append url to any sharing urls
     const sharingLinks = window.document.querySelectorAll(
-      "a.sidebar-tools-main-item"
+      "a.sidebar-tools-main-item, a.quarto-navigation-tool, a.quarto-navbar-tools"
     );
     for (let i = 0; i < sharingLinks.length; i++) {
       const sharingLink = sharingLinks[i];
