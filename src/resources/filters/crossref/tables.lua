@@ -193,7 +193,7 @@ function processRawTable(divEl)
       local label = divEl.attr.identifier
       -- html table
       if _quarto.format.isRawHtml(rawEl) then
-        local captionPattern = patterns.html_table_caption()
+        local captionPattern = patterns.html_table_caption
         local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
           
