@@ -273,7 +273,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
                     "fenced.echo", "chunk.echo", "lang",
                     "out.width.px", "out.height.px", "indent", "class.source", 
                     "class.output", "class.message", "class.warning", "class.error", "attr.source", 
-                    "attr.output", "attr.message", "attr.warning", "attr.error", "connection")
+                    "attr.output", "attr.message", "attr.warning", "attr.error", "connection",
+                    "fig.asp")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
@@ -1001,5 +1002,3 @@ latex_animation <- function(x, options) {
 is_latex_output <- function(to) {
   knitr:::is_latex_output() || identical(to, "pdf")
 }
-
-
