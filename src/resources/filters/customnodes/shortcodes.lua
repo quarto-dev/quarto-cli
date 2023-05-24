@@ -214,6 +214,9 @@ function shortcodes_filter()
   })
 
   local block_handler = function(node)
+    if node.t == "Para" and #node.content == 1 then
+      node = node.content[1]
+    end
     local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)
     if t ~= "Shortcode" then
       return nil
