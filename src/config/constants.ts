@@ -228,7 +228,7 @@ export const kCodeToolsHideAllCode = "code-tools-hide-all-code";
 export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
-export const kSearch = "search";
+export const kSearchLabel = "search-label";
 
 export const kToggleSection = "toggle-section";
 export const kToggleSidebar = "toggle-sidebar";
@@ -335,7 +335,7 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
   kSearchNoResultsText,
-  kSearch,
+  kSearchLabel,
   kToggleDarkMode,
   kToggleNavigation,
   kToggleReaderMode,

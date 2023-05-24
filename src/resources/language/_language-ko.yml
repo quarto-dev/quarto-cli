@@ -57,7 +57,7 @@ search-more-matches-text: "추가 검색결과"
 search-clear-button-title: "제거"
 search-detached-cancel-button-title: "취소"
 search-submit-button-title: "검색"
-search: "검색"
+search-label: "검색"
 
 toggle-section: "토글 섹션"
 toggle-sidebar: "사이드바 전환"

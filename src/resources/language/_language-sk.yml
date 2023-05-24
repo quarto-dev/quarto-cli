@@ -58,7 +58,7 @@ search-more-matches-text: "ďalších výsledkov v tomto dokumente"
 search-clear-button-title: "Vymazať"
 search-detached-cancel-button-title: "Zrušiť"
 search-submit-button-title: "Odoslať"
-search: "Hľadať"
+search-label: "Hľadať"
 
 toggle-section: "Prepnúť sekciu"
 toggle-sidebar: "Prepnúť postrannú navigáciu"

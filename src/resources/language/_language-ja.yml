@@ -58,7 +58,7 @@ search-more-matches-text: "追加の検索結果"
 search-clear-button-title: "消去"
 search-detached-cancel-button-title: "取消"
 search-submit-button-title: "検索"
-search: "サーチ"
+search-label: "サーチ"
 
 toggle-section: "セクションを切り替え"
 toggle-sidebar: "サイドバーを切り替える"

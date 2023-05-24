@@ -58,7 +58,7 @@ search-more-matches-text: "дополнительных результата(-о
 search-clear-button-title: "Очистить"
 search-detached-cancel-button-title: "Отменить"
 search-submit-button-title: "Найти"
-search: "Поиск"
+search-label: "Поиск"
 
 toggle-section: "Переключить раздел"
 toggle-sidebar: "Переключить боковую панель навигации"

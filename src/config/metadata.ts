@@ -202,8 +202,6 @@ export function metadataAsFormat(metadata: Metadata): Format {
         format.execute[key] = metadata[key];
       } else if (kPandocDefaultsKeys.includes(key)) {
         format.pandoc[key] = metadata[key];
-      } else if (kLanguageDefaultsKeys.includes(key)) {
-        format.language[key] = metadata[key];
       } else {
         format.metadata[key] = metadata[key];
       }
