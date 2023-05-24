@@ -205,9 +205,9 @@ window.document.addEventListener("DOMContentLoaded", function () {
   // Observe size changed for the header
   const headerEl = window.document.querySelector("header.fixed-top");
   if (headerEl && window.ResizeObserver) {
-    const observer = new window.ResizeObserver(
-      updateDocumentOffsetWithoutAnimation
-    );
+    const observer = new window.ResizeObserver(() => {
+      setTimeout(updateDocumentOffsetWithoutAnimation, 0);
+    });
     observer.observe(headerEl, {
       attributes: true,
       childList: true,
