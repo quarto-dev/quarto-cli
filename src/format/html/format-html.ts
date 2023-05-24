@@ -261,14 +261,10 @@ export async function htmlFormatExtras(
   // Books don't currently support hover xrefs (since the content to preview in the xref
   // is likely to be on another page and we don't want to do a full fetch of that page
   // to get the preview)
-  if (project && projectIsBook(project)) {
-    options.hoverXrefs = false;
+  if (featureDefaults.hoverXrefs) {
+    options.hoverXrefs = format.metadata[kXrefsHover] !== false;
   } else {
-    if (featureDefaults.hoverXrefs) {
-      options.hoverXrefs = format.metadata[kXrefsHover] !== false;
-    } else {
-      options.hoverXrefs = format.metadata[kXrefsHover] || false;
-    }
+    options.hoverXrefs = format.metadata[kXrefsHover] || false;
   }
   if (featureDefaults.figResponsive) {
     options.figResponsive = format.metadata[kFigResponsive] !== false;
