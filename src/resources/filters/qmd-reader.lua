@@ -162,7 +162,7 @@ function Reader (inputs, opts)
   local doc = pandoc.read(txt, flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
-      if cb.text:match("data-is-shortcode=\"1\"") then
+      if cb.text:match("data%-is%-shortcode%=%\"1%\"") then
         cb.text = md_shortcode.unshortcode:match(cb.text)
       end
       cb.text = unescape_invalid_tags(cb.text, tags)
@@ -172,13 +172,13 @@ function Reader (inputs, opts)
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
     Link = function (l)
-      if l.target:match("data-is-shortcode=\"1\"") then
+      if l.target:match("data%-is%-shortcode%=%\"1%\"") then
         l.target = md_shortcode.unshortcode:match(urldecode(l.target))
         return l
       end
     end,
     Image = function (i)
-      if i.src:match("data-is-shortcode=\"1\"") then
+      if i.src:match("data%-is%-shortcode%=%\"1%\"") then
         i.src = md_shortcode.unshortcode:match(urldecode(i.src))
         return i
       end
