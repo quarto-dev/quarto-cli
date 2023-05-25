@@ -172,7 +172,6 @@ function Reader (inputs, opts)
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
     Link = function (l)
-      print(l.target)
       if l.target:match("data%-is%-shortcode%=%%221%%22") then
         l.target = md_shortcode.unshortcode:match(urldecode(l.target))
         return l
