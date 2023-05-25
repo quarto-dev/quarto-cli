@@ -35,16 +35,14 @@ import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
 import { logProgress } from "../../core/log.ts";
-import {
-  inputTargetIndex,
-  readBaseInputIndex,
-} from "../../project/project-index.ts";
+import { readBaseInputIndex } from "../../project/project-index.ts";
 
 export interface NotebookPreview {
   title: string;
   href: string;
   filename?: string;
   supporting?: string[];
+  resources?: string[];
 }
 
 export interface NotebookPreviewTask {
@@ -117,7 +115,7 @@ export const notebookPreviewer = (
 
     const total = uniqueWork.length;
     if (total > 0) {
-      logProgress(`\nRendering notebooks`);
+      logProgress(`Rendering notebooks`);
     }
     for (let i = 0; i < total; i++) {
       const work = uniqueWork[i];
@@ -134,6 +132,7 @@ export const notebookPreviewer = (
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
 
         const supporting: string[] = [];
+        const resources: string[] = [];
         const nbRelPath = relative(inputDir, nbAbsPath);
         logProgress(`[${i + 1}/${total}] ${nbRelPath}`);
 
@@ -188,11 +187,15 @@ export const notebookPreviewer = (
         if (htmlPreview.supporting) {
           supporting.push(...htmlPreview.supporting);
         }
+        if (htmlPreview.resources) {
+          resources.push(...htmlPreview.resources);
+        }
 
         const nbPreview = {
           title: htmlPreview.title,
           href: htmlPreview.href,
           supporting,
+          resources,
         };
         rendered[work.nbPath] = nbPreview;
         if (work.callback) {
@@ -328,12 +331,20 @@ async function renderHtmlView(
       });
     }
 
+    const nbDir = dirname(nbAbsPath);
     const supporting = [];
+    const resources = [];
     for (const renderedFile of rendered.files) {
       supporting.push(join(inputDir, renderedFile.file));
       if (renderedFile.supporting) {
         supporting.push(...renderedFile.supporting.map((file) => {
-          return isAbsolute(file) ? file : join(inputDir, file);
+          return isAbsolute(file) ? file : join(nbDir, file);
+        }));
+      }
+
+      if (renderedFile.resourceFiles) {
+        resources.push(...renderedFile.resourceFiles.files.map((file) => {
+          return isAbsolute(file) ? file : join(nbDir, file);
         }));
       }
     }
@@ -345,6 +356,7 @@ async function renderHtmlView(
         join(dirname(nbRelPath), options.previewFileName),
       ),
       supporting,
+      resources,
     };
   } else {
     return {

@@ -20,7 +20,7 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename } from "path/mod.ts";
+import { basename, relative } from "path/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   NotebookPreview,
@@ -266,6 +266,12 @@ export async function emplaceNotebookPreviews(
       // include it in the supporting dir
       if (nbPath.supporting) {
         supporting.push(...nbPath.supporting);
+      }
+
+      if (nbPath.resources) {
+        resources.push(...nbPath.resources.map((file) => {
+          return project ? relative(project?.dir, file) : file;
+        }));
       }
 
       // This is the notebook itself
