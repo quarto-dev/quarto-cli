@@ -1,6 +1,7 @@
 <% if (typeof(hypothesis) === "object") { %>
 <script type="application/json" class="js-hypothesis-config">
 <%= JSON.stringify(hypothesis, undefined, 2) %>
+document.body.classes.add('hypothesis-enabled');
 </script>
 <% } %>
 <script async src="https://hypothes.is/embed.js"></script>
