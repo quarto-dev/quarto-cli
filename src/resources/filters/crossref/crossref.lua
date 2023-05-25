@@ -6,6 +6,14 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
+-- global crossref state
+crossref = {
+  usingTheorems = false,
+  startAppendix = nil,
+  -- initialize autolabels table
+  autolabels = pandoc.List()
+}
+
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
