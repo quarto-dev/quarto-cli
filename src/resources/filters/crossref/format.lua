@@ -191,7 +191,6 @@ function formatNumberOption(type, order, default)
     if section then
       tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
-    quarto.utils.dump(styleRaw)
     return { option }
   end
 
