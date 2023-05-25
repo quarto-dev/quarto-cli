@@ -153,7 +153,7 @@ function Reader (inputs, opts)
   -- so we need to undo that damage here
 
   local unshortcode_text = function (c)
-    if c.text:match("data-is-shortcode=\"1\"") then
+    if c.text:match("data%-is%-shortcode%=%\"1%\"") then
       c.text = md_shortcode.unshortcode:match(c.text)
     end
     return c
