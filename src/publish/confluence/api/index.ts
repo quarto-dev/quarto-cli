@@ -26,7 +26,12 @@ import {
   WrappedResult,
 } from "./types.ts";
 
-import {DESCENDANT_PAGE_SIZE, LOCAL_STORAGE_CAN_SET_PERMISSIONS_DISABLED, V2EDITOR_METADATA} from "../constants.ts";
+import {
+  DESCENDANT_PAGE_SIZE,
+  CAN_SET_PERMISSIONS_DISABLED,
+  V2EDITOR_METADATA,
+  CAN_SET_PERMISSIONS_ENABLED_CACHED,
+} from "../constants.ts";
 import { logError, trace } from "../confluence-logger.ts";
 import { buildContentCreate } from "../confluence-helper.ts";
 
@@ -96,7 +101,8 @@ export class ConfluenceClient {
   }
 
   /**
-   * Perform a test to see if the user can manage permissions.  In the space create a simple test page, attempt to set permissions on it, then delete it.
+   * Perform a test to see if the user can manage permissions.  In the space create a simple test page, attempt to set
+   * permissions on it, then delete it.
    */
   public async canSetPermissions(
       parent: ConfluenceParent,
@@ -105,7 +111,16 @@ export class ConfluenceClient {
   ): Promise<boolean> {
     let result = true;
 
-    const permissionsTestDisabled = localStorage.getItem(LOCAL_STORAGE_CAN_SET_PERMISSIONS_DISABLED) === "true";
+    trace("canSetPermissions check");
+
+    trace("localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED)", localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED));
+    trace("localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED)",
+      localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED));
+
+    const permissionsTestDisabled = localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED) === "true" ||
+      localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED) === "true";
+
+    trace("permissionsTestDisabled", permissionsTestDisabled);
 
     if (permissionsTestDisabled) {
       return Promise.resolve(true);
@@ -167,7 +182,7 @@ export class ConfluenceClient {
       // https://github.com/quarto-dev/quarto-cli/issues/5299
       // This account can't delete the test document, we attempted an archive
       // Let's prevent this "canSetPermissions" test from being run in the future
-      localStorage.setItem(LOCAL_STORAGE_CAN_SET_PERMISSIONS_DISABLED, "true");
+      localStorage.setItem(CAN_SET_PERMISSIONS_DISABLED, "true");
     }
 
     return result;

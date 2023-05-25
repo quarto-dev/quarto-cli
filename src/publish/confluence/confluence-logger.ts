@@ -3,7 +3,7 @@ import { LogLevel, LogPrefix } from "./api/types.ts";
 
 export const trace = (
   message: string,
-  value: any,
+  value: any = '',
   prefix: LogPrefix = LogPrefix.GENERAL,
   level: LogLevel = LogLevel.DEBUG
 ) => {

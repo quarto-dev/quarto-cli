@@ -5,6 +5,7 @@ import { withSpinner } from "../../core/console.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { ConfluenceParent, Space, User } from "./api/types.ts";
 import { trace } from "./confluence-logger.ts";
+import { CAN_SET_PERMISSIONS_DISABLED, CAN_SET_PERMISSIONS_ENABLED_CACHED } from "./constants.ts";
 
 const verifyWithSpinner = async (
   verifyCommand: () => Promise<void>,
@@ -76,7 +77,12 @@ export const verifyOrWarnManagePermissions = async (
     user,
   );
 
-  if (!canManagePermissions) {
+  if (canManagePermissions) {
+    // bug/5622-too-many-confluence-permission-checks
+    // Cache success result
+    localStorage.setItem(CAN_SET_PERMISSIONS_ENABLED_CACHED, "true");
+    trace("Caching permission check success");
+  } else {
     const confirmed: boolean = await Confirm.prompt(
       "We've detected that your account is not able to manage the permissions for this destination.\n\nPublished pages will be directly editable within the Confluence web editor.\n\nThis means that if you republish the page from Quarto, you may be overwriting the web edits.\nWe recommend that you establish a clear policy about how this published page will be revised.\n\nAre you sure you want to continue?",
     );
@@ -84,4 +90,5 @@ export const verifyOrWarnManagePermissions = async (
       throw new Error("");
     }
   }
+
 };
