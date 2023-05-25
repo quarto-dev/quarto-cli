@@ -15,12 +15,10 @@ import { execProcess } from "../../../core/process.ts";
 import { ProcessResult } from "../../../core/process-types.ts";
 
 import { PackageManager } from "./pkgmgr.ts";
-import {
-  kLatexBodyMessageOptions,
-  kLatexHeaderMessageOptions,
-} from "./types.ts";
+import { kLatexBodyMessageOptions } from "./types.ts";
 import { hasTexLive, texLiveCmd, TexLiveContext } from "./texlive.ts";
 import { withPath } from "../../../core/env.ts";
+import { logProgress } from "../../../core/log.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -264,9 +262,8 @@ async function runLatexCommand(
       // If the command itself can't be found, try installing the command
       // if auto installation is enabled
       if (!quiet) {
-        info(
+        logProgress(
           `command ${latexCmd} not found, attempting install`,
-          kLatexHeaderMessageOptions,
         );
       }
 
@@ -282,7 +279,6 @@ async function runLatexCommand(
       // Some other error has occurred
       error(
         `Error executing ${latexCmd}`,
-        kLatexHeaderMessageOptions,
       );
 
       return Promise.reject();

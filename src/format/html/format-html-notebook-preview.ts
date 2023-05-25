@@ -9,7 +9,6 @@ import { asArray } from "../../core/array.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
-  kClearHiddenClasses,
   kDownloadUrl,
   kNotebookViewStyle,
   kOutputFile,
@@ -36,6 +35,10 @@ import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
 import { logProgress } from "../../core/log.ts";
+import {
+  inputTargetIndex,
+  readBaseInputIndex,
+} from "../../project/project-index.ts";
 
 export interface NotebookPreview {
   title: string;
@@ -101,6 +104,8 @@ export const notebookPreviewer = (
   const renderPreviews = async () => {
     const rendered: Record<string, NotebookPreview> = {};
 
+    // Quiet the pandoc, let execution through
+
     // Render each notebook only once (so filter by
     // notebook path to consolidate the list)
     const uniqueWork = ld.uniqBy(
@@ -112,7 +117,7 @@ export const notebookPreviewer = (
 
     const total = uniqueWork.length;
     if (total > 0) {
-      logProgress(`\nRendering notebook previews`);
+      logProgress(`\nRendering notebooks`);
     }
     for (let i = 0; i < total; i++) {
       const work = uniqueWork[i];
@@ -153,11 +158,23 @@ export const notebookPreviewer = (
           supporting.push(...outputNb.supporting);
         }
 
+        // Make sure that we have a resolved title
+        const resolveTitle = async () => {
+          let resolvedTitle = descriptor?.title || title;
+          if (!resolvedTitle && project) {
+            const inputIndex = await readBaseInputIndex(nbPath, project);
+            if (inputIndex) {
+              resolvedTitle = inputIndex.title;
+            }
+          }
+          return resolvedTitle || basename(nbPath);
+        };
+
         const htmlPreview = await renderHtmlView(
           inputDir,
           nbAbsPath,
           {
-            title: descriptor?.title || title || basename(nbPath),
+            title: await resolveTitle(),
             previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
             url: descriptor?.url,
             downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
@@ -223,12 +240,12 @@ async function renderOutputNotebook(
         metadata: {
           [kTo]: "ipynb",
           [kOutputFile]: outputFileName,
-          [kClearHiddenClasses]: true,
         },
         quiet,
       },
       echo: true,
       warning: true,
+      quietPandoc: true,
     },
     [],
     undefined,
@@ -294,12 +311,12 @@ async function renderHtmlView(
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
-            [kClearHiddenClasses]: true,
           },
           quiet,
         },
         echo: true,
         warning: true,
+        quietPandoc: true,
       },
       [],
       undefined,

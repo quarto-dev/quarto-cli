@@ -7,7 +7,6 @@
 import {
   kDefaultImageExtension,
   kIncludeAfterBody,
-  kJatsSubarticleId,
   kLinkCitations,
   kQuartoInternal,
   kResources,
@@ -22,19 +21,16 @@ import { RenderServices } from "../../command/render/types.ts";
 import {
   jatsDtd,
   JatsRenderSubArticle,
-  JatsSubArticle,
   jatsTagset,
   kJatsSubarticle,
   kLintXml,
-  subarticleTemplatePath,
+  kSubArticles,
   xmlPlaceholder,
 } from "./format-jats-types.ts";
-import { mergeConfigs } from "../../core/config.ts";
 
-import { dirname, join, relative } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import {
-  moveSubarticleSupportingPostProcessor,
   reformatXmlPostProcessor,
   renderSubarticlePostProcessor,
 } from "./format-jats-postprocess.ts";
@@ -42,8 +38,6 @@ import {
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
 const kElementsVariant = "+element_citations";
-
-const kSubArticles = "subarticles";
 
 export function jatsFormat(displayName: string, ext: string): Format {
   return createFormat(displayName, ext, {
@@ -99,63 +93,41 @@ export function jatsFormat(displayName: string, ext: string): Format {
       // Share resources with external
       const afterBody: string[] = [];
       const subArticleResources: string[] = [];
-      const subArticleSupporting: { from: string; toRelative: string }[] = [];
       const subArticlesToRender: JatsRenderSubArticle[] = [];
-      if (internalMetadata) {
+      if (internalMetadata && !format.metadata[kJatsSubarticle]) {
         const subArticles = (internalMetadata[
           kSubArticles
-        ]) as Array<JatsSubArticle | JatsRenderSubArticle> | undefined;
+        ]) as Array<JatsRenderSubArticle> | undefined;
 
+        // TODO: Make this one text file written instead of many
         if (subArticles) {
           subArticles.forEach((subArticle) => {
-            if (!subArticle.render) {
-              // Inject the subarticle into the body
-              afterBody.push(subArticle.output);
+            // Inject a placeholder
+            const placeholder = xmlPlaceholder(
+              subArticle.token,
+              subArticle.input,
+            );
+            const placeholderFile = services.temp.createFile({
+              suffix: ".placeholder.xml",
+            });
+            Deno.writeTextFileSync(placeholderFile, placeholder);
 
-              // Add any resources
-              subArticleResources.push(...subArticle.resources);
-
-              // For supporting files, track them and then
-              // post rendering, relocate them to the parent directory
-              // as supporting files
-              subArticle.supporting.forEach((supporting) => {
-                const from = join(dirname(input), supporting);
-                const toRelative = join(
-                  relative(dirname(subArticle.input), supporting),
-                );
-                subArticleSupporting.push({ toRelative, from });
-              });
-            } else {
-              // Inject a placeholder
-              const placeholder = xmlPlaceholder(
-                subArticle.token,
-                subArticle.input,
-              );
-              const placeholderFile = services.temp.createFile({
-                suffix: ".placeholder.xml",
-              });
-              Deno.writeTextFileSync(placeholderFile, placeholder);
-
-              afterBody.push(placeholderFile);
-              subArticlesToRender.push(subArticle);
-            }
+            afterBody.push(placeholderFile);
+            subArticlesToRender.push(subArticle);
           });
         }
       }
-
       const postprocessors = [];
 
-      // Move subarticle supporting files
-      if (subArticleSupporting.length > 0) {
-        postprocessors.push(
-          moveSubarticleSupportingPostProcessor(subArticleSupporting),
-        );
-      }
-
       // Render subarticles and place them in the root article in the correct position
-      if (subArticlesToRender.length > 0) {
+      if (subArticlesToRender.length > 0 && !format.metadata[kJatsSubarticle]) {
         postprocessors.push(
-          renderSubarticlePostProcessor(subArticlesToRender, services, project),
+          renderSubarticlePostProcessor(
+            input,
+            subArticlesToRender,
+            services,
+            project,
+          ),
         );
       }
 
@@ -181,27 +153,3 @@ export function jatsFormat(displayName: string, ext: string): Format {
     },
   });
 }
-
-export const resolveEmbeddedSubarticles = (
-  format: Format,
-  subArticles: Array<JatsSubArticle | JatsRenderSubArticle>,
-) => {
-  format.metadata = mergeConfigs(format.metadata, {
-    [kQuartoInternal]: {
-      [kSubArticles]: subArticles,
-    },
-  });
-};
-
-export const resolveJatsSubarticleMetadata = (
-  format: Format,
-  subArticleId: string,
-) => {
-  // Use the subarticle template
-  format.pandoc.template = subarticleTemplatePath;
-
-  // Configure the JATS rendering
-  format.metadata[kLintXml] = false;
-  format.metadata[kJatsSubarticle] = true;
-  format.metadata[kJatsSubarticleId] = subArticleId;
-};

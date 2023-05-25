@@ -10,6 +10,7 @@ import { join } from "path/mod.ts";
 
 export const kJatsSubarticle = "jats-subarticle";
 export const kLintXml = "_lint-jats-xml-output";
+export const kSubArticles = "subarticles";
 
 export interface JatsSubArticle {
   input: string;
