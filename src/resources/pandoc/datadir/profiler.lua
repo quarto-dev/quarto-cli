@@ -12,6 +12,8 @@ local module = {}
 local outputfile
 local stack_count = 0
 
+-- don't colect coverage for this module
+-- luacov: disable
 local onDebugHook = function(hookType, line)
   local no = 2
   local information = debug.getinfo(no, "nS")
@@ -42,5 +44,6 @@ function module.stop()
   debug.sethook()
   outputfile:close()
 end
+-- luacov: enable
 
 return module
