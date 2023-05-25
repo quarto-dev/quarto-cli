@@ -4,12 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import {
-  Format,
-  FormatExtras,
-  NotebookPreviewDescriptor,
-  PandocFlags,
-} from "../../config/types.ts";
+import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import {
   PandocRenderer,

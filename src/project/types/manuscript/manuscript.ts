@@ -86,6 +86,7 @@ const kOutputDir = "_manuscript";
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
+  libDir: "site_libs",
   config: async (
     projectDir: string,
     config: ProjectConfig,
