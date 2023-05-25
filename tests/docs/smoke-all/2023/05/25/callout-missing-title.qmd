@@ -1,0 +1,14 @@
+---
+title: foo
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["Note"]
+---
+
+::: callout-note
+
+Hello.
+
+:::
