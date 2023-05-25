@@ -18,7 +18,9 @@ _quarto.ast.add_handler({
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
   parse = function(div)
+    -- luacov: disable
     fatal("internal error, DecoratedCodeBlock has no native parser")
+    -- luacov: enable
   end,
 
   constructor = function(tbl)
