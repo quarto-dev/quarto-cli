@@ -1392,6 +1392,10 @@ local function resolve_relative_path(path)
    return table.concat(resolved, pandoc.path.separator)
 end
 
+-- Add modules base path to package.path so we can require('modules/...') from
+-- any path
+package.path = package.path .. ';' .. pandoc.path.normalize(PANDOC_STATE.user_data_dir .. '/../../filters/?.lua')
+
 -- patch require to look in current scriptDirs as well as supporting
 -- relative requires
 local orig_require = require
