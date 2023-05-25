@@ -1,0 +1,303 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+html {
+    height: 100%;
+}
+
+body {
+    position: relative;
+    margin: 0;
+    font-family: 'Roboto Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #808080;
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+}
+
+.pln {
+    color: #000
+}
+
+@media screen {
+    .str {
+        color: #080
+    }
+
+    .kwd {
+        color: #008
+    }
+
+    .com {
+        color: #800
+    }
+
+    .typ {
+        color: #606
+    }
+
+    .lit {
+        color: #066
+    }
+
+    .clo, .opn, .pun {
+        color: #660
+    }
+
+    .tag {
+        color: #008
+    }
+
+    .atn {
+        color: #606
+    }
+
+    .atv {
+        color: #080
+    }
+
+    .dec, .var {
+        color: #606
+    }
+
+    .fun {
+        color: red
+    }
+}
+
+@media print, projection {
+    .kwd, .tag, .typ {
+        font-weight: 700
+    }
+
+    .str {
+        color: #060
+    }
+
+    .kwd {
+        color: #006
+    }
+
+    .com {
+        color: #600;
+        font-style: italic
+    }
+
+    .typ {
+        color: #404
+    }
+
+    .lit {
+        color: #044
+    }
+
+    .clo, .opn, .pun {
+        color: #440
+    }
+
+    .tag {
+        color: #006
+    }
+
+    .atn {
+        color: #404
+    }
+
+    .atv {
+        color: #060
+    }
+}
+
+pre.prettyprint {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid #808080;
+}
+
+.file.hidden pre.prettyprint {
+    display: none;
+}
+
+ol.linenums {
+    margin-top: 0;
+    margin-bottom: 0;
+    counter-reset: number;
+    list-style-type: none;
+}
+
+pre.prettyprint ol {
+    margin: 0;
+    padding: 0;
+}
+
+pre.prettyprint li {
+    font-size: 14px;
+    word-wrap: normal;
+    white-space: pre;
+    line-height: 20px;
+}
+
+pre.prettyprint li::before {
+    counter-increment: number;
+    content: counter(number) "\a0";
+    float: left;
+    position: relative;
+    width: 1%;
+    min-width: 50px;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 12px;
+    color: #6E7781;
+    text-align: right;
+    white-space: nowrap;
+    vertical-align: top;
+    line-height: 20px;
+}
+
+pre.prettyprint span.fc {
+    background-color: #DFF0D8;
+    display: block;
+}
+
+pre.prettyprint span.fc:before {
+    content: attr(data-hits);
+    position: absolute;
+    left: 0;
+    width: 30px;
+    margin-left: 5px;
+    text-align: center;
+    font-size: 10px;
+    color: #808080;
+}
+
+pre.prettyprint span.nc {
+    background-color: #F2DEDE;
+    display: block;
+}
+
+pre.prettyprint span.pc {
+    background-color: #FFFFCC;
+    display: block;
+}
+
+pre.prettyprint span.bpc:hover {
+    background-color: #FFFF80;
+}
+
+pre.prettyprint span.hits {
+    position: absolute;
+    left: 0;
+    width: 30px;
+    margin-left: 5px;
+    text-align: center;
+    font-size: 10px;
+}
+
+
+.file .title {
+    border-bottom: 1px solid #808080;
+    border-left: 0;
+    border-right: 0;
+    padding: 0.67em;
+    margin: 0;
+    position: relative;
+}
+
+.file:not(.total) .title {
+    cursor: pointer;
+}
+
+.file:not(.total) .title:before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    background: #fff;
+    opacity: 0.0;
+    transition: all 200ms;
+}
+
+.file:not(.total) .title:not(.total):hover:before {
+    opacity: 0.3;
+}
+
+.file.danger .title {
+    background: #F2DEDE;
+}
+
+.file.warning .title {
+    background: #FCF8E3;
+}
+
+.file.success-low .title {
+    background: #DFF0D8;
+}
+
+.file.success-medium .title {
+    background: #C3E3B5;
+}
+
+.file.success-high .title {
+    background: #99CB84;
+}
+
+.file .title .stats {
+    font-size: 12px;
+    line-height: 12px;
+    color: #444;
+    margin-top: 2px;
+    display: flex;
+}
+
+.file .title .stats .hits,
+.file .title .stats .cov,
+.file .title .stats .miss {
+    padding: 2px 6px;
+    border-radius: 12px;
+    border: 1px solid #808080;
+    position: relative;
+    margin-right: 10px;
+}
+
+.file .title .stats .hits {
+    background: #DFF0D8;
+}
+
+.file .title .stats .cov {
+    background: #F2DEDE;
+    overflow: hidden;
+}
+
+.file .title .stats .cov span {
+    position: relative;
+}
+
+.file .title .stats .cov .bg {
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #DFF0D8;
+}
+
+.file .title .stats .miss {
+    background: #F2DEDE;
+}

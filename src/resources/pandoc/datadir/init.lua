@@ -45,7 +45,6 @@
 -- The conversion from UTF-8 to "Windows ANSI codepage" is implemented according to mapping tables published at unicode.org.
 -- Mapping tables are stored in human-unreadable compressed form to significantly reduce module size.
 
-
 local test_data_integrity = false  -- set to true if you are unsure about correctness of human-unreadable parts of this file
 
 local function modify_lua_functions(all_compressed_mappings)
@@ -1310,6 +1309,9 @@ end
 local scriptFile = {}
 
 local function scriptDirs()
+   if PANDOC_SCRIPT_FILE == nil then
+      return {}
+   end
    local dirs = { pandoc.path.directory(PANDOC_SCRIPT_FILE) }
    for i = 1, #scriptFile do
       dirs[#dirs+1] = pandoc.path.directory(scriptFile[i])
@@ -1439,6 +1441,9 @@ function require(modname)
    return mod
 end
 
+if os.getenv("QUARTO_LUACOV") ~= nil then
+   require("luacov")
+end
 
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
