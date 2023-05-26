@@ -326,7 +326,9 @@ export interface FormatExtras {
   [kFilterParams]?: Record<string, unknown>;
   [kNotebooks]?: NotebookPreviewDescriptor[];
   postprocessors?: Array<
-    (output: string) => Promise<{ supporting: string[] } | void>
+    (
+      output: string,
+    ) => Promise<{ supporting?: string[]; resources?: string[] } | void>
   >;
   templateContext?: FormatTemplateContext;
   html?: {

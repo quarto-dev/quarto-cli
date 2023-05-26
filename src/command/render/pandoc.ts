@@ -317,7 +317,9 @@ export async function runPandoc(
 
   // see if there are extras
   const postprocessors: Array<
-    (output: string) => Promise<{ supporting: string[] } | void>
+    (
+      output: string,
+    ) => Promise<{ supporting?: string[]; resources?: string[] } | void>
   > = [];
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
@@ -1251,7 +1253,7 @@ async function resolveExtras(
 
   // Process format resources
   const resourceDependenciesPostProcessor = async (_output: string) => {
-    await processFormatResources(inputDir, dependenciesFile);
+    return await processFormatResources(inputDir, dependenciesFile);
   };
   extras.postprocessors = extras.postprocessors || [];
   extras.postprocessors.push(resourceDependenciesPostProcessor);

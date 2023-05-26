@@ -252,11 +252,15 @@ export async function renderPandoc(
 
       // run generic postprocessors
       const postProcessSupporting: string[] = [];
+      const postProcessResources: string[] = [];
       if (pandocResult.postprocessors) {
         for (const postprocessor of pandocResult.postprocessors) {
           const result = await postprocessor(outputFile);
           if (result && result.supporting) {
             postProcessSupporting.push(...result.supporting);
+          }
+          if (result && result.resources) {
+            postProcessResources.push(...result.resources);
           }
         }
       }
@@ -361,6 +365,10 @@ export async function renderPandoc(
       };
       popTiming();
 
+      // Forward along any specific resources
+      const files = resourceFiles.concat(htmlPostProcessResult.resources)
+        .concat(postProcessResources);
+
       const result: RenderedFile = {
         isTransient: recipe.isOutputTransient,
         input: projectPath(context.target.source),
@@ -376,7 +384,7 @@ export async function renderPandoc(
           : projectPath(finalOutput!),
         resourceFiles: {
           globs: pandocResult.resources,
-          files: resourceFiles.concat(htmlPostProcessResult.resources),
+          files,
         },
         selfContained: selfContained!,
       };

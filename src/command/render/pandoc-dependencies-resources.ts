@@ -1,22 +1,21 @@
 /*
-* pandoc-dependencies-resources.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pandoc-dependencies-resources.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { kFormatResources } from "../../config/constants.ts";
+import { kFormatResources, kResources } from "../../config/constants.ts";
 import { copyTo } from "../../core/copy.ts";
 import { lines } from "../../core/text.ts";
 
-import { basename, join } from "path/mod.ts";
+import { basename, isAbsolute, join, relative } from "path/mod.ts";
 import {
   appendDependencies,
   FormatResourceDependency,
 } from "./pandoc-dependencies.ts";
 import { existsSync } from "fs/exists.ts";
 
-export interface FormatResource {
+export interface Resource {
   file: string;
 }
 
@@ -54,6 +53,7 @@ export async function processFormatResources(
   dependenciesFile: string,
 ) {
   // Read the dependency file
+  const resources: string[] = [];
   const dependencyJsonStream = await Deno.readTextFile(dependenciesFile);
   for (const jsonBlob of lines(dependencyJsonStream)) {
     if (jsonBlob) {
@@ -61,7 +61,7 @@ export async function processFormatResources(
       const dependency = JSON.parse(jsonBlob);
       if (dependency.type === kFormatResources) {
         // Copy the file to the input directory
-        const formatResource = dependency.content as FormatResource;
+        const formatResource = dependency.content as Resource;
         const targetPath = join(inputDir, basename(formatResource.file));
         copyTo(
           formatResource.file,
@@ -76,7 +76,15 @@ export async function processFormatResources(
         if (Deno.build.os !== "windows" && Deno.statSync(targetPath).isFile) {
           Deno.chmodSync(targetPath, 0o555);
         }
+      } else if (dependency.type === kResources) {
+        const resource = dependency.content as Resource;
+        resources.push(
+          isAbsolute(resource.file)
+            ? relative(inputDir, resource.file)
+            : resource.file,
+        );
       }
     }
   }
+  return { resources };
 }

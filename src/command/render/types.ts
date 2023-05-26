@@ -57,7 +57,7 @@ export interface RunPandocResult {
   inputTraits: PandocInputTraits;
   resources: string[];
   postprocessors?: Array<
-    (output: string) => Promise<{ supporting: string[] } | void>
+    (output: string) => Promise<{ supporting?: string[], resources?: string[] } | void>
   >;
   htmlPostprocessors: Array<HtmlPostProcessor>;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
