@@ -86,6 +86,9 @@ jobs:
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
+          # Install dev versions for our testing 
+          renv::install("yihui/knitr")
+          renv::install("rstudio/rmarkdown")
         shell: Rscript {0}
         env:
           RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
