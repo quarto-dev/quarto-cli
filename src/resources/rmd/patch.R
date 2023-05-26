@@ -108,7 +108,7 @@ wrap_asis_output <- function(options, x) {
   
   output_div(x, output_label_placeholder(options), classes)
 }
-add_html_caption <- function(options, x) {
+add_html_caption <- function(options, x, ...) {
   if (inherits(x, 'knit_asis_htmlwidget')) {
     wrap_asis_output(options, x)
   } else {
