@@ -10,6 +10,7 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   kDownloadUrl,
+  kNotebookPreserveCells,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
   kNotebookPreviewOptions,
@@ -338,6 +339,7 @@ async function renderHtmlView(
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
+            [kNotebookPreserveCells]: true,
           },
           quiet,
         },
