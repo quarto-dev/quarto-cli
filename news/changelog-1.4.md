@@ -55,6 +55,7 @@
 ## OJS engine
 
 - Update observablehq's runtime to version 5.6.0.
+- [#5215](https://github.com/quarto-dev/quarto-cli/issues/5215): Report CORS requests as plain text when serving single-file previews.
 
 ## Mermaid diagrams
 
