@@ -70,6 +70,7 @@ import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
+import("./quarto-post/rawblock_asis.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -294,6 +295,7 @@ local quartoPost = {
     delink(),
     figCleanup(),
     responsive_table(),
+    rawblock_asis(),
   }) },
   { name = "post-ojs", filter = ojs() },
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
