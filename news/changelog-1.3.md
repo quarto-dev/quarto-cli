@@ -1,5 +1,6 @@
 ## Fixed In This Release
 
+- Fix error when publishing a document in a subfolder ([quarto-dev/quarto#183](https://github.com/quarto-dev/quarto/issues/183)).
 - Fix error when publishing a document in a subfolder ([#5330](https://github.com/quarto-dev/quarto-cli/issues/5330)).
 - Fix duplicate bibliography when users enable `citeproc` directly. ([#5588](https://github.com/quarto-dev/quarto-cli/issues/5588)).
 - Fix issue where specificying `search: false` on an individual page would not exclude that page from the website search index.
