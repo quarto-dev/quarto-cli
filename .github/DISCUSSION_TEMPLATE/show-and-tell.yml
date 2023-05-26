@@ -1,0 +1,16 @@
+title: "<The item you want to talk about>"
+body:
+  - type: markdown
+    attributes: 
+      value: |
+        If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
+        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+  - type: textarea
+    attributes:
+      label: Description
+      description: Start your Quarto tale!
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "_Thanks for using Quarto and talking about your use case!_"
