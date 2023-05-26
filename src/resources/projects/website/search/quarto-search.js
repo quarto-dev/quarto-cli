@@ -43,7 +43,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const mainEl = window.document.querySelector("main");
 
   // highlight matches on the page
-  if (query !== null && mainEl) {
+  if (query && mainEl) {
     // perform any highlighting
     highlight(escapeRegExp(query), mainEl);
 
@@ -57,7 +57,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // (e.g. if the user edits the query or clears it)
   let highlighting = true;
   const resetHighlighting = (searchTerm) => {
-    if (mainEl && highlighting && query !== null && searchTerm !== query) {
+    if (mainEl && highlighting && query && searchTerm !== query) {
       clearHighlight(query, mainEl);
       highlighting = false;
     }
