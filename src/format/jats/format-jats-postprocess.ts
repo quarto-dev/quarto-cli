@@ -6,6 +6,8 @@
 
 import {
   kJatsSubarticleId,
+  kKeepMd,
+  kNotebookPreserveCells,
   kOutputFile,
   kTemplate,
   kTo,
@@ -88,6 +90,8 @@ export const renderSubarticlePostProcessor = (
               [kJatsSubarticleId]: subArticle.token,
               [kOutputFile]: outputFile,
               [kTemplate]: subarticleTemplatePath,
+              [kKeepMd]: true,
+              [kNotebookPreserveCells]: true,
             },
             quiet: false,
           },

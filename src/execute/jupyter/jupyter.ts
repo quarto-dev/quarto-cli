@@ -1,9 +1,8 @@
 /*
-* jupyter.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * jupyter.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname, join } from "path/mod.ts";
 
@@ -39,6 +38,7 @@ import {
   kIpynbFilters,
   kKeepHidden,
   kKeepIpynb,
+  kNotebookPreserveCells,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import {
@@ -319,6 +319,8 @@ export const jupyterEngine: ExecutionEngine = {
         figFormat: options.format.execute[kFigFormat],
         figDpi: options.format.execute[kFigDpi],
         figPos: options.format.render[kFigPos],
+        preserveCellMetadata:
+          options.format.render[kNotebookPreserveCells] === true,
       },
     );
 

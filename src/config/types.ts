@@ -135,6 +135,7 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookPreserveCells,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
   kNotebooks,
@@ -439,6 +440,7 @@ export interface FormatRender {
     | boolean
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
+  [kNotebookPreserveCells]?: boolean;
 }
 
 export interface FormatExecute {

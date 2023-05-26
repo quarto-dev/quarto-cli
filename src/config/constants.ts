@@ -43,6 +43,7 @@ export const kNotebookLinks = "notebook-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
+export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kDownloadUrl = "download-url";
 
 export const kNotebookPreviewOptions = "notebook-preview-options";
@@ -194,6 +195,7 @@ export const kRenderDefaultsKeys = [
   kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
+  kNotebookPreserveCells,
 ];
 
 // language fields
