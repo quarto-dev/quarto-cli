@@ -12,6 +12,7 @@ import {
   kDownloadUrl,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
+  kNotebookPreviewOptions,
   kNotebookViewStyle,
   kOutputFile,
   kTemplate,
@@ -56,6 +57,10 @@ export interface NotebookPreviewTask {
 }
 
 interface NotebookPreviewOptions {
+  back?: boolean;
+}
+
+interface NotebookPreviewConfig {
   title: string;
   url?: string;
   previewFileName: string;
@@ -105,7 +110,8 @@ export const notebookPreviewer = (
   const renderPreviews = async (output?: string) => {
     const rendered: Record<string, NotebookPreview> = {};
 
-    // Quiet the pandoc, let execution through
+    const nbOptions = format
+      .metadata[kNotebookPreviewOptions] as NotebookPreviewOptions;
 
     // Render each notebook only once (so filter by
     // notebook path to consolidate the list)
@@ -172,7 +178,7 @@ export const notebookPreviewer = (
           return resolvedTitle || basename(nbPath);
         };
 
-        const backHref = output
+        const backHref = nbOptions && nbOptions.back && output
           ? relative(dirname(nbAbsPath), output)
           : undefined;
         const htmlPreview = await renderHtmlView(
@@ -287,16 +293,16 @@ async function renderOutputNotebook(
 async function renderHtmlView(
   inputDir: string,
   nbAbsPath: string,
-  options: NotebookPreviewOptions,
+  previewConfig: NotebookPreviewConfig,
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
   quiet?: boolean,
 ): Promise<NotebookPreview> {
   // Compute the preview title
-  if (options.url === undefined) {
+  if (previewConfig.url === undefined) {
     // Create a link back to the input
-    const href = options.backHref;
+    const href = previewConfig.backHref;
     const label = format.language[kNotebookPreviewBack];
 
     // Use the special `embed` template for this render
@@ -305,9 +311,9 @@ async function renderHtmlView(
       join("embed", "template.ejs.html"),
     );
     const embedTemplate = renderEjs(embedHtmlEjs, {
-      title: options.title,
-      path: options.downloadUrl || basename(nbAbsPath),
-      filename: options.downloadFileName || basename(nbAbsPath),
+      title: previewConfig.title,
+      path: previewConfig.downloadUrl || basename(nbAbsPath),
+      filename: previewConfig.downloadFileName || basename(nbAbsPath),
       backOptions: {
         href,
         label,
@@ -328,7 +334,7 @@ async function renderHtmlView(
           metadata: {
             [kTo]: "html",
             [kTheme]: format.metadata[kTheme],
-            [kOutputFile]: options.previewFileName,
+            [kOutputFile]: previewConfig.previewFileName,
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
@@ -369,17 +375,17 @@ async function renderHtmlView(
 
     const nbRelPath = relative(inputDir, nbAbsPath);
     return {
-      title: options.title,
+      title: previewConfig.title,
       href: pathWithForwardSlashes(
-        join(dirname(nbRelPath), options.previewFileName),
+        join(dirname(nbRelPath), previewConfig.previewFileName),
       ),
       supporting,
       resources,
     };
   } else {
     return {
-      title: options.title,
-      href: options.url,
+      title: previewConfig.title,
+      href: previewConfig.url,
     };
   }
 }

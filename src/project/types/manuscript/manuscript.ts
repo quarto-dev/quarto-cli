@@ -22,6 +22,7 @@ import {
   kFormatLinks,
   kKeepHidden,
   kNotebookLinks,
+  kNotebookPreviewOptions,
   kNotebooks,
   kOutputFile,
   kQuartoInternal,
@@ -194,6 +195,10 @@ export const manuscriptProjectType: ProjectType = {
     // Disable echo, by default
     config[kEcho] = false;
     config[kWarning] = false;
+
+    // By default, notebook previews enable the back button
+    const previewOptions = { back: true };
+    config[kNotebookPreviewOptions] = previewOptions;
 
     return config;
   },

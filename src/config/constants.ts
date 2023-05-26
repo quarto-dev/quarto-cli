@@ -45,6 +45,9 @@ export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 export const kDownloadUrl = "download-url";
 
+export const kNotebookPreviewOptions = "notebook-preview-options";
+export const kNotebookPreviewOptionBack = "back";
+
 export const kKeepHidden = "keep-hidden";
 export const kRemoveHidden = "remove-hidden";
 export const kClearHiddenClasses = "clear-hidden-classes";

@@ -14567,6 +14567,26 @@ try {
             },
             hidden: true,
             description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
+          },
+          {
+            name: "notebook-preview-options",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              object: {
+                properties: {
+                  back: {
+                    boolean: {
+                      description: "Whether to show a back button in the notebook preview."
+                    }
+                  }
+                }
+              }
+            },
+            description: "Options for controlling the display and behavior of Notebook previews."
           }
         ],
         "schema/document-listing.yml": [
@@ -18703,6 +18723,10 @@ try {
           "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
           "The url to the website\u2019s cookie or privacy policy.",
           {
+            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          },
+          {
             short: "The text to display for the cookie preferences link in the website\nfooter.",
             long: ""
           },
@@ -18823,6 +18847,10 @@ try {
           },
           "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
           "The url to the website\u2019s cookie or privacy policy.",
+          {
+            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          },
           {
             short: "The text to display for the cookie preferences link in the website\nfooter.",
             long: ""
@@ -19551,6 +19579,7 @@ try {
           "The path to the locally referenced notebook.",
           "The title of the notebook when viewed.",
           "The url to use when viewing this notebook.",
+          "The url to use when downloading the notebook from the preview",
           "The input document that will serve as the root document for this\nmanuscript",
           "The deployed url for this manuscript",
           "Whether to generate a MECA bundle for this manuscript",
@@ -20812,6 +20841,10 @@ try {
           "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
           "The url to the website\u2019s cookie or privacy policy.",
           {
+            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          },
+          {
             short: "The text to display for the cookie preferences link in the website\nfooter.",
             long: ""
           },
@@ -21116,6 +21149,10 @@ try {
           "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
           "The url to the website\u2019s cookie or privacy policy.",
           {
+            short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+            long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          },
+          {
             short: "The text to display for the cookie preferences link in the website\nfooter.",
             long: ""
           },
@@ -21355,7 +21392,9 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Options for controlling the display and behavior of Notebook\npreviews.",
+          "Whether to show a back button in the notebook preview."
         ],
         "schema/external-schemas.yml": [
           {
@@ -21579,12 +21618,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158280,
+          _internalId: 158291,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158272,
+              _internalId: 158283,
               type: "enum",
               enum: [
                 "png",
@@ -21600,7 +21639,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158279,
+              _internalId: 158290,
               type: "anyOf",
               anyOf: [
                 {
