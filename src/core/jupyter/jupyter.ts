@@ -1514,14 +1514,16 @@ async function mdFromCodeCell(
 
 function isDiscadableTextExecuteResult(output: JupyterOutput) {
   if (output.output_type === "execute_result") {
-    const textPlain = (output as JupyterOutputDisplayData).data
-      ?.[kTextPlain] as string[] | undefined;
-    if (textPlain && textPlain.length) {
-      return [
-        "[<matplotlib",
-        "<seaborn.",
-        "<ggplot:",
-      ].some((startsWith) => textPlain[0].startsWith(startsWith));
+    const data = (output as JupyterOutputDisplayData).data;
+    if (Object.keys(data).length === 1) {
+      const textPlain = data?.[kTextPlain] as string[] | undefined;
+      if (textPlain && textPlain.length) {
+        return [
+          "[<matplotlib",
+          "<seaborn.",
+          "<ggplot:",
+        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+      }
     }
   }
   return false;
