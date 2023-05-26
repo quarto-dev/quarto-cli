@@ -135,6 +135,8 @@ import {
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
   kNotebooks,
   kNotebookSubarticles,
   kNotebookView,
@@ -638,6 +640,8 @@ export interface FormatLanguage {
   [kListingPageMinutesCompact]?: string;
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
+  [kNotebookPreviewDownload]?: string;
+  [kNotebookPreviewBack]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

@@ -302,6 +302,8 @@ export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
+export const kNotebookPreviewDownload = "notebook-preview-download";
+export const kNotebookPreviewBack = "notebook-preview-back";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -411,6 +413,8 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAffiliationPlural,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kNotebookPreviewDownload,
+  kNotebookPreviewBack,
 ];
 
 // 'defaults' fields

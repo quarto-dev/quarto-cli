@@ -96,6 +96,7 @@ export async function emplaceNotebookPreviews(
   services: RenderServices,
   project?: ProjectContext,
   quiet?: boolean,
+  output?: string,
 ) {
   // The notebook view configuration data
   const notebookView = format.render[kNotebookView] ?? true;
@@ -207,7 +208,7 @@ export async function emplaceNotebookPreviews(
     }
 
     // Render the notebook previews
-    const previews = await previewer.renderPreviews();
+    const previews = await previewer.renderPreviews(output);
 
     // Emit global links to the notebooks
     const previewNotebooks = Object.values(previews);

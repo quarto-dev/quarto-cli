@@ -10,6 +10,8 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   kDownloadUrl,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
   kNotebookViewStyle,
   kOutputFile,
   kTemplate,
@@ -59,6 +61,7 @@ interface NotebookPreviewOptions {
   previewFileName: string;
   downloadUrl?: string;
   downloadFileName?: string;
+  backHref?: string;
 }
 
 export const notebookPreviewer = (
@@ -99,7 +102,7 @@ export const notebookPreviewer = (
     previewQueue.push({ input, nbPath, title, nbPreviewFile, callback });
   };
 
-  const renderPreviews = async () => {
+  const renderPreviews = async (output?: string) => {
     const rendered: Record<string, NotebookPreview> = {};
 
     // Quiet the pandoc, let execution through
@@ -169,6 +172,9 @@ export const notebookPreviewer = (
           return resolvedTitle || basename(nbPath);
         };
 
+        const backHref = output
+          ? relative(dirname(nbAbsPath), output)
+          : undefined;
         const htmlPreview = await renderHtmlView(
           inputDir,
           nbAbsPath,
@@ -178,6 +184,7 @@ export const notebookPreviewer = (
             url: descriptor?.url,
             downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
             downloadFileName,
+            backHref,
           },
           format,
           services,
@@ -288,6 +295,10 @@ async function renderHtmlView(
 ): Promise<NotebookPreview> {
   // Compute the preview title
   if (options.url === undefined) {
+    // Create a link back to the input
+    const href = options.backHref;
+    const label = format.language[kNotebookPreviewBack];
+
     // Use the special `embed` template for this render
     const embedHtmlEjs = formatResourcePath(
       "html",
@@ -297,6 +308,13 @@ async function renderHtmlView(
       title: options.title,
       path: options.downloadUrl || basename(nbAbsPath),
       filename: options.downloadFileName || basename(nbAbsPath),
+      backOptions: {
+        href,
+        label,
+      },
+      downloadOptions: {
+        label: format.language[kNotebookPreviewDownload],
+      },
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);

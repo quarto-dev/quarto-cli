@@ -352,6 +352,9 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
+      const renderedHtml = options.renderedFormats.find((renderedFormat) => {
+        return isHtmlOutput(renderedFormat.format.pandoc, true);
+      });
       const notebookResults = await emplaceNotebookPreviews(
         input,
         doc,
@@ -359,6 +362,7 @@ function bootstrapHtmlPostprocessor(
         services,
         project,
         options.quiet,
+        renderedHtml?.path,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);

@@ -107,3 +107,6 @@ listing-page-field-categories: "Categories"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
+
+notebook-preview-download: "Download Notebook"
+notebook-preview-back: "Back to Article"
