@@ -17,32 +17,32 @@ export const lspCommand = new Command()
   )
   .hidden()
   .option(
-    "--lsp-dir <lsp-dir:string>",
-    "Directory containing the LSP binary",
-  )
-  .option(
     "--stdio",
     "Communicate with clients using stdio",
   )
   .option(
     "--socket <socket:number>",
-    "Communicate with clients using the specified TCP/IP port",
+    "Communicate with clients using a socket",
+  )
+  .option(
+    "--pipe <pipe:string>",
+    "Communicate with clients using a named pipe",
   )
   .option(
     "--node-ipc",
     "Communicate using Node IPC",
+  )
+  .option(
+    "--lsp-dir <lsp-dir:string>",
+    "Directory containing the LSP (auto-detect by default)",
   )
   .example(
     "Run the LSP, communicating using stdio",
     "quarto lsp --stdio",
   )
   .example(
-    "Run the LSP, communicating using sockets on the specified port",
+    "Run the LSP, communicating using a socket",
     "quarto lsp --socket 4444",
-  )
-  .example(
-    "Run the LSP, communicating using node ipc",
-    "quarto lsp --node-ipc",
   )
   .action(async (options) => {
     // currently only available in dev mode
@@ -75,11 +75,13 @@ export const lspCommand = new Command()
       args.push("--stdio");
     } else if (options.socket) {
       args.push(`--socket=${String(options.socket)}`);
+    } else if (options.pipe) {
+      args.push(`--pipe=${options.pipe}`);
     } else if (options.nodeIpc) {
       args.push("--node-ipc");
     } else {
       throw new Error(
-        "You must specify a communication channel (--stdio, --socket <number>, or --node-ipc)",
+        "You must specify a communication channel (--stdio, --socket <number>, --pipe <name>, or --node-ipc)",
       );
     }
 
