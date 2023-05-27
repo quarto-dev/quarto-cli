@@ -38,6 +38,12 @@
 - ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
 - ([#5624](https://github.com/quarto-dev/quarto-cli/issues/56562404)): Add support for localized Cookie Consent (using either the document's language or by specifying the language explicitly under the cookie consent key).
 
+## Preview
+
+- Display render output/progress for previews that take longer than 2 seconds
+- Ability to cancel an executing preview from within the progress UI
+- Automatically render missing formats (e.g. PDF, MS Word) on the fly
+
 ## Miscellaneous
 
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
