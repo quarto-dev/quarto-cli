@@ -74,7 +74,7 @@ export const lspCommand = new Command()
     if (options.stdio) {
       args.push("--stdio");
     } else if (options.socket) {
-      args.push("--socket", String(options.socket));
+      args.push(`--socket=${String(options.socket)}`);
     } else if (options.nodeIpc) {
       args.push("--node-ipc");
     } else {
@@ -82,6 +82,10 @@ export const lspCommand = new Command()
         "You must specify a communication channel (--stdio, --socket <number>, or --node-ipc)",
       );
     }
+
+    // add client process id
+    args.push("--clientProcessId");
+    args.push(String(Deno.pid));
 
     // run the lsp
     const lspCommand = new Deno.Command(Deno.execPath(), {
