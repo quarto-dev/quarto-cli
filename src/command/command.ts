@@ -1,9 +1,8 @@
 /*
-* command.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * command.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import type { Command } from "cliffy/command/mod.ts";
 
@@ -29,6 +28,7 @@ import { addCommand } from "./add/cmd.ts";
 import { uninstallCommand } from "./uninstall/cmd.ts";
 import { createCommand } from "./create/cmd.ts";
 import { editorSupportCommand } from "./editor-support/cmd.ts";
+import { lspCommand } from "./lsp/cmd.ts";
 
 // deno-lint-ignore no-explicit-any
 export function commands(): Command<any>[] {
@@ -56,5 +56,6 @@ export function commands(): Command<any>[] {
     checkCommand,
     buildJsCommand,
     editorSupportCommand,
+    lspCommand,
   ];
 }
