@@ -144,6 +144,7 @@ import {
   kNotebookViewStyle,
   kNumberOffset,
   kNumberSections,
+  kOtherLinksTitle,
   kOutput,
   kOutputDivs,
   kOutputExt,
@@ -556,6 +557,7 @@ export interface FormatLanguage {
   [kTocTitleDocument]?: string;
   [kTocTitleWebsite]?: string;
   [kRelatedFormatsTitle]?: string;
+  [kOtherLinksTitle]?: string;
   [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;

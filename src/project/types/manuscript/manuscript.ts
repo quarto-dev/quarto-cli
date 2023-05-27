@@ -24,6 +24,7 @@ import {
   kNotebookLinks,
   kNotebookPreviewOptions,
   kNotebooks,
+  kOtherLinks,
   kOutputFile,
   kQuartoInternal,
   kRemoveHidden,
@@ -57,7 +58,7 @@ import {
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
-import { articleFile } from "./manuscript-config.ts";
+import { articleFile, isArticle } from "./manuscript-config.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 
 import {
@@ -352,41 +353,61 @@ export const manuscriptProjectType: ProjectType = {
   // format extras
   formatExtras: async (
     context: ProjectContext,
-    _source: string,
+    source: string,
     _flags: PandocFlags,
     _format: Format,
     _services: RenderServices,
   ): Promise<FormatExtras> => {
-    // defaults for all formats
-    const extras: FormatExtras = {};
-
-    // If the user isn't explicitly providing a notebook list
-    // then automatically create notebooks for the other items in
-    // the project
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
-    const outputNbs: NotebookPreviewDescriptor[] = [];
-    const notebooks = manuscriptConfig.notebooks || [];
-    for (const notebook of notebooks) {
-      // Use the input to create a title for the notebook
-      // if needed
-      const createTitle = async () => {
-        const target = await resolveInputTarget(
-          context,
-          relative(context.dir, notebook.notebook),
-          false,
-        );
-        if (target) {
-          return target.title;
-        }
-      };
 
-      outputNbs.push({
-        ...notebook,
-        title: notebook.title || await createTitle(),
-      });
+    // defaults for all formats
+    const extras: FormatExtras = {};
+    extras.metadata = {};
+
+    // TODO: only do all this for the main article
+    if (isArticle(source, context, manuscriptConfig)) {
+      // Add the github repo as a metadata link
+      // TODO: Place this in metadata so it is available to filter params?
+      const ghContext = await gitHubContext(context.dir);
+      console.log({ ghContext });
+      if (ghContext) {
+        const repoUrl = ghContext.repoUrl;
+        if (repoUrl) {
+          extras.metadata[kOtherLinks] = [{
+            icon: "github",
+            title: "GitHub Repo",
+            href: repoUrl,
+          }];
+        }
+      }
+
+      // If the user isn't explicitly providing a notebook list
+      // then automatically create notebooks for the other items in
+      // the project
+      const outputNbs: NotebookPreviewDescriptor[] = [];
+      const notebooks = manuscriptConfig.notebooks || [];
+      for (const notebook of notebooks) {
+        // Use the input to create a title for the notebook
+        // if needed
+        const createTitle = async () => {
+          const target = await resolveInputTarget(
+            context,
+            relative(context.dir, notebook.notebook),
+            false,
+          );
+          if (target) {
+            return target.title;
+          }
+        };
+
+        outputNbs.push({
+          ...notebook,
+          title: notebook.title || await createTitle(),
+        });
+      }
+      extras[kNotebooks] = outputNbs;
     }
-    extras[kNotebooks] = outputNbs;
 
     return Promise.resolve(extras);
   },

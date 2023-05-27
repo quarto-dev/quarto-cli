@@ -40,6 +40,7 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kOtherLinks = "other-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
@@ -203,6 +204,7 @@ export const kTocTitleDocument = "toc-title-document";
 export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
+export const kOtherLinksTitle = "other-links-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-title";
 export const kCalloutNoteCaption = "callout-note-title";
@@ -314,6 +316,7 @@ export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
   kTocTitleWebsite,
   kRelatedFormatsTitle,
+  kOtherLinksTitle,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
   kCalloutTipCaption,
