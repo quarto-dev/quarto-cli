@@ -70,7 +70,7 @@ export const lspCommand = new Command()
     }
 
     // prepare args for lsp
-    const args: string[] = ["task", "--quiet", "run"];
+    const args: string[] = ["lsp.js"];
     if (options.stdio) {
       args.push("--stdio");
     } else if (options.socket) {
@@ -90,7 +90,7 @@ export const lspCommand = new Command()
     args.push(String(Deno.pid));
 
     // run the lsp
-    const lspCommand = new Deno.Command(Deno.execPath(), {
+    const lspCommand = new Deno.Command("node", {
       args,
       cwd: lspDir,
       stdin: "inherit",
