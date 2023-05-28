@@ -571,6 +571,7 @@ function defaultPandocRenderer(
         renderedFiles.push(await completion.complete(renderedFormats));
         completion = renderCompletions.pop();
       }
+      renderedFiles.reverse();
     },
     onComplete: async () => {
       return {
