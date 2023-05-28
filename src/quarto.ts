@@ -38,7 +38,7 @@ import {
 import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { parse } from "flags/mod.ts";
-import { runCommand, runScript } from "./command/run/run.ts";
+import { runScript } from "./command/run/run.ts";
 
 // ensures run handlers are registered
 import "./core/run/register.ts";
@@ -53,8 +53,6 @@ import "./project/types/register.ts";
 import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
-import { lspCommand } from "./command/lsp/cmd.ts";
-import { pandocCommand } from "./command/pandoc/cmd.ts";
 
 export async function quarto(
   args: string[],
@@ -158,12 +156,8 @@ if (import.meta.main) {
 
     // run quarto
     await quarto(quartoArgs, (cmd) => {
-      if (![lspCommand, pandocCommand, runCommand].includes(cmd)) {
-        cmd = appendLogOptions(cmd);
-        return appendProfileArg(cmd);
-      } else {
-        return cmd;
-      }
+      cmd = appendLogOptions(cmd);
+      return appendProfileArg(cmd);
     });
 
     await cleanupLogger();
