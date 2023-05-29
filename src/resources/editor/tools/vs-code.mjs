@@ -15105,7 +15105,7 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "section-divs",
           tags: {
             formats: [
-              "$html-files"
+              "$html-doc"
             ]
           },
           schema: "boolean",

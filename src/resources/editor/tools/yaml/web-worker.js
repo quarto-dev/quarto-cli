@@ -15106,7 +15106,7 @@ try {
             name: "section-divs",
             tags: {
               formats: [
-                "$html-files"
+                "$html-doc"
               ]
             },
             schema: "boolean",
