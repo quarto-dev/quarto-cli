@@ -34,27 +34,20 @@ import { pandocBinaryPath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";
 import { satisfies } from "semver/mod.ts";
 import { dartCommand } from "../../core/dart-sass.ts";
+import { gitHubContext } from "../../core/github.ts";
 
 const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
-export async function check(target: Target): Promise<void> {
+export async function check(_target: Target): Promise<void> {
   const services = renderServices();
   try {
     info("");
-    if (target === "versions" || target === "all") {
-      await checkVersions(services);
-    }
-    if (target === "install" || target === "all") {
-      await checkInstall(services);
-    }
-    if (target === "jupyter" || target === "all") {
-      await checkJupyterInstallation(services);
-    }
-    if (target === "knitr" || target === "all") {
-      await checkKnitrInstallation(services);
-    }
+
+    console.log("CHECKING GITHUB");
+    const gh = await gitHubContext(Deno.cwd());
+    console.log({ gh });
   } finally {
     services.cleanup();
   }

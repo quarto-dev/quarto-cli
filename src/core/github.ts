@@ -72,7 +72,7 @@ export async function gitHubContext(dir: string) {
           context.originUrl!,
         );
 
-        context.ghPages({ siteUrl: context.siteUrl });
+        console.log({ siteUrl: context.siteUrl });
 
         context.repoUrl = repoUrl(context.originUrl!);
       }
