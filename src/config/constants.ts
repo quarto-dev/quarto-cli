@@ -311,6 +311,7 @@ export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
 export const kNotebookPreviewBack = "notebook-preview-back";
+export const kArticleNotebookLabel = "article-notebook-label";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -423,6 +424,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockModified,
   kNotebookPreviewDownload,
   kNotebookPreviewBack,
+  kArticleNotebookLabel,
 ];
 
 // 'defaults' fields

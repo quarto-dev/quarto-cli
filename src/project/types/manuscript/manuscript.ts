@@ -11,16 +11,19 @@ import { join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
+  FormatLanguage,
   FormatLink,
   NotebookPreviewDescriptor,
   PandocFlags,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
+  kArticleNotebookLabel,
   kClearHiddenClasses,
   kEcho,
   kFormatLinks,
   kKeepHidden,
+  kLanguageDefaults,
   kNotebookLinks,
   kNotebookPreviewOptions,
   kNotebooks,
@@ -66,6 +69,7 @@ import {
   kSubArticles,
 } from "../../../format/jats/format-jats-types.ts";
 import { logProgress } from "../../../core/log.ts";
+import { formatLanguage } from "../../../core/language.ts";
 
 // TODO: Localize
 const kMecaFileLabel = "MECA Archive";
@@ -92,7 +96,7 @@ export const manuscriptProjectType: ProjectType = {
   config: async (
     projectDir: string,
     config: ProjectConfig,
-    _flags?: RenderFlags,
+    flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
     const manuscriptConfig =
       (config[kManuscriptType] || {}) as ManuscriptConfig;
@@ -109,6 +113,13 @@ export const manuscriptProjectType: ProjectType = {
         config.project.resources.push(manuscriptConfig[kResources]);
       }
     }
+
+    // resolve language
+    const language = await formatLanguage(
+      config,
+      config[kLanguageDefaults] as FormatLanguage,
+      flags,
+    );
 
     // Ensure the article is the last file in the render list
     const inputs = projectInputFiles(projectDir, config);
@@ -158,7 +169,7 @@ export const manuscriptProjectType: ProjectType = {
     if (await hasComputations(join(projectDir, article))) {
       notebooks.unshift({
         notebook: article,
-        title: kDocumentNotebookLabel,
+        title: language[kArticleNotebookLabel],
       });
       jatsNotebooks.unshift({
         input: join(projectDir, article),
