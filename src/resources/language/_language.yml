@@ -6,6 +6,9 @@ related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Source"
 other-links-title: "Other Links"
 
+notebook-preview-download: "Download Notebook"
+notebook-preview-back: "Back to Article"
+
 section-title-abstract: "Abstract"
 section-title-appendices: "Appendices"
 section-title-footnotes: "Footnotes"
