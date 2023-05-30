@@ -1,0 +1,22 @@
+project:
+  type: website
+
+website:
+  title: "."
+  navbar:
+    tools:
+      # https://github.com/quarto-dev/quarto-cli/issues/5756
+      - icon: mastodon
+        href: "https://hci.social/@jovi"
+        text: JoVI Mastodon
+        rel: me
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
