@@ -2012,6 +2012,10 @@ quarto = {
       writeToDependencyFile(dependency("resources", { file = resolvePathExt(path)}))
     end,
 
+    add_supporting = function(path)
+      writeToDependencyFile(dependency("supporting", { file = resolvePathExt(path)}))
+    end,
+
     include_text = function(location, text)
       writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
     end,

@@ -37,6 +37,7 @@ export const kInclude = "include";
 
 export const kResources = "resources";
 export const kFormatResources = "format-resources";
+export const kSupporting = "supporting";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";

@@ -4,7 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { kFormatResources, kResources } from "../../config/constants.ts";
+import {
+  kFormatResources,
+  kResources,
+  kSupporting,
+} from "../../config/constants.ts";
 import { copyTo } from "../../core/copy.ts";
 import { lines } from "../../core/text.ts";
 
@@ -54,6 +58,7 @@ export async function processFormatResources(
 ) {
   // Read the dependency file
   const resources: string[] = [];
+  const supporting: string[] = [];
   const dependencyJsonStream = await Deno.readTextFile(dependenciesFile);
   for (const jsonBlob of lines(dependencyJsonStream)) {
     if (jsonBlob) {
@@ -83,8 +88,11 @@ export async function processFormatResources(
             ? relative(inputDir, resource.file)
             : resource.file,
         );
+      } else if (dependency.type === kSupporting) {
+        const supportingResource = dependency.content as Resource;
+        supporting.push(supportingResource.file);
       }
     }
   }
-  return { resources };
+  return { supporting, resources };
 }
