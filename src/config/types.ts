@@ -130,6 +130,7 @@ import {
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
   kListings,
+  kManuscriptMecaBundle,
   kMarkdownHeadings,
   kMathjax,
   kMathml,
@@ -648,6 +649,7 @@ export interface FormatLanguage {
   [kNotebookPreviewDownload]?: string;
   [kNotebookPreviewBack]?: string;
   [kArticleNotebookLabel]?: string;
+  [kManuscriptMecaBundle]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;

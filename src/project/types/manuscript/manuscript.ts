@@ -24,6 +24,7 @@ import {
   kFormatLinks,
   kKeepHidden,
   kLanguageDefaults,
+  kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreviewOptions,
   kNotebooks,
@@ -71,12 +72,7 @@ import {
 import { logProgress } from "../../../core/log.ts";
 import { formatLanguage } from "../../../core/language.ts";
 
-// TODO: Localize
-const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Article Notebook";
-
 const kMecaIcon = "archive";
-
 const kOutputDir = "_manuscript";
 
 // Manscript projects are a multi file project that is composed into:
@@ -289,7 +285,7 @@ export const manuscriptProjectType: ProjectType = {
             links.push(...format.render[kFormatLinks] || []);
           }
           links.push({
-            title: kMecaFileLabel,
+            title: format.language[kManuscriptMecaBundle] || "MECA Bundle",
             href: mecaFileName(source, manuscriptConfig),
             icon: kMecaIcon,
             attr: { "data-meca-link": "true" },
@@ -447,7 +443,9 @@ export const manuscriptProjectType: ProjectType = {
         manuscriptConfig,
       )
     ) {
-      logProgress(`\nCreating ${kMecaFileLabel}`);
+      const language = outputFiles[0].format.language;
+
+      logProgress(`\nCreating ${language[kManuscriptMecaBundle]}`);
       const mecaFileName = manuscriptConfig.mecaFile;
       const mecaBundle = await createMecaBundle(
         mecaFileName,
