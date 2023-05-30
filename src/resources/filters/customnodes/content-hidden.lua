@@ -4,7 +4,11 @@
 
 local constants = require("modules/constants")
 
-local kConditions = pandoc.List({constants.kWhenFormat, constants.kUnlessFormat, constants.kWhenProfile, constants.kUnlessProfile})
+local kConditions = pandoc.List({
+  constants.kWhenMeta, constants.kUnlessMeta, 
+  constants.kWhenFormat, constants.kUnlessFormat, 
+  constants.kWhenProfile, constants.kUnlessProfile
+})
 
 function is_visible(node)
   local profiles = pandoc.List(param("quarto_profile", {}))
@@ -81,10 +85,32 @@ _quarto.ast.add_handler({
       result.node.content = {}
     end
 
+    flags.has_conditional_content = true
     return result
   end,
 
 })
+
+local _content_hidden_meta = nil
+
+function content_hidden_meta()
+  return {
+    Meta = function(meta)
+      _content_hidden_meta = meta
+    end
+  }
+end
+
+local function get_meta(key)
+  local obj = _content_hidden_meta
+  for _, k in ipairs(key) do
+    if obj == nil then
+      return nil
+    end
+    obj = obj[k]
+  end
+  return obj
+end
 
 function content_hidden()
   local profiles = pandoc.List(param("quarto_profile", {}))
@@ -99,11 +125,11 @@ function handleHiddenVisible(profiles)
   return function(el)
     local visible
     if el.attr.classes:find(constants.kContentVisible) then
-      clearHiddenVisibleAttributes(el)
       visible = propertiesMatch(el.attributes, profiles)
-    elseif el.attr.classes:find(constants.kContentHidden) then
       clearHiddenVisibleAttributes(el)
+    elseif el.attr.classes:find(constants.kContentHidden) then
       visible = not propertiesMatch(el.attributes, profiles)
+      clearHiddenVisibleAttributes(el)
     else
       return el
     end
@@ -121,6 +147,16 @@ end
 -- or from the attributes of the element itself in the case of spans or codeblocks
 function propertiesMatch(properties, profiles)
   local match = true
+  if properties[constants.kWhenMeta] ~= nil then
+    local v = properties[constants.kWhenMeta]
+    v = split(v, ".") or { v }
+    match = match and (get_meta(v) == true)
+  end
+  if properties[constants.kUnlessMeta] ~= nil then
+    local v = properties[constants.kUnlessMeta]
+    v = split(v, ".") or { v }
+    match = match and not (get_meta(v) == true)
+  end
   if properties[constants.kWhenFormat] ~= nil then
     match = match and _quarto.format.isFormat(properties[constants.kWhenFormat])
   end

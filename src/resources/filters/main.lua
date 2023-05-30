@@ -171,7 +171,10 @@ local quartoNormalize = {
   { name = "pre-table-merge-raw-html", 
     filter = table_merge_raw_html()
   },
-  
+
+  { name = "pre-content-hidden-meta",
+    filter = content_hidden_meta() },
+
   -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
   -- can't be combined with parse_html_tables because combineFilters
   -- doesn't inspect the contents of the results in the inner loop.
