@@ -25,6 +25,8 @@ export async function gitHubContext(dir: string) {
   // check for git
   context.git = !!(await which("git"));
 
+  console.log({ hasgit: context.git });
+
   // check for a repo in this directory
   if (context.git) {
     context.repo = (await execProcess({
@@ -33,6 +35,7 @@ export async function gitHubContext(dir: string) {
       stdout: "piped",
       stderr: "piped",
     })).success;
+    console.log({ theRepo: context.repo });
 
     // check for an origin remote
     if (context.repo) {
@@ -42,6 +45,8 @@ export async function gitHubContext(dir: string) {
         stdout: "piped",
         stderr: "piped",
       });
+      console.log({ theResult: result });
+
       if (result.success) {
         context.originUrl = result.stdout?.trim();
 
@@ -59,11 +64,15 @@ export async function gitHubContext(dir: string) {
           stderr: "piped",
         })).success;
 
+        console.log({ ghPages: context.ghPages });
+
         // determine siteUrl
         context.siteUrl = siteUrl(
           dir,
           context.originUrl!,
         );
+
+        context.ghPages({ siteUrl: context.siteUrl });
 
         context.repoUrl = repoUrl(context.originUrl!);
       }
