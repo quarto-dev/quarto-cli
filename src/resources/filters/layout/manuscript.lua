@@ -23,7 +23,7 @@ function manuscript()
         end
         local nbPath = divEl.attributes[constants.kNotebook]
         local nbTitle = divEl.attributes[constants.kNotebookTitle]
-        if nbPath == nil then
+        if manuscriptBaseUrl ~= nil and nbPath == nil then
           -- if this is a computational cell, synthesize the nbPath
           if divEl.classes:includes("cell") then
             local relativeInputPath = pandoc.path.make_relative(quarto.doc.input_file, quarto.project.directory)
