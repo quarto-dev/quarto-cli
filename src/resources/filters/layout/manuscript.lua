@@ -18,10 +18,9 @@ function manuscript()
       Div = function(divEl)        
         -- Don't process these specially unless 'inline' links
         -- are enabled
-        if (notebookLinks == false or notebookLinks == "global") then
+        if (notebookLinks == nil or notebookLinks == false or notebookLinks == "global") then
           return
         end
-
         local nbPath = divEl.attributes[constants.kNotebook]
         local nbTitle = divEl.attributes[constants.kNotebookTitle]
         if nbPath == nil then
