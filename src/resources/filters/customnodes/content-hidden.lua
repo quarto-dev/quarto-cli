@@ -150,12 +150,14 @@ function propertiesMatch(properties, profiles)
   if properties[constants.kWhenMeta] ~= nil then
     local v = properties[constants.kWhenMeta]
     v = split(v, ".") or { v }
-    match = match and (get_meta(v) == true)
+    local r = get_meta(v)
+    match = match and (type(r) == "boolean" and r)
   end
   if properties[constants.kUnlessMeta] ~= nil then
     local v = properties[constants.kUnlessMeta]
     v = split(v, ".") or { v }
-    match = match and not (get_meta(v) == true)
+    local r = get_meta(v)
+    match = match and not (type(r) == "boolean" and r)
   end
   if properties[constants.kWhenFormat] ~= nil then
     match = match and _quarto.format.isFormat(properties[constants.kWhenFormat])
