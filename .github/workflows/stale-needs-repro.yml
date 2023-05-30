@@ -1,0 +1,49 @@
+name: 'Close stale issues and PRs'
+on:
+  schedule:
+    - cron: '30 1 * * *'
+permissions:
+  issues: write
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          stale-issue-label: "stale"
+          any-of-issue-labels: "needs-repro"
+          close-issue-reason: "not_planned"
+          ignore-issue-updates: true
+          stale-issue-message: |
+            Thank you for using Quarto and reporting an issue!
+            
+            Unfortunately, this issue is now considered stale because it has been open 30 days without providing a "working" reproducible example.
+            If you are still facing the issue, please review the ["Bug Reports" guide](https://quarto.org/bug-reports.html) on how to provide a fully reproducible example as a self-contained Quarto document or a link to a Git repository.
+            Without a reproducible example, it is unlikely that the issue will be addressed and thus will be closed in 30 days.
+
+            You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
+            
+            `````
+            ````qmd
+            ---
+            title: "Reproducible Quarto Document"
+            format: html
+            ---
+    
+            This is a reproducible Quarto document using `format: html`.
+            It is written in Markdown and contains embedded R code.
+            When you run the code, it will produce a plot.
+    
+            ```{r}
+            plot(cars)
+            ```
+    
+            The end.
+            ````
+            `````
+
+            _Remove `stale` / `needs-repro` labels or this will be closed in 30 days._
+          close-issue-message: |
+            This issue was closed because it has been stalled for 30 days and was lacking a "working" reproducible example.
+          days-before-stale: 30
+          days-before-close: 30
