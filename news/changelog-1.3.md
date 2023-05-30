@@ -1,6 +1,7 @@
 ## Fixed In This Release
 
 - Fix incorrect behavior when previewing `--to all`
+- Fix missing handling of `rel="..."` values in the navbar's tools template ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756))
 
 ## Fixed In Previous Releases
 
