@@ -239,6 +239,7 @@ export const manuscriptProjectType: ProjectType = {
         let baseUrl = manuscriptConfig[kManuscriptUrl];
         if (baseUrl === undefined) {
           const ghContext = await gitHubContext(options.project.dir);
+          console.log({ ghContext });
           baseUrl = ghContext.siteUrl;
         }
         if (baseUrl) {
@@ -370,6 +371,7 @@ export const manuscriptProjectType: ProjectType = {
       // Add the github repo as a metadata link
       // TODO: Place this in metadata so it is available to filter params?
       const ghContext = await gitHubContext(context.dir);
+      console.log({ ghContextExtras: ghContext });
       if (ghContext) {
         const repoUrl = ghContext.repoUrl;
         if (repoUrl) {
