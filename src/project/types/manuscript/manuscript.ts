@@ -370,7 +370,6 @@ export const manuscriptProjectType: ProjectType = {
       // Add the github repo as a metadata link
       // TODO: Place this in metadata so it is available to filter params?
       const ghContext = await gitHubContext(context.dir);
-      console.log({ ghContext });
       if (ghContext) {
         const repoUrl = ghContext.repoUrl;
         if (repoUrl) {

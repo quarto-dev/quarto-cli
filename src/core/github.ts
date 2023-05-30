@@ -76,13 +76,13 @@ export async function gitHubContext(dir: string) {
 const kGithubCom = "github.com";
 const kGithubIo = "github.io";
 
+const kGithubGitPattern = /^git@([^:]+):([^\/]+)\/(.+?)(?:\.git)?$/;
+const kGithubHttpsPattern = /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/;
+
 function repoUrl(originUrl: string) {
   // pick apart origin url for github.com
-  const match = originUrl?.match(
-    /^git@([^:]+):([^\/]+)\/(.+?)\.git$/,
-  ) || originUrl?.match(
-    /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/,
-  );
+  const match = originUrl?.match(kGithubGitPattern) ||
+    originUrl?.match(kGithubHttpsPattern);
   if (match && match.includes(kGithubCom)) {
     return `https://${match[1]}/${match[2]}/${match[3]}/`;
   }
@@ -103,15 +103,12 @@ function siteUrl(
     }
   } else {
     // pick apart origin url for github.com
-    const match = originUrl?.match(
-      /^git@([^:]+):([^\/]+)\/(.+?)\.git$/,
-    ) || originUrl?.match(
-      /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/,
-    );
+    const match = originUrl?.match(kGithubGitPattern) ||
+      originUrl?.match(kGithubHttpsPattern);
 
     if (match && match.includes(kGithubCom)) {
       const server = match[1].replace(kGithubCom, kGithubIo);
-      const domain = `${match[2]}.${server}`;
+      const domain = `${match[2].toLowerCase}.${server}`;
       // user's root site uses just the domain
       if (domain === match[3]) {
         return `https://${domain}/`;
