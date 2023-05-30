@@ -6,7 +6,7 @@ local function process_quarto_markdown_input_element(el)
     return el
   end
   local text = el.attributes.qmd or quarto.base64.decode(el.attributes["qmd-base64"])
-  local after_shortcodes = md_shortcode.md_shortcode:match(text)
+  local after_shortcodes = md_shortcode.md_shortcode:match(text) or ""
   local after_reading = pandoc.read(after_shortcodes, "markdown")
   local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
   return after_parsing
