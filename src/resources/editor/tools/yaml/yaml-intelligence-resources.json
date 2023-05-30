@@ -13328,6 +13328,8 @@
     },
     "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
     "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
+    "Options for controlling the display and behavior of Notebook\npreviews.",
+    "Whether to show a back button in the notebook preview.",
     "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
     "Mermaid diagram options",
     "The mermaid built-in theme to use.",
@@ -14367,9 +14369,7 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack",
-    "Options for controlling the display and behavior of Notebook\npreviews.",
-    "Whether to show a back button in the notebook preview."
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {
@@ -14593,12 +14593,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 158291,
+    "_internalId": 158625,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 158283,
+        "_internalId": 158617,
         "type": "enum",
         "enum": [
           "png",
@@ -14614,7 +14614,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 158290,
+        "_internalId": 158624,
         "type": "anyOf",
         "anyOf": [
           {
