@@ -106,7 +106,7 @@ function siteUrl(
     const match = originUrl?.match(
       /^git@([^:]+):([^\/]+)\/(.+?)\.git$/,
     ) || originUrl?.match(
-      /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/,
+      /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/,
     );
 
     if (match && match.includes(kGithubCom)) {
