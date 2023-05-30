@@ -76,8 +76,8 @@ export async function gitHubContext(dir: string) {
 const kGithubCom = "github.com";
 const kGithubIo = "github.io";
 
-const kGithubGitPattern = /^git@([^:]+):([^\/]+)\/(.+?)\.git$/;
-const kGithubHttpsPattern = /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/;
+const kGithubGitPattern = /^git@([^:]+):([^\/]+)\/(.+?)(?:\.git)?$/;
+const kGithubHttpsPattern = /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/;
 
 function repoUrl(originUrl: string) {
   // pick apart origin url for github.com
