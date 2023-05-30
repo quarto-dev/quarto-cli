@@ -6,6 +6,10 @@ $quarto-search-results-width: 400px !default;
 $quarto-search-collapse-icon-size: 26px !default;
 
 /*-- scss:rules --*/
+.aa-DetachedSearchButtonQuery {
+  display: none;
+}
+
 .aa-DetachedOverlay,
 #quarto-search-results {
   ul.aa-List {
