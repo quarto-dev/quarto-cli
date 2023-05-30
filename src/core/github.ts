@@ -108,7 +108,7 @@ function siteUrl(
 
     if (match && match.includes(kGithubCom)) {
       const server = match[1].replace(kGithubCom, kGithubIo);
-      const domain = `${match[2].toLowerCase}.${server}`;
+      const domain = `${match[2]}.${server}`;
       // user's root site uses just the domain
       if (domain === match[3]) {
         return `https://${domain}/`;
