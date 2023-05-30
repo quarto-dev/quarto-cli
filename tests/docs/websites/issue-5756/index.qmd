@@ -1,0 +1,7 @@
+---
+title: "."
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
