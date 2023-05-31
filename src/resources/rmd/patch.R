@@ -88,10 +88,15 @@ wrap_asis_output <- function(options, x) {
     return(x)
   }
 
+  # if length(x) != 1, collapse x together first (#5506)
+  if (length(x) != 1) {
+    x <- paste(x, collapse = "")
+  }
+
   # generate output div
   caption <- figure_cap(options)[[1]]
   if (nzchar(caption)) {
-    x <- c(x, "\n\n", caption)
+    x <- paste0(x, "\n\n", caption)
   }
   classes <- paste0("cell-output-display")
   attrs <- NULL
@@ -106,13 +111,9 @@ wrap_asis_output <- function(options, x) {
   # (necessary b/c we no longer do this by overriding kable_html,
   # which is in turn necessary to allow kableExtra to parse
   # the return value of kable_html as valid xml)
-  if (
-    length(x) > 0 &&
-    grepl("^<\\w+[ >]", x[[1]]) &&
-    grepl("<\\/\\w+>\\s*$", x[[length(x)]]) &&
-    !grepl('^<div class="kable-table">', x[[1]])
-  ) {
-    x <- c("`````{=html}\n", x, "\n`````")
+  if (grepl("^<\\w+[ >]", x) && grepl("<\\/\\w+>\\s*$", x) && 
+      !grepl('^<div class="kable-table">', x)) {
+    x <- paste0("`````{=html}\n", x, "\n`````")
   }
   
   # If asis output, don't include the output div
