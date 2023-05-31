@@ -1,0 +1,48 @@
+---
+title: plots and output = "asis"
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        - [] 
+        - ["::: cell-output-display"]
+        - ["* one\n* two"]
+        - ["* three\n* four"]
+---
+
+Simple plot:
+
+```{r}
+#| echo: false
+#| output: asis
+cat("## Title\n")
+cat("\n")
+plot(mtcars)
+```
+
+Example with kable:
+
+```{r}
+library(kableExtra)
+dt <- mtcars[1:5, 1:6]
+dt %>%
+  kbl() %>%
+  kable_styling()
+```
+
+`asis_output` with one string:
+
+```{r}
+knitr::asis_output("* one\n* two")
+```
+
+`asis_output` with two strings:
+
+```{r}
+knitr::asis_output(c("* three\n", "* four\n"))
+```
+
+`asis_output` with zero strings:
+```{r}
+knitr::asis_output(character(0))
+```
