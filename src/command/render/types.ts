@@ -17,13 +17,12 @@ import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { kPositionedRefs } from "../../config/constants.ts";
+import { NotebookContext } from "../../quarto-core/notebook/notebook-types.ts";
+import { Lifetime } from "../../core/lifetimes.ts";
 
 // options for render
 export interface RenderOptions {
-  services: {
-    temp: TempContext;
-    extension: ExtensionContext;
-  };
+  services: RenderServices;
   flags?: RenderFlags;
   pandocArgs?: string[];
   progress?: boolean;
@@ -39,6 +38,12 @@ export interface RenderOptions {
 export interface RenderServices {
   temp: TempContext;
   extension: ExtensionContext;
+  notebook: NotebookContext;
+}
+
+export interface RenderServiceWithLifetime extends RenderServices {
+  cleanup: () => void;
+  lifetime?: Lifetime;
 }
 
 // context for render
