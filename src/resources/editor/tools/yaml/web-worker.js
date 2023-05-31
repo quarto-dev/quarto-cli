@@ -11530,7 +11530,7 @@ try {
             default: false,
             description: {
               short: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
-              long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package).\n"
+              long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true`.\n"
             }
           },
           {
@@ -18744,6 +18744,8 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -18869,6 +18871,8 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -20864,6 +20868,8 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21172,6 +21178,8 @@ try {
           "Number of matches to display (defaults to 20)",
           "Matches after which to collapse additional results",
           "Provide button for copying search link",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21626,12 +21634,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158631,
+          _internalId: 158637,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158623,
+              _internalId: 158629,
               type: "enum",
               enum: [
                 "png",
@@ -21647,7 +21655,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158630,
+              _internalId: 158636,
               type: "anyOf",
               anyOf: [
                 {
