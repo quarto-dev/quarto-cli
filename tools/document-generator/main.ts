@@ -17,6 +17,12 @@ type Code = WithAttr & {
   text: string;
 };
 
+type Link = WithAttr & {
+  type: "Link";
+  content: Inline[];
+  target: string;
+};
+
 type Emph = {
   type: "Emph";
   content: Inline[];
@@ -36,7 +42,7 @@ type Span = WithAttr & {
   content: Inline[];
 };
 
-type Inline = Code | Emph | Str | Space | Span | Shortcode;
+type Inline = Code | Emph | Str | Space | Span | Shortcode | Link;
 const isCode = (inline: Inline): inline is Code => inline.type === "Code";
 const isEmph = (inline: Inline): inline is Emph => inline.type === "Emph";
 const isStr = (inline: Inline): inline is Str => inline.type === "Str";
@@ -44,6 +50,7 @@ const isSpace = (inline: Inline): inline is Space => inline.type === "Space";
 const isSpan = (inline: Inline): inline is Span => inline.type === "Span";
 const isShortcode = (inline: Inline): inline is Shortcode =>
   inline.type === "Shortcode";
+const isLink = (inline: Inline): inline is Link => inline.type === "Link";
 
 type Para = {
   type: "Para";
@@ -68,6 +75,16 @@ type Shortcode = {
 class RenderContext {
   indent: number;
   content: string[];
+
+  renderLink(link: Link) {
+    this.content.push("[");
+    for (const inline of link.content) {
+      this.renderInline(inline);
+    }
+    this.content.push("]");
+    this.content.push("(" + link.target + ")");
+    this.renderAttr(link.attr);
+  }
 
   renderAttr(attr?: Attr) {
     if (attr === undefined) {
@@ -131,6 +148,9 @@ class RenderContext {
     if (isShortcode(inline)) {
       this.renderShortcode(inline);
     }
+    if (isLink(inline)) {
+      this.renderLink(inline);
+    }
   }
 
   renderPara(para: Para) {
@@ -180,7 +200,9 @@ class GeneratorContext {
     emph: number;
     code: number;
     span: number;
+    link: number;
     shortcode: number;
+    targetShortcode: number;
   };
 
   sizes: {
@@ -226,6 +248,11 @@ class GeneratorContext {
     };
 
     return newContext;
+  }
+
+  generatePunctuation() {
+    const punctuations = [".", "!", "?", ",", ";", ":"];
+    return punctuations[~~(Math.random() * punctuations.length)];
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -298,6 +325,9 @@ class GeneratorContext {
     if (Math.random() < this.probabilities.emph) {
       return "Emph";
     }
+    if (Math.random() < this.probabilities.link) {
+      return "Link";
+    }
     if (Math.random() < this.probabilities.shortcode) {
       return "InlineShortcode";
     }
@@ -367,12 +397,42 @@ class GeneratorContext {
     };
   }
 
+  generateTarget(): string {
+    let target = this.freshId();
+    if (Math.random() < this.probabilities.targetShortcode) {
+      const shortcode = this.generateInlineShortcode();
+      target = `${target}-{{< ${shortcode.content} >}}`;
+    }
+    return target;
+  }
+
+  generateLink(): Link {
+    const small = this.smaller();
+    const contentSize = ~~(Math.random() * small.sizes.inline) + 1;
+    const content: Inline[] = [];
+
+    for (let i = 0; i < contentSize; i++) {
+      const inline = small.generateInline();
+      if (inline) {
+        content.push(inline);
+      }
+    }
+
+    return {
+      attr: this.randomAttr(),
+      type: "Link",
+      content,
+      target: this.generateTarget(),
+    };
+  }
+
   generateInline() {
     const dispatch = {
       Str: () => this.generateStr(),
       Code: () => this.generateCode(),
       Emph: () => this.generateEmph(),
       Span: () => this.generateSpan(),
+      Link: () => this.generateLink(),
       InlineShortcode: () => this.generateInlineShortcode(),
       Null: () => {},
     };
@@ -401,16 +461,14 @@ class GeneratorContext {
           } else {
             content.push({
               type: "Str",
-              text: ".",
+              text: small.generatePunctuation(),
             });
           }
         } else {
-          if (i === sentenceSize - 1) {
-            content.push({
-              type: "Str",
-              text: ".",
-            });
-          }
+          content.push({
+            type: "Str",
+            text: small.generatePunctuation(),
+          });
         }
       }
     };
@@ -467,7 +525,9 @@ class GeneratorContext {
       code: 0.5,
       span: 0.5,
       emph: 0.5,
+      link: 0.5,
       shortcode: 0.5,
+      targetShortcode: 0.25,
     };
     this.sizes = {
       inline: 10,
