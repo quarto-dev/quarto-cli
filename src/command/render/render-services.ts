@@ -7,8 +7,8 @@
 import { createNamedLifetime, getNamedLifetime } from "../../core/lifetimes.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
-import { notebookContext } from "../../quarto-core/notebook/notebook-context.ts";
-import { NotebookContext } from "../../quarto-core/notebook/notebook-types.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { RenderServiceWithLifetime } from "./types.ts";
 
 export function renderServices(
@@ -29,6 +29,7 @@ export function renderServices(
   } else {
     const lifetime = createNamedLifetime("render-services");
     lifetime.attach(temp);
+    lifetime.attach(notebook);
     return {
       temp,
       extension,
