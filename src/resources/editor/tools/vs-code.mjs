@@ -15105,7 +15105,7 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "section-divs",
           tags: {
             formats: [
-              "$html-files"
+              "$html-doc"
             ]
           },
           schema: "boolean",
@@ -20352,6 +20352,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
+        "Options for controlling the display and behavior of Notebook\npreviews.",
+        "Whether to show a back button in the notebook preview.",
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
         "The mermaid built-in theme to use.",
@@ -21391,9 +21393,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "Options for controlling the display and behavior of Notebook\npreviews.",
-        "Whether to show a back button in the notebook preview."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -21617,12 +21617,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158291,
+        _internalId: 158625,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158283,
+            _internalId: 158617,
             type: "enum",
             enum: [
               "png",
@@ -21638,7 +21638,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158290,
+            _internalId: 158624,
             type: "anyOf",
             anyOf: [
               {
