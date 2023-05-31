@@ -1,3 +1,5 @@
+import * as mod from "https://deno.land/std/yaml/mod.ts";
+
 type GeneratorFunction<T> = (context: GeneratorContext) => T;
 
 type Attr = {
@@ -34,12 +36,14 @@ type Span = WithAttr & {
   content: Inline[];
 };
 
-type Inline = Code | Emph | Str | Space | Span;
+type Inline = Code | Emph | Str | Space | Span | Shortcode;
 const isCode = (inline: Inline): inline is Code => inline.type === "Code";
 const isEmph = (inline: Inline): inline is Emph => inline.type === "Emph";
 const isStr = (inline: Inline): inline is Str => inline.type === "Str";
 const isSpace = (inline: Inline): inline is Space => inline.type === "Space";
 const isSpan = (inline: Inline): inline is Span => inline.type === "Span";
+const isShortcode = (inline: Inline): inline is Shortcode =>
+  inline.type === "Shortcode";
 
 type Para = {
   type: "Para";
@@ -52,6 +56,13 @@ const isPara = (block: Block): block is Para => block.type === "Para";
 type Document = {
   type: "Document";
   blocks: Block[];
+  meta: Record<string, unknown>;
+};
+
+type Shortcode = {
+  type: "Shortcode";
+  content: string;
+  escaped?: boolean;
 };
 
 class RenderContext {
@@ -86,6 +97,12 @@ class RenderContext {
     }
   }
 
+  renderShortcode(shortcode: Shortcode) {
+    const open = shortcode.escaped ? "{{{<" : "{{<";
+    const close = shortcode.escaped ? ">}}}" : ">}}";
+    this.content.push(`${open} ${shortcode.content} ${close}`);
+  }
+
   renderInline(inline: Inline) {
     if (isCode(inline)) {
       this.content.push("`" + inline.text + "`");
@@ -111,6 +128,9 @@ class RenderContext {
     if (isSpan(inline)) {
       this.renderSpan(inline);
     }
+    if (isShortcode(inline)) {
+      this.renderShortcode(inline);
+    }
   }
 
   renderPara(para: Para) {
@@ -131,6 +151,11 @@ class RenderContext {
   }
 
   renderDocument(document: Document) {
+    if (Object.entries(document.meta).length > 0) {
+      this.content.push("---\n");
+      this.content.push(mod.stringify(document.meta));
+      this.content.push("---\n\n");
+    }
     for (const block of document.blocks) {
       this.renderBlock(block);
     }
@@ -155,6 +180,7 @@ class GeneratorContext {
     emph: number;
     code: number;
     span: number;
+    shortcode: number;
   };
 
   sizes: {
@@ -165,6 +191,8 @@ class GeneratorContext {
 
   classes: string[];
   ids: string[];
+
+  meta: Record<string, unknown>;
 
   ////////////////////////////////////////////////////////////////////////////////
   // helpers
@@ -180,13 +208,23 @@ class GeneratorContext {
     return result;
   }
 
+  assign(other: GeneratorContext) {
+    this.probabilities = other.probabilities;
+    this.sizes = other.sizes;
+    this.classes = other.classes;
+    this.ids = other.ids;
+    this.meta = other.meta;
+  }
+
   smaller(): GeneratorContext {
     const newContext = new GeneratorContext();
+    newContext.assign(this);
     newContext.sizes = {
       ...this.sizes,
       inline: ~~(this.sizes.inline * 0.5),
       block: ~~(this.sizes.block * 0.5),
     };
+
     return newContext;
   }
 
@@ -260,8 +298,21 @@ class GeneratorContext {
     if (Math.random() < this.probabilities.emph) {
       return "Emph";
     }
+    if (Math.random() < this.probabilities.shortcode) {
+      return "InlineShortcode";
+    }
 
     return "Null";
+  }
+
+  generateInlineShortcode(): Shortcode {
+    const metaKey = this.freshId();
+    const metaValue = this.freshId();
+    this.meta[metaKey] = metaValue;
+    return {
+      type: "Shortcode",
+      content: `meta ${metaKey}`,
+    };
   }
 
   generateStr(): Str {
@@ -322,6 +373,7 @@ class GeneratorContext {
       Code: () => this.generateCode(),
       Emph: () => this.generateEmph(),
       Span: () => this.generateSpan(),
+      InlineShortcode: () => this.generateInlineShortcode(),
       Null: () => {},
     };
     return dispatch[this.chooseInlineType()]();
@@ -394,10 +446,12 @@ class GeneratorContext {
       blocks.push(small.generateBlock());
     }
 
-    return {
+    const result: Document = {
       type: "Document",
       blocks,
+      meta: this.meta,
     };
+    return result;
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -413,12 +467,14 @@ class GeneratorContext {
       code: 0.5,
       span: 0.5,
       emph: 0.5,
+      shortcode: 0.5,
     };
     this.sizes = {
       inline: 10,
       block: 10,
       sentence: 10,
     };
+    this.meta = {};
   }
 }
 
