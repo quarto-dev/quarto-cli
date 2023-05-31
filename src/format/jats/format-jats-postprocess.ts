@@ -25,13 +25,12 @@ import {
 import { renderFiles } from "../../command/render/render-files.ts";
 import { dirAndStem } from "../../core/path.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
 import { error } from "log/mod.ts";
-import { projectOutputDir } from "../../project/project-shared.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
