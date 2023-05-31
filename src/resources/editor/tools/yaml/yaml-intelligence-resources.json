@@ -11404,6 +11404,7 @@
           "tags": "object",
           "errorMessage": "string"
         },
+        "namingConvention": "ignore",
         "required": [
           "name",
           "schema",

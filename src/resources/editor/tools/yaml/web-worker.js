@@ -18429,6 +18429,7 @@ try {
                 tags: "object",
                 errorMessage: "string"
               },
+              namingConvention: "ignore",
               required: [
                 "name",
                 "schema",
@@ -30132,6 +30133,9 @@ ${tidyverseInfo(
     const params = {};
     if (schema2.namingConvention && typeof schema2.namingConvention === "string") {
       switch (schema2.namingConvention) {
+        case "ignore":
+          params.namingConvention = "ignore";
+          break;
         case "capitalizationCase":
           params.namingConvention = "capitalizationCase";
           break;
@@ -30187,7 +30191,9 @@ ${tidyverseInfo(
           params.namingConvention = "dash-case";
           break;
         default:
-          throw new InternalError("This should have failed validation");
+          throw new InternalError(
+            `Unrecognized naming convention ${schema2.namingConvention} should have failed validation`
+          );
       }
     } else {
       params.namingConvention = schema2.namingConvention;

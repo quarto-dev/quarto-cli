@@ -18428,6 +18428,7 @@ var require_yaml_intelligence_resources = __commonJS({
               tags: "object",
               errorMessage: "string"
             },
+            namingConvention: "ignore",
             required: [
               "name",
               "schema",
@@ -30118,6 +30119,9 @@ function convertFromObject(yaml) {
   const params = {};
   if (schema2.namingConvention && typeof schema2.namingConvention === "string") {
     switch (schema2.namingConvention) {
+      case "ignore":
+        params.namingConvention = "ignore";
+        break;
       case "capitalizationCase":
         params.namingConvention = "capitalizationCase";
         break;
@@ -30173,7 +30177,9 @@ function convertFromObject(yaml) {
         params.namingConvention = "dash-case";
         break;
       default:
-        throw new InternalError("This should have failed validation");
+        throw new InternalError(
+          `Unrecognized naming convention ${schema2.namingConvention} should have failed validation`
+        );
     }
   } else {
     params.namingConvention = schema2.namingConvention;
