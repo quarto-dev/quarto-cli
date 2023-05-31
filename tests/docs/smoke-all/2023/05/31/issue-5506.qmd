@@ -20,16 +20,6 @@ cat("\n")
 plot(mtcars)
 ```
 
-Example with kable:
-
-```{r}
-library(kableExtra)
-dt <- mtcars[1:5, 1:6]
-dt %>%
-  kbl() %>%
-  kable_styling()
-```
-
 `asis_output` with one string:
 
 ```{r}
