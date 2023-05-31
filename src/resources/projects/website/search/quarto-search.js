@@ -374,6 +374,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     focusSearchInput();
   };
 
+  document.addEventListener("keyup", (event) => {
+    const { key } = event;
+    const kbds = quartoSearchOptions["keyboard-shortcut"];
+    if (kbds && kbds.includes(key)) {
+      event.preventDefault();
+      window.quartoOpenSearch();
+    }
+  });
+
   // Remove the labeleledby attribute since it is pointing
   // to a non-existent label
   if (quartoSearchOptions.type === "overlay") {

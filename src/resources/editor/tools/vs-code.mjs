@@ -9267,6 +9267,13 @@ var require_yaml_intelligence_resources = __commonJS({
                           schema: "boolean",
                           description: "Provide button for copying search link"
                         },
+                        "keyboard-shortcut": {
+                          maybeArrayOf: {
+                            string: {
+                              description: "One or more keys that will act as a shortcut to launch search (single characters)"
+                            }
+                          }
+                        },
                         algolia: {
                           object: {
                             properties: {
@@ -21617,12 +21624,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158625,
+        _internalId: 158631,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158617,
+            _internalId: 158623,
             type: "enum",
             enum: [
               "png",
@@ -21638,7 +21645,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158624,
+            _internalId: 158630,
             type: "anyOf",
             anyOf: [
               {
