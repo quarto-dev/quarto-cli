@@ -19816,7 +19816,7 @@ try {
           },
           {
             short: "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
-            long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package).'
+            long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>.'
           },
           {
             short: "The style to use when displaying code annotations",
