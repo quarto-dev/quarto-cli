@@ -85,6 +85,7 @@ import {
   kBackToTopNavigation,
   kSiteIssueUrl,
   kSiteNavbar,
+  kSitePageNavigation,
   kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoUrl,
@@ -253,8 +254,13 @@ export async function websiteNavigationExtras(
   };
 
   // Determine the previous and next page
+  const formatPageNav = format.metadata[kSitePageNavigation];
   const pageNavigation = nextAndPrevious(href, sidebar);
-  if (navigation.pageNavigation && !usesCustomLayout) {
+  if (
+    formatPageNav !== false &&
+    (navigation.pageNavigation || formatPageNav === true) &&
+    !usesCustomLayout
+  ) {
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
 
