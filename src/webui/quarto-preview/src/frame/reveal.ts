@@ -72,7 +72,7 @@ export function handleRevealMessages(disconnectServer: VoidFunction) {
   }
 
   // initialization
-  Reveal.on('ready', function () {
+  const revealInit = () => {
    
     // set some defaults to facilitate tooling
     Reveal.configure({
@@ -105,7 +105,12 @@ export function handleRevealMessages(disconnectServer: VoidFunction) {
         window.print();
       }, 1000);
     }
-  });
+  };
+  if (Reveal.isReady()) {
+    revealInit();
+  } else {
+    Reveal.on('ready', revealInit);
+  }
 
   // forward slidechanged
   Reveal.on('slidechanged', postSlideChanged);
@@ -124,6 +129,7 @@ export function handleRevealMessages(disconnectServer: VoidFunction) {
 declare const Reveal: RevealStatic;
 
 interface RevealStatic {
+  isReady(): boolean;
   configure(options: { history: boolean }): void;
   slide(indexh: number, indexv?: number, f?: number, o?: number): void;
   prev(): void;

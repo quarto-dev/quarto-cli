@@ -763,6 +763,16 @@ function htmlFileRequestHandlerOptions(
         }
       }
 
+      // https://github.com/quarto-dev/quarto-cli/issues/5215
+      // return CORS requests as plain text so that OJS requests do
+      // not have formatting
+      if (
+        req.headers.get("sec-fetch-dest") === "empty" &&
+        req.headers.get("sec-fetch-mode") === "cors"
+      ) {
+        return;
+      }
+
       if (isHtmlContent(file)) {
         // does the provide an alternate preview file?
         if (renderFormat.formatPreviewFile) {

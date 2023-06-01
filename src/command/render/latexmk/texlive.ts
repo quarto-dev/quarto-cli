@@ -2,17 +2,16 @@
  * texlive.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 import { info } from "log/mod.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
-import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 import { requireQuoting, safeWindowsExec } from "../../../core/windows.ts";
 import { hasTinyTex, tinyTexBinDir } from "../../../tools/impl/tinytex-info.ts";
 import { join } from "path/mod.ts";
+import { logProgress } from "../../../core/log.ts";
 
 export interface TexLiveContext {
   preferTinyTex: boolean;
@@ -83,9 +82,8 @@ export async function findPackages(
 
   for (const searchTerm of searchTerms) {
     if (!quiet) {
-      info(
+      logProgress(
         `finding package for ${searchTerm}`,
-        kLatexHeaderMessageOptions,
       );
     }
     // Special case for a known package
@@ -181,19 +179,17 @@ export async function installPackages(
   quiet?: boolean,
 ) {
   if (!quiet) {
-    info(
+    logProgress(
       `> ${pkgs.length} ${
         pkgs.length === 1 ? "package" : "packages"
       } to install`,
-      kLatexHeaderMessageOptions,
     );
   }
   let count = 1;
   for (const pkg of pkgs) {
     if (!quiet) {
-      info(
+      logProgress(
         `> installing ${pkg} (${count} of ${pkgs.length})`,
-        kLatexHeaderMessageOptions,
       );
     }
 

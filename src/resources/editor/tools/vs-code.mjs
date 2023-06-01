@@ -9213,6 +9213,13 @@ var require_yaml_intelligence_resources = __commonJS({
                           schema: "string",
                           description: "The url to the website\u2019s cookie or privacy policy."
                         },
+                        language: {
+                          schema: "string",
+                          description: {
+                            short: "The language to be used when diplaying the cookie consent prompt (defaults to document language).",
+                            long: "The language to be used when diplaying the cookie consent prompt specified using an IETF language tag.\n\nIf not specified, the document language will be used.\n"
+                          }
+                        },
                         "prefs-text": {
                           schema: "string",
                           description: {
@@ -9259,6 +9266,13 @@ var require_yaml_intelligence_resources = __commonJS({
                         "copy-button": {
                           schema: "boolean",
                           description: "Provide button for copying search link"
+                        },
+                        "keyboard-shortcut": {
+                          maybeArrayOf: {
+                            string: {
+                              description: "One or more keys that will act as a shortcut to launch search (single characters)"
+                            }
+                          }
                         },
                         algolia: {
                           object: {
@@ -11164,6 +11178,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 url: {
                   string: {
                     description: "The url to use when viewing this notebook."
+                  }
+                },
+                "download-url": {
+                  string: {
+                    description: "The url to use when downloading the notebook from the preview"
                   }
                 }
               },
@@ -14554,6 +14573,26 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           hidden: true,
           description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
+        },
+        {
+          name: "notebook-preview-options",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            object: {
+              properties: {
+                back: {
+                  boolean: {
+                    description: "Whether to show a back button in the notebook preview."
+                  }
+                }
+              }
+            }
+          },
+          description: "Options for controlling the display and behavior of Notebook previews."
         }
       ],
       "schema/document-listing.yml": [
@@ -15073,7 +15112,7 @@ var require_yaml_intelligence_resources = __commonJS({
           name: "section-divs",
           tags: {
             formats: [
-              "$html-files"
+              "$html-doc"
             ]
           },
           schema: "boolean",
@@ -18389,6 +18428,7 @@ var require_yaml_intelligence_resources = __commonJS({
               tags: "object",
               errorMessage: "string"
             },
+            namingConvention: "ignore",
             required: [
               "name",
               "schema",
@@ -18690,6 +18730,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
+          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+        },
+        {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
           long: ""
         },
@@ -18810,6 +18854,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
+        {
+          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+        },
         {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
           long: ""
@@ -19538,6 +19586,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The path to the locally referenced notebook.",
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
+        "The url to use when downloading the notebook from the preview",
         "The input document that will serve as the root document for this\nmanuscript",
         "The deployed url for this manuscript",
         "Whether to generate a MECA bundle for this manuscript",
@@ -20311,6 +20360,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
+        "Options for controlling the display and behavior of Notebook\npreviews.",
+        "Whether to show a back button in the notebook preview.",
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
         "The mermaid built-in theme to use.",
@@ -20799,6 +20850,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
+          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+        },
+        {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
           long: ""
         },
@@ -21102,6 +21157,10 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
+        {
+          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+        },
         {
           short: "The text to display for the cookie preferences link in the website\nfooter.",
           long: ""
@@ -21566,12 +21625,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158274,
+        _internalId: 158631,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158266,
+            _internalId: 158623,
             type: "enum",
             enum: [
               "png",
@@ -21587,7 +21646,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158273,
+            _internalId: 158630,
             type: "anyOf",
             anyOf: [
               {
@@ -30060,6 +30119,9 @@ function convertFromObject(yaml) {
   const params = {};
   if (schema2.namingConvention && typeof schema2.namingConvention === "string") {
     switch (schema2.namingConvention) {
+      case "ignore":
+        params.namingConvention = "ignore";
+        break;
       case "capitalizationCase":
         params.namingConvention = "capitalizationCase";
         break;
@@ -30115,7 +30177,9 @@ function convertFromObject(yaml) {
         params.namingConvention = "dash-case";
         break;
       default:
-        throw new InternalError("This should have failed validation");
+        throw new InternalError(
+          `Unrecognized naming convention ${schema2.namingConvention} should have failed validation`
+        );
     }
   } else {
     params.namingConvention = schema2.namingConvention;

@@ -55,10 +55,10 @@ function project_paths()
         return el
       end
 
-      if el.href then
-        local resolvedHref = resolveProjectPath(el.href)
+      if el.target then
+        local resolvedHref = resolveProjectPath(el.target)
         if resolvedHref then
-          el.href = resolvedHref
+          el.target = resolvedHref
           return el
         end
       end

@@ -1194,18 +1194,6 @@ async function mdFromCodeCell(
   // write div enclosure
   const divMd: string[] = [`::: {`];
 
-  // If we're targeting ipynb output, include the id in the
-  // markdown. This will cause the id to be included in the
-  // rendered notebook. Note that elsewhere we forard the
-  // label to the id, so that can appear as the cell id.
-  if (
-    (isIpynbOutput(options.executeOptions.format.pandoc) ||
-      isJatsOutput(options.executeOptions.format.pandoc) ||
-      isHtmlOutput(options.executeOptions.format.pandoc)) && cell.id
-  ) {
-    divMd.push(`#${cell.id} `);
-  }
-
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
     kJupyterCellStandardMetadataKeys,
@@ -1219,6 +1207,16 @@ async function mdFromCodeCell(
   const labelCellContainer = shouldLabelCellContainer(cell, outputs, options);
   if (label && labelCellContainer) {
     divMd.push(`${label} `);
+  } else if (
+    (isIpynbOutput(options.executeOptions.format.pandoc) ||
+      isJatsOutput(options.executeOptions.format.pandoc) ||
+      isHtmlOutput(options.executeOptions.format.pandoc)) && cell.id
+  ) {
+    // If we're targeting ipynb output, include the id in the
+    // markdown. This will cause the id to be included in the
+    // rendered notebook. Note that elsewhere we forard the
+    // label to the id, so that can appear as the cell id.
+    divMd.push(`#${cell.id} `);
   }
 
   // resolve caption (main vs. sub)
@@ -1566,14 +1564,16 @@ async function mdFromCodeCell(
 
 function isDiscadableTextExecuteResult(output: JupyterOutput) {
   if (output.output_type === "execute_result") {
-    const textPlain = (output as JupyterOutputDisplayData).data
-      ?.[kTextPlain] as string[] | undefined;
-    if (textPlain && textPlain.length) {
-      return [
-        "[<matplotlib",
-        "<seaborn.",
-        "<ggplot:",
-      ].some((startsWith) => textPlain[0].startsWith(startsWith));
+    const data = (output as JupyterOutputDisplayData).data;
+    if (Object.keys(data).length === 1) {
+      const textPlain = data?.[kTextPlain] as string[] | undefined;
+      if (textPlain && textPlain.length) {
+        return [
+          "[<matplotlib",
+          "<seaborn.",
+          "<ggplot:",
+        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+      }
     }
   }
   return false;

@@ -1,0 +1,16 @@
+---
+title: "Callout-test Example"
+format: 
+  html: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.callout"]
+        - []
+---
+
+## Heading
+
+{{< callout-test >}}
+

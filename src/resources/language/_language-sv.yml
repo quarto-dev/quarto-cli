@@ -58,7 +58,7 @@ search-more-matches-text: "fler resultat i detta dokument"
 search-clear-button-title: "Rensa"
 search-detached-cancel-button-title: "Avbryt"
 search-submit-button-title: "Verkställ"
-search: "Sök"
+search-label: "Sök"
 
 toggle-section: "Skifta sektion"
 toggle-sidebar: "Skifta sidonavigering"

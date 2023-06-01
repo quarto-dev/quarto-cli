@@ -12,6 +12,7 @@ function import(script)
   dofile(path .. script)
 end
 
+import("../mainstateinit.lua")
 import("../common/apishim.lua")
 
 import("index.lua")

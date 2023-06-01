@@ -1,9 +1,8 @@
 /*
-* path.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * path.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   basename,
@@ -230,6 +229,10 @@ export function resolveGlobs(
     if (glob.startsWith("\\!")) {
       glob = glob.slice(1);
     }
+
+    // beginning with a '.' is redundant, remove
+    glob = glob.replace(/^\./, "");
+
     // ending w/ a slash means everything in the dir
     if (smartGlob) {
       if (glob.endsWith("/")) {

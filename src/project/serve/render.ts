@@ -1,6 +1,6 @@
 import { isAbsolute, join } from "path/mod.ts";
 
-import { RenderResult } from "../../command/render/types.ts";
+import { RenderResult, RenderResultFile } from "../../command/render/types.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { HttpDevServerRenderMonitor } from "../../core/http-devserver.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
@@ -8,7 +8,7 @@ import { logError } from "../../core/log.ts";
 import { isHtmlContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { extensionFilesFromDirs } from "../../extension/extension.ts";
-import { projectFormatOutputDir, projectOutputDir } from "../project-shared.ts";
+import { projectFormatOutputDir } from "../project-shared.ts";
 import { kProjectType, ProjectContext } from "../types.ts";
 import { projectType } from "../types/project-types.ts";
 
@@ -58,23 +58,19 @@ export class ServeRenderManager {
     project: ProjectContext,
   ) {
     HttpDevServerRenderMonitor.onRenderStop(true);
-    // Use the first file to determine the format
-    let outputDir: string;
-    if (result.files.length > 0) {
-      const format = result.files[0].format;
-      outputDir = projectFormatOutputDir(
+    const fileOutputDir = (file: RenderResultFile) => {
+      const format = file.format;
+      return projectFormatOutputDir(
         format,
         project,
         projectType(project.config?.project?.[kProjectType]),
       );
-    } else {
-      outputDir = projectOutputDir(project);
-    }
+    };
 
     result.files.forEach((resultFile) => {
       const file = isAbsolute(resultFile.file)
         ? resultFile.file
-        : join(outputDir, resultFile.file);
+        : join(fileOutputDir(resultFile), resultFile.file);
       const inputFile = isAbsolute(resultFile.input)
         ? resultFile.input
         : join(project.dir, resultFile.input);

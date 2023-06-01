@@ -6,6 +6,10 @@ $quarto-search-results-width: 400px !default;
 $quarto-search-collapse-icon-size: 26px !default;
 
 /*-- scss:rules --*/
+.aa-DetachedSearchButtonQuery {
+  display: none;
+}
+
 .aa-DetachedOverlay,
 #quarto-search-results {
   ul.aa-List {
@@ -33,6 +37,13 @@ $quarto-search-collapse-icon-size: 26px !default;
   @include media-breakpoint-up(lg) {
     margin-left: 0.25rem;
     order: 999;
+  }
+}
+
+.navbar .quarto-navbar-tools {
+  @include media-breakpoint-up(lg) {
+    margin-left: 0.25rem;
+    order: 900;
   }
 }
 

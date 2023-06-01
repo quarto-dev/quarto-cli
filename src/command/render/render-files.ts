@@ -98,7 +98,6 @@ import {
 } from "../../core/timing.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { InternalError } from "../../core/lib/error.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -284,7 +283,7 @@ export async function renderFiles(
       (project && (files.length > 1) && !options.flags?.quiet);
 
     // quiet pandoc output if we are doing file by file progress
-    const pandocQuiet = !!progress;
+    const pandocQuiet = !!progress || !!options.quietPandoc;
 
     // calculate num width
     const numWidth = String(files.length).length;
@@ -573,6 +572,7 @@ function defaultPandocRenderer(
         renderedFiles.push(await completion.complete(renderedFormats));
         completion = renderCompletions.pop();
       }
+      renderedFiles.reverse();
     },
     onComplete: async () => {
       return {

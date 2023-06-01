@@ -33,6 +33,7 @@ export interface RenderOptions {
   setProjectDir?: boolean;
   echo?: boolean;
   warning?: boolean;
+  quietPandoc?: boolean;
 }
 
 export interface RenderServices {
@@ -72,6 +73,7 @@ export type HtmlPostProcessor = (
     inputMetadata: Metadata;
     inputTraits: PandocInputTraits;
     renderedFormats: RenderedFormat[];
+    quiet?: boolean;
   },
 ) => Promise<HtmlPostProcessResult>;
 

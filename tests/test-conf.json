@@ -1,7 +1,5 @@
 {
   "test": {
-    "files": {
-      "exclude": ["integration/playwright/", ".venv/"]
-    }
+    "exclude": ["integration/playwright/", ".venv/"]
   }
 }

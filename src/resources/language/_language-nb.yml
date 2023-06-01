@@ -58,7 +58,7 @@ search-more-matches-text: "flere treff i dokumentet"
 search-clear-button-title: "Tøm"
 search-detached-cancel-button-title: "Avbryt"
 search-submit-button-title: "Send inn"
-search: "Søk"
+search-label: "Søk"
 
 toggle-section: "Bytt avsnitt"
 toggle-sidebar: "Bytt sidestolpe"

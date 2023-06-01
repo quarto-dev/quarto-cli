@@ -309,6 +309,7 @@
         ref: schema/description
       tags: object
       errorMessage: string
+    namingConvention: ignore
     required: ["name", "schema", "description"]
     propertyNames:
       enum:

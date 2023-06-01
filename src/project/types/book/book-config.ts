@@ -184,11 +184,6 @@ export async function bookProjectConfig(
       ]);
   }
 
-  // if search for book isn't false then enable search
-  if (book?.[kBookSearch] !== false && siteSidebar[kBookSearch] !== false) {
-    siteSidebar[kBookSearch] = true;
-  }
-
   // set the sidebar to "floating" if it isn't already set
   siteSidebar[kSiteSidebarStyle] = siteSidebar[kSiteSidebarStyle] || "floating";
 

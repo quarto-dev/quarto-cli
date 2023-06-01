@@ -261,7 +261,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # forward any other unknown attributes
-    knitr_default_opts <- names(knitr::opts_chunk$get())
+    knitr_default_opts <- unique(c(names(knitr:::opts_chunk_attr), names(knitr::opts_chunk$get())))
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
                      "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", 
@@ -1001,5 +1001,3 @@ latex_animation <- function(x, options) {
 is_latex_output <- function(to) {
   knitr:::is_latex_output() || identical(to, "pdf")
 }
-
-

@@ -242,6 +242,7 @@ export async function renderPandoc(
         htmlPostProcessors,
         htmlFinalizers,
         renderedFormats,
+        quiet,
       );
 
       // Compute the path to the output file
@@ -487,6 +488,7 @@ async function runHtmlPostprocessors(
   htmlPostprocessors: Array<HtmlPostProcessor>,
   htmlFinalizers: Array<(doc: Document) => Promise<void>>,
   renderedFormats: RenderedFormat[],
+  quiet?: boolean,
 ): Promise<HtmlPostProcessResult> {
   const postProcessResult: HtmlPostProcessResult = {
     resources: [],
@@ -508,6 +510,7 @@ async function runHtmlPostprocessors(
             inputMetadata,
             inputTraits,
             renderedFormats,
+            quiet,
           },
         );
 

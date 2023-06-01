@@ -233,7 +233,7 @@ export async function publishDocument(
             files.push(
               ...resultFile.supporting
                 .map((sf) => {
-                  if (!isAbsolute(sf)) {
+                  if (isAbsolute(sf)) {
                     return relative(baseDir, sf);
                   } else {
                     return sf;

@@ -58,7 +58,7 @@ search-more-matches-text: "kecocokan lainnya di dokumen ini"
 search-clear-button-title: "Hapus"
 search-detached-cancel-button-title: "Batal"
 search-submit-button-title: "Kirim"
-search: "Mencari"
+search-label: "Mencari"
 
 toggle-section: "Alihkan bagian"
 toggle-sidebar: "Alihkan bilah sisi"

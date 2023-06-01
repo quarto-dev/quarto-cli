@@ -1,9 +1,8 @@
 /*
-* command.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * command.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import type { Command } from "cliffy/command/mod.ts";
 

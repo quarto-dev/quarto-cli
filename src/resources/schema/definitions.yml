@@ -722,6 +722,14 @@
                 policy-url:
                   schema: string
                   description: "The url to the website’s cookie or privacy policy."
+                language:
+                  schema: string
+                  description:
+                    short: "The language to be used when diplaying the cookie consent prompt (defaults to document language)."
+                    long: |
+                      The language to be used when diplaying the cookie consent prompt specified using an IETF language tag.
+
+                      If not specified, the document language will be used.
                 prefs-text:
                   schema: string
                   description:
@@ -752,6 +760,10 @@
                 copy-button:
                   schema: boolean
                   description: "Provide button for copying search link"
+                keyboard-shortcut:
+                  maybeArrayOf:
+                    string:
+                      description: "One or more keys that will act as a shortcut to launch search (single characters)"
                 algolia:
                   object:
                     properties:

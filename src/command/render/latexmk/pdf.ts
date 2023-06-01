@@ -8,7 +8,7 @@ import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
-import { kLatexHeaderMessageOptions, LatexmkOptions } from "./types.ts";
+import { LatexmkOptions } from "./types.ts";
 
 import { dirAndStem } from "../../../core/path.ts";
 import { ProcessResult } from "../../../core/process-types.ts";
@@ -24,13 +24,14 @@ import {
   kMissingFontLog,
   needsRecompilation,
 } from "./parse-error.ts";
-import { info, warning } from "log/mod.ts";
+import { error, info, warning } from "log/mod.ts";
+import { logProgress } from "../../../core/log.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
-    info(
+    logProgress("\nRendering PDF");
+    logProgress(
       `running ${mkOptions.engine.pdfEngine} - 1`,
-      kLatexHeaderMessageOptions,
     );
   }
 
@@ -192,13 +193,13 @@ async function initialCompileLatex(
       // First be sure all packages are up to date
       if (!packagesUpdated) {
         if (!quiet) {
-          info("updating tlmgr", kLatexHeaderMessageOptions);
+          logProgress("updating tlmgr");
         }
         await pkgMgr.updatePackages(false, true);
         info("");
 
         if (!quiet) {
-          info("updating existing packages", kLatexHeaderMessageOptions);
+          logProgress("updating existing packages");
         }
         await pkgMgr.updatePackages(true, false);
         packagesUpdated = true;
@@ -274,7 +275,7 @@ async function makeIndexIntermediates(
   // If there is an idx file, we need to run makeindex to create the index data
   if (indexFile) {
     if (!quiet) {
-      info("making index", kLatexHeaderMessageOptions);
+      logProgress("making index");
     }
 
     // Make the index
@@ -354,7 +355,7 @@ async function makeBibliographyIntermediates(
 
       if (requiresProcessing) {
         if (!quiet) {
-          info("generating bibliography", kLatexHeaderMessageOptions);
+          logProgress("generating bibliography");
         }
 
         // If we're on windows and auto-install isn't enabled,
@@ -474,9 +475,8 @@ async function findAndInstallPackages(
 }
 
 function writeError(primary: string, secondary?: string, logFile?: string) {
-  info(
+  error(
     `\ncompilation failed- ${primary}`,
-    kLatexHeaderMessageOptions,
   );
 
   if (secondary) {
@@ -510,16 +510,14 @@ async function recompileLatexUntilComplete(
       if (!quiet) {
         warning(
           `maximum number of runs (${maxRuns}) reached`,
-          kLatexHeaderMessageOptions,
         );
       }
       break;
     }
 
     if (!quiet) {
-      info(
+      logProgress(
         `running ${engine.pdfEngine} - ${runCount + 2}`,
-        kLatexHeaderMessageOptions,
       );
     }
 

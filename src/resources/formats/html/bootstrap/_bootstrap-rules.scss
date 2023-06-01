@@ -1055,6 +1055,7 @@ figure .quarto-notebook-link {
   background-size: 0.75rem 0.75rem;
 }
 
+.quarto-other-links i.bi,
 .quarto-alternate-notebooks i.bi,
 .quarto-alternate-formats i.bi {
   margin-right: 0.4em;
@@ -1083,15 +1084,18 @@ figure .quarto-notebook-link {
 }
 
 .sidebar .quarto-alternate-formats a,
+.sidebar .quarto-other-links a,
 .sidebar .quarto-alternate-notebooks a {
   text-decoration: none;
 }
 
+.sidebar .quarto-other-links a:hover,
 .sidebar .quarto-alternate-formats a:hover,
 .sidebar .quarto-alternate-notebooks a:hover {
   color: $link-color;
 }
 
+.sidebar .quarto-other-links h2,
 .sidebar .quarto-alternate-notebooks h2,
 .sidebar .quarto-alternate-formats h2,
 .sidebar nav[role="doc-toc"] > h2 {
@@ -1105,6 +1109,7 @@ figure .quarto-notebook-link {
   padding-top: 0px;
 }
 
+.sidebar .quarto-other-links h2,
 .sidebar .quarto-alternate-notebooks h2,
 .sidebar .quarto-alternate-formats h2 {
   margin-top: 1rem;
@@ -1115,18 +1120,21 @@ figure .quarto-notebook-link {
   padding-left: 0.6rem;
 }
 
+.sidebar .quarto-other-links h2 > ul a,
 .sidebar .quarto-alternate-notebooks h2 > ul a,
 .sidebar .quarto-alternate-formats h2 > ul a {
   border-left: none;
   padding-left: 0.6rem;
 }
 
+.sidebar .quarto-other-links ul a:empty,
 .sidebar .quarto-alternate-notebooks ul a:empty,
 .sidebar .quarto-alternate-formats ul a:empty,
 .sidebar nav[role="doc-toc"] > ul a:empty {
   display: none;
 }
 
+.sidebar .quarto-other-links ul,
 .sidebar .quarto-alternate-notebooks ul,
 .sidebar .quarto-alternate-formats ul,
 .sidebar nav[role="doc-toc"] ul {
@@ -1136,6 +1144,7 @@ figure .quarto-notebook-link {
   font-weight: 300;
 }
 
+.sidebar .quarto-other-links ul li a,
 .sidebar .quarto-alternate-notebooks ul li a,
 .sidebar .quarto-alternate-formats ul li a,
 .sidebar nav[role="doc-toc"] > ul li a {

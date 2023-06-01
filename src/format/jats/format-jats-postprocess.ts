@@ -6,6 +6,8 @@
 
 import {
   kJatsSubarticleId,
+  kKeepMd,
+  kNotebookPreserveCells,
   kOutputFile,
   kTemplate,
   kTo,
@@ -23,10 +25,13 @@ import {
 import { renderFiles } from "../../command/render/render-files.ts";
 import { dirAndStem } from "../../core/path.ts";
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { logProgress } from "../../core/log.ts";
+import { error } from "log/mod.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
@@ -52,19 +57,29 @@ export const moveSubarticleSupportingPostProcessor = (
 
 // Injects the root subarticle
 export const renderSubarticlePostProcessor = (
+  input: string,
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
   project?: ProjectContext,
 ) => {
   return async (output: string) => {
+    const total = subArticles.length;
+    if (subArticles.length > 0) {
+      logProgress("Rendering JATS sub-articles");
+    }
+
+    let count = 0;
     for (const subArticle of subArticles) {
       // Render the JATS to a subarticle XML file
       const [_dir, stem] = dirAndStem(output);
       const outputFile = `${stem}.subarticle.xml`;
 
-      const subArticleDir = dirname(subArticle.input);
+      // Notebook relative path
+      const subArticlePath = subArticle.input;
+      const nbRelPath = relative(dirname(input), subArticlePath);
+      logProgress(`[${++count}/${total}] ${nbRelPath}`);
       const rendered = await renderFiles(
-        [{ path: subArticle.input, formats: ["jats"] }],
+        [{ path: subArticlePath, formats: ["jats"] }],
         {
           services,
           flags: {
@@ -75,11 +90,14 @@ export const renderSubarticlePostProcessor = (
               [kJatsSubarticleId]: subArticle.token,
               [kOutputFile]: outputFile,
               [kTemplate]: subarticleTemplatePath,
+              [kKeepMd]: true,
+              [kNotebookPreserveCells]: true,
             },
-            quiet: true,
+            quiet: false,
           },
           echo: true,
           warning: true,
+          quietPandoc: true,
         },
         [],
         undefined,
@@ -88,11 +106,10 @@ export const renderSubarticlePostProcessor = (
 
       // Read the subarticle
       let outputContents = Deno.readTextFileSync(output);
-
       // There should be only one file. Grab it, and replace the placeholder
       // in the document with the rendered XML file, then delete it.
-      if (rendered.files.length === 1) {
-        const file = join(subArticleDir, rendered.files[0].file);
+      if (!rendered.error && rendered.files.length === 1) {
+        const file = join(dirname(input), rendered.files[0].file);
         const placeholder = xmlPlaceholder(
           subArticle.token,
           subArticle.input,
@@ -117,9 +134,12 @@ export const renderSubarticlePostProcessor = (
         // Clean any output file
         Deno.removeSync(file);
       } else {
-        throw new Error(
-          "Rendered a single subarticle, but there was more than one!",
-        );
+        error("Rendering of subarticle produced an unexpected result");
+        if (rendered.error) {
+          throw (rendered.error);
+        } else {
+          throw (new Error("Invalid number of files rendered."));
+        }
       }
 
       Deno.writeTextFileSync(output, outputContents);

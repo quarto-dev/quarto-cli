@@ -287,6 +287,10 @@ function convertFromObject(yaml: any): ConcreteSchema {
   const params: Record<string, any> = {};
   if (schema.namingConvention && typeof schema.namingConvention === "string") {
     switch (schema.namingConvention) {
+      case "ignore":
+        params.namingConvention = "ignore";
+        break;
+
       case "capitalizationCase":
         params.namingConvention = "capitalizationCase";
         break;
@@ -347,7 +351,9 @@ function convertFromObject(yaml: any): ConcreteSchema {
         params.namingConvention = "dash-case";
         break;
       default:
-        throw new InternalError("This should have failed validation");
+        throw new InternalError(
+          `Unrecognized naming convention ${schema.namingConvention} should have failed validation`,
+        );
     }
   } else {
     params.namingConvention = schema.namingConvention;

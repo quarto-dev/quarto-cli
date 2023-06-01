@@ -773,16 +773,16 @@ function previewControlChannelRequestHandler(
           // if there is no specific format requested then 'all' needs
           // to become 'html' so we don't render all formats
           const to = flags.to === "all" ? (prevReq.format || "html") : flags.to;
-          render(prevReq.path, {
-            services,
-            flags: { ...flags, to },
-            pandocArgs,
-            previewServer: true,
-          }).then((result) => {
+          renderManager.submitRender(() =>
+            render(prevReq.path, {
+              services,
+              flags: { ...flags, to },
+              pandocArgs,
+              previewServer: true,
+            })
+          ).then((result) => {
             if (result.error) {
-              if (result.error?.message) {
-                logError(result.error);
-              }
+              renderManager.onRenderError(result.error);
             } else {
               // print output created
               const finalOutput = renderResultFinalOutput(

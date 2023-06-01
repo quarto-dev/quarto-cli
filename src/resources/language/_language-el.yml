@@ -58,7 +58,7 @@ search-more-matches-text: "επιπλέον αντιστοιχίες σε αυτ
 search-clear-button-title: "Καθαρισμός"
 search-detached-cancel-button-title: "Ακύρωση"
 search-submit-button-title: "Υποβολή"
-search: "Αναζήτηση"
+search-label: "Αναζήτηση"
 
 toggle-section: "Εναλλαγή ενότητας"
 toggle-sidebar: "Εναλλαγή πλαϊνής γραμμής πλοήγησης"

@@ -387,9 +387,9 @@
       doc: Use a faster transition speed
     - value: 'transition-speed="slow"'
       doc: Use a slower transition speed
-    - value: 'visibilty="hidden"'
+    - value: 'visibility="hidden"'
       doc: Hide a slide
-    - value: 'visibilty="uncounted"'
+    - value: 'visibility="uncounted"'
       doc: |
         Show the slide but don't have it count towards the total slides
         (useful for appendix slides)
