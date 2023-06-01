@@ -112,7 +112,7 @@ function layerQuartoScss(
       mixins: bootstrapMixins(),
       rules: bootstrapRules(),
     },
-    loadPaths: [bootstrapResourceDir(), ...(loadPaths || [])],
+    loadPaths: [...(loadPaths || []), bootstrapResourceDir()],
     dark: darkLayer
       ? {
         user: darkLayer,
