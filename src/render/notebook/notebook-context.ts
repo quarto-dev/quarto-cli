@@ -89,14 +89,15 @@ export function notebookContext(): NotebookContext {
           resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
           resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
 
-          // If the user doesn't enable echo, just remove the hidden output
+          // Configure echo for this rendering
           resolved.recipe.format.execute.echo = false;
           resolved.recipe.format.execute.warning = false;
           resolved.recipe.format.render[kKeepHidden] = true;
           resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
           resolved.recipe.format.metadata[kRemoveHidden] = "none";
-          resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
 
+          // Configure markdown behavior for this rendering
+          resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
           return resolved;
         }
       }

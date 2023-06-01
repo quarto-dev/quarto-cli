@@ -99,22 +99,22 @@ export function jatsFormat(displayName: string, ext: string): Format {
           kSubArticles
         ]) as Array<JatsRenderSubArticle> | undefined;
 
-        // TODO: Make this one text file written instead of many
         if (subArticles) {
+          const placeholderFile = services.temp.createFile({
+            suffix: ".placeholder.xml",
+          });
+
+          const placeholders: string[] = [];
           subArticles.forEach((subArticle) => {
             // Inject a placeholder
-            const placeholder = xmlPlaceholder(
+            placeholders.push(xmlPlaceholder(
               subArticle.token,
               subArticle.input,
-            );
-            const placeholderFile = services.temp.createFile({
-              suffix: ".placeholder.xml",
-            });
-            Deno.writeTextFileSync(placeholderFile, placeholder);
-
-            afterBody.push(placeholderFile);
+            ));
             subArticlesToRender.push(subArticle);
           });
+          Deno.writeTextFileSync(placeholderFile, placeholders.join("\n"));
+          afterBody.push(placeholderFile);
         }
       }
       const postprocessors = [];
