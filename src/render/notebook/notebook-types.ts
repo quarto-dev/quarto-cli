@@ -5,6 +5,8 @@
  */
 
 import {
+  ExecutedFile,
+  RenderedFile,
   RenderResourceFiles,
   RenderServices,
 } from "../../command/render/types.ts";
@@ -41,6 +43,16 @@ export interface NotebookOutput {
 
 export interface NotebookContext {
   get: (nbPath: string) => Notebook | undefined;
+  resolve: (
+    nbPath: string,
+    renderType: RenderType,
+    executedFile: ExecutedFile,
+  ) => ExecutedFile | undefined;
+  contribute: (
+    nbPath: string,
+    renderType: RenderType,
+    result: RenderedFile,
+  ) => void;
   render: (
     nbPath: string,
     renderType: RenderType,

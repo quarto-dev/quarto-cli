@@ -5,10 +5,13 @@
  */
 
 import { renderFiles } from "../../command/render/render-files.ts";
-import { RenderServices } from "../../command/render/types.ts";
+import {
+  ExecutedFile,
+  RenderedFile,
+  RenderServices,
+} from "../../command/render/types.ts";
 import {
   kJatsSubarticleId,
-  kKeepMd,
   kNotebookPreserveCells,
   kOutputFile,
   kTemplate,
@@ -22,24 +25,71 @@ import {
   subarticleTemplatePath,
 } from "../../format/jats/format-jats-types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import {
-  Notebook,
-  NotebookContext,
-  NotebookOutput,
-  RenderType,
-} from "./notebook-types.ts";
+import { Notebook, NotebookContext, RenderType } from "./notebook-types.ts";
 
-import { dirname, join } from "path/mod.ts";
+import * as ld from "../../core/lodash.ts";
+
+import { basename, dirname, join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
 export function notebookContext(): NotebookContext {
   const notebooks: Record<string, Notebook> = {};
   let nbCount = 0;
 
+  const token = () => {
+    return `nb-${++nbCount}`;
+  };
+
+  const contribute = (
+    nbAbsPath: string,
+    renderType: RenderType,
+    result: RenderedFile,
+  ) => {
+    const absPath = join(dirname(nbAbsPath), basename(result.file));
+    const output = {
+      path: absPath,
+      supporting: result.supporting || [],
+      resourceFiles: result.resourceFiles,
+    };
+
+    const nb = notebooks[nbAbsPath];
+    if (nb) {
+      nb[renderType] = output;
+    } else {
+      notebooks[nbAbsPath] = {
+        source: nbAbsPath,
+        title: "",
+        [kJatsSubarticle]: output,
+      };
+    }
+  };
+
   return {
     get: (nbAbsPath: string) => {
       return notebooks[nbAbsPath];
     },
+    resolve: (
+      nbAbsPath: string,
+      renderType: RenderType,
+      executedFile: ExecutedFile,
+    ) => {
+      switch (renderType) {
+        case kJatsSubarticle: {
+          const resolved = ld.cloneDeep(executedFile);
+          resolved.recipe.format.metadata[kLintXml] = false;
+          resolved.recipe.format.metadata[kJatsSubarticle] = true;
+          resolved.recipe.format.metadata[kJatsSubarticleId] = token();
+          resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
+            nbAbsPath,
+          );
+          resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
+          resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
+          resolved.recipe.format.render[kNotebookPreserveCells] = true;
+          return resolved;
+        }
+      }
+    },
+    contribute,
     render: async (
       nbAbsPath: string,
       renderType: RenderType,
@@ -47,27 +97,15 @@ export function notebookContext(): NotebookContext {
       project?: ProjectContext,
     ) => {
       switch (renderType) {
-        case "jats-subarticle": {
-          const token = `nb-${++nbCount}`;
-          const [_dir, stem] = dirAndStem(nbAbsPath);
-          const outputFile = `${stem}.subarticle.xml`;
-          const output = await renderJats(
+        case kJatsSubarticle: {
+          const renderedFile = await renderJats(
             nbAbsPath,
-            token,
-            outputFile,
+            token(),
+            jatsOutputFile(nbAbsPath),
             services,
             project,
           );
-          const nb = notebooks[nbAbsPath];
-          if (nb) {
-            nb[kJatsSubarticle] = output;
-          } else {
-            notebooks[nbAbsPath] = {
-              source: nbAbsPath,
-              title: "",
-              [kJatsSubarticle]: output,
-            };
-          }
+          contribute(nbAbsPath, kJatsSubarticle, renderedFile);
           return notebooks[nbAbsPath];
         }
       }
@@ -83,6 +121,10 @@ export function notebookContext(): NotebookContext {
     },
   };
 }
+function jatsOutputFile(nbAbsPath: string) {
+  const [_dir, stem] = dirAndStem(nbAbsPath);
+  return `${stem}.subarticle.xml`;
+}
 
 async function renderJats(
   nbPath: string,
@@ -90,7 +132,7 @@ async function renderJats(
   outputFile: string,
   services: RenderServices,
   project?: ProjectContext,
-): Promise<NotebookOutput> {
+): Promise<RenderedFile> {
   const rendered = await renderFiles(
     [{ path: nbPath, formats: ["jats"] }],
     {
@@ -103,7 +145,6 @@ async function renderJats(
           [kJatsSubarticleId]: subArticleToken,
           [kOutputFile]: outputFile,
           [kTemplate]: subarticleTemplatePath,
-          [kKeepMd]: true,
           [kNotebookPreserveCells]: true,
         },
         quiet: false,
@@ -130,11 +171,5 @@ async function renderJats(
     );
   }
 
-  const file = rendered.files[0];
-  const absPath = join(dirname(nbPath), file.file);
-  return {
-    path: absPath,
-    supporting: file.supporting || [],
-    resourceFiles: file.resourceFiles,
-  };
+  return rendered.files[0];
 }

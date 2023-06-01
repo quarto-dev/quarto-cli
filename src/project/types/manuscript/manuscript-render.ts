@@ -21,6 +21,11 @@ import {
 } from "./manuscript-types.ts";
 import { isArticle } from "./manuscript-config.ts";
 import { isHtmlDocOutput, isJatsOutput } from "../../../config/format.ts";
+import { kJatsSubarticle } from "../../../render/notebook/notebook-types.ts";
+
+import { join } from "path/mod.ts";
+import { InternalError } from "../../../core/lib/error.ts";
+import { notebookContext } from "../../../render/notebook/notebook-context.ts";
 
 export const manuscriptRenderer = (
   _options: RenderOptions,
@@ -28,14 +33,10 @@ export const manuscriptRenderer = (
 ): PandocRenderer => {
   const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];
-
-  type input = string;
-  type baseFormat = string;
-  let notebookCount = 0;
+  const nbContext = notebookContext();
 
   return {
     onBeforeExecute: (_format: Format) => {
-      console.log({ "onBeforeExecute": _format.identifier["display-name"] });
       return {};
     },
     onRender: async (
@@ -43,13 +44,14 @@ export const manuscriptRenderer = (
       executedFile: ExecutedFile,
       quiet: boolean,
     ) => {
+      // TODO: Remove hack
+      executedFile.context.options.services.notebook = nbContext;
       const manuscriptConfig =
         (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
       const target = executedFile.context.target;
       const isArt = isArticle(target.input, context, manuscriptConfig);
 
-      console.log({ "onRender": executedFile.context.target.input });
-
+      let targetExecutedFile = executedFile;
       if (isHtmlDocOutput(executedFile.context.format.pandoc)) {
         if (isArt) {
         } else {
@@ -57,45 +59,63 @@ export const manuscriptRenderer = (
         }
       } else if (isJatsOutput(executedFile.context.format.pandoc)) {
         if (!isArt) {
-          // Render self as a subarticle
-
-          // Rendered ipynb
-          // Rendered HTML
-          // Rendered JATS?
+          const resolvedExecutedFile = nbContext.resolve(
+            target.input,
+            kJatsSubarticle,
+            executedFile,
+          );
+          if (resolvedExecutedFile) {
+            targetExecutedFile = resolvedExecutedFile;
+          }
         } else {
         }
       } else {
         if (!isArt) {
-          // Switch target to HTML
         }
         // WTF do we do with notebooks in this case?!
         // Render HTML preview
       }
 
       // Configure Subnotebooks to produce subarticle JATS
-      renderCompletions.push(await renderPandoc(executedFile, quiet));
+      renderCompletions.push(await renderPandoc(targetExecutedFile, quiet));
     },
-    onPostProcess: async (renderedFormats: RenderedFormat[]) => {
-      console.log({
-        "onPostProcess": renderedFormats.map((f) => {
-          return {
-            format: f.format.identifier["display-name"],
-            output: f.path,
-          };
-        }),
-      });
+    onPostProcess: async (
+      renderedFormats: RenderedFormat[],
+      projectContext?: ProjectContext,
+    ) => {
+      if (projectContext === undefined) {
+        throw new InternalError(
+          "Manuscript pandoc rendered is being used without a project context - this is not allowed.",
+        );
+      }
 
       let completion = renderCompletions.pop();
       while (completion) {
         const renderedFile = await completion.complete(renderedFormats);
         renderedFiles.push(renderedFile);
+
+        const manuscriptConfig =
+          (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
+        const isArt = isArticle(renderedFile.input, context, manuscriptConfig);
+
+        // TODO: don't contribute the article jats root file
+        if (!isArt && isJatsOutput(renderedFile.format.pandoc)) {
+          const nbAbsPath = join(projectContext.dir, renderedFile.input);
+          nbContext.contribute(
+            nbAbsPath,
+            kJatsSubarticle,
+            renderedFile,
+          );
+        }
+
         completion = renderCompletions.pop();
       }
     },
     onComplete: async () => {
-      console.log({ "onComplete": "" });
+      //nbContext.cleanup();
+      const files = await Promise.resolve(renderedFiles);
       return {
-        files: await Promise.resolve(renderedFiles),
+        files,
       };
     },
   };

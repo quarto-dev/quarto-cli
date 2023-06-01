@@ -71,6 +71,7 @@ import {
 } from "../../../format/jats/format-jats-types.ts";
 import { logProgress } from "../../../core/log.ts";
 import { formatLanguage } from "../../../core/language.ts";
+import { manuscriptRenderer } from "./manuscript-render.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -120,7 +121,6 @@ export const manuscriptProjectType: ProjectType = {
     // Ensure the article is the last file in the render list
     const inputs = projectInputFiles(projectDir, config);
     const article = articleFile(projectDir, manuscriptConfig);
-    config.project.render = [article];
 
     // Determine the notebooks that are being declared explicitly in
     // in the manuscript configuration
@@ -150,6 +150,7 @@ export const manuscriptProjectType: ProjectType = {
     if (inputNotebooks) {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
+    config.project.render = [...notebooks.map((nb) => (nb.notebook)), article];
 
     let count = 0;
     const jatsNotebooks = notebooks.map((notebookDesc) => {
@@ -173,6 +174,7 @@ export const manuscriptProjectType: ProjectType = {
         render: true,
       });
     }
+
     config[kQuartoInternal] = {
       [kSubArticles]: jatsNotebooks,
     };
@@ -231,6 +233,7 @@ export const manuscriptProjectType: ProjectType = {
       supporting: [],
     };
   },
+  pandocRenderer: manuscriptRenderer,
   outputDir: kOutputDir,
   cleanOutputDir: true,
   incrementalFormatPreviewing: true,

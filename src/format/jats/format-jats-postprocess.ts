@@ -14,27 +14,11 @@ import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
 import { kJatsSubarticle } from "../../render/notebook/notebook-types.ts";
+import { locateAnnotation } from "../../core/lib/yaml-intelligence/annotated-yaml.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
   await reformat(output);
-};
-
-// Responsible for moving the supporting files
-export const moveSubarticleSupportingPostProcessor = (
-  supporting: { from: string; toRelative: string }[],
-) => {
-  return (output: string) => {
-    const supportingOut: string[] = [];
-    supporting.forEach((supp) => {
-      const outputPath = join(dirname(output), supp.toRelative);
-      copySync(supp.from, outputPath, { overwrite: true });
-      supportingOut.push(outputPath);
-    });
-    return {
-      supporting: supportingOut,
-    };
-  };
 };
 
 // Injects the root subarticle
@@ -45,31 +29,38 @@ export const renderSubarticlePostProcessor = (
   project?: ProjectContext,
 ) => {
   return async (output: string) => {
-    const total = subArticles.length;
-    if (subArticles.length > 0) {
+    const subArticlesToRender = subArticles.filter((subArticle) => {
+      return services.notebook.get(subArticle.input) === undefined;
+    });
+
+    const total = subArticlesToRender.length;
+    if (subArticlesToRender.length > 0) {
       logProgress("Rendering JATS sub-articles");
     }
 
     let count = 0;
-    for (const subArticle of subArticles) {
+    for (const subArticle of subArticlesToRender) {
       const subArticlePath = subArticle.input;
       const nbRelPath = relative(dirname(input), subArticlePath);
       logProgress(`[${++count}/${total}] ${nbRelPath}`);
 
-      let nb = services.notebook.get(subArticlePath);
-      if (!nb) {
-        nb = await services.notebook.render(
-          subArticlePath,
-          kJatsSubarticle,
-          services,
-          project,
-        );
-      }
+      await services.notebook.render(
+        subArticlePath,
+        kJatsSubarticle,
+        services,
+        project,
+      );
+    }
 
+    const supportingOut: string[] = [];
+    for (const subArticle of subArticles) {
+      console.log({ subArticle });
+      const nb = services.notebook.get(subArticle.input);
       if (nb && nb[kJatsSubarticle]) {
         let outputContents = Deno.readTextFileSync(output);
 
-        const jatsSubarticlePath = nb[kJatsSubarticle].path;
+        const notebook = nb[kJatsSubarticle];
+        const jatsSubarticlePath = notebook.path;
         const placeholder = xmlPlaceholder(
           subArticle.token,
           subArticle.input,
@@ -89,11 +80,29 @@ export const renderSubarticlePostProcessor = (
           subArtLines.join("\n"),
         );
 
+        // Move supporting and resource files into place
+        for (const support of notebook.supporting) {
+          // get the supporting relative path
+          const basePath = project ? project.dir : dirname(notebook.path);
+          const fromPath = join(basePath, support);
+          const toPath = join(
+            dirname(output),
+            relative(dirname(notebook.path), fromPath),
+          );
+          console.log({ from: fromPath, to: toPath });
+          copySync(fromPath, toPath, { overwrite: true });
+
+          supportingOut.push(toPath);
+        }
+
         Deno.writeTextFileSync(output, outputContents);
 
-        // TODO: Push supporting / resources here
+        // TODO: Push resources here
       }
     }
+    return {
+      supporting: supportingOut,
+    };
   };
 };
 

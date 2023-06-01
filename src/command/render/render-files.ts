@@ -525,7 +525,7 @@ export async function renderFiles(
           }
         }
       }
-      await pandocRenderer.onPostProcess(outputs);
+      await pandocRenderer.onPostProcess(outputs, project);
     }
 
     if (progress) {

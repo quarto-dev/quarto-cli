@@ -144,6 +144,7 @@ export interface PandocRenderer {
   ) => Promise<void>;
   onPostProcess: (
     renderedFormats: RenderedFormat[],
+    project?: ProjectContext,
   ) => Promise<void>;
   onComplete: (error?: boolean, quiet?: boolean) => Promise<RenderFilesResult>;
 }
