@@ -11529,7 +11529,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
-            long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package).\n"
+            long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true`.\n"
           }
         },
         {
@@ -18743,6 +18743,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Use external Algolia search index",
         "The name of the index to use when performing a search",
         "The unique ID used by Algolia to identify your application",
@@ -18868,6 +18870,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Use external Algolia search index",
         "The name of the index to use when performing a search",
         "The unique ID used by Algolia to identify your application",
@@ -19811,7 +19815,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
-          long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package).'
+          long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>.'
         },
         {
           short: "The style to use when displaying code annotations",
@@ -20863,6 +20867,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Use external Algolia search index",
         "The name of the index to use when performing a search",
         "The unique ID used by Algolia to identify your application",
@@ -21171,6 +21177,8 @@ var require_yaml_intelligence_resources = __commonJS({
         "Number of matches to display (defaults to 20)",
         "Matches after which to collapse additional results",
         "Provide button for copying search link",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+        "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
         "Use external Algolia search index",
         "The name of the index to use when performing a search",
         "The unique ID used by Algolia to identify your application",
@@ -21625,12 +21633,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158631,
+        _internalId: 158637,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158623,
+            _internalId: 158629,
             type: "enum",
             enum: [
               "png",
@@ -21646,7 +21654,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158630,
+            _internalId: 158636,
             type: "anyOf",
             anyOf: [
               {

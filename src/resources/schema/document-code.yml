@@ -30,7 +30,9 @@
       to their online documentation.
 
       Code linking is currently implemented only for the knitr engine 
-      (via the [downlit](https://downlit.r-lib.org/) package).
+      (via the [downlit](https://downlit.r-lib.org/) package). 
+      A limitation of downlit currently prevents code linking 
+      if `code-line-numbers` is also `true`.
 
 - name: code-annotations
   schema:
