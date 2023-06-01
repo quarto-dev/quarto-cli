@@ -478,6 +478,7 @@ async function getCachedNotebookInfo(
         figFormat: format.execute[kFigFormat],
         figDpi: format.execute[kFigDpi],
         figPos: format.render[kFigPos],
+        fixups: "minimal",
       },
     );
 

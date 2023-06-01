@@ -663,7 +663,7 @@ export async function jupyterToMarkdown(
     ? bookFixups
     : undefined;
 
-  nb = fixupJupyterNotebook(nb, fixups);
+  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb

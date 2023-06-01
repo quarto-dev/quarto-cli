@@ -227,6 +227,13 @@ const defaultFixups: ((
   fixupStreams,
 ];
 
+const minimalFixups: ((
+  nb: JupyterNotebook,
+) => JupyterNotebook)[] = [
+  fixupBokehCells,
+  fixupStreams,
+];
+
 // books can't have the front matter fixup
 export const bookFixups: JupyterFixup[] = [
   fixupBokehCells,
@@ -234,9 +241,12 @@ export const bookFixups: JupyterFixup[] = [
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
+  nbFixups: "minimal" | "default",
   explicitFixups?: JupyterFixup[],
 ): JupyterNotebook {
-  const fixups = explicitFixups || defaultFixups;
+  const fixups = explicitFixups || nbFixups === "minimal"
+    ? minimalFixups
+    : defaultFixups;
   for (const fixup of fixups) {
     nb = fixup(nb);
   }
