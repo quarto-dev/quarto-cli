@@ -154,22 +154,28 @@ def notebook_execute(options, status):
    current_code_cell = 1
    total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
+   # find all the labels in the notebook
+   cell_labels = [
+      (next(iter(re.findall(r'#\| label: (.*)', cell.source)), '').strip() 
+       if cell.cell_type == 'code' else '')
+       for cell in nb.cells
+       ]
+   max_label_len = max(len(label) for label in cell_labels)
+
    # execute the cells
    for index, cell in enumerate(client.nb.cells):
       # progress
       progress = (not quiet) and cell.cell_type == 'code' and index > 0
       if progress:
-        # get label
-        label = ''
-        source_lines = cell.source.split('\n')
-        label_line = next((line for line in source_lines if line.startswith('#| label:')), None)
-        if label_line:
-            label = label_line.replace('#| label:', '').strip()
+         label = cell_labels[index]
+         padding = "." * (max_label_len - len(label))
+         status("  Cell {0}/{1}: '{2}'{3}...".format(
+            current_code_cell - 1,
+            total_code_cells - 1,
+            label,
+            padding
+         ))
 
-        status("  Cell '{0}' {1}/{2}...".format(
-           label, current_code_cell- 1, total_code_cells - 1
-        ))
-         
       # clear cell output
       cell = cell_clear_output(cell)
 
