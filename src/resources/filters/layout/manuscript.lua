@@ -2,8 +2,39 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
 local constants = require("modules/constants")
+local kUnrollMarkdownCells = "unroll-markdown-cells"
+
+function manuscriptUnroll() 
+  local unrollMdCells = param(kUnrollMarkdownCells, false)
+  if unrollMdCells then
+    return {
+      -- Process any cells that originated from notebooks
+      Div = function(divEl)   
+          -- If this is a markdown cell, we may need to unroll it
+          if divEl.classes:includes("cell") and divEl.classes:includes("markdown") then
+            local blocks = pandoc.List()
+            for _, childBlock in ipairs(divEl.content) do
+              if childBlock.t == "Div" then
+                if fnSkip and not fnSkip(divEl) then
+                  blocks:insert(childBlock)
+                else
+                  tappend(blocks, childBlock.content)
+                end
+              else
+                blocks:insert(childBlock)
+              end
+            end
+            return blocks
+          end        
+        end
+      }
+  else
+    return {}
+  end
+end
 
 function manuscript() 
+
   if _quarto.format.isWordProcessorOutput() or _quarto.format.isLatexOutput() then
 
     local language = param("language", nil);
@@ -16,11 +47,12 @@ function manuscript()
 
       -- Process any cells that originated from notebooks
       Div = function(divEl)        
+
         -- Don't process these specially unless 'inline' links
         -- are enabled
         if (notebookLinks == false or notebookLinks == "global") then
           return
-        end
+        end        
 
         local nbPath = divEl.attributes[constants.kNotebook]
         local nbTitle = divEl.attributes[constants.kNotebookTitle]

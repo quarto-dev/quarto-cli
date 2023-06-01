@@ -20,7 +20,7 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { isArticle } from "./manuscript-config.ts";
-import { isHtmlDocOutput, isJatsOutput } from "../../../config/format.ts";
+import { isJatsOutput } from "../../../config/format.ts";
 import { kJatsSubarticle } from "../../../render/notebook/notebook-types.ts";
 
 import { join } from "path/mod.ts";
@@ -51,33 +51,44 @@ export const manuscriptRenderer = (
       const target = executedFile.context.target;
       const isArt = isArticle(target.input, context, manuscriptConfig);
 
+      // TODO: Deal with HTML and PDF requests for notebooks
       let targetExecutedFile = executedFile;
-      if (isHtmlDocOutput(executedFile.context.format.pandoc)) {
-        if (isArt) {
-        } else {
-          // Configure this render to generate a notebook
+      if (!isArt && isJatsOutput(executedFile.context.format.pandoc)) {
+        const resolvedExecutedFile = nbContext.resolve(
+          target.input,
+          kJatsSubarticle,
+          executedFile,
+        );
+        if (resolvedExecutedFile) {
+          targetExecutedFile = resolvedExecutedFile;
         }
-      } else if (isJatsOutput(executedFile.context.format.pandoc)) {
-        if (!isArt) {
-          const resolvedExecutedFile = nbContext.resolve(
-            target.input,
-            kJatsSubarticle,
-            executedFile,
-          );
-          if (resolvedExecutedFile) {
-            targetExecutedFile = resolvedExecutedFile;
-          }
-        } else {
-        }
-      } else {
-        if (!isArt) {
-        }
-        // WTF do we do with notebooks in this case?!
-        // Render HTML preview
       }
 
       // Configure Subnotebooks to produce subarticle JATS
       renderCompletions.push(await renderPandoc(targetExecutedFile, quiet));
+
+      // If this is an article with computations, do any special work
+      // required to resolve a version of it as a subarticle, preview, etc...
+      if (isArt && isJatsOutput(executedFile.context.format.pandoc)) {
+        const subArticleExecutedFile = nbContext.resolve(
+          target.input,
+          kJatsSubarticle,
+          executedFile,
+        );
+        if (subArticleExecutedFile) {
+          const result = await renderPandoc(subArticleExecutedFile, true);
+          const renderedFile = await result.complete([{
+            path: target.input,
+            format: subArticleExecutedFile.context.format,
+          }]);
+          const nbAbsPath = join(context.dir, renderedFile.input);
+          nbContext.contribute(
+            nbAbsPath,
+            kJatsSubarticle,
+            renderedFile,
+          );
+        }
+      }
     },
     onPostProcess: async (
       renderedFormats: RenderedFormat[],
@@ -98,8 +109,9 @@ export const manuscriptRenderer = (
           (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
         const isArt = isArticle(renderedFile.input, context, manuscriptConfig);
 
-        // TODO: don't contribute the article jats root file
-        if (!isArt && isJatsOutput(renderedFile.format.pandoc)) {
+        if (
+          !isArt && isJatsOutput(renderedFile.format.pandoc)
+        ) {
           const nbAbsPath = join(projectContext.dir, renderedFile.input);
           nbContext.contribute(
             nbAbsPath,

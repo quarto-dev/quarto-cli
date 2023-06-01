@@ -14,7 +14,6 @@ import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
 import { kJatsSubarticle } from "../../render/notebook/notebook-types.ts";
-import { locateAnnotation } from "../../core/lib/yaml-intelligence/annotated-yaml.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
@@ -29,21 +28,23 @@ export const renderSubarticlePostProcessor = (
   project?: ProjectContext,
 ) => {
   return async (output: string) => {
+    // First ensure that we have rendered jats-subarticles
+    // for each of our articles. If needed, render any that
+    // aren't already rendered.
     const subArticlesToRender = subArticles.filter((subArticle) => {
       return services.notebook.get(subArticle.input) === undefined;
     });
-
     const total = subArticlesToRender.length;
     if (subArticlesToRender.length > 0) {
       logProgress("Rendering JATS sub-articles");
     }
 
+    // Do the rendering
     let count = 0;
     for (const subArticle of subArticlesToRender) {
       const subArticlePath = subArticle.input;
       const nbRelPath = relative(dirname(input), subArticlePath);
       logProgress(`[${++count}/${total}] ${nbRelPath}`);
-
       await services.notebook.render(
         subArticlePath,
         kJatsSubarticle,
@@ -52,9 +53,9 @@ export const renderSubarticlePostProcessor = (
       );
     }
 
+    // Go through the subarticles, embed them into the article
     const supportingOut: string[] = [];
     for (const subArticle of subArticles) {
-      console.log({ subArticle });
       const nb = services.notebook.get(subArticle.input);
       if (nb && nb[kJatsSubarticle]) {
         let outputContents = Deno.readTextFileSync(output);
@@ -66,6 +67,8 @@ export const renderSubarticlePostProcessor = (
           subArticle.input,
         );
 
+        // Read the subarticle and change any cross references to not conflict
+        // by atdding a token suffix
         const subArtReader = await Deno.open(jatsSubarticlePath);
         const subArtLines: string[] = [];
         for await (let line of readLines(subArtReader)) {
@@ -74,6 +77,7 @@ export const renderSubarticlePostProcessor = (
           line = line.replaceAll(kRidRegex, `$1rid="$2-${subArticle.token}"`);
           subArtLines.push(line);
         }
+
         // Replace the placeholder with the rendered subarticle
         outputContents = outputContents.replaceAll(
           placeholder,
@@ -89,15 +93,12 @@ export const renderSubarticlePostProcessor = (
             dirname(output),
             relative(dirname(notebook.path), fromPath),
           );
-          console.log({ from: fromPath, to: toPath });
-          copySync(fromPath, toPath, { overwrite: true });
-
+          if (fromPath !== toPath) {
+            copySync(fromPath, toPath, { overwrite: true });
+          }
           supportingOut.push(toPath);
         }
-
         Deno.writeTextFileSync(output, outputContents);
-
-        // TODO: Push resources here
       }
     }
     return {

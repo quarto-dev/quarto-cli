@@ -11,11 +11,15 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kClearHiddenClasses,
   kJatsSubarticleId,
+  kKeepHidden,
   kNotebookPreserveCells,
   kOutputFile,
+  kRemoveHidden,
   kTemplate,
   kTo,
+  kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem, safeRemoveIfExists } from "../../core/path.ts";
@@ -84,7 +88,15 @@ export function notebookContext(): NotebookContext {
           );
           resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
           resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
-          resolved.recipe.format.render[kNotebookPreserveCells] = true;
+
+          // If the user doesn't enable echo, just remove the hidden output
+          resolved.recipe.format.execute.echo = false;
+          resolved.recipe.format.execute.warning = false;
+          resolved.recipe.format.render[kKeepHidden] = true;
+          resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
+          resolved.recipe.format.metadata[kRemoveHidden] = "none";
+          resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
+
           return resolved;
         }
       }

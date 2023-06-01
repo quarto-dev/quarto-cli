@@ -26,6 +26,7 @@ import {
   kLanguageDefaults,
   kManuscriptMecaBundle,
   kNotebookLinks,
+  kNotebookPreserveCells,
   kNotebookPreviewOptions,
   kNotebooks,
   kOtherLinks,
@@ -34,6 +35,7 @@ import {
   kRemoveHidden,
   kResources,
   kToc,
+  kUnrollMarkdownCells,
   kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
@@ -260,6 +262,7 @@ export const manuscriptProjectType: ProjectType = {
       if (options.format.render[kNotebookLinks] !== undefined) {
         filterParams[kNotebookLinks] = options.format.render[kNotebookLinks];
       }
+
       return filterParams;
     } else {
       throw new InternalError(
@@ -353,6 +356,12 @@ export const manuscriptProjectType: ProjectType = {
       };
       format.metadata[kClearHiddenClasses] = resolveValue(clearVal);
       format.metadata[kRemoveHidden] = resolveValue(removeVal);
+
+      // Implement manuscript markdown cell affordances ourselves
+      // Turn on cell preservation and
+      format.render[kNotebookPreserveCells] = true;
+      format.metadata[kUnrollMarkdownCells] = true;
+
       return format;
     } else {
       throw new InternalError(
