@@ -61,3 +61,18 @@ export interface NotebookContext {
   ) => Promise<Notebook | undefined>;
   cleanup: () => void;
 }
+
+export interface NotebookContributor {
+  cleanup(notebooks: Notebook[]): void;
+  resolve(
+    nbAbsPath: string,
+    token: string,
+    executedFile: ExecutedFile,
+  ): ExecutedFile;
+  render(
+    nbAbsPath: string,
+    token: string,
+    services: RenderServices,
+    project?: ProjectContext,
+  ): Promise<RenderedFile>;
+}

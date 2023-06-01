@@ -4,37 +4,31 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFiles } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
   RenderServices,
 } from "../../command/render/types.ts";
-import {
-  kClearHiddenClasses,
-  kJatsSubarticleId,
-  kKeepHidden,
-  kNotebookPreserveCells,
-  kOutputFile,
-  kRemoveHidden,
-  kTemplate,
-  kTo,
-  kUnrollMarkdownCells,
-} from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
-import { dirAndStem, safeRemoveIfExists } from "../../core/path.ts";
-import {
-  kJatsSubarticle,
-  kLintXml,
-  subarticleTemplatePath,
-} from "../../format/jats/format-jats-types.ts";
+import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { Notebook, NotebookContext, RenderType } from "./notebook-types.ts";
-
-import * as ld from "../../core/lodash.ts";
+import {
+  kHtmlPreview,
+  kRenderedIPynb,
+  Notebook,
+  NotebookContext,
+  NotebookContributor,
+  RenderType,
+} from "./notebook-types.ts";
 
 import { basename, dirname, join } from "path/mod.ts";
-import { error } from "log/mod.ts";
+import { jatsContributor } from "./notebook-contributor-jats.ts";
+
+const contributors: Record<RenderType, NotebookContributor | undefined> = {
+  [kJatsSubarticle]: jatsContributor,
+  [kHtmlPreview]: undefined,
+  [kRenderedIPynb]: undefined,
+};
 
 export function notebookContext(): NotebookContext {
   const notebooks: Record<string, Notebook> = {};
@@ -68,6 +62,17 @@ export function notebookContext(): NotebookContext {
     }
   };
 
+  function contributor(renderType: RenderType) {
+    const contributor = contributors[renderType];
+    if (contributor) {
+      return contributor;
+    } else {
+      throw new InternalError(
+        `Missing contributor ${renderType} when resolving`,
+      );
+    }
+  }
+
   return {
     get: (nbAbsPath: string) => {
       return notebooks[nbAbsPath];
@@ -77,30 +82,7 @@ export function notebookContext(): NotebookContext {
       renderType: RenderType,
       executedFile: ExecutedFile,
     ) => {
-      switch (renderType) {
-        case kJatsSubarticle: {
-          const resolved = ld.cloneDeep(executedFile);
-          resolved.recipe.format.metadata[kLintXml] = false;
-          resolved.recipe.format.metadata[kJatsSubarticle] = true;
-          resolved.recipe.format.metadata[kJatsSubarticleId] = token();
-          resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
-            nbAbsPath,
-          );
-          resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
-          resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
-
-          // Configure echo for this rendering
-          resolved.recipe.format.execute.echo = false;
-          resolved.recipe.format.execute.warning = false;
-          resolved.recipe.format.render[kKeepHidden] = true;
-          resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
-          resolved.recipe.format.metadata[kRemoveHidden] = "none";
-
-          // Configure markdown behavior for this rendering
-          resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
-          return resolved;
-        }
-      }
+      return contributor(renderType).resolve(nbAbsPath, token(), executedFile);
     },
     contribute,
     render: async (
@@ -109,82 +91,19 @@ export function notebookContext(): NotebookContext {
       services: RenderServices,
       project?: ProjectContext,
     ) => {
-      switch (renderType) {
-        case kJatsSubarticle: {
-          const renderedFile = await renderJats(
-            nbAbsPath,
-            token(),
-            jatsOutputFile(nbAbsPath),
-            services,
-            project,
-          );
-          contribute(nbAbsPath, kJatsSubarticle, renderedFile);
-          return notebooks[nbAbsPath];
-        }
-      }
+      const renderedFile = await contributor(renderType).render(
+        nbAbsPath,
+        token(),
+        services,
+        project,
+      );
+      contribute(nbAbsPath, kJatsSubarticle, renderedFile);
+      return notebooks[nbAbsPath];
     },
     cleanup: () => {
-      for (const notebook of Object.values(notebooks)) {
-        if (notebook[kJatsSubarticle]) {
-          const subarticle = notebook[kJatsSubarticle];
-          // Remove the subarticle
-          safeRemoveIfExists(subarticle.path);
-        }
-      }
+      Object.keys(contributors).forEach((renderType) => {
+        contributor(renderType as RenderType).cleanup(Object.values(notebooks));
+      });
     },
   };
-}
-function jatsOutputFile(nbAbsPath: string) {
-  const [_dir, stem] = dirAndStem(nbAbsPath);
-  return `${stem}.subarticle.xml`;
-}
-
-async function renderJats(
-  nbPath: string,
-  subArticleToken: string,
-  outputFile: string,
-  services: RenderServices,
-  project?: ProjectContext,
-): Promise<RenderedFile> {
-  const rendered = await renderFiles(
-    [{ path: nbPath, formats: ["jats"] }],
-    {
-      services,
-      flags: {
-        metadata: {
-          [kTo]: "jats",
-          [kLintXml]: false,
-          [kJatsSubarticle]: true,
-          [kJatsSubarticleId]: subArticleToken,
-          [kOutputFile]: outputFile,
-          [kTemplate]: subarticleTemplatePath,
-          [kNotebookPreserveCells]: true,
-          [kNotebookPreserveCells]: true,
-          [kUnrollMarkdownCells]: false,
-        },
-        quiet: false,
-      },
-      echo: true,
-      warning: true,
-      quietPandoc: true,
-    },
-    [],
-    undefined,
-    project,
-  );
-
-  // An error occurred rendering this subarticle
-  if (rendered.error) {
-    error("Rendering of subarticle produced an unexpected result");
-    throw (rendered.error);
-  }
-
-  // There should be only one file
-  if (rendered.files.length !== 1) {
-    throw new InternalError(
-      `Rendering a JATS subarticle should only result in a single file. This attempt resulted in ${rendered.files.length} file(s).`,
-    );
-  }
-
-  return rendered.files[0];
 }
