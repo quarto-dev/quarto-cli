@@ -72,7 +72,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
             ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
 
@@ -86,6 +86,9 @@ jobs:
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
+          # Install dev versions for our testing 
+          renv::install("yihui/knitr")
+          renv::install("rstudio/rmarkdown")
         shell: Rscript {0}
         env:
           RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest

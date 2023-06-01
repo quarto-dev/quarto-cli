@@ -11,19 +11,26 @@ import { join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
+  FormatLanguage,
   FormatLink,
   NotebookPreviewDescriptor,
   PandocFlags,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
+  kArticleNotebookLabel,
   kClearHiddenClasses,
   kEcho,
   kFormatLinks,
   kKeepHidden,
+  kLanguageDefaults,
+  kManuscriptMecaBundle,
   kNotebookLinks,
+  kNotebookPreviewOptions,
   kNotebooks,
+  kOtherLinks,
   kOutputFile,
+  kQuartoInternal,
   kRemoveHidden,
   kResources,
   kToc,
@@ -33,7 +40,6 @@ import { projectOutputDir } from "../../project-shared.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
   PandocOptions,
-  RenderFile,
   RenderFlags,
   RenderResult,
   RenderServices,
@@ -55,18 +61,18 @@ import {
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
-import { info } from "log/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
-import { manuscriptRenderer } from "./manuscript-renderer.ts";
 import { articleFile, isArticle } from "./manuscript-config.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 
-// TODO: Localize
-const kMecaFileLabel = "MECA Archive";
-const kDocumentNotebookLabel = "Article Notebook";
+import {
+  JatsRenderSubArticle,
+  kSubArticles,
+} from "../../../format/jats/format-jats-types.ts";
+import { logProgress } from "../../../core/log.ts";
+import { formatLanguage } from "../../../core/language.ts";
 
 const kMecaIcon = "archive";
-
 const kOutputDir = "_manuscript";
 
 // Manscript projects are a multi file project that is composed into:
@@ -82,10 +88,11 @@ const kOutputDir = "_manuscript";
 
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
+  libDir: "site_libs",
   config: async (
     projectDir: string,
     config: ProjectConfig,
-    _flags?: RenderFlags,
+    flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
     const manuscriptConfig =
       (config[kManuscriptType] || {}) as ManuscriptConfig;
@@ -103,9 +110,29 @@ export const manuscriptProjectType: ProjectType = {
       }
     }
 
+    // resolve language
+    const language = await formatLanguage(
+      config,
+      config[kLanguageDefaults] as FormatLanguage,
+      flags,
+    );
+
     // Ensure the article is the last file in the render list
     const inputs = projectInputFiles(projectDir, config);
     const article = articleFile(projectDir, manuscriptConfig);
+    config.project.render = [article];
+
+    // Determine the notebooks that are being declared explicitly in
+    // in the manuscript configuration
+    const notebooks: NotebookPreviewDescriptor[] = [];
+    if (manuscriptConfig.notebooks !== undefined) {
+      const specifiedNotebooks = Array.isArray(manuscriptConfig.notebooks)
+        ? manuscriptConfig.notebooks
+        : [manuscriptConfig.notebooks];
+      notebooks.push(...resolveNotebookDescriptors(specifiedNotebooks));
+    }
+
+    // Go through project inputs and use any of these as notebooks
     const inputNotebooks = inputs.files.map((input) => {
       return relative(projectDir, input);
     }).filter((file) => {
@@ -120,30 +147,35 @@ export const manuscriptProjectType: ProjectType = {
       }
       return true;
     });
-    const renderList = [...inputNotebooks, article];
-    config.project.render = renderList;
-
-    // Compute the notebooks
-    const notebooks: NotebookPreviewDescriptor[] = [];
-    if (manuscriptConfig.notebooks !== undefined) {
-      const specifiedNotebooks = Array.isArray(manuscriptConfig.notebooks)
-        ? manuscriptConfig.notebooks
-        : [manuscriptConfig.notebooks];
-      notebooks.push(...resolveNotebookDescriptors(specifiedNotebooks));
-    }
     if (inputNotebooks) {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
 
+    let count = 0;
+    const jatsNotebooks = notebooks.map((notebookDesc) => {
+      return {
+        input: join(projectDir, notebookDesc.notebook),
+        token: `nb-${++count}`,
+        render: true,
+      } as JatsRenderSubArticle;
+    });
+
     // If there are computations in the main article, the add
     // it as a notebook to be rendered with computations intact
-    // TODO: add an options for this
     if (await hasComputations(join(projectDir, article))) {
       notebooks.unshift({
         notebook: article,
-        title: kDocumentNotebookLabel,
+        title: language[kArticleNotebookLabel],
+      });
+      jatsNotebooks.unshift({
+        input: join(projectDir, article),
+        token: `nb-article`,
+        render: true,
       });
     }
+    config[kQuartoInternal] = {
+      [kSubArticles]: jatsNotebooks,
+    };
 
     // Process any environment files
     const userConfig = manuscriptConfig[kEnvironmentFiles] as
@@ -171,6 +203,10 @@ export const manuscriptProjectType: ProjectType = {
     // Disable echo, by default
     config[kEcho] = false;
     config[kWarning] = false;
+
+    // By default, notebook previews enable the back button
+    const previewOptions = { back: true };
+    config[kNotebookPreviewOptions] = previewOptions;
 
     return config;
   },
@@ -228,27 +264,6 @@ export const manuscriptProjectType: ProjectType = {
       );
     }
   },
-  formatsForFile: (
-    formats: string[],
-    file: RenderFile,
-    project?: ProjectContext,
-  ): string[] => {
-    if (project && project.config) {
-      const manuscriptConfig = project
-        .config[kManuscriptType] as ResolvedManuscriptConfig;
-      if (isArticle(file.path, project, manuscriptConfig)) {
-        return formats;
-      } else {
-        // For notebooks, ignore them in the render list unless
-        // the format is JATS
-        //
-        // For HTML, the HTML format will take care of rendering.
-        // For all other formats, we don't need a copy
-        return ["jats"];
-      }
-    }
-    return formats;
-  },
   filterFormat: (
     source: string,
     format: Format,
@@ -258,94 +273,83 @@ export const manuscriptProjectType: ProjectType = {
       const manuscriptConfig = project.config
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
 
-      // Configure the root article of the manuscript
-      if (isArticle(source, project, manuscriptConfig)) {
-        const formats = project.config?.format
-          ? Object.keys(project.config?.format)
-          : [];
+      const formats = project.config?.format
+        ? Object.keys(project.config?.format)
+        : [];
 
-        if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
-          // Add an alternate link to a MECA bundle
-          if (format.render[kFormatLinks] !== false) {
-            const links: Array<string | FormatLink> = [];
-            if (typeof (format.render[kFormatLinks]) !== "boolean") {
-              links.push(...format.render[kFormatLinks] || []);
-            }
-            links.push({
-              title: kMecaFileLabel,
-              href: mecaFileName(source, manuscriptConfig),
-              icon: kMecaIcon,
-              attr: { "data-meca-link": "true" },
-              order: 1000,
-            });
-            format.render[kFormatLinks] = links;
+      if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
+        // Add an alternate link to a MECA bundle
+        if (format.render[kFormatLinks] !== false) {
+          const links: Array<string | FormatLink> = [];
+          if (typeof (format.render[kFormatLinks]) !== "boolean") {
+            links.push(...format.render[kFormatLinks] || []);
           }
+          links.push({
+            title: format.language[kManuscriptMecaBundle] || "MECA Bundle",
+            href: mecaFileName(source, manuscriptConfig),
+            icon: kMecaIcon,
+            attr: { "data-meca-link": "true" },
+            order: 1000,
+          });
+          format.render[kFormatLinks] = links;
         }
-
-        // Enable google scholar, by default
-        if (format.metadata[kGoogleScholar] !== false) {
-          format.metadata[kGoogleScholar] = true;
-        }
-
-        // Enable the TOC for HTML output
-        if (isHtmlOutput(format.pandoc, true)) {
-          if (format.pandoc[kToc] !== false) {
-            format.pandoc[kToc] = true;
-          }
-
-          if (format.pandoc[kOutputFile] === undefined) {
-            // If this is HTML version of article make sure it
-            // is targeting index.html as its output
-            format.pandoc[kOutputFile] = "index.html";
-          }
-        }
-
-        // Implement manuscript echo handling using
-        // keep hidden (echo the code and remove hidden code)
-        const userEcho = format.execute.echo;
-        const userWarning = format.execute.warning;
-
-        const clearVal: string[] = [];
-        const removeVal: string[] = [];
-
-        // If the user enables echo, just remove the hidden classes
-        // If the user doesn't enable echo, just remove the hidden output
-        format.execute.echo = false;
-        format.execute.warning = false;
-        format.render[kKeepHidden] = true;
-
-        if (userEcho === true) {
-          clearVal.push("code");
-        } else {
-          removeVal.push("code");
-        }
-
-        if (userWarning === true) {
-          clearVal.push("warning");
-        } else {
-          removeVal.push("warning");
-        }
-
-        const resolveValue = (vals: string[]) => {
-          if (vals.length === 0) {
-            return "none";
-          } else if (vals.length === 1) {
-            return vals[0];
-          } else {
-            return "all";
-          }
-        };
-        format.metadata[kClearHiddenClasses] = resolveValue(clearVal);
-        format.metadata[kRemoveHidden] = resolveValue(removeVal);
-      } else {
-        // For non-article elements of this project, enable echo
-        format.execute.echo = false;
-        format.execute.warning = false;
-        format.render[kKeepHidden] = true;
-        format.metadata[kClearHiddenClasses] = "all";
-        format.metadata[kRemoveHidden] = "none";
       }
 
+      // Enable google scholar, by default
+      if (format.metadata[kGoogleScholar] !== false) {
+        format.metadata[kGoogleScholar] = true;
+      }
+
+      // Enable the TOC for HTML output
+      if (isHtmlOutput(format.pandoc, true)) {
+        if (format.pandoc[kToc] !== false) {
+          format.pandoc[kToc] = true;
+        }
+
+        if (format.pandoc[kOutputFile] === undefined) {
+          // If this is HTML version of article make sure it
+          // is targeting index.html as its output
+          format.pandoc[kOutputFile] = "index.html";
+        }
+      }
+
+      // Implement manuscript echo handling using
+      // keep hidden (echo the code and remove hidden code)
+      const userEcho = format.execute.echo;
+      const userWarning = format.execute.warning;
+
+      const clearVal: string[] = [];
+      const removeVal: string[] = [];
+
+      // If the user enables echo, just remove the hidden classes
+      // If the user doesn't enable echo, just remove the hidden output
+      format.execute.echo = false;
+      format.execute.warning = false;
+      format.render[kKeepHidden] = true;
+
+      if (userEcho === true) {
+        clearVal.push("code");
+      } else {
+        removeVal.push("code");
+      }
+
+      if (userWarning === true) {
+        clearVal.push("warning");
+      } else {
+        removeVal.push("warning");
+      }
+
+      const resolveValue = (vals: string[]) => {
+        if (vals.length === 0) {
+          return "none";
+        } else if (vals.length === 1) {
+          return vals[0];
+        } else {
+          return "all";
+        }
+      };
+      format.metadata[kClearHiddenClasses] = resolveValue(clearVal);
+      format.metadata[kRemoveHidden] = resolveValue(removeVal);
       return format;
     } else {
       throw new InternalError(
@@ -361,46 +365,58 @@ export const manuscriptProjectType: ProjectType = {
     _format: Format,
     _services: RenderServices,
   ): Promise<FormatExtras> => {
-    // defaults for all formats
-    const extras: FormatExtras = {};
-
-    // If the user isn't explicitly providing a notebook list
-    // then automatically create notebooks for the other items in
-    // the project
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
-    if (manuscriptConfig.article !== undefined) {
-      // For the root article, add the discovered notebooks to
-      // to the list of notebooks to show
-      if (isArticle(source, context, manuscriptConfig)) {
-        const outputNbs: NotebookPreviewDescriptor[] = [];
-        const notebooks = manuscriptConfig.notebooks || [];
-        for (const notebook of notebooks) {
-          // Use the input to create a title for the notebook
-          // if needed
-          const createTitle = async () => {
-            const target = await resolveInputTarget(
-              context,
-              relative(context.dir, notebook.notebook),
-              false,
-            );
-            if (target) {
-              return target.title;
-            }
-          };
 
-          outputNbs.push({
-            ...notebook,
-            title: notebook.title || await createTitle(),
-          });
+    // defaults for all formats
+    const extras: FormatExtras = {};
+    extras.metadata = {};
+
+    // TODO: only do all this for the main article
+    if (isArticle(source, context, manuscriptConfig)) {
+      // Add the github repo as a metadata link
+      // TODO: Place this in metadata so it is available to filter params?
+      const ghContext = await gitHubContext(context.dir);
+      if (ghContext) {
+        const repoUrl = ghContext.repoUrl;
+        if (repoUrl) {
+          extras.metadata[kOtherLinks] = [{
+            icon: "github",
+            title: "GitHub Repo",
+            href: repoUrl,
+          }];
         }
-        extras[kNotebooks] = outputNbs;
       }
+
+      // If the user isn't explicitly providing a notebook list
+      // then automatically create notebooks for the other items in
+      // the project
+      const outputNbs: NotebookPreviewDescriptor[] = [];
+      const notebooks = manuscriptConfig.notebooks || [];
+      for (const notebook of notebooks) {
+        // Use the input to create a title for the notebook
+        // if needed
+        const createTitle = async () => {
+          const target = await resolveInputTarget(
+            context,
+            relative(context.dir, notebook.notebook),
+            false,
+          );
+          if (target) {
+            return target.title;
+          }
+        };
+
+        outputNbs.push({
+          ...notebook,
+          title: notebook.title || await createTitle(),
+        });
+      }
+      extras[kNotebooks] = outputNbs;
     }
 
     return Promise.resolve(extras);
   },
-  pandocRenderer: manuscriptRenderer,
   previewSkipUnmodified: false,
   renderResultFinalOutput: (
     renderResults: RenderResult,
@@ -427,7 +443,9 @@ export const manuscriptProjectType: ProjectType = {
         manuscriptConfig,
       )
     ) {
-      info(`Creating ${kMecaFileLabel}...`);
+      const language = outputFiles[0].format.language;
+
+      logProgress(`\nCreating ${language[kManuscriptMecaBundle]}`);
       const mecaFileName = manuscriptConfig.mecaFile;
       const mecaBundle = await createMecaBundle(
         mecaFileName,

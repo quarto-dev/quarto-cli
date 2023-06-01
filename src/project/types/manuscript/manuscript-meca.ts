@@ -27,6 +27,7 @@ import {
 import { Format } from "../../../config/types.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
+import { info } from "log/mod.ts";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
@@ -112,7 +113,7 @@ export const createMecaBundle = async (
     if (isJatsOutput(outputFile.format.pandoc)) {
       const input = await inputFileForOutputFile(context, outputFile.file);
       if (input) {
-        if (input.file === manuscriptConfig.article) {
+        if (relative(context.dir, input.file) === manuscriptConfig.article) {
           jatsArticle = outputFile;
           break;
         }
@@ -253,6 +254,7 @@ export const createMecaBundle = async (
     ];
 
     // Compress the working directory in a zip
+    info(`Bundling ${filesToZip.length} files\n`);
     const zipResult = await zip(filesToZip, mecaFile, {
       cwd: workingDir,
     });

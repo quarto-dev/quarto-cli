@@ -103,6 +103,9 @@ else
     fi
   fi
 
+  # release vendored import map
+  QUARTO_IMPORT_ARGMAP=--importmap="$SCRIPT_PATH/vendor/import_map.json"
+
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     if [ "$QUARTO_FORCE_VERSION" != "" ]; then
       echo $QUARTO_FORCE_VERSION

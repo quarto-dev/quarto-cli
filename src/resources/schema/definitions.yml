@@ -760,6 +760,10 @@
                 copy-button:
                   schema: boolean
                   description: "Provide button for copying search link"
+                keyboard-shortcut:
+                  maybeArrayOf:
+                    string:
+                      description: "One or more keys that will act as a shortcut to launch search (single characters)"
                 algolia:
                   object:
                     properties:

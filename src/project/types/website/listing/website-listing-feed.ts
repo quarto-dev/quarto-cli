@@ -1,9 +1,8 @@
 /*
-* website-listing-feed.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-listing-feed.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
@@ -532,7 +531,7 @@ function prepareItems(items: ListingItem[], options: ListingFeedOptions) {
     return bTimestamp - aTimestamp;
   });
 
-  const itemCount = (options[kItems] || kDefaultItems);
+  const itemCount = options[kItems] || kDefaultItems;
   if (sortedItems.length > itemCount) {
     return sortedItems.slice(0, itemCount);
   } else {
@@ -557,6 +556,7 @@ function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
   linkEl.setAttribute("type", "application/rss+xml");
   linkEl.setAttribute("title", feed.title);
   linkEl.setAttribute("href", path);
+  linkEl.setAttribute("data-external", "1");
   doc.head.appendChild(linkEl);
 }
 

@@ -1,0 +1,26 @@
+---
+title: Foo
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["iframe"]
+---
+
+```{=html}
+<table>
+  <caption><span data-qmd="As described in @Lovelace1864, computers are great."></span></caption>
+  <thead>
+    <tr>
+      <th><span data-qmd="_Header 1_"></span></th>
+      <th><span data-qmd="_Header 2_"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span data-qmd="{{< video https://www.youtube.com/embed/wo9vZccmqwc >}}"></span></td>
+      <td>Regular output</td>
+    </tr>
+  </tbody>
+</table>
+```

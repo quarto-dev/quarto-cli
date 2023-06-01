@@ -96,3 +96,14 @@
     enum: [document, notebook]
   hidden: true
   description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
+
+- name: notebook-preview-options
+  tags:
+    formats: [$html-doc]
+  schema:
+    object:
+      properties:
+        back:
+          boolean:
+            description: "Whether to show a back button in the notebook preview."
+  description: "Options for controlling the display and behavior of Notebook previews."

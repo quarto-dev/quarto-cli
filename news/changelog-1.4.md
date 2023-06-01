@@ -20,6 +20,8 @@
 - ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
+- ([#5700](https://github.com/quarto-dev/quarto-cli/issues/5700)): Don't show scrollbars on Windows when hovering over hover code annotations.
+- ([#5708](https://github.com/quarto-dev/quarto-cli/issues/5708)): Fix hang when viewing pages with specific query parameter
 
 ## RevealJS Format
 
@@ -34,7 +36,15 @@
 - ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a website project to provide a default image used in social metadata tags.
 - Add support for `navbar > toggle-position` to control whether the responsive navbar toggle appears on the right or the left.
 - ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
-- ([#5624](https://github.com/quarto-dev/quarto-cli/issues/56562404)): Add support for localized Cookie Consent (using either the document's language or by specifying the language explicitly under the cookie consent key).
+- ([#5624](https://github.com/quarto-dev/quarto-cli/issues/5624)): Add support for localized Cookie Consent (using either the document's language or by specifying the language explicitly under the cookie consent key).
+- ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756)): Add `rel="..."` resolution to navbar tools.
+- ([#5763](https://github.com/quarto-dev/quarto-cli/issues/5763)): Add support for a keyboard shortcut to launch search (defaults to `f` or `/`). Use `search` > `keyboard-shortcut` to override with your own key(s).
+
+## Preview
+
+- Display render output/progress for previews that take longer than 2 seconds
+- Ability to cancel an executing preview from within the progress UI
+- Automatically render missing formats (e.g. PDF, MS Word) on the fly
 
 ## Miscellaneous
 
@@ -54,6 +64,7 @@
 ## OJS engine
 
 - Update observablehq's runtime to version 5.6.0.
+- [#5215](https://github.com/quarto-dev/quarto-cli/issues/5215): Report CORS requests as plain text when serving single-file previews.
 
 ## Mermaid diagrams
 

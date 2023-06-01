@@ -54,6 +54,12 @@ $navbar-menu-order: if($navbar-toggle-position == "left", 20, 20) !default;
   min-height: calc(100vh - 132px);
 }
 
+body.hypothesis-enabled {
+  #quarto-header {
+    margin-right: 16px;
+  }
+}
+
 footer.footer .nav-footer,
 #quarto-header > nav {
   padding-left: 1em;

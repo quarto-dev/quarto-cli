@@ -1,12 +1,10 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { PdfEngine } from "../../../config/types.ts";
 
-export const kLatexHeaderMessageOptions = { bold: true };
 export const kLatexBodyMessageOptions = { indent: 2 };
 
 // latexmk options

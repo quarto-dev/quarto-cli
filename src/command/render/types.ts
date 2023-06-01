@@ -33,6 +33,7 @@ export interface RenderOptions {
   setProjectDir?: boolean;
   echo?: boolean;
   warning?: boolean;
+  quietPandoc?: boolean;
 }
 
 export interface RenderServices {

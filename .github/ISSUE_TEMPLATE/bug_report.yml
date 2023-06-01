@@ -6,37 +6,81 @@ body:
   - type: markdown
     attributes:
       value: |
-        Welcome to the quarto GitHub repo.
+        Welcome to the quarto GitHub repository!
 
         We are always happy to hear feedback from our users.
 
-        Quarto is under active development! If convenient, we'd appreciate if you could check that the issue persists on the [latest nightly release](https://github.com/quarto-dev/quarto-cli/releases).
+        Quarto is under active development!
+        If convenient, we'd appreciate if you could check that the issue persists on the [latest pre-release](https://github.com/quarto-dev/quarto-cli/releases).
 
-        Finally, so that we can get the most out of your bug report, consider reading [this webpage](https://quarto.org/bug-reports.html) on improving bug reports.
+        Finally, so that we can get the most out of your bug report, consider reading our ["Bug Reports" guide](https://quarto.org/bug-reports.html).
+
+        If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
+        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
 
         Thank you for using Quarto!
 
   - type: textarea
     attributes:
       label: Bug description
-      description: Please describe the bug.
-      placeholder: |
-        You can include markdown code blocks which includes code blocks like this:
+      description: Description of the bug.
+      placeholder: Please describe the bug here.
 
-        ````md
-        ```py
-        print("Hello Quarto!")
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Tell us how to reproduce this bug.  
+        Please include a minimal, fully reproducible example as a self-contained Quarto document or a link to a Git repository.
+      placeholder: |
+        You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
+
+        ````qmd
+        ---
+        title: "Reproducible Quarto Document"
+        format: html
+        ---
+
+        This is a reproducible Quarto document using `format: html`.
+        It is written in Markdown and contains embedded R code.
+        When you run the code, it will produce a plot.
+
+        ```{r}
+        plot(cars)
         ```
+
+        The end.
         ````
 
-  - type: checkboxes
+  - type: textarea
     attributes:
-      label: Checklist
+      label: Expected behavior
+      description: Tell us what should happen.
+
+  - type: textarea
+    attributes:
+      label: Actual behavior
+      description: Tell us what happens instead.
+
+  - type: textarea
+    attributes:
+      label: Your environment
       description: |
-        When filing a bug report, if possible, please keep the following in mind so we have as much info as possible:
-      options:
-        - label: Please include a minimal, fully reproducible example in a single .qmd file? Please provide the whole file rather than the snippet you believe is causing the issue.
-        - label: "Please [format your issue](https://quarto.org/bug-reports.html#formatting-make-githubs-markdown-work-for-us) so it is easier for us to read the bug report."
-        - label: Please document the RStudio IDE version you're running (if applicable), by providing the value displayed in the "About RStudio" main menu dialog?
-        - label: Please document the operating system you're running. If on Linux, please provide the specific distribution.
-        - label: Please provide the output of `quarto check` so we know which version of quarto and its dependencies you're running.
+        Please document the IDE (_e.g._ RStudio, VSCode, NVim), its version, and the operating system you're running (_e.g., MacOS Ventura 13.4, Windows 11, Linux Debian 11, _etc._).
+      placeholder: |
+        - IDE: RStudio 2023.03.1+446
+        - OS: MacOS Ventura 13.4
+
+  - type: textarea
+    attributes:
+      label: Quarto check output
+      description: |
+        Please provide the output of `quarto check` so we know which version of quarto and its dependencies you're running.
+      placeholder: |
+        ```bash
+        quarto check
+        ```
+  
+  - type: markdown
+    attributes:
+      value: "_Thanks for submitting this bug report!_"

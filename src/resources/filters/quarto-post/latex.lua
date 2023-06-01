@@ -130,10 +130,7 @@ function render_latex()
       local type = node.type
       local calloutAppearance = node.appearance
       local icon = node.icon
-
-      quarto.utils.dump(node)
-      
-    
+  
       -- Discover notes in the callout and pull the contents out
       -- replacing with a footnote mark. This is required because
       -- if the footnote stays in the callout, the footnote text

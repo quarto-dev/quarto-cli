@@ -40,10 +40,15 @@ export const kFormatResources = "format-resources";
 
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
+export const kOtherLinks = "other-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
+export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kDownloadUrl = "download-url";
+
+export const kNotebookPreviewOptions = "notebook-preview-options";
+export const kNotebookPreviewOptionBack = "back";
 
 export const kKeepHidden = "keep-hidden";
 export const kRemoveHidden = "remove-hidden";
@@ -191,6 +196,7 @@ export const kRenderDefaultsKeys = [
   kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
+  kNotebookPreserveCells,
 ];
 
 // language fields
@@ -198,6 +204,7 @@ export const kTocTitleDocument = "toc-title-document";
 export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
+export const kOtherLinksTitle = "other-links-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-title";
 export const kCalloutNoteCaption = "callout-note-title";
@@ -302,11 +309,16 @@ export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
+export const kNotebookPreviewDownload = "notebook-preview-download";
+export const kNotebookPreviewBack = "notebook-preview-back";
+export const kArticleNotebookLabel = "article-notebook-label";
+export const kManuscriptMecaBundle = "manuscript-meca-bundle";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
   kTocTitleWebsite,
   kRelatedFormatsTitle,
+  kOtherLinksTitle,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
   kCalloutTipCaption,
@@ -411,6 +423,10 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAffiliationPlural,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kNotebookPreviewDownload,
+  kNotebookPreviewBack,
+  kArticleNotebookLabel,
+  kManuscriptMecaBundle,
 ];
 
 // 'defaults' fields

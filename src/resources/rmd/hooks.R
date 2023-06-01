@@ -261,7 +261,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # forward any other unknown attributes
-    knitr_default_opts <- names(knitr::opts_chunk$get())
+    knitr_default_opts <- unique(c(names(knitr:::opts_chunk_attr), names(knitr::opts_chunk$get())))
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
                      "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", 
@@ -273,8 +273,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
                     "fenced.echo", "chunk.echo", "lang",
                     "out.width.px", "out.height.px", "indent", "class.source", 
                     "class.output", "class.message", "class.warning", "class.error", "attr.source", 
-                    "attr.output", "attr.message", "attr.warning", "attr.error", "connection",
-                    "fig.asp")
+                    "attr.output", "attr.message", "attr.warning", "attr.error", "connection")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)

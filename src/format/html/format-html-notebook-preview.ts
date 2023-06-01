@@ -9,8 +9,11 @@ import { asArray } from "../../core/array.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
-  kClearHiddenClasses,
   kDownloadUrl,
+  kNotebookPreserveCells,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
+  kNotebookPreviewOptions,
   kNotebookViewStyle,
   kOutputFile,
   kTemplate,
@@ -36,12 +39,14 @@ import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
 import { logProgress } from "../../core/log.ts";
+import { readBaseInputIndex } from "../../project/project-index.ts";
 
 export interface NotebookPreview {
   title: string;
   href: string;
   filename?: string;
   supporting?: string[];
+  resources?: string[];
 }
 
 export interface NotebookPreviewTask {
@@ -53,11 +58,16 @@ export interface NotebookPreviewTask {
 }
 
 interface NotebookPreviewOptions {
+  back?: boolean;
+}
+
+interface NotebookPreviewConfig {
   title: string;
   url?: string;
   previewFileName: string;
   downloadUrl?: string;
   downloadFileName?: string;
+  backHref?: string;
 }
 
 export const notebookPreviewer = (
@@ -98,8 +108,11 @@ export const notebookPreviewer = (
     previewQueue.push({ input, nbPath, title, nbPreviewFile, callback });
   };
 
-  const renderPreviews = async () => {
+  const renderPreviews = async (output?: string) => {
     const rendered: Record<string, NotebookPreview> = {};
+
+    const nbOptions = format
+      .metadata[kNotebookPreviewOptions] as NotebookPreviewOptions;
 
     // Render each notebook only once (so filter by
     // notebook path to consolidate the list)
@@ -112,7 +125,7 @@ export const notebookPreviewer = (
 
     const total = uniqueWork.length;
     if (total > 0) {
-      logProgress(`\nRendering notebook previews`);
+      logProgress(`Rendering notebooks`);
     }
     for (let i = 0; i < total; i++) {
       const work = uniqueWork[i];
@@ -129,6 +142,7 @@ export const notebookPreviewer = (
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
 
         const supporting: string[] = [];
+        const resources: string[] = [];
         const nbRelPath = relative(inputDir, nbAbsPath);
         logProgress(`[${i + 1}/${total}] ${nbRelPath}`);
 
@@ -153,15 +167,31 @@ export const notebookPreviewer = (
           supporting.push(...outputNb.supporting);
         }
 
+        // Make sure that we have a resolved title
+        const resolveTitle = async () => {
+          let resolvedTitle = descriptor?.title || title;
+          if (!resolvedTitle && project) {
+            const inputIndex = await readBaseInputIndex(nbPath, project);
+            if (inputIndex) {
+              resolvedTitle = inputIndex.title;
+            }
+          }
+          return resolvedTitle || basename(nbPath);
+        };
+
+        const backHref = nbOptions && nbOptions.back && output
+          ? relative(dirname(nbAbsPath), output)
+          : undefined;
         const htmlPreview = await renderHtmlView(
           inputDir,
           nbAbsPath,
           {
-            title: descriptor?.title || title || basename(nbPath),
+            title: await resolveTitle(),
             previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
             url: descriptor?.url,
             downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
             downloadFileName,
+            backHref,
           },
           format,
           services,
@@ -171,11 +201,15 @@ export const notebookPreviewer = (
         if (htmlPreview.supporting) {
           supporting.push(...htmlPreview.supporting);
         }
+        if (htmlPreview.resources) {
+          resources.push(...htmlPreview.resources);
+        }
 
         const nbPreview = {
           title: htmlPreview.title,
           href: htmlPreview.href,
           supporting,
+          resources,
         };
         rendered[work.nbPath] = nbPreview;
         if (work.callback) {
@@ -223,12 +257,12 @@ async function renderOutputNotebook(
         metadata: {
           [kTo]: "ipynb",
           [kOutputFile]: outputFileName,
-          [kClearHiddenClasses]: true,
         },
         quiet,
       },
       echo: true,
       warning: true,
+      quietPandoc: true,
     },
     [],
     undefined,
@@ -260,23 +294,34 @@ async function renderOutputNotebook(
 async function renderHtmlView(
   inputDir: string,
   nbAbsPath: string,
-  options: NotebookPreviewOptions,
+  previewConfig: NotebookPreviewConfig,
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
   quiet?: boolean,
 ): Promise<NotebookPreview> {
   // Compute the preview title
-  if (options.url === undefined) {
+  if (previewConfig.url === undefined) {
+    // Create a link back to the input
+    const href = previewConfig.backHref;
+    const label = format.language[kNotebookPreviewBack];
+
     // Use the special `embed` template for this render
     const embedHtmlEjs = formatResourcePath(
       "html",
       join("embed", "template.ejs.html"),
     );
     const embedTemplate = renderEjs(embedHtmlEjs, {
-      title: options.title,
-      path: options.downloadUrl || basename(nbAbsPath),
-      filename: options.downloadFileName || basename(nbAbsPath),
+      title: previewConfig.title,
+      path: previewConfig.downloadUrl || basename(nbAbsPath),
+      filename: previewConfig.downloadFileName || basename(nbAbsPath),
+      backOptions: {
+        href,
+        label,
+      },
+      downloadOptions: {
+        label: format.language[kNotebookPreviewDownload],
+      },
     });
     const templatePath = services.temp.createFile({ suffix: ".html" });
     Deno.writeTextFileSync(templatePath, embedTemplate);
@@ -290,16 +335,17 @@ async function renderHtmlView(
           metadata: {
             [kTo]: "html",
             [kTheme]: format.metadata[kTheme],
-            [kOutputFile]: options.previewFileName,
+            [kOutputFile]: previewConfig.previewFileName,
             [kTemplate]: templatePath,
             [kNotebookViewStyle]: kNotebookViewStyleNotebook,
             [kAppendixStyle]: "none",
-            [kClearHiddenClasses]: true,
+            [kNotebookPreserveCells]: true,
           },
           quiet,
         },
         echo: true,
         warning: true,
+        quietPandoc: true,
       },
       [],
       undefined,
@@ -311,28 +357,37 @@ async function renderHtmlView(
       });
     }
 
+    const nbDir = dirname(nbAbsPath);
     const supporting = [];
+    const resources = [];
     for (const renderedFile of rendered.files) {
       supporting.push(join(inputDir, renderedFile.file));
       if (renderedFile.supporting) {
         supporting.push(...renderedFile.supporting.map((file) => {
-          return isAbsolute(file) ? file : join(inputDir, file);
+          return isAbsolute(file) ? file : join(nbDir, file);
+        }));
+      }
+
+      if (renderedFile.resourceFiles) {
+        resources.push(...renderedFile.resourceFiles.files.map((file) => {
+          return isAbsolute(file) ? file : join(nbDir, file);
         }));
       }
     }
 
     const nbRelPath = relative(inputDir, nbAbsPath);
     return {
-      title: options.title,
+      title: previewConfig.title,
       href: pathWithForwardSlashes(
-        join(dirname(nbRelPath), options.previewFileName),
+        join(dirname(nbRelPath), previewConfig.previewFileName),
       ),
       supporting,
+      resources,
     };
   } else {
     return {
-      title: options.title,
-      href: options.url,
+      title: previewConfig.title,
+      href: previewConfig.url,
     };
   }
 }

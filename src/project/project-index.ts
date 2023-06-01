@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -58,12 +58,6 @@ export async function inputTargetIndex(
     return Promise.resolve(undefined);
   }
 
-  // check if this can be handled by one of our engines
-  const engine = fileExecutionEngine(inputFile);
-  if (engine === undefined) {
-    return Promise.resolve(undefined);
-  }
-
   // see if we have an up to date index file (but not for notebooks
   // as they could have ipynb-filters that vary based on config)
   const { index: targetIndex } = readInputTargetIndex(
@@ -71,8 +65,28 @@ export async function inputTargetIndex(
     input,
   );
 
+  // There is already a targetIndex entry, just use that
   if (targetIndex) {
     return targetIndex;
+  }
+
+  // Create an index entry for the input
+  const index = await readBaseInputIndex(inputFile, project);
+  if (index) {
+    const indexFile = inputTargetIndexFile(project.dir, input);
+    Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+  }
+  return index;
+}
+
+export async function readBaseInputIndex(
+  inputFile: string,
+  project: ProjectContext,
+) {
+  // check if this can be handled by one of our engines
+  const engine = fileExecutionEngine(inputFile);
+  if (engine === undefined) {
+    return Promise.resolve(undefined);
   }
 
   // otherwise read the metadata and index it
@@ -97,11 +111,10 @@ export async function inputTargetIndex(
     index.title = index.markdown.headingText;
   }
 
-  const indexFile = inputTargetIndexFile(project.dir, input);
   if (project.config) {
     index.projectFormats = formatKeys(project.config);
   }
-  Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+
   return index;
 }
 
@@ -253,7 +266,7 @@ export async function inputFileForOutputFile(
   const outputDir = projectOutputDir(project);
 
   // full path to output (it's relative to output dir)
-  output = join(outputDir, output);
+  output = isAbsolute(output) ? output : join(outputDir, output);
 
   if (project.outputNameIndex !== undefined) {
     return project.outputNameIndex.get(output);

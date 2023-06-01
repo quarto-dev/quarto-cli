@@ -20,7 +20,7 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename } from "path/mod.ts";
+import { basename, relative } from "path/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   NotebookPreview,
@@ -96,6 +96,7 @@ export async function emplaceNotebookPreviews(
   services: RenderServices,
   project?: ProjectContext,
   quiet?: boolean,
+  output?: string,
 ) {
   // The notebook view configuration data
   const notebookView = format.render[kNotebookView] ?? true;
@@ -207,7 +208,7 @@ export async function emplaceNotebookPreviews(
     }
 
     // Render the notebook previews
-    const previews = await previewer.renderPreviews();
+    const previews = await previewer.renderPreviews(output);
 
     // Emit global links to the notebooks
     const previewNotebooks = Object.values(previews);
@@ -266,6 +267,12 @@ export async function emplaceNotebookPreviews(
       // include it in the supporting dir
       if (nbPath.supporting) {
         supporting.push(...nbPath.supporting);
+      }
+
+      if (nbPath.resources) {
+        resources.push(...nbPath.resources.map((file) => {
+          return project ? relative(project?.dir, file) : file;
+        }));
       }
 
       // This is the notebook itself

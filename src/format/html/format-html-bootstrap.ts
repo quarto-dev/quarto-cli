@@ -21,6 +21,8 @@ import {
   kIncludeInHeader,
   kLinkCitations,
   kNotebookLinks,
+  kOtherLinks,
+  kOtherLinksTitle,
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kSectionDivs,
@@ -352,6 +354,9 @@ function bootstrapHtmlPostprocessor(
 
     // Look for included / embedded notebooks and include those
     if (format.render[kNotebookLinks] !== false) {
+      const renderedHtml = options.renderedFormats.find((renderedFormat) => {
+        return isHtmlOutput(renderedFormat.format.pandoc, true);
+      });
       const notebookResults = await emplaceNotebookPreviews(
         input,
         doc,
@@ -359,11 +364,16 @@ function bootstrapHtmlPostprocessor(
         services,
         project,
         options.quiet,
+        renderedHtml?.path,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
         supporting.push(...notebookResults.supporting);
       }
+    }
+
+    if (format.metadata[kOtherLinks]) {
+      processOtherLinks(doc, format);
     }
 
     // default treatment for computational tables
@@ -503,6 +513,75 @@ const fileBsIconForExt = (path: string) => {
   }
 };
 
+function createLinkLi(formatLink: AlternateLink, doc: Document) {
+  const li = doc.createElement("li");
+
+  const link = doc.createElement("a");
+  link.setAttribute("href", formatLink.href);
+  if (formatLink.attr) {
+    for (const key of Object.keys(formatLink.attr)) {
+      const value = formatLink.attr[key];
+      link.setAttribute(key, value);
+    }
+  }
+
+  if (formatLink.dlAttrValue) {
+    link.setAttribute("download", formatLink.dlAttrValue);
+  }
+
+  const icon = doc.createElement("i");
+  icon.classList.add("bi");
+  icon.classList.add(`bi-${formatLink.icon}`);
+  link.appendChild(icon);
+  link.appendChild(doc.createTextNode(formatLink.title));
+
+  li.appendChild(link);
+  return li;
+}
+
+function processOtherLinks(
+  doc: Document,
+  format: Format,
+) {
+  const otherLinks = format.metadata[kOtherLinks] as FormatLink[];
+  const dlLinkTarget = getLinkTarget(doc);
+  if (otherLinks && otherLinks.length > 0 && dlLinkTarget) {
+    const containerEl = doc.createElement("div");
+    containerEl.classList.add("quarto-other-links");
+
+    const heading = doc.createElement("h2");
+    if (format.language[kOtherLinksTitle]) {
+      heading.innerText = format.language[kOtherLinksTitle];
+    }
+    containerEl.appendChild(heading);
+
+    const linkList = doc.createElement("ul");
+    let order = 0;
+    for (const otherLink of otherLinks) {
+      const alternateLink: AlternateLink = {
+        icon: otherLink.icon || "link-45deg",
+        href: otherLink.href,
+        title: otherLink.title,
+        order: ++order,
+      };
+      const li = createLinkLi(alternateLink, doc);
+      linkList.appendChild(li);
+    }
+    containerEl.appendChild(linkList);
+    dlLinkTarget.appendChild(containerEl);
+  }
+}
+
+function getLinkTarget(doc: Document) {
+  let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+  if (dlLinkTarget === null) {
+    dlLinkTarget = doc.getElementById(kMarginSidebarId);
+  }
+  if (dlLinkTarget !== null) {
+    return dlLinkTarget;
+  }
+}
+
 function processAlternateFormatLinks(
   input: string,
   options: {
@@ -515,10 +594,7 @@ function processAlternateFormatLinks(
   resources: string[],
 ) {
   if (options.renderedFormats.length > 1) {
-    let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
-    if (dlLinkTarget === null) {
-      dlLinkTarget = doc.getElementById(kMarginSidebarId);
-    }
+    const dlLinkTarget = getLinkTarget(doc);
     if (dlLinkTarget) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-formats");
