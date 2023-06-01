@@ -159,9 +159,16 @@ def notebook_execute(options, status):
       # progress
       progress = (not quiet) and cell.cell_type == 'code' and index > 0
       if progress:
-         status("  Cell {0}/{1}...".format(
-            current_code_cell- 1, total_code_cells - 1
-         ))
+        # get label
+        label = ''
+        source_lines = cell.source.split('\n')
+        label_line = next((line for line in source_lines if line.startswith('#| label:')), None)
+        if label_line:
+            label = label_line.replace('#| label:', '').strip()
+
+        status("  Cell '{0}' {1}/{2}...".format(
+           label, current_code_cell- 1, total_code_cells - 1
+        ))
          
       # clear cell output
       cell = cell_clear_output(cell)
