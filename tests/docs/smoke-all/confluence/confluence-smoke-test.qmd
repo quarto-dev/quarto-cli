@@ -5,13 +5,12 @@ validate-yaml: false
 
 _quarto:
   tests:
-    html:
+    confluence-html:
       ensureHtmlElements:
         -
           - "#markdown-basics"
           - "#text-formatting"
           - "#tables"
-
 ---
 # Markdown Basics
 ## Text Formatting
