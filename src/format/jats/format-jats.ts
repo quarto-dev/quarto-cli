@@ -86,6 +86,9 @@ export function jatsFormat(displayName: string, ext: string): Format {
         );
       }
 
+      // Gather post process that we need
+      const postprocessors = [];
+
       const internalMetadata = format.metadata[kQuartoInternal] as
         | Metadata
         | undefined;
@@ -93,7 +96,6 @@ export function jatsFormat(displayName: string, ext: string): Format {
       // Share resources with external
       const afterBody: string[] = [];
       const subArticleResources: string[] = [];
-      const subArticlesToRender: JatsRenderSubArticle[] = [];
       if (internalMetadata && !format.metadata[kJatsSubarticle]) {
         const subArticles = (internalMetadata[
           kSubArticles
@@ -103,32 +105,30 @@ export function jatsFormat(displayName: string, ext: string): Format {
           const placeholderFile = services.temp.createFile({
             suffix: ".placeholder.xml",
           });
-
           const placeholders: string[] = [];
           subArticles.forEach((subArticle) => {
             // Inject a placeholder
-            placeholders.push(xmlPlaceholder(
+            const placeholder = xmlPlaceholder(
               subArticle.token,
               subArticle.input,
-            ));
-            subArticlesToRender.push(subArticle);
+            );
+            placeholders.push(placeholder);
           });
           Deno.writeTextFileSync(placeholderFile, placeholders.join("\n"));
           afterBody.push(placeholderFile);
-        }
-      }
-      const postprocessors = [];
 
-      // Render subarticles and place them in the root article in the correct position
-      if (subArticlesToRender.length > 0 && !format.metadata[kJatsSubarticle]) {
-        postprocessors.push(
-          renderSubarticlePostProcessor(
-            input,
-            subArticlesToRender,
-            services,
-            project,
-          ),
-        );
+          // Render subarticles and place them in the root article in the correct position
+          if (subArticles.length > 0 && !format.metadata[kJatsSubarticle]) {
+            postprocessors.push(
+              renderSubarticlePostProcessor(
+                input,
+                subArticles,
+                services,
+                project,
+              ),
+            );
+          }
+        }
       }
 
       // Lint the XML

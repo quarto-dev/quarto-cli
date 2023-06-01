@@ -159,6 +159,8 @@ async function renderJats(
           [kOutputFile]: outputFile,
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
+          [kNotebookPreserveCells]: true,
+          [kUnrollMarkdownCells]: false,
         },
         quiet: false,
       },

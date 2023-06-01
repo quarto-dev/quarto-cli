@@ -254,7 +254,6 @@ export const createMecaBundle = async (
     ];
 
     // Compress the working directory in a zip
-    info(`Bundling ${filesToZip.length} files\n`);
     const zipResult = await zip(filesToZip, mecaFile, {
       cwd: workingDir,
     });
