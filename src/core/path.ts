@@ -230,11 +230,11 @@ export function resolveGlobs(
       glob = glob.slice(1);
     }
 
-    // beginning with a '.' is redundant, remove
-    glob = glob.replace(/^\./, "");
-
     // ending w/ a slash means everything in the dir
     if (smartGlob) {
+      // beginning with a '.' is redundant, remove
+      glob = glob.replace(/^\.([\/\\])+/, "$1");
+
       if (glob.endsWith("/")) {
         glob = glob + "**/*";
       } else {

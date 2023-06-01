@@ -1,9 +1,8 @@
 /*
-* resources.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * resources.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join } from "path/mod.ts";
 import {
@@ -51,9 +50,7 @@ export async function resolveFileResources(
       ...excludeDirs,
     );
 
-  const resources = resolvePathGlobs(fileDir, globs, ignore, {
-    mode: "strict",
-  });
+  const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
