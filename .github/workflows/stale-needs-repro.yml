@@ -44,6 +44,6 @@ jobs:
 
             _Remove `stale` / `needs-repro` labels or this will be closed in 30 days._
           close-issue-message: |
-            This issue has been automatically closed because it has been open 60 days without providing a "working" reproducible example.
+            This issue has been automatically closed because it has been opened for some time without providing a "working" reproducible example that would help us investigate.
           days-before-stale: 14
           days-before-close: 14
