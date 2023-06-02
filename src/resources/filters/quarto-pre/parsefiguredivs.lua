@@ -4,12 +4,11 @@
 function parse_figure_divs_into_floats()
 
   local function parse_figure_div(div)
-    local identifier_parts = split(div.identifier, "-")
-    if identifier_parts == nil then
+    local key_prefix = refType(div.identifier)
+    if key_prefix == nil then
       fail("Figure div without crossref identifier?")
       return
     end
-    local key_prefix = identifier_parts[1]
     local category = crossref.categories.by_prefix[key_prefix]
     if category == nil then
       fail("Figure with invalid crossref category? " .. div.identifier)
