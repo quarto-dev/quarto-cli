@@ -127,6 +127,9 @@ function run_emulated_filter(doc, filter)
       -- it's ok, because Pandoc will wrap it in a Plain
       return process_custom_preamble(custom_data, t, kind, custom)
     end
+    if node.attributes.__quarto_custom_scaffold == "true" then
+      return nil
+    end
     if filter.Div ~= nil then
       return filter.Div(node)
     end
@@ -141,6 +144,9 @@ function run_emulated_filter(doc, filter)
         return process_custom_preamble(custom_data, t, kind, custom)
       end
       fatal("Custom node of type " .. t .. " is not an inline, but found in an inline context")
+      return nil
+    end
+    if node.attributes.__quarto_custom_scaffold == "true" then
       return nil
     end
     if filter.Span ~= nil then
@@ -196,7 +202,9 @@ _quarto.ast = {
     local n = #node.content
     local ctor = pandoc[node.t or pandoc.utils.type(node)]
     for _ = n + 1, size do
-      node.content:insert(ctor({}))
+      local scaffold = ctor({})
+      scaffold.attributes.__quarto_custom_scaffold = "true"
+      node.content:insert(scaffold)
     end
   end,
 

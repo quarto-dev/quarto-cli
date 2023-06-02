@@ -132,6 +132,7 @@ import("./quarto-pre/outputs.lua")
 import("./quarto-pre/panel-input.lua")
 import("./quarto-pre/panel-layout.lua")
 import("./quarto-pre/panel-sidebar.lua")
+import("./quarto-pre/parsefiguredivs.lua")
 import("./quarto-pre/project-paths.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
@@ -147,6 +148,7 @@ import("./customnodes/content-hidden.lua")
 import("./customnodes/decoratedcodeblock.lua")
 import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
+import("./customnodes/floatcrossref.lua")
 
 -- [/import]
 
@@ -210,6 +212,22 @@ local quartoPre = {
     filter = parse_pandoc3_figures(), 
     flags = { "has_pandoc3_figure" } 
   },
+
+  { name = "pre-parse-figure-divs-into-floats",
+    filter = parse_figure_divs_into_floats(),
+  },
+
+  { filter = { Pandoc = function(doc) print(pandoc.write(doc, "native")) end } },  
+
+  -- { name = "pre-check-floatcrossref",
+  --   filter = {
+  --     FloatCrossref = function(float)
+  --       print("<<<")
+  --       quarto.utils.dump(float)
+  --       print(">>>")
+  --     end
+  --   }
+  -- },
 
   { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
   
