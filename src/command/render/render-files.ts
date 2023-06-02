@@ -316,7 +316,6 @@ export async function renderFiles(
           contexts,
           files,
           options,
-          project,
         );
       } catch (e) {
         // bad YAML can cause failure before validation. We
@@ -572,7 +571,6 @@ function defaultPandocRenderer(
       contexts: Record<string, RenderContext>,
       _files: RenderFile[],
       _options: RenderOptions,
-      _project?: ProjectContext,
     ) => {
       return contexts;
     },

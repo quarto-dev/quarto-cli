@@ -141,7 +141,6 @@ export interface PandocRenderer {
     contexts: Record<string, RenderContext>,
     files: RenderFile[],
     options: RenderOptions,
-    project?: ProjectContext,
   ) => Record<string, RenderContext>;
   onBeforeExecute: (format: Format) => RenderExecuteOptions;
   onRender: (

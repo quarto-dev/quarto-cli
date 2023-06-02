@@ -28,7 +28,6 @@ import { kJatsSubarticle } from "../../../render/notebook/notebook-types.ts";
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { notebookContext } from "../../../render/notebook/notebook-context.ts";
-import { outputCreated } from "../../../../tests/verify.ts";
 
 export const manuscriptRenderer = (
   _options: RenderOptions,
@@ -38,52 +37,52 @@ export const manuscriptRenderer = (
   const renderedFiles: RenderedFile[] = [];
   const nbContext = notebookContext();
 
+  const manuscriptConfig =
+    (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
+
+  const isNotebook = (path: string) => {
+    return !isArticle(path, context, manuscriptConfig);
+  };
+
   return {
     onFilterContexts: (
       file: string,
       contexts: Record<string, RenderContext>,
       files: RenderFile[],
       options: RenderOptions,
-      project?: ProjectContext,
     ) => {
-      if (project) {
-        const manuscriptConfig =
-          (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
-        const isArt = isArticle(file, project, manuscriptConfig);
+      const isValidNotebookOutput = (to: string) => {
+        return [isJatsOutput, (format: string) => {
+          return isHtmlOutput(format, true);
+        }].find((fn) => {
+          return fn(to);
+        });
+      };
 
-        const isValidNotebookOutput = (to: string) => {
-          return [isJatsOutput, (format: string) => {
-            return isHtmlOutput(format, true);
-          }].find((fn) => {
-            return fn(to);
-          });
-        };
+      // if the render file list doesn't contain any article, and there is a custom too
+      // (so this is an attemp to render only manuscript notebooks), throw error
+      if (
+        options.flags?.to && !isValidNotebookOutput(options.flags.to) &&
+        !files.find((renderFile) => {
+          return isArticle(renderFile.path, context, manuscriptConfig);
+        })
+      ) {
+        throw new Error(
+          "Notebooks within manuscript projects can only be rendered as a part of rendering the article or as an HTML or JATS preview.",
+        );
+      }
 
-        // if the render file list doesn't contain any article, and there is a custom too
-        // (so this is an attemp to render only manuscript notebooks), throw error
-        if (
-          options.flags?.to && !isValidNotebookOutput(options.flags.to) &&
-          !files.find((renderFile) => {
-            return isArticle(renderFile.path, project, manuscriptConfig);
-          })
-        ) {
-          throw new Error(
-            "Notebooks within manuscript projects can only be rendered as a part of rendering the article or as an HTML or JATS preview.",
-          );
+      // Articles can be any format, notebooks can only be HTML or JATS
+      if (isNotebook(file)) {
+        const outContexts: Record<string, RenderContext> = {};
+        const allowedFormats = Object.keys(contexts).filter(
+          isValidNotebookOutput,
+        );
+
+        for (const allowedFormat of allowedFormats || []) {
+          outContexts[allowedFormat] = contexts[allowedFormat];
         }
-
-        // Articles can be any format, notebooks can only be HTML or JATS
-        if (!isArt) {
-          const outContexts: Record<string, RenderContext> = {};
-          const allowedFormats = Object.keys(contexts).filter(
-            isValidNotebookOutput,
-          );
-
-          for (const allowedFormat of allowedFormats || []) {
-            outContexts[allowedFormat] = contexts[allowedFormat];
-          }
-          return outContexts;
-        }
+        return outContexts;
       }
       return contexts;
     },
@@ -97,8 +96,6 @@ export const manuscriptRenderer = (
     ) => {
       // TODO: Remove hack
       executedFile.context.options.services.notebook = nbContext;
-      const manuscriptConfig =
-        (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
       const target = executedFile.context.target;
       const isArt = isArticle(target.input, context, manuscriptConfig);
 
@@ -156,8 +153,6 @@ export const manuscriptRenderer = (
         const renderedFile = await completion.complete(renderedFormats);
         renderedFiles.push(renderedFile);
 
-        const manuscriptConfig =
-          (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
         const isArt = isArticle(renderedFile.input, context, manuscriptConfig);
 
         if (
