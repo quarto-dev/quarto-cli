@@ -49,6 +49,8 @@ local kWhenFormat = "when-format"
 local kUnlessFormat = "unless-format"
 local kWhenProfile = "when-profile"
 local kUnlessProfile = "unless-profile"
+local kWhenMeta = "when-meta"
+local kUnlessMeta = "unless-meta"
 local kMermaidClz = 'mermaid'
 local kPositionedRefs = 'positioned-refs'
 local kTblColWidths = "tbl-colwidths"
@@ -109,6 +111,8 @@ return {
   kContentHidden = kContentHidden,
   kWhenFormat = kWhenFormat,
   kUnlessFormat = kUnlessFormat,
+  kWhenMeta = kWhenMeta,
+  kUnlessMeta = kUnlessMeta,
   kWhenProfile = kWhenProfile,
   kUnlessProfile = kUnlessProfile,
   kMermaidClz = kMermaidClz,
