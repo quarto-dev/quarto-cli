@@ -314,6 +314,8 @@ export async function renderFiles(
         contexts = pandocRenderer.onFilterContexts(
           file.path,
           contexts,
+          files,
+          options,
           project,
         );
       } catch (e) {
@@ -568,6 +570,8 @@ function defaultPandocRenderer(
     onFilterContexts: (
       _file: string,
       contexts: Record<string, RenderContext>,
+      _files: RenderFile[],
+      _options: RenderOptions,
       _project?: ProjectContext,
     ) => {
       return contexts;

@@ -13,6 +13,7 @@ import {
   RenderContext,
   RenderedFile,
   RenderedFormat,
+  RenderFile,
   RenderOptions,
 } from "../../../command/render/types.ts";
 import { renderPandoc } from "../../../command/render/render.ts";
@@ -27,6 +28,7 @@ import { kJatsSubarticle } from "../../../render/notebook/notebook-types.ts";
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { notebookContext } from "../../../render/notebook/notebook-context.ts";
+import { outputCreated } from "../../../../tests/verify.ts";
 
 export const manuscriptRenderer = (
   _options: RenderOptions,
@@ -40,6 +42,8 @@ export const manuscriptRenderer = (
     onFilterContexts: (
       file: string,
       contexts: Record<string, RenderContext>,
+      files: RenderFile[],
+      options: RenderOptions,
       project?: ProjectContext,
     ) => {
       if (project) {
@@ -47,16 +51,33 @@ export const manuscriptRenderer = (
           (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
         const isArt = isArticle(file, project, manuscriptConfig);
 
+        const isValidNotebookOutput = (to: string) => {
+          return [isJatsOutput, (format: string) => {
+            return isHtmlOutput(format, true);
+          }].find((fn) => {
+            return fn(to);
+          });
+        };
+
+        // if the render file list doesn't contain any article, and there is a custom too
+        // (so this is an attemp to render only manuscript notebooks), throw error
+        if (
+          options.flags?.to && !isValidNotebookOutput(options.flags.to) &&
+          !files.find((renderFile) => {
+            return isArticle(renderFile.path, project, manuscriptConfig);
+          })
+        ) {
+          throw new Error(
+            "Notebooks within manuscript projects can only be rendered as a part of rendering the article or as an HTML or JATS preview.",
+          );
+        }
+
         // Articles can be any format, notebooks can only be HTML or JATS
         if (!isArt) {
           const outContexts: Record<string, RenderContext> = {};
-          const allowedFormats = Object.keys(contexts).filter((key) => {
-            return [isJatsOutput, (format: string) => {
-              return isHtmlOutput(format, true);
-            }].find((fn) => {
-              return fn(key);
-            });
-          });
+          const allowedFormats = Object.keys(contexts).filter(
+            isValidNotebookOutput,
+          );
 
           for (const allowedFormat of allowedFormats || []) {
             outContexts[allowedFormat] = contexts[allowedFormat];
