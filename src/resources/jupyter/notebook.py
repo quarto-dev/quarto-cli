@@ -155,12 +155,13 @@ def notebook_execute(options, status):
    total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
    
    # find max id length (for progress)
-   max_id_len = max(len(getattr(cell, "id", "")) for cell in nb.cells)
+   max_id_len = max(len(cell.id) for cell in client.nb.cells)
 
    # execute the cells
    for index, cell in enumerate(client.nb.cells):
       # find cell id
-      cell_id = cell.id if hasattr(cell, "id") else ""
+      source_list = cell.source.split('\n')
+      cell_id = cell.id if any(s.startswith("#| label") or s.startswith("#| id") for s in source_list) else ""
       padding = "." * (max_id_len - len(cell_id))
       
       # progress
