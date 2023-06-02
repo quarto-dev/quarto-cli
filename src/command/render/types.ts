@@ -136,11 +136,11 @@ export interface ExecutedFile {
 }
 
 export interface PandocRenderer {
-  onBeforeContext: (
+  onFilterContexts: (
     file: string,
-    options: RenderOptions,
+    contexts: Record<string, RenderContext>,
     project?: ProjectContext,
-  ) => RenderOptions | undefined;
+  ) => Record<string, RenderContext>;
   onBeforeExecute: (format: Format) => RenderExecuteOptions;
   onRender: (
     format: string,

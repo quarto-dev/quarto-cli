@@ -117,7 +117,13 @@ export function bookPandocRenderer(
   };
 
   return {
-    onBeforeContext: (_file: string, _options: RenderOptions) => (undefined),
+    onFilterContexts: (
+      _file: string,
+      contexts: Record<string, RenderContext>,
+      _project?: ProjectContext,
+    ) => {
+      return contexts;
+    },
     onBeforeExecute: (format: Format) => {
       return {
         // if we render a file at a time then resolve dependencies immediately

@@ -291,16 +291,6 @@ export async function renderFiles(
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
-      // clone + Mutate teh pandoc args and flags for 'to' (e.g. setPreviewFormat)
-      const rendererOptions = pandocRenderer.onBeforeContext(
-        file.path,
-        options,
-        project,
-      );
-      if (rendererOptions) {
-        options = rendererOptions;
-      }
-
       if (progress) {
         renderProgress(
           `\r[${String(i + 1).padStart(numWidth)}/${files.length}] ${
@@ -318,6 +308,13 @@ export async function renderFiles(
           true,
           project,
           false,
+        );
+
+        // Allow renderers to filter the contexts
+        contexts = pandocRenderer.onFilterContexts(
+          file.path,
+          contexts,
+          project,
         );
       } catch (e) {
         // bad YAML can cause failure before validation. We
@@ -568,7 +565,13 @@ function defaultPandocRenderer(
   const renderedFiles: RenderedFile[] = [];
 
   return {
-    onBeforeContext: (_file: string, _options: RenderOptions) => (undefined),
+    onFilterContexts: (
+      _file: string,
+      contexts: Record<string, RenderContext>,
+      _project?: ProjectContext,
+    ) => {
+      return contexts;
+    },
     onBeforeExecute: (_format: Format) => ({}),
     onRender: async (
       _format: string,

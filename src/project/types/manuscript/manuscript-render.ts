@@ -10,6 +10,7 @@ import {
   ExecutedFile,
   PandocRenderCompletion,
   PandocRenderer,
+  RenderContext,
   RenderedFile,
   RenderedFormat,
   RenderOptions,
@@ -20,7 +21,7 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { isArticle } from "./manuscript-config.ts";
-import { isJatsOutput } from "../../../config/format.ts";
+import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
 import { kJatsSubarticle } from "../../../render/notebook/notebook-types.ts";
 
 import { join } from "path/mod.ts";
@@ -36,12 +37,34 @@ export const manuscriptRenderer = (
   const nbContext = notebookContext();
 
   return {
-    onBeforeContext: (
-      _file: string,
-      _options: RenderOptions,
-      _project?: ProjectContext,
+    onFilterContexts: (
+      file: string,
+      contexts: Record<string, RenderContext>,
+      project?: ProjectContext,
     ) => {
-      return undefined;
+      if (project) {
+        const manuscriptConfig =
+          (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
+        const isArt = isArticle(file, project, manuscriptConfig);
+
+        // Articles can be any format, notebooks can only be HTML or JATS
+        if (!isArt) {
+          const outContexts: Record<string, RenderContext> = {};
+          const allowedFormats = Object.keys(contexts).filter((key) => {
+            return [isJatsOutput, (format: string) => {
+              return isHtmlOutput(format, true);
+            }].find((fn) => {
+              return fn(key);
+            });
+          });
+
+          for (const allowedFormat of allowedFormats || []) {
+            outContexts[allowedFormat] = contexts[allowedFormat];
+          }
+          return outContexts;
+        }
+      }
+      return contexts;
     },
     onBeforeExecute: (_format: Format) => {
       return {};
