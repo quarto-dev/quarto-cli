@@ -291,6 +291,16 @@ export async function renderFiles(
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
+      // clone + Mutate teh pandoc args and flags for 'to' (e.g. setPreviewFormat)
+      const rendererOptions = pandocRenderer.onBeforeContext(
+        file.path,
+        options,
+        project,
+      );
+      if (rendererOptions) {
+        options = rendererOptions;
+      }
+
       if (progress) {
         renderProgress(
           `\r[${String(i + 1).padStart(numWidth)}/${files.length}] ${
@@ -558,6 +568,7 @@ function defaultPandocRenderer(
   const renderedFiles: RenderedFile[] = [];
 
   return {
+    onBeforeContext: (_file: string, _options: RenderOptions) => (undefined),
     onBeforeExecute: (_format: Format) => ({}),
     onRender: async (
       _format: string,

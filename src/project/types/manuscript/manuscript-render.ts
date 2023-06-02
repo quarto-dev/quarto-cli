@@ -36,6 +36,13 @@ export const manuscriptRenderer = (
   const nbContext = notebookContext();
 
   return {
+    onBeforeContext: (
+      _file: string,
+      _options: RenderOptions,
+      _project?: ProjectContext,
+    ) => {
+      return undefined;
+    },
     onBeforeExecute: (_format: Format) => {
       return {};
     },

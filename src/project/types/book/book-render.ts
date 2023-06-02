@@ -117,6 +117,7 @@ export function bookPandocRenderer(
   };
 
   return {
+    onBeforeContext: (_file: string, _options: RenderOptions) => (undefined),
     onBeforeExecute: (format: Format) => {
       return {
         // if we render a file at a time then resolve dependencies immediately
