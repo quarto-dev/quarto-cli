@@ -23,11 +23,12 @@ import {
 
 import { basename, dirname, join } from "path/mod.ts";
 import { jatsContributor } from "./notebook-contributor-jats.ts";
+import { ipynContributor } from "./notebook-contributor-ipynb.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
   [kHtmlPreview]: undefined,
-  [kRenderedIPynb]: undefined,
+  [kRenderedIPynb]: ipynContributor,
 };
 
 export function notebookContext(): NotebookContext {
