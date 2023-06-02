@@ -21,7 +21,11 @@ if os.getenv("QUARTO_TRACE_FILTERS") then
   end
 
   function end_trace()
-    local file = io.open("quarto-filter-trace.json", "w")
+    local tracefile = os.getenv("QUARTO_TRACE_FILTERS")
+    if tracefile == "true" then
+      tracefile = "quarto-filter-trace.json"
+    end
+    local file = io.open(tracefile, "w")
     if file == nil then
       fatal("Unable to open quarto-filter-trace.json for writing")
     end
