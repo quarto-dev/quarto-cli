@@ -304,8 +304,15 @@ export async function compileWithCache(
     const identifierHash = md5Hash(cacheIdentifier);
     const inputHash = md5Hash(input);
 
+    // If there are imports, the computed input Hash is incorrect
+    // so we should be using a session cache which will cache
+    // across renders, but not persistently
+    const useSessionCache = input.match(/@import/);
+
     // check the cache
-    const cacheDir = quartoCacheDir("sass");
+    const cacheDir = useSessionCache
+      ? join(temp.baseDir, "sass")
+      : quartoCacheDir("sass");
     const cacheIdxPath = join(cacheDir, "index.json");
 
     const outputFile = `${identifierHash}.css`;

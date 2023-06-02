@@ -1,9 +1,8 @@
 /*
-* temp.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * temp.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { debug } from "log/mod.ts";
 import { join } from "path/mod.ts";
@@ -60,6 +59,7 @@ export function createTempContext(options?: Deno.MakeTempOptions) {
     dir: tempDir,
   });
   return {
+    baseDir: dir,
     createFile: (options?: Deno.MakeTempOptions) => {
       return Deno.makeTempFileSync({ ...options, dir });
     },
