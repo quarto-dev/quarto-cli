@@ -96,15 +96,15 @@ function run_emulated_filter(doc, filter)
     local filter_fn = filter[t] or filter[node_type[kind]] or filter.Custom
 
     if filter_fn ~= nil then
-      local result = filter_fn(custom_data, custom_node)
+      local result, recurse = filter_fn(custom_data, custom_node)
       if result == nil then
-        return nil
+        return nil, recurse
       end
       -- do the user a kindness and unwrap the result if it's a custom node
       if type(result) == "table" and result.__quarto_custom_node ~= nil then
-        return result.__quarto_custom_node
+        return result.__quarto_custom_node, recurse
       end
-      return result
+      return result, recurse
     end
   end
 
