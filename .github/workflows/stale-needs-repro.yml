@@ -19,7 +19,7 @@ jobs:
             
             Unfortunately, this issue is now considered stale because it has been opened since 14 days without providing a "working" reproducible example to help us investigate.
             If you are still facing the issue, please review the ["Bug Reports" guide](https://quarto.org/bug-reports.html) on how to provide a fully reproducible example as a self-contained Quarto document or a link to a Git repository.
-            Without a reproducible example, it is unlikely that the issue will be addressed and thus will be closed in 30 days.
+            Without a reproducible example, it is unlikely that the issue will be addressed and thus will be closed.
 
             You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
             
