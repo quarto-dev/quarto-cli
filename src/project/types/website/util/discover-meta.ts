@@ -1,9 +1,8 @@
 /*
-* discover-meta.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * discover-meta.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
@@ -42,8 +41,9 @@ export function findDescription(doc: Document): string | undefined {
 
 export function findPreviewImg(
   doc: Document,
+  strict: boolean,
 ): string | undefined {
-  const imgEl = findPreviewImgEl(doc);
+  const imgEl = findPreviewImgEl(doc, strict);
   if (imgEl) {
     const src = getDecodedAttribute(imgEl, "src");
     if (src !== null) {
@@ -56,7 +56,10 @@ export function findPreviewImg(
   }
 }
 
-export function findPreviewImgEl(doc: Document): Element | undefined {
+export function findPreviewImgEl(
+  doc: Document,
+  strict: boolean,
+): Element | undefined {
   // look for an image explicitly marked as the preview image (.class .preview-image)
   const match = doc.querySelector(`img.${kPreviewImgClass}`);
   if (match) {
@@ -82,9 +85,11 @@ export function findPreviewImgEl(doc: Document): Element | undefined {
 
   // as a last resort, just use the auto-discovered image from the lua
   // filter chain, if it exists
-  const autoImg = doc.querySelector("#quarto-document-content img");
-  if (autoImg) {
-    return autoImg;
+  if (!strict) {
+    const autoImg = doc.querySelector("#quarto-document-content img");
+    if (autoImg) {
+      return autoImg;
+    }
   }
 }
 

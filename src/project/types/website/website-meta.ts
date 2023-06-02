@@ -1,9 +1,8 @@
 /*
-* website-meta.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-meta.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
@@ -178,7 +177,8 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined) {
-        metadata[kImage] = findPreviewImg(doc) || websiteImage(project.config);
+        metadata[kImage] = findPreviewImg(doc, true) ||
+          websiteImage(project.config);
       }
 
       // cook up a description if one is not provided
