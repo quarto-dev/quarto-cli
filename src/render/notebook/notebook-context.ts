@@ -101,9 +101,14 @@ export function notebookContext(): NotebookContext {
       return notebooks[nbAbsPath];
     },
     cleanup: () => {
-      Object.keys(contributors).forEach((renderType) => {
-        contributor(renderType as RenderType).cleanup(Object.values(notebooks));
-      });
+      const hasNotebooks = Object.keys(notebooks).length > 0;
+      if (hasNotebooks) {
+        Object.keys(contributors).forEach((renderType) => {
+          contributor(renderType as RenderType).cleanup(
+            Object.values(notebooks),
+          );
+        });
+      }
     },
   };
 }
