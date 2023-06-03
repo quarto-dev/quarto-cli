@@ -217,18 +217,6 @@ local quartoPre = {
     filter = parse_figure_divs_into_floats(),
   },
 
-  { filter = { Pandoc = function(doc) print(pandoc.write(doc, "native")) end } },  
-
-  -- { name = "pre-check-floatcrossref",
-  --   filter = {
-  --     FloatCrossref = function(float)
-  --       print("<<<")
-  --       quarto.utils.dump(float)
-  --       print(">>>")
-  --     end
-  --   }
-  -- },
-
   { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
   
   { name = "pre-shortcodes-filter", 
@@ -369,12 +357,21 @@ local quartoLayout = {
 local quartoCrossref = {
 
   { name = "crossref-preprocess", filter = crossref_preprocess(),
-    flags = { 
-      "has_figure_or_table_ref", 
-      "has_discoverable_figures",
-      "has_table_with_long_captions",
-      "has_latex_table_captions"
-    } },
+    -- flags = { 
+    --   "has_figure_or_table_ref", 
+    --   "has_discoverable_figures",
+    --   "has_table_with_long_captions",
+    --   "has_latex_table_captions"
+    -- } 
+  },
+
+  -- { filter = {
+  --   FloatCrossref = function(float)
+  --     quarto.utils.dump { float = float }
+  --     print()
+  --   end
+  -- }
+  -- },
 
   { name = "crossref-preprocessTheorems", 
     filter = crossref_preprocess_theorems(),

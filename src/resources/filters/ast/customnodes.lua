@@ -262,7 +262,12 @@ _quarto.ast = {
         if index > #node.content then
           _quarto.ast.grow_scaffold(node, index)
         end
-        node.content[index].content = value
+        local pt = pandoc.utils.type(value)
+        if pt == "Block" or pt == "Inline" then
+          node.content[index].content = {value}
+        else
+          node.content[index].content = value
+        end
       end
     }
   end,
