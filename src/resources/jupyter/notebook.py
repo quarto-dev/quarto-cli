@@ -153,27 +153,27 @@ def notebook_execute(options, status):
    # compute total code cells (for progress)
    current_code_cell = 1
    total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
-   
-   # find max id length (for progress)
-   max_id_len = max(len(cell.id) for cell in client.nb.cells)
 
+   # find max label length (for progress)   
+   max_label_len = max(len(nb_cell_yaml_options(client.nb.metadata.kernelspec.language, cell).get('label', '')) for cell in client.nb.cells)
+   
    # execute the cells
    for index, cell in enumerate(client.nb.cells):
-      # find cell id
-      source_list = cell.source.split('\n')
-      cell_id = cell.id if any(s.startswith("#| label") or s.startswith("#| id") for s in source_list) else ""
-      padding = "." * (max_id_len - len(cell_id))
-      
+      # read cell options
+      cell_options = nb_cell_yaml_options(client.nb.metadata.kernelspec.language, cell)
+      cell_label = cell_options.get('label', '')
+      padding = "." * (max_label_len - len(cell_label))
+
       # progress
       progress = (not quiet) and cell.cell_type == 'code' and index > 0
       if progress:
          status("  Cell {0}/{1}: '{2}'{3}...".format(
             current_code_cell - 1,
             total_code_cells - 1,
-            cell_id,
+            cell_label,
             padding
          ))
-
+         
       # clear cell output
       cell = cell_clear_output(cell)
 
