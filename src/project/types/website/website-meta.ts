@@ -337,6 +337,10 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
+  if (typeof (siteMetadata) === "object" && format.metadata[kImage]) {
+    const siteMeta = siteMetadata as Metadata;
+    siteMeta[kImage] = format.metadata[kImage];
+  }
   if (
     typeof (siteMetadata) === "object" &&
     typeof (docMetadata) === "object"
