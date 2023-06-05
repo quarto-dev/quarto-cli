@@ -616,7 +616,11 @@ main {
 
 h1,
 h2 {
-  color: theme-dim($body-color, 8%);
+  color: if(
+    $headings-color != null,
+    $headings-color,
+    theme-dim($body-color, 8%)
+  );
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 600;
@@ -1280,10 +1284,6 @@ div.hanging-indent {
   font-weight: 400;
 }
 
-.callout.callout-titled .callout-body {
-  margin-top: 0.2em;
-}
-
 .callout:not(.no-icon).callout-titled.callout-style-simple .callout-body {
   padding-left: 1.6em;
 }
@@ -1315,7 +1315,8 @@ div.hanging-indent {
 }
 
 .callout.callout-style-default div.callout-body > :first-child {
-  margin-top: 0.5em;
+  padding-top: 0.5rem;
+  margin-top: 0;
 }
 
 .callout > div.callout-header[data-bs-toggle="collapse"] {
@@ -1331,7 +1332,8 @@ div.hanging-indent {
 
 .callout.callout-titled .callout-body > :last-child:not(.sourceCode),
 .callout.callout-titled .callout-body > div > :last-child:not(.sourceCode) {
-  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 .callout:not(.callout-titled) .callout-body > :first-child,

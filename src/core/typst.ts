@@ -50,7 +50,7 @@ export async function typstVersion() {
 export async function validateRequiredTypstVersion() {
   const version = await typstVersion();
   if (version) {
-    const required = ">=0.2";
+    const required = ">=0.4";
     if (!satisfies(version, required)) {
       error(
         "An updated version of the Typst CLI is required for rendering typst documents.\n",
