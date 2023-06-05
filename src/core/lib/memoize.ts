@@ -7,19 +7,15 @@
 *
 */
 
-// TODO typings for this? It's tricky because of arity and type
-//       differences in the arguments
-export function memoize(
-  // deno-lint-ignore no-explicit-any
-  f: (...args: any[]) => any,
-  // deno-lint-ignore no-explicit-any
-  keyMemoizer: (...args: any) => string,
-  // deno-lint-ignore no-explicit-any
-): ((...args: any[]) => any) {
-  // deno-lint-ignore no-explicit-any
-  const memo: Record<string, any> = {};
-  // deno-lint-ignore no-explicit-any
-  const inner: ((...args: any[]) => any) = (...args: any[]) => {
+export function memoize<
+  const A extends readonly unknown[] = unknown[],
+  const R = unknown
+>(
+  f: (...args: A) => R,
+  keyMemoizer: (...args: A) => string,
+): (...args: A) => R {
+  const memo: Record<string, R> = {};
+  const inner: (...args: A) => R = (...args) => {
     const key = keyMemoizer(...args);
     const v = memo[key];
     if (v !== undefined) {
