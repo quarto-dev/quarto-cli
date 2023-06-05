@@ -1,0 +1,111 @@
+---
+format: html
+title: Quarto Filter Trace Viewer
+execute: 
+  echo: false
+---
+
+```{ojs}
+dz = htl.html`<div id="dropzone">
+<style>
+#dropzone {
+  border: 1px solid black;
+  padding: 18px;
+  text-align: center;
+}
+</style>
+<span>Drag one or more files on to this drop zone</span>
+</div>`
+```
+
+
+```{ojs}
+{
+  // dz is the name we gave the HTML cell with the drop zone.
+  dz.addEventListener('drop', async (ev)=>{
+     console.log('File(s) dropped');
+
+    // Prevent default behavior (Prevent file from being opened)
+    ev.preventDefault();
+
+    if (ev.dataTransfer.items) {
+      // Use DataTransferItemList interface to access the file(s)
+      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+        // If dropped items aren't files, reject them
+        if (ev.dataTransfer.items[i].kind === 'file') {
+          var file = ev.dataTransfer.items[i].getAsFile();
+          console.log('... file[' + i + '].name = ' + file.name);
+          //console.log('text of the file:',  file.text())
+          const text = await file.text();
+          const json = JSON.parse(text);
+          mutable trace = json;
+        }
+      }
+    } else {
+      // Use DataTransfer interface to access the file(s)
+      throw new Error("Unimplemented...? shrug");
+      // for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+      //   console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+      // }
+    }
+  })
+
+  dz.addEventListener('dragover', (ev)=> {
+    console.log('File(s) in drop zone');
+    // Prevent default behavior (Prevent file from being opened)
+    ev.preventDefault();
+  })
+}
+
+mutable trace = undefined;
+```
+
+```{ojs}
+import { convertDoc } from "./convert-pandoc-json.js";
+import { drawTree } from "./draw-tree.js";
+import { jsonpatch } from "./jsonpatch.js";
+```
+
+::: {.column-page}
+
+```{ojs}
+{
+  if (trace === undefined) {
+    return "No trace uploaded";
+  }
+
+  const output = htl.html`<div></div>`;
+  const sel = d3.select(output);
+  sel.append("h2").text("Starting doc");
+
+  drawTree(sel, convertDoc(trace.data[0].doc), "Doc");
+
+  let isNoOp = true;
+
+  for (let i = 1; i < trace.data.length; ++i) {
+    const ops = jsonpatch.compare(
+      convertDoc(trace.data[i - 1].doc),
+      convertDoc(trace.data[i].doc)
+    );
+    if (ops.length === 0) {
+      sel.append("h2").text(`Filter: ${trace.data[i].state} (no op)`);
+      if (!isNoOp) {
+        drawTree(sel, convertDoc(trace.data[i].doc), "Doc");
+        isNoOp = true;
+      }
+      continue;
+    }
+    isNoOp = false;
+
+    sel.append("h2").text(`Filter: ${trace.data[i].state}`);
+    drawTree(sel, convertDoc(trace.data[i].doc), "Doc");
+    drawTree(sel, ops, "Ops")
+      .style("margin-bottom", "0.1em")
+      .style("margin-top", "0.1em");
+  }
+
+  return output;
+}
+```
+
+:::
