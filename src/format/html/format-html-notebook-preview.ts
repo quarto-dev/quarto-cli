@@ -34,7 +34,7 @@ import {
 } from "path/mod.ts";
 import { renderFiles } from "../../command/render/render-files.ts";
 import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
-import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { kAppendixStyle } from "./format-html-shared.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
@@ -150,21 +150,27 @@ export const notebookPreviewer = (
         let downloadUrl = undefined;
         let downloadFileName = undefined;
         if (!descriptor?.[kDownloadUrl] && !isBook) {
-          const outputNb = await renderOutputNotebook(
-            inputDir,
-            nbAbsPath,
-            services,
-            project,
-            quiet,
-          );
-          downloadUrl = outputNb.href;
-
-          // Ensure that the output file name for this notebook preview is an `.ipynb`
-          if (extname(nbAbsPath) !== ".ipynb") {
-            downloadFileName = `${basename(nbAbsPath)}.ipynb`;
+          let notebook = services.notebook.get(nbAbsPath);
+          if (!notebook) {
+            notebook = await services.notebook.render(
+              nbAbsPath,
+              format,
+              "rendered-ipynb",
+              services,
+              project,
+            );
           }
+          if (notebook && notebook["rendered-ipynb"]) {
+            const outputNb = notebook["rendered-ipynb"];
+            downloadUrl = outputNb.path;
 
-          supporting.push(...outputNb.supporting);
+            // Ensure that the output file name for this notebook preview is an `.ipynb`
+            if (extname(nbAbsPath) !== ".ipynb") {
+              downloadFileName = `${basename(nbAbsPath)}.ipynb`;
+            }
+
+            supporting.push(...outputNb.supporting);
+          }
         }
 
         // Make sure that we have a resolved title
@@ -236,59 +242,6 @@ export const notebookPreviewer = (
     descriptor,
   };
 };
-
-async function renderOutputNotebook(
-  inputDir: string,
-  nbAbsPath: string,
-  services: RenderServices,
-  project?: ProjectContext,
-  quiet?: boolean,
-): Promise<{ href: string; supporting: string[] }> {
-  // The target output file name
-  const [_dir, stem] = dirAndStem(nbAbsPath);
-  const outputFileName = `${stem}.out.ipynb`;
-
-  // Render the notebook and update the path
-  const rendered = await renderFiles(
-    [{ path: nbAbsPath, formats: ["ipynb"] }],
-    {
-      services,
-      flags: {
-        metadata: {
-          [kTo]: "ipynb",
-          [kOutputFile]: outputFileName,
-        },
-        quiet,
-      },
-      echo: true,
-      warning: true,
-      quietPandoc: true,
-    },
-    [],
-    undefined,
-    project,
-  );
-  if (rendered.error) {
-    throw new Error(`Failed to render output ipynb for notebook ${nbAbsPath}`, {
-      cause: rendered.error,
-    });
-  }
-
-  const supporting = [];
-  for (const renderedFile of rendered.files) {
-    supporting.push(join(inputDir, renderedFile.file));
-    if (renderedFile.supporting) {
-      supporting.push(...renderedFile.supporting.map((file) => {
-        return isAbsolute(file) ? file : join(inputDir, file);
-      }));
-    }
-  }
-
-  return {
-    href: outputFileName,
-    supporting,
-  };
-}
 
 // Renders an HTML preview of a notebook
 async function renderHtmlView(

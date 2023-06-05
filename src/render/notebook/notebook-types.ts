@@ -10,6 +10,7 @@ import {
   RenderResourceFiles,
   RenderServices,
 } from "../../command/render/types.ts";
+import { Format } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 // Notebook
@@ -35,6 +36,19 @@ export interface Notebook {
   [kRenderedIPynb]?: NotebookOutput;
 }
 
+export interface NotebookPreviewOptions {
+  back?: boolean;
+}
+
+export interface NotebookPreviewConfig {
+  title: string;
+  url?: string;
+  previewFileName: string;
+  downloadUrl?: string;
+  downloadFileName?: string;
+  backHref?: string;
+}
+
 export interface NotebookOutput {
   path: string;
   supporting: string[];
@@ -55,6 +69,7 @@ export interface NotebookContext {
   ) => void;
   render: (
     nbPath: string,
+    format: Format,
     renderType: RenderType,
     renderServices: RenderServices,
     project?: ProjectContext,
@@ -71,6 +86,7 @@ export interface NotebookContributor {
   ): ExecutedFile;
   render(
     nbAbsPath: string,
+    format: Format,
     token: string,
     services: RenderServices,
     project?: ProjectContext,

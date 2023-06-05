@@ -34,6 +34,7 @@ import { Notebook, NotebookContributor } from "./notebook-types.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { error } from "log/mod.ts";
+import { Format } from "../../config/types.ts";
 
 export const jatsContributor: NotebookContributor = {
   resolve: resolveJats,
@@ -75,6 +76,7 @@ function resolveJats(
 }
 async function renderJats(
   nbPath: string,
+  _format: Format,
   subArticleToken: string,
   services: RenderServices,
   project?: ProjectContext,

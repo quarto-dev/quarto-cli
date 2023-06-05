@@ -26,15 +26,16 @@ import { Notebook, NotebookContributor } from "./notebook-types.ts";
 import * as ld from "../../core/lodash.ts";
 
 import { error } from "log/mod.ts";
+import { Format } from "../../config/types.ts";
 
-export const ipynContributor: NotebookContributor = {
-  resolve: resolveIpynb,
-  render: renderIpynb,
+export const outputNotebookContributor: NotebookContributor = {
+  resolve: resolveOutputNotebook,
+  render: renderOutputNotebook,
   cleanup: (_notebooks: Notebook[]) => {
   },
 };
 
-function resolveIpynb(
+function resolveOutputNotebook(
   nbAbsPath: string,
   _token: string,
   executedFile: ExecutedFile,
@@ -56,8 +57,9 @@ function resolveIpynb(
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
   return resolved;
 }
-async function renderIpynb(
+async function renderOutputNotebook(
   nbPath: string,
+  _format: Format,
   _subArticleToken: string,
   services: RenderServices,
   project?: ProjectContext,

@@ -14,6 +14,7 @@ import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
 import { kJatsSubarticle } from "../../render/notebook/notebook-types.ts";
+import { Format } from "../../config/types.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
@@ -23,6 +24,7 @@ export const reformatXmlPostProcessor = async (output: string) => {
 // Injects the root subarticle
 export const renderSubarticlePostProcessor = (
   input: string,
+  format: Format,
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
   project?: ProjectContext,
@@ -47,6 +49,7 @@ export const renderSubarticlePostProcessor = (
       logProgress(`[${++count}/${total}] ${nbRelPath}`);
       await services.notebook.render(
         subArticlePath,
+        format,
         kJatsSubarticle,
         services,
         project,

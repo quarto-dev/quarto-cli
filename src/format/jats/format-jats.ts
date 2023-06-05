@@ -122,6 +122,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
             postprocessors.push(
               renderSubarticlePostProcessor(
                 input,
+                format,
                 subArticles,
                 services,
                 project,

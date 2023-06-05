@@ -23,12 +23,13 @@ import {
 
 import { basename, dirname, join } from "path/mod.ts";
 import { jatsContributor } from "./notebook-contributor-jats.ts";
-import { ipynContributor } from "./notebook-contributor-ipynb.ts";
+import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
+import { Format } from "../../config/types.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
   [kHtmlPreview]: undefined,
-  [kRenderedIPynb]: ipynContributor,
+  [kRenderedIPynb]: outputNotebookContributor,
 };
 
 export function notebookContext(): NotebookContext {
@@ -88,12 +89,14 @@ export function notebookContext(): NotebookContext {
     contribute,
     render: async (
       nbAbsPath: string,
+      format: Format,
       renderType: RenderType,
       services: RenderServices,
       project?: ProjectContext,
     ) => {
       const renderedFile = await contributor(renderType).render(
         nbAbsPath,
+        format,
         token(),
         services,
         project,
