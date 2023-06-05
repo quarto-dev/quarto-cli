@@ -14,50 +14,42 @@ dz = htl.html`<div id="dropzone">
   text-align: center;
 }
 </style>
-<span>Drag one or more files on to this drop zone</span>
+<span>Drag+drop here a file generated with QUARTO_TRACE_FILTERS.</span>
 </div>`
 ```
 
 
 ```{ojs}
-{
-  // dz is the name we gave the HTML cell with the drop zone.
-  dz.addEventListener('drop', async (ev)=>{
-     console.log('File(s) dropped');
+// Based on 
+// - https://observablehq.com/@triptych/loading-a-file-via-drag-and-drop-in-observable
+// - https://observablehq.com/@tuner/using-event-listeners
+trace = Generators.observe((change) => {
+  const dropped = async (ev) => {
 
     // Prevent default behavior (Prevent file from being opened)
     ev.preventDefault();
 
-    if (ev.dataTransfer.items) {
-      // Use DataTransferItemList interface to access the file(s)
-      for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-        // If dropped items aren't files, reject them
-        if (ev.dataTransfer.items[i].kind === 'file') {
-          var file = ev.dataTransfer.items[i].getAsFile();
-          console.log('... file[' + i + '].name = ' + file.name);
-          //console.log('text of the file:',  file.text())
-          const text = await file.text();
-          const json = JSON.parse(text);
-          mutable trace = json;
-        }
-      }
-    } else {
-      // Use DataTransfer interface to access the file(s)
+    if (!ev.dataTransfer.items) {
       throw new Error("Unimplemented...? shrug");
-      // for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-      //   console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
-      // }
     }
-  })
 
-  dz.addEventListener('dragover', (ev)=> {
-    console.log('File(s) in drop zone');
-    // Prevent default behavior (Prevent file from being opened)
+    // Use DataTransferItemList interface to access the file(s)
+    for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+      // If dropped items aren't files, reject them
+      if (ev.dataTransfer.items[i].kind !== 'file')
+        continue;
+      const file = ev.dataTransfer.items[i].getAsFile();
+      const text = await file.text();
+      change(JSON.parse(text));
+    }
+  }
+  dz.addEventListener("drop", dropped);
+  dz.addEventListener("dragover", (ev) => {
     ev.preventDefault();
-  })
-}
-
-mutable trace = undefined;
+  });
+  change(undefined);
+  return () => {}; // dz.removeEventListener("drop", clicked);
+})
 ```
 
 ```{ojs}
