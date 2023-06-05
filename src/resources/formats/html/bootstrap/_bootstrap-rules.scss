@@ -616,7 +616,11 @@ main {
 
 h1,
 h2 {
-  color: theme-dim($body-color, 8%);
+  color: if(
+    $headings-color != null,
+    $headings-color,
+    theme-dim($body-color, 8%)
+  );
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 600;
