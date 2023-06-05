@@ -376,7 +376,7 @@ export function reshapeListing(
     clz?: string,
   ) => {
     const fieldLinks = reshaped[kFieldLinks];
-    const value = val || item[field];
+    const value = val || item[field] || "&nbsp;";
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
       return `<a href="${path}" class="${field}${
@@ -455,7 +455,7 @@ export function reshapeListing(
     return attrs.join(" ");
   };
   utilities.localizedString = (str: string) => {
-    const localizedStrings = (format.language as Record<string, string>);
+    const localizedStrings = format.language as Record<string, string>;
     return localizedStrings[str];
   };
   reshaped.utilities = utilities;
