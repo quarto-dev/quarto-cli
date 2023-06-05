@@ -232,16 +232,3 @@ import { jsonpatch } from "./jsonpatch.js";
 ```
 
 :::
-
-```{ojs}
-import { editDistance } from "./edit-distance.ts";
-
-// editDistance(["a", "b", "c"], ["a", "b"]);
-// editDistance(["a", "b"], ["a", "b", "c"]);
-// editDistance(["a", "b", "c"], ["a", "c"]);
-// editDistance(["a", "c"], ["a", "b", "c"]);
-// editDistance(["d", "b", "c"], ["a", "b", "c"]);
-
-editDistance(["begin", "1", "2", "3", "4", "end"], ["begin", "2", "4", "end"]);
-editDistance(["begin", "2", "4", "end"], ["begin", "1", "2", "3", "4", "end"]);
-```
