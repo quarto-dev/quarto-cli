@@ -14,6 +14,31 @@ if os.getenv("QUARTO_TRACE_FILTERS") then
   end
 
   function add_trace(doc, filter_name)
+    local function safe_json(value)
+      local t = type(value)
+      if t == "table" then
+        local result = {}
+        for k,v in pairs(value) do
+          result[k] = safe_json(v)
+        end
+        return result
+      elseif t == "userdata" then
+        return nil -- skip pandoc values entirely
+      else
+        return value
+      end
+    end
+    doc = _quarto.ast.walk(doc, {
+      Custom = function(custom)
+        local div = custom.__quarto_custom_node
+        local custom_table = quarto.json.encode(safe_json(custom))
+        div.attributes["__quarto_custom_table"] = custom_table
+        return div
+      end
+    })
+    if doc == nil then
+      fatal("Unable to encode document as json")
+    end
     table.insert(data, {
       state = filter_name,
       doc = quarto.json.decode(pandoc.write(doc, "json"))

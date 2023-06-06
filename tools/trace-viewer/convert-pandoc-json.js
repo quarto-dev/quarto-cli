@@ -1,5 +1,8 @@
-// converts Pandoc raw JSON to a slightly more compact format
+// converts our trace filter's JSON output to a more compact format
 // whose diffs are easier to read
+//
+// this doesn't work on arbitrary pandoc JSON, since we
+// treat custom nodes in a particular way
 
 const postProcessStrings = (array) => {
   if (array.length === 0) {
@@ -152,6 +155,20 @@ const convert = (data) => {
         t: data.t,
         content: convert(data.c[1]),
         citations: data.c[0].map(convertCitation),
+      };
+    }
+    if (
+      data.t === "Div" &&
+      data.c[0][2].find((x) => x[0] === "__quarto_custom_table")
+    ) {
+      const attributes = Object.fromEntries(data.c[0][2]);
+      const entry = attributes["__quarto_custom_table"];
+      // const t = attributes["__quarto_custom_type"];
+      const customTable = JSON.parse(entry);
+      return {
+        customAST: true,
+        ...customTable,
+        scaffold: convert(data.c.slice(1)),
       };
     }
     if (data.t === "Div" || data.t === "Span") {
