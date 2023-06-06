@@ -1,0 +1,235 @@
+---
+format: 
+  html:
+    css: styles.css
+title: Quarto Filter Trace Viewer
+execute: 
+  echo: false
+---
+
+```{ojs}
+dz = htl.html`<div id="dropzone">
+<div id="trace1">Trace 1.</div>
+<div id="trace2">Trace 2.</div>
+</div>`
+```
+
+
+```{ojs}
+// Based on 
+// - https://observablehq.com/@triptych/loading-a-file-via-drag-and-drop-in-observable
+// - https://observablehq.com/@tuner/using-event-listeners
+trace = Generators.observe((change) => {
+  let traces = {
+    trace1: undefined,
+    trace2: undefined
+  }
+
+  const emitChange = () => {
+    if (traces.trace1 !== undefined && traces.trace2 === undefined) {
+      change({
+        ...traces.trace1,
+        kind: "single"
+      });
+    } else if (traces.trace2 !== undefined && traces.trace1 === undefined) {
+      change({
+        ...traces.trace2,
+        kind: "single"
+      });
+    } else if (traces.trace1 !== undefined && traces.trace2 !== undefined) {
+      change({
+        kind: "double",
+        traces: [traces.trace1, traces.trace2]
+      });
+    } else {
+      change(undefined);
+    }
+  }
+
+  const getAsFile = async (item) => {
+    const file = item.getAsFile();
+    const text = await file.text();
+    const json = JSON.parse(text);
+    return {json, name: file.name};
+  }
+  const dropped = async (ev) => {
+    // Prevent default behavior (Prevent file from being opened)
+    ev.preventDefault();
+
+    if (!ev.dataTransfer.items) {
+      throw new Error("Unimplemented...? shrug");
+    }
+    if (ev.dataTransfer.items.length === 0) {
+      throw new Error("Expected at least one file");
+    }
+    if (ev.dataTransfer.items.length > 2) {
+      throw new Error("Expected at most two files");
+    }
+
+    if (ev.dataTransfer.items.length === 1) {
+      // If dropped items aren't files, reject them
+      if (ev.dataTransfer.items[0].kind !== 'file') {
+        throw new Error("Expected files to be dropped");
+      }
+      const json = await getAsFile(ev.dataTransfer.items[0]);
+      debugger;
+      traces[ev.target.id] = json.json;
+      ev.target.textContent = `Trace ${ev.target.id === "trace1" ? 1 : 2}: ${json.name}`;
+    } else {
+      if (ev.dataTransfer.items[0].kind !== 'file') {
+        throw new Error("Expected files to be dropped");
+      }
+      if (ev.dataTransfer.items[1].kind !== 'file') {
+        throw new Error("Expected files to be dropped");
+      }
+      dz.querySelector("#trace1").textContent = `Trace 1: ${ev.dataTransfer.files[0].name}`;
+      dz.querySelector("#trace2").textContent = `Trace 2: ${ev.dataTransfer.files[1].name}`;
+
+      // we need to do grab all promises before the first await
+      // or else stuff goes wrong
+      //
+      // see https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/files
+      const promises = [ev.dataTransfer.files[0].text(), ev.dataTransfer.files[1].text()];
+      const [json1, json2] = await Promise.all(promises);
+      // const json1 = await ev.dataTransfer.files[0].text();
+      // const json2 = await ev.dataTransfer.files[1].text();
+      traces.trace1 = JSON.parse(json1);
+      traces.trace2 = JSON.parse(json2);
+    }
+    emitChange();
+  }
+  for (const id of ["#trace1", "#trace2"]) {
+    const el = dz.querySelector(id);
+    el.addEventListener("drop", dropped);
+    el.addEventListener("dragover", (ev) => ev.preventDefault());
+  }
+  change(undefined);
+  return () => {};
+})
+```
+
+```{ojs}
+import { convertDoc } from "./convert-pandoc-json.js";
+import { drawTree } from "./draw-tree.js";
+import { jsonpatch } from "./jsonpatch.js";
+import { editDistance } from "./edit-distance.ts";
+```
+
+::: {.column-screen-inset}
+
+```{ojs}
+{
+  if (trace === undefined) {
+    return "No trace uploaded";
+  }
+
+  const output = htl.html`<div></div>`;
+  const sel = d3.select(output);
+
+  if (trace.kind === "single") {
+    sel.append("h2").text("Starting doc");
+
+    drawTree(sel, convertDoc(trace.data[0].doc), "Doc");
+
+    let isNoOp = true;
+
+    for (let i = 1; i < trace.data.length; ++i) {
+      const ops = jsonpatch.compare(
+        convertDoc(trace.data[i - 1].doc),
+        convertDoc(trace.data[i].doc)
+      );
+      if (ops.length === 0) {
+        sel.append("h2").text(`Filter: ${trace.data[i].state} (no op)`);
+        if (!isNoOp) {
+          drawTree(sel, convertDoc(trace.data[i].doc), "Doc");
+          isNoOp = true;
+        }
+        continue;
+      }
+      isNoOp = false;
+
+      sel.append("h2").text(`Filter: ${trace.data[i].state}`);
+      drawTree(sel, convertDoc(trace.data[i].doc), "Doc");
+      drawTree(sel, ops, "Ops")
+        .style("margin-bottom", "0.1em")
+        .style("margin-top", "0.1em");
+    }
+  } else if (trace.kind == "double") {
+    debugger;
+    const aFilters = trace.traces[0].data.slice(1).map(data => data.state);
+    const bFilters = trace.traces[1].data.slice(1).map(data => data.state);
+    const edits = editDistance(aFilters, bFilters);
+    sel.append("h2").text("Trace diff");
+    const table = sel.append("table");
+    let docA = convertDoc(trace.traces[0].data[0].doc);
+    let docB = convertDoc(trace.traces[1].data[0].doc);
+    let filterA = trace.traces[0].data[0].state;
+    let filterB = trace.traces[1].data[0].state;
+    let changedA = true;
+    let changedB = true;
+
+    const drawReplaceRow = () => {
+      const firstTr = table.append("tr").classed("doc-row", true);
+      
+      firstTr.append("td").classed("filter-name", true).text(filterA);
+      if (changedA) {
+        drawTree(firstTr.append("td").classed("filter-details", true), docA, "Doc");
+      } else {
+        firstTr.append("td");
+      }
+      const diff = jsonpatch.compare(docA, docB);
+      if (diff.length && (changedA || changedB)) {
+        drawTree(firstTr.append("td").classed("filter-details", true), diff, "Ops");
+      } else {
+        firstTr.append("td");
+      }
+      if (changedB) {
+        drawTree(firstTr.append("td").classed("filter-details", true), docB, "Doc");
+      } else {
+        firstTr.append("td");
+      }
+      firstTr.append("td").classed("filter-name", true).text(filterB);
+    }
+
+    drawReplaceRow();
+
+    for (const edit of edits) {
+      if (edit.type === "replace") {
+        const verticalOpsRow = table.append("tr");
+        verticalOpsRow.append("td");
+        const newDocA = convertDoc(trace.traces[0].data[edit.newLocation[0]].doc);
+        const newDocB = convertDoc(trace.traces[1].data[edit.newLocation[1]].doc);
+        const diffA = jsonpatch.compare(docA, newDocA);
+        const diffB = jsonpatch.compare(docB, newDocB);
+        changedA = diffA.length;
+        changedB = diffB.length;
+        if (diffA.length) {
+          drawTree(verticalOpsRow.append("td").classed("filter-details", true), diffA, "Ops");
+        } else {
+          verticalOpsRow.append("td");
+        }
+        verticalOpsRow.append("td");
+        if (diffB.length) {
+          drawTree(verticalOpsRow.append("td").classed("filter-details", true), diffB, "Ops");
+        } else {
+          verticalOpsRow.append("td");
+        }
+        verticalOpsRow.append("td");
+        docA = newDocA;
+        docB = newDocB;
+        filterA = trace.traces[0].data[edit.newLocation[0]].state;
+        filterB = trace.traces[1].data[edit.newLocation[1]].state;
+
+        drawReplaceRow();
+      } else {
+        throw new Error("Unimplemented");
+      }
+    }
+
+  }
+
+  return output;
+}
+```
+
+:::

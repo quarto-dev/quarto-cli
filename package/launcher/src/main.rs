@@ -73,6 +73,7 @@ fn main() {
     std::env::set_var("QUARTO_SHARE_PATH", &share_dir);
     std::env::set_var("DENO_DOM_PLUGIN", &deno_dom_file);
     std::env::set_var("DENO_NO_UPDATE_CHECK", "1");
+    std::env::set_var("DENO_TLS_CA_STORE","system,mozilla");
 
     // windows-specific env vars
     #[cfg(target_os = "windows")]
