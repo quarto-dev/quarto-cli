@@ -70,7 +70,24 @@ function parse_floats()
     end,
 
     Div = function(div)
-      if isFigureDiv(div) or isTableDiv(div) then
+      if isFigureDiv(div) then
+        -- The code below is a fixup that existed since the very beginning of
+        -- quarto, see https://github.com/quarto-dev/quarto-cli/commit/12e770616869d43f5a1a3f84f9352491a2034bde
+        -- and parent commits. We replicate it here to try and
+        -- avoid a regression, in the absence of an associated regression test.
+        --
+        -- pandoc sometimes ends up with a fig prefixed title
+        -- (no idea way right now!)
+        div = _quarto.ast.walk(div, {
+          Image = function(image)
+            if image.title == "fig:" or image.title == "fig-" then
+              image.title = ""
+              return image
+            end
+          end
+        })
+        return parse_float_div(div)
+      elseif isTableDiv(div) then
         return parse_float_div(div)
       end
     end,

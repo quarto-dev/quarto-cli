@@ -16,12 +16,20 @@ function parse_pandoc3_figures()
         return
       end
 
+
+
       return quarto.FloatCrossref({
         identifier = fig.identifier,
         classes = fig.classes,
         attributes = fig.attributes,
         type = category.name,
-        content = fig.content,
+        content = _quarto.ast.walk(fig.content, {
+          -- strip redundant image caption
+          Image = function(image)
+            image.caption = {}
+            return image
+          end
+        }),
         caption_long = fig.caption.long,
         caption_short = fig.caption.short,
       })

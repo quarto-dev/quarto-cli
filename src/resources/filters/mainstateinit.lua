@@ -26,22 +26,23 @@ crossref = {
 
   -- kinds are "float", "block", "inline", "anchor"
   categories = {
-    by_prefix = {
-      fig = {
+    all = {
+      {
         prefix = "fig",
         name = "Figure",
         kind = "float",
       },
-      tbl = {
+      {
         prefix = "tbl",
         name = "Table",
         kind = "float",
       },
-      lst = {
+      {
         prefix = "lst",
         name = "Listing",
         kind = "float",
       }
+    }
     
     -- eventually we'll have block kinds here
     -- with callouts + theorem envs
@@ -51,6 +52,13 @@ crossref = {
 
     -- eventually we'll have anchor kinds here
     -- with section/chapter/slide refs, etc
-    }
   }
 }
+
+-- set up crossref category indices
+crossref.categories.by_prefix = {}
+crossref.categories.by_name = {}
+for _, category in ipairs(crossref.categories.all) do
+  crossref.categories.by_prefix[category.prefix] = category
+  crossref.categories.by_name[category.name] = category
+end
