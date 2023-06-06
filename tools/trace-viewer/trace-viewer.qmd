@@ -168,17 +168,17 @@ import { editDistance } from "./edit-distance.ts";
     let changedA = true;
     let changedB = true;
 
-    const drawReplaceRow = () => {
+    const drawDocRow = (drawLeft, drawRight) => {
       const firstTr = table.append("tr").classed("doc-row", true);
       
-      firstTr.append("td").classed("filter-name", true).text(filterA);
+      firstTr.append("td").classed("filter-name", true).text(drawLeft ? filterA : "");
       if (changedA) {
         drawTree(firstTr.append("td").classed("filter-details", true), docA, "Doc");
       } else {
         firstTr.append("td");
       }
       const diff = jsonpatch.compare(docA, docB);
-      if (diff.length && (changedA || changedB)) {
+      if (diff.length && (changedA || changedB) && (drawLeft && drawRight)) {
         drawTree(firstTr.append("td").classed("filter-details", true), diff, "Ops");
       } else {
         firstTr.append("td");
@@ -188,10 +188,31 @@ import { editDistance } from "./edit-distance.ts";
       } else {
         firstTr.append("td");
       }
-      firstTr.append("td").classed("filter-name", true).text(filterB);
+      firstTr.append("td").classed("filter-name", true).text(drawRight ? filterB : "");
     }
 
-    drawReplaceRow();
+    const drawDiffRow = (diffA, diffB) => {
+      changedA = diffA.length;
+      changedB = diffB.length;
+
+      const verticalOpsRow = table.append("tr");
+
+      verticalOpsRow.append("td");
+      if (changedA) {
+        drawTree(verticalOpsRow.append("td").classed("filter-details", true), diffA, "Ops");
+      } else {
+        verticalOpsRow.append("td");
+      }
+      verticalOpsRow.append("td");
+      if (changedB) {
+        drawTree(verticalOpsRow.append("td").classed("filter-details", true), diffB, "Ops");
+      } else {
+        verticalOpsRow.append("td");
+      }
+      verticalOpsRow.append("td");
+    }
+
+    drawDocRow(true, true);
 
     for (const edit of edits) {
       if (edit.type === "replace") {
@@ -201,26 +222,29 @@ import { editDistance } from "./edit-distance.ts";
         const newDocB = convertDoc(trace.traces[1].data[edit.newLocation[1]].doc);
         const diffA = jsonpatch.compare(docA, newDocA);
         const diffB = jsonpatch.compare(docB, newDocB);
-        changedA = diffA.length;
-        changedB = diffB.length;
-        if (diffA.length) {
-          drawTree(verticalOpsRow.append("td").classed("filter-details", true), diffA, "Ops");
-        } else {
-          verticalOpsRow.append("td");
-        }
-        verticalOpsRow.append("td");
-        if (diffB.length) {
-          drawTree(verticalOpsRow.append("td").classed("filter-details", true), diffB, "Ops");
-        } else {
-          verticalOpsRow.append("td");
-        }
-        verticalOpsRow.append("td");
+
+        drawDiffRow(diffA, diffB);
+
         docA = newDocA;
         docB = newDocB;
         filterA = trace.traces[0].data[edit.newLocation[0]].state;
         filterB = trace.traces[1].data[edit.newLocation[1]].state;
 
-        drawReplaceRow();
+        drawDocRow(true, true);
+      } else if (edit.type === "insert") {
+        const newDocB = convertDoc(trace.traces[1].data[edit.newLocation[1]].doc);
+        drawDiffRow([], jsonpatch.compare(docB, newDocB));
+
+        docB = newDocB;
+        filterB = trace.traces[1].data[edit.newLocation[1]].state;
+        drawDocRow(false, true);
+      } else if (edit.type === "delete") {
+        const newDocA = convertDoc(trace.traces[0].data[edit.newLocation[0]].doc);
+        drawDiffRow(jsonpatch.compare(docA, newDocA), []);
+
+        docA = newDocA;
+        filterA = trace.traces[0].data[edit.newLocation[0]].state;
+        drawDocRow(true, false);
       } else {
         throw new Error("Unimplemented");
       }
