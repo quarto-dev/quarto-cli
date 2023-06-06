@@ -1056,24 +1056,14 @@ export async function runPandoc(
 
   pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
 
-  if (pandocMetadata?.["_quarto"]?.["trace-filters"]) {
-    // const metadata = pandocMetadata?.["_quarto"]?.["trace-filters"];
+  const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"];
+
+  if (traceFilters) {
     beforePandocHooks.push(() => {
-      pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
-    });
-    afterPandocHooks.push(() => {
-      const dest = join(
-        quartoConfig.sharePath(),
-        "../../package/src/common/trace-viewer",
-        pandocMetadata?.["_quarto"]?.["trace-filters"],
-      );
-      const source = join(cwd, "quarto-filter-trace.json");
-      if (source !== dest) {
-        try {
-          Deno.removeSync(dest);
-        } catch { // pass
-        }
-        moveSync(join(cwd, "quarto-filter-trace.json"), dest);
+      if (traceFilters === true) {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = "quarto-filter-trace.json";
+      } else {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = traceFilters;
       }
     });
   }
