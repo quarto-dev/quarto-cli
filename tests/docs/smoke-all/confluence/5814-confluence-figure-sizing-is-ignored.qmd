@@ -4,4 +4,4 @@ format: confluence-publish
 validate-yaml: false
 ---
 
-![Image](images/elephant.png){width=120 height=90}
+![Image](elephant.png){width=120 height=90}
