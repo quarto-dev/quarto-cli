@@ -124,6 +124,119 @@ function TestCaptionedImage:testAlignRight()
   lu.assertEquals(actual, expected)
 end
 
+function TestCaptionedImage:testWidth()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:width="120"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['width'] = '120'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testWidthEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['width'] = ''}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testHeight()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:height="90"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '90'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testHeightEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = ''}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+
+function TestCaptionedImage:testBoth()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:width="120"
+    ac:height="90"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '90', ['width'] = '120'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testBothOneEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:width="120"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '', ['width'] = '120'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testBoth_BothEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '', ['width'] = ''}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+
+
 TestCodeBlockConfluence = {}
 function TestCodeBlockConfluence:testWithAllAttributes()
   local expected = [[<ac:structured-macro
