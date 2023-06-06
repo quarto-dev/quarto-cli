@@ -64,9 +64,9 @@ function crossref_figures()
         -- end
       end
     
-      float.crossref_order = order
+      float.order = order
       -- update the index
-      float.crossref_index = indexAddEntry(float.identifier, parent, order, {float.caption_long})
+      indexAddEntry(float.identifier, parent, order, {float.caption_long})
       return float
     end
   }
