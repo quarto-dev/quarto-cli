@@ -28,6 +28,16 @@ _quarto.ast.add_handler({
 })
 
 
+
+-- default renderer first
+_quarto.ast.add_renderer("FloatCrossref", function(_)
+  return true
+end, function(float)
+  return pandoc.Div({
+    pandoc.Str("This is a placeholder FloatCrossref")
+  })
+end)
+
 -- _quarto.ast.add_handler({
 
 --   -- empty table so this handler is only called programmatically

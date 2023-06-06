@@ -7,42 +7,51 @@
 
 local patterns = require("modules/patterns")
 
-function crossref_tables()
-  return {
-    Div = function(el)
-      if isTableDiv(el) and isReferenceableTbl(el) then
-        
-        -- are we a parent of subrefs? If so then process the caption
-        -- at the bottom of the div
-        if hasSubRefs(el, "tbl") then
-          
-          local caption = refCaptionFromDiv(el)
-          if not caption then
-            caption = pandoc.Para(noCaption())
-            el.content:insert(caption)
-          end
-          local captionClone = caption:clone().content
-          local label = el.attr.identifier
-          local order = indexNextOrder("tbl")
-          prependTitlePrefix(caption, label, order)
-          indexAddEntry(label, nil, order, captionClone)
-          
-        else
-          -- look for various ways of expressing tables in a div
-          local processors = { processMarkdownTable, processRawTable }
-          for _, process in ipairs(processors) do
-            local tblDiv = process(el)
-            if tblDiv then
-              return tblDiv
-            end
-          end
-        end
-      end
-      -- default to just reflecting the div back
-      return el
-    end
-  }
-end
+-- function crossref_tables()
+--   return {
+--     FloatCrossref = function(float)
+--       local kind = refType(float.identifier)
+--       if kind == "tbl" then
+--         return process(float)
+--         -- local processors = { processMarkdownTable, processRawTable }
+--         -- for _, process in ipairs(processors) do
+--         --   local new_float = process(float)
+--         --   if new_float then
+--         --     return new_float
+--         --   end
+--         -- end
+--       end
+      
+--       -- if isTableDiv(el) and isReferenceableTbl(el) then
+--       --   -- are we a parent of subrefs? If so then process the caption
+--       --   -- at the bottom of the div
+--       --   if hasSubRefs(el, "tbl") then
+--       --     local caption = refCaptionFromDiv(el)
+--       --     if not caption then
+--       --       caption = pandoc.Para(noCaption())
+--       --       el.content:insert(caption)
+--       --     end
+--       --     local captionClone = caption:clone().content
+--       --     local label = el.attr.identifier
+--       --     local order = indexNextOrder("tbl")
+--       --     prependTitlePrefix(caption, label, order)
+--       --     indexAddEntry(label, nil, order, captionClone)
+--       --   else
+--       --     -- look for various ways of expressing tables in a div
+--       --     local processors = { processMarkdownTable, processRawTable }
+--       --     for _, process in ipairs(processors) do
+--       --       local tblDiv = process(el)
+--       --       if tblDiv then
+--       --         return tblDiv
+--       --       end
+--       --     end
+--       --   end
+--       -- end
+--       -- default to just reflecting the div back
+--       -- return el
+--     end
+--   }
+-- end
 
 function preprocessRawTableBlock(rawEl, parentId)
   
@@ -148,28 +157,37 @@ function preprocessTable(el, parentId)
 end
 
 
-function processMarkdownTable(divEl)
-  for i,el in pairs(divEl.content) do
+function process(float)
+  local changed = false
+  local content = float.content
+  if pandoc.utils.type(content) ~= "Blocks" then
+    content = pandoc.List({content})
+  end
+  for _,el in ipairs(content) do
     if el.t == "Table" then
       if el.caption.long ~= nil and #el.caption.long > 0 then
         local label = divEl.attr.identifier
         local caption = el.caption.long[#el.caption.long]
-        processMarkdownTableEntry(divEl, el, label, caption)
-        return divEl
+        processMarkdownTableEntry(float)
+        changed = true
+        return float
       end
     end
+  end
+  if changed then
+    return float
   end
   return nil
 end
 
-function processMarkdownTableEntry(divEl, el, label, caption)
+function processMarkdownTableEntry(float)
   
   -- clone the caption so we can add a clean copy to our index
   local captionClone = caption.content:clone()
 
   -- determine order / insert prefix
   local order
-  local parent = divEl.attr.attributes[kRefParent]
+  local parent = float.parent_id
   if (parent) then
     order = nextSubrefOrder()
     prependSubrefNumber(caption.content, order)

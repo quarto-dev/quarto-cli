@@ -3,7 +3,7 @@
 
 -- figures and tables support sub-references. mark them up before
 -- we proceed with crawling for cross-refs
-function crossref_preprocess()
+function crossref_mark_subfloats()
 
   -- CONTINUE HERE, YOU ARE TRACKING THE NESTED FLOAT FIGURES
   -- TO PASS ALONG PARENTID TO THE SUBREFS, kRefParent etc.

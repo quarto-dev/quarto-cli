@@ -46,7 +46,7 @@ initCrossrefIndex()
 -- chain of filters
 return {
   init_crossref_options(),
-  crossref_preprocess(),
+  crossref_mark_subfloats(),
   crossref_preprocess_theorems(),
   combineFilters({
     file_metadata(),

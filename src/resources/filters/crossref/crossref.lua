@@ -57,7 +57,7 @@ return {
   init_crossref_options(),
   compute_flags(),
   parse_pandoc3_figures(),
-  crossref_preprocess(),
+  crossref_mark_subfloats(),
   crossref_preprocess_theorems(),
   combineFilters({
     file_metadata(),

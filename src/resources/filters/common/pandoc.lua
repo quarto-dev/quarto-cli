@@ -170,3 +170,16 @@ function compileTemplate(template, meta)
   end
 end
 
+function merge_attrs(attr, ...)
+  local result = pandoc.Attr(attr.identifier, attr.classes, attr.attributes)
+  for _, a in ipairs({...}) do
+    if a ~= nil then
+      result.identifier = result.identifier or a.identifier
+      result.classes = result.classes:extend(a.classes)
+      for k, v in pairs(a.attributes) do
+        result.attributes[k] = v
+      end
+    end
+  end
+  return result
+end

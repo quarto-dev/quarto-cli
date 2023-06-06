@@ -166,6 +166,13 @@ local quartoInit = {
   })},
 }
 
+-- v1.4 change: quartoNormalize is responsible for producing a
+-- "normalized" document that is ready for quarto-pre, etc.
+-- notably, user filters will run on the normalized document and
+-- see a "Quarto AST". For example, Figure nodes are no longer
+-- going to be present, and will instead be represented by
+-- our custom AST infrastructure (FloatCrossref specifically).
+
 local quartoNormalize = {
   { name = "normalize", filter = filterIf(function()
     return quarto_global_state.active_filters.normalization
@@ -190,6 +197,10 @@ local quartoNormalize = {
     name = "normalize-extractQuartoDom", 
     filter = parse_md_in_html_rawblocks(),
   },
+
+  { name = "normalize-parse-float-divs",
+    filter = parse_floats(),
+  },
 }
 
 local quartoPre = {
@@ -212,10 +223,6 @@ local quartoPre = {
   { name = "pre-parse-pandoc3-figures", 
     filter = parse_pandoc3_figures(), 
     flags = { "has_pandoc3_figure" } 
-  },
-
-  { name = "pre-parse-figure-divs-into-floats",
-    filter = parse_figure_divs_into_floats(),
   },
 
   { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
@@ -358,7 +365,7 @@ local quartoLayout = {
 
 local quartoCrossref = {
 
-  { name = "crossref-preprocess", filter = crossref_preprocess(),
+  { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
     -- flags = { 
     --   "has_figure_or_table_ref", 
     --   "has_discoverable_figures",
@@ -384,7 +391,6 @@ local quartoCrossref = {
     qmd(),
     sections(),
     crossref_figures(),
-    crossref_tables(),
     equations(),
     listings(),
     crossref_theorems(),
