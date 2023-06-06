@@ -162,6 +162,7 @@ if [ "$QUARTO_DENO" == "" ]; then
 
 fi
 
+export DENO_TLS_CA_STORE=system,mozilla
 export DENO_NO_UPDATE_CHECK=1
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
 QUARTO_DENO_OPTIONS="--unstable --no-config ${QUARTO_CACHE_OPTIONS} --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
