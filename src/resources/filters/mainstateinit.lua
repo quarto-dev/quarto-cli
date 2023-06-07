@@ -31,16 +31,19 @@ crossref = {
         prefix = "fig",
         name = "Figure",
         kind = "float",
+        default_caption_location = "bottom",
       },
       {
         prefix = "tbl",
         name = "Table",
         kind = "float",
+        default_caption_location = "bottom",
       },
       {
         prefix = "lst",
         name = "Listing",
         kind = "float",
+        default_caption_location = "top",
       }
     }
     

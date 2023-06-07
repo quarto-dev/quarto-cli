@@ -106,20 +106,31 @@ end, function(float)
     -- and render that as the result
     local div = pandoc.Div({found_table})
     div.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+    found_table.caption.long = float.caption_long
     return div
   end
 
   ------------------------------------------------------------------------------------
+  -- Special handling for listings
+  local found_listing = get_node_from_float_and_type(float, "CodeBlock")
+  if found_listing then
+    found_listing.attr = merge_attrs(found_listing.attr, pandoc.Attr("", float.classes or {}, float.attributes or {}))
+    -- FIXME this seems to be necessary for our postprocessor to kick in
+    -- check this out later
+    found_listing.identifier = float.identifier
+  end
 
+  ------------------------------------------------------------------------------------
+  
   local caption_content = pandoc.Plain({})
   caption_content.content:insert(pandoc.RawInline("html", "<figcaption>"))
   caption_content.content:extend(float.caption_long.content)
   caption_content.content:insert(pandoc.RawInline("html", "</figcaption>"))
 
   local float_prefix = refType(float.identifier)
-  local caption_location = capLocation(float_prefix, 'bottom')
+  local caption_location = capLocation(float_prefix, crossref.categories.by_prefix[float_prefix].default_caption_location)
+  -- FIXME MARGIN
   if caption_location ~= "top" and caption_location ~= "bottom" then
-    -- FIXME MARGIN
     error("Invalid caption location for float: " .. float.identifier .. " requested " .. caption_location .. ".\nOnly 'top' and 'bottom' are supported. Assuming 'bottom'.")
     
     caption_location = "bottom"
@@ -134,9 +145,18 @@ end, function(float)
   div.attr = merge_attrs(pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {}),
                          pandoc.Attr("", {}, figure_attrs.figureAttr))
 
-  -- apply standalone figure css
-  div.attr.classes:insert("quarto-figure")
-  div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
+  -- FIXME consider making the CSS classes uniform
+  if float.type == "Listing" then
+    div.attr.classes:insert("listing")
+
+  elseif float.type == "Figure" then
+    -- apply standalone figure css
+    div.attr.classes:insert("quarto-figure")
+    div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
+  else
+    -- FIXME work more generally here.
+    fail("Internal error: unknown float type " .. float.type)
+  end
 
   -- also forward any column or caption classes
   local currentClasses = found_image.attr.classes
@@ -161,7 +181,11 @@ end, function(float)
     fail("Internal error: should never have arrived here")
     return
   end
-  div.content:insert(pandoc.Para(fixed_content.content))
+  if fixed_content.content == nil then
+    div.content:insert(fixed_content)
+  else
+    div.content:insert(pandoc.Para(fixed_content.content or fixed_content))
+  end
   if caption_location == 'bottom' then
     div.content:insert(caption_content)
   end

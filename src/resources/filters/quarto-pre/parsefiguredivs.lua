@@ -114,5 +114,30 @@ function parse_floats()
         })
       end
     end,
+
+    CodeBlock = function(code)
+      local identifier = code.identifier
+      local key_prefix = refType(identifier)
+      if key_prefix ~= "lst" then
+        return nil
+      end
+      local caption = code.attr.attributes['lst-cap']
+      if caption == nil then
+        return nil
+      end
+      code.attr.attributes['lst-cap'] = nil
+      local classes = code.classes
+      local attributes = code.attributes
+      code.attr = pandoc.Attr("", {}, {})
+
+      return quarto.FloatCrossref({
+        identifier = identifier,
+        classes = classes,
+        attributes = attributes,
+        type = "Listing",
+        content = { code },
+        caption_long = caption,
+      })
+    end
   }
 end

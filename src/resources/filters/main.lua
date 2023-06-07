@@ -392,7 +392,7 @@ local quartoCrossref = {
     sections(),
     crossref_figures(),
     equations(),
-    listings(),
+    -- listings(),
     crossref_theorems(),
   })},
 
