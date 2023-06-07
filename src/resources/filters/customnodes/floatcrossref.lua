@@ -111,11 +111,11 @@ end, function(float)
 
   ------------------------------------------------------------------------------------
 
-  local caption_content = {
-    pandoc.RawInline("html", "<figcaption>"),
-    float.caption_long,
-    pandoc.RawInline("html", "</figcaption>")
-  }
+  local caption_content = pandoc.Plain({})
+  caption_content.content:insert(pandoc.RawInline("html", "<figcaption>"))
+  caption_content.content:extend(float.caption_long.content)
+  caption_content.content:insert(pandoc.RawInline("html", "</figcaption>"))
+
   local float_prefix = refType(float.identifier)
   local caption_location = capLocation(float_prefix, 'bottom')
   if caption_location ~= "top" and caption_location ~= "bottom" then
@@ -148,7 +148,7 @@ end, function(float)
 
   div.content:insert(pandoc.RawBlock("html", "<figure>"))
   if caption_location == 'top' then
-    div.content:extend(caption_content)
+    div.content:insert(caption_content)
   end
   -- strip image captions
   local fixed_content = _quarto.ast.walk(float.content, {
@@ -163,7 +163,7 @@ end, function(float)
   end
   div.content:insert(pandoc.Para(fixed_content.content))
   if caption_location == 'bottom' then
-    div.content:extend(caption_content)
+    div.content:insert(caption_content)
   end
   div.content:insert(pandoc.RawBlock("html", "</figure>"))
   return div

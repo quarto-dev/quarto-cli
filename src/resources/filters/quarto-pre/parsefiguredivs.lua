@@ -18,6 +18,8 @@ function parse_floats()
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
       div.content:remove(#div.content)
+    else
+      caption = pandoc.Plain({})
     end
     local identifier = div.identifier
     div.identifier = ""
@@ -27,7 +29,7 @@ function parse_floats()
       attributes = div.attributes,
       type = category.name,
       content = div.content,
-      caption_long = {caption},
+      caption_long = {pandoc.Plain(caption.content)},
     })
   end
 
