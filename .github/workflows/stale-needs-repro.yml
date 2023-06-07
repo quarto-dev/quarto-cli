@@ -15,7 +15,7 @@ jobs:
           stale-issue-label: "stale"
           any-of-issue-labels: "needs-repro"
           close-issue-reason: "not_planned"
-          ignore-issue-updates: true
+          ignore-issue-updates: false
           remove-issue-stale-when-updated: false
           stale-issue-message: |
             Thank you for using Quarto and reporting an issue!
