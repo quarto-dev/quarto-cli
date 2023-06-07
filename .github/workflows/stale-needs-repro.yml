@@ -1,3 +1,5 @@
+# Source: https://github.com/actions/stale
+
 name: 'Close stale issues and PRs'
 on:
   schedule:
