@@ -65,7 +65,7 @@ function parse_floats()
         identifier = label,
         classes = combined.classes,
         attributes = combined.attributes,
-        type = "table",
+        type = "Table",
         content = {el},
         caption_long = el.caption.long,
       })
@@ -108,7 +108,7 @@ function parse_floats()
           identifier = identifier,
           classes = combined.classes,
           attributes = combined.attributes,
-          type = "figure",
+          type = "Figure",
           content = {link},
           caption_long = img.caption,
         })
