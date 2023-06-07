@@ -1,0 +1,5 @@
+---
+title: "5815-confluence-links-to-file-attachments-not-supported"
+---
+
+[elephant-image-link](elephant.png)
