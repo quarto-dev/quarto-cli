@@ -16,11 +16,15 @@ function layoutVAlignAttribute(el, default)
   return validatedVAlign(attribute(el, kLayoutVAlign, default))
 end
 
-function hasLayoutAttributes(el)
-  local attribs = tkeys(el.attr.attributes)
+function attr_has_layout_attributes(attr)
+  local attribs = tkeys(attr.attributes)
   return attribs:includes(kLayoutNrow) or
          attribs:includes(kLayoutNcol) or
          attribs:includes(kLayout)
+end
+
+function hasLayoutAttributes(el)
+  return attr_has_layout_attributes(el.attr)
 end
 
 function isLayoutAttribute(key)

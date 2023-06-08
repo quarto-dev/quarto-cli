@@ -12,59 +12,187 @@ layoutState = {
 function layout_panels()
 
   return {
-    Div = function(el)
-      if requiresPanelLayout(el) then
-        
-        -- partition
-        local preamble, cells, caption = partitionCells(el)
-        
-        -- derive layout
-        local layout = layoutCells(el, cells)
-        
-        -- call the panel layout functions
-        local panel
-        if _quarto.format.isLatexOutput() then
-          panel = latexPanel(el, layout, caption)
-        elseif _quarto.format.isHtmlOutput() then
-          panel = htmlPanel(el, layout, caption)
-        elseif _quarto.format.isDocxOutput() then
-          panel = tableDocxPanel(el, layout, caption)
-        elseif _quarto.format.isOdtOutput() then
-          panel = tableOdtPanel(el, layout, caption)
-        elseif _quarto.format.isWordProcessorOutput() then
-          panel = tableWpPanel(el, layout, caption)
-        elseif _quarto.format.isPowerPointOutput() then
-          panel = pptxPanel(el, layout)
-        else
-          panel = tablePanel(el, layout, caption)
-        end
-
-        -- transfer attributes from el to panel
-        local keys = tkeys(el.attr.attributes)
-        for _,k in pairs(keys) do
-          if not isLayoutAttribute(k) then
-            panel.attr.attributes[k] = el.attr.attributes[k]
-          end
-        end
-        
-        if #preamble > 0 then
-          local div = pandoc.Div({})
-          if #preamble > 0 then
-            tappend(div.content, preamble)
-          end
-          div.content:insert(panel)
-          return div
-          
-        -- otherwise just return the panel
-        else
-          return panel
-        end
-        
+    FloatCrossref = function(float)
+      local attr = pandoc.Attr(float.identifier, float.classes, float.attributes)
+      if not attr_requires_panel_layout(attr) then
+        return nil
       end
-    end
+
+      local preamble, cells = partition_cells(float)
+      quarto.utils.dump{float = float, cells = cells}
+      fail("STOP")
+      float.content = pandoc.Div({
+        quarto.PanelLayout({
+          attributes = float.attributes,
+          preamble = preamble,
+          cells = cells
+        })
+      })
+      return float
+    end,
+    -- Div = function(el)
+    --   if requiresPanelLayout(el) then
+    --     -- partition
+    --     local preamble, cells, caption = partitionCells(el)
+    --     -- derive layout
+    --     local layout = layoutCells(el, cells)
+    --     -- call the panel layout functions
+    --     local panel
+    --     if _quarto.format.isLatexOutput() then
+    --       panel = latexPanel(el, layout, caption)
+    --     elseif _quarto.format.isHtmlOutput() then
+    --       panel = htmlPanel(el, layout, caption)
+    --     elseif _quarto.format.isDocxOutput() then
+    --       panel = tableDocxPanel(el, layout, caption)
+    --     elseif _quarto.format.isOdtOutput() then
+    --       panel = tableOdtPanel(el, layout, caption)
+    --     elseif _quarto.format.isWordProcessorOutput() then
+    --       panel = tableWpPanel(el, layout, caption)
+    --     elseif _quarto.format.isPowerPointOutput() then
+    --       panel = pptxPanel(el, layout)
+    --     else
+    --       panel = tablePanel(el, layout, caption)
+    --     end
+    --     -- transfer attributes from el to panel
+    --     local keys = tkeys(el.attr.attributes)
+    --     for _,k in pairs(keys) do
+    --       if not isLayoutAttribute(k) then
+    --         panel.attr.attributes[k] = el.attr.attributes[k]
+    --       end
+    --     end
+        
+    --     if #preamble > 0 then
+    --       local div = pandoc.Div({})
+    --       if #preamble > 0 then
+    --         tappend(div.content, preamble)
+    --       end
+    --       div.content:insert(panel)
+    --       return div
+          
+    --     -- otherwise just return the panel
+    --     else
+    --       return panel
+    --     end
+        
+    --   end
+    -- end
   }  
 end
 
+function attr_requires_panel_layout(attr)
+  if attr_has_layout_attributes(attr) then
+    return true
+  end
+  return (_quarto.format.isLatexOutput() or _quarto.format.isHtmlOutput()) and
+          attr.classes:includes("tbl-parent")
+end
+
+function partition_cells(float)
+  local preamble = pandoc.List()
+  local cells = pandoc.List()
+
+  local heading = nil
+  for _, block in ipairs(float.content) do    
+    if isPreambleBlock(block) then
+      if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
+        preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
+      else
+        preamble:insert(block)
+      end
+    elseif block.t == "Header" then
+      if _quarto.format.isRevealJsOutput() then
+        heading = pandoc.Para({ pandoc.Strong(block.content)})
+      else
+        heading = block
+      end
+    else
+      local cellDiv = nil
+      local subfloat = _quarto.ast.resolve_custom_data(block)
+
+      -- if we were given a scaffolding div like cell-output-display, etc,
+      -- we use it.
+      if subfloat == nil and block.t == "Div" then
+        cellDiv = block
+      else
+        cellDiv = pandoc.Div(block)
+      end
+
+      -- -- ensure we are dealing with a div
+      -- local cellDiv = nil
+      -- if block.t == "Div" then
+      --   -- if this has a single figure div then unwrap it
+      --   if #block.content == 1 and 
+      --      block.content[#block.content].t == "Div" and
+      --      hasFigureOrTableRef(block.content[#block.content]) then
+      --     cellDiv = block.content[#block.content]
+      --   else
+      --     cellDiv = block
+      --   end
+      -- else
+      --   cellDiv = pandoc.Div(block)
+      -- end
+      
+      -- -- special behavior for cells with figures (including ones w/o captions)
+      -- local fig = figureImageFromLayoutCell(cellDiv)
+      -- if fig then
+      --   -- transfer width to cell
+      --   transferImageWidthToCell(fig, cellDiv)
+      -- end
+      if subfloat ~= nil and subfloat.t == "FloatCrossRef" then
+        transfer_float_image_width_to_cell(subfloat, cellDiv)
+      end
+      
+      -- if we have a heading then insert it
+      if heading then 
+        cellDiv.content:insert(1, heading)
+        heading = nil
+      end
+
+
+      -- if this is .cell-output-display that isn't a figure or table 
+      -- then unroll multiple blocks
+      local is_subfloat
+      _quarto.ast.walk(cellDiv, {
+        FloatCrossref = function(float)
+          is_subfloat = true
+          return nil
+        end
+      })
+      if cellDiv.attr.classes:find("cell-output-display") and is_subfloat == nil then
+        for _,outputBlock in ipairs(cellDiv.content) do
+          if outputBlock.t == "Div" then
+            cells:insert(outputBlock)
+          else
+            cells:insert(pandoc.Div(outputBlock))
+          end
+        end
+      else
+        -- add the div
+        cells:insert(cellDiv)
+      end
+
+      -- -- if this is .cell-output-display that isn't a figure or table 
+      -- -- then unroll multiple blocks
+      -- if cellDiv.attr.classes:find("cell-output-display") and 
+      --    #cellDiv.content > 1 and 
+      --    not hasFigureOrTableRef(cellDiv) then
+      --   for _,outputBlock in ipairs(cellDiv.content) do
+      --     if outputBlock.t == "Div" then
+      --       cells:insert(outputBlock)
+      --     else
+      --       cells:insert(pandoc.Div(outputBlock))
+      --     end
+      --   end
+      -- else
+      --   -- add the div
+      --   cells:insert(cellDiv)
+      -- end
+      
+    end
+  end
+
+  return preamble, cells
+end
 
 function requiresPanelLayout(divEl)
   
@@ -79,7 +207,6 @@ function requiresPanelLayout(divEl)
   end
   
 end
-
 
 function partitionCells(divEl)
   

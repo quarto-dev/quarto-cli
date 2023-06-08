@@ -1,6 +1,25 @@
 -- html.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isHtmlOutput()
+end, function(panel_layout)
+
+  local panel = pandoc.Div({})
+  panel.attr.classes:insert("quarto-layout-panel")
+
+  -- layout
+  for i, row in ipairs(panel_layout.cells) do
+    
+    local row_div = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
+    if panel_layout.valign_class then
+      row_div.attr.classes:insert(panel_layout.valign_class)
+    end
+    
+  end
+
+end)
+
 function htmlPanel(divEl, layout, caption)
   
   -- outer panel to contain css and figure panel

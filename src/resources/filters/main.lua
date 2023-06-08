@@ -87,7 +87,6 @@ import("./layout/asciidoc.lua")
 import("./layout/meta.lua")
 import("./layout/width.lua")
 import("./layout/latex.lua")
-import("./layout/html.lua")
 import("./layout/wp.lua")
 import("./layout/docx.lua")
 import("./layout/jats.lua")
@@ -143,6 +142,8 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
+
+import("./layout/html.lua")
 
 import("./customnodes/shortcodes.lua")
 import("./customnodes/content-hidden.lua")
@@ -356,8 +357,7 @@ local quartoLayout = {
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layout_panels(), flags =
-    { "has_layout_attributes", "has_tbl_parent" } },
+  { name = "layout-panels", filter = layout_panels() },
   { name = "layout-extended-figures", filter = extended_figures(), flags = 
     { "has_discoverable_figures", "has_figure_divs"} },
   { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
