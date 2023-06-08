@@ -123,10 +123,8 @@ export const notebookPreviewer = (
       },
     ) as NotebookPreviewTask[];
 
+    let shownProgressHeader = false;
     const total = uniqueWork.length;
-    if (total > 0) {
-      logProgress(`Rendering notebooks`);
-    }
     for (let i = 0; i < total; i++) {
       const work = uniqueWork[i];
       const { nbPath, input, title, nbPreviewFile } = work;
@@ -144,7 +142,6 @@ export const notebookPreviewer = (
         const supporting: string[] = [];
         const resources: string[] = [];
         const nbRelPath = relative(inputDir, nbAbsPath);
-        logProgress(`[${i + 1}/${total}] ${nbRelPath}`);
 
         // Render an output version of the notebook
         let downloadUrl = undefined;
@@ -152,6 +149,12 @@ export const notebookPreviewer = (
         if (!descriptor?.[kDownloadUrl] && !isBook) {
           let notebook = services.notebook.get(nbAbsPath);
           if (!notebook && output) {
+            if (!shownProgressHeader) {
+              logProgress(`Rendering notebooks`);
+              shownProgressHeader = true;
+            }
+            logProgress(`[${i + 1}/${total}] ${nbRelPath}`);
+
             notebook = await services.notebook.render(
               nbAbsPath,
               output,

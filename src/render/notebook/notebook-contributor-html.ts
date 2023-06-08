@@ -78,6 +78,7 @@ async function resolveHtmlNotebook(
     executedFile.recipe.format,
     nb.config,
     executedFile.context.options.services,
+    outputNotebook,
   );
 
   const resolved = ld.cloneDeep(executedFile);
@@ -126,6 +127,7 @@ async function renderHtmlNotebook(
     format,
     nb.config,
     services,
+    outputNotebook,
   );
 
   // Render the notebook and update the path
@@ -179,18 +181,9 @@ async function resolveNotebookConfig(
     previewFileName?: string;
   },
   project?: ProjectContext,
-  outputNotebook?: NotebookOutput,
 ) {
   // These are explicitly passed in some cases
   const { title, previewFileName } = options;
-
-  // These are the href / filename of the generated ipynb
-  // If there is a rendered notebook available, we'll use that
-  // otherwise, we will just use the nbPath itself (the raw unrendered notebook)
-  const downloadUrl = outputNotebook ? outputNotebook?.path : nbPath;
-  const downloadFileName = outputNotebook
-    ? basename(outputNotebook?.path)
-    : basename(nbPath);
 
   const nbView = format.render[kNotebookView] ?? true;
   const nbDescriptors: Record<string, NotebookPreviewDescriptor> = {};
@@ -219,8 +212,7 @@ async function resolveNotebookConfig(
     title: title || await resolveTitle(nbPath, descriptor, project),
     previewFileName: previewFileName || `${basename(nbPath)}.html`,
     url: descriptor?.url,
-    downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
-    downloadFileName,
+    downloadUrl: descriptor?.[kDownloadUrl],
     backHref,
   };
 
@@ -251,16 +243,22 @@ function htmlPreviewTemplate(
   format: Format,
   previewConfig: NotebookPreviewConfig,
   services: RenderServices,
+  outputNotebook?: NotebookOutput,
 ) {
   // Use the special `embed` template for this render
   const embedHtmlEjs = formatResourcePath(
     "html",
     join("embed", "template.ejs.html"),
   );
+  const downloadPath = outputNotebook
+    ? basename(outputNotebook.path)
+    : basename(nbPath);
+  const downloadFileName = basename(nbPath);
+
   const embedTemplate = renderEjs(embedHtmlEjs, {
     title: previewConfig.title,
-    path: previewConfig.downloadUrl || basename(nbPath),
-    filename: previewConfig.downloadFileName || basename(nbPath),
+    path: previewConfig.downloadUrl || downloadPath,
+    filename: previewConfig.downloadFileName || downloadFileName,
     backOptions: {
       href: previewConfig.backHref,
       label: format.language[kNotebookPreviewBack],
