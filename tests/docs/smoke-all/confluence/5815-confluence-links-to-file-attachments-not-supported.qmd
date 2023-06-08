@@ -2,4 +2,5 @@
 title: "5815-confluence-links-to-file-attachments-not-supported"
 ---
 
-[elephant-image-link](elephant.png)
+[quarto-hex-png](quarto-hex.png)
+[quarto-hex-svg](quarto-hex.svg)
