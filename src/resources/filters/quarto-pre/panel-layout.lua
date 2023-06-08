@@ -67,7 +67,27 @@ _quarto.ast.add_handler({
     -- so contents are properly stored in the cells slot
     local cells_div = pandoc.Div({})
     for i, row in ipairs(tbl.cells) do
-      cells_div.content:insert(pandoc.Div(row))
+      cells_div.content:insert(pandoc.Div(_quarto.ast.walk(row, {
+        traverse = "topdown",
+        Div = function(div)
+          local found = false
+          -- if it has a ref parent then give it another class
+          -- (used to provide subcaption styling)
+          local new_div = _quarto.ast.walk(div, {
+            FloatCrossref = function(float)
+              if float.parent_id then
+                found = true
+                div.attr.classes:insert("quarto-layout-cell-subref")
+              end
+            end,
+          })
+          if found then
+            return new_div
+          else
+            return div
+          end
+        end,
+      }) or {})) -- this isn't needed but the type system doesn't know that
     end
     tbl.cells = cells_div
 

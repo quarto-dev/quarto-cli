@@ -188,7 +188,17 @@ end, function(float)
     if fixed_content.content == nil then
       div.content:insert(fixed_content)
     else
-      div.content:insert(pandoc.Para(fixed_content.content or fixed_content))
+      local content_content_pt = pandoc.utils.type(fixed_content.content)
+      if content_content_pt == "Blocks" then
+        div.content:insert(pandoc.Div(fixed_content.content))
+      elseif content_content_pt == "Inlines" then
+        div.content:insert(pandoc.Para(fixed_content.content))
+      else
+        div.content:insert(fixed_content)
+      end
+      -- print()
+      -- quarto.utils.dump { div = div, fixed_content = fixed_content}
+      -- div.content:insert(pandoc.Para(fixed_content.content))
     end
   else
     fail("Internal error: did not expect content of type " .. content_pt)

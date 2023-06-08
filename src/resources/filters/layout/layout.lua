@@ -19,8 +19,6 @@ function layout_panels()
       end
 
       local preamble, cells = partition_cells(float)
-      quarto.utils.dump{float = float, cells = cells}
-      fail("STOP")
       float.content = pandoc.Div({
         quarto.PanelLayout({
           attributes = float.attributes,
