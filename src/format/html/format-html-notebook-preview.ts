@@ -151,9 +151,10 @@ export const notebookPreviewer = (
         let downloadFileName = undefined;
         if (!descriptor?.[kDownloadUrl] && !isBook) {
           let notebook = services.notebook.get(nbAbsPath);
-          if (!notebook) {
+          if (!notebook && output) {
             notebook = await services.notebook.render(
               nbAbsPath,
+              output,
               format,
               "rendered-ipynb",
               services,

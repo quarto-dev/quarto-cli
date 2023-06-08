@@ -64,7 +64,7 @@ import {
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
-import { articleFile, isArticle } from "./manuscript-config.ts";
+import { computeProjectArticleFile, isArticle } from "./manuscript-config.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 
 import {
@@ -122,7 +122,7 @@ export const manuscriptProjectType: ProjectType = {
 
     // Ensure the article is the last file in the render list
     const inputs = projectInputFiles(projectDir, config);
-    const article = articleFile(projectDir, manuscriptConfig);
+    const article = computeProjectArticleFile(projectDir, manuscriptConfig);
 
     // Determine the notebooks that are being declared explicitly in
     // in the manuscript configuration

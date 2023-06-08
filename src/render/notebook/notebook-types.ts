@@ -27,6 +27,10 @@ export const kRenderedIPynb = "rendered-ipynb";
 
 export type RenderType = "html-preview" | "jats-subarticle" | "rendered-ipynb";
 
+export interface NotebookPreviewOptions {
+  back?: boolean;
+}
+
 export interface Notebook {
   source: string;
   title: string;
@@ -36,16 +40,13 @@ export interface Notebook {
   [kRenderedIPynb]?: NotebookOutput;
 }
 
-export interface NotebookPreviewOptions {
-  back?: boolean;
-}
-
 export interface NotebookPreviewConfig {
   title: string;
   url?: string;
-  previewFileName: string;
   downloadUrl?: string;
+  previewFileName: string;
   downloadFileName?: string;
+  downloadFilePath?: string;
   backHref?: string;
 }
 
@@ -59,9 +60,10 @@ export interface NotebookContext {
   get: (nbPath: string) => Notebook | undefined;
   resolve: (
     nbPath: string,
+    parentFilePath: string,
     renderType: RenderType,
     executedFile: ExecutedFile,
-  ) => ExecutedFile | undefined;
+  ) => Promise<ExecutedFile | undefined>;
   contribute: (
     nbPath: string,
     renderType: RenderType,
@@ -69,6 +71,7 @@ export interface NotebookContext {
   ) => void;
   render: (
     nbPath: string,
+    parentFilePath: string,
     format: Format,
     renderType: RenderType,
     renderServices: RenderServices,
@@ -81,14 +84,18 @@ export interface NotebookContributor {
   cleanup(notebooks: Notebook[]): void;
   resolve(
     nbAbsPath: string,
+    parentFilePath: string,
     token: string,
     executedFile: ExecutedFile,
-  ): ExecutedFile;
+    renderedNotebook?: NotebookOutput,
+  ): Promise<ExecutedFile>;
   render(
     nbAbsPath: string,
+    parentFilePath: string,
     format: Format,
     token: string,
     services: RenderServices,
+    renderedNotebook?: NotebookOutput,
     project?: ProjectContext,
   ): Promise<RenderedFile>;
 }

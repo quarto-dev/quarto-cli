@@ -25,7 +25,10 @@ export const isArticle = (
   return file === articlePath;
 };
 
-export const articleFile = (projectDir: string, config: ManuscriptConfig) => {
+export const computeProjectArticleFile = (
+  projectDir: string,
+  config: ManuscriptConfig,
+) => {
   let defaultRenderFile: string | undefined = undefined;
   // Build the render list
   if (config.article) {

@@ -23,7 +23,11 @@ import {
 } from "./manuscript-types.ts";
 import { isArticle } from "./manuscript-config.ts";
 import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
-import { kJatsSubarticle } from "../../../render/notebook/notebook-types.ts";
+import {
+  kHtmlPreview,
+  kJatsSubarticle,
+  kRenderedIPynb,
+} from "../../../render/notebook/notebook-types.ts";
 
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
@@ -102,9 +106,35 @@ export const manuscriptRenderer = (
       // TODO: Deal with HTML and PDF requests for notebooks
       let targetExecutedFile = executedFile;
       if (!isArt && isJatsOutput(executedFile.context.format.pandoc)) {
-        const resolvedExecutedFile = nbContext.resolve(
+        const resolvedExecutedFile = await nbContext.resolve(
           target.input,
+          manuscriptConfig.article,
           kJatsSubarticle,
+          executedFile,
+        );
+        if (resolvedExecutedFile) {
+          targetExecutedFile = resolvedExecutedFile;
+        }
+      } else if (
+        !isArt && isHtmlOutput(executedFile.context.format.pandoc, true)
+      ) {
+        // Use the executed file to render the output ipynb
+        const renderedIpynb = nbContext.get(target.input);
+        if (!renderedIpynb || !renderedIpynb[kRenderedIPynb]) {
+          await nbContext.render(
+            target.input,
+            manuscriptConfig.article,
+            executedFile.recipe.format,
+            kRenderedIPynb,
+            executedFile.context.options.services,
+            executedFile.context.project,
+          );
+        }
+
+        const resolvedExecutedFile = await nbContext.resolve(
+          target.input,
+          manuscriptConfig.article,
+          kHtmlPreview,
           executedFile,
         );
         if (resolvedExecutedFile) {
@@ -118,8 +148,9 @@ export const manuscriptRenderer = (
       // If this is an article with computations, do any special work
       // required to resolve a version of it as a subarticle, preview, etc...
       if (isArt && isJatsOutput(executedFile.context.format.pandoc)) {
-        const subArticleExecutedFile = nbContext.resolve(
+        const subArticleExecutedFile = await nbContext.resolve(
           target.input,
+          manuscriptConfig.article,
           kJatsSubarticle,
           executedFile,
         );
@@ -133,6 +164,29 @@ export const manuscriptRenderer = (
           nbContext.contribute(
             nbAbsPath,
             kJatsSubarticle,
+            renderedFile,
+          );
+        }
+      } else if (
+        !isArt && isHtmlOutput(executedFile.context.format.pandoc, true)
+      ) {
+        // Render the notebook and contribute it
+        const subArticleExecutedFile = await nbContext.resolve(
+          target.input,
+          manuscriptConfig.article,
+          kHtmlPreview,
+          executedFile,
+        );
+        if (subArticleExecutedFile) {
+          const result = await renderPandoc(subArticleExecutedFile, true);
+          const renderedFile = await result.complete([{
+            path: target.input,
+            format: subArticleExecutedFile.context.format,
+          }]);
+          const nbAbsPath = join(context.dir, renderedFile.input);
+          nbContext.contribute(
+            nbAbsPath,
+            kHtmlPreview,
             renderedFile,
           );
         }
@@ -162,6 +216,13 @@ export const manuscriptRenderer = (
           nbContext.contribute(
             nbAbsPath,
             kJatsSubarticle,
+            renderedFile,
+          );
+        } else if (!isArt && isHtmlOutput(renderedFile.format.pandoc, true)) {
+          const nbAbsPath = join(projectContext.dir, renderedFile.input);
+          nbContext.contribute(
+            nbAbsPath,
+            kHtmlPreview,
             renderedFile,
           );
         }

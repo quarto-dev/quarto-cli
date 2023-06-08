@@ -21,7 +21,11 @@ import {
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { Notebook, NotebookContributor } from "./notebook-types.ts";
+import {
+  Notebook,
+  NotebookContributor,
+  NotebookOutput,
+} from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -37,8 +41,10 @@ export const outputNotebookContributor: NotebookContributor = {
 
 function resolveOutputNotebook(
   nbAbsPath: string,
+  _parentFilePath: string,
   _token: string,
   executedFile: ExecutedFile,
+  _outputNotebook?: NotebookOutput,
 ) {
   const resolved = ld.cloneDeep(executedFile);
   resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(
@@ -59,9 +65,11 @@ function resolveOutputNotebook(
 }
 async function renderOutputNotebook(
   nbPath: string,
+  _parentFilePath: string,
   _format: Format,
   _subArticleToken: string,
   services: RenderServices,
+  _outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(

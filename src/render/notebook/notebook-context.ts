@@ -23,12 +23,13 @@ import {
 
 import { basename, dirname, join } from "path/mod.ts";
 import { jatsContributor } from "./notebook-contributor-jats.ts";
+import { htmlNotebookContributor } from "./notebook-contributor-html.ts";
 import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
 import { Format } from "../../config/types.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
-  [kHtmlPreview]: undefined,
+  [kHtmlPreview]: htmlNotebookContributor,
   [kRenderedIPynb]: outputNotebookContributor,
 };
 
@@ -75,20 +76,36 @@ export function notebookContext(): NotebookContext {
     }
   }
 
+  function renderedNotebook(nbPath: string) {
+    const currentNb = notebooks[nbPath];
+    const outputNotebook = currentNb && currentNb[kRenderedIPynb]
+      ? currentNb[kRenderedIPynb]
+      : undefined;
+    return outputNotebook;
+  }
+
   return {
     get: (nbAbsPath: string) => {
       return notebooks[nbAbsPath];
     },
     resolve: (
       nbAbsPath: string,
+      parentFilePath: string,
       renderType: RenderType,
       executedFile: ExecutedFile,
     ) => {
-      return contributor(renderType).resolve(nbAbsPath, token(), executedFile);
+      return contributor(renderType).resolve(
+        nbAbsPath,
+        parentFilePath,
+        token(),
+        executedFile,
+        renderedNotebook(nbAbsPath),
+      );
     },
     contribute,
     render: async (
       nbAbsPath: string,
+      parentFilePath: string,
       format: Format,
       renderType: RenderType,
       services: RenderServices,
@@ -96,9 +113,11 @@ export function notebookContext(): NotebookContext {
     ) => {
       const renderedFile = await contributor(renderType).render(
         nbAbsPath,
+        parentFilePath,
         format,
         token(),
         services,
+        renderedNotebook(nbAbsPath),
         project,
       );
       contribute(nbAbsPath, kJatsSubarticle, renderedFile);
