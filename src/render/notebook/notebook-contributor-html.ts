@@ -171,8 +171,8 @@ async function renderHtmlNotebook(
 }
 
 async function resolveNotebookConfig(
-  parentFilePath: string,
   nbPath: string,
+  parentFilePath: string,
   format: Format,
   options: {
     title?: string;

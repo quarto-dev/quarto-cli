@@ -60,7 +60,7 @@ export function notebookContext(): NotebookContext {
       notebooks[nbAbsPath] = {
         source: nbAbsPath,
         title: "",
-        [kJatsSubarticle]: output,
+        [renderType]: output,
       };
     }
   };

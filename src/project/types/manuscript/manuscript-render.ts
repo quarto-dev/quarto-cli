@@ -100,6 +100,7 @@ export const manuscriptRenderer = (
     ) => {
       // TODO: Remove hack
       executedFile.context.options.services.notebook = nbContext;
+
       const target = executedFile.context.target;
       const isArt = isArticle(target.input, context, manuscriptConfig);
 
@@ -121,14 +122,25 @@ export const manuscriptRenderer = (
         // Use the executed file to render the output ipynb
         const renderedIpynb = nbContext.get(target.input);
         if (!renderedIpynb || !renderedIpynb[kRenderedIPynb]) {
-          await nbContext.render(
+          const ipynbExecutedFile = await nbContext.resolve(
             target.input,
             manuscriptConfig.article,
-            executedFile.recipe.format,
             kRenderedIPynb,
-            executedFile.context.options.services,
-            executedFile.context.project,
+            executedFile,
           );
+          if (ipynbExecutedFile) {
+            const result = await renderPandoc(ipynbExecutedFile, true);
+            const renderedFile = await result.complete([{
+              path: target.input,
+              format: ipynbExecutedFile.context.format,
+            }]);
+            const nbAbsPath = join(context.dir, renderedFile.input);
+            nbContext.contribute(
+              nbAbsPath,
+              kRenderedIPynb,
+              renderedFile,
+            );
+          }
         }
 
         const resolvedExecutedFile = await nbContext.resolve(
@@ -168,7 +180,7 @@ export const manuscriptRenderer = (
           );
         }
       } else if (
-        !isArt && isHtmlOutput(executedFile.context.format.pandoc, true)
+        isArt && isHtmlOutput(executedFile.context.format.pandoc, true)
       ) {
         // Render the notebook and contribute it
         const subArticleExecutedFile = await nbContext.resolve(
