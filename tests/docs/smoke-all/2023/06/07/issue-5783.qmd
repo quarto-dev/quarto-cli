@@ -1,0 +1,15 @@
+---
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureFileRegexMatches:
+        - ['```\{python\}']
+        - []
+---
+
+## test
+
+```{{python}}
+1 + 1
+```

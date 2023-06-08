@@ -2,3 +2,5 @@ _publish.yml
 *.xml
 5815-confluence-links-to-file-attachments-not-supported_files
 *.html
+confluence-cross-refs_files
+confluence-smoke-test_files
