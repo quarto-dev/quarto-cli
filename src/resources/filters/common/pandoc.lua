@@ -183,3 +183,13 @@ function merge_attrs(attr, ...)
   end
   return result
 end
+
+-- used to convert metatable, attributetable, etc
+-- to plain tables that can be serialized to JSON
+function as_plain_table(value)
+  local result = {}
+  for k, v in pairs(value) do
+    result[k] = v
+  end
+  return result
+end

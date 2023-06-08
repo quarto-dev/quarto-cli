@@ -96,6 +96,7 @@ end, function(float)
   ------------------------------------------------------------------------------------
   -- Special handling for tables
 
+
   -- if we have a Table AST element, then we forward the caption
   -- into the node and display only that.
   local found_table = get_node_from_float_and_type(float, "Table")
@@ -153,7 +154,6 @@ end, function(float)
     div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
   else
     -- FIXME work more generally here.
-    fail("Internal error: unknown float type " .. float.type)
   end
 
   -- also forward any column or caption classes

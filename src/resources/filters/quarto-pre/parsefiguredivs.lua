@@ -26,7 +26,7 @@ function parse_floats()
     return quarto.FloatCrossref({
       identifier = identifier,
       classes = div.classes,
-      attributes = div.attributes,
+      attributes = as_plain_table(div.attributes),
       type = category.name,
       content = div.content,
       caption_long = {pandoc.Plain(caption.content)},
@@ -64,7 +64,7 @@ function parse_floats()
       return quarto.FloatCrossref({
         identifier = label,
         classes = combined.classes,
-        attributes = combined.attributes,
+        attributes = as_plain_table(combined.attributes),
         type = "Table",
         content = {el},
         caption_long = el.caption.long,
@@ -107,7 +107,7 @@ function parse_floats()
         return quarto.FloatCrossref({
           identifier = identifier,
           classes = combined.classes,
-          attributes = combined.attributes,
+          attributes = as_plain_table(combined.attributes),
           type = "Figure",
           content = {link},
           caption_long = img.caption,
@@ -133,7 +133,7 @@ function parse_floats()
       return quarto.FloatCrossref({
         identifier = identifier,
         classes = classes,
-        attributes = attributes,
+        attributes = as_plain_table(attributes),
         type = "Listing",
         content = { code },
         caption_long = caption,
