@@ -57,15 +57,13 @@ end, function(float)
 end)
 
 local function prepare_caption(float)
+  local caption_content = float.caption_long.content or float.caption_long
+
   if float.parent_id then
-    prependSubrefNumber(float.caption_long, float.order)
+    prependSubrefNumber(caption_content, float.order)
   else
     local title_prefix = float_title_prefix(float)
-    if pandoc.utils.type(float.caption_long) == "Blocks" then
-      tprepend(float.caption_long, title_prefix)
-    else
-      tprepend(float.caption_long.content, title_prefix)
-    end
+    tprepend(caption_content, title_prefix)
   end
 end
 
@@ -181,11 +179,22 @@ end, function(float)
     fail("Internal error: should never have arrived here")
     return
   end
-  if fixed_content.content == nil then
-    div.content:insert(fixed_content)
+
+  -- insert the content in one of many different ways
+  local content_pt = pandoc.utils.type(fixed_content)
+  if content_pt == "Blocks" then
+    div.content:extend(fixed_content)
+  elseif content_pt == "Block" then
+    if fixed_content.content == nil then
+      div.content:insert(fixed_content)
+    else
+      div.content:insert(pandoc.Para(fixed_content.content or fixed_content))
+    end
   else
-    div.content:insert(pandoc.Para(fixed_content.content or fixed_content))
+    fail("Internal error: did not expect content of type " .. content_pt)
+    return
   end
+  
   if caption_location == 'bottom' then
     div.content:insert(caption_content)
   end
