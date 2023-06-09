@@ -5,8 +5,6 @@
 -- we proceed with crawling for cross-refs
 function crossref_mark_subfloats()
 
-  -- CONTINUE HERE, YOU ARE TRACKING THE NESTED FLOAT FIGURES
-  -- TO PASS ALONG PARENTID TO THE SUBREFS, kRefParent etc.
 
   return {
     traverse = "topdown",
@@ -14,6 +12,12 @@ function crossref_mark_subfloats()
       float.content = _quarto.ast.walk(float.content, {
         FloatCrossref = function(subfloat)
           subfloat.parent_id = float.identifier
+          subfloat.content = _quarto.ast.walk(subfloat.content, {
+            Image = function(image)
+              image.attributes[kRefParent] = float.identifier
+              return image
+            end
+          })
           return subfloat
         end
       })

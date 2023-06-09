@@ -16,20 +16,25 @@ function parse_pandoc3_figures()
         return
       end
 
-
+      if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
+        print(fig)
+        fail("Don't know how to parse this pandoc 3 figure")
+        return nil
+      end
+      local new_content = _quarto.ast.walk(fig.content[1], {
+        -- strip redundant image caption
+        Image = function(image)
+          image.caption = {}
+          return image
+        end
+      })
 
       return quarto.FloatCrossref({
         identifier = fig.identifier,
         classes = fig.classes,
         attributes = fig.attributes,
         type = category.name,
-        content = _quarto.ast.walk(fig.content, {
-          -- strip redundant image caption
-          Image = function(image)
-            image.caption = {}
-            return image
-          end
-        }),
+        content = pandoc.Para(new_content.content),
         caption_long = fig.caption.long,
         caption_short = fig.caption.short,
       })
