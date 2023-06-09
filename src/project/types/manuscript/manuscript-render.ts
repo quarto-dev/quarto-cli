@@ -35,18 +35,16 @@ import {
 
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
-import { notebookContext } from "../../../render/notebook/notebook-context.ts";
 import { logProgress } from "../../../core/log.ts";
-import { format } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 import { kNotebookViewStyle } from "../../../config/constants.ts";
 
 export const manuscriptRenderer = (
-  _options: RenderOptions,
+  options: RenderOptions,
   context: ProjectContext,
 ): PandocRenderer => {
   const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];
-  const nbContext = notebookContext();
+  const nbContext = options.services.notebook;
 
   const manuscriptConfig =
     (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
@@ -185,9 +183,6 @@ export const manuscriptRenderer = (
       let completion = renderCompletions.pop();
       while (completion) {
         const renderedFile = await completion.complete(renderedFormats);
-        renderedFiles.push(renderedFile);
-
-        const isArt = isArticle(renderedFile.input, context, manuscriptConfig);
 
         if (
           isJatsOutput(renderedFile.format.pandoc) &&
@@ -199,6 +194,8 @@ export const manuscriptRenderer = (
             kJatsSubarticle,
             renderedFile,
           );
+          // Since JATS subarticles are transient and will end up self contained,
+          // don't include them as rendered files
         } else if (
           isHtmlOutput(renderedFile.format.pandoc, true) &&
           renderedFile.format.render[kNotebookViewStyle] === "notebook"
@@ -209,6 +206,7 @@ export const manuscriptRenderer = (
             kHtmlPreview,
             renderedFile,
           );
+          renderedFiles.push(renderedFile);
         } else if (isIpynbOutput(renderedFile.format.pandoc)) {
           const nbAbsPath = join(context.dir, renderedFile.input);
           nbContext.contribute(
@@ -216,13 +214,17 @@ export const manuscriptRenderer = (
             kRenderedIPynb,
             renderedFile,
           );
+          renderedFiles.push(renderedFile);
+        } else {
+          renderedFiles.push(renderedFile);
         }
 
         completion = renderCompletions.pop();
       }
     },
     onComplete: async () => {
-      //nbContext.cleanup();
+      // TODO: Consider manually removing certain file types from manuscript directory
+      // like subarticle xml files
       const files = await Promise.resolve(renderedFiles);
       return {
         files,
