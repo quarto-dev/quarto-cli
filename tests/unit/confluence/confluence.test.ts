@@ -61,8 +61,8 @@ import {
   Space,
 } from "../../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = false;
-const FOCUS_TEST = true;
+const RUN_ALL_TESTS = true;
+const FOCUS_TEST = false;
 const HIDE_NOISE = false;
 
 const xtest = (
@@ -3333,7 +3333,7 @@ const runFlattenIndexes = () => {
     assertEquals(expected, actual);
   });
 
-  otest(suiteLabel("create_root_with_index"), async () => {
+  test(suiteLabel("create_root_with_index"), async () => {
     const spaceChanges: ConfluenceSpaceChange[] = [
       {
         contentChangeType: ContentChangeType.create,
@@ -4697,7 +4697,7 @@ const runFindAttachments = () => {
     check(expected, bodyValue);
   });
 
-  otest(suiteLabel("svg_attachment"), async () => {
+  test(suiteLabel("svg_attachment"), async () => {
     //5815-bug-confluence-links-to-file-attachments-not-supported
     const DOUBLE_BRACKET = "]]";
     const bodyValue: string = `<ac:link><ri:attachment ri:filename="quarto-hex.svg"/><ac:plain-text-link-body><![CDATA[quarto-hex-svg${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
@@ -4707,7 +4707,7 @@ const runFindAttachments = () => {
     check(expected, bodyValue);
   });
 
-  otest(suiteLabel("ai_attachment"), async () => {
+  test(suiteLabel("ai_attachment"), async () => {
     //5815-bug-confluence-links-to-file-attachments-not-supported
     const DOUBLE_BRACKET = "]]";
     const bodyValue: string = `<ac:link><ri:attachment ri:filename="quarto-hex.ai"/><ac:plain-text-link-body><![CDATA[quarto-hex-svg${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
@@ -4717,7 +4717,7 @@ const runFindAttachments = () => {
     check(expected, bodyValue);
   });
 
-  otest(suiteLabel("pdf_attachment"), async () => {
+  test(suiteLabel("pdf_attachment"), async () => {
     //5815-bug-confluence-links-to-file-attachments-not-supported
     const DOUBLE_BRACKET = "]]";
     const bodyValue: string = `<ac:link><ri:attachment ri:filename="quarto-hex.pdf"/><ac:plain-text-link-body><![CDATA[quarto-hex-svg${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
