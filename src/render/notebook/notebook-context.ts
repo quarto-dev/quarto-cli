@@ -26,6 +26,7 @@ import { jatsContributor } from "./notebook-contributor-jats.ts";
 import { htmlNotebookContributor } from "./notebook-contributor-html.ts";
 import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
 import { Format } from "../../config/types.ts";
+import { safeRemoveIfExists } from "../../core/path.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
@@ -141,9 +142,15 @@ export function notebookContext(): NotebookContext {
       const hasNotebooks = Object.keys(notebooks).length > 0;
       if (hasNotebooks) {
         Object.keys(contributors).forEach((renderType) => {
-          contributor(renderType as RenderType).cleanup(
-            Object.values(notebooks),
-          );
+          Object.values(notebooks).forEach((notebook) => {
+            const nbOutput = notebook[renderType as RenderType];
+            if (nbOutput) {
+              safeRemoveIfExists(nbOutput.path);
+              for (const supporting of nbOutput.supporting) {
+                safeRemoveIfExists(supporting);
+              }
+            }
+          });
         });
       }
     },

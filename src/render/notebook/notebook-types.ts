@@ -85,7 +85,6 @@ export interface NotebookContext {
 }
 
 export interface NotebookContributor {
-  cleanup(notebooks: Notebook[]): void;
   resolve(
     nbAbsPath: string,
     parentFilePath: string,

@@ -23,11 +23,7 @@ import {
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
-import {
-  Notebook,
-  NotebookContributor,
-  NotebookOutput,
-} from "./notebook-types.ts";
+import { Notebook, NotebookContributor } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -39,8 +35,6 @@ import { join } from "path/mod.ts";
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
   render: renderOutputNotebook,
-  cleanup: (_notebooks: Notebook[]) => {
-  },
 };
 
 function resolveOutputNotebook(

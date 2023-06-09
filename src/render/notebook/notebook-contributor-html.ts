@@ -50,8 +50,6 @@ import { readBaseInputIndex } from "../../project/project-index.ts";
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
   render: renderHtmlNotebook,
-  cleanup: (_notebooks: Notebook[]) => {
-  },
 };
 
 async function resolveHtmlNotebook(

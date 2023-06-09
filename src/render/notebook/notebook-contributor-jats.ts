@@ -39,13 +39,6 @@ import { Format } from "../../config/types.ts";
 export const jatsContributor: NotebookContributor = {
   resolve: resolveJats,
   render: renderJats,
-  cleanup: (notebooks: Notebook[]) => {
-    notebooks.forEach((notebook) => {
-      if (notebook[kJatsSubarticle]) {
-        safeRemoveIfExists(notebook[kJatsSubarticle].path);
-      }
-    });
-  },
 };
 
 function resolveJats(
