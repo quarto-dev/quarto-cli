@@ -3,7 +3,7 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
-import { unitTest } from "../test.ts";
+import { unitTest } from "../../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts.ts";
 
 import {
@@ -36,13 +36,13 @@ import {
   validateToken,
   wrapBodyForConfluence,
   writeTokenComparator,
-} from "../../src/publish/confluence/confluence-helper.ts";
-import { ApiError, PublishRecord } from "../../src/publish/types.ts";
+} from "../../../src/publish/confluence/confluence-helper.ts";
+import { ApiError, PublishRecord } from "../../../src/publish/types.ts";
 import {
   AccountToken,
   AccountTokenType,
   InputMetadata,
-} from "../../src/publish/provider-types.ts";
+} from "../../../src/publish/provider-types.ts";
 import {
   ConfluenceParent,
   ConfluenceSpaceChange,
@@ -59,10 +59,10 @@ import {
   SiteFileMetadata,
   SitePage,
   Space,
-} from "../../src/publish/confluence/api/types.ts";
+} from "../../../src/publish/confluence/api/types.ts";
 
-const RUN_ALL_TESTS = true;
-const FOCUS_TEST = false;
+const RUN_ALL_TESTS = false;
+const FOCUS_TEST = true;
 const HIDE_NOISE = false;
 
 const xtest = (
@@ -4696,6 +4696,36 @@ const runFindAttachments = () => {
     ];
     check(expected, bodyValue);
   });
+
+  otest(suiteLabel("svg_attachment"), async () => {
+    //5815-bug-confluence-links-to-file-attachments-not-supported
+    const DOUBLE_BRACKET = "]]";
+    const bodyValue: string = `<ac:link><ri:attachment ri:filename="quarto-hex.svg"/><ac:plain-text-link-body><![CDATA[quarto-hex-svg${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
+    const expected: string[] = [
+      "quarto-hex.svg",
+    ];
+    check(expected, bodyValue);
+  });
+
+  otest(suiteLabel("ai_attachment"), async () => {
+    //5815-bug-confluence-links-to-file-attachments-not-supported
+    const DOUBLE_BRACKET = "]]";
+    const bodyValue: string = `<ac:link><ri:attachment ri:filename="quarto-hex.ai"/><ac:plain-text-link-body><![CDATA[quarto-hex-svg${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
+    const expected: string[] = [
+      "quarto-hex.ai",
+    ];
+    check(expected, bodyValue);
+  });
+
+  otest(suiteLabel("pdf_attachment"), async () => {
+    //5815-bug-confluence-links-to-file-attachments-not-supported
+    const DOUBLE_BRACKET = "]]";
+    const bodyValue: string = `<ac:link><ri:attachment ri:filename="quarto-hex.pdf"/><ac:plain-text-link-body><![CDATA[quarto-hex-svg${DOUBLE_BRACKET}></ac:plain-text-link-body></ac:link>`;
+    const expected: string[] = [
+      "quarto-hex.pdf",
+    ];
+    check(expected, bodyValue);
+  });
 };
 
 const runUpdateImagePathsForContentBody = () => {
@@ -4882,5 +4912,5 @@ if (RUN_ALL_TESTS) {
   runConfluenceParentFromString();
   runFlattenIndexes();
 } else {
-  runConfluenceParentFromString();
+  runFindAttachments();
 }
