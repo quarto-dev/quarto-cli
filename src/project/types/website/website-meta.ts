@@ -498,8 +498,10 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
 
       // read document level metadata
       const pageMeta = pageMetadata(format, extras);
-      const description = pageMeta.description as string;
-
+      const siteMeta = format.metadata[kWebsite] as Metadata;
+      const pageDesc = pageMeta.description as string | undefined;
+      const siteDesc = siteMeta.description as string | undefined;
+      const description = pageDesc || siteDesc;
       // Twitter
       const twitterMeta = twitterMetadata(format);
       inlines[kTwitterDesc] = twitterMeta.description as string ||
