@@ -15,6 +15,8 @@ import {
   kDownloadUrl,
   kKeepHidden,
   kNotebookPreserveCells,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
   kNotebookPreviewOptions,
   kNotebookView,
   kNotebookViewStyle,
@@ -93,11 +95,11 @@ async function resolveHtmlNotebook(
     kNotebookViewStyleNotebook;
   resolved.recipe.format.render[kNotebookPreserveCells] = true;
   resolved.recipe.format.metadata["nbMeta"] = {
-    backHref: "",
-    backLabel: "",
-    downloadHref: "",
-    downloadLabel: "",
-    downloadFileName: "",
+    backHref: nb.config.backHref, // points to qmd not output
+    backLabel: resolved.recipe.format.language[kNotebookPreviewBack], // needs to be conditionalized on option
+    downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath, // not availalbe in the config.
+    downloadLabel: nb.config.downloadFileName,
+    downloadFileName: resolved.recipe.format.language[kNotebookPreviewDownload],
   };
 
   // Configure markdown behavior for this rendering
@@ -144,11 +146,11 @@ async function renderHtmlNotebook(
           [kAppendixStyle]: "none",
           [kNotebookPreserveCells]: true,
           ["nbMeta"]: {
-            backHref: "",
-            backLabel: "",
-            downloadHref: "",
-            downloadLabel: "",
-            downloadFileName: "",
+            backHref: nb.config.backHref,
+            backLabel: format.language[kNotebookPreviewBack],
+            downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath,
+            downloadLabel: format.language[kNotebookPreviewDownload],
+            downloadFileName: nb.config.downloadFileName,
           },
         },
         quiet: false,
@@ -243,17 +245,3 @@ async function resolveTitle(
   }
   return resolvedTitle || basename(nbPath);
 }
-
-/*
-      <a id="nb-back-button" class="btn btn-outline-secondary quarto-back-link"
-        ><i class="bi bi-caret-left"></i
-      ></a>
-      <a
-        href="<%= path %>"
-        class="btn btn-primary quarto-download-embed"
-        data-noresolveinput="true"
-        download="<%= filename %>"
-        ><%= downloadOptions.label %></a
-      >
-
-      */

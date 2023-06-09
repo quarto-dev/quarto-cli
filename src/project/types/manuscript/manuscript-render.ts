@@ -37,6 +37,8 @@ import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { notebookContext } from "../../../render/notebook/notebook-context.ts";
 import { logProgress } from "../../../core/log.ts";
+import { format } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
+import { kNotebookViewStyle } from "../../../config/constants.ts";
 
 export const manuscriptRenderer = (
   _options: RenderOptions,
@@ -188,7 +190,8 @@ export const manuscriptRenderer = (
         const isArt = isArticle(renderedFile.input, context, manuscriptConfig);
 
         if (
-          !isArt && isJatsOutput(renderedFile.format.pandoc)
+          isJatsOutput(renderedFile.format.pandoc) &&
+          renderedFile.format.metadata[kJatsSubarticle]
         ) {
           const nbAbsPath = join(projectContext.dir, renderedFile.input);
           nbContext.contribute(
@@ -196,14 +199,17 @@ export const manuscriptRenderer = (
             kJatsSubarticle,
             renderedFile,
           );
-        } else if (!isArt && isHtmlOutput(renderedFile.format.pandoc, true)) {
+        } else if (
+          isHtmlOutput(renderedFile.format.pandoc, true) &&
+          renderedFile.format.render[kNotebookViewStyle] === "notebook"
+        ) {
           const nbAbsPath = join(projectContext.dir, renderedFile.input);
           nbContext.contribute(
             nbAbsPath,
             kHtmlPreview,
             renderedFile,
           );
-        } else if (!isArt && isIpynbOutput(renderedFile.format.pandoc)) {
+        } else if (isIpynbOutput(renderedFile.format.pandoc)) {
           const nbAbsPath = join(context.dir, renderedFile.input);
           nbContext.contribute(
             nbAbsPath,
