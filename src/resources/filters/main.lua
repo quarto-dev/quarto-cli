@@ -358,8 +358,8 @@ local quartoLayout = {
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
   { name = "layout-panels", filter = layout_panels() },
-  { name = "layout-extended-figures", filter = extended_figures(), flags = 
-    { "has_discoverable_figures", "has_figure_divs"} },
+  -- { name = "layout-extended-figures", filter = extended_figures(), flags = 
+  --   { "has_discoverable_figures", "has_figure_divs"} },
   { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
 }
 

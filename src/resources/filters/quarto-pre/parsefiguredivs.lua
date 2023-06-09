@@ -109,7 +109,7 @@ function parse_floats()
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
           type = "Figure",
-          content = {link},
+          content = para, --{link},
           caption_long = img.caption,
         })
       end

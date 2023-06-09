@@ -34,7 +34,7 @@ end, function(panel_layout)
       cell_div = _quarto.ast.walk(cell_div, {
         Table = function(table)
           local changed = false
-          table.colspecs = table.colspecs.map(function(spec)
+          table.colspecs = table.colspecs:map(function(spec)
             if spec[1] == pandoc.AlignDefault then
               spec[1] = pandoc.AlignLeft
               changed = true

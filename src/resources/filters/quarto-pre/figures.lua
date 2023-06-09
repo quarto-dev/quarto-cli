@@ -21,22 +21,22 @@ function quarto_pre_figures()
       
     end,
     
-    -- create figure divs from linked figures
-    Para = function(el)
+    -- -- create figure divs from linked figures
+    -- Para = function(el)
       
-      -- create figure div if there is a tikz image
-      local fig = discoverFigure(el)
-      if fig and latexIsTikzImage(fig) then
-        return createFigureDiv(el, fig)
-      end
+    --   -- create figure div if there is a tikz image
+    --   local fig = discoverFigure(el)
+    --   if fig and latexIsTikzImage(fig) then
+    --     return createFigureDiv(el, fig)
+    --   end
       
-      -- create figure divs from linked figures
-      local linkedFig = discoverLinkedFigure(el)
-      if linkedFig then
-        return createFigureDiv(el, linkedFig)
-      end
+    --   -- create figure divs from linked figures
+    --   local linkedFig = discoverLinkedFigure(el)
+    --   if linkedFig then
+    --     return createFigureDiv(el, linkedFig)
+    --   end
 
-    end,
+    -- end,
 
     Image = function(image)
       -- propagate fig-alt
