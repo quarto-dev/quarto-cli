@@ -19,11 +19,14 @@ function layout_panels()
       end
 
       local preamble, cells = partition_cells(float)
+      local layout = layout_cells(float, cells)
+      
       float.content = pandoc.Div({
         quarto.PanelLayout({
           attributes = float.attributes,
           preamble = preamble,
-          cells = cells
+          cells = cells,
+          layout = layout,
         })
       })
       return float
@@ -192,6 +195,110 @@ function partition_cells(float)
   return preamble, cells
 end
 
+function layout_cells(float, cells)
+  
+  -- layout to return (list of rows)
+  local rows = pandoc.List()
+  
+  -- note any figure layout attributes
+  local layoutRows = tonumber(float.attributes[kLayoutNrow])
+  local layoutCols = tonumber(float.attributes[kLayoutNcol])
+  local layout = float.attributes[kLayout]
+  
+  -- default to 1 column if nothing is specified
+  if not layoutCols and not layoutRows and not layout then
+    layoutCols = 1
+  end
+  
+  -- if there is layoutRows but no layoutCols then compute layoutCols
+  if not layoutCols and layoutRows ~= nil then
+    layoutCols = math.ceil(#cells / layoutRows)
+  end
+  
+  -- check for cols
+  if layoutCols ~= nil then
+    for i,cell in ipairs(cells) do
+      if math.fmod(i-1, layoutCols) == 0 then
+        rows:insert(pandoc.List())
+      end
+      rows[#rows]:insert(cell)
+    end
+    -- convert width units to percentages
+    widthsToPercent(rows, layoutCols)
+    
+  -- check for layout
+  elseif layout ~= nil then
+    -- parse the layout
+    layout = parseLayoutWidths(layout, #cells)
+    
+    -- manage/perform next insertion into the layout
+    local cellIndex = 1
+    local function layoutNextCell(width)
+      -- check for a spacer width (negative percent)
+      if isSpacerWidth(width) then
+        local cell = pandoc.Div({
+          pandoc.Para({pandoc.Str(" ")}),
+          pandoc.Para({})
+        }, pandoc.Attr(
+          "", 
+          { "quarto-figure-spacer" }, 
+          { width = pandoc.text.sub(width, 2, #width) }
+        ))
+        rows[#rows]:insert(cell)
+      -- normal figure layout
+      else
+        local cell = cells[cellIndex]
+        if cell then
+          cellIndex = cellIndex + 1
+          cell.attr.attributes["width"] = width
+          cell.attr.attributes["height"] = nil
+          rows[#rows]:insert(cell)
+        end
+      end
+    end
+  
+    -- process the layout
+    for _,item in ipairs(layout) do
+      if cellIndex > #cells then
+        break
+      end
+      rows:insert(pandoc.List())
+      for _,width in ipairs(item) do
+        layoutNextCell(width)
+      end
+    end
+    
+  end
+  
+  -- determine alignment
+  local align = layout_align_attribute(float)
+  
+  -- some width and alignment handling
+  rows = rows:map(function(row)
+    return row:map(function(cell)
+      
+      -- percentage based layouts need to be scaled down so they don't overflow the page 
+      local percentWidth = sizeToPercent(attribute(cell, "width", nil))
+      if percentWidth then
+        percentWidth = round(percentWidth,1)
+        cell.attr.attributes["width"] = tostring(percentWidth) .. "%"
+      end
+      
+      -- provide default alignment if necessary
+      cell.attr.attributes[kLayoutAlign] = layoutCellAlignment(cell, align)
+     
+      -- return cell
+      return cell
+    end)
+   
+  end)  
+
+  -- return layout
+  return rows
+  
+end
+
+
 function requiresPanelLayout(divEl)
   
   if hasLayoutAttributes(divEl) then
@@ -289,108 +396,108 @@ function partitionCells(divEl)
 end
 
 
-function layoutCells(divEl, cells)
+-- function layoutCells(divEl, cells)
   
-  -- layout to return (list of rows)
-  local rows = pandoc.List()
+--   -- layout to return (list of rows)
+--   local rows = pandoc.List()
   
-  -- note any figure layout attributes
-  local layoutRows = tonumber(attribute(divEl, kLayoutNrow, nil))
-  local layoutCols = tonumber(attribute(divEl, kLayoutNcol, nil))
-  local layout = attribute(divEl, kLayout, nil)
+--   -- note any figure layout attributes
+--   local layoutRows = tonumber(attribute(divEl, kLayoutNrow, nil))
+--   local layoutCols = tonumber(attribute(divEl, kLayoutNcol, nil))
+--   local layout = attribute(divEl, kLayout, nil)
   
-  -- default to 1 column if nothing is specified
-  if not layoutCols and not layoutRows and not layout then
-    layoutCols = 1
-  end
+--   -- default to 1 column if nothing is specified
+--   if not layoutCols and not layoutRows and not layout then
+--     layoutCols = 1
+--   end
   
-  -- if there is layoutRows but no layoutCols then compute layoutCols
-  if not layoutCols and layoutRows ~= nil then
-    layoutCols = math.ceil(#cells / layoutRows)
-  end
+--   -- if there is layoutRows but no layoutCols then compute layoutCols
+--   if not layoutCols and layoutRows ~= nil then
+--     layoutCols = math.ceil(#cells / layoutRows)
+--   end
   
-  -- check for cols
-  if layoutCols ~= nil then
-    for i,cell in ipairs(cells) do
-      if math.fmod(i-1, layoutCols) == 0 then
-        rows:insert(pandoc.List())
-      end
-      rows[#rows]:insert(cell)
-    end
-    -- convert width units to percentages
-    widthsToPercent(rows, layoutCols)
+--   -- check for cols
+--   if layoutCols ~= nil then
+--     for i,cell in ipairs(cells) do
+--       if math.fmod(i-1, layoutCols) == 0 then
+--         rows:insert(pandoc.List())
+--       end
+--       rows[#rows]:insert(cell)
+--     end
+--     -- convert width units to percentages
+--     widthsToPercent(rows, layoutCols)
     
-  -- check for layout
-  elseif layout ~= nil then
-    -- parse the layout
-    layout = parseLayoutWidths(layout, #cells)
+--   -- check for layout
+--   elseif layout ~= nil then
+--     -- parse the layout
+--     layout = parseLayoutWidths(layout, #cells)
     
-    -- manage/perform next insertion into the layout
-    local cellIndex = 1
-    local function layoutNextCell(width)
-      -- check for a spacer width (negative percent)
-      if isSpacerWidth(width) then
-        local cell = pandoc.Div({
-          pandoc.Para({pandoc.Str(" ")}),
-          pandoc.Para({})
-        }, pandoc.Attr(
-          "", 
-          { "quarto-figure-spacer" }, 
-          { width = pandoc.text.sub(width, 2, #width) }
-        ))
-        rows[#rows]:insert(cell)
-      -- normal figure layout
-      else
-        local cell = cells[cellIndex]
-        if cell then
-          cellIndex = cellIndex + 1
-          cell.attr.attributes["width"] = width
-          cell.attr.attributes["height"] = nil
-          rows[#rows]:insert(cell)
-        end
-      end
-    end
+--     -- manage/perform next insertion into the layout
+--     local cellIndex = 1
+--     local function layoutNextCell(width)
+--       -- check for a spacer width (negative percent)
+--       if isSpacerWidth(width) then
+--         local cell = pandoc.Div({
+--           pandoc.Para({pandoc.Str(" ")}),
+--           pandoc.Para({})
+--         }, pandoc.Attr(
+--           "", 
+--           { "quarto-figure-spacer" }, 
+--           { width = pandoc.text.sub(width, 2, #width) }
+--         ))
+--         rows[#rows]:insert(cell)
+--       -- normal figure layout
+--       else
+--         local cell = cells[cellIndex]
+--         if cell then
+--           cellIndex = cellIndex + 1
+--           cell.attr.attributes["width"] = width
+--           cell.attr.attributes["height"] = nil
+--           rows[#rows]:insert(cell)
+--         end
+--       end
+--     end
   
-    -- process the layout
-    for _,item in ipairs(layout) do
-      if cellIndex > #cells then
-        break
-      end
-      rows:insert(pandoc.List())
-      for _,width in ipairs(item) do
-        layoutNextCell(width)
-      end
-    end
+--     -- process the layout
+--     for _,item in ipairs(layout) do
+--       if cellIndex > #cells then
+--         break
+--       end
+--       rows:insert(pandoc.List())
+--       for _,width in ipairs(item) do
+--         layoutNextCell(width)
+--       end
+--     end
     
-  end
+--   end
   
-  -- determine alignment
-  local align = layoutAlignAttribute(divEl)
+--   -- determine alignment
+--   local align = layoutAlignAttribute(divEl)
   
-  -- some width and alignment handling
-  rows = rows:map(function(row)
-    return row:map(function(cell)
+--   -- some width and alignment handling
+--   rows = rows:map(function(row)
+--     return row:map(function(cell)
       
-      -- percentage based layouts need to be scaled down so they don't overflow the page 
-      local percentWidth = sizeToPercent(attribute(cell, "width", nil))
-      if percentWidth then
-        percentWidth = round(percentWidth,1)
-        cell.attr.attributes["width"] = tostring(percentWidth) .. "%"
-      end
+--       -- percentage based layouts need to be scaled down so they don't overflow the page 
+--       local percentWidth = sizeToPercent(attribute(cell, "width", nil))
+--       if percentWidth then
+--         percentWidth = round(percentWidth,1)
+--         cell.attr.attributes["width"] = tostring(percentWidth) .. "%"
+--       end
       
-      -- provide default alignment if necessary
-      cell.attr.attributes[kLayoutAlign] = layoutCellAlignment(cell, align)
+--       -- provide default alignment if necessary
+--       cell.attr.attributes[kLayoutAlign] = layoutCellAlignment(cell, align)
      
-      -- return cell
-      return cell
-    end)
+--       -- return cell
+--       return cell
+--     end)
    
-  end)  
+--   end)  
 
-  -- return layout
-  return rows
+--   -- return layout
+--   return rows
   
-end
+-- end
 
 function isPreambleBlock(el)
   return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or

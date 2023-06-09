@@ -7,13 +7,12 @@ kLayoutNcol = "layout-ncol"
 kLayoutNrow = "layout-nrow"
 kLayout = "layout"
 
-
-function layoutAlignAttribute(el, default)
-  return validatedAlign(attribute(el, kLayoutAlign, default))
+function layout_align_attribute(el_with_attr, default)
+  return validatedAlign(el_with_attr.attributes[kLayoutAlign] or default)
 end
 
-function layoutVAlignAttribute(el, default)
-  return validatedVAlign(attribute(el, kLayoutVAlign, default))
+function layout_valign_attribute(el_with_attr, default)
+  return validatedVAlign(el_with_attr.attributes[kLayoutVAlign] or default)
 end
 
 function attr_has_layout_attributes(attr)

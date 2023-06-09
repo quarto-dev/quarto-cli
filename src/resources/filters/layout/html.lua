@@ -7,14 +7,16 @@ end, function(panel_layout)
   local panel = pandoc.Div({})
   panel.attr.classes:insert("quarto-layout-panel")
 
+  print("renderer")
+  quarto.utils.dump( { panel_layout = panel_layout })
   -- layout
-  for i, row in ipairs(panel_layout.cells.content) do    
+  for i, row in ipairs(panel_layout.rows.content) do    
     local row_div = row
     row_div.attr.classes:insert("quarto-layout-row")
     if panel_layout.valign_class then
       row_div.attr.classes:insert(panel_layout.valign_class)
     end
-    for j, cell_div in ipairs(row) do
+    for j, cell_div in ipairs(row.content) do
       
       -- add cell class
       cell_div.attr.classes:insert("quarto-layout-cell")
@@ -58,7 +60,7 @@ end, function(panel_layout)
       -- end
       
       -- add div to row
-      row_div.content:insert(cell_div)
+      -- row_div.content:insert(cell_div)
     end
     
     -- add row to the panel

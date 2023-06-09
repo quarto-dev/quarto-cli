@@ -51,7 +51,7 @@ _quarto.ast.add_handler({
     fail("PanelLayout nodes should not be parsed")
   end,
 
-  slots = { "preamble", "cells" },
+  slots = { "preamble", "rows" },
 
   -- NB this constructor mutates the .attributes field!
   constructor = function(tbl)
@@ -65,9 +65,11 @@ _quarto.ast.add_handler({
 
     -- construct a minimal rows-cells div scaffolding
     -- so contents are properly stored in the cells slot
-    local cells_div = pandoc.Div({})
-    for i, row in ipairs(tbl.cells) do
-      cells_div.content:insert(pandoc.Div(_quarto.ast.walk(row, {
+
+    local rows_div = pandoc.Div({})
+    for i, row in ipairs(tbl.layout) do
+      local row_div = pandoc.Div(row)
+      rows_div.content:insert(_quarto.ast.walk(row_div, {
         traverse = "topdown",
         Div = function(div)
           local found = false
@@ -87,9 +89,12 @@ _quarto.ast.add_handler({
             return div
           end
         end,
-      }) or {})) -- this isn't needed but the type system doesn't know that
+      }) or {}) -- this isn't needed but the type system doesn't know that
     end
-    tbl.cells = cells_div
+    tbl.rows = rows_div
+
+    print("PanelLayout constructor")
+    quarto.utils.dump { tbl = tbl }
 
     return tbl
   end
