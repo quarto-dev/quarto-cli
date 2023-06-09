@@ -36,6 +36,7 @@ import {
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { notebookContext } from "../../../render/notebook/notebook-context.ts";
+import { logProgress } from "../../../core/log.ts";
 
 export const manuscriptRenderer = (
   _options: RenderOptions,
@@ -54,33 +55,39 @@ export const manuscriptRenderer = (
 
   const pandocRenderNb = async (input: string, executedFile: ExecutedFile) => {
     if (isJatsOutput(executedFile.context.format.pandoc)) {
+      // TODO: Compute or forward inset?
+      logProgress(`      | jats subarticle`);
       const resolvedExecutedFile = await nbContext.resolve(
         input,
         manuscriptConfig.article,
         kJatsSubarticle,
         executedFile,
       );
-      return renderPandoc(resolvedExecutedFile, true);
+      return [await renderPandoc(resolvedExecutedFile, true)];
     } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
+      const result = [];
       // Use the executed file to render the output ipynb
       const renderedIpynb = nbContext.get(input);
       if (!renderedIpynb || !renderedIpynb[kRenderedIPynb]) {
+        logProgress(`      | output notebook`);
         const ipynbExecutedFile = await nbContext.resolve(
           input,
           manuscriptConfig.article,
           kRenderedIPynb,
           executedFile,
         );
-        return renderPandoc(ipynbExecutedFile, true);
+        result.push(await renderPandoc(ipynbExecutedFile, true));
       }
 
+      logProgress(`      | html preview`);
       const resolvedExecutedFile = await nbContext.resolve(
         input,
         manuscriptConfig.article,
         kHtmlPreview,
         executedFile,
       );
-      return renderPandoc(resolvedExecutedFile, true);
+      result.push(await renderPandoc(resolvedExecutedFile, true));
+      return result;
     }
   };
 
@@ -149,13 +156,13 @@ export const manuscriptRenderer = (
         if (await hasComputations(target.input)) {
           const renderedNb = await pandocRenderNb(target.input, executedFile);
           if (renderedNb) {
-            renderCompletions.push(renderedNb);
+            renderCompletions.push(...renderedNb);
           }
         }
       } else {
         const renderedNb = await pandocRenderNb(target.input, executedFile);
         if (renderedNb) {
-          renderCompletions.push(renderedNb);
+          renderCompletions.push(...renderedNb);
         } else {
           throw new InternalError(
             "Manuscript asked to render a notebook to an unsupported format.",
