@@ -61,6 +61,7 @@ async function resolveHtmlNotebook(
   parentFilePath: string,
   _token: string,
   executedFile: ExecutedFile,
+  setTitle: (title: string) => void,
   outputNotebook?: NotebookOutput,
 ) {
   // Resolve notebook configuration
@@ -71,6 +72,7 @@ async function resolveHtmlNotebook(
     {},
     executedFile.context.project,
   );
+  setTitle(nb.config.title);
 
   // Use the special `embed` template for this render
   const templatePath = htmlPreviewTemplate(
@@ -109,6 +111,7 @@ async function renderHtmlNotebook(
   format: Format,
   _subArticleToken: string,
   services: RenderServices,
+  setTitle: (title: string) => void,
   outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
@@ -120,6 +123,7 @@ async function renderHtmlNotebook(
     {},
     project,
   );
+  setTitle(nb.config.title);
 
   // Use the special `embed` template for this render
   const templatePath = htmlPreviewTemplate(

@@ -41,6 +41,18 @@ export function notebookContext(): NotebookContext {
     return `nb-${++nbCount}`;
   };
 
+  const setTitle = (nbAbsPath: string, title: string) => {
+    const nb = notebooks[nbAbsPath];
+    if (nb) {
+      nb.title = title;
+    } else {
+      notebooks[nbAbsPath] = {
+        source: nbAbsPath,
+        title,
+      };
+    }
+  };
+
   const contribute = (
     nbAbsPath: string,
     renderType: RenderType,
@@ -59,7 +71,6 @@ export function notebookContext(): NotebookContext {
     } else {
       notebooks[nbAbsPath] = {
         source: nbAbsPath,
-        title: "",
         [renderType]: output,
       };
     }
@@ -99,10 +110,14 @@ export function notebookContext(): NotebookContext {
         parentFilePath,
         token(),
         executedFile,
+        (title: string) => {
+          setTitle(nbAbsPath, title);
+        },
         renderedNotebook(nbAbsPath),
       );
     },
     contribute,
+    setTitle,
     render: async (
       nbAbsPath: string,
       parentFilePath: string,
@@ -117,11 +132,20 @@ export function notebookContext(): NotebookContext {
         format,
         token(),
         services,
+        (title: string) => {
+          setTitle(nbAbsPath, title);
+        },
         renderedNotebook(nbAbsPath),
         project,
       );
+
       contribute(nbAbsPath, kJatsSubarticle, renderedFile);
-      return notebooks[nbAbsPath];
+      if (!notebooks[nbAbsPath][renderType]) {
+        throw new InternalError(
+          "We just rendered and contributed a notebook, but it isn't present in the notebook context.",
+        );
+      }
+      return notebooks[nbAbsPath][renderType]!;
     },
     cleanup: () => {
       const hasNotebooks = Object.keys(notebooks).length > 0;

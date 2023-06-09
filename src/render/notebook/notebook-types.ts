@@ -10,7 +10,7 @@ import {
   RenderResourceFiles,
   RenderServices,
 } from "../../command/render/types.ts";
-import { Format } from "../../config/types.ts";
+import { Format, Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 // Notebook
@@ -33,8 +33,7 @@ export interface NotebookPreviewOptions {
 
 export interface Notebook {
   source: string;
-  title: string;
-  [kRemoteHref]?: string;
+  title?: string;
   [kHtmlPreview]?: NotebookOutput;
   [kJatsSubarticle]?: NotebookOutput;
   [kRenderedIPynb]?: NotebookOutput;
@@ -50,6 +49,10 @@ export interface NotebookPreviewConfig {
   backHref?: string;
 }
 
+export interface NotebookOutputMeta {
+  title?: string;
+}
+
 export interface NotebookOutput {
   path: string;
   supporting: string[];
@@ -63,7 +66,10 @@ export interface NotebookContext {
     parentFilePath: string,
     renderType: RenderType,
     executedFile: ExecutedFile,
-  ) => Promise<ExecutedFile | undefined>;
+  ) => Promise<
+    ExecutedFile | undefined
+  >;
+  setTitle: (nbPath: string, title: string) => void;
   contribute: (
     nbPath: string,
     renderType: RenderType,
@@ -76,7 +82,7 @@ export interface NotebookContext {
     renderType: RenderType,
     renderServices: RenderServices,
     project?: ProjectContext,
-  ) => Promise<Notebook | undefined>;
+  ) => Promise<NotebookOutput>;
   cleanup: () => void;
 }
 
@@ -87,6 +93,7 @@ export interface NotebookContributor {
     parentFilePath: string,
     token: string,
     executedFile: ExecutedFile,
+    setTitle: (title: string) => void,
     renderedNotebook?: NotebookOutput,
   ): Promise<ExecutedFile>;
   render(
@@ -95,6 +102,7 @@ export interface NotebookContributor {
     format: Format,
     token: string,
     services: RenderServices,
+    setTitle: (title: string) => void,
     renderedNotebook?: NotebookOutput,
     project?: ProjectContext,
   ): Promise<RenderedFile>;

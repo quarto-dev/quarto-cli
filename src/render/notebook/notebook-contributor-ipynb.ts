@@ -25,6 +25,7 @@ import {
   Notebook,
   NotebookContributor,
   NotebookOutput,
+  NotebookOutputMeta,
 } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -44,6 +45,7 @@ function resolveOutputNotebook(
   _parentFilePath: string,
   _token: string,
   executedFile: ExecutedFile,
+  _setTitle: (title: string) => void,
   _outputNotebook?: NotebookOutput,
 ) {
   const resolved = ld.cloneDeep(executedFile);
@@ -69,6 +71,7 @@ async function renderOutputNotebook(
   _format: Format,
   _subArticleToken: string,
   services: RenderServices,
+  _setTitle: (title: string) => void,
   _outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {

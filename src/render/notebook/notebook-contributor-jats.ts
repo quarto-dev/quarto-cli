@@ -57,6 +57,7 @@ function resolveJats(
   _parentFilePath: string,
   token: string,
   executedFile: ExecutedFile,
+  _setTitle: (title: string) => void,
 ) {
   const resolved = ld.cloneDeep(executedFile);
   resolved.recipe.format.metadata[kLintXml] = false;
@@ -85,6 +86,7 @@ async function renderJats(
   _format: Format,
   subArticleToken: string,
   services: RenderServices,
+  _setTitle: (title: string) => void,
   outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
