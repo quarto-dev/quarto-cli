@@ -21,7 +21,7 @@ import {
   kManuscriptType,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
-import { isArticle } from "./manuscript-config.ts";
+import { hasComputations, isArticle } from "./manuscript-config.ts";
 import {
   isHtmlOutput,
   isIpynbOutput,
@@ -50,6 +50,38 @@ export const manuscriptRenderer = (
 
   const isNotebook = (path: string) => {
     return !isArticle(path, context, manuscriptConfig);
+  };
+
+  const pandocRenderNb = async (input: string, executedFile: ExecutedFile) => {
+    if (isJatsOutput(executedFile.context.format.pandoc)) {
+      const resolvedExecutedFile = await nbContext.resolve(
+        input,
+        manuscriptConfig.article,
+        kJatsSubarticle,
+        executedFile,
+      );
+      return renderPandoc(resolvedExecutedFile, true);
+    } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
+      // Use the executed file to render the output ipynb
+      const renderedIpynb = nbContext.get(input);
+      if (!renderedIpynb || !renderedIpynb[kRenderedIPynb]) {
+        const ipynbExecutedFile = await nbContext.resolve(
+          input,
+          manuscriptConfig.article,
+          kRenderedIPynb,
+          executedFile,
+        );
+        return renderPandoc(ipynbExecutedFile, true);
+      }
+
+      const resolvedExecutedFile = await nbContext.resolve(
+        input,
+        manuscriptConfig.article,
+        kHtmlPreview,
+        executedFile,
+      );
+      return renderPandoc(resolvedExecutedFile, true);
+    }
   };
 
   return {
@@ -109,92 +141,24 @@ export const manuscriptRenderer = (
       const isArt = isArticle(target.input, context, manuscriptConfig);
 
       // TODO: Deal with HTML and PDF requests for notebooks
-      let targetExecutedFile = executedFile;
-      if (!isArt && isJatsOutput(executedFile.context.format.pandoc)) {
-        const resolvedExecutedFile = await nbContext.resolve(
-          target.input,
-          manuscriptConfig.article,
-          kJatsSubarticle,
-          executedFile,
-        );
-        if (resolvedExecutedFile) {
-          targetExecutedFile = resolvedExecutedFile;
-        }
-      } else if (
-        !isArt && isHtmlOutput(executedFile.context.format.pandoc, true)
-      ) {
-        // Use the executed file to render the output ipynb
-        const renderedIpynb = nbContext.get(target.input);
-        if (!renderedIpynb || !renderedIpynb[kRenderedIPynb]) {
-          const ipynbExecutedFile = await nbContext.resolve(
-            target.input,
-            manuscriptConfig.article,
-            kRenderedIPynb,
-            executedFile,
-          );
-          if (ipynbExecutedFile) {
-            const result = await renderPandoc(ipynbExecutedFile, true);
-            renderCompletions.push(result);
+      if (isArt) {
+        // Perform the core article rendering
+        renderCompletions.push(await renderPandoc(executedFile, quiet));
+
+        // Handle subarticle rendering, if any is needed
+        if (await hasComputations(target.input)) {
+          const renderedNb = await pandocRenderNb(target.input, executedFile);
+          if (renderedNb) {
+            renderCompletions.push(renderedNb);
           }
         }
-
-        const resolvedExecutedFile = await nbContext.resolve(
-          target.input,
-          manuscriptConfig.article,
-          kHtmlPreview,
-          executedFile,
-        );
-        if (resolvedExecutedFile) {
-          targetExecutedFile = resolvedExecutedFile;
-        }
-      }
-
-      // Configure Subnotebooks to produce subarticle JATS
-      renderCompletions.push(await renderPandoc(targetExecutedFile, quiet));
-
-      // If this is an article with computations, do any special work
-      // required to resolve a version of it as a subarticle, preview, etc...
-      if (isArt && isJatsOutput(executedFile.context.format.pandoc)) {
-        const subArticleExecutedFile = await nbContext.resolve(
-          target.input,
-          manuscriptConfig.article,
-          kJatsSubarticle,
-          executedFile,
-        );
-        if (subArticleExecutedFile) {
-          const result = await renderPandoc(subArticleExecutedFile, true);
-          const renderedFile = await result.complete([{
-            path: target.input,
-            format: subArticleExecutedFile.context.format,
-          }]);
-          const nbAbsPath = join(context.dir, renderedFile.input);
-          nbContext.contribute(
-            nbAbsPath,
-            kJatsSubarticle,
-            renderedFile,
-          );
-        }
-      } else if (
-        isArt && isHtmlOutput(executedFile.context.format.pandoc, true)
-      ) {
-        // Render the notebook and contribute it
-        const subArticleExecutedFile = await nbContext.resolve(
-          target.input,
-          manuscriptConfig.article,
-          kHtmlPreview,
-          executedFile,
-        );
-        if (subArticleExecutedFile) {
-          const result = await renderPandoc(subArticleExecutedFile, true);
-          const renderedFile = await result.complete([{
-            path: target.input,
-            format: subArticleExecutedFile.context.format,
-          }]);
-          const nbAbsPath = join(context.dir, renderedFile.input);
-          nbContext.contribute(
-            nbAbsPath,
-            kHtmlPreview,
-            renderedFile,
+      } else {
+        const renderedNb = await pandocRenderNb(target.input, executedFile);
+        if (renderedNb) {
+          renderCompletions.push(renderedNb);
+        } else {
+          throw new InternalError(
+            "Manuscript asked to render a notebook to an unsupported format.",
           );
         }
       }

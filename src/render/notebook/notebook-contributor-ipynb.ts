@@ -57,6 +57,8 @@ function resolveOutputNotebook(
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   resolved.recipe.format.pandoc.to = "ipynb";
+
+  // TODO: Move to shared
   const template = formatResourcePath(
     "ipynb",
     join("templates", "title-block.md"),

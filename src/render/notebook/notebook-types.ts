@@ -66,9 +66,7 @@ export interface NotebookContext {
     parentFilePath: string,
     renderType: RenderType,
     executedFile: ExecutedFile,
-  ) => Promise<
-    ExecutedFile | undefined
-  >;
+  ) => Promise<ExecutedFile>;
   setTitle: (nbPath: string, title: string) => void;
   contribute: (
     nbPath: string,
