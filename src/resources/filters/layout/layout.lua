@@ -21,15 +21,11 @@ function layout_panels()
       local preamble, cells = partition_cells(float)
       local layout = layout_cells(float, cells)
       
-      float.content = pandoc.Div({
-        quarto.PanelLayout({
-          attributes = float.attributes,
-          preamble = preamble,
-          cells = cells,
-          layout = layout,
-        })
+      return quarto.PanelLayout({
+        float = float,
+        preamble = preamble,
+        layout = layout,
       })
-      return float
     end,
     -- Div = function(el)
     --   if requiresPanelLayout(el) then

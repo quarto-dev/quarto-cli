@@ -50,13 +50,20 @@ end
 _quarto.ast.add_renderer("FloatCrossref", function(_)
   return true
 end, function(float)
-  quarto.utils.dump { float = float }
   return pandoc.Div({
     pandoc.Str("This is a placeholder FloatCrossref")
   })
 end)
 
-local function prepare_caption(float)
+local function ensure_custom(node)
+  if pandoc.utils.type(node) == "Block" or pandoc.utils.type(node) == "Inline" then
+    return _quarto.ast.resolve_custom_data(node)
+  end
+  return node
+end
+
+function prepare_caption(float)
+  float = ensure_custom(float)
   local caption_content = float.caption_long.content or float.caption_long
 
   if float.parent_id then
@@ -65,6 +72,7 @@ local function prepare_caption(float)
     local title_prefix = float_title_prefix(float)
     tprepend(caption_content, title_prefix)
   end
+  return float
 end
 
 -- capture relevant figure attributes then strip them
@@ -121,6 +129,11 @@ end, function(float)
 
   ------------------------------------------------------------------------------------
   
+  return float_crossref_render_html_figure(float)
+end)
+
+function float_crossref_render_html_figure(float)
+  float = ensure_custom(float)
   local caption_content = pandoc.Plain({})
   caption_content.content:insert(pandoc.RawInline("html", "<figcaption>"))
   caption_content.content:extend(float.caption_long.content)
@@ -185,21 +198,22 @@ end, function(float)
   if content_pt == "Blocks" then
     div.content:extend(fixed_content)
   elseif content_pt == "Block" then
-    if fixed_content.content == nil then
-      div.content:insert(fixed_content)
-    else
-      local content_content_pt = pandoc.utils.type(fixed_content.content)
-      if content_content_pt == "Blocks" then
-        div.content:insert(pandoc.Div(fixed_content.content))
-      elseif content_content_pt == "Inlines" then
-        div.content:insert(pandoc.Para(fixed_content.content))
-      else
-        div.content:insert(fixed_content)
-      end
-      -- print()
-      -- quarto.utils.dump { div = div, fixed_content = fixed_content}
-      -- div.content:insert(pandoc.Para(fixed_content.content))
-    end
+    div.content:insert(fixed_content)
+    -- if fixed_content.content == nil then
+    --   div.content:insert(fixed_content)
+    -- else
+    --   local content_content_pt = pandoc.utils.type(fixed_content.content)
+    --   if content_content_pt == "Blocks" then
+    --     div.content:insert(pandoc.Div(fixed_content.content))
+    --   elseif content_content_pt == "Inlines" then
+    --     div.content:insert(pandoc.Para(fixed_content.content))
+    --   else
+    --     div.content:insert(fixed_content)
+    --   end
+    --   -- print()
+    --   -- quarto.utils.dump { div = div, fixed_content = fixed_content}
+    --   -- div.content:insert(pandoc.Para(fixed_content.content))
+    -- end
   else
     fail("Internal error: did not expect content of type " .. content_pt)
     return
@@ -210,4 +224,5 @@ end, function(float)
   end
   div.content:insert(pandoc.RawBlock("html", "</figure>"))
   return div
-end)
+
+end

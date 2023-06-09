@@ -5,10 +5,7 @@ _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isHtmlOutput()
 end, function(panel_layout)
   local panel = pandoc.Div({})
-  panel.attr.classes:insert("quarto-layout-panel")
 
-  print("renderer")
-  quarto.utils.dump( { panel_layout = panel_layout })
   -- layout
   for i, row in ipairs(panel_layout.rows.content) do    
     local row_div = row
@@ -66,8 +63,24 @@ end, function(panel_layout)
     -- add row to the panel
     panel.content:insert(row_div)
   end
-  
-  return panel
+
+  local rendered_panel = float_crossref_render_html_figure(
+    prepare_caption(quarto.FloatCrossref({
+      identifier = panel_layout.identifier,
+      classes = panel_layout.classes,
+      attributes = panel_layout.attributes,
+      order = panel_layout.order,
+      type = "Figure",
+      content = panel.content,
+      caption_long = pandoc.List({panel_layout.caption_long}),
+    })))
+  rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+
+  if #panel_layout.preamble.content > 0 then
+    return pandoc.List({panel_layout.preamble.content, rendered_panel})
+  else
+    return rendered_panel
+  end
 end)
 
 -- function htmlPanel(divEl, layout, caption)

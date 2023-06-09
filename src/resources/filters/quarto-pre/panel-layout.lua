@@ -51,10 +51,15 @@ _quarto.ast.add_handler({
     fail("PanelLayout nodes should not be parsed")
   end,
 
-  slots = { "preamble", "rows" },
+  slots = { "preamble", "rows", "caption_long" },
 
   -- NB this constructor mutates the .attributes field!
   constructor = function(tbl)
+    tbl.classes = tbl.float.classes
+    tbl.identifier = tbl.float.identifier
+    tbl.attributes = tbl.float.attributes
+    tbl.caption_long = tbl.float.caption_long
+    tbl.order = tbl.float.order
     -- compute vertical alignment and remove attribute
     if tbl.attributes == nil then
       tbl.attributes = {}
@@ -78,23 +83,15 @@ _quarto.ast.add_handler({
           local new_div = _quarto.ast.walk(div, {
             FloatCrossref = function(float)
               if float.parent_id then
-                found = true
                 div.attr.classes:insert("quarto-layout-cell-subref")
               end
             end,
           })
-          if found then
-            return new_div
-          else
-            return div
-          end
+          return div
         end,
       }) or {}) -- this isn't needed but the type system doesn't know that
     end
     tbl.rows = rows_div
-
-    print("PanelLayout constructor")
-    quarto.utils.dump { tbl = tbl }
 
     return tbl
   end
