@@ -1,0 +1,31 @@
+## Lua Filter Trace Viewer
+
+![A screenshot of the trace viewer UI](img/trace-viewer-ui.png){#fig-trace-viewer-ui}
+
+The `./tools/trace-viewer/trace-viewer.qmd` document provides a more fine-grained view into the behavior of the Lua filter chain in Quarto.
+To use it, run `quarto preview ./tools/trace-viewer/trace-viewer.qmd`.
+You should see a web page similar to that in @fig-trace-viewer-ui.
+
+## Using the Trace Viewer
+
+### Collecting traces
+
+1. **Collecting a trace** To collect a filter trace, use the environment variable `QUARTO_TRACE_FILTERS=<trace_filename>`.
+   The trace is stored in JSON format.
+
+2. **Providing traces to the viewer** To view a trace, drag and drop the trace file onto either of the "Trace 1" or "Trace 2" areas.
+
+### Viewing traces
+
+If a single trace is provided, the trace viewer shows the document as it goes through the filter chain.
+The document is shown as YAML text, and the syntax is a variant of the Pandoc AST.
+Specifically, the trace viewer coalesces strings and spaces, and shows Custom AST nodes (and their associated metadata) as if they were part of the actual Pandoc AST.
+
+If two traces are provided, the trace viewer will show the differences between the two traces;
+if the filter set changes from one trace to the other, the trace viewer will attempt to optimally align the sequence as it shows the differences between the traces at each stage.
+
+## Limitations
+
+- The `QUARTO_TRACE_FILTERS` environment variable doesn't change between file renderings in a quarto website or book project, and so these don't current work well with the trace viewer
+
+- The trace viewer only has visibility into the Pandoc AST, and so document behaviors coming from postprocessors or Pandoc writers will not be visible.
