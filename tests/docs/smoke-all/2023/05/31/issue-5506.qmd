@@ -2,12 +2,13 @@
 title: plots and output = "asis"
 _quarto:
   tests:
-    markdown:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["div.cell-output-display"]
       ensureFileRegexMatches:
-        - [] 
+        - ["<li>.*one.*</li>", "<li>.*two.*</li>", "<li>.*three.*</li>", "<li>.*three.*</li>", "<td.*>Mazda RX4</td>"]
         - ["::: cell-output-display"]
-        - ["* one\n* two"]
-        - ["* three\n* four"]
 ---
 
 Simple plot:
@@ -18,6 +19,15 @@ Simple plot:
 cat("## Title\n")
 cat("\n")
 plot(mtcars)
+```
+
+Render table:
+```{r}
+library(kableExtra)
+dt <- mtcars[1:5, 1:6]
+dt %>%
+  kbl() %>%
+  kable_styling()
 ```
 
 `asis_output` with one string:
