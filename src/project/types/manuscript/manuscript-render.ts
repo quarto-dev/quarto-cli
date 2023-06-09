@@ -22,7 +22,11 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { isArticle } from "./manuscript-config.ts";
-import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
+import {
+  isHtmlOutput,
+  isIpynbOutput,
+  isJatsOutput,
+} from "../../../config/format.ts";
 import {
   kHtmlPreview,
   kJatsSubarticle,
@@ -130,16 +134,7 @@ export const manuscriptRenderer = (
           );
           if (ipynbExecutedFile) {
             const result = await renderPandoc(ipynbExecutedFile, true);
-            const renderedFile = await result.complete([{
-              path: target.input,
-              format: ipynbExecutedFile.context.format,
-            }]);
-            const nbAbsPath = join(context.dir, renderedFile.input);
-            nbContext.contribute(
-              nbAbsPath,
-              kRenderedIPynb,
-              renderedFile,
-            );
+            renderCompletions.push(result);
           }
         }
 
@@ -235,6 +230,13 @@ export const manuscriptRenderer = (
           nbContext.contribute(
             nbAbsPath,
             kHtmlPreview,
+            renderedFile,
+          );
+        } else if (!isArt && isIpynbOutput(renderedFile.format.pandoc)) {
+          const nbAbsPath = join(context.dir, renderedFile.input);
+          nbContext.contribute(
+            nbAbsPath,
+            kRenderedIPynb,
             renderedFile,
           );
         }

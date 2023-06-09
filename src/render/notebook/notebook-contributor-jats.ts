@@ -29,11 +29,7 @@ import {
   subarticleTemplatePath,
 } from "../../format/jats/format-jats-types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import {
-  Notebook,
-  NotebookContributor,
-  NotebookOutput,
-} from "./notebook-types.ts";
+import { Notebook, NotebookContributor } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -87,7 +83,6 @@ async function renderJats(
   subArticleToken: string,
   services: RenderServices,
   _setTitle: (title: string) => void,
-  outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(

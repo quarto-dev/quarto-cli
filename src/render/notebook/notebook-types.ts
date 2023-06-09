@@ -10,7 +10,7 @@ import {
   RenderResourceFiles,
   RenderServices,
 } from "../../command/render/types.ts";
-import { Format, Metadata } from "../../config/types.ts";
+import { Format } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
 // Notebook
@@ -94,7 +94,6 @@ export interface NotebookContributor {
     token: string,
     executedFile: ExecutedFile,
     setTitle: (title: string) => void,
-    renderedNotebook?: NotebookOutput,
   ): Promise<ExecutedFile>;
   render(
     nbAbsPath: string,
@@ -103,7 +102,6 @@ export interface NotebookContributor {
     token: string,
     services: RenderServices,
     setTitle: (title: string) => void,
-    renderedNotebook?: NotebookOutput,
     project?: ProjectContext,
   ): Promise<RenderedFile>;
 }

@@ -12,9 +12,11 @@ import {
 } from "../../command/render/types.ts";
 import {
   kClearHiddenClasses,
+  kIPynbTitleBlockTemplate,
   kKeepHidden,
   kOutputFile,
   kRemoveHidden,
+  kTemplate,
   kTo,
   kUnrollMarkdownCells,
 } from "../../config/constants.ts";
@@ -25,13 +27,14 @@ import {
   Notebook,
   NotebookContributor,
   NotebookOutput,
-  NotebookOutputMeta,
 } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
 import { error } from "log/mod.ts";
 import { Format } from "../../config/types.ts";
+import { formatResourcePath } from "../../core/resources.ts";
+import { join } from "path/mod.ts";
 
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
@@ -46,7 +49,6 @@ function resolveOutputNotebook(
   _token: string,
   executedFile: ExecutedFile,
   _setTitle: (title: string) => void,
-  _outputNotebook?: NotebookOutput,
 ) {
   const resolved = ld.cloneDeep(executedFile);
   resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(
@@ -54,12 +56,19 @@ function resolveOutputNotebook(
   );
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
+  resolved.recipe.format.pandoc.to = "ipynb";
+  const template = formatResourcePath(
+    "ipynb",
+    join("templates", "title-block.md"),
+  );
+
   // Configure echo for this rendering
   resolved.recipe.format.execute.echo = false;
   resolved.recipe.format.execute.warning = false;
   resolved.recipe.format.render[kKeepHidden] = true;
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
+  resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -72,7 +81,6 @@ async function renderOutputNotebook(
   _subArticleToken: string,
   services: RenderServices,
   _setTitle: (title: string) => void,
-  _outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(

@@ -87,14 +87,6 @@ export function notebookContext(): NotebookContext {
     }
   }
 
-  function renderedNotebook(nbPath: string) {
-    const currentNb = notebooks[nbPath];
-    const outputNotebook = currentNb && currentNb[kRenderedIPynb]
-      ? currentNb[kRenderedIPynb]
-      : undefined;
-    return outputNotebook;
-  }
-
   return {
     get: (nbAbsPath: string) => {
       return notebooks[nbAbsPath];
@@ -113,7 +105,6 @@ export function notebookContext(): NotebookContext {
         (title: string) => {
           setTitle(nbAbsPath, title);
         },
-        renderedNotebook(nbAbsPath),
       );
     },
     contribute,
@@ -135,11 +126,10 @@ export function notebookContext(): NotebookContext {
         (title: string) => {
           setTitle(nbAbsPath, title);
         },
-        renderedNotebook(nbAbsPath),
         project,
       );
 
-      contribute(nbAbsPath, kJatsSubarticle, renderedFile);
+      contribute(nbAbsPath, renderType, renderedFile);
       if (!notebooks[nbAbsPath][renderType]) {
         throw new InternalError(
           "We just rendered and contributed a notebook, but it isn't present in the notebook context.",

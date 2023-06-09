@@ -15,8 +15,6 @@ import {
   kDownloadUrl,
   kKeepHidden,
   kNotebookPreserveCells,
-  kNotebookPreviewBack,
-  kNotebookPreviewDownload,
   kNotebookPreviewOptions,
   kNotebookView,
   kNotebookViewStyle,
@@ -32,7 +30,6 @@ import { ProjectContext } from "../../project/types.ts";
 import {
   Notebook,
   NotebookContributor,
-  NotebookOutput,
   NotebookPreviewConfig,
   NotebookPreviewOptions,
 } from "./notebook-types.ts";
@@ -40,7 +37,6 @@ import {
 import * as ld from "../../core/lodash.ts";
 
 import { error } from "log/mod.ts";
-import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
@@ -62,7 +58,6 @@ async function resolveHtmlNotebook(
   _token: string,
   executedFile: ExecutedFile,
   setTitle: (title: string) => void,
-  outputNotebook?: NotebookOutput,
 ) {
   // Resolve notebook configuration
   const nb = await resolveNotebookConfig(
@@ -75,15 +70,12 @@ async function resolveHtmlNotebook(
   setTitle(nb.config.title);
 
   // Use the special `embed` template for this render
-  const templatePath = htmlPreviewTemplate(
-    nbAbsPath,
-    executedFile.recipe.format,
-    nb.config,
-    executedFile.context.options.services,
-    outputNotebook,
+  const template = formatResourcePath(
+    "html",
+    join("embed", "template.html"),
   );
 
-  const resolved = ld.cloneDeep(executedFile);
+  const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
   resolved.recipe.format.pandoc[kOutputFile] = nb.config.previewFileName;
@@ -96,10 +88,17 @@ async function resolveHtmlNotebook(
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kAppendixStyle] = "none";
-  resolved.recipe.format.pandoc[kTemplate] = templatePath;
+  resolved.recipe.format.pandoc[kTemplate] = template;
   resolved.recipe.format.render[kNotebookViewStyle] =
     kNotebookViewStyleNotebook;
   resolved.recipe.format.render[kNotebookPreserveCells] = true;
+  resolved.recipe.format.metadata["nbMeta"] = {
+    backHref: "",
+    backLabel: "",
+    downloadHref: "",
+    downloadLabel: "",
+    downloadFileName: "",
+  };
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -112,7 +111,6 @@ async function renderHtmlNotebook(
   _subArticleToken: string,
   services: RenderServices,
   setTitle: (title: string) => void,
-  outputNotebook?: NotebookOutput,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   // Resolve notebook configuration
@@ -126,12 +124,9 @@ async function renderHtmlNotebook(
   setTitle(nb.config.title);
 
   // Use the special `embed` template for this render
-  const templatePath = htmlPreviewTemplate(
-    nbPath,
-    format,
-    nb.config,
-    services,
-    outputNotebook,
+  const template = formatResourcePath(
+    "html",
+    join("embed", "template.html"),
   );
 
   // Render the notebook and update the path
@@ -144,10 +139,17 @@ async function renderHtmlNotebook(
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
           [kOutputFile]: nb.config.previewFileName,
-          [kTemplate]: templatePath,
+          [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",
           [kNotebookPreserveCells]: true,
+          ["nbMeta"]: {
+            backHref: "",
+            backLabel: "",
+            downloadHref: "",
+            downloadLabel: "",
+            downloadFileName: "",
+          },
         },
         quiet: false,
       },
@@ -242,36 +244,16 @@ async function resolveTitle(
   return resolvedTitle || basename(nbPath);
 }
 
-function htmlPreviewTemplate(
-  nbPath: string,
-  format: Format,
-  previewConfig: NotebookPreviewConfig,
-  services: RenderServices,
-  outputNotebook?: NotebookOutput,
-) {
-  // Use the special `embed` template for this render
-  const embedHtmlEjs = formatResourcePath(
-    "html",
-    join("embed", "template.ejs.html"),
-  );
-  const downloadPath = outputNotebook
-    ? basename(outputNotebook.path)
-    : basename(nbPath);
-  const downloadFileName = basename(nbPath);
+/*
+      <a id="nb-back-button" class="btn btn-outline-secondary quarto-back-link"
+        ><i class="bi bi-caret-left"></i
+      ></a>
+      <a
+        href="<%= path %>"
+        class="btn btn-primary quarto-download-embed"
+        data-noresolveinput="true"
+        download="<%= filename %>"
+        ><%= downloadOptions.label %></a
+      >
 
-  const embedTemplate = renderEjs(embedHtmlEjs, {
-    title: previewConfig.title,
-    path: previewConfig.downloadUrl || downloadPath,
-    filename: previewConfig.downloadFileName || downloadFileName,
-    backOptions: {
-      href: previewConfig.backHref,
-      label: format.language[kNotebookPreviewBack],
-    },
-    downloadOptions: {
-      label: format.language[kNotebookPreviewDownload],
-    },
-  });
-  const templatePath = services.temp.createFile({ suffix: ".html" });
-  Deno.writeTextFileSync(templatePath, embedTemplate);
-  return templatePath;
-}
+      */
