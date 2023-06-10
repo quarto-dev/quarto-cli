@@ -283,39 +283,42 @@ export const manuscriptProjectType: ProjectType = {
         ? Object.keys(project.config?.format)
         : [];
 
-      if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
-        // Add an alternate link to a MECA bundle
-        if (format.render[kFormatLinks] !== false) {
-          const links: Array<string | FormatLink> = [];
-          if (typeof (format.render[kFormatLinks]) !== "boolean") {
-            links.push(...format.render[kFormatLinks] || []);
+      if (isArticle(source, project, manuscriptConfig)) {
+        // TODO: Enable this stuff only if this is not the notebook view of an article
+        if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
+          // Add an alternate link to a MECA bundle
+          if (format.render[kFormatLinks] !== false) {
+            const links: Array<string | FormatLink> = [];
+            if (typeof (format.render[kFormatLinks]) !== "boolean") {
+              links.push(...format.render[kFormatLinks] || []);
+            }
+            links.push({
+              title: format.language[kManuscriptMecaBundle] || "MECA Bundle",
+              href: mecaFileName(source, manuscriptConfig),
+              icon: kMecaIcon,
+              attr: { "data-meca-link": "true" },
+              order: 1000,
+            });
+            format.render[kFormatLinks] = links;
           }
-          links.push({
-            title: format.language[kManuscriptMecaBundle] || "MECA Bundle",
-            href: mecaFileName(source, manuscriptConfig),
-            icon: kMecaIcon,
-            attr: { "data-meca-link": "true" },
-            order: 1000,
-          });
-          format.render[kFormatLinks] = links;
-        }
-      }
-
-      // Enable google scholar, by default
-      if (format.metadata[kGoogleScholar] !== false) {
-        format.metadata[kGoogleScholar] = true;
-      }
-
-      // Enable the TOC for HTML output
-      if (isHtmlOutput(format.pandoc, true)) {
-        if (format.pandoc[kToc] !== false) {
-          format.pandoc[kToc] = true;
         }
 
-        if (format.pandoc[kOutputFile] === undefined) {
-          // If this is HTML version of article make sure it
-          // is targeting index.html as its output
-          format.pandoc[kOutputFile] = "index.html";
+        // Enable google scholar, by default
+        if (format.metadata[kGoogleScholar] !== false) {
+          format.metadata[kGoogleScholar] = true;
+        }
+
+        // Enable the TOC for HTML output
+        if (isHtmlOutput(format.pandoc, true)) {
+          if (format.pandoc[kToc] !== false) {
+            format.pandoc[kToc] = true;
+          }
+
+          if (format.pandoc[kOutputFile] === undefined) {
+            // If this is HTML version of article make sure it
+            // is targeting index.html as its output
+            format.pandoc[kOutputFile] = "index.html";
+          }
         }
       }
 
