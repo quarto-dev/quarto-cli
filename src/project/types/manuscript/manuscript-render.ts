@@ -146,9 +146,6 @@ export const manuscriptRenderer = (
       // Note that sometimes articles may produce a notebook also
       const target = executedFile.context.target;
       if (isArticle(target.input, context, manuscriptConfig)) {
-        // Perform the core article rendering
-        renderCompletions.push(await renderPandoc(executedFile, quiet));
-
         // Handle subarticle rendering, if any is needed
         if (await hasComputations(target.input)) {
           const renderedNb = await pandocRenderNb(target.input, executedFile);
@@ -156,6 +153,8 @@ export const manuscriptRenderer = (
             renderCompletions.push(...renderedNb);
           }
         }
+        // Perform the core article rendering
+        renderCompletions.push(await renderPandoc(executedFile, quiet));
       } else {
         const renderedNb = await pandocRenderNb(target.input, executedFile);
         if (renderedNb) {
