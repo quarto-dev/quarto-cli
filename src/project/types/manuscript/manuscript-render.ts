@@ -31,6 +31,7 @@ import {
   kHtmlPreview,
   kJatsSubarticle,
   kRenderedIPynb,
+  RenderType,
 } from "../../../render/notebook/notebook-types.ts";
 
 import { join } from "path/mod.ts";
@@ -141,14 +142,10 @@ export const manuscriptRenderer = (
       executedFile: ExecutedFile,
       quiet: boolean,
     ) => {
-      // TODO: Remove hack
-      executedFile.context.options.services.notebook = nbContext;
-
+      // Process articles or notebooks
+      // Note that sometimes articles may produce a notebook also
       const target = executedFile.context.target;
-      const isArt = isArticle(target.input, context, manuscriptConfig);
-
-      // TODO: Deal with HTML and PDF requests for notebooks
-      if (isArt) {
+      if (isArticle(target.input, context, manuscriptConfig)) {
         // Perform the core article rendering
         renderCompletions.push(await renderPandoc(executedFile, quiet));
 
@@ -184,36 +181,33 @@ export const manuscriptRenderer = (
       while (completion) {
         const renderedFile = await completion.complete(renderedFormats);
 
+        const contributeNotebook = (
+          renderedFile: RenderedFile,
+          renderType: RenderType,
+        ) => {
+          const nbAbsPath = join(projectContext.dir, renderedFile.input);
+          nbContext.contribute(
+            nbAbsPath,
+            renderType,
+            renderedFile,
+          );
+        };
+
         if (
           isJatsOutput(renderedFile.format.pandoc) &&
           renderedFile.format.metadata[kJatsSubarticle]
         ) {
-          const nbAbsPath = join(projectContext.dir, renderedFile.input);
-          nbContext.contribute(
-            nbAbsPath,
-            kJatsSubarticle,
-            renderedFile,
-          );
+          contributeNotebook(renderedFile, kJatsSubarticle);
           // Since JATS subarticles are transient and will end up self contained,
           // don't include them as rendered files
         } else if (
           isHtmlOutput(renderedFile.format.pandoc, true) &&
           renderedFile.format.render[kNotebookViewStyle] === "notebook"
         ) {
-          const nbAbsPath = join(projectContext.dir, renderedFile.input);
-          nbContext.contribute(
-            nbAbsPath,
-            kHtmlPreview,
-            renderedFile,
-          );
+          contributeNotebook(renderedFile, kHtmlPreview);
           renderedFiles.push(renderedFile);
         } else if (isIpynbOutput(renderedFile.format.pandoc)) {
-          const nbAbsPath = join(context.dir, renderedFile.input);
-          nbContext.contribute(
-            nbAbsPath,
-            kRenderedIPynb,
-            renderedFile,
-          );
+          contributeNotebook(renderedFile, kRenderedIPynb);
           renderedFiles.push(renderedFile);
         } else {
           renderedFiles.push(renderedFile);
