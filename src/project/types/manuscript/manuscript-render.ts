@@ -37,7 +37,8 @@ import {
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
-import { kNotebookViewStyle } from "../../../config/constants.ts";
+import { kNotebookViewStyle, kOutputFile } from "../../../config/constants.ts";
+import { dirAndStem } from "../../../core/path.ts";
 
 export const manuscriptRenderer = (
   options: RenderOptions,
@@ -47,6 +48,11 @@ export const manuscriptRenderer = (
   const renderedFiles: RenderedFile[] = [];
   const nbContext = options.services.notebook;
 
+  // This is used to accumulate the output files for the various article formats
+  // We need to track this for the various formats so subnotebooks can be related
+  // back to their parent article
+  const articleOutputFiles: Record<string, string> = {};
+
   const manuscriptConfig =
     (context.config?.[kManuscriptType] || {}) as ResolvedManuscriptConfig;
 
@@ -54,26 +60,32 @@ export const manuscriptRenderer = (
     return !isArticle(path, context, manuscriptConfig);
   };
 
-  const pandocRenderNb = async (input: string, executedFile: ExecutedFile) => {
+  const pandocRenderNb = async (
+    input: string,
+    parentOutputFiles: Record<string, string>,
+    executedFile: ExecutedFile,
+  ) => {
     if (isJatsOutput(executedFile.context.format.pandoc)) {
+      const [_dir, articleBase] = dirAndStem(input);
       // TODO: Compute or forward inset?
       logProgress(`      | jats subarticle`);
       const resolvedExecutedFile = await nbContext.resolve(
         input,
-        manuscriptConfig.article,
+        parentOutputFiles["jats"] || `${articleBase}.xml`,
         kJatsSubarticle,
         executedFile,
       );
       return [await renderPandoc(resolvedExecutedFile, true)];
     } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
       const result = [];
+
       // Use the executed file to render the output ipynb
-      const renderedIpynb = nbContext.get(input);
-      if (!renderedIpynb || !renderedIpynb[kRenderedIPynb]) {
+      const notebook = nbContext.get(input);
+      if (!notebook || !notebook[kRenderedIPynb]) {
         logProgress(`      | output notebook`);
         const ipynbExecutedFile = await nbContext.resolve(
           input,
-          manuscriptConfig.article,
+          input,
           kRenderedIPynb,
           executedFile,
         );
@@ -83,7 +95,7 @@ export const manuscriptRenderer = (
       logProgress(`      | html preview`);
       const resolvedExecutedFile = await nbContext.resolve(
         input,
-        manuscriptConfig.article,
+        parentOutputFiles["html"] || "index.html",
         kHtmlPreview,
         executedFile,
       );
@@ -131,6 +143,14 @@ export const manuscriptRenderer = (
           outContexts[allowedFormat] = contexts[allowedFormat];
         }
         return outContexts;
+      } else {
+        // This is the article file, note output files
+        Object.keys(contexts).forEach((fmt) => {
+          const outputFile = contexts[fmt].format.pandoc[kOutputFile];
+          if (outputFile) {
+            articleOutputFiles[fmt] = outputFile;
+          }
+        });
       }
       return contexts;
     },
@@ -148,7 +168,11 @@ export const manuscriptRenderer = (
       if (isArticle(target.input, context, manuscriptConfig)) {
         // Handle subarticle rendering, if any is needed
         if (await hasComputations(target.input)) {
-          const renderedNb = await pandocRenderNb(target.input, executedFile);
+          const renderedNb = await pandocRenderNb(
+            target.input,
+            articleOutputFiles,
+            executedFile,
+          );
           if (renderedNb) {
             renderCompletions.push(...renderedNb);
           }
@@ -156,7 +180,11 @@ export const manuscriptRenderer = (
         // Perform the core article rendering
         renderCompletions.push(await renderPandoc(executedFile, quiet));
       } else {
-        const renderedNb = await pandocRenderNb(target.input, executedFile);
+        const renderedNb = await pandocRenderNb(
+          target.input,
+          articleOutputFiles,
+          executedFile,
+        );
         if (renderedNb) {
           renderCompletions.push(...renderedNb);
         } else {
@@ -176,7 +204,14 @@ export const manuscriptRenderer = (
         );
       }
 
-      let completion = renderCompletions.pop();
+      // Order is important here. We are completing the files from front to back,
+      // allowing the notebooks to be completed before the final article
+      // is completed.
+      //
+      // The order of the rendered files must remain the same for output purposes (e.g.
+      // throw each of OnRender, onPostProcess, and then ultimately the renderedFiles that
+      // are returned, the order should always be notebooks, then finally the article output(s))
+      let completion = renderCompletions.shift();
       while (completion) {
         const renderedFile = await completion.complete(renderedFormats);
 
@@ -204,15 +239,15 @@ export const manuscriptRenderer = (
           renderedFile.format.render[kNotebookViewStyle] === "notebook"
         ) {
           contributeNotebook(renderedFile, kHtmlPreview);
-          renderedFiles.push(renderedFile);
+          renderedFiles.unshift(renderedFile);
         } else if (isIpynbOutput(renderedFile.format.pandoc)) {
           contributeNotebook(renderedFile, kRenderedIPynb);
-          renderedFiles.push(renderedFile);
+          renderedFiles.unshift(renderedFile);
         } else {
-          renderedFiles.push(renderedFile);
+          renderedFiles.unshift(renderedFile);
         }
 
-        completion = renderCompletions.pop();
+        completion = renderCompletions.shift();
       }
     },
     onComplete: async () => {

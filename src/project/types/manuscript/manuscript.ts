@@ -308,15 +308,15 @@ export const manuscriptProjectType: ProjectType = {
           format.metadata[kGoogleScholar] = true;
         }
 
-        // Enable the TOC for HTML output
+        // Manage HTML output
         if (isHtmlOutput(format.pandoc, true)) {
+          // Enable the TOC for HTML output
           if (format.pandoc[kToc] !== false) {
             format.pandoc[kToc] = true;
           }
 
           if (format.pandoc[kOutputFile] === undefined) {
-            // If this is HTML version of article make sure it
-            // is targeting index.html as its output
+            // Target index.html as its output
             format.pandoc[kOutputFile] = "index.html";
           }
         }

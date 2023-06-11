@@ -14,6 +14,7 @@ import {
   kClearHiddenClasses,
   kDownloadUrl,
   kKeepHidden,
+  kNotebookLinks,
   kNotebookPreserveCells,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
@@ -93,9 +94,10 @@ async function resolveHtmlNotebook(
     kNotebookViewStyleNotebook;
   resolved.recipe.format.render[kNotebookPreserveCells] = true;
   resolved.recipe.format.metadata["nbMeta"] = {
+    title: nb.config.title,
     backHref: nb.config.backHref, // points to qmd not output
     backLabel: resolved.recipe.format.language[kNotebookPreviewBack], // needs to be conditionalized on option
-    downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath, // not availalbe in the config.
+    downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath, // not available in the config.
     downloadLabel: nb.config.downloadFileName,
     downloadFileName: resolved.recipe.format.language[kNotebookPreviewDownload],
   };
@@ -144,6 +146,7 @@ async function renderHtmlNotebook(
           [kAppendixStyle]: "none",
           [kNotebookPreserveCells]: true,
           ["nbMeta"]: {
+            title: nb.config.title,
             backHref: nb.config.backHref,
             backLabel: format.language[kNotebookPreviewBack],
             downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath,
