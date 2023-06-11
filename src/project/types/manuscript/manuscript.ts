@@ -120,8 +120,9 @@ export const manuscriptProjectType: ProjectType = {
       flags,
     );
 
-    // Ensure the article is the last file in the render list
     const inputs = projectInputFiles(projectDir, config);
+
+    // Compute the article path
     const article = computeProjectArticleFile(projectDir, manuscriptConfig);
 
     // Determine the notebooks that are being declared explicitly in
@@ -152,6 +153,8 @@ export const manuscriptProjectType: ProjectType = {
     if (inputNotebooks) {
       notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
     }
+
+    // Build the final render list, ensuring that the article is last in the list
     config.project.render = [...notebooks.map((nb) => (nb.notebook)), article];
 
     let count = 0;
@@ -177,6 +180,7 @@ export const manuscriptProjectType: ProjectType = {
       });
     }
 
+    // Note JATS subarticles for the JATS format
     config[kQuartoInternal] = {
       [kSubArticles]: jatsNotebooks,
     };

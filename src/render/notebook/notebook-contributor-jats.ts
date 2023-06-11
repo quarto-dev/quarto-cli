@@ -22,14 +22,14 @@ import {
   kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
-import { dirAndStem, safeRemoveIfExists } from "../../core/path.ts";
+import { dirAndStem } from "../../core/path.ts";
 import {
   kJatsSubarticle,
   kLintXml,
   subarticleTemplatePath,
 } from "../../format/jats/format-jats-types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { Notebook, NotebookContributor } from "./notebook-types.ts";
+import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -43,10 +43,9 @@ export const jatsContributor: NotebookContributor = {
 
 function resolveJats(
   nbAbsPath: string,
-  _parentFilePath: string,
   token: string,
   executedFile: ExecutedFile,
-  _setTitle: (title: string) => void,
+  notebookMetadata?: NotebookMetadata,
 ) {
   const resolved = ld.cloneDeep(executedFile);
   resolved.recipe.format.metadata[kLintXml] = false;
@@ -71,11 +70,10 @@ function resolveJats(
 }
 async function renderJats(
   nbPath: string,
-  _parentFilePath: string,
   _format: Format,
   subArticleToken: string,
   services: RenderServices,
-  _setTitle: (title: string) => void,
+  notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(

@@ -18,6 +18,7 @@ import {
   Notebook,
   NotebookContext,
   NotebookContributor,
+  NotebookMetadata,
   RenderType,
 } from "./notebook-types.ts";
 
@@ -42,19 +43,7 @@ export function notebookContext(): NotebookContext {
     return `nb-${++nbCount}`;
   };
 
-  const setTitle = (nbAbsPath: string, title: string) => {
-    const nb = notebooks[nbAbsPath];
-    if (nb) {
-      nb.title = title;
-    } else {
-      notebooks[nbAbsPath] = {
-        source: nbAbsPath,
-        title,
-      };
-    }
-  };
-
-  const contribute = (
+  const addPreview = (
     nbAbsPath: string,
     renderType: RenderType,
     result: RenderedFile,
@@ -94,43 +83,36 @@ export function notebookContext(): NotebookContext {
     },
     resolve: (
       nbAbsPath: string,
-      parentFilePath: string,
       renderType: RenderType,
       executedFile: ExecutedFile,
+      notebookMetadata?: NotebookMetadata,
     ) => {
       return contributor(renderType).resolve(
         nbAbsPath,
-        parentFilePath,
         token(),
         executedFile,
-        (title: string) => {
-          setTitle(nbAbsPath, title);
-        },
+        notebookMetadata,
       );
     },
-    contribute,
-    setTitle,
+    addPreview,
     render: async (
       nbAbsPath: string,
-      parentFilePath: string,
       format: Format,
       renderType: RenderType,
       services: RenderServices,
+      notebookMetadata?: NotebookMetadata,
       project?: ProjectContext,
     ) => {
       const renderedFile = await contributor(renderType).render(
         nbAbsPath,
-        parentFilePath,
         format,
         token(),
         services,
-        (title: string) => {
-          setTitle(nbAbsPath, title);
-        },
+        notebookMetadata,
         project,
       );
 
-      contribute(nbAbsPath, renderType, renderedFile);
+      addPreview(nbAbsPath, renderType, renderedFile);
       if (!notebooks[nbAbsPath][renderType]) {
         throw new InternalError(
           "We just rendered and contributed a notebook, but it isn't present in the notebook context.",

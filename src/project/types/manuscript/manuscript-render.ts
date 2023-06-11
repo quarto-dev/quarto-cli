@@ -37,8 +37,18 @@ import {
 import { join } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
-import { kNotebookViewStyle, kOutputFile } from "../../../config/constants.ts";
+import {
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
+  kNotebookViewStyle,
+  kOutputFile,
+} from "../../../config/constants.ts";
 import { dirAndStem } from "../../../core/path.ts";
+import { notebookContext } from "../../../render/notebook/notebook-context.ts";
+import {
+  basename,
+  format,
+} from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 export const manuscriptRenderer = (
   options: RenderOptions,
@@ -66,12 +76,10 @@ export const manuscriptRenderer = (
     executedFile: ExecutedFile,
   ) => {
     if (isJatsOutput(executedFile.context.format.pandoc)) {
-      const [_dir, articleBase] = dirAndStem(input);
       // TODO: Compute or forward inset?
       logProgress(`      | jats subarticle`);
       const resolvedExecutedFile = await nbContext.resolve(
         input,
-        parentOutputFiles["jats"] || `${articleBase}.xml`,
         kJatsSubarticle,
         executedFile,
       );
@@ -81,23 +89,38 @@ export const manuscriptRenderer = (
 
       // Use the executed file to render the output ipynb
       const notebook = nbContext.get(input);
+      let downloadHref = basename(input);
       if (!notebook || !notebook[kRenderedIPynb]) {
         logProgress(`      | output notebook`);
         const ipynbExecutedFile = await nbContext.resolve(
           input,
-          input,
           kRenderedIPynb,
           executedFile,
         );
+        const [_dir, stem] = dirAndStem(input);
+        downloadHref = `${stem}.out.ipynb`;
         result.push(await renderPandoc(ipynbExecutedFile, true));
       }
 
       logProgress(`      | html preview`);
+
+      // Compute the notebook metadata
+      const format = executedFile.recipe.format;
+      const notebookMetadata = {
+        title: "",
+        filename: basename(input),
+        backHref: parentOutputFiles["html"] || `index.html`,
+        downloadHref,
+        downloadFile: basename(input),
+        backLabel: format.language[kNotebookPreviewBack],
+        downloadLabel: format.language[kNotebookPreviewDownload],
+      };
+
       const resolvedExecutedFile = await nbContext.resolve(
         input,
-        parentOutputFiles["html"] || "index.html",
         kHtmlPreview,
         executedFile,
+        notebookMetadata,
       );
       result.push(await renderPandoc(resolvedExecutedFile, true));
       return result;
@@ -168,6 +191,7 @@ export const manuscriptRenderer = (
       if (isArticle(target.input, context, manuscriptConfig)) {
         // Handle subarticle rendering, if any is needed
         if (await hasComputations(target.input)) {
+          // Render the various previews
           const renderedNb = await pandocRenderNb(
             target.input,
             articleOutputFiles,
@@ -220,7 +244,7 @@ export const manuscriptRenderer = (
           renderType: RenderType,
         ) => {
           const nbAbsPath = join(projectContext.dir, renderedFile.input);
-          nbContext.contribute(
+          nbContext.addPreview(
             nbAbsPath,
             renderType,
             renderedFile,

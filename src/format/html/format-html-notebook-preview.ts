@@ -8,6 +8,8 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   kDownloadUrl,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
   kNotebookPreviewOptions,
 } from "../../config/constants.ts";
 import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
@@ -124,10 +126,10 @@ export const notebookPreviewer = (
           ) {
             const outIpynb = await nbContext.render(
               nbAbsPath,
-              input,
               format,
               kRenderedIPynb,
               services,
+              undefined,
               project,
             );
             if (outIpynb) {
@@ -141,12 +143,24 @@ export const notebookPreviewer = (
               ? relative(dirname(nbAbsPath), output)
               : undefined;
 
+            let downloadHref = nbAbsPath;
+            if (notebook && notebook[kRenderedIPynb]) {
+              downloadHref = notebook[kRenderedIPynb].path;
+            }
+
             const htmlOut = await nbContext.render(
               nbAbsPath,
-              input,
               format,
               kHtmlPreview,
               services,
+              {
+                title: title || basename(nbAbsPath),
+                filename: basename(nbAbsPath),
+                backHref,
+                backLabel: format.language[kNotebookPreviewBack],
+                downloadHref,
+                downloadLabel: format.language[kNotebookPreviewDownload],
+              },
               project,
             );
             if (htmlOut.supporting) {
@@ -165,8 +179,7 @@ export const notebookPreviewer = (
           );
         }
         const nbPreview = {
-          title: renderedNotebook.title ||
-            "UNTITLED FIX ME",
+          title: title || "UNTITLED FIX ME",
           href: relative(inputDir, renderedNotebook[kHtmlPreview].path),
           supporting,
           resources,

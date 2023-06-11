@@ -49,10 +49,10 @@ export const renderSubarticlePostProcessor = (
       logProgress(`[${++count}/${total}] ${nbRelPath}`);
       await services.notebook.render(
         subArticlePath,
-        input,
         format,
         kJatsSubarticle,
         services,
+        undefined,
         project,
       );
     }

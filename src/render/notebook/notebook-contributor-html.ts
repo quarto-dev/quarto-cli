@@ -12,14 +12,8 @@ import {
 } from "../../command/render/types.ts";
 import {
   kClearHiddenClasses,
-  kDownloadUrl,
   kKeepHidden,
-  kNotebookLinks,
   kNotebookPreserveCells,
-  kNotebookPreviewBack,
-  kNotebookPreviewDownload,
-  kNotebookPreviewOptions,
-  kNotebookView,
   kNotebookViewStyle,
   kOutputFile,
   kRemoveHidden,
@@ -30,12 +24,7 @@ import {
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { ProjectContext } from "../../project/types.ts";
-import {
-  Notebook,
-  NotebookContributor,
-  NotebookPreviewConfig,
-  NotebookPreviewOptions,
-} from "./notebook-types.ts";
+import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -43,10 +32,8 @@ import { error } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
-import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
-import { asArray } from "../../core/array.ts";
-import { readBaseInputIndex } from "../../project/project-index.ts";
+import { basename, join } from "path/mod.ts";
+import { Format } from "../../config/types.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
@@ -55,21 +42,10 @@ export const htmlNotebookContributor: NotebookContributor = {
 
 async function resolveHtmlNotebook(
   nbAbsPath: string,
-  parentFilePath: string,
   _token: string,
   executedFile: ExecutedFile,
-  setTitle: (title: string) => void,
+  notebookMetadata?: NotebookMetadata,
 ) {
-  // Resolve notebook configuration
-  const nb = await resolveNotebookConfig(
-    nbAbsPath,
-    parentFilePath,
-    executedFile.recipe.format,
-    {},
-    executedFile.context.project,
-  );
-  setTitle(nb.config.title);
-
   // Use the special `embed` template for this render
   const template = formatResourcePath(
     "html",
@@ -79,7 +55,7 @@ async function resolveHtmlNotebook(
   const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
-  resolved.recipe.format.pandoc[kOutputFile] = nb.config.previewFileName;
+  resolved.recipe.format.pandoc[kOutputFile] = `${basename(nbAbsPath)}.html`;
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   // Configure echo for this rendering
@@ -93,14 +69,7 @@ async function resolveHtmlNotebook(
   resolved.recipe.format.render[kNotebookViewStyle] =
     kNotebookViewStyleNotebook;
   resolved.recipe.format.render[kNotebookPreserveCells] = true;
-  resolved.recipe.format.metadata["nbMeta"] = {
-    title: nb.config.title,
-    backHref: nb.config.backHref, // points to qmd not output
-    backLabel: resolved.recipe.format.language[kNotebookPreviewBack], // needs to be conditionalized on option
-    downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath, // not available in the config.
-    downloadLabel: nb.config.downloadFileName,
-    downloadFileName: resolved.recipe.format.language[kNotebookPreviewDownload],
-  };
+  resolved.recipe.format.metadata["nbMeta"] = notebookMetadata;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -108,23 +77,12 @@ async function resolveHtmlNotebook(
 }
 async function renderHtmlNotebook(
   nbPath: string,
-  parentFilePath: string,
   format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  setTitle: (title: string) => void,
+  notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
-  // Resolve notebook configuration
-  const nb = await resolveNotebookConfig(
-    nbPath,
-    parentFilePath,
-    format,
-    {},
-    project,
-  );
-  setTitle(nb.config.title);
-
   // Use the special `embed` template for this render
   const template = formatResourcePath(
     "html",
@@ -140,19 +98,12 @@ async function renderHtmlNotebook(
         metadata: {
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: nb.config.previewFileName,
+          [kOutputFile]: `${basename(nbPath)}`,
           [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",
           [kNotebookPreserveCells]: true,
-          ["nbMeta"]: {
-            title: nb.config.title,
-            backHref: nb.config.backHref,
-            backLabel: format.language[kNotebookPreviewBack],
-            downloadHref: nb.config.downloadUrl || nb.config.downloadFilePath,
-            downloadLabel: format.language[kNotebookPreviewDownload],
-            downloadFileName: nb.config.downloadFileName,
-          },
+          ["nbMeta"]: notebookMetadata,
         },
         quiet: false,
       },
@@ -179,70 +130,4 @@ async function renderHtmlNotebook(
   }
 
   return rendered.files[0];
-}
-
-async function resolveNotebookConfig(
-  nbPath: string,
-  parentFilePath: string,
-  format: Format,
-  options: {
-    title?: string;
-    previewFileName?: string;
-  },
-  project?: ProjectContext,
-) {
-  // These are explicitly passed in some cases
-  const { title, previewFileName } = options;
-
-  const nbView = format.render[kNotebookView] ?? true;
-  const nbDescriptors: Record<string, NotebookPreviewDescriptor> = {};
-  if (nbView) {
-    if (typeof (nbView) !== "boolean") {
-      asArray(nbView).forEach((view) => {
-        const existingView = nbDescriptors[view.notebook];
-        nbDescriptors[view.notebook] = {
-          ...existingView,
-          ...view,
-        };
-      });
-    }
-  }
-
-  const descriptor: NotebookPreviewDescriptor | undefined =
-    nbDescriptors[nbPath];
-  const nbOptions = format
-    .metadata[kNotebookPreviewOptions] as NotebookPreviewOptions;
-
-  const backHref = nbOptions && nbOptions.back && parentFilePath
-    ? relative(dirname(nbPath), parentFilePath)
-    : undefined;
-
-  const previewConfig: NotebookPreviewConfig = {
-    title: title || await resolveTitle(nbPath, descriptor, project),
-    previewFileName: previewFileName || `${basename(nbPath)}.html`,
-    url: descriptor?.url,
-    downloadUrl: descriptor?.[kDownloadUrl],
-    backHref,
-  };
-
-  return {
-    descriptor,
-    options: nbOptions,
-    config: previewConfig,
-  };
-}
-
-async function resolveTitle(
-  nbPath: string,
-  descriptor: NotebookPreviewDescriptor,
-  project?: ProjectContext,
-) {
-  let resolvedTitle = descriptor?.title; // || title;
-  if (!resolvedTitle && project) {
-    const inputIndex = await readBaseInputIndex(nbPath, project);
-    if (inputIndex) {
-      resolvedTitle = inputIndex.title;
-    }
-  }
-  return resolvedTitle || basename(nbPath);
 }

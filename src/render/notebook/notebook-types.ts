@@ -30,13 +30,21 @@ export type RenderType = "html-preview" | "jats-subarticle" | "rendered-ipynb";
 export interface NotebookPreviewOptions {
   back?: boolean;
 }
-
 export interface Notebook {
   source: string;
-  title?: string;
   [kHtmlPreview]?: NotebookOutput;
   [kJatsSubarticle]?: NotebookOutput;
   [kRenderedIPynb]?: NotebookOutput;
+}
+
+export interface NotebookMetadata {
+  title: string;
+  filename: string;
+  downloadHref?: string;
+  downloadLabel?: string;
+  backHref?: string;
+  backLabel?: string;
+  downloadFile?: string;
 }
 
 export interface NotebookPreviewConfig {
@@ -63,22 +71,21 @@ export interface NotebookContext {
   get: (nbPath: string) => Notebook | undefined;
   resolve: (
     nbPath: string,
-    parentFilePath: string,
     renderType: RenderType,
     executedFile: ExecutedFile,
+    notebookMetadata?: NotebookMetadata,
   ) => Promise<ExecutedFile>;
-  setTitle: (nbPath: string, title: string) => void;
-  contribute: (
+  addPreview: (
     nbPath: string,
     renderType: RenderType,
     result: RenderedFile,
   ) => void;
   render: (
     nbPath: string,
-    parentFilePath: string,
     format: Format,
     renderType: RenderType,
     renderServices: RenderServices,
+    notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
   ) => Promise<NotebookOutput>;
   cleanup: () => void;
@@ -87,18 +94,16 @@ export interface NotebookContext {
 export interface NotebookContributor {
   resolve(
     nbAbsPath: string,
-    parentFilePath: string,
     token: string,
     executedFile: ExecutedFile,
-    setTitle: (title: string) => void,
+    notebookMetadata?: NotebookMetadata,
   ): Promise<ExecutedFile>;
   render(
     nbAbsPath: string,
-    parentFilePath: string,
     format: Format,
     token: string,
     services: RenderServices,
-    setTitle: (title: string) => void,
+    notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
   ): Promise<RenderedFile>;
 }
