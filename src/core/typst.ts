@@ -11,6 +11,7 @@ import * as colors from "fmt/colors.ts";
 import { satisfies } from "semver/mod.ts";
 
 import { execProcess } from "./process.ts";
+import { toolsPath } from "./resources.ts";
 
 export async function typstCompile(
   input: string,
@@ -20,7 +21,7 @@ export async function typstCompile(
   if (!quiet) {
     typstProgress(input, output);
   }
-  const cmd = ["typst", "compile", input, output];
+  const cmd = [toolsPath("typst"), "compile", input, output];
   const result = await execProcess({ cmd });
   if (!quiet && result.success) {
     typstProgressDone();
@@ -29,7 +30,7 @@ export async function typstCompile(
 }
 
 export async function typstVersion() {
-  const cmd = ["typst", "--version"];
+  const cmd = [toolsPath("typst"), "--version"];
   try {
     const result = await execProcess({ cmd, stdout: "piped", stderr: "piped" });
     if (result.success && result.stdout) {
@@ -48,33 +49,36 @@ export async function typstVersion() {
 }
 
 export async function validateRequiredTypstVersion() {
-  const version = await typstVersion();
-  if (version) {
-    const required = ">=0.4";
-    if (!satisfies(version, required)) {
+  // only validate if we have a custom env var
+  if (Deno.env.get("QUARTO_TYPST")) {
+    const version = await typstVersion();
+    if (version) {
+      const required = ">=0.5";
+      if (!satisfies(version, required)) {
+        error(
+          "An updated version of the Typst CLI is required for rendering typst documents.\n",
+        );
+        info(colors.blue(
+          `You are running version ${version} and version ${required} is required.\n`,
+        ));
+        info(colors.blue(
+          `Updating Typst: ${
+            colors.underline("https://github.com/typst/typst#installation")
+          }\n`,
+        ));
+        throw new Error();
+      }
+    } else {
       error(
-        "An updated version of the Typst CLI is required for rendering typst documents.\n",
+        "You need to install the Typst CLI in order to render typst documents.\n",
       );
       info(colors.blue(
-        `You are running version ${version} and version ${required} is required.\n`,
-      ));
-      info(colors.blue(
-        `Updating Typst: ${
+        `Installing Typst: ${
           colors.underline("https://github.com/typst/typst#installation")
         }\n`,
       ));
       throw new Error();
     }
-  } else {
-    error(
-      "You need to install the Typst CLI in order to render typst documents.\n",
-    );
-    info(colors.blue(
-      `Installing Typst: ${
-        colors.underline("https://github.com/typst/typst#installation")
-      }\n`,
-    ));
-    throw new Error();
   }
 }
 
