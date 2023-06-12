@@ -109,7 +109,7 @@ export async function revealTheme(
       (theme) => {
         const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
         if (existsSync(themePath)) {
-          loadPaths.push(join(dirname(input), dirname(themePath)));
+          loadPaths.unshift(join(dirname(input), dirname(theme)));
           return themeLayer(themePath);
         } else {
           // alias revealjs theme names
