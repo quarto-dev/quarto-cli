@@ -84,18 +84,9 @@ export const notebookPreviewer = (
     const nbOptions = format
       .metadata[kNotebookPreviewOptions] as NotebookPreviewOptions;
 
-    // Render each notebook only once (so filter by
-    // notebook path to consolidate the list)
-    const uniqueWork = ld.uniqBy(
-      previewQueue,
-      (work: NotebookPreviewTask) => {
-        return work.nbPath;
-      },
-    ) as NotebookPreviewTask[];
-
-    const total = uniqueWork.length;
+    const total = previewQueue.length;
     for (let i = 0; i < total; i++) {
-      const work = uniqueWork[i];
+      const work = previewQueue[i];
       const { nbPath, input, title, nbPreviewFile } = work;
 
       const nbDir = dirname(nbPath);
@@ -128,6 +119,8 @@ export const notebookPreviewer = (
               project,
             );
             if (renderedIpynb && renderedIpynb.output) {
+              nbContext.preserve(nbAbsPath, kRenderedIPynb);
+              supporting.push(...renderedIpynb.output.path);
               supporting.push(...renderedIpynb.output.supporting);
               resources.push(...renderedIpynb.output.resourceFiles.files);
             }
@@ -158,6 +151,8 @@ export const notebookPreviewer = (
               project,
             );
             if (htmlPreview.output) {
+              nbContext.preserve(nbAbsPath, kHtmlPreview);
+              supporting.push(...htmlPreview.output.path);
               supporting.push(...htmlPreview.output.supporting);
               resources.push(...htmlPreview.output.resourceFiles.files);
             }
