@@ -111,9 +111,9 @@ end, function(float)
   if found_table then
     -- in HTML, we insert the float caption directly in the table
     -- and render that as the result
-    local div = pandoc.Div({found_table})
-    div.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
     found_table.caption.long = float.caption_long
+    local div = pandoc.Div({ found_table })
+    div.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
     return div
   end
 
