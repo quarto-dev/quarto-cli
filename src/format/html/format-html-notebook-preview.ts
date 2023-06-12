@@ -147,6 +147,7 @@ export const notebookPreviewer = (
                 filename: basename(nbAbsPath),
                 backHref,
                 downloadHref,
+                downloadFile: basename(nbAbsPath),
               },
               project,
             );
