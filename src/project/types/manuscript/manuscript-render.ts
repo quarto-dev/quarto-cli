@@ -21,7 +21,11 @@ import {
   kManuscriptType,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
-import { hasComputations, isArticle } from "./manuscript-config.ts";
+import {
+  hasComputations,
+  isArticle,
+  notebookDescriptor,
+} from "./manuscript-config.ts";
 import {
   isHtmlOutput,
   isIpynbOutput,
@@ -49,6 +53,7 @@ import {
   basename,
   format,
 } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
+import { readBaseInputIndex } from "../../project-index.ts";
 
 export const manuscriptRenderer = (
   options: RenderOptions,
@@ -89,7 +94,7 @@ export const manuscriptRenderer = (
 
       // Use the executed file to render the output ipynb
       const notebook = nbContext.get(input);
-      let downloadHref = basename(input);
+      let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
         logProgress(`      | output notebook`);
         const ipynbExecutedFile = await nbContext.resolve(
@@ -101,16 +106,30 @@ export const manuscriptRenderer = (
         downloadHref = `${stem}.out.ipynb`;
         result.push(await renderPandoc(ipynbExecutedFile, true));
       }
-
       logProgress(`      | html preview`);
+
+      // Find the title of this notebook
+      let title;
+      const nbDescriptor = notebookDescriptor(input, manuscriptConfig, context);
+      if (nbDescriptor) {
+        title = nbDescriptor.title;
+        downloadHref = nbDescriptor["download-url"];
+      }
+
+      if (!title) {
+        const inputIndex = await readBaseInputIndex(input, context);
+        if (inputIndex) {
+          title = inputIndex.title;
+        }
+      }
 
       // Compute the notebook metadata
       const format = executedFile.recipe.format;
       const notebookMetadata = {
-        title: "",
+        title: title || basename(input),
         filename: basename(input),
         backHref: parentOutputFiles["html"] || `index.html`,
-        downloadHref,
+        downloadHref: downloadHref || basename(input),
         downloadFile: basename(input),
         backLabel: format.language[kNotebookPreviewBack],
         downloadLabel: format.language[kNotebookPreviewDownload],

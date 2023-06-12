@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
 import { ProjectContext } from "../../types.ts";
 import { existsSync } from "fs/mod.ts";
 import { isAbsolute } from "path/mod.ts";
@@ -13,6 +13,17 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { readLines } from "io/mod.ts";
+
+export const notebookDescriptor = (
+  nbPath: string,
+  manuscriptConfig: ResolvedManuscriptConfig,
+  project: ProjectContext,
+) => {
+  const notebooks = manuscriptConfig.notebooks;
+  return notebooks.find((notebook) => {
+    return notebook.notebook === relative(project.dir, nbPath);
+  });
+};
 
 export const isArticle = (
   file: string,
