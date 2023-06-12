@@ -10,6 +10,7 @@ export DENO_DOM=${DENO_DOM_VERSION=$DENO_DOM}
 export PANDOC=${PANDOC_VERSION=$PANDOC}
 export DARTSASS=${DART_SASS_VERSION=$DARTSASS}
 export ESBUILD=${ESBUILD_VERSION=$ESBUILD}
+export TYPST=${TYPST_VERSION=$TYPST}
 
 source package/scripts/common/utils.sh
 source package/src/set_package_paths.sh

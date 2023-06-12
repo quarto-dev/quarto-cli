@@ -105,6 +105,7 @@ export async function makeInstallerMac(config: Configuration) {
         "dart",
       ),
       join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
+      join(config.directoryInfo.pkgWorking.bin, "tools", "typst"),
     ];
 
     // Sign these non-binary files and don't include
