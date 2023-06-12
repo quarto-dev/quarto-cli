@@ -119,7 +119,7 @@ export const notebookPreviewer = (
             (!notebook || !notebook[kRenderedIPynb]) &&
             !descriptor?.[kDownloadUrl]
           ) {
-            const outIpynb = await nbContext.render(
+            const renderedIpynb = await nbContext.render(
               nbAbsPath,
               format,
               kRenderedIPynb,
@@ -127,9 +127,9 @@ export const notebookPreviewer = (
               undefined,
               project,
             );
-            if (outIpynb) {
-              supporting.push(...outIpynb.supporting);
-              resources.push(...outIpynb.resourceFiles.files);
+            if (renderedIpynb && renderedIpynb.output) {
+              supporting.push(...renderedIpynb.output.supporting);
+              resources.push(...renderedIpynb.output.resourceFiles.files);
             }
           }
 
@@ -140,11 +140,11 @@ export const notebookPreviewer = (
               : undefined;
 
             let downloadHref = nbAbsPath;
-            if (notebook && notebook[kRenderedIPynb]) {
-              downloadHref = notebook[kRenderedIPynb].path;
+            if (notebook && notebook[kRenderedIPynb].output) {
+              downloadHref = notebook[kRenderedIPynb].output.path;
             }
 
-            const htmlOut = await nbContext.render(
+            const htmlPreview = await nbContext.render(
               nbAbsPath,
               format,
               kHtmlPreview,
@@ -157,27 +157,26 @@ export const notebookPreviewer = (
               },
               project,
             );
-            if (htmlOut.supporting) {
-              supporting.push(...htmlOut.supporting);
-            }
-            if (htmlOut.resourceFiles.files) {
-              resources.push(...htmlOut.resourceFiles.files);
+            if (htmlPreview.output) {
+              supporting.push(...htmlPreview.output.supporting);
+              resources.push(...htmlPreview.output.resourceFiles.files);
             }
           }
         }
 
         const renderedNotebook = nbContext.get(nbAbsPath);
-        if (!renderedNotebook || !renderedNotebook[kHtmlPreview]) {
+        if (!renderedNotebook || !renderedNotebook[kHtmlPreview].output) {
           throw new InternalError(
-            "We just ensured that notebooks had rendered previews, but they preview then didn't exist.",
+            "We just ensured that notebooks had rendered previews, but the preview then didn't exist.",
           );
         }
 
         // Compute the final preview information that will be used
         // to form links to this notebook
         const nbPreview = {
-          title: title || "UNTITLED FIX ME",
-          href: relative(inputDir, renderedNotebook[kHtmlPreview].path),
+          title: title || renderedNotebook[kHtmlPreview].metadata?.title ||
+            basename(renderedNotebook[kHtmlPreview].output.path),
+          href: relative(inputDir, renderedNotebook[kHtmlPreview].output.path),
           supporting,
           resources,
         };

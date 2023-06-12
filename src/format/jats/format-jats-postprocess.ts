@@ -61,10 +61,10 @@ export const renderSubarticlePostProcessor = (
     const supportingOut: string[] = [];
     for (const subArticle of subArticles) {
       const nb = services.notebook.get(subArticle.input);
-      if (nb && nb[kJatsSubarticle]) {
+      if (nb && nb[kJatsSubarticle].output) {
         let outputContents = Deno.readTextFileSync(output);
 
-        const notebook = nb[kJatsSubarticle];
+        const notebook = nb[kJatsSubarticle].output;
         const jatsSubarticlePath = notebook.path;
         const placeholder = xmlPlaceholder(
           subArticle.token,

@@ -119,7 +119,6 @@ export const manuscriptRenderer = (
       const index = join(dirOffset, "index.html");
 
       // Compute the notebook metadata
-      const format = executedFile.recipe.format;
       const notebookMetadata = {
         title: title || basename(input),
         filename: basename(input),

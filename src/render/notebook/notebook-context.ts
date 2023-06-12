@@ -43,6 +43,15 @@ export function notebookContext(): NotebookContext {
     return `nb-${++nbCount}`;
   };
 
+  const emptyNotebook = (nbAbsPath: string): Notebook => {
+    return {
+      source: nbAbsPath,
+      [kJatsSubarticle]: {},
+      [kHtmlPreview]: {},
+      [kRenderedIPynb]: {},
+    };
+  };
+
   const addPreview = (
     nbAbsPath: string,
     renderType: RenderType,
@@ -55,15 +64,9 @@ export function notebookContext(): NotebookContext {
       resourceFiles: result.resourceFiles,
     };
 
-    const nb = notebooks[nbAbsPath];
-    if (nb) {
-      nb[renderType] = output;
-    } else {
-      notebooks[nbAbsPath] = {
-        source: nbAbsPath,
-        [renderType]: output,
-      };
-    }
+    const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
+    nb[renderType].output = output;
+    notebooks[nbAbsPath] = nb;
   };
 
   function contributor(renderType: RenderType) {
@@ -77,6 +80,18 @@ export function notebookContext(): NotebookContext {
     }
   }
 
+  function addMetadata(
+    nbAbsPath: string,
+    renderType: RenderType,
+    nbMeta?: NotebookMetadata,
+  ) {
+    const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
+    if (nbMeta) {
+      nb[renderType].metadata = nbMeta;
+    }
+    notebooks[nbAbsPath] = nb;
+  }
+
   return {
     get: (nbAbsPath: string) => {
       return notebooks[nbAbsPath];
@@ -87,6 +102,7 @@ export function notebookContext(): NotebookContext {
       executedFile: ExecutedFile,
       notebookMetadata?: NotebookMetadata,
     ) => {
+      addMetadata(nbAbsPath, renderType, notebookMetadata);
       return contributor(renderType).resolve(
         nbAbsPath,
         token(),
@@ -103,6 +119,7 @@ export function notebookContext(): NotebookContext {
       notebookMetadata?: NotebookMetadata,
       project?: ProjectContext,
     ) => {
+      addMetadata(nbAbsPath, renderType, notebookMetadata);
       const renderedFile = await contributor(renderType).render(
         nbAbsPath,
         format,
@@ -125,10 +142,10 @@ export function notebookContext(): NotebookContext {
       if (hasNotebooks) {
         Object.keys(contributors).forEach((renderType) => {
           Object.values(notebooks).forEach((notebook) => {
-            const nbOutput = notebook[renderType as RenderType];
-            if (nbOutput) {
-              safeRemoveIfExists(nbOutput.path);
-              for (const supporting of nbOutput.supporting) {
+            const notebookPreview = notebook[renderType as RenderType];
+            if (notebookPreview.output) {
+              safeRemoveIfExists(notebookPreview.output.path);
+              for (const supporting of notebookPreview.output.supporting) {
                 safeRemoveIfExists(supporting);
               }
             }

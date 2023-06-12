@@ -25,13 +25,26 @@ export interface NotebookPreviewOptions {
   back?: boolean;
 }
 
+// The core notebook interface
 export interface Notebook {
   source: string;
-  [kHtmlPreview]?: NotebookOutput;
-  [kJatsSubarticle]?: NotebookOutput;
-  [kRenderedIPynb]?: NotebookOutput;
+  [kHtmlPreview]: NotebookPreview;
+  [kJatsSubarticle]: NotebookPreview;
+  [kRenderedIPynb]: NotebookPreview;
 }
 
+export interface NotebookPreview {
+  output?: NotebookOutput;
+  metadata?: NotebookMetadata;
+}
+
+export interface NotebookOutput {
+  path: string;
+  supporting: string[];
+  resourceFiles: RenderResourceFiles;
+}
+
+// Metadata that can be passed when rendering/resolving a notebook
 export interface NotebookMetadata {
   title: string;
   filename: string;
@@ -40,11 +53,13 @@ export interface NotebookMetadata {
   downloadFile?: string;
 }
 
+// The template for notebook views is expecting this schema
 export interface NotebookTemplateMetadata extends NotebookMetadata {
   downloadLabel: string;
   backLabel: string;
 }
 
+// TODO: Is this still useful?
 export interface NotebookPreviewConfig {
   title: string;
   url?: string;
@@ -53,12 +68,6 @@ export interface NotebookPreviewConfig {
   downloadFileName?: string;
   downloadFilePath?: string;
   backHref?: string;
-}
-
-export interface NotebookOutput {
-  path: string;
-  supporting: string[];
-  resourceFiles: RenderResourceFiles;
 }
 
 export interface NotebookContext {
@@ -81,7 +90,7 @@ export interface NotebookContext {
     renderServices: RenderServices,
     notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
-  ) => Promise<NotebookOutput>;
+  ) => Promise<NotebookPreview>;
   cleanup: () => void;
 }
 

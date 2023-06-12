@@ -141,8 +141,8 @@ export async function emplaceNotebookPreviews(
         previewer.enQueuePreview(
           input,
           inputNbPath,
-          undefined,
-          undefined,
+          undefined, // title
+          undefined, // preview file name
           (nbPreview) => {
             // If this is a cell _in_ a source notebook, it will not be parented
             // by an embed cell
