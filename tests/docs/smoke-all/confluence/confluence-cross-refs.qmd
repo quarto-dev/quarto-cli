@@ -9,18 +9,18 @@ Goto links @sec-second.
 ## My Heading {#sec-first}
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dapibus mattis malesuada. Sed fringilla posuere ultricies. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur scelerisque, nisi a consequat aliquet, metus augue feugiat augue, non eleifend lectus eros non nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Mauris sollicitudin auctor orci id vulputate. Pellentesque at luctus urna. Quisque pretium sapien at elit congue maximus. Mauris fermentum sapien eget justo elementum, eleifend auctor dui mattis. Morbi purus elit, auctor id magna et, blandit mattis nunc. Cras commodo leo ut ultrices semper. Nunc a libero dapibus, vestibulum velit sed, bibendum risus. Duis sollicitudin, libero ac sollicitudin maximus, ante massa blandit risus, non laoreet lectus justo non nisl.
-![Elephant Inline](images/elephant.png){#fig-elephant-inline}
+![Elephant Inline](elephant.png){#fig-elephant-inline}
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dapibus mattis malesuada. Sed fringilla posuere ultricies. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur scelerisque, nisi a consequat aliquet, metus augue feugiat augue, non eleifend lectus eros non nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Mauris sollicitudin auctor orci id vulputate. Pellentesque at luctus urna. Quisque pretium sapien at elit congue maximus. Mauris fermentum sapien eget justo elementum, eleifend auctor dui mattis. Morbi purus elit, auctor id magna et, blandit mattis nunc. Cras commodo leo ut ultrices semper. Nunc a libero dapibus, vestibulum velit sed, bibendum risus. Duis sollicitudin, libero ac sollicitudin maximus, ante massa blandit risus, non laoreet lectus justo non nisl.
 
-![Elephant](images/elephant.png){#fig-elephant}
+![Elephant](elephant.png){#fig-elephant}
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dapibus mattis malesuada. Sed fringilla posuere ultricies. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur scelerisque, nisi a consequat aliquet, metus augue feugiat augue, non eleifend lectus eros non nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Mauris sollicitudin auctor orci id vulputate. Pellentesque at luctus urna. Quisque pretium sapien at elit congue maximus. Mauris fermentum sapien eget justo elementum, eleifend auctor dui mattis. Morbi purus elit, auctor id magna et, blandit mattis nunc. Cras commodo leo ut ultrices semper. Nunc a libero dapibus, vestibulum velit sed, bibendum risus. Duis sollicitudin, libero ac sollicitudin maximus, ante massa blandit risus, non laoreet lectus justo non nisl.
 
 ::: {#fig-elephants layout-ncol=2}
 
-![Surus](images/surus.png){#fig-surus}
+![Surus](surus.png){#fig-surus}
 
-![Hanno](images/hanno.png){#fig-hanno}
+![Hanno](hanno.png){#fig-hanno}
 
 Famous Elephants
 :::

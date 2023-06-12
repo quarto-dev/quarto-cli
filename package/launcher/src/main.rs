@@ -79,18 +79,28 @@ fn main() {
     #[cfg(target_os = "windows")]
     std::env::set_var("NO_COLOR", std::ffi::OsStr::new("TRUE"));
 
+    // Define the base deno options
+    let mut deno_options: Vec<String> = vec![
+        String::from("--unstable"),
+        String::from("--no-config"),
+        String::from("--cached-only"),
+        String::from("--allow-read"),
+        String::from("--allow-write"),
+        String::from("--allow-run"),
+        String::from("--allow-env"),
+        String::from("--allow-net"),
+        String::from("--allow-ffi"),      
+    ];
+
+    // If there are extra args, include those
+    if let Ok(extra_options) = env::var("QUARTO_DENO_EXTRA_OPTIONS") {
+        deno_options.push(extra_options);
+    };
+
     // run deno
     let mut child = Command::new(&deno_file)
         .arg("run")
-        .arg("--unstable")
-        .arg("--no-config")
-        .arg("--cached-only")
-        .arg("--allow-read")
-        .arg("--allow-write")
-        .arg("--allow-run")
-        .arg("--allow-env")
-        .arg("--allow-net")
-        .arg("--allow-ffi")
+        .args(deno_options)
         .arg("--importmap")
         .arg(importmap_file)
         .arg(js_file)

@@ -7,6 +7,7 @@
 
 import { info } from "log/mod.ts";
 import { dirname } from "path/mod.ts";
+import { extname } from "../../../src/vendor/deno.land/std@0.185.0/path/win32.ts";
 
 export async function makeTarball(
   input: string,
@@ -45,9 +46,18 @@ export async function unTar(input: string) {
   const cwd = dirname(input);
   info(`Cwd: ${cwd}`);
 
+  // Properly process the compressions
+  let compressFlag = "z"; // zip by default
+  const ext = extname(input);
+  if (ext === ".xz") {
+    compressFlag = "J";
+  } else if (ext === ".bz2") {
+    compressFlag = "j";
+  }
+
   const tarCmd: string[] = [];
   tarCmd.push("tar");
-  tarCmd.push("-xzf");
+  tarCmd.push(`-xv${compressFlag}f`);
   tarCmd.push(input);
 
   const p = Deno.run({

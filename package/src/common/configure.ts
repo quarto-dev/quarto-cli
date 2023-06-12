@@ -62,6 +62,7 @@ export async function configure(
     Deno.env.get("PANDOC") || "",
     Deno.env.get("DARTSASS") || "",
     Deno.env.get("ESBUILD") || "",
+    Deno.env.get("TYPST") || "",
     config.directoryInfo.bin,
   );
   writeDevConfig(devConfig, config.directoryInfo.bin);

@@ -1,2 +1,4 @@
 _publish.yml
 *.xml
+confluence-cross-refs_files
+confluence-smoke-test_files

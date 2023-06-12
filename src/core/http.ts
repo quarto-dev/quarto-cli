@@ -235,6 +235,7 @@ export function maybeDisplaySocketError(e: unknown) {
 
 export function serveRedirect(url: string): Response {
   const headers = new Headers();
+  headers.set("Cache-Control", "no-store, max-age=0");
   headers.set("Location", url);
   return new Response(null, {
     status: 301,

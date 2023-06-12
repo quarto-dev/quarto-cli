@@ -1,0 +1,11 @@
+---
+format: html
+---
+
+```{ojs}
+import { square } from "./square.ts"
+```
+
+```{ojs}
+square(5)
+```
