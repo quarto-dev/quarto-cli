@@ -41,18 +41,9 @@ import {
 import { dirname, join, relative } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
-import {
-  kNotebookPreviewBack,
-  kNotebookPreviewDownload,
-  kNotebookViewStyle,
-  kOutputFile,
-} from "../../../config/constants.ts";
+import { kNotebookViewStyle, kOutputFile } from "../../../config/constants.ts";
 import { dirAndStem } from "../../../core/path.ts";
-import { notebookContext } from "../../../render/notebook/notebook-context.ts";
-import {
-  basename,
-  format,
-} from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
+import { basename } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 import { readBaseInputIndex } from "../../project-index.ts";
 
 export const manuscriptRenderer = (
@@ -135,8 +126,6 @@ export const manuscriptRenderer = (
         backHref: parentOutputFiles["html"] || index,
         downloadHref: downloadHref || basename(input),
         downloadFile: basename(input),
-        backLabel: format.language[kNotebookPreviewBack],
-        downloadLabel: format.language[kNotebookPreviewDownload],
       };
 
       const resolvedExecutedFile = await nbContext.resolve(

@@ -13,13 +13,6 @@ import {
 import { Format } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-// Notebook
-//  source: string
-//  title: string
-//  remote-href?: string
-//  html-preview?: path
-//  jats-subarticle?: path
-//  rendered-ipynb?: path
 export const kRemoteHref = "remote-href";
 export const kHtmlPreview = "html-preview";
 export const kJatsSubarticle = "jats-subarticle";
@@ -27,9 +20,11 @@ export const kRenderedIPynb = "rendered-ipynb";
 
 export type RenderType = "html-preview" | "jats-subarticle" | "rendered-ipynb";
 
+// Preview Options for HTML Previews
 export interface NotebookPreviewOptions {
   back?: boolean;
 }
+
 export interface Notebook {
   source: string;
   [kHtmlPreview]?: NotebookOutput;
@@ -41,10 +36,13 @@ export interface NotebookMetadata {
   title: string;
   filename: string;
   downloadHref?: string;
-  downloadLabel?: string;
   backHref?: string;
-  backLabel?: string;
   downloadFile?: string;
+}
+
+export interface NotebookTemplateMetadata extends NotebookMetadata {
+  downloadLabel: string;
+  backLabel: string;
 }
 
 export interface NotebookPreviewConfig {
@@ -55,10 +53,6 @@ export interface NotebookPreviewConfig {
   downloadFileName?: string;
   downloadFilePath?: string;
   backHref?: string;
-}
-
-export interface NotebookOutputMeta {
-  title?: string;
 }
 
 export interface NotebookOutput {

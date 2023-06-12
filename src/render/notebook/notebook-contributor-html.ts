@@ -15,6 +15,8 @@ import {
   kFormatLinks,
   kKeepHidden,
   kNotebookPreserveCells,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
   kNotebookViewStyle,
   kOutputFile,
   kRemoveHidden,
@@ -26,7 +28,11 @@ import {
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
+import {
+  NotebookContributor,
+  NotebookMetadata,
+  NotebookTemplateMetadata,
+} from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -70,7 +76,11 @@ async function resolveHtmlNotebook(
   resolved.recipe.format.pandoc[kTemplate] = template;
 
   // Metadata used by template when rendering
-  resolved.recipe.format.metadata["nbMeta"] = notebookMetadata;
+  resolved.recipe.format.metadata["nbMeta"] = {
+    ...notebookMetadata,
+    downloadLabel: resolved.recipe.format.language[kNotebookPreviewDownload],
+    backLabel: resolved.recipe.format.language[kNotebookPreviewBack],
+  } as NotebookTemplateMetadata;
 
   // Configure the notebook style
   resolved.recipe.format.render[kNotebookViewStyle] =
@@ -114,7 +124,11 @@ async function renderHtmlNotebook(
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",
           [kNotebookPreserveCells]: true,
-          ["nbMeta"]: notebookMetadata,
+          ["nbMeta"]: {
+            ...notebookMetadata,
+            downloadLabel: format.language[kNotebookPreviewDownload],
+            backLabel: format.language[kNotebookPreviewBack],
+          } as NotebookTemplateMetadata,
         },
         quiet: false,
       },

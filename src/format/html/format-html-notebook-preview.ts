@@ -8,8 +8,6 @@ import * as ld from "../../core/lodash.ts";
 
 import {
   kDownloadUrl,
-  kNotebookPreviewBack,
-  kNotebookPreviewDownload,
   kNotebookPreviewOptions,
 } from "../../config/constants.ts";
 import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
@@ -20,7 +18,10 @@ import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
-import { kHtmlPreview } from "../../render/notebook/notebook-types.ts";
+import {
+  kHtmlPreview,
+  NotebookPreviewOptions,
+} from "../../render/notebook/notebook-types.ts";
 import { kRenderedIPynb } from "../../render/notebook/notebook-types.ts";
 import { InternalError } from "../../core/lib/error.ts";
 
@@ -40,16 +41,11 @@ export interface NotebookPreviewTask {
   callback?: (nbPreview: NotebookPreview) => void;
 }
 
-interface NotebookPreviewOptions {
-  back?: boolean;
-}
-
 export const notebookPreviewer = (
   nbView: boolean | NotebookPreviewDescriptor | NotebookPreviewDescriptor[],
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
-  quiet?: boolean,
 ) => {
   const isBook = projectIsBook(project);
   const previewQueue: NotebookPreviewTask[] = [];
@@ -117,9 +113,8 @@ export const notebookPreviewer = (
         const resources: string[] = [];
 
         // Ensure this has an rendered ipynb and an html preview
-        if (notebook && notebook[kHtmlPreview] && notebook[kRenderedIPynb]) {
-        } else {
-          // Render an ipynb
+        if (!notebook || !notebook[kHtmlPreview] || !notebook[kRenderedIPynb]) {
+          // Render an ipynb if needed
           if (
             (!notebook || !notebook[kRenderedIPynb]) &&
             !descriptor?.[kDownloadUrl]
@@ -138,6 +133,7 @@ export const notebookPreviewer = (
             }
           }
 
+          // Render the HTML preview, if needed
           if (!notebook || !notebook[kHtmlPreview]) {
             const backHref = nbOptions && nbOptions.back && output
               ? relative(dirname(nbAbsPath), output)
@@ -157,9 +153,7 @@ export const notebookPreviewer = (
                 title: title || basename(nbAbsPath),
                 filename: basename(nbAbsPath),
                 backHref,
-                backLabel: format.language[kNotebookPreviewBack],
                 downloadHref,
-                downloadLabel: format.language[kNotebookPreviewDownload],
               },
               project,
             );
@@ -178,6 +172,9 @@ export const notebookPreviewer = (
             "We just ensured that notebooks had rendered previews, but they preview then didn't exist.",
           );
         }
+
+        // Compute the final preview information that will be used
+        // to form links to this notebook
         const nbPreview = {
           title: title || "UNTITLED FIX ME",
           href: relative(inputDir, renderedNotebook[kHtmlPreview].path),

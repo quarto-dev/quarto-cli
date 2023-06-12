@@ -363,7 +363,6 @@ function bootstrapHtmlPostprocessor(
         format,
         services,
         project,
-        options.quiet,
         renderedHtml?.path,
       );
       if (notebookResults) {

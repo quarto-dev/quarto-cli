@@ -99,7 +99,6 @@ export async function emplaceNotebookPreviews(
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
-  quiet?: boolean,
   output?: string,
 ) {
   // The notebook view configuration data
@@ -126,7 +125,6 @@ export async function emplaceNotebookPreviews(
       format,
       services,
       project,
-      quiet,
     );
 
     // Process the root document itself, looking for
