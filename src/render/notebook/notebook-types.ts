@@ -71,18 +71,23 @@ export interface NotebookPreviewConfig {
 }
 
 export interface NotebookContext {
+  // Retrieves the notebook from the context.
   get: (nbPath: string) => Notebook | undefined;
+  // Resolves the data on an executedFile into data that will
+  // create a `renderType` output when rendered.
   resolve: (
     nbPath: string,
     renderType: RenderType,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
   ) => Promise<ExecutedFile>;
+  // Provide a preview to the notebook context (for example, if you rendered it yourself)
   addPreview: (
     nbPath: string,
     renderType: RenderType,
     result: RenderedFile,
   ) => void;
+  // Render a preview from scratch
   render: (
     nbPath: string,
     format: Format,
@@ -91,6 +96,10 @@ export interface NotebookContext {
     notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
   ) => Promise<NotebookPreview>;
+  // Previews are cleaned up when the notebook context is disposed, but
+  // you can use this to mark specific notebook > rendertypes to not be cleaned up.
+  preserve: (nbAbsPath: string, renderType: RenderType) => void;
+  // called to cleanup the context
   cleanup: () => void;
 }
 

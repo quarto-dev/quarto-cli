@@ -37,6 +37,7 @@ const contributors: Record<RenderType, NotebookContributor | undefined> = {
 
 export function notebookContext(): NotebookContext {
   const notebooks: Record<string, Notebook> = {};
+  const preserveNotebooks: Record<string, RenderType[]> = {};
   let nbCount = 0;
 
   const token = () => {
@@ -137,16 +138,30 @@ export function notebookContext(): NotebookContext {
       }
       return notebooks[nbAbsPath][renderType]!;
     },
+    preserve: (nbAbsPath: string, renderType: RenderType) => {
+      preserveNotebooks[nbAbsPath] = preserveNotebooks[nbAbsPath] || [];
+      if (!preserveNotebooks[nbAbsPath].includes(renderType)) {
+        preserveNotebooks[nbAbsPath].push(renderType);
+      }
+    },
     cleanup: () => {
       const hasNotebooks = Object.keys(notebooks).length > 0;
       if (hasNotebooks) {
-        Object.keys(contributors).forEach((renderType) => {
+        Object.keys(contributors).forEach((renderTypeStr) => {
           Object.values(notebooks).forEach((notebook) => {
-            const notebookPreview = notebook[renderType as RenderType];
-            if (notebookPreview.output) {
-              safeRemoveIfExists(notebookPreview.output.path);
-              for (const supporting of notebookPreview.output.supporting) {
-                safeRemoveIfExists(supporting);
+            const renderType = renderTypeStr as RenderType;
+            // Check to see if this is preserved, if it is
+            // skip clean up for this notebook and render type
+            if (
+              !preserveNotebooks[notebook.source] ||
+              !preserveNotebooks[notebook.source].includes(renderType)
+            ) {
+              const notebookPreview = notebook[renderType];
+              if (notebookPreview.output) {
+                safeRemoveIfExists(notebookPreview.output.path);
+                for (const supporting of notebookPreview.output.supporting) {
+                  safeRemoveIfExists(supporting);
+                }
               }
             }
           });
