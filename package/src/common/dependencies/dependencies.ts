@@ -14,6 +14,7 @@ import { deno_dom } from "./deno_dom.ts";
 import { esBuild } from "./esbuild.ts";
 import { pandoc } from "./pandoc.ts";
 import { archiveUrl } from "../archive-binary-dependencies.ts";
+import { typst } from "./typst.ts";
 
 // The list of binary dependencies for Quarto
 export const kDependencies = [
@@ -21,6 +22,7 @@ export const kDependencies = [
   pandoc(version("PANDOC")),
   dartSass(version("DARTSASS")),
   esBuild(version("ESBUILD")),
+  typst(version("TYPST"))
 ];
 
 // Defines a binary dependency for Quarto
