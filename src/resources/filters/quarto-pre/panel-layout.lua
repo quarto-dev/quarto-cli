@@ -60,6 +60,7 @@ _quarto.ast.add_handler({
     tbl.attributes = tbl.float.attributes
     tbl.caption_long = tbl.float.caption_long
     tbl.order = tbl.float.order
+    tbl.type = tbl.float.type
     -- compute vertical alignment and remove attribute
     if tbl.attributes == nil then
       tbl.attributes = {}
@@ -84,6 +85,8 @@ _quarto.ast.add_handler({
             FloatCrossref = function(float)
               if float.parent_id then
                 div.attr.classes:insert("quarto-layout-cell-subref")
+                div.attr.attributes["ref-parent"] = float.parent_id
+                -- FIXME Ask Charles: why do table captions use data[ref-parent] instead of quarto-layout-cell-subref?
               end
             end,
           })

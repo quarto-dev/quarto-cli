@@ -29,10 +29,17 @@ end, function(panel_layout)
       cell_div_style = cell_div_style .. "justify-content: " .. justify .. ";"
       cell_div.attr.attributes["style"] = cell_div_style
       
+      local has_table = false
+      local parent_id
       -- if it's a table then our table-inline style will cause table headers
       -- (th) to be centered. set them to left is they are default
       cell_div = _quarto.ast.walk(cell_div, {
+        FloatCrossref = function(float)
+          parent_id = float.parent_id
+          return nil
+        end,
         Table = function(table)
+          has_table = true
           local changed = false
           table.colspecs = table.colspecs:map(function(spec)
             if spec[1] == pandoc.AlignDefault then
@@ -46,6 +53,9 @@ end, function(panel_layout)
           end
         end
       })
+      if has_table and parent_id ~= nil then
+        cell_div.attr.attributes[kRefParent] = parent_id
+      end
       -- local tbl = tableFromLayoutCell(cell_div)
       -- if tbl then
       --   tbl.colspecs = tbl.colspecs:map(function(spec)
@@ -70,7 +80,7 @@ end, function(panel_layout)
       classes = panel_layout.classes,
       attributes = panel_layout.attributes,
       order = panel_layout.order,
-      type = "Figure",
+      type = panel_layout.type,
       content = panel.content,
       caption_long = pandoc.List({panel_layout.caption_long}),
     })))
