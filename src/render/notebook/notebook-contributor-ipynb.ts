@@ -40,10 +40,11 @@ function resolveOutputNotebook(
   nbAbsPath: string,
   _token: string,
   executedFile: ExecutedFile,
-  notebookMetadata?: NotebookMetadata,
+  _notebookMetadata?: NotebookMetadata,
+  outputFile?: string,
 ) {
   const resolved = ld.cloneDeep(executedFile);
-  resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(
+  resolved.recipe.format.pandoc[kOutputFile] = outputFile || ipynbOutputFile(
     nbAbsPath,
   );
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
@@ -73,7 +74,8 @@ async function renderOutputNotebook(
   _format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  notebookMetadata?: NotebookMetadata,
+  _notebookMetadata?: NotebookMetadata,
+  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(
@@ -83,7 +85,7 @@ async function renderOutputNotebook(
       flags: {
         metadata: {
           [kTo]: "ipynb",
-          [kOutputFile]: ipynbOutputFile(nbPath),
+          [kOutputFile]: outputFile || ipynbOutputFile(nbPath),
         },
         quiet: false,
       },

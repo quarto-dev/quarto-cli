@@ -53,11 +53,13 @@ async function resolveHtmlNotebook(
   _token: string,
   executedFile: ExecutedFile,
   notebookMetadata?: NotebookMetadata,
+  outputFile?: string,
 ) {
   const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
-  resolved.recipe.format.pandoc[kOutputFile] = `${basename(nbAbsPath)}.html`;
+  resolved.recipe.format.pandoc[kOutputFile] = outputFile ||
+    `${basename(nbAbsPath)}.html`;
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   // Configure echo for this rendering to ensure there is output
@@ -101,6 +103,7 @@ async function renderHtmlNotebook(
   _subArticleToken: string,
   services: RenderServices,
   notebookMetadata?: NotebookMetadata,
+  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   // Use the special `embed` template for this render
@@ -119,7 +122,7 @@ async function renderHtmlNotebook(
         metadata: {
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: `${basename(nbPath)}`,
+          [kOutputFile]: outputFile || `${basename(nbPath)}`,
           [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",

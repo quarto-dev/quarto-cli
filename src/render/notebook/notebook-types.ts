@@ -80,6 +80,7 @@ export interface NotebookContext {
     renderType: RenderType,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
+    outputFile?: string,
   ) => Promise<ExecutedFile>;
   // Provide a preview to the notebook context (for example, if you rendered it yourself)
   addPreview: (
@@ -94,6 +95,7 @@ export interface NotebookContext {
     renderType: RenderType,
     renderServices: RenderServices,
     notebookMetadata?: NotebookMetadata,
+    outputFile?: string,
     project?: ProjectContext,
   ) => Promise<NotebookPreview>;
   // Previews are cleaned up when the notebook context is disposed, but
@@ -109,6 +111,7 @@ export interface NotebookContributor {
     token: string,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
+    outputFile?: string,
   ): Promise<ExecutedFile>;
   render(
     nbAbsPath: string,
@@ -116,6 +119,7 @@ export interface NotebookContributor {
     token: string,
     services: RenderServices,
     notebookMetadata?: NotebookMetadata,
+    outputFile?: string,
     project?: ProjectContext,
   ): Promise<RenderedFile>;
 }

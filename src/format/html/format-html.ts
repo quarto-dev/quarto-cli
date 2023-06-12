@@ -109,7 +109,6 @@ import {
 } from "./format-html-types.ts";
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
-import { projectIsBook } from "../../project/project-shared.ts";
 
 export function htmlFormat(
   figwidth: number,

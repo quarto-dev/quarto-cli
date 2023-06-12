@@ -75,7 +75,16 @@ export const notebookPreviewer = (
     nbPreviewFile?: string,
     callback?: (nbPreview: NotebookPreview) => void,
   ) => {
-    previewQueue.push({ input, nbPath, title, nbPreviewFile, callback });
+    // Try to provide a title
+    const nbDesc = descriptor(nbPath);
+    const resolvedTitle = title || nbDesc?.title;
+    previewQueue.push({
+      input,
+      nbPath,
+      title: resolvedTitle,
+      nbPreviewFile,
+      callback,
+    });
   };
 
   const renderPreviews = async (output?: string) => {
@@ -115,6 +124,10 @@ export const notebookPreviewer = (
               format,
               kRenderedIPynb,
               services,
+              {
+                title: title || basename(nbAbsPath),
+                filename: basename(nbAbsPath),
+              },
               undefined,
               project,
             );
@@ -149,6 +162,7 @@ export const notebookPreviewer = (
                 downloadHref,
                 downloadFile: basename(nbAbsPath),
               },
+              nbPreviewFile,
               project,
             );
             if (htmlPreview.output) {

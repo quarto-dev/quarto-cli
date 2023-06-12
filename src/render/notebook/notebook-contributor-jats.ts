@@ -45,7 +45,8 @@ function resolveJats(
   nbAbsPath: string,
   token: string,
   executedFile: ExecutedFile,
-  notebookMetadata?: NotebookMetadata,
+  _notebookMetadata?: NotebookMetadata,
+  outputFile?: string,
 ) {
   const resolved = ld.cloneDeep(executedFile);
   resolved.recipe.format.metadata[kLintXml] = false;
@@ -54,7 +55,8 @@ function resolveJats(
   resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
     nbAbsPath,
   );
-  resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
+  resolved.recipe.output = outputFile ||
+    resolved.recipe.format.pandoc[kOutputFile];
   resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
 
   // Configure echo for this rendering
@@ -73,7 +75,8 @@ async function renderJats(
   _format: Format,
   subArticleToken: string,
   services: RenderServices,
-  notebookMetadata?: NotebookMetadata,
+  _notebookMetadata?: NotebookMetadata,
+  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(
@@ -86,7 +89,7 @@ async function renderJats(
           [kLintXml]: false,
           [kJatsSubarticle]: true,
           [kJatsSubarticleId]: subArticleToken,
-          [kOutputFile]: jatsOutputFile(nbPath),
+          [kOutputFile]: outputFile || jatsOutputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,

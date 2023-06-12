@@ -53,6 +53,7 @@ export const renderSubarticlePostProcessor = (
         kJatsSubarticle,
         services,
         undefined,
+        undefined,
         project,
       );
     }

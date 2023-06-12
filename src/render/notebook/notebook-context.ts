@@ -102,6 +102,7 @@ export function notebookContext(): NotebookContext {
       renderType: RenderType,
       executedFile: ExecutedFile,
       notebookMetadata?: NotebookMetadata,
+      outputFile?: string,
     ) => {
       addMetadata(nbAbsPath, renderType, notebookMetadata);
       return contributor(renderType).resolve(
@@ -109,6 +110,7 @@ export function notebookContext(): NotebookContext {
         token(),
         executedFile,
         notebookMetadata,
+        outputFile,
       );
     },
     addPreview,
@@ -118,6 +120,7 @@ export function notebookContext(): NotebookContext {
       renderType: RenderType,
       services: RenderServices,
       notebookMetadata?: NotebookMetadata,
+      outputFile?: string,
       project?: ProjectContext,
     ) => {
       addMetadata(nbAbsPath, renderType, notebookMetadata);
@@ -127,6 +130,7 @@ export function notebookContext(): NotebookContext {
         token(),
         services,
         notebookMetadata,
+        outputFile,
         project,
       );
 
