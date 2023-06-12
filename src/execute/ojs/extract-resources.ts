@@ -327,7 +327,7 @@ async function resolveImport(
 
   projectRoot = projectRoot ?? dirname(referent);
 
-  const deno = Deno.env.get("_")!;
+  const deno = Deno.execPath();
   const p = Deno.run({
     cmd: [
       deno,
