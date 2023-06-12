@@ -12,6 +12,7 @@ import {
 } from "../../command/render/types.ts";
 import {
   kClearHiddenClasses,
+  kFormatLinks,
   kKeepHidden,
   kNotebookPreserveCells,
   kNotebookViewStyle,
@@ -20,6 +21,7 @@ import {
   kTemplate,
   kTheme,
   kTo,
+  kToc,
   kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
@@ -46,33 +48,41 @@ async function resolveHtmlNotebook(
   executedFile: ExecutedFile,
   notebookMetadata?: NotebookMetadata,
 ) {
-  // Use the special `embed` template for this render
-  const template = formatResourcePath(
-    "html",
-    join("embed", "template.html"),
-  );
-
   const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
   resolved.recipe.format.pandoc[kOutputFile] = `${basename(nbAbsPath)}.html`;
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
-  // Configure echo for this rendering
+  // Configure echo for this rendering to ensure there is output
+  // that we can manually control
   resolved.recipe.format.execute.echo = false;
   resolved.recipe.format.execute.warning = false;
   resolved.recipe.format.render[kKeepHidden] = true;
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
-  resolved.recipe.format.metadata[kAppendixStyle] = "none";
+
+  // Use the special `embed/notebook` template for this render
+  const template = formatResourcePath(
+    "html",
+    join("embed", "template.html"),
+  );
   resolved.recipe.format.pandoc[kTemplate] = template;
+
+  // Metadata used by template when rendering
+  resolved.recipe.format.metadata["nbMeta"] = notebookMetadata;
+
+  // Configure the notebook style
   resolved.recipe.format.render[kNotebookViewStyle] =
     kNotebookViewStyleNotebook;
   resolved.recipe.format.render[kNotebookPreserveCells] = true;
-  resolved.recipe.format.metadata["nbMeta"] = notebookMetadata;
-
-  // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
+
+  // Configure the appearance
+  resolved.recipe.format.pandoc[kToc] = false;
+  resolved.recipe.format.metadata[kAppendixStyle] = "none";
+  resolved.recipe.format.render[kFormatLinks] = false;
+
   return resolved;
 }
 async function renderHtmlNotebook(
@@ -90,6 +100,7 @@ async function renderHtmlNotebook(
   );
 
   // Render the notebook and update the path
+  // TODO: Move to shared resolve code above
   const rendered = await renderFiles(
     [{ path: nbPath, formats: ["html"] }],
     {

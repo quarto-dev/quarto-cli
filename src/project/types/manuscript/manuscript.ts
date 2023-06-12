@@ -29,6 +29,7 @@ import {
   kNotebookPreserveCells,
   kNotebookPreviewOptions,
   kNotebooks,
+  kNotebookViewStyle,
   kOtherLinks,
   kOutputFile,
   kQuartoInternal,
@@ -381,7 +382,7 @@ export const manuscriptProjectType: ProjectType = {
     context: ProjectContext,
     source: string,
     _flags: PandocFlags,
-    _format: Format,
+    format: Format,
     _services: RenderServices,
   ): Promise<FormatExtras> => {
     const manuscriptConfig = context.config
@@ -392,7 +393,10 @@ export const manuscriptProjectType: ProjectType = {
     extras.metadata = {};
 
     // TODO: only do all this for the main article
-    if (isArticle(source, context, manuscriptConfig)) {
+    if (
+      isArticle(source, context, manuscriptConfig) &&
+      format.render[kNotebookViewStyle] !== "notebook"
+    ) {
       // Add the github repo as a metadata link
       // TODO: Place this in metadata so it is available to filter params?
       const ghContext = await gitHubContext(context.dir);
