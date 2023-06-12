@@ -35,6 +35,7 @@ import {
   readSourceDevConfig,
   reconfigureQuarto,
 } from "./core/devconfig.ts";
+import { typstBinaryPath } from "./core/typst.ts";
 import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
 
 import { parse } from "flags/mod.ts";
@@ -72,6 +73,14 @@ export async function quarto(
   if (args[0] === "pandoc" && args[1] !== "help") {
     const result = await execProcess({
       cmd: [pandocBinaryPath(), ...args.slice(1)],
+    });
+    Deno.exit(result.code);
+  }
+
+  // passthrough to typst
+  if (args[0] === "typst") {
+    const result = await execProcess({
+      cmd: [typstBinaryPath(), ...args.slice(1)],
     });
     Deno.exit(result.code);
   }

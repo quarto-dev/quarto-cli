@@ -14,6 +14,7 @@ import { previewCommand } from "./preview/cmd.ts";
 import { convertCommand } from "./convert/cmd.ts";
 import { runCommand } from "./run/run.ts";
 import { pandocCommand } from "./pandoc/cmd.ts";
+import { typstCommand } from "./typst/cmd.ts";
 import { capabilitiesCommand } from "./capabilities/cmd.ts";
 import { checkCommand } from "./check/cmd.ts";
 import { inspectCommand } from "./inspect/cmd.ts";
@@ -40,6 +41,7 @@ export function commands(): Command<any>[] {
     createProjectCommand,
     convertCommand,
     pandocCommand,
+    typstCommand,
     runCommand,
     addCommand,
     installCommand,

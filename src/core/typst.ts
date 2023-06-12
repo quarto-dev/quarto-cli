@@ -13,6 +13,10 @@ import { satisfies } from "semver/mod.ts";
 import { execProcess } from "./process.ts";
 import { toolsPath } from "./resources.ts";
 
+export function typstBinaryPath() {
+  return toolsPath("typst");
+}
+
 export async function typstCompile(
   input: string,
   output: string,
@@ -21,7 +25,7 @@ export async function typstCompile(
   if (!quiet) {
     typstProgress(input, output);
   }
-  const cmd = [toolsPath("typst"), "compile", input, output];
+  const cmd = [typstBinaryPath(), "compile", input, output];
   const result = await execProcess({ cmd });
   if (!quiet && result.success) {
     typstProgressDone();
@@ -30,7 +34,7 @@ export async function typstCompile(
 }
 
 export async function typstVersion() {
-  const cmd = [toolsPath("typst"), "--version"];
+  const cmd = [typstBinaryPath(), "--version"];
   try {
     const result = await execProcess({ cmd, stdout: "piped", stderr: "piped" });
     if (result.success && result.stdout) {
