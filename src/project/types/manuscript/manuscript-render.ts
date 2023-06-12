@@ -38,7 +38,7 @@ import {
   RenderType,
 } from "../../../render/notebook/notebook-types.ts";
 
-import { join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
 import {
@@ -123,12 +123,16 @@ export const manuscriptRenderer = (
         }
       }
 
+      // Compute the back href
+      const dirOffset = relative(dirname(input), context.dir);
+      const index = join(dirOffset, "index.html");
+
       // Compute the notebook metadata
       const format = executedFile.recipe.format;
       const notebookMetadata = {
         title: title || basename(input),
         filename: basename(input),
-        backHref: parentOutputFiles["html"] || `index.html`,
+        backHref: parentOutputFiles["html"] || index,
         downloadHref: downloadHref || basename(input),
         downloadFile: basename(input),
         backLabel: format.language[kNotebookPreviewBack],
