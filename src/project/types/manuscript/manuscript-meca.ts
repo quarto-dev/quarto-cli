@@ -29,6 +29,8 @@ import { dirAndStem } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
 import { info } from "log/mod.ts";
 
+import * as ld from "../../../core/lodash.ts";
+
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
 const kExecutionFiles = [
@@ -246,12 +248,12 @@ export const createMecaBundle = async (
     const manifestXML = toXml(manifest);
     Deno.writeTextFileSync(join(workingDir, manifestFile), manifestXML);
 
-    const filesToZip: string[] = [
+    const filesToZip: string[] = ld.uniq([
       manifestFile,
       articlePath,
       ...articleRenderingPaths,
       ...manuscriptZipFiles,
-    ];
+    ]);
 
     // Compress the working directory in a zip
     const zipResult = await zip(filesToZip, mecaFile, {
