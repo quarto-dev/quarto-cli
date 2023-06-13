@@ -139,6 +139,7 @@ export function htmlFormat(
         services: RenderServices,
         offset: string,
         project: ProjectContext,
+        quiet?: boolean,
       ) => {
         // Warn the user if they are using a listing outside of a website
         if (!project && format.metadata[kListing]) {
@@ -157,7 +158,15 @@ export function htmlFormat(
             services.temp,
             project,
           ),
-          themeFormatExtras(input, flags, format, services, offset, project),
+          themeFormatExtras(
+            input,
+            flags,
+            format,
+            services,
+            offset,
+            project,
+            quiet,
+          ),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -946,6 +955,7 @@ function themeFormatExtras(
   sevices: RenderServices,
   offset?: string,
   project?: ProjectContext,
+  quiet?: boolean,
 ) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
@@ -957,7 +967,15 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, sevices, offset, project);
+    return boostrapExtras(
+      input,
+      flags,
+      format,
+      sevices,
+      offset,
+      project,
+      quiet,
+    );
   }
 }
 

@@ -24,6 +24,7 @@ import {
 } from "../../render/notebook/notebook-types.ts";
 import { kRenderedIPynb } from "../../render/notebook/notebook-types.ts";
 import { InternalError } from "../../core/lib/error.ts";
+import { logProgress } from "../../core/log.ts";
 
 export interface NotebookPreview {
   title: string;
@@ -87,16 +88,37 @@ export const notebookPreviewer = (
     });
   };
 
-  const renderPreviews = async (output?: string) => {
+  const renderPreviews = async (output?: string, quiet?: boolean) => {
     const rendered: Record<string, NotebookPreview> = {};
 
     const nbOptions = format
       .metadata[kNotebookPreviewOptions] as NotebookPreviewOptions;
 
+    const notebookPaths = previewQueue.map((work) => (work.nbPath));
+    const uniquePaths = ld.uniq(notebookPaths);
+    const toRenderPaths = uniquePaths.filter((nbPath) => {
+      return services.notebook.get(nbPath) === undefined;
+    });
+    const haveRenderedPaths: string[] = [];
+    if (toRenderPaths.length > 0 && !quiet) {
+      logProgress(
+        `Rendering notebook previews`,
+      );
+    }
     const total = previewQueue.length;
+    let renderCount = 0;
     for (let i = 0; i < total; i++) {
       const work = previewQueue[i];
       const { nbPath, input, title, nbPreviewFile } = work;
+      if (
+        toRenderPaths.includes(nbPath) && !haveRenderedPaths.includes(nbPath) &&
+        !quiet
+      ) {
+        logProgress(
+          `[${++renderCount}/${toRenderPaths.length}] ${basename(nbPath)}`,
+        );
+        haveRenderedPaths.push(nbPath);
+      }
 
       const nbDir = dirname(nbPath);
       const filename = basename(nbPath);

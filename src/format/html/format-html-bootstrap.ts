@@ -122,6 +122,7 @@ export function boostrapExtras(
   services: RenderServices,
   offset?: string,
   project?: ProjectContext,
+  quiet?: boolean,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -209,6 +210,7 @@ export function boostrapExtras(
           services,
           offset,
           project,
+          quiet,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -232,6 +234,7 @@ function bootstrapHtmlPostprocessor(
   services: RenderServices,
   offset?: string,
   project?: ProjectContext,
+  quiet?: boolean,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -364,6 +367,7 @@ function bootstrapHtmlPostprocessor(
         services,
         project,
         renderedHtml?.path,
+        quiet,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
