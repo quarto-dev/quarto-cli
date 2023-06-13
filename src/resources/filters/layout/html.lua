@@ -33,6 +33,7 @@ end, function(panel_layout)
       local parent_id
       -- if it's a table then our table-inline style will cause table headers
       -- (th) to be centered. set them to left is they are default
+      -- print(cell_div)
       cell_div = _quarto.ast.walk(cell_div, {
         FloatCrossref = function(float)
           parent_id = float.parent_id
@@ -56,6 +57,7 @@ end, function(panel_layout)
       if has_table and parent_id ~= nil then
         cell_div.attr.attributes[kRefParent] = parent_id
       end
+      row_div.content[j] = cell_div
       -- local tbl = tableFromLayoutCell(cell_div)
       -- if tbl then
       --   tbl.colspecs = tbl.colspecs:map(function(spec)
