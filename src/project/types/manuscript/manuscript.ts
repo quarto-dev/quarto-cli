@@ -65,7 +65,11 @@ import {
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
-import { computeProjectArticleFile, isArticle } from "./manuscript-config.ts";
+import {
+  computeProjectArticleFile,
+  isArticle,
+  isArticleManuscript,
+} from "./manuscript-config.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 
 import {
@@ -89,7 +93,6 @@ const kOutputDir = "_manuscript";
 //
 //   The notebooks will have a preview rendered and will also be download-able in the
 //   HTML preview in their source form.
-
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   libDir: "site_libs",
@@ -293,11 +296,8 @@ export const manuscriptProjectType: ProjectType = {
         ? Object.keys(project.config?.format)
         : [];
 
-      if (
-        isArticle(source, project, manuscriptConfig) &&
-        format.render[kNotebookViewStyle] !== "notebook"
-      ) {
-        // TODO: Enable this stuff only if this is not the notebook view of an article
+      // Enable this stuff only if this is not the notebook view of an article
+      if (isArticleManuscript(source, format, project, manuscriptConfig)) {
         if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
           // Add an alternate link to a MECA bundle
           if (format.render[kFormatLinks] !== false) {
@@ -400,13 +400,9 @@ export const manuscriptProjectType: ProjectType = {
     const extras: FormatExtras = {};
     extras.metadata = {};
 
-    // TODO: only do all this for the main article
-    if (
-      isArticle(source, context, manuscriptConfig) &&
-      format.render[kNotebookViewStyle] !== "notebook"
-    ) {
+    // Only do all this for the main article
+    if (isArticleManuscript(source, format, context, manuscriptConfig)) {
       // Add the github repo as a metadata link
-      // TODO: Place this in metadata so it is available to filter params?
       const ghContext = await gitHubContext(context.dir);
       if (ghContext) {
         const repoUrl = ghContext.repoUrl;

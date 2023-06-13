@@ -13,6 +13,8 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { readLines } from "io/mod.ts";
+import { Format } from "../../../config/types.ts";
+import { kNotebookViewStyle } from "../../../config/constants.ts";
 
 export const notebookDescriptor = (
   nbPath: string,
@@ -25,6 +27,11 @@ export const notebookDescriptor = (
   });
 };
 
+// Whether this file is the 'article' in the project
+// note that it is possible that articles can be rendered as the main
+// manuscript, so you may want to consider using isArticleManuscript
+// if you need to target only the manuscript (non-notebook) rendering
+// of an article
 export const isArticle = (
   file: string,
   project: ProjectContext,
@@ -34,6 +41,21 @@ export const isArticle = (
     ? join(project.dir, manuscriptConfig.article)
     : manuscriptConfig.article;
   return file === articlePath;
+};
+
+// Whether this is the article in a manscript project and whether this
+// format is asking for the manuscript rendering of the article.
+//
+// Articles may be rendered as a notebook if they contain computations
+// and this will filter out renderings as a notebook
+export const isArticleManuscript = (
+  file: string,
+  format: Format,
+  project: ProjectContext,
+  manuscriptConfig: ResolvedManuscriptConfig,
+) => {
+  return isArticle(file, project, manuscriptConfig) &&
+    format.render[kNotebookViewStyle] !== "notebook";
 };
 
 export const computeProjectArticleFile = (
