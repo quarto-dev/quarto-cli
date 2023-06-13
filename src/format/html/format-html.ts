@@ -176,7 +176,7 @@ export async function htmlFormatExtras(
   offset: string,
   format: Format,
   temp: TempContext,
-  project?: ProjectContext,
+  _project?: ProjectContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,

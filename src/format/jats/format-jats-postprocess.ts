@@ -28,6 +28,7 @@ export const renderSubarticlePostProcessor = (
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
   project?: ProjectContext,
+  quiet?: boolean,
 ) => {
   return async (output: string) => {
     // First ensure that we have rendered jats-subarticles
@@ -37,7 +38,7 @@ export const renderSubarticlePostProcessor = (
       return services.notebook.get(subArticle.input) === undefined;
     });
     const total = subArticlesToRender.length;
-    if (subArticlesToRender.length > 0) {
+    if (subArticlesToRender.length > 0 && !quiet) {
       logProgress("Rendering JATS sub-articles");
     }
 
@@ -46,7 +47,9 @@ export const renderSubarticlePostProcessor = (
     for (const subArticle of subArticlesToRender) {
       const subArticlePath = subArticle.input;
       const nbRelPath = relative(dirname(input), subArticlePath);
-      logProgress(`[${++count}/${total}] ${nbRelPath}`);
+      if (!quiet) {
+        logProgress(`[${++count}/${total}] ${nbRelPath}`);
+      }
       await services.notebook.render(
         subArticlePath,
         format,

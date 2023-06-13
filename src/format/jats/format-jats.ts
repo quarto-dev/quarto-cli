@@ -57,6 +57,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       services: RenderServices,
       _offset?: string,
       project?: ProjectContext,
+      quiet?: boolean,
     ) => {
       // Provide a template and partials
       const templateDir = formatResourcePath("jats", "pandoc");
@@ -126,6 +127,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
                 subArticles,
                 services,
                 project,
+                quiet,
               ),
             );
           }
