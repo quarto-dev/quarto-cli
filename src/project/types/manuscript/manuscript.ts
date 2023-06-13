@@ -293,7 +293,10 @@ export const manuscriptProjectType: ProjectType = {
         ? Object.keys(project.config?.format)
         : [];
 
-      if (isArticle(source, project, manuscriptConfig)) {
+      if (
+        isArticle(source, project, manuscriptConfig) &&
+        format.render[kNotebookViewStyle] !== "notebook"
+      ) {
         // TODO: Enable this stuff only if this is not the notebook view of an article
         if (shouldMakeMecaBundle(formats, manuscriptConfig)) {
           // Add an alternate link to a MECA bundle
