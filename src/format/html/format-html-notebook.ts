@@ -26,6 +26,7 @@ import {
   NotebookPreview,
   notebookPreviewer,
 } from "./format-html-notebook-preview.ts";
+import { projectIsBook } from "../../project/project-shared.ts";
 
 const kQuartoNbClass = "quarto-notebook";
 const kQuartoCellContainerClass = "cell-container";
@@ -111,7 +112,9 @@ export async function emplaceNotebookPreviews(
     return { resources: [], supporting: [] };
   }
 
-  if (notebookView !== false) {
+  // Books don't currently support notebook previews
+  const isBook = projectIsBook(project);
+  if (notebookView !== false && !isBook) {
     // Utilities and settings for dealing with notebook links
     const inline = format.render[kNotebookLinks] === "inline" ||
       format.render[kNotebookLinks] === true;

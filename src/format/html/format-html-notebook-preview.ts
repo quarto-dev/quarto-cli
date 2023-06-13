@@ -117,7 +117,8 @@ export const notebookPreviewer = (
           // Render an ipynb if needed
           if (
             (!notebook || !notebook[kRenderedIPynb]) &&
-            !descriptor?.[kDownloadUrl]
+            !descriptor?.[kDownloadUrl] &&
+            !isBook
           ) {
             const renderedIpynb = await nbContext.render(
               nbAbsPath,
