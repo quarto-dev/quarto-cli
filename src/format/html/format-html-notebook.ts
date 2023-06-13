@@ -20,13 +20,14 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   NotebookPreview,
   notebookPreviewer,
 } from "./format-html-notebook-preview.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
+import { isAbsolute } from "../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 const kQuartoNbClass = "quarto-notebook";
 const kQuartoCellContainerClass = "cell-container";
@@ -175,7 +176,10 @@ export async function emplaceNotebookPreviews(
         // Filter out the root article notebook, since that was resolved
         // above.
         if (nb.url === undefined && inputNbName !== nb.notebook) {
-          previewer.enQueuePreview(input, nb.notebook, nb.title);
+          const nbAbsPath = isAbsolute(nb.notebook)
+            ? nb.notebook
+            : join(dirname(input), nb.notebook);
+          previewer.enQueuePreview(input, nbAbsPath, nb.title);
         }
       }
     }

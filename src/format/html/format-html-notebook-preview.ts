@@ -71,18 +71,16 @@ export const notebookPreviewer = (
 
   const enQueuePreview = (
     input: string,
-    nbPath: string,
+    nbAbsPath: string,
     title?: string,
     nbPreviewFile?: string,
     callback?: (nbPreview: NotebookPreview) => void,
   ) => {
     // Try to provide a title
-    const nbDesc = descriptor(nbPath);
-    const resolvedTitle = title || nbDesc?.title;
     previewQueue.push({
       input,
-      nbPath,
-      title: resolvedTitle,
+      nbPath: nbAbsPath,
+      title: title,
       nbPreviewFile,
       callback,
     });
@@ -127,7 +125,7 @@ export const notebookPreviewer = (
       if (nbView !== false) {
         // Read options for this notebook
         const descriptor: NotebookPreviewDescriptor | undefined =
-          nbDescriptors[nbPath];
+          nbDescriptors[relative(dirname(input), nbPath)];
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
         const nbContext = services.notebook;
         const notebook = nbContext.get(nbAbsPath);
