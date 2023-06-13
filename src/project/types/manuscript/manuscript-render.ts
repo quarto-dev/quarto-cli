@@ -74,12 +74,12 @@ export const manuscriptRenderer = (
   ) => {
     const progressMessage = (msg: string) => {
       if (!quiet) {
-        logProgress(`> ${msg}`);
+        logProgress(`${msg}`);
       }
     };
 
     if (isJatsOutput(executedFile.context.format.pandoc)) {
-      progressMessage("creating jats subarticle");
+      progressMessage("Rendering JATS subarticle");
       const resolvedExecutedFile = await nbContext.resolve(
         input,
         kJatsSubarticle,
@@ -93,7 +93,7 @@ export const manuscriptRenderer = (
       const notebook = nbContext.get(input);
       let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
-        progressMessage("creating shareable ipynb");
+        progressMessage("Rendering output ipynb");
         const ipynbExecutedFile = await nbContext.resolve(
           input,
           kRenderedIPynb,
@@ -103,7 +103,7 @@ export const manuscriptRenderer = (
         downloadHref = `${stem}.out.ipynb`;
         result.push(await renderPandoc(ipynbExecutedFile, true));
       }
-      progressMessage("creating html preview");
+      progressMessage("Rendering HTML preview");
 
       // Find the title of this notebook
       let title;

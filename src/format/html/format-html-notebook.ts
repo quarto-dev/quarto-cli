@@ -136,15 +136,15 @@ export async function emplaceNotebookPreviews(
     // needed, synthesizing a notebook for them
     // (only do this if this is a root document
     // and input itself is in the list of notebooks)
-    const inputNbPath = basename(input);
-    if (previewer.descriptor(inputNbPath)) {
+    const inputNbName = basename(input);
+    if (previewer.descriptor(inputNbName)) {
       const computationalNodes = doc.querySelectorAll("div.cell");
       for (const computationalNode of computationalNodes) {
         const computeEl = computationalNode as Element;
         const cellId = computeEl.getAttribute("id");
         previewer.enQueuePreview(
           input,
-          inputNbPath,
+          input,
           undefined, // title
           undefined, // preview file name
           (nbPreview) => {
@@ -165,6 +165,18 @@ export async function emplaceNotebookPreviews(
             }
           },
         );
+      }
+    }
+
+    // For any notebooks explicitly provided, ensure they are rendered
+    if (typeof (notebookView) !== "boolean") {
+      const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
+      for (const nb of nbs) {
+        // Filter out the root article notebook, since that was resolved
+        // above.
+        if (nb.url === undefined && inputNbName !== nb.notebook) {
+          previewer.enQueuePreview(input, nb.notebook, nb.title);
+        }
       }
     }
 
@@ -200,16 +212,6 @@ export async function emplaceNotebookPreviews(
             }
           },
         );
-      }
-    }
-
-    // For any notebooks explicitly provided, ensure they are rendered
-    if (typeof (notebookView) !== "boolean") {
-      const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
-      for (const nb of nbs) {
-        if (nb.url === undefined) {
-          previewer.enQueuePreview(input, nb.notebook, nb.title);
-        }
       }
     }
 
