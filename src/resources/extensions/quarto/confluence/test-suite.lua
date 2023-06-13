@@ -335,7 +335,21 @@ function TestLinkConfluence:testLineBreakRemove_parens()
 
   lu.assertEquals(actual, expected)
 end
+function TestLinkConfluence:testAttachment()
+  --5815-bug-confluence-links-to-file-attachments-not-supported
+  local expected = [[<ac:link><ri:attachment ri:filename="fake-target"/><ac:plain-text-link-body><![CDATA[fake-source{doubleBracket}></ac:plain-text-link-body></ac:link>]]
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local source = 'fake-source'
+  local target = 'fake-target'
+  local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
 
+  lu.assertEquals(actual, expected)
+end
 TestCalloutConfluence = {}
 function TestCalloutConfluence:testBasicNote()
   local expected = [[<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="1c8062cd-87de-4701-a698-fd435e057468"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]
