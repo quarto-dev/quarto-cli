@@ -134,7 +134,9 @@ export const notebookPreviewer = (
             );
             if (renderedIpynb && renderedIpynb.output) {
               nbContext.preserve(nbAbsPath, kRenderedIPynb);
-              supporting.push(renderedIpynb.output.path);
+              supporting.push(
+                join(dirname(nbAbsPath), renderedIpynb.output.path),
+              );
               supporting.push(...renderedIpynb.output.supporting);
               resources.push(...renderedIpynb.output.resourceFiles.files);
             }
@@ -168,7 +170,7 @@ export const notebookPreviewer = (
             );
             if (htmlPreview.output) {
               nbContext.preserve(nbAbsPath, kHtmlPreview);
-              supporting.push(htmlPreview.output.path);
+              supporting.push(join(dirname(nbAbsPath), htmlPreview.output.path));
               supporting.push(...htmlPreview.output.supporting);
               resources.push(...htmlPreview.output.resourceFiles.files);
             }
