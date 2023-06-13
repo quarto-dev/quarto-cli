@@ -19,6 +19,10 @@ div.sourceCode code a.external:after {
   content: none;
 }
 
+a.external {
+  display: inline-block;
+}
+
 a.external:after:hover {
   cursor: pointer;
 }
