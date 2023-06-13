@@ -159,6 +159,11 @@ export const manuscriptProjectType: ProjectType = {
     config.project.render = [...notebooks.map((nb) => (nb.notebook)), article];
 
     let count = 0;
+
+    // Generate a summary of jats subnotebooks. The JATS
+    // subnotebooks are used to configure the JATS format with
+    // additional notebooks that should be included within the
+    // rendered JATS article
     const jatsNotebooks = notebooks.map((notebookDesc) => {
       return {
         input: join(projectDir, notebookDesc.notebook),
