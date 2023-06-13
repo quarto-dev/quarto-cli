@@ -148,7 +148,7 @@ export const notebookPreviewer = (
               ? relative(dirname(nbAbsPath), output)
               : undefined;
 
-            let downloadHref = nbAbsPath;
+            let downloadHref = basename(nbAbsPath);
             if (notebook && notebook[kRenderedIPynb].output) {
               downloadHref = notebook[kRenderedIPynb].output.path;
             }
@@ -170,7 +170,11 @@ export const notebookPreviewer = (
             );
             if (htmlPreview.output) {
               nbContext.preserve(nbAbsPath, kHtmlPreview);
-              supporting.push(join(dirname(nbAbsPath), htmlPreview.output.path));
+              if (project) {
+                supporting.push(relative(project.dir, htmlPreview.output.path));
+              } else {
+                supporting.push(htmlPreview.output.path);
+              }
               supporting.push(...htmlPreview.output.supporting);
               resources.push(...htmlPreview.output.resourceFiles.files);
             }
