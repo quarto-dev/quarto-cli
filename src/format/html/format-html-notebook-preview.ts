@@ -158,9 +158,13 @@ export const notebookPreviewer = (
             );
             if (renderedIpynb && renderedIpynb.output) {
               nbContext.preserve(nbAbsPath, kRenderedIPynb);
-              supporting.push(
-                join(dirname(nbAbsPath), renderedIpynb.output.path),
-              );
+              if (project) {
+                supporting.push(
+                  relative(project.dir, renderedIpynb.output.path),
+                );
+              } else {
+                supporting.push(renderedIpynb.output.path);
+              }
               supporting.push(...renderedIpynb.output.supporting);
               resources.push(...renderedIpynb.output.resourceFiles.files);
             }
