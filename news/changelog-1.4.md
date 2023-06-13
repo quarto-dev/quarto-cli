@@ -96,4 +96,4 @@
 ## Other Fixes and Improvements
 
 - ([#5785](https://github.com/quarto-dev/quarto-cli/issues/5785)): Don't process juptyer notebook markdown into metadata when embedding notebooks into documents.
-- ([#5902](https://github.com/quarto-dev/quarto-cli/issues/5902)): Support closing shortcode syntax.
+- ([#5902](https://github.com/quarto-dev/quarto-cli/issues/5902)): Support paired shortcode syntax.
