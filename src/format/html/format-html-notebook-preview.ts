@@ -112,6 +112,8 @@ export const notebookPreviewer = (
         const supporting: string[] = [];
         const resources: string[] = [];
 
+        const resolvedTitle = descriptor?.title || title || basename(nbAbsPath);
+
         // Ensure this has an rendered ipynb and an html preview
         if (!notebook || !notebook[kHtmlPreview] || !notebook[kRenderedIPynb]) {
           // Render an ipynb if needed
@@ -126,7 +128,7 @@ export const notebookPreviewer = (
               kRenderedIPynb,
               services,
               {
-                title: title || basename(nbAbsPath),
+                title: resolvedTitle,
                 filename: basename(nbAbsPath),
               },
               undefined,
@@ -159,7 +161,7 @@ export const notebookPreviewer = (
               kHtmlPreview,
               services,
               {
-                title: title || basename(nbAbsPath),
+                title: resolvedTitle,
                 filename: basename(nbAbsPath),
                 backHref,
                 downloadHref,
@@ -191,8 +193,7 @@ export const notebookPreviewer = (
         // Compute the final preview information that will be used
         // to form links to this notebook
         const nbPreview = {
-          title: title || renderedNotebook[kHtmlPreview].metadata?.title ||
-            basename(renderedNotebook[kHtmlPreview].output.path),
+          title: resolvedTitle,
           href: relative(inputDir, renderedNotebook[kHtmlPreview].output.path),
           supporting,
           resources,
