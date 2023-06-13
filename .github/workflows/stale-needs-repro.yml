@@ -51,4 +51,4 @@ jobs:
           close-issue-message: |
             This issue has been automatically closed because it has been opened for some time without providing a "working" reproducible example that would help us investigate.
           days-before-stale: 14
-          days-before-close: 14
+          days-before-close: -1
