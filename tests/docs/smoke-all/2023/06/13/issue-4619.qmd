@@ -1,9 +1,0 @@
----
-format:
-  html:
-    link-external-icon: true
----
-
-This is a (marked) external link: [Quarto](https://quarto.org/){.external target="_blank"}.
-
-Size the viewport horizontally to observe the breaking behavior.
