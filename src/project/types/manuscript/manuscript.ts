@@ -43,7 +43,6 @@ import { isHtmlOutput } from "../../../config/format.ts";
 import {
   PandocOptions,
   RenderFlags,
-  RenderOptions,
   RenderResult,
   RenderServices,
 } from "../../../command/render/types.ts";
