@@ -385,6 +385,11 @@ div.sourceCode > iframe {
   }
 }
 
+// link styling
+a {
+  text-underline-offset: 3px;
+}
+
 // ansi escaping
 div.ansi-escaped-output {
   font-family: monospace;
