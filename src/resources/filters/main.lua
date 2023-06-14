@@ -192,6 +192,7 @@ local quartoNormalize = {
   { name = "normalize-combined", filter = combineFilters({
       parse_html_tables(),
       parse_extended_nodes(),
+      code_filename(),
     })
   },
   { 
@@ -275,7 +276,6 @@ local quartoPre = {
     quarto_pre_figures(),
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
-    code_filename(),
     engine_escape(),
     line_numbers(),
     bootstrap_panel_input(),

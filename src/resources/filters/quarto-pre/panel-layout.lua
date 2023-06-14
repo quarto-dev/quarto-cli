@@ -86,7 +86,6 @@ _quarto.ast.add_handler({
               if float.parent_id then
                 div.attr.classes:insert("quarto-layout-cell-subref")
                 div.attr.attributes["ref-parent"] = float.parent_id
-                -- FIXME Ask Charles: why do table captions use data[ref-parent] instead of quarto-layout-cell-subref?
               end
             end,
           })

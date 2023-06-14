@@ -124,6 +124,29 @@ function parse_floats()
       end
     end,
 
+    DecoratedCodeBlock = function(decorated_code)
+      local code = decorated_code.code_block
+      local key_prefix = refType(code.identifier)
+      if key_prefix ~= "lst" then
+        return nil
+      end
+      local caption = code.attr.attributes['lst-cap']
+      if caption == nil then
+        return nil
+      end
+      code.attr.attributes['lst-cap'] = nil
+      
+      local attr = code.attr
+      -- code.attr = pandoc.Attr("", {}, {})
+      return quarto.FloatCrossref({
+        attr = attr,
+        type = "Listing",
+        content = { decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
+        caption_long = caption,
+      })
+
+    end,
+
     CodeBlock = function(code)
       local key_prefix = refType(code.identifier)
       if key_prefix ~= "lst" then
@@ -135,14 +158,12 @@ function parse_floats()
       end
       code.attr.attributes['lst-cap'] = nil
       local content = code
-      print(content)
       if code.attr.attributes["filename"] then
         content = quarto.DecoratedCodeBlock({
           filename = code.attr.attributes["filename"],
           code_block = code:clone()
         })
       end
-      print(content)
       
       local attr = code.attr
       code.attr = pandoc.Attr("", {}, {})

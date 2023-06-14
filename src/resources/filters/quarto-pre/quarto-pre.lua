@@ -134,7 +134,7 @@ local filterList = {
     quarto_pre_figures(),
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
-    code_filename(),
+    -- code_filename(),
     line_numbers(),
     engine_escape(),
     bootstrap_panel_input(),
