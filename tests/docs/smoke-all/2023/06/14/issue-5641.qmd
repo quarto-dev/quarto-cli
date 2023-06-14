@@ -1,9 +1,0 @@
----
-format: html
----
-
-* normal text
-* `code text`
-* [normal link](https://quarto.org)
-* [`code link`](https://quarto.org)
-* [`testthat::test_that`](https://quarto.org)
