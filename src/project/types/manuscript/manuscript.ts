@@ -29,7 +29,6 @@ import {
   kNotebookPreserveCells,
   kNotebookPreviewOptions,
   kNotebooks,
-  kNotebookViewStyle,
   kOtherLinks,
   kOutputFile,
   kQuartoInternal,
@@ -44,6 +43,7 @@ import { isHtmlOutput } from "../../../config/format.ts";
 import {
   PandocOptions,
   RenderFlags,
+  RenderOptions,
   RenderResult,
   RenderServices,
 } from "../../../command/render/types.ts";
@@ -67,7 +67,6 @@ import { readLines } from "io/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
 import {
   computeProjectArticleFile,
-  isArticle,
   isArticleManuscript,
 } from "./manuscript-config.ts";
 import { InternalError } from "../../../core/lib/error.ts";
