@@ -59,17 +59,6 @@ export interface NotebookTemplateMetadata extends NotebookMetadata {
   backLabel: string;
 }
 
-// TODO: Is this still useful?
-export interface NotebookPreviewConfig {
-  title: string;
-  url?: string;
-  downloadUrl?: string;
-  previewFileName: string;
-  downloadFileName?: string;
-  downloadFilePath?: string;
-  backHref?: string;
-}
-
 export interface NotebookContext {
   // Retrieves the notebook from the context.
   get: (nbPath: string) => Notebook | undefined;

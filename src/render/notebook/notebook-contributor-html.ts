@@ -113,7 +113,6 @@ async function renderHtmlNotebook(
   );
 
   // Render the notebook and update the path
-  // TODO: Move to shared resolve code above
   const rendered = await renderFiles(
     [{ path: nbPath, formats: ["html"] }],
     {

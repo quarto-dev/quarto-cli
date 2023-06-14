@@ -386,7 +386,6 @@ export async function renderFiles(
           format: context.format,
         });
 
-        // TODO
         if (context.active) {
           // Set the date locale for this render
           // Used for date formatting

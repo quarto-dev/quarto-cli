@@ -28,8 +28,7 @@ import * as ld from "../../core/lodash.ts";
 
 import { error } from "log/mod.ts";
 import { Format } from "../../config/types.ts";
-import { formatResourcePath } from "../../core/resources.ts";
-import { join } from "path/mod.ts";
+import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
@@ -52,10 +51,7 @@ function resolveOutputNotebook(
   resolved.recipe.format.pandoc.to = "ipynb";
 
   // TODO: Move to shared
-  const template = formatResourcePath(
-    "ipynb",
-    join("templates", "title-block.md"),
-  );
+  const template = ipynbTitleTemplatePath();
 
   // Configure echo for this rendering
   resolved.recipe.format.execute.echo = false;
