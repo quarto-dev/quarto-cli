@@ -23,6 +23,12 @@ _quarto.ast.add_handler({
   slots = { "content", "caption_long", "caption_short" },
 
   constructor = function(tbl)
+    if tbl.attr then
+      tbl.identifier = tbl.attr.identifier
+      tbl.classes = tbl.attr.classes
+      tbl.attributes = as_plain_table(tbl.attr.attributes)
+      tbl.attr = nil
+    end
     return tbl
   end
 })
@@ -64,6 +70,10 @@ end
 
 function prepare_caption(float)
   float = ensure_custom(float)
+  -- this should never happen, but it appeases the Lua analyzer
+  if float == nil then
+    return
+  end
   local caption_content = float.caption_long.content or float.caption_long
 
   if float.parent_id then
@@ -148,7 +158,15 @@ local function create_figcaption(float)
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
   local caption_content = pandoc.Plain({})
-  caption_content.content:insert(pandoc.RawInline("html", "<figcaption id='" .. caption_id .. "'>"))
+  local class = "figure-caption"
+  if float.parent_id then
+    class = "subfigure-caption"
+  end
+  caption_content.content:insert(
+    pandoc.RawInline("html", 
+      "<figcaption class='" .. class 
+      .. "' id='" .. caption_id 
+      .. "'>"))
   if #float.caption_long.content then
     caption_content.content:extend(float.caption_long.content)
   else

@@ -662,23 +662,30 @@ mark {
   padding: 0em;
 }
 
-.panel-caption,
-caption,
-.figure-caption {
-  font-size: 0.9rem;
-}
+// FIXME: this needs a full cleanup once we have
+// a firmer idea of what the DOM looks like in 1.4
+//
+// I think we should replace these classes with
+// .figure-caption => .quarto-caption.quarto-float-figure
+// .subfigure-caption => .quarto-caption.quarto-subfloat-figure
+// etc.
+//
+// this way, custom float types can be supported and
+// offered good defaults.
 
 .panel-caption,
 .figure-caption,
-figcaption {
+.subfigure-caption,
+.table-caption,
+figcaption,
+caption {
+  font-size: 0.9rem;
   @include body-secondary;
 }
 
-.table-caption,
-caption {
-  color: $body-color;
-}
-
+// as of 1.4, tables emitted by quarto shouldn't have caption
+// elements, but we keep this here in case some strange rawhtml
+// table sneaks through.
 .quarto-layout-cell[data-ref-parent] caption {
   @include body-secondary;
 }

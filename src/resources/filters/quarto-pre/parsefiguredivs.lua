@@ -15,20 +15,28 @@ function parse_floats()
       return
     end
 
+    local content = div.content
+    local identifier = div.identifier
+    local attr = pandoc.Attr(identifier, div.classes, div.attributes)
+    if (#content >= 1 and #content <= 2 and content[1].t == "Para" and
+        content[1].content[1].t == "Image") then
+      -- if the div contains a single image, then we simply use the image as
+      -- the content
+      content = content[1].content[1]
+      attr = merge_attrs(attr, content.attr)
+      attr.identifier = div.identifier -- never override the identifier
+    end
+
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
       div.content:remove(#div.content)
     else
       caption = pandoc.Plain({})
     end
-    local identifier = div.identifier
-    div.identifier = ""
     return quarto.FloatCrossref({
-      identifier = identifier,
-      classes = div.classes,
-      attributes = as_plain_table(div.attributes),
+      attr = attr,
       type = category.name,
-      content = div.content,
+      content = content,
       caption_long = {pandoc.Plain(caption.content)},
     })
   end
@@ -110,7 +118,7 @@ function parse_floats()
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
           type = "Figure",
-          content = para,
+          content = link,
           caption_long = img.caption,
         })
       end
