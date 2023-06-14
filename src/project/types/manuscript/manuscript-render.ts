@@ -46,11 +46,16 @@ import { dirAndStem } from "../../../core/path.ts";
 import { basename } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 import { readBaseInputIndex } from "../../project-index.ts";
 
+interface ManuscriptCompletion {
+  completion: PandocRenderCompletion;
+  cleanup?: boolean;
+}
+
 export const manuscriptRenderer = (
   options: RenderOptions,
   context: ProjectContext,
 ): PandocRenderer => {
-  const renderCompletions: PandocRenderCompletion[] = [];
+  const renderCompletions: ManuscriptCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];
   const nbContext = options.services.notebook;
 
@@ -70,8 +75,9 @@ export const manuscriptRenderer = (
     input: string,
     parentOutputFiles: Record<string, string>,
     executedFile: ExecutedFile,
+    isArticle: boolean,
     quiet?: boolean,
-  ) => {
+  ): Promise<ManuscriptCompletion[] | undefined> => {
     const progressMessage = (msg: string) => {
       if (!quiet) {
         logProgress(`${msg}`);
@@ -85,7 +91,10 @@ export const manuscriptRenderer = (
         kJatsSubarticle,
         executedFile,
       );
-      return [await renderPandoc(resolvedExecutedFile, true)];
+      return [{
+        completion: await renderPandoc(resolvedExecutedFile, true),
+        cleanup: !isArticle,
+      }];
     } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
       const result = [];
 
@@ -101,7 +110,9 @@ export const manuscriptRenderer = (
         );
         const [_dir, stem] = dirAndStem(input);
         downloadHref = `${stem}.out.ipynb`;
-        result.push(await renderPandoc(ipynbExecutedFile, true));
+        result.push({
+          completion: await renderPandoc(ipynbExecutedFile, true),
+        });
       }
       progressMessage("Rendering HTML preview");
 
@@ -139,7 +150,10 @@ export const manuscriptRenderer = (
         executedFile,
         notebookMetadata,
       );
-      result.push(await renderPandoc(resolvedExecutedFile, true));
+      result.push({
+        completion: await renderPandoc(resolvedExecutedFile, true),
+        cleanup: !isArticle,
+      });
       return result;
     }
   };
@@ -219,8 +233,11 @@ export const manuscriptRenderer = (
             renderCompletions.push(...renderedNb);
           }
         }
+
         // Perform the core article rendering
-        renderCompletions.push(await renderPandoc(executedFile, quiet));
+        renderCompletions.push({
+          completion: await renderPandoc(executedFile, quiet),
+        });
       } else {
         const renderedNb = await pandocRenderNb(
           target.input,
@@ -254,9 +271,12 @@ export const manuscriptRenderer = (
       // The order of the rendered files must remain the same for output purposes (e.g.
       // throw each of OnRender, onPostProcess, and then ultimately the renderedFiles that
       // are returned, the order should always be notebooks, then finally the article output(s))
-      let completion = renderCompletions.shift();
-      while (completion) {
-        const renderedFile = await completion.complete(renderedFormats);
+      let manuscriptCompletion = renderCompletions.shift();
+      while (manuscriptCompletion) {
+        const renderedFile = await manuscriptCompletion.completion.complete(
+          renderedFormats,
+          manuscriptCompletion.cleanup,
+        );
 
         const contributeNotebook = (
           renderedFile: RenderedFile,
@@ -290,7 +310,7 @@ export const manuscriptRenderer = (
           renderedFiles.unshift(renderedFile);
         }
 
-        completion = renderCompletions.shift();
+        manuscriptCompletion = renderCompletions.shift();
       }
     },
     onComplete: async () => {
