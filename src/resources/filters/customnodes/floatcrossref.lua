@@ -231,7 +231,9 @@ function float_crossref_render_html_figure(float)
     end
   end
 
-  div.content:insert(pandoc.RawBlock("html", "<figure>"))
+  local float_prefix = refType(float.identifier)
+  local figure_class = "quarto-float-" .. float_prefix
+  div.content:insert(pandoc.RawBlock("html", "<figure class='" .. figure_class .. "'>"))
   if caption_location == 'top' then
     div.content:insert(caption_content)
   end
@@ -241,11 +243,6 @@ function float_crossref_render_html_figure(float)
   end
   div.content:insert(pandoc.RawBlock("html", "</figure>"))
 
-  -- print("Result:")
-  -- print(pandoc.write(pandoc.Pandoc({div}), "native"))
-  -- print("Source")
-  -- quarto.utils.dump { float = float }
-  -- print()
   return div
 
 end

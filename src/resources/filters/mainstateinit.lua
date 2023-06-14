@@ -37,7 +37,7 @@ crossref = {
         prefix = "tbl",
         name = "Table",
         kind = "float",
-        default_caption_location = "bottom",
+        default_caption_location = "top",
       },
       {
         prefix = "lst",
