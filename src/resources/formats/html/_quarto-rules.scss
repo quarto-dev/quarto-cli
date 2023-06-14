@@ -18,6 +18,10 @@
 
 // layout and figures
 
+figure.figure {
+  display: block;
+}
+
 .quarto-layout-panel {
   margin-bottom: 1em;
 }
@@ -73,7 +77,7 @@
   margin: 0;
 }
 .quarto-layout-cell figure {
-  display: inline-block;
+  display: block;
   margin-inline-start: 0;
   margin-inline-end: 0;
 }

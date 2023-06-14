@@ -11,7 +11,7 @@ _quarto.ast.add_handler({
 
   -- generic names this custom AST node responds to
   -- this is still unimplemented
-  generics = {"Crossref"},
+  interfaces = {"Crossref"},
 
   -- float crossrefs are always blocks
   kind = "Block",
@@ -97,6 +97,12 @@ local function get_figure_attributes(el)
 end
 
 _quarto.ast.add_renderer("FloatCrossref", function(_)
+  return true
+end, function(float)
+  return float.content
+end)
+
+_quarto.ast.add_renderer("FloatCrossref", function(_)
   return _quarto.format.isHtmlOutput()
 end, function(float)
   prepare_caption(float)
@@ -104,18 +110,21 @@ end, function(float)
   ------------------------------------------------------------------------------------
   -- Special handling for tables
 
-
-  -- if we have a Table AST element, then we forward the caption
-  -- into the node and display only that.
-  local found_table = get_node_from_float_and_type(float, "Table")
-  if found_table then
-    -- in HTML, we insert the float caption directly in the table
-    -- and render that as the result
-    found_table.caption.long = float.caption_long
-    local div = pandoc.Div({ found_table })
-    div.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
-    return div
-  end
+  -- -- if we have a Table AST element, then we forward the caption
+  -- -- into the node and display only that.
+  -- local found_table = get_node_from_float_and_type(float, "Table")
+  -- if found_table then
+  --   -- in HTML, we insert the float caption directly in the table
+  --   -- and render that as the result
+  --   found_table.caption.long = float.caption_long
+  --   local div = pandoc.Div({ 
+  --     pandoc.RawBlock("html", "<figure>"),
+  --     found_table,
+  --     pandoc.RawBlock("html", "</figure>"),
+  --    })
+  --   div.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+  --   return div
+  -- end
 
   ------------------------------------------------------------------------------------
   -- Special handling for listings
@@ -132,12 +141,31 @@ end, function(float)
   return float_crossref_render_html_figure(float)
 end)
 
+local figcaption_uuid = "0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"
+
+local function create_figcaption(float)
+  -- use a uuid to ensure that the figcaption ids won't conflict with real
+  -- ids in the document
+  local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
+  local caption_content = pandoc.Plain({})
+  caption_content.content:insert(pandoc.RawInline("html", "<figcaption id='" .. caption_id .. "'>"))
+  if #float.caption_long.content then
+    caption_content.content:extend(float.caption_long.content)
+  else
+    caption_content.content:insert(float.caption_long)
+  end
+  caption_content.content:insert(pandoc.RawInline("html", "</figcaption>"))
+  return caption_content, caption_id
+end
+
 function float_crossref_render_html_figure(float)
   float = ensure_custom(float)
-  local caption_content = pandoc.Plain({})
-  caption_content.content:insert(pandoc.RawInline("html", "<figcaption>"))
-  caption_content.content:extend(float.caption_long.content)
-  caption_content.content:insert(pandoc.RawInline("html", "</figcaption>"))
+  if float == nil then
+    fail("Should never happen")
+    return pandoc.Div({})
+  end
+
+  local caption_content, caption_id = create_figcaption(float)
 
   local float_prefix = refType(float.identifier)
   local caption_location = capLocation(float_prefix, crossref.categories.by_prefix[float_prefix].default_caption_location)
@@ -147,6 +175,15 @@ function float_crossref_render_html_figure(float)
     
     caption_location = "bottom"
   end
+
+  local float_content = pandoc.Div(_quarto.ast.walk(float.content, {
+    -- strip image captions
+    Image = function(image)
+      image.caption = {}
+      return image
+    end
+  }) or pandoc.Div({})) -- this should never happen but the lua analyzer doesn't know it
+  float_content.attributes["aria-describedby"] = caption_id
 
   -- otherwise, we render the float as a div with the caption
   local div = pandoc.Div({})
@@ -160,7 +197,6 @@ function float_crossref_render_html_figure(float)
   -- FIXME consider making the CSS classes uniform
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
-
   elseif float.type == "Figure" then
     -- apply standalone figure css
     div.attr.classes:insert("quarto-figure")
@@ -181,48 +217,17 @@ function float_crossref_render_html_figure(float)
   if caption_location == 'top' then
     div.content:insert(caption_content)
   end
-  -- strip image captions
-  local fixed_content = _quarto.ast.walk(float.content, {
-    Image = function(image)
-      image.caption = {}
-      return image
-    end
-  })
-  if fixed_content == nil then
-    fail("Internal error: should never have arrived here")
-    return
-  end
-
-  -- insert the content in one of many different ways
-  local content_pt = pandoc.utils.type(fixed_content)
-  if content_pt == "Blocks" then
-    div.content:extend(fixed_content)
-  elseif content_pt == "Block" then
-    div.content:insert(fixed_content)
-    -- if fixed_content.content == nil then
-    --   div.content:insert(fixed_content)
-    -- else
-    --   local content_content_pt = pandoc.utils.type(fixed_content.content)
-    --   if content_content_pt == "Blocks" then
-    --     div.content:insert(pandoc.Div(fixed_content.content))
-    --   elseif content_content_pt == "Inlines" then
-    --     div.content:insert(pandoc.Para(fixed_content.content))
-    --   else
-    --     div.content:insert(fixed_content)
-    --   end
-    --   -- print()
-    --   -- quarto.utils.dump { div = div, fixed_content = fixed_content}
-    --   -- div.content:insert(pandoc.Para(fixed_content.content))
-    -- end
-  else
-    fail("Internal error: did not expect content of type " .. content_pt)
-    return
-  end
-  
+  div.content:insert(float_content)
   if caption_location == 'bottom' then
     div.content:insert(caption_content)
   end
   div.content:insert(pandoc.RawBlock("html", "</figure>"))
+
+  -- print("Result:")
+  -- print(pandoc.write(pandoc.Pandoc({div}), "native"))
+  -- print("Source")
+  -- quarto.utils.dump { float = float }
+  -- print()
   return div
 
 end

@@ -52,7 +52,8 @@ function parse_floats()
         -- set the label and remove it from the caption
         label = attr.identifier
         attr.identifier = ""
-        last.content = createTableCaption(caption, attr)            
+        el.caption.long = pandoc.List({})
+        caption = createTableCaption(caption, attr)
       end
     
       if not label then
@@ -66,8 +67,8 @@ function parse_floats()
         classes = combined.classes,
         attributes = as_plain_table(combined.attributes),
         type = "Table",
-        content = {el},
-        caption_long = el.caption.long,
+        content = { el },
+        caption_long = caption,
       })
     end,
 
@@ -109,7 +110,7 @@ function parse_floats()
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
           type = "Figure",
-          content = para, --{link},
+          content = para,
           caption_long = img.caption,
         })
       end

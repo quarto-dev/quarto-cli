@@ -34,7 +34,7 @@ function parse_pandoc3_figures()
         classes = fig.classes,
         attributes = fig.attributes,
         type = category.name,
-        content = pandoc.Para(new_content.content),
+        content = new_content.content,
         caption_long = fig.caption.long,
         caption_short = fig.caption.short,
       })
