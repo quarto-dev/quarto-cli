@@ -206,7 +206,7 @@ export async function emplaceNotebookPreviews(
       if (notebookPath) {
         previewer.enQueuePreview(
           input,
-          notebookPath,
+          nbAbsPath(input, notebookPath),
           title === null ? undefined : title,
           notebookPreviewFile === null ? undefined : notebookPreviewFile,
           (nbPreview) => {
@@ -297,6 +297,18 @@ export async function emplaceNotebookPreviews(
     };
   }
 }
+
+const nbAbsPath = (input: string, nbPath: string) => {
+  if (isAbsolute(nbPath)) {
+    return nbPath;
+  }
+
+  // Ensure that the input path is absolute
+  const inputAbsPath = isAbsolute(input) ? input : join(Deno.cwd(), input);
+
+  // Ensure that the notebook path is absolute
+  return join(dirname(inputAbsPath), nbPath);
+};
 
 const inlineLinkGenerator = (doc: Document, format: Format) => {
   let count = 1;
