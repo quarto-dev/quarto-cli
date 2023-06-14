@@ -304,6 +304,7 @@ export async function renderProject(
     let keepLibsDir = false;
 
     interface FileOperation {
+      key: string;
       src: string;
       performOperation: () => void;
     }
@@ -349,6 +350,7 @@ export async function renderProject(
         if (keepFiles) {
           renderedFile.supporting.forEach((file) => {
             fileOperations.push({
+              key: `${file}|copy`,
               src: file,
               performOperation: () => {
                 copyFormatDir(file);
@@ -358,6 +360,7 @@ export async function renderProject(
         } else {
           renderedFile.supporting.forEach((file) => {
             fileOperations.push({
+              key: `${file}|move`,
               src: file,
               performOperation: () => {
                 moveFormatDir(file);
@@ -401,7 +404,11 @@ export async function renderProject(
     // The second operation overwrites the folder foo_files with a copy that is
     // missing the figure_html directory. (Render a document to JATS and HTML
     // as an example case)
-    const sortedOperations = fileOperations.sort((a, b) => {
+    const uniqOps = ld.uniqBy(fileOperations, (op: FileOperation) => {
+      return op.key;
+    });
+
+    const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
         return 0;
       } else if (isSubdir(a.src, b.src)) {
