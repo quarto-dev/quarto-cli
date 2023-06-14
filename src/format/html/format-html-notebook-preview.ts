@@ -129,8 +129,6 @@ export const notebookPreviewer = (
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
         const nbContext = services.notebook;
         const notebook = nbContext.get(nbAbsPath);
-        const supporting: string[] = [];
-        const resources: string[] = [];
 
         const resolvedTitle = descriptor?.title || title || basename(nbAbsPath);
 
@@ -154,17 +152,8 @@ export const notebookPreviewer = (
               undefined,
               project,
             );
-            if (renderedIpynb && renderedIpynb.output) {
+            if (renderedIpynb && renderedIpynb.output && !project) {
               nbContext.preserve(nbAbsPath, kRenderedIPynb);
-              if (project) {
-                supporting.push(
-                  relative(project.dir, renderedIpynb.output.path),
-                );
-              } else {
-                supporting.push(renderedIpynb.output.path);
-              }
-              supporting.push(...renderedIpynb.output.supporting);
-              resources.push(...renderedIpynb.output.resourceFiles.files);
             }
           }
 
@@ -194,15 +183,8 @@ export const notebookPreviewer = (
               nbPreviewFile,
               project,
             );
-            if (htmlPreview.output) {
+            if (htmlPreview.output && !project) {
               nbContext.preserve(nbAbsPath, kHtmlPreview);
-              if (project) {
-                supporting.push(relative(project.dir, htmlPreview.output.path));
-              } else {
-                supporting.push(htmlPreview.output.path);
-              }
-              supporting.push(...htmlPreview.output.supporting);
-              resources.push(...htmlPreview.output.resourceFiles.files);
             }
           }
         }
@@ -212,6 +194,37 @@ export const notebookPreviewer = (
           throw new InternalError(
             "We just ensured that notebooks had rendered previews, but the preview then didn't exist.",
           );
+        }
+
+        // Forward along resources and supporting files from previews
+        const supporting: string[] = [];
+        const resources: string[] = [];
+        if (renderedNotebook[kRenderedIPynb]) {
+          const renderedIpynb = renderedNotebook[kRenderedIPynb].output;
+          if (renderedIpynb) {
+            if (project) {
+              supporting.push(
+                relative(project.dir, renderedIpynb.path),
+              );
+            } else {
+              supporting.push(renderedIpynb.path);
+            }
+            supporting.push(...renderedIpynb.supporting);
+            resources.push(...renderedIpynb.resourceFiles.files);
+          }
+        }
+
+        if (renderedNotebook[kHtmlPreview]) {
+          const htmlPreview = renderedNotebook[kHtmlPreview].output;
+          if (htmlPreview) {
+            if (project) {
+              supporting.push(relative(project.dir, htmlPreview.path));
+            } else {
+              supporting.push(htmlPreview.path);
+            }
+            supporting.push(...htmlPreview.supporting);
+            resources.push(...htmlPreview.resourceFiles.files);
+          }
         }
 
         // Compute the final preview information that will be used
