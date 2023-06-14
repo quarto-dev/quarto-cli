@@ -405,9 +405,9 @@ export async function renderProject(
       if (a.src === b.src) {
         return 0;
       } else if (isSubdir(a.src, b.src)) {
-        return -1;
-      } else {
         return 1;
+      } else {
+        return -1;
       }
     });
 
