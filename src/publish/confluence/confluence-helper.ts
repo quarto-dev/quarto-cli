@@ -35,8 +35,8 @@ import { capitalizeWord } from "../../core/text.ts";
 
 export const LINK_FINDER: RegExp = /(\S*.qmd'|\S*.qmd#\S*')/g;
 export const FILE_FINDER: RegExp = /(?<=href=\')(.*)(?=\.qmd)/;
-const IMAGE_FINDER: RegExp =
-  /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt)(?=["\'])/g;
+const ATTACHMENT_FINDER: RegExp =
+  /(?<=ri:attachment ri:filename=["\'])[^"\']+?\.(?:jpe?g|png|gif|m4a|mp3|txt|svg|ai|pdf)(?=["\'])/g;
 
 export const capitalizeFirstLetter = (value: string = ""): string => {
   if (!value || value.length === 0) {
@@ -820,7 +820,7 @@ export const updateImagePaths = (body: ContentBody): ContentBody => {
   const attachments = findAttachments(bodyValue);
 
   const withReplacedImages: string = bodyValue.replaceAll(
-    IMAGE_FINDER,
+    ATTACHMENT_FINDER,
     replacer,
   );
 
@@ -838,11 +838,11 @@ export const findAttachments = (
   const pathList = filePath.split("/");
   const parentPath = pathList.slice(0, pathList.length - 1).join("/");
 
-  const result = bodyValue.match(IMAGE_FINDER);
-  let uniqueResult = [...new Set(result)];
+  const imageFinderMatches:RegExpMatchArray | null = bodyValue.match(ATTACHMENT_FINDER);
+  let uniqueFoundImages:string[] = [...new Set(imageFinderMatches)];
 
   if (publishFiles.length > 0) {
-    uniqueResult = uniqueResult.map((assetFileName: string) => {
+    uniqueFoundImages = uniqueFoundImages.map((assetFileName: string) => {
       const assetInPublishFiles = publishFiles.find((assetPathParam) => {
         const assetPath = pathWithForwardSlashes(assetPathParam);
 
@@ -855,7 +855,7 @@ export const findAttachments = (
     });
   }
 
-  return uniqueResult ?? [];
+  return uniqueFoundImages ?? [];
 };
 
 const buildConfluenceAnchor = (id: string) =>

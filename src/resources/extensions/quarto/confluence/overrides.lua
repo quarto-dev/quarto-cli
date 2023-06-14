@@ -137,11 +137,21 @@ end
 
 function LinkConfluence(source, target, title, attr)
   -- For some reason, rendering converts spaces to a double line-break
-  -- TODO figure out exactly what is going on here
   source = string.gsub(source, "\n\n", " ")
   source = string.gsub(source, "\n \n", " ")
   source = string.gsub(source, "(\n", "")
   source = string.gsub(source, "\n)", "")
+
+  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{target}"/><ac:plain-text-link-body><![CDATA[{source}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
+
+  if(not startsWithHttp(target) and (not string.find(target, ".qmd"))) then
+    return interpolate {
+      LINK_ATTACHMENT_SNIPPET,
+      source = escape(source),
+      target = target,
+      doubleBraket = "]]"
+    }
+  end
 
   return "<a href='" .. escape(target,true) .. "' title='" ..
           escape(title,true) .. "'>" .. source .. "</a>"

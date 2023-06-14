@@ -45,7 +45,9 @@ export async function resolveSize(
       width = `${vbWidth}px`;
       height = `${vbHeight}px`;
     } else {
-      throw new InternalError("couldn't determine svg dimensions");
+      throw new Error(
+        "Mermaid generated an SVG without a viewbox attribute. Without knowing the diagram dimensions, quarto cannot convert it to a PNG",
+      );
     }
   }
 
