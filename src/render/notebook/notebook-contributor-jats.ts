@@ -55,6 +55,7 @@ function resolveJats(
   resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
     nbAbsPath,
   );
+  resolved.recipe.format.pandoc.to = "jats";
   resolved.recipe.output = outputFile ||
     resolved.recipe.format.pandoc[kOutputFile];
   resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
