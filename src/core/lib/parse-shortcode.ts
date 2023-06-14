@@ -22,7 +22,7 @@ export function isBlockShortcode(content: string) {
 
 function parseShortcodeCapture(capture: string): Shortcode | undefined {
   // match shortcode name
-  const nameMatch = capture.match(/^[a-zA-Z0-9_]+/);
+  const nameMatch = capture.match(/^\/?[a-zA-Z0-9_]+/);
   if (!nameMatch) {
     return;
   }

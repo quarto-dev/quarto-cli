@@ -1,0 +1,12 @@
+---
+title: issue 5902
+---
+
+```{shortcodes=false}
+
+{{< gallery >}}
+{{< figureforgallery src="search2.png" alt="Screenshot of r-universe simple search results." >}}
+{{< figureforgallery src="search3.png" alt="Screenshot of r-universe advanced search query." >}}
+{{< figureforgallery src="search4.png" alt="Screenshot of r-universe advanced search results." >}}
+{{< /gallery >}}
+```
