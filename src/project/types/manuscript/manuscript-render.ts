@@ -290,13 +290,15 @@ export const manuscriptRenderer = (
           );
         };
 
+        // If rendered a notebook preview / rendering, we need to
+        // contribute those back to the notebook context in case
+        // others need to make use of them
         if (
           isJatsOutput(renderedFile.format.pandoc) &&
           renderedFile.format.metadata[kJatsSubarticle]
         ) {
           contributeNotebook(renderedFile, kJatsSubarticle);
-          // Since JATS subarticles are transient and will end up self contained,
-          // don't include them as rendered files
+          renderedFiles.unshift(renderedFile);
         } else if (
           isHtmlOutput(renderedFile.format.pandoc, true) &&
           renderedFile.format.render[kNotebookViewStyle] === "notebook"
