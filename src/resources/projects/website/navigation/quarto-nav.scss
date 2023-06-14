@@ -472,6 +472,10 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   }
 }
 
+.breadcrumb-item {
+  line-height: 1.2rem;
+}
+
 div.sidebar-item-container {
   color: $sidebar-color;
   &:hover,
