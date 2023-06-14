@@ -94,17 +94,7 @@ export const renderSubarticlePostProcessor = (
 
         // Move supporting and resource files into place
         for (const support of notebook.supporting) {
-          // get the supporting relative path
-          const basePath = project ? project.dir : dirname(notebook.path);
-          const fromPath = join(basePath, support);
-          const toPath = join(
-            dirname(output),
-            relative(dirname(notebook.path), fromPath),
-          );
-          if (fromPath !== toPath) {
-            copySync(fromPath, toPath, { overwrite: true });
-          }
-          supportingOut.push(toPath);
+          supportingOut.push(support);
         }
         Deno.writeTextFileSync(output, outputContents);
       }
