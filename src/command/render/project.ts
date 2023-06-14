@@ -411,10 +411,12 @@ export async function renderProject(
     const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
         return 0;
-      } else if (isSubdir(a.src, b.src)) {
-        return 1;
       } else {
-        return -1;
+        if (isSubdir(a.src, b.src)) {
+          return -1;
+        } else {
+          return a.src.localeCompare(b.src);
+        }
       }
     });
 
