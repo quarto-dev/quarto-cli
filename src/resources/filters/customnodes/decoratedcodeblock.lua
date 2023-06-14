@@ -24,16 +24,7 @@ _quarto.ast.add_handler({
   end,
 
   constructor = function(tbl)
-    local caption = tbl.caption
-    if tbl.code_block.attributes["lst-cap"] ~= nil then
-      caption = pandoc.read(tbl.code_block.attributes["lst-cap"], "markdown").blocks[1].content
-    end
-    return {
-      filename = tbl.filename,
-      order = tbl.order,
-      caption = caption,
-      code_block = tbl.code_block
-    }
+    return tbl
   end
 })
 
@@ -137,6 +128,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     local caption
     local classes = pandoc.List()
     local fancy_output = false
+    quarto.utils.dump { node = node }
     if node.filename ~= nil then
       filenameEl = pandoc.Div({pandoc.Plain{
         pandoc.RawInline("html", "<pre>"),
@@ -146,20 +138,6 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
       classes:insert("code-with-filename")
       fancy_output = true
     end
-    if node.caption ~= nil then
-      local order = node.order
-      if order == nil then
-        warn("Node with caption " .. pandoc.utils.stringify(node.caption) .. " is missing a listing id (lst-*).")
-        warn("This usage is unsupported in HTML formats.")
-        return el
-      end
-      local captionContent = node.caption
-      tprepend(captionContent, listingTitlePrefix(order))
-      caption = pandoc.Para(captionContent)
-      classes:insert("listing")
-      fancy_output = true
-    end
-
     if not fancy_output then
       return el
     end

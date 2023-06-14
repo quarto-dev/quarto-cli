@@ -120,6 +120,9 @@ figure > p:first-child {
 figure > figcaption {
   margin-top: 0.5em;
 }
+figure.quarto-float-lst > figcaption {
+  margin-bottom: 0.5em;
+}
 
 // anchor
 

@@ -125,8 +125,7 @@ function parse_floats()
     end,
 
     CodeBlock = function(code)
-      local identifier = code.identifier
-      local key_prefix = refType(identifier)
+      local key_prefix = refType(code.identifier)
       if key_prefix ~= "lst" then
         return nil
       end
@@ -135,16 +134,22 @@ function parse_floats()
         return nil
       end
       code.attr.attributes['lst-cap'] = nil
-      local classes = code.classes
-      local attributes = code.attributes
+      local content = code
+      print(content)
+      if code.attr.attributes["filename"] then
+        content = quarto.DecoratedCodeBlock({
+          filename = code.attr.attributes["filename"],
+          code_block = code:clone()
+        })
+      end
+      print(content)
+      
+      local attr = code.attr
       code.attr = pandoc.Attr("", {}, {})
-
       return quarto.FloatCrossref({
-        identifier = identifier,
-        classes = classes,
-        attributes = as_plain_table(attributes),
+        attr = attr,
         type = "Listing",
-        content = { code },
+        content = { content },
         caption_long = caption,
       })
     end
