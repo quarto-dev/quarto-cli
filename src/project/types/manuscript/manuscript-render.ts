@@ -263,7 +263,7 @@ export const manuscriptRenderer = (
           renderType: RenderType,
         ) => {
           const nbAbsPath = join(projectContext.dir, renderedFile.input);
-          nbContext.addPreview(
+          nbContext.addRendering(
             nbAbsPath,
             renderType,
             renderedFile,

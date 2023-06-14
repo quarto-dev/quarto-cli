@@ -83,7 +83,7 @@ export interface NotebookContext {
     outputFile?: string,
   ) => Promise<ExecutedFile>;
   // Provide a preview to the notebook context (for example, if you rendered it yourself)
-  addPreview: (
+  addRendering: (
     nbPath: string,
     renderType: RenderType,
     result: RenderedFile,

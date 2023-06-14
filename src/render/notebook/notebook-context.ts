@@ -53,7 +53,7 @@ export function notebookContext(): NotebookContext {
     };
   };
 
-  const addPreview = (
+  const addRendering = (
     nbAbsPath: string,
     renderType: RenderType,
     result: RenderedFile,
@@ -113,7 +113,7 @@ export function notebookContext(): NotebookContext {
         outputFile,
       );
     },
-    addPreview,
+    addRendering,
     render: async (
       nbAbsPath: string,
       format: Format,
@@ -134,7 +134,7 @@ export function notebookContext(): NotebookContext {
         project,
       );
 
-      addPreview(nbAbsPath, renderType, renderedFile);
+      addRendering(nbAbsPath, renderType, renderedFile);
       if (!notebooks[nbAbsPath][renderType]) {
         throw new InternalError(
           "We just rendered and contributed a notebook, but it isn't present in the notebook context.",
