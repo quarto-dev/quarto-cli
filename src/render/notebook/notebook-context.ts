@@ -69,6 +69,36 @@ export function notebookContext(): NotebookContext {
     nb[renderType].output = output;
     notebooks[nbAbsPath] = nb;
   };
+  const removeRendering = (
+    nbAbsPath: string,
+    renderType: RenderType,
+    preserveFiles: string[],
+  ) => {
+    if (
+      preserveNotebooks[nbAbsPath] &&
+      preserveNotebooks[nbAbsPath].includes(renderType)
+    ) {
+      // Someone asked to preserve this, don't clean it up
+      return;
+    }
+    const nb: Notebook = notebooks[nbAbsPath];
+    if (nb) {
+      const rendering = nb[renderType];
+
+      if (rendering.output) {
+        safeRemoveIfExists(rendering.output.path);
+        const filteredSupporting = rendering.output.supporting.filter(
+          (file) => {
+            const absPath = join(dirname(nbAbsPath), file);
+            return !preserveFiles.includes(absPath);
+          },
+        );
+        for (const supporting of filteredSupporting) {
+          safeRemoveIfExists(supporting);
+        }
+      }
+    }
+  };
 
   function contributor(renderType: RenderType) {
     const contributor = contributors[renderType];
@@ -114,6 +144,7 @@ export function notebookContext(): NotebookContext {
       );
     },
     addRendering,
+    removeRendering,
     render: async (
       nbAbsPath: string,
       format: Format,

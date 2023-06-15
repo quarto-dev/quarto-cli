@@ -304,7 +304,8 @@ export const manuscriptRenderer = (
           renderedFile.format.metadata[kJatsSubarticle]
         ) {
           contributeNotebook(renderedFile, kJatsSubarticle);
-          renderedFiles.unshift(renderedFile);
+          // Don't add to the rendering since these are just intermediaries
+          // to be addressed directly by the notebook context
         } else if (
           isHtmlOutput(renderedFile.format.pandoc, true) &&
           renderedFile.format.render[kNotebookViewStyle] === "notebook"

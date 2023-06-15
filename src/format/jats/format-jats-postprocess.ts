@@ -109,6 +109,14 @@ export const renderSubarticlePostProcessor = (
         Deno.writeTextFileSync(output, outputContents);
       }
     }
+    // Clean up the renderings now that they've been ingested
+    for (const subArticle of subArticles) {
+      services.notebook.removeRendering(
+        subArticle.input,
+        kJatsSubarticle,
+        supportingOut,
+      );
+    }
     return {
       supporting: supportingOut,
     };

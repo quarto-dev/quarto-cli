@@ -77,6 +77,11 @@ export interface NotebookContext {
     renderType: RenderType,
     result: RenderedFile,
   ) => void;
+  removeRendering: (
+    nbAbsPath: string,
+    renderType: RenderType,
+    preserveFiles: string[],
+  ) => void;
   // Render a preview from scratch
   render: (
     nbPath: string,
