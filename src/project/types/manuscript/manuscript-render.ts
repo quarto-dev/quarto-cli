@@ -75,17 +75,19 @@ export const manuscriptRenderer = (
     input: string,
     parentOutputFiles: Record<string, string>,
     executedFile: ExecutedFile,
+    project: ProjectContext,
     isArticle: boolean,
     quiet?: boolean,
   ): Promise<ManuscriptCompletion[] | undefined> => {
+    const displayPath = relative(project.dir, input);
     const progressMessage = (msg: string) => {
       if (!quiet) {
-        logProgress(`${msg}`);
+        logProgress(`${msg} [${displayPath}]`);
       }
     };
 
     if (isJatsOutput(executedFile.context.format.pandoc)) {
-      progressMessage("Rendering JATS subarticle");
+      progressMessage("Rendering JATS embedded notebook");
       const resolvedExecutedFile = await nbContext.resolve(
         input,
         kJatsSubarticle,
@@ -102,7 +104,7 @@ export const manuscriptRenderer = (
       const notebook = nbContext.get(input);
       let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
-        progressMessage("Rendering output ipynb");
+        progressMessage("Rendering output notebook");
         const ipynbExecutedFile = await nbContext.resolve(
           input,
           kRenderedIPynb,
@@ -227,6 +229,8 @@ export const manuscriptRenderer = (
             target.input,
             articleOutputFiles,
             executedFile,
+            context,
+            true,
             quiet,
           );
           if (renderedNb) {
@@ -243,6 +247,8 @@ export const manuscriptRenderer = (
           target.input,
           articleOutputFiles,
           executedFile,
+          context,
+          false,
           quiet,
         );
         if (renderedNb) {

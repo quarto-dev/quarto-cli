@@ -470,7 +470,7 @@ export const manuscriptProjectType: ProjectType = {
     ) {
       const language = outputFiles[0].format.language;
 
-      logProgress(`\nCreating ${language[kManuscriptMecaBundle]}`);
+      logProgress(`Creating ${language[kManuscriptMecaBundle]}`);
       const mecaFileName = manuscriptConfig.mecaFile;
       const mecaBundle = await createMecaBundle(
         mecaFileName,
