@@ -105,6 +105,9 @@ export function metadataHtmlPostProcessor(
         if ([kImageHeight, kImageWidth, kImageAlt].includes(key)) {
           return key.replace("-", ":");
         }
+        if (key === kSiteName) {
+          return "site_name";
+        }
         return key;
       },
       resolveValue: (key: string, value: string) => {
@@ -483,7 +486,7 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
       if (renderedEl) {
         // Update the document title
         const el = doc.querySelector(
-          `meta[name="og:site-name"]`,
+          `meta[name="og:site_name"]`,
         );
         if (el) {
           el.setAttribute("content", renderedEl.innerText);
