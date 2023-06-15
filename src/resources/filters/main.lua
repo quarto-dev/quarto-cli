@@ -222,11 +222,6 @@ local quartoPre = {
   -- when they mutate options
   { name = "pre-read-options-again", filter = init_options() },
 
-  { name = "pre-parse-pandoc3-figures", 
-    filter = parse_pandoc3_figures(), 
-    flags = { "has_pandoc3_figure" } 
-  },
-
   { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
   
   { name = "pre-shortcodes-filter", 
