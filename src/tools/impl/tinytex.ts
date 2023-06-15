@@ -2,9 +2,8 @@
  * tinytex.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
-import { warning } from "log/mod.ts";
+import { debug, warning } from "log/mod.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { basename, join } from "path/mod.ts";
@@ -182,10 +181,15 @@ async function install(
     const parentDir = join(installDir, "..");
     const realParentDir = expandPath(parentDir);
     const tinyTexDirName = Deno.build.os === "linux" ? ".TinyTeX" : "TinyTeX";
+    debug(`TinyTex Directory Information:`);
+    debug(`> installDir:  ${installDir}`);
+    debug(`> parentDir:  ${parentDir}`);
+    debug(`> realParentDir:  ${realParentDir}`);
 
     if (existsSync(realParentDir)) {
       // Extract the package
 
+      debug(`Unzipping file ${pkgInfo.filePath}`);
       await context.withSpinner(
         { message: `Unzipping ${basename(pkgInfo.filePath)}` },
         async () => {
@@ -197,6 +201,7 @@ async function install(
         { message: `Moving files` },
         () => {
           const from = join(context.workingDir, tinyTexDirName);
+          debug(`Moving files\n> from ${from}\n> to   ${installDir}`);
 
           copyTo(from, installDir);
 
