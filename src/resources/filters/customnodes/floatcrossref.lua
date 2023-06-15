@@ -194,7 +194,13 @@ local function create_figcaption(float)
     caption_content.content:insert(float.caption_long)
   end
   caption_content.content:insert(pandoc.RawInline("html", "</figcaption>"))
-  return caption_content, caption_id
+
+  return quarto.HtmlTag({
+    name = "figcaption",
+    attr = pandoc.Attr(caption_id, {class}, {}),
+    content = float.caption_long,
+  }), caption_id
+  -- return caption_content, caption_id
 end
 
 function float_crossref_render_html_figure(float)

@@ -25,6 +25,9 @@ function table_captions()
   return {   
     Div = function(el)
       if tcontains(el.attr.classes, "cell") then
+        print("before")
+        print(el)
+        print()
         -- extract table attributes
         local tblCap = extractTblCapAttrib(el,kTblCap)
         local tblSubCap = extractTblCapAttrib(el, kTblSubCap, true)
@@ -68,6 +71,8 @@ function table_captions()
               if #tblCaptions > 0 then
                 el = applyTableCaptions(el, tblCaptions, tblLabels)
               end
+              print("after")
+              print(el)
               return el
             end
           end

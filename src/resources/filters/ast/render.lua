@@ -20,25 +20,54 @@ function render_extended_nodes()
     return {} -- don't render in custom writers, so we can handle them in the custom writer code.
   end
 
-  return {
-    Custom = function(node)
-      local handler = _quarto.ast.resolve_handler(node.t)
-      if handler == nil then
-        fatal("Internal Error: handler not found for custom node " .. node.t)
+  local function has_custom_nodes(node)
+    local has_custom_nodes = false
+    _quarto.ast.walk(node, {
+      Custom = function()
+        has_custom_nodes = true
       end
-      if handler.renderers then
-        for _, renderer in ipairs(handler.renderers) do
-          if renderer.condition(node) then
-            return renderer.render(node)
-          end
-        end
-        quarto.utils.dump(node)
-        fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
-      elseif handler.render ~= nil then
-        return handler.render(node)
+    })
+    return has_custom_nodes
+  end
+
+  local filter
+
+  local function render_custom(node)
+    local function postprocess_render(render_result)
+      print(render_result)
+      -- we need to recurse in case custom nodes render to other custom nodes
+      if is_custom_node(render_result) then
+        -- recurse directly
+        return render_custom(render_result)
+      elseif has_custom_nodes(render_result) then
+        -- recurse via the filter
+        return _quarto.ast.walk(render_result, filter)
       else
-        fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function or renderers table")
+        return render_result
       end
     end
+
+    local handler = _quarto.ast.resolve_handler(node.t)
+    if handler == nil then
+      fatal("Internal Error: handler not found for custom node " .. node.t)
+    end
+    if handler.renderers then
+      for _, renderer in ipairs(handler.renderers) do
+        if renderer.condition(node) then
+          return postprocess_render(renderer.render(node))
+        end
+      end
+      quarto.utils.dump(node)
+      fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
+    elseif handler.render ~= nil then
+      return postprocess_render(handler.render(node))
+    else
+      fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function or renderers table")
+    end
+  end
+
+  filter = {
+    Custom = render_custom
   }
+  return filter
 end

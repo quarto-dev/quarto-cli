@@ -16,6 +16,20 @@ function parse_floats()
     end
 
     local content = div.content
+    local caption_attr_key = key_prefix .. "-cap"
+
+    local caption = refCaptionFromDiv(div)
+    if caption ~= nil then
+      div.content:remove(#div.content)
+    elseif div.attributes[caption_attr_key] ~= nil then
+      caption = pandoc.Plain({
+        pandoc.Str(div.attributes[caption_attr_key]) -- FIXME PROCESS THIS AS MARKDOWN
+      })
+      div.attributes[caption_attr_key] = nil
+    else
+      caption = pandoc.Plain({})
+    end
+
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
     if (#content >= 1 and #content <= 2 and content[1].t == "Para" and
@@ -27,11 +41,26 @@ function parse_floats()
       attr.identifier = div.identifier -- never override the identifier
     end
 
-    local caption = refCaptionFromDiv(div)
-    if caption ~= nil then
-      div.content:remove(#div.content)
-    else
-      caption = pandoc.Plain({})
+
+    if div.classes:includes("cell") then
+      
+      local layout_classes = attr.classes:filter(
+        function(c) return c:match("^column-") end
+      )
+      if #layout_classes then
+        attr.classes = attr.classes:filter(
+          function(c) return not layout_classes:includes(c) end)
+        -- if the div is a cell, then all layout attributes need to be
+        -- forwarded to the cell .cell-output-display content divs
+        content = _quarto.ast.walk(content, {
+          Div = function(div)
+            if div.classes:includes("cell-output-display") then
+              div.classes:extend(layout_classes)
+              return div
+            end
+          end
+        })  
+      end
     end
     return quarto.FloatCrossref({
       attr = attr,
