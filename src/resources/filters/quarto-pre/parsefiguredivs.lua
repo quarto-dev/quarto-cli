@@ -42,6 +42,46 @@ function parse_floats()
   end
 
   return {
+
+    Figure = function(fig)
+      local identifier_parts = split(fig.identifier, "-")
+      if identifier_parts == nil then
+        fail("Figure without crossref identifier?")
+        return
+      end
+      local key_prefix = identifier_parts[1]
+      local category = crossref.categories.by_prefix[key_prefix]
+      if category == nil then
+        fail("Figure with invalid crossref category? " .. fig.identifier)
+        return
+      end
+
+      if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
+        print(fig)
+        fail("Don't know how to parse this pandoc 3 figure")
+        return nil
+      end
+
+      local fig_attr = fig.attr
+      local new_content = _quarto.ast.walk(fig.content[1], {
+        Image = function(image)
+          -- forward attributes and classes from the image to the float
+          fig_attr = merge_attrs(fig_attr, image.attr)
+          -- strip redundant image caption
+          image.caption = {}
+          return image
+        end
+      }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
+
+      return quarto.FloatCrossref({
+        attr = fig_attr,
+        type = category.name,
+        content = new_content.content,
+        caption_long = fig.caption.long,
+        caption_short = fig.caption.short,
+      })
+    end,
+
     -- if we see a table with a caption that includes a tbl- label, then
     -- we normalize that to a FloatCrossref
     Table = function(el)

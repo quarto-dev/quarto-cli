@@ -3,8 +3,16 @@
 
 function columns_preprocess() 
   return {
-    Div = function(el)  
-      
+    FloatCrossref = function(float)
+      local location = cap_location(float)
+      if location == 'margin' then
+        float.classes:insert('margin-caption')
+        noteHasColumns()
+        return float
+      end
+    end,
+
+    Div = function(el)
       if el.attr.classes:includes('cell') then      
         -- for code chunks that aren't layout panels, forward the column classes to the output
         -- figures or tables (otherwise, the column class should be used to layout the whole panel)
@@ -26,9 +34,8 @@ function columns_preprocess()
 end
 
 -- resolves column classes for an element
-function resolveColumnClassesForEl(el) 
-  -- ignore sub figures and sub tables
-  if not hasRefParent(el) then    
+function resolveColumnClassesForEl(el)
+  if not hasRefParent(el) then
     if hasFigureRef(el) then
       resolveElementForScopedColumns(el, 'fig')
     elseif hasTableRef(el) then

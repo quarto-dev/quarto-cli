@@ -33,6 +33,27 @@ _quarto.ast.add_handler({
   end
 })
 
+function cap_location(float)
+  local float_prefix = refType(float.identifier)
+  local qualified_key = float_prefix .. '-cap-location'
+  local result = (
+    float.attributes[qualified_key] or
+    float.attributes['cap-location'] or
+    option_as_string(qualified_key) or
+    option_as_string('cap-location') or
+    capLocation(float_prefix) or
+    crossref.categories.by_prefix[float_prefix].default_caption_location)
+
+  if result ~= "margin" and result ~= "top" and result ~= "bottom" then
+    error("Invalid caption location for float: " .. float.identifier .. 
+      " requested " .. result .. 
+      ".\nOnly 'top', 'bottom', and 'margin' are supported. Assuming 'bottom'.")
+    result = "bottom"
+  end
+    
+  return result
+end
+
 local function get_node_from_float_and_type(float, type)
   -- this explicit check appears necessary for the case where
   -- float.content is directly the node we want, and not a container that
@@ -48,8 +69,8 @@ local function get_node_from_float_and_type(float, type)
         return nil, false -- don't recurse
       end
     })
-    return node
-  end 
+    return found_node
+  end
 end
 
 -- default renderer first
@@ -184,15 +205,7 @@ function float_crossref_render_html_figure(float)
   end
 
   local caption_content, caption_id = create_figcaption(float)
-
-  local float_prefix = refType(float.identifier)
-  local caption_location = capLocation(float_prefix, crossref.categories.by_prefix[float_prefix].default_caption_location)
-  -- FIXME MARGIN
-  if caption_location ~= "top" and caption_location ~= "bottom" then
-    error("Invalid caption location for float: " .. float.identifier .. " requested " .. caption_location .. ".\nOnly 'top' and 'bottom' are supported. Assuming 'bottom'.")
-    
-    caption_location = "bottom"
-  end
+  local caption_location = cap_location(float)
 
   local float_content = pandoc.Div(_quarto.ast.walk(float.content, {
     -- strip image captions
@@ -209,9 +222,9 @@ function float_crossref_render_html_figure(float)
   local found_image = get_node_from_float_and_type(float, "Image") or pandoc.Div({})
   local figure_attrs = get_figure_attributes(found_image)
   
-  div.attr = merge_attrs(pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {}),
-                         pandoc.Attr("", {}, figure_attrs.figureAttr))
-
+  div.attr = merge_attrs(
+    pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {}),
+    pandoc.Attr("", {}, figure_attrs.figureAttr))
   -- FIXME consider making the CSS classes uniform
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
@@ -238,11 +251,10 @@ function float_crossref_render_html_figure(float)
     div.content:insert(caption_content)
   end
   div.content:insert(float_content)
-  if caption_location == 'bottom' then
+  if caption_location == 'bottom' or caption_location == 'margin' then
     div.content:insert(caption_content)
   end
   div.content:insert(pandoc.RawBlock("html", "</figure>"))
 
   return div
-
 end
