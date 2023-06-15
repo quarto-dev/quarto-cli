@@ -77,7 +77,7 @@ export const manuscriptRenderer = (
     executedFile: ExecutedFile,
     project: ProjectContext,
     isArticle: boolean,
-    quiet?: boolean,
+    quiet: boolean,
   ): Promise<ManuscriptCompletion[] | undefined> => {
     const displayPath = relative(project.dir, input);
     const progressMessage = (msg: string) => {
@@ -94,7 +94,7 @@ export const manuscriptRenderer = (
         executedFile,
       );
       return [{
-        completion: await renderPandoc(resolvedExecutedFile, true),
+        completion: await renderPandoc(resolvedExecutedFile, quiet),
         cleanup: !isArticle,
       }];
     } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
@@ -113,7 +113,7 @@ export const manuscriptRenderer = (
         const [_dir, stem] = dirAndStem(input);
         downloadHref = `${stem}.out.ipynb`;
         result.push({
-          completion: await renderPandoc(ipynbExecutedFile, true),
+          completion: await renderPandoc(ipynbExecutedFile, quiet),
         });
       }
       progressMessage("Rendering HTML preview");
@@ -153,7 +153,7 @@ export const manuscriptRenderer = (
         notebookMetadata,
       );
       result.push({
-        completion: await renderPandoc(resolvedExecutedFile, true),
+        completion: await renderPandoc(resolvedExecutedFile, quiet),
         cleanup: !isArticle,
       });
       return result;
