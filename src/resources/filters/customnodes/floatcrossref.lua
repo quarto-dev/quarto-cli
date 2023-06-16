@@ -178,29 +178,15 @@ local function create_figcaption(float)
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
-  local caption_content = pandoc.Plain({})
   local class = "figure-caption"
   if float.parent_id then
     class = "subfigure-caption"
   end
-  caption_content.content:insert(
-    pandoc.RawInline("html", 
-      "<figcaption class='" .. class 
-      .. "' id='" .. caption_id 
-      .. "'>"))
-  if #float.caption_long.content then
-    caption_content.content:extend(float.caption_long.content)
-  else
-    caption_content.content:insert(float.caption_long)
-  end
-  caption_content.content:insert(pandoc.RawInline("html", "</figcaption>"))
-
   return quarto.HtmlTag({
     name = "figcaption",
     attr = pandoc.Attr(caption_id, {class}, {}),
     content = float.caption_long,
   }), caption_id
-  -- return caption_content, caption_id
 end
 
 -- FINISH ME WE ARE WORKING ON MAKING COLUMN LAYOUTS FOR TABLES AND FIGURES
@@ -254,33 +240,31 @@ function float_crossref_render_html_figure(float)
 
   local float_prefix = refType(float.identifier)
   local figure_class = "quarto-float-" .. float_prefix
-  local figure_tag = quarto.HtmlTag({
+
+  -- This is relatively ugly, and another instance
+  -- of the impedance mismatch we have in the custom AST
+  -- API. Notice that we need to insert the figure_div value
+  -- into the div, but we need to use figure_tbl
+  -- to manipulate the contents of the custom node. 
+  --
+  -- This is because the figure_div is a pandoc.Div (required to
+  -- be inserted into pandoc divs), but figure_tbl is
+  -- the lua table with the metatable required to marshal
+  -- the inner contents of the custom node.
+  -- 
+  -- it's possible that the better API is for custom constructors
+  -- to always return a Lua object and then have a separate
+  -- function to convert that to a pandoc AST node.
+  local figure_div, figure_tbl = quarto.HtmlTag({
     name = "figure",
     attr = pandoc.Attr("", {figure_class}, {}),
   })
-  quarto.utils.dump(figure_tag)
-  print(pandoc.utils.type(float_content))
-  print(float_content)
-  figure_tag.content:insert(float_content)
-  div.content:insert(figure_tag)
-
+  figure_tbl.content.content:insert(float_content)
   if caption_location == 'top' then
-    local l = pandoc.List({})
-    figure_tag.content:insert(1, caption_content)
+    figure_tbl.content.content:insert(1, caption_content)
   else
-    figure_tag.content:insert(caption_content)
+    figure_tbl.content.content:insert(caption_content)
   end
-
-  -- div.content:insert(pandoc.RawBlock("html", "<figure class='" .. figure_class .. "'>"))
-  -- if caption_location == 'top' then
-  --   div.content:insert(caption_content)
-  -- end
-  -- div.content:insert(float_content)
-  -- if caption_location == 'bottom' or caption_location == 'margin' then
-  -- end
-  -- div.content:insert(pandoc.RawBlock("html", "</figure>"))
-
-  -- print(div)
-  -- print(pandoc.write(pandoc.Pandoc({float_content}), "native"))
+  div.content:insert(figure_div)
   return div
 end

@@ -34,8 +34,6 @@ function render_extended_nodes()
 
   local function render_custom(node)
     local function postprocess_render(render_result)
-      -- print("postprocess_render")
-      -- print(render_result)
       -- we need to recurse in case custom nodes render to other custom nodes
       if is_custom_node(render_result) then
         -- recurse directly
@@ -46,6 +44,9 @@ function render_extended_nodes()
       else
         return render_result
       end
+    end
+    if type(node) == "userdata" then
+      node = _quarto.ast.resolve_custom_data(node)
     end
 
     local handler = _quarto.ast.resolve_handler(node.t)
@@ -58,7 +59,6 @@ function render_extended_nodes()
           return postprocess_render(renderer.render(node))
         end
       end
-      quarto.utils.dump(node)
       fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
     elseif handler.render ~= nil then
       return postprocess_render(handler.render(node))

@@ -20,22 +20,27 @@ _quarto.ast.add_handler({
 
   constructor = function(tbl)
     if tbl.attr then
-      tbl.identifier = tbl.attr.identifier or ""
-      tbl.classes = tbl.attr.classes or {}
+      tbl.identifier = tbl.attr.identifier
+      tbl.classes = tbl.attr.classes
       tbl.attributes = as_plain_table(tbl.attr.attributes)
       tbl.attr = nil
     end
+    tbl.classes = tbl.classes or {}
+    tbl.attributes = tbl.attributes or {}
+    tbl.identifier = tbl.identifier or ""
+    tbl.content = pandoc.Div(tbl.content or {})
     return tbl
   end
 })
 
 _quarto.ast.add_renderer("HtmlTag", function(_) return true end,
 function(tag)
-  local result = pandoc.Blocks({})
+  local div = pandoc.Blocks({})
+  local result = div
   local result_attrs = {
     class = table.concat(tag.classes, " "),
   }
-  if tag.identifier ~= "" then
+  if tag.identifier ~= nil and tag.identifier ~= "" then
     result_attrs.id = tag.identifier
   end
   for k, v in pairs(tag.attributes) do
@@ -46,19 +51,8 @@ function(tag)
     table.insert(attr_string, k .. "=\"" .. html_escape(v, true) .. "\"")
   end
   result:insert(pandoc.RawBlock("html", "<" .. tag.name .. " " .. table.concat(attr_string, " ") .. ">"))
-  local pt = pandoc.utils.type(tag.content)
-  if pt == "Blocks" then
-    result:extend(tag.content)
-  elseif pt == "Inlines" then
-    result:insert(pandoc.Plain(tag.content))
-  else
-    result:insert(tag.content)
-  end
+  result:extend(tag.content.content) 
   result:insert(pandoc.RawBlock("html", "</" .. tag.name .. ">"))
 
-  print("HtmlTag: " .. tag.name .. " " .. tag.identifier)
-  print(pt)
-  print(tag.content)
-  quarto.utils.dump { tag = tag }
-  return result
+  return div
 end)
