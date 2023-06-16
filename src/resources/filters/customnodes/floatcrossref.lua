@@ -203,6 +203,8 @@ local function create_figcaption(float)
   -- return caption_content, caption_id
 end
 
+-- FINISH ME WE ARE WORKING ON MAKING COLUMN LAYOUTS FOR TABLES AND FIGURES
+-- AND NEED CAPTIONS TO BE MOVED INTO THE CELL-OUTPUT-DISPLAY DIVS
 function float_crossref_render_html_figure(float)
   float = ensure_custom(float)
   if float == nil then
@@ -252,15 +254,33 @@ function float_crossref_render_html_figure(float)
 
   local float_prefix = refType(float.identifier)
   local figure_class = "quarto-float-" .. float_prefix
-  div.content:insert(pandoc.RawBlock("html", "<figure class='" .. figure_class .. "'>"))
-  if caption_location == 'top' then
-    div.content:insert(caption_content)
-  end
-  div.content:insert(float_content)
-  if caption_location == 'bottom' or caption_location == 'margin' then
-    div.content:insert(caption_content)
-  end
-  div.content:insert(pandoc.RawBlock("html", "</figure>"))
+  local figure_tag = quarto.HtmlTag({
+    name = "figure",
+    attr = pandoc.Attr("", {figure_class}, {}),
+  })
+  quarto.utils.dump(figure_tag)
+  print(pandoc.utils.type(float_content))
+  print(float_content)
+  figure_tag.content:insert(float_content)
+  div.content:insert(figure_tag)
 
+  if caption_location == 'top' then
+    local l = pandoc.List({})
+    figure_tag.content:insert(1, caption_content)
+  else
+    figure_tag.content:insert(caption_content)
+  end
+
+  -- div.content:insert(pandoc.RawBlock("html", "<figure class='" .. figure_class .. "'>"))
+  -- if caption_location == 'top' then
+  --   div.content:insert(caption_content)
+  -- end
+  -- div.content:insert(float_content)
+  -- if caption_location == 'bottom' or caption_location == 'margin' then
+  -- end
+  -- div.content:insert(pandoc.RawBlock("html", "</figure>"))
+
+  -- print(div)
+  -- print(pandoc.write(pandoc.Pandoc({float_content}), "native"))
   return div
 end

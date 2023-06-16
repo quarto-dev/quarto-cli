@@ -34,6 +34,8 @@ function render_extended_nodes()
 
   local function render_custom(node)
     local function postprocess_render(render_result)
+      -- print("postprocess_render")
+      -- print(render_result)
       -- we need to recurse in case custom nodes render to other custom nodes
       if is_custom_node(render_result) then
         -- recurse directly

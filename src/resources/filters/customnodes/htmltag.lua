@@ -20,8 +20,8 @@ _quarto.ast.add_handler({
 
   constructor = function(tbl)
     if tbl.attr then
-      tbl.identifier = tbl.attr.identifier
-      tbl.classes = tbl.attr.classes
+      tbl.identifier = tbl.attr.identifier or ""
+      tbl.classes = tbl.attr.classes or {}
       tbl.attributes = as_plain_table(tbl.attr.attributes)
       tbl.attr = nil
     end
@@ -34,8 +34,10 @@ function(tag)
   local result = pandoc.Blocks({})
   local result_attrs = {
     class = table.concat(tag.classes, " "),
-    id = tag.identifier,
   }
+  if tag.identifier ~= "" then
+    result_attrs.id = tag.identifier
+  end
   for k, v in pairs(tag.attributes) do
     result_attrs[k] = v
   end
@@ -53,5 +55,10 @@ function(tag)
     result:insert(tag.content)
   end
   result:insert(pandoc.RawBlock("html", "</" .. tag.name .. ">"))
+
+  print("HtmlTag: " .. tag.name .. " " .. tag.identifier)
+  print(pt)
+  print(tag.content)
+  quarto.utils.dump { tag = tag }
   return result
 end)
