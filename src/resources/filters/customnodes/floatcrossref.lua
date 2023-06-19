@@ -259,11 +259,29 @@ function float_crossref_render_html_figure(float)
     name = "figure",
     attr = pandoc.Attr("", {figure_class}, {}),
   })
+
+  -- If we are inside a column layout, and we have cell output displays,
+  -- then we need to move the captions into the layout divs
+  float_content = _quarto.ast.walk(float_content, {
+    Div = function(div)
+      if div.classes:includes("cell-output-display") then
+        if caption_location == 'top' then
+          div.content:insert(1, caption_content)
+        else
+          div.content:insert(caption_content)
+        end
+        caption_content = nil
+      end
+      return div
+    end
+  })  
   figure_tbl.content.content:insert(float_content)
-  if caption_location == 'top' then
-    figure_tbl.content.content:insert(1, caption_content)
-  else
-    figure_tbl.content.content:insert(caption_content)
+  if caption_content ~= nil then
+    if caption_location == 'top' then
+      figure_tbl.content.content:insert(1, caption_content)
+    else
+      figure_tbl.content.content:insert(caption_content)
+    end
   end
   div.content:insert(figure_div)
   return div
