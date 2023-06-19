@@ -55,12 +55,24 @@ _quarto.ast.add_handler({
 
   -- NB this constructor mutates the .attributes field!
   constructor = function(tbl)
-    tbl.classes = tbl.float.classes
-    tbl.identifier = tbl.float.identifier
-    tbl.attributes = tbl.float.attributes
-    tbl.caption_long = tbl.float.caption_long
-    tbl.order = tbl.float.order
-    tbl.type = tbl.float.type
+    if tbl.float then
+      tbl.is_float_crossref = true
+      tbl.classes = tbl.float.classes
+      tbl.identifier = tbl.float.identifier
+      tbl.attributes = tbl.float.attributes
+      tbl.caption_long = tbl.float.caption_long
+      tbl.order = tbl.float.order
+      tbl.type = tbl.float.type
+    else
+      tbl.is_float_crossref = false
+      if tbl.attr then
+        tbl.identifier = tbl.attr.identifier
+        tbl.classes = tbl.attr.classes
+        tbl.attributes = as_plain_table(tbl.attr.attributes)
+        tbl.attr = nil
+      end
+      tbl.preamble = pandoc.Div(tbl.preamble)
+    end
     -- compute vertical alignment and remove attribute
     if tbl.attributes == nil then
       tbl.attributes = {}
@@ -75,23 +87,26 @@ _quarto.ast.add_handler({
     local rows_div = pandoc.Div({})
     for i, row in ipairs(tbl.layout) do
       local row_div = pandoc.Div(row)
-      rows_div.content:insert(_quarto.ast.walk(row_div, {
-        traverse = "topdown",
-        Div = function(div)
-          local found = false
-          -- if it has a ref parent then give it another class
-          -- (used to provide subcaption styling)
-          local new_div = _quarto.ast.walk(div, {
-            FloatCrossref = function(float)
-              if float.parent_id then
-                div.attr.classes:insert("quarto-layout-cell-subref")
-                div.attr.attributes["ref-parent"] = float.parent_id
-              end
-            end,
-          })
-          return div
-        end,
-      }) or {}) -- this isn't needed but the type system doesn't know that
+      if tbl.is_float_crossref then
+        row_div = _quarto.ast.walk(row_div, {
+          traverse = "topdown",
+          Div = function(div)
+            local found = false
+            -- if it has a ref parent then give it another class
+            -- (used to provide subcaption styling)
+            local new_div = _quarto.ast.walk(div, {
+              FloatCrossref = function(float)
+                if float.parent_id then
+                  div.attr.classes:insert("quarto-layout-cell-subref")
+                  div.attr.attributes["ref-parent"] = float.parent_id
+                end
+              end,
+            })
+            return div
+          end,
+        }) or {} -- this isn't needed but the type system doesn't know that
+      end
+      rows_div.content:insert(row_div)
     end
     tbl.rows = rows_div
 

@@ -12,6 +12,18 @@ layoutState = {
 function layout_panels()
 
   return {
+    Div = function(div)
+      if not attr_requires_panel_layout(div.attr) then
+        return nil
+      end
+      local preamble, cells = partition_cells(div)
+      local layout = layout_cells(div, cells)
+      return quarto.PanelLayout({
+        attr = div.attr,
+        preamble = preamble,
+        layout = layout,
+      })
+    end,
     FloatCrossref = function(float)
       local attr = pandoc.Attr(float.identifier, float.classes, float.attributes)
       if not attr_requires_panel_layout(attr) then
@@ -191,15 +203,15 @@ function partition_cells(float)
   return preamble, cells
 end
 
-function layout_cells(float, cells)
+function layout_cells(float_or_div, cells)
   
   -- layout to return (list of rows)
   local rows = pandoc.List()
   
   -- note any figure layout attributes
-  local layoutRows = tonumber(float.attributes[kLayoutNrow])
-  local layoutCols = tonumber(float.attributes[kLayoutNcol])
-  local layout = float.attributes[kLayout]
+  local layoutRows = tonumber(float_or_div.attributes[kLayoutNrow])
+  local layoutCols = tonumber(float_or_div.attributes[kLayoutNcol])
+  local layout = float_or_div.attributes[kLayout]
   
   -- default to 1 column if nothing is specified
   if not layoutCols and not layoutRows and not layout then
@@ -267,7 +279,7 @@ function layout_cells(float, cells)
   end
   
   -- determine alignment
-  local align = layout_align_attribute(float)
+  local align = layout_align_attribute(float_or_div)
   
   -- some width and alignment handling
   rows = rows:map(function(row)

@@ -274,7 +274,8 @@ function float_crossref_render_html_figure(float)
       end
       return div
     end
-  })  
+  }) or pandoc.Div({}) -- this should never happen but the lua analyzer doesn't know it
+  
   figure_tbl.content.content:insert(float_content)
   if caption_content ~= nil then
     if caption_location == 'top' then

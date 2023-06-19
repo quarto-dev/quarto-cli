@@ -53,7 +53,8 @@ end, function(panel_layout)
             return table 
           end
         end
-      })
+      }) or {} -- this isn't needed by the Lua analyzer doesn't know it
+
       if has_table and parent_id ~= nil then
         cell_div.attr.attributes[kRefParent] = parent_id
       end
@@ -76,20 +77,34 @@ end, function(panel_layout)
     panel.content:insert(row_div)
   end
 
-  local rendered_panel = float_crossref_render_html_figure(
-    prepare_caption(quarto.FloatCrossref({
-      identifier = panel_layout.identifier,
-      classes = panel_layout.classes,
-      attributes = panel_layout.attributes,
-      order = panel_layout.order,
-      type = panel_layout.type,
-      content = panel.content,
-      caption_long = pandoc.List({panel_layout.caption_long}),
-    })))
-  rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+  local rendered_panel
 
+  if panel_layout.is_float_crossref then
+    rendered_panel = float_crossref_render_html_figure(
+      prepare_caption(quarto.FloatCrossref({
+        identifier = panel_layout.identifier,
+        classes = panel_layout.classes,
+        attributes = panel_layout.attributes,
+        order = panel_layout.order,
+        type = panel_layout.type,
+        content = panel.content,
+        caption_long = pandoc.List({panel_layout.caption_long}),
+      })))
+    rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+  else
+    quarto.utils.dump({panel_layout = panel_layout})
+    rendered_panel = panel
+    rendered_panel.attr = pandoc.Attr(
+      panel_layout.identifier or "",
+      panel_layout.classes,
+      panel_layout.attributes)
+    rendered_panel.attr.classes:insert("quarto-layout-panel")
+  end
   if #panel_layout.preamble.content > 0 then
-    return pandoc.List({panel_layout.preamble.content, rendered_panel})
+    local result = pandoc.Blocks({})
+    result:extend(panel_layout.preamble.content)
+    result:insert(rendered_panel)
+    return result
   else
     return rendered_panel
   end
