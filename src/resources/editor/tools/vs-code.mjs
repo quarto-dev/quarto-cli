@@ -17786,7 +17786,8 @@ var require_yaml_intelligence_resources = __commonJS({
                     completions: [
                       "default",
                       "website",
-                      "book. manuscript"
+                      "book",
+                      "manuscript"
                     ],
                     description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                   }
@@ -30768,7 +30769,7 @@ function isBlockShortcode(content) {
   }
 }
 function parseShortcodeCapture(capture) {
-  const nameMatch = capture.match(/^[a-zA-Z0-9_]+/);
+  const nameMatch = capture.match(/^\/?[a-zA-Z0-9_]+/);
   if (!nameMatch) {
     return;
   }

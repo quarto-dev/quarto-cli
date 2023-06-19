@@ -10762,7 +10762,8 @@
                 "completions": [
                   "default",
                   "website",
-                  "book. manuscript"
+                  "book",
+                  "manuscript"
                 ],
                 "description": "Project type (`default`, `website`, `book`, or `manuscript`)"
               }

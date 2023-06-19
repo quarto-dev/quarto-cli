@@ -17787,7 +17787,8 @@ try {
                       completions: [
                         "default",
                         "website",
-                        "book. manuscript"
+                        "book",
+                        "manuscript"
                       ],
                       description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                     }
@@ -30782,7 +30783,7 @@ ${tidyverseInfo(
     }
   }
   function parseShortcodeCapture(capture) {
-    const nameMatch = capture.match(/^[a-zA-Z0-9_]+/);
+    const nameMatch = capture.match(/^\/?[a-zA-Z0-9_]+/);
     if (!nameMatch) {
       return;
     }
