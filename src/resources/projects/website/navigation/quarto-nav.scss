@@ -332,6 +332,8 @@ $sidebar-section-bottom-margin: 0.2em;
 
 .sidebar-item {
   margin-bottom: $sidebar-items-gap-spacing;
+  line-height: 1rem;
+  margin-top: 0.7rem;
 }
 
 .sidebar-section {
@@ -468,6 +470,10 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   .breadcrumb-item::before {
     color: theme-dim($sidebar-color, 20%);
   }
+}
+
+.breadcrumb-item {
+  line-height: 1.2rem;
 }
 
 div.sidebar-item-container {

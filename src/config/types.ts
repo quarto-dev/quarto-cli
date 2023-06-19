@@ -386,6 +386,7 @@ export interface Format {
     services: RenderServices,
     offset?: string,
     project?: ProjectContext,
+    quiet?: boolean,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
     file: string,

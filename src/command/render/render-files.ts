@@ -309,6 +309,14 @@ export async function renderFiles(
           project,
           false,
         );
+
+        // Allow renderers to filter the contexts
+        contexts = pandocRenderer.onFilterContexts(
+          file.path,
+          contexts,
+          files,
+          options,
+        );
       } catch (e) {
         // bad YAML can cause failure before validation. We
         // reconstruct the context as best we can and try to validate.
@@ -378,7 +386,6 @@ export async function renderFiles(
           format: context.format,
         });
 
-        // TODO
         if (context.active) {
           // Set the date locale for this render
           // Used for date formatting
@@ -525,7 +532,7 @@ export async function renderFiles(
           }
         }
       }
-      await pandocRenderer.onPostProcess(outputs);
+      await pandocRenderer.onPostProcess(outputs, project);
     }
 
     if (progress) {
@@ -558,6 +565,14 @@ function defaultPandocRenderer(
   const renderedFiles: RenderedFile[] = [];
 
   return {
+    onFilterContexts: (
+      _file: string,
+      contexts: Record<string, RenderContext>,
+      _files: RenderFile[],
+      _options: RenderOptions,
+    ) => {
+      return contexts;
+    },
     onBeforeExecute: (_format: Format) => ({}),
     onRender: async (
       _format: string,

@@ -798,7 +798,19 @@ $code-block-bg-color: quarto-color.adjust(
 }
 
 .tab-pane > p {
-  padding-top: 1em;
+  padding-top: 0;
+}
+
+.tab-pane > p:nth-child(1) {
+  padding-top: 0;
+}
+
+.tab-pane > p:last-child {
+  margin-bottom: 0;
+}
+
+.tab-pane > pre:last-child {
+  margin-bottom: 0;
 }
 
 .tab-content > .tab-pane:not(.active) {

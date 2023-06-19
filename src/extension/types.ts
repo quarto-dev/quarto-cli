@@ -25,7 +25,6 @@ export type Contributes =
   | "project"
   | "revealjs-plugins";
 
-// TODO: Allow revealjs-plugins to be a list of plugin ymls basically
 export interface Extension extends Record<string, unknown> {
   id: ExtensionId;
   title: string;

@@ -55,6 +55,8 @@ export const kKeepHidden = "keep-hidden";
 export const kRemoveHidden = "remove-hidden";
 export const kClearHiddenClasses = "clear-hidden-classes";
 
+export const kUnrollMarkdownCells = "unroll-markdown-cells";
+
 export const kExecuteEnabled = "enabled";
 export const kExecuteIpynb = "ipynb";
 export const kExecuteDaemon = "daemon";

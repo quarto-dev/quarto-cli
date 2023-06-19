@@ -20,12 +20,14 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   NotebookPreview,
   notebookPreviewer,
 } from "./format-html-notebook-preview.ts";
+import { projectIsBook } from "../../project/project-shared.ts";
+import { isAbsolute } from "../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 const kQuartoNbClass = "quarto-notebook";
 const kQuartoCellContainerClass = "cell-container";
@@ -89,14 +91,18 @@ export function notebookViewPostProcessor() {
 }
 
 // Processes embeds within an HTML page and emits notebook previews as apprpriate
+// Perhaps in render services or elsewhere, we can pass a notebook renderer that will
+// demand render a notebook (or use an already rendered notebook if it was discovered as a part of
+// a project and rendered to the correct format)
+//
 export async function emplaceNotebookPreviews(
   input: string,
   doc: Document,
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
-  quiet?: boolean,
   output?: string,
+  quiet?: boolean,
 ) {
   // The notebook view configuration data
   const notebookView = format.render[kNotebookView] ?? true;
@@ -108,7 +114,9 @@ export async function emplaceNotebookPreviews(
     return { resources: [], supporting: [] };
   }
 
-  if (notebookView !== false) {
+  // Books don't currently support notebook previews
+  const isBook = projectIsBook(project);
+  if (notebookView !== false && !isBook) {
     // Utilities and settings for dealing with notebook links
     const inline = format.render[kNotebookLinks] === "inline" ||
       format.render[kNotebookLinks] === true;
@@ -122,7 +130,6 @@ export async function emplaceNotebookPreviews(
       format,
       services,
       project,
-      quiet,
     );
 
     // Process the root document itself, looking for
@@ -130,17 +137,17 @@ export async function emplaceNotebookPreviews(
     // needed, synthesizing a notebook for them
     // (only do this if this is a root document
     // and input itself is in the list of notebooks)
-    const inputNbPath = basename(input);
-    if (previewer.descriptor(inputNbPath)) {
+    const inputNbName = basename(input);
+    if (previewer.descriptor(inputNbName)) {
       const computationalNodes = doc.querySelectorAll("div.cell");
       for (const computationalNode of computationalNodes) {
         const computeEl = computationalNode as Element;
         const cellId = computeEl.getAttribute("id");
         previewer.enQueuePreview(
           input,
-          inputNbPath,
-          undefined,
-          undefined,
+          input,
+          undefined, // title
+          undefined, // preview file name
           (nbPreview) => {
             // If this is a cell _in_ a source notebook, it will not be parented
             // by an embed cell
@@ -159,6 +166,21 @@ export async function emplaceNotebookPreviews(
             }
           },
         );
+      }
+    }
+
+    // For any notebooks explicitly provided, ensure they are rendered
+    if (typeof (notebookView) !== "boolean") {
+      const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
+      for (const nb of nbs) {
+        // Filter out the root article notebook, since that was resolved
+        // above.
+        if (nb.url === undefined && inputNbName !== nb.notebook) {
+          const nbAbsPath = isAbsolute(nb.notebook)
+            ? nb.notebook
+            : join(dirname(input), nb.notebook);
+          previewer.enQueuePreview(input, nbAbsPath, nb.title);
+        }
       }
     }
 
@@ -184,7 +206,7 @@ export async function emplaceNotebookPreviews(
       if (notebookPath) {
         previewer.enQueuePreview(
           input,
-          notebookPath,
+          nbAbsPath(input, notebookPath),
           title === null ? undefined : title,
           notebookPreviewFile === null ? undefined : notebookPreviewFile,
           (nbPreview) => {
@@ -197,18 +219,8 @@ export async function emplaceNotebookPreviews(
       }
     }
 
-    // For any notebooks explicitly provided, ensure they are rendered
-    if (typeof (notebookView) !== "boolean") {
-      const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
-      for (const nb of nbs) {
-        if (nb.url === undefined) {
-          previewer.enQueuePreview(input, nb.notebook, nb.title);
-        }
-      }
-    }
-
     // Render the notebook previews
-    const previews = await previewer.renderPreviews(output);
+    const previews = await previewer.renderPreviews(output, quiet);
 
     // Emit global links to the notebooks
     const previewNotebooks = Object.values(previews);
@@ -285,6 +297,18 @@ export async function emplaceNotebookPreviews(
     };
   }
 }
+
+const nbAbsPath = (input: string, nbPath: string) => {
+  if (isAbsolute(nbPath)) {
+    return nbPath;
+  }
+
+  // Ensure that the input path is absolute
+  const inputAbsPath = isAbsolute(input) ? input : join(Deno.cwd(), input);
+
+  // Ensure that the notebook path is absolute
+  return join(dirname(inputAbsPath), nbPath);
+};
 
 const inlineLinkGenerator = (doc: Document, format: Format) => {
   let count = 1;

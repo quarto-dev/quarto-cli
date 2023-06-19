@@ -349,6 +349,7 @@ local quartoFinalize = {
 
 local quartoLayout = {
   { name = "manuscript filtering", filter = manuscript() },
+  { name = "manuscript filtering", filter = manuscriptUnroll() },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },

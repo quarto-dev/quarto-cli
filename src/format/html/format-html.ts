@@ -109,7 +109,6 @@ import {
 } from "./format-html-types.ts";
 import { kQuartoHtmlDependency } from "./format-html-constants.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
-import { projectIsBook } from "../../project/project-shared.ts";
 
 export function htmlFormat(
   figwidth: number,
@@ -140,6 +139,7 @@ export function htmlFormat(
         services: RenderServices,
         offset: string,
         project: ProjectContext,
+        quiet?: boolean,
       ) => {
         // Warn the user if they are using a listing outside of a website
         if (!project && format.metadata[kListing]) {
@@ -158,7 +158,15 @@ export function htmlFormat(
             services.temp,
             project,
           ),
-          themeFormatExtras(input, flags, format, services, offset, project),
+          themeFormatExtras(
+            input,
+            flags,
+            format,
+            services,
+            offset,
+            project,
+            quiet,
+          ),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -177,7 +185,7 @@ export async function htmlFormatExtras(
   offset: string,
   format: Format,
   temp: TempContext,
-  project?: ProjectContext,
+  _project?: ProjectContext,
   featureDefaults?: HtmlFormatFeatureDefaults,
   tippyOptions?: HtmlFormatTippyOptions,
   scssOptions?: HtmlFormatScssOptions,
@@ -947,6 +955,7 @@ function themeFormatExtras(
   sevices: RenderServices,
   offset?: string,
   project?: ProjectContext,
+  quiet?: boolean,
 ) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
@@ -958,7 +967,15 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(input, flags, format, sevices, offset, project);
+    return boostrapExtras(
+      input,
+      flags,
+      format,
+      sevices,
+      offset,
+      project,
+      quiet,
+    );
   }
 }
 
