@@ -7,7 +7,7 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
@@ -77,6 +77,7 @@ import {
 import { logProgress } from "../../../core/log.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { manuscriptRenderer } from "./manuscript-render.ts";
+import { isRStudioPreview } from "../../../core/platform.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -94,6 +95,15 @@ const kOutputDir = "_manuscript";
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   libDir: "site_libs",
+  filterOutputFile: (file: string) => {
+    if (isRStudioPreview()) {
+      // HACK: RStudio doesn't know about the `_manuscript` directory
+      // so this hack hides it specifically from RStudio
+      return basename(file);
+    } else {
+      return file;
+    }
+  },
   config: async (
     projectDir: string,
     config: ProjectConfig,

@@ -58,6 +58,7 @@ import {
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
 import {
+  kProjectType,
   kProjectWatchInputs,
   ProjectContext,
   ProjectPreview,
@@ -95,6 +96,7 @@ import { findOpenPort, waitForPort } from "../../core/port.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -368,6 +370,7 @@ export function setPreviewFormat(
 export function handleRenderResult(
   file: string,
   renderResult: RenderResult,
+  project?: ProjectContext,
 ) {
   // print output created
   const finalOutput = renderResultFinalOutput(
@@ -377,7 +380,21 @@ export function handleRenderResult(
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
   }
-  info("Output created: " + finalOutput + "\n");
+  const projType = project
+    ? projectType(
+      project.config?.project?.[kProjectType],
+    )
+    : undefined;
+
+  if (projType && projType.filterOutputFile) {
+    info(
+      "Output created: " + projType.filterOutputFile(finalOutput) +
+        "\n",
+    );
+  } else {
+    info("Output created: " + finalOutput + "\n");
+  }
+
   return finalOutput;
 }
 
@@ -408,7 +425,7 @@ async function renderForPreview(
   }
 
   // print output created
-  const finalOutput = handleRenderResult(file, renderResult);
+  const finalOutput = handleRenderResult(file, renderResult, project);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();
