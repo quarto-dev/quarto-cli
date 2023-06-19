@@ -392,7 +392,13 @@ async function getCachedNotebookInfo(
     };
 
   // Compute a cache key
-  const cacheKey = notebookCacheKey(inputPath, nbAddress, options, outputs);
+  const cacheKey = notebookCacheKey(
+    inputPath,
+    nbAddress,
+    assets,
+    options,
+    outputs,
+  );
   if (!nbCache.cache[cacheKey]) {
     // Render the notebook and place it in the cache
     // Read and filter notebook
@@ -511,6 +517,7 @@ function findTitle(cells: JupyterCellOutput[]) {
 function notebookCacheKey(
   inputPath: string,
   nbAddress: JupyterNotebookAddress,
+  assets: JupyterAssets,
   nbOptions?: JupyterMarkdownOptions,
   nbOutputs?: number[],
 ) {
@@ -531,7 +538,7 @@ function notebookCacheKey(
     : `${inputPath}-${nbAddress.path}`;
 
   const outputsKey = nbOutputs ? nbOutputs.join(",") : "";
-  return `${coreKey}:${outputsKey}`;
+  return `${coreKey}:${outputsKey}:${assets.supporting_dir}`;
 }
 
 function optionsToPlaceholder(options: JupyterMarkdownOptions) {

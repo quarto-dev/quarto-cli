@@ -4,119 +4,80 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import {
-  kJatsSubarticleId,
-  kKeepMd,
-  kNotebookPreserveCells,
-  kOutputFile,
-  kTemplate,
-  kTo,
-} from "../../config/constants.ts";
-
 import { reformat } from "../../core/xml.ts";
 import { RenderServices } from "../../command/render/types.ts";
-import {
-  JatsRenderSubArticle,
-  kJatsSubarticle,
-  kLintXml,
-  subarticleTemplatePath,
-  xmlPlaceholder,
-} from "./format-jats-types.ts";
-import { renderFiles } from "../../command/render/render-files.ts";
-import { dirAndStem } from "../../core/path.ts";
+import { JatsRenderSubArticle, xmlPlaceholder } from "./format-jats-types.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
-import { error } from "log/mod.ts";
-import { projectOutputDir } from "../../project/project-shared.ts";
+import { kJatsSubarticle } from "../../render/notebook/notebook-types.ts";
+import { Format } from "../../config/types.ts";
 
 // XML Linting
 export const reformatXmlPostProcessor = async (output: string) => {
   await reformat(output);
 };
 
-// Responsible for moving the supporting files
-export const moveSubarticleSupportingPostProcessor = (
-  supporting: { from: string; toRelative: string }[],
-) => {
-  return (output: string) => {
-    const supportingOut: string[] = [];
-    supporting.forEach((supp) => {
-      const outputPath = join(dirname(output), supp.toRelative);
-      copySync(supp.from, outputPath, { overwrite: true });
-      supportingOut.push(outputPath);
-    });
-    return {
-      supporting: supportingOut,
-    };
-  };
-};
-
 // Injects the root subarticle
 export const renderSubarticlePostProcessor = (
   input: string,
+  format: Format,
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
   project?: ProjectContext,
+  quiet?: boolean,
 ) => {
   return async (output: string) => {
-    const total = subArticles.length;
-    if (subArticles.length > 0) {
+    // First ensure that we have rendered jats-subarticles
+    // for each of our articles. If needed, render any that
+    // aren't already rendered.
+    const subArticlesToRender = subArticles.filter((subArticle) => {
+      return services.notebook.get(subArticle.input) === undefined;
+    });
+    const total = subArticlesToRender.length;
+    if (subArticlesToRender.length > 0 && !quiet) {
       logProgress("Rendering JATS sub-articles");
     }
 
+    // Do the rendering
     let count = 0;
-    for (const subArticle of subArticles) {
-      // Render the JATS to a subarticle XML file
-      const [_dir, stem] = dirAndStem(output);
-      const outputFile = `${stem}.subarticle.xml`;
-
-      // Notebook relative path
+    for (const subArticle of subArticlesToRender) {
       const subArticlePath = subArticle.input;
       const nbRelPath = relative(dirname(input), subArticlePath);
-      logProgress(`[${++count}/${total}] ${nbRelPath}`);
-      const rendered = await renderFiles(
-        [{ path: subArticlePath, formats: ["jats"] }],
-        {
-          services,
-          flags: {
-            metadata: {
-              [kTo]: "jats",
-              [kLintXml]: false,
-              [kJatsSubarticle]: true,
-              [kJatsSubarticleId]: subArticle.token,
-              [kOutputFile]: outputFile,
-              [kTemplate]: subarticleTemplatePath,
-              [kKeepMd]: true,
-              [kNotebookPreserveCells]: true,
-            },
-            quiet: false,
-          },
-          echo: true,
-          warning: true,
-          quietPandoc: true,
-        },
-        [],
+      if (!quiet) {
+        logProgress(`[${++count}/${total}] ${nbRelPath}`);
+      }
+      await services.notebook.render(
+        subArticlePath,
+        format,
+        kJatsSubarticle,
+        services,
+        undefined,
         undefined,
         project,
       );
+    }
 
-      // Read the subarticle
-      let outputContents = Deno.readTextFileSync(output);
-      // There should be only one file. Grab it, and replace the placeholder
-      // in the document with the rendered XML file, then delete it.
-      if (!rendered.error && rendered.files.length === 1) {
-        const file = join(dirname(input), rendered.files[0].file);
+    // Go through the subarticles, embed them into the article
+    const supportingOut: string[] = [];
+    for (const subArticle of subArticles) {
+      const nb = services.notebook.get(subArticle.input);
+      if (nb && nb[kJatsSubarticle].output) {
+        let outputContents = Deno.readTextFileSync(output);
+
+        const notebook = nb[kJatsSubarticle].output;
+        const jatsSubarticlePath = notebook.path;
         const placeholder = xmlPlaceholder(
           subArticle.token,
           subArticle.input,
         );
 
-        // Process the subarticle to deal with ids and rids
-        const subArtReader = await Deno.open(file);
+        // Read the subarticle and change any cross references to not conflict
+        // by atdding a token suffix
+        const subArtReader = await Deno.open(jatsSubarticlePath);
         const subArtLines: string[] = [];
         for await (let line of readLines(subArtReader)) {
           // Process ids (add a suffix to all ids and rids)
@@ -131,19 +92,34 @@ export const renderSubarticlePostProcessor = (
           subArtLines.join("\n"),
         );
 
-        // Clean any output file
-        Deno.removeSync(file);
-      } else {
-        error("Rendering of subarticle produced an unexpected result");
-        if (rendered.error) {
-          throw (rendered.error);
-        } else {
-          throw (new Error("Invalid number of files rendered."));
+        // Move supporting and resource files into place
+        for (const support of notebook.supporting) {
+          // get the supporting relative path
+          const basePath = project ? project.dir : dirname(notebook.path);
+          const fromPath = join(basePath, support);
+          const toPath = join(
+            dirname(output),
+            relative(dirname(notebook.path), fromPath),
+          );
+          if (fromPath !== toPath) {
+            copySync(fromPath, toPath, { overwrite: true });
+          }
+          supportingOut.push(toPath);
         }
+        Deno.writeTextFileSync(output, outputContents);
       }
-
-      Deno.writeTextFileSync(output, outputContents);
     }
+    // Clean up the renderings now that they've been ingested
+    for (const subArticle of subArticles) {
+      services.notebook.removeRendering(
+        subArticle.input,
+        kJatsSubarticle,
+        supportingOut,
+      );
+    }
+    return {
+      supporting: supportingOut,
+    };
   };
 };
 

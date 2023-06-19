@@ -39,6 +39,7 @@ import {
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
+  kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
@@ -534,6 +535,11 @@ async function quartoFilterParams(
   const clearHiddenClasses = format.metadata[kClearHiddenClasses];
   if (clearHiddenClasses) {
     params[kClearHiddenClasses] = clearHiddenClasses;
+  }
+
+  const unrollMarkdownCells = format.metadata[kUnrollMarkdownCells];
+  if (unrollMarkdownCells) {
+    params[kUnrollMarkdownCells] = unrollMarkdownCells;
   }
 
   // Provide other params that may be useful to filters

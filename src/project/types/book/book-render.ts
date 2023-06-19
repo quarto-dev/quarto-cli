@@ -35,7 +35,10 @@ import { Format, Metadata } from "../../../config/types.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
 import { renderPandoc } from "../../../command/render/render.ts";
-import { PandocRenderCompletion } from "../../../command/render/types.ts";
+import {
+  PandocRenderCompletion,
+  RenderFile,
+} from "../../../command/render/types.ts";
 
 import { renderContexts } from "../../../command/render/render-contexts.ts";
 
@@ -117,6 +120,14 @@ export function bookPandocRenderer(
   };
 
   return {
+    onFilterContexts: (
+      _file: string,
+      contexts: Record<string, RenderContext>,
+      _files: RenderFile[],
+      _options: RenderOptions,
+    ) => {
+      return contexts;
+    },
     onBeforeExecute: (format: Format) => {
       return {
         // if we render a file at a time then resolve dependencies immediately

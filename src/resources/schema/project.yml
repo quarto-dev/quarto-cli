@@ -8,7 +8,7 @@
           schema: string
         type:
           string:
-            completions: [default, website, book. manuscript]
+            completions: [default, website, book, manuscript]
             description: "Project type (`default`, `website`, `book`, or `manuscript`)"
         render:
           arrayOf: path

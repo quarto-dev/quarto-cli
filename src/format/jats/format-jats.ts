@@ -57,6 +57,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
       services: RenderServices,
       _offset?: string,
       project?: ProjectContext,
+      quiet?: boolean,
     ) => {
       // Provide a template and partials
       const templateDir = formatResourcePath("jats", "pandoc");
@@ -86,6 +87,9 @@ export function jatsFormat(displayName: string, ext: string): Format {
         );
       }
 
+      // Gather post process that we need
+      const postprocessors = [];
+
       const internalMetadata = format.metadata[kQuartoInternal] as
         | Metadata
         | undefined;
@@ -93,42 +97,41 @@ export function jatsFormat(displayName: string, ext: string): Format {
       // Share resources with external
       const afterBody: string[] = [];
       const subArticleResources: string[] = [];
-      const subArticlesToRender: JatsRenderSubArticle[] = [];
       if (internalMetadata && !format.metadata[kJatsSubarticle]) {
         const subArticles = (internalMetadata[
           kSubArticles
         ]) as Array<JatsRenderSubArticle> | undefined;
 
-        // TODO: Make this one text file written instead of many
         if (subArticles) {
+          const placeholderFile = services.temp.createFile({
+            suffix: ".placeholder.xml",
+          });
+          const placeholders: string[] = [];
           subArticles.forEach((subArticle) => {
             // Inject a placeholder
             const placeholder = xmlPlaceholder(
               subArticle.token,
               subArticle.input,
             );
-            const placeholderFile = services.temp.createFile({
-              suffix: ".placeholder.xml",
-            });
-            Deno.writeTextFileSync(placeholderFile, placeholder);
-
-            afterBody.push(placeholderFile);
-            subArticlesToRender.push(subArticle);
+            placeholders.push(placeholder);
           });
-        }
-      }
-      const postprocessors = [];
+          Deno.writeTextFileSync(placeholderFile, placeholders.join("\n"));
+          afterBody.push(placeholderFile);
 
-      // Render subarticles and place them in the root article in the correct position
-      if (subArticlesToRender.length > 0 && !format.metadata[kJatsSubarticle]) {
-        postprocessors.push(
-          renderSubarticlePostProcessor(
-            input,
-            subArticlesToRender,
-            services,
-            project,
-          ),
-        );
+          // Render subarticles and place them in the root article in the correct position
+          if (subArticles.length > 0 && !format.metadata[kJatsSubarticle]) {
+            postprocessors.push(
+              renderSubarticlePostProcessor(
+                input,
+                format,
+                subArticles,
+                services,
+                project,
+                quiet,
+              ),
+            );
+          }
+        }
       }
 
       // Lint the XML

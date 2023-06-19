@@ -90,7 +90,7 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
-import { debug } from "https://deno.land/std@0.185.0/log/mod.ts";
+import { debug } from "log/mod.ts";
 
 export async function projectContext(
   path: string,
