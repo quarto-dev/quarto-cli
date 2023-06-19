@@ -2,7 +2,6 @@
  * log.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 
 import { basename, join } from "path/mod.ts";
@@ -88,7 +87,7 @@ export function needsRecompilation(log: string) {
   return false;
 }
 const explicitMatchers = [
-  /(Rerun to get |Please \(re\)run | Rerun LaTeX\.)/, // explicitly request recompile
+  /(Rerun to get | Please \(re\)run | [rR]erun LaTeX\.)/, // explicitly request recompile
 ];
 
 // Resolving matchers are matchers that may resolve later in the log
