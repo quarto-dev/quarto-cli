@@ -17315,7 +17315,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`left` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
           }
         },
         {
