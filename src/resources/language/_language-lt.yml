@@ -4,6 +4,12 @@ toc-title-website: "Šiame tinklalapyje"
 related-formats-title: "Kiti formatai"
 related-notebooks-title: "Užrašų knygutės"
 source-notebooks-prefix: "Pirminis dokumentas"
+other-links-title: "Kiti nuorodos"
+
+article-notebook-label: "Straipsnio užrašų knygelė"
+notebook-preview-download: "Atsisiųsti užrašų knygelę"
+notebook-preview-back: "Grįžti į straipsnį"
+manuscript-meca-bundle: "MECA archyvas"
 
 section-title-abstract: "Santrauka"
 section-title-appendices: "Priedai"

@@ -4,6 +4,12 @@ toc-title-website: "Содержание"
 related-formats-title: "Другие форматы"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Источник"
+other-links-title: "Другие ссылки"
+
+article-notebook-label: "Блокнот статьи"
+notebook-preview-download: "Скачать блокнот"
+notebook-preview-back: "Вернуться к статье"
+manuscript-meca-bundle: "Архив MECA"
 
 section-title-abstract: "Аннотация"
 section-title-appendices: "Приложения"

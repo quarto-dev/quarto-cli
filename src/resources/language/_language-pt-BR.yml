@@ -4,6 +4,12 @@ toc-title-website: "Nesta página"
 related-formats-title: "Outros formatos"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Fonte"
+other-links-title: "Outros Links"
+
+article-notebook-label: "Caderno de Artigo"
+notebook-preview-download: "Baixar Caderno"
+notebook-preview-back: "Voltar ao Artigo"
+manuscript-meca-bundle: "Arquivo MECA"
 
 section-title-abstract: "Resumo"
 section-title-appendices: "Apêndices"

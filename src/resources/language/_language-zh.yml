@@ -4,6 +4,12 @@ toc-title-website: "该页面内容"
 related-formats-title: "其他格式"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "资源"
+other-links-title: "其他链接"
+
+article-notebook-label: "文章笔记本"
+notebook-preview-download: "下载笔记本"
+notebook-preview-back: "返回文章"
+manuscript-meca-bundle: "MECA存档"
 
 section-title-abstract: "摘要"
 section-title-appendices: "附录"
