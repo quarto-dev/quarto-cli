@@ -452,7 +452,7 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve(extras);
   },
-  previewSkipUnmodified: false,
+  previewSkipUnmodified: true,
   renderResultFinalOutput: (
     renderResults: RenderResult,
   ) => {
