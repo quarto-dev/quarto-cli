@@ -100,6 +100,7 @@ import("./layout/manuscript.lua")
 
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
+import("./crossref/custom.lua")
 import("./crossref/index.lua")
 import("./crossref/preprocess.lua")
 import("./crossref/sections.lua")
@@ -162,6 +163,7 @@ initShortcodeHandlers()
 local quartoInit = {
   { name = "init-configure-filters", filter = configure_filters() },
   { name = "init-read-includes", filter = read_includes() },
+  { name = "init-custom-crossref", filter = initialize_custom_crossref_categories() },
   { name = "init-metadata-resource-refs", filter = combineFilters({
     file_metadata(),
     resourceRefs()

@@ -58,10 +58,21 @@ crossref = {
   }
 }
 
+
 -- set up crossref category indices
-crossref.categories.by_prefix = {}
-crossref.categories.by_name = {}
-for _, category in ipairs(crossref.categories.all) do
-  crossref.categories.by_prefix[category.prefix] = category
-  crossref.categories.by_name[category.name] = category
+function setup_crossref_category_indices()
+  crossref.categories.by_prefix = {}
+  crossref.categories.by_name = {}
+  for _, category in ipairs(crossref.categories.all) do
+    crossref.categories.by_prefix[category.prefix] = category
+    crossref.categories.by_name[category.name] = category
+  end
 end
+
+function add_crossref_category(category)
+  quarto.utils.dump { category = category }
+  table.insert(crossref.categories.all, category)
+  setup_crossref_category_indices()
+end
+
+setup_crossref_category_indices() 

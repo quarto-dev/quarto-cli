@@ -73,12 +73,11 @@ function parse_floats()
   return {
 
     Figure = function(fig)
-      local identifier_parts = split(fig.identifier, "-")
-      if identifier_parts == nil then
-        fail("Figure without crossref identifier?")
-        return
+      local key_prefix = refType(fig.identifier)
+      if key_prefix == nil then
+        warn("Figure without crossref identifier - will simply use its content\n" .. tostring(fig))
+        return fig.content
       end
-      local key_prefix = identifier_parts[1]
       local category = crossref.categories.by_prefix[key_prefix]
       if category == nil then
         fail("Figure with invalid crossref category? " .. fig.identifier)

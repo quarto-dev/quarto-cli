@@ -56,8 +56,16 @@ end
 
 function refPrefix(type, upper)
   local opt = type .. "-prefix"
-  local default = stringToInlines(param("crossref-" .. type .. "-prefix", type .. "."))
+  local default = param("crossref-" .. type .. "-prefix")
+  if default == nil then
+    default = crossref.categories.by_prefix[type].label
+  end
+  if default == nil then
+    default = type .. "."
+  end
+  default = stringToInlines(default)
   local prefix = crossrefOption(opt, default)
+  print(prefix)
   if upper then
     local el = pandoc.Plain(prefix)
     local firstStr = true
