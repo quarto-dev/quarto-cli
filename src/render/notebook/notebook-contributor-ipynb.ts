@@ -33,7 +33,14 @@ import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
   render: renderOutputNotebook,
+  outputFile,
 };
+
+function outputFile(
+  nbAbsPath: string,
+): string {
+  return ipynbOutputFile(nbAbsPath);
+}
 
 function resolveOutputNotebook(
   nbAbsPath: string,

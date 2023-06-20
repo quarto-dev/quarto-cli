@@ -46,7 +46,14 @@ import { Format } from "../../config/types.ts";
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
   render: renderHtmlNotebook,
+  outputFile,
 };
+
+function outputFile(
+  nbAbsPath: string,
+): string {
+  return `${basename(nbAbsPath)}.html`;
+}
 
 async function resolveHtmlNotebook(
   nbAbsPath: string,

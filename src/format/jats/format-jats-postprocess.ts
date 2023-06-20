@@ -35,7 +35,7 @@ export const renderSubarticlePostProcessor = (
     // for each of our articles. If needed, render any that
     // aren't already rendered.
     const subArticlesToRender = subArticles.filter((subArticle) => {
-      return services.notebook.get(subArticle.input) === undefined;
+      return services.notebook.get(subArticle.input, project) === undefined;
     });
     const total = subArticlesToRender.length;
     if (subArticlesToRender.length > 0 && !quiet) {

@@ -39,7 +39,14 @@ import { Format } from "../../config/types.ts";
 export const jatsContributor: NotebookContributor = {
   resolve: resolveJats,
   render: renderJats,
+  outputFile,
 };
+
+function outputFile(
+  nbAbsPath: string,
+): string {
+  return jatsOutputFile(nbAbsPath);
+}
 
 function resolveJats(
   nbAbsPath: string,

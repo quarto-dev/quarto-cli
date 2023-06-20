@@ -101,7 +101,7 @@ export const manuscriptRenderer = (
       const result = [];
 
       // Use the executed file to render the output ipynb
-      const notebook = nbContext.get(input);
+      const notebook = nbContext.get(input, context);
       let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
         progressMessage("Rendering output notebook");

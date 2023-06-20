@@ -24,7 +24,9 @@ import { jatsContributor } from "./notebook-contributor-jats.ts";
 import { htmlNotebookContributor } from "./notebook-contributor-html.ts";
 import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
 import { Format } from "../../config/types.ts";
-import { safeRemoveIfExists } from "../../core/path.ts";
+import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
+import { relative } from "path/mod.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
@@ -50,6 +52,7 @@ export function notebookContext(): NotebookContext {
     };
   };
 
+  // Adds a rendering of a notebook to the notebook context
   const addRendering = (
     nbAbsPath: string,
     renderType: RenderType,
@@ -66,6 +69,11 @@ export function notebookContext(): NotebookContext {
     nb[renderType].output = output;
     notebooks[nbAbsPath] = nb;
   };
+
+  // Removes a rendering of a notebook from the notebook context
+  // which includes cleaning up the files. This should only be
+  // used when the caller knows other callers will not need the
+  // notebook.
   const removeRendering = (
     nbAbsPath: string,
     renderType: RenderType,
@@ -97,6 +105,7 @@ export function notebookContext(): NotebookContext {
     }
   };
 
+  // Get a contribute for a render type
   function contributor(renderType: RenderType) {
     const contributor = contributors[renderType];
     if (contributor) {
@@ -108,6 +117,7 @@ export function notebookContext(): NotebookContext {
     }
   }
 
+  // Add metadata to a given notebook rendering
   function addMetadata(
     nbAbsPath: string,
     renderType: RenderType,
@@ -120,8 +130,60 @@ export function notebookContext(): NotebookContext {
     notebooks[nbAbsPath] = nb;
   }
 
+  function reviveOutput(
+    nbAbsPath: string,
+    renderType: RenderType,
+    nbOutputDir: string,
+  ) {
+    const contrib = contributor(renderType);
+    const outFile = contrib.outputFile(nbAbsPath);
+    const outPath = join(nbOutputDir, outFile);
+    if (safeExistsSync(outPath)) {
+      const inputTime = Deno.statSync(nbAbsPath).mtime?.valueOf() || 0;
+      const outputTime = Deno.statSync(outPath).mtime?.valueOf() || 0;
+      if (inputTime <= outputTime) {
+        addRendering(nbAbsPath, renderType, {
+          file: outPath,
+          supporting: [],
+          resourceFiles: {
+            globs: [],
+            files: [],
+          },
+        });
+      }
+    }
+  }
+
   return {
-    get: (nbAbsPath: string) => {
+    get: (nbAbsPath: string, context?: ProjectContext) => {
+      const notebook = notebooks[nbAbsPath];
+      const reviveRenders: RenderType[] = [];
+      if (notebook) {
+        // We already have a notebook, try to complete its renderings
+        // by reviving any outputs that are valid
+        [kJatsSubarticle, kHtmlPreview, kRenderedIPynb].forEach(
+          (renderTypeStr) => {
+            const renderType = renderTypeStr as RenderType;
+            if (!notebook[renderType].output) {
+              reviveRenders.push(renderType);
+            }
+          },
+        );
+      } else {
+        reviveRenders.push(kHtmlPreview);
+        reviveRenders.push(kJatsSubarticle);
+        reviveRenders.push(kRenderedIPynb);
+      }
+
+      if (context) {
+        const nbRelative = relative(context.dir, dirname(nbAbsPath));
+        const nbOutputDir = join(projectOutputDir(context), nbRelative);
+
+        // See if an up to date rendered result exists for each contributor
+        for (const renderType of reviveRenders) {
+          reviveOutput(nbAbsPath, renderType, nbOutputDir);
+        }
+      }
       return notebooks[nbAbsPath];
     },
     resolve: (

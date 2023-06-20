@@ -93,7 +93,7 @@ export const notebookPreviewer = (
     const notebookPaths = previewQueue.map((work) => (work.nbPath));
     const uniquePaths = ld.uniq(notebookPaths);
     const toRenderPaths = uniquePaths.filter((nbPath) => {
-      return services.notebook.get(nbPath) === undefined;
+      return services.notebook.get(nbPath, project) === undefined;
     });
     const haveRenderedPaths: string[] = [];
     if (toRenderPaths.length > 0 && !quiet) {
@@ -126,7 +126,7 @@ export const notebookPreviewer = (
           nbDescriptors[relative(dirname(input), nbPath)];
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
         const nbContext = services.notebook;
-        const notebook = nbContext.get(nbAbsPath);
+        const notebook = nbContext.get(nbAbsPath, project);
 
         const resolvedTitle = descriptor?.title || title || basename(nbAbsPath);
 
@@ -185,7 +185,7 @@ export const notebookPreviewer = (
           }
         }
 
-        const renderedNotebook = nbContext.get(nbAbsPath);
+        const renderedNotebook = nbContext.get(nbAbsPath, project);
         if (!renderedNotebook || !renderedNotebook[kHtmlPreview].output) {
           throw new InternalError(
             "We just ensured that notebooks had rendered previews, but the preview then didn't exist.",
