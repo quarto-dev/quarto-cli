@@ -28,22 +28,25 @@ crossref = {
   categories = {
     all = {
       {
-        prefix = "fig",
-        name = "Figure",
-        kind = "float",
         default_caption_location = "bottom",
+        kind = "float",
+        name = "Figure",
+        prefix = "Figure",
+        ref_type = "fig",
       },
       {
-        prefix = "tbl",
+        default_caption_location = "top",
+        kind = "float",
         name = "Table",
-        kind = "float",
-        default_caption_location = "top",
+        prefix = "Table",
+        ref_type = "tbl",
       },
       {
-        prefix = "lst",
-        name = "Listing",
-        kind = "float",
         default_caption_location = "top",
+        kind = "float",
+        name = "Listing",
+        prefix = "Listing",
+        ref_type = "lst",
       }
     }
     
@@ -61,16 +64,15 @@ crossref = {
 
 -- set up crossref category indices
 function setup_crossref_category_indices()
-  crossref.categories.by_prefix = {}
+  crossref.categories.by_ref_type = {}
   crossref.categories.by_name = {}
   for _, category in ipairs(crossref.categories.all) do
-    crossref.categories.by_prefix[category.prefix] = category
+    crossref.categories.by_ref_type[category.ref_type] = category
     crossref.categories.by_name[category.name] = category
   end
 end
 
 function add_crossref_category(category)
-  quarto.utils.dump { category = category }
   table.insert(crossref.categories.all, category)
   setup_crossref_category_indices()
 end

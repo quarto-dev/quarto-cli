@@ -4,19 +4,19 @@
 function parse_floats()
 
   local function parse_float_div(div)
-    local key_prefix = refType(div.identifier)
-    if key_prefix == nil then
+    local ref = refType(div.identifier)
+    if ref == nil then
       fail("Float div without crossref identifier?")
       return
     end
-    local category = crossref.categories.by_prefix[key_prefix]
+    local category = crossref.categories.by_ref_type[ref]
     if category == nil then
       fail("Float with invalid crossref category? " .. div.identifier)
       return
     end
 
     local content = div.content
-    local caption_attr_key = key_prefix .. "-cap"
+    local caption_attr_key = ref .. "-cap"
 
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
@@ -78,7 +78,7 @@ function parse_floats()
         warn("Figure without crossref identifier - will simply use its content\n" .. tostring(fig))
         return fig.content
       end
-      local category = crossref.categories.by_prefix[key_prefix]
+      local category = crossref.categories.by_ref_type[key_prefix]
       if category == nil then
         fail("Figure with invalid crossref category? " .. fig.identifier)
         return

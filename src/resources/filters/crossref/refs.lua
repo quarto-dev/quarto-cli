@@ -161,7 +161,7 @@ end
 
 function validRefTypes()
   local types = tkeys(theoremTypes)
-  for k, _ in pairs(crossref.categories.by_prefix) do
+  for k, _ in pairs(crossref.categories.by_ref_type) do
     table.insert(types, k)
     -- if v.type ~= nil and not tcontains(types, v.type) then
     --   table.insert(types, v.type)

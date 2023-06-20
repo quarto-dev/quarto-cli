@@ -10,8 +10,8 @@ function hasFigureRef(el)
 end
 
 function isFigureRef(identifier)
-  local key_prefix = refType(identifier)
-  return crossref.categories.by_prefix[key_prefix] ~= nil
+  local ref = refType(identifier)
+  return crossref.categories.by_ref_type[ref] ~= nil
 end
 
 -- does this element have a table label?

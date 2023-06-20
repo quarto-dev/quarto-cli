@@ -34,15 +34,15 @@ _quarto.ast.add_handler({
 })
 
 function cap_location(float)
-  local float_prefix = refType(float.identifier)
-  local qualified_key = float_prefix .. '-cap-location'
+  local ref = refType(float.identifier)
+  local qualified_key = ref .. '-cap-location'
   local result = (
     float.attributes[qualified_key] or
     float.attributes['cap-location'] or
     option_as_string(qualified_key) or
     option_as_string('cap-location') or
-    capLocation(float_prefix) or
-    crossref.categories.by_prefix[float_prefix].default_caption_location)
+    capLocation(ref) or
+    crossref.categories.by_ref_type[ref].default_caption_location)
 
   if result ~= "margin" and result ~= "top" and result ~= "bottom" then
     error("Invalid caption location for float: " .. float.identifier .. 
@@ -238,8 +238,8 @@ function float_crossref_render_html_figure(float)
     end
   end
 
-  local float_prefix = refType(float.identifier)
-  local figure_class = "quarto-float-" .. float_prefix
+  local ref = refType(float.identifier)
+  local figure_class = "quarto-float-" .. ref
 
   -- This is relatively ugly, and another instance
   -- of the impedance mismatch we have in the custom AST

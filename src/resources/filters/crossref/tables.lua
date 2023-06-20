@@ -275,7 +275,7 @@ function float_title_prefix(float)
     return
   end
   
-  return titlePrefix(category.prefix, category.name, float.order)
+  return titlePrefix(category.ref_type, category.name, float.order)
 end
 
 function tableTitlePrefix(order)

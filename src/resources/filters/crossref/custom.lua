@@ -14,10 +14,11 @@ function initialize_custom_crossref_categories()
         return nil
       end
       local keys = {
+        "default_caption_location",
         "kind",
-        "label",
         "name",
         "prefix",
+        "ref_type",
       }
       for _, v in ipairs(meta["crossref-custom"]) do
         local entry = {}
