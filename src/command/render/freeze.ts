@@ -1,9 +1,8 @@
 /*
-* freeze.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * freeze.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   basename,
@@ -13,7 +12,7 @@ import {
   join,
   relative,
 } from "path/mod.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, EOL, existsSync, format } from "fs/mod.ts";
 
 import { cloneDeep } from "../../core/lodash.ts";
 
@@ -300,7 +299,9 @@ export function removeFreezeResults(filesDir: string) {
 }
 
 function freezeInputHash(input: string) {
-  return md5Hash(Deno.readTextFileSync(input));
+  // Calculate the hash on a content with LF line ending to avoid
+  // different hash on different OS (#3599)
+  return md5Hash(format(Deno.readTextFileSync(input), EOL.LF));
 }
 
 // don't use _files suffix in freezer
