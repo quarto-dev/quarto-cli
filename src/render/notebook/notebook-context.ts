@@ -4,11 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import {
-  ExecutedFile,
-  RenderedFile,
-  RenderServices,
-} from "../../command/render/types.ts";
+import { ExecutedFile, RenderServices } from "../../command/render/types.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -19,6 +15,7 @@ import {
   NotebookContext,
   NotebookContributor,
   NotebookMetadata,
+  NotebookRenderResult,
   RenderType,
 } from "./notebook-types.ts";
 
@@ -56,7 +53,7 @@ export function notebookContext(): NotebookContext {
   const addRendering = (
     nbAbsPath: string,
     renderType: RenderType,
-    result: RenderedFile,
+    result: NotebookRenderResult,
   ) => {
     const absPath = join(dirname(nbAbsPath), basename(result.file));
     const output = {
@@ -151,7 +148,6 @@ export function notebookContext(): NotebookContext {
       renderType: RenderType,
       services: RenderServices,
       notebookMetadata?: NotebookMetadata,
-      outputFile?: string,
       project?: ProjectContext,
     ) => {
       addMetadata(nbAbsPath, renderType, notebookMetadata);
@@ -161,7 +157,6 @@ export function notebookContext(): NotebookContext {
         token(),
         services,
         notebookMetadata,
-        outputFile,
         project,
       );
 

@@ -103,7 +103,6 @@ async function renderHtmlNotebook(
   _subArticleToken: string,
   services: RenderServices,
   notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   // Use the special `embed` template for this render
@@ -121,7 +120,7 @@ async function renderHtmlNotebook(
         metadata: {
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: outputFile || `${basename(nbPath)}`,
+          [kOutputFile]: `${basename(nbPath)}.html`,
           [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",

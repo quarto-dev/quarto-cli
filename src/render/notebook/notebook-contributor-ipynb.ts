@@ -71,7 +71,6 @@ async function renderOutputNotebook(
   _subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(
@@ -81,7 +80,7 @@ async function renderOutputNotebook(
       flags: {
         metadata: {
           [kTo]: "ipynb",
-          [kOutputFile]: outputFile || ipynbOutputFile(nbPath),
+          [kOutputFile]: ipynbOutputFile(nbPath),
         },
         quiet: false,
       },

@@ -73,7 +73,6 @@ export const notebookPreviewer = (
     input: string,
     nbAbsPath: string,
     title?: string,
-    nbPreviewFile?: string,
     callback?: (nbPreview: NotebookPreview) => void,
   ) => {
     // Try to provide a title
@@ -81,7 +80,6 @@ export const notebookPreviewer = (
       input,
       nbPath: nbAbsPath,
       title: title,
-      nbPreviewFile,
       callback,
     });
   };
@@ -107,7 +105,7 @@ export const notebookPreviewer = (
     let renderCount = 0;
     for (let i = 0; i < total; i++) {
       const work = previewQueue[i];
-      const { nbPath, input, title, nbPreviewFile } = work;
+      const { nbPath, input, title } = work;
       if (
         toRenderPaths.includes(nbPath) && !haveRenderedPaths.includes(nbPath) &&
         !quiet
@@ -149,7 +147,6 @@ export const notebookPreviewer = (
                 title: resolvedTitle,
                 filename: basename(nbAbsPath),
               },
-              undefined,
               project,
             );
             if (renderedIpynb && renderedIpynb.output && !project) {
@@ -180,7 +177,6 @@ export const notebookPreviewer = (
                 downloadHref,
                 downloadFile: basename(nbAbsPath),
               },
-              nbPreviewFile,
               project,
             );
             if (htmlPreview.output && !project) {

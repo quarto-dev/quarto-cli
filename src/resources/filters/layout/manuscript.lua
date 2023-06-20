@@ -69,14 +69,18 @@ function manuscript()
           
           -- Provide preview path for the preview generator - this
           -- will specify a preview file name to use when generating this preview
-          -- TODO Should we really just handle this by convention?
+          -- 
+          -- NOTE: This is a point of coordinate where the name of the notebooks is important
+          -- and this is relying upon that name being present in order to form these links
+          --
+          -- TODO: Make the filter params include notebook-context information that
+          -- can be used to resolve links (if they are present)
           local nbFileName = pandoc.path.filename(nbPath)
           local nbDir = pandoc.path.directory(nbPath)
           if nbDir == "." then
             nbDir = ""
           end
           local previewFile = nbFileName .. ".html"
-          divEl.attributes['notebook-preview-file'] = previewFile;
           local previewPath = pandoc.path.join({nbDir, previewFile})
 
           -- The title for the notebook
