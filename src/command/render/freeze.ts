@@ -38,6 +38,7 @@ import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import { warning } from "log/mod.ts";
+import { isWindows } from "../../core/platform.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";
@@ -56,7 +57,8 @@ export function freezeExecuteResult(
     if (result.includes) {
       if (result.includes[name]) {
         result.includes[name] = result.includes[name]!.map((file) =>
-          Deno.readTextFileSync(file)
+          // Storing file content using LF line ending
+          format(Deno.readTextFileSync(file), EOL.LF)
         );
       }
     }
@@ -139,6 +141,8 @@ export function defrostExecuteResult(
           if (result.includes[name]) {
             result.includes[name] = result.includes[name]!.map((content) => {
               const includeFile = temp.createFile();
+              // Restoring content in file using the OS line ending character
+              content = format(content, isWindows() ? EOL.CRLF : EOL.LF);
               Deno.writeTextFileSync(includeFile, content);
               return includeFile;
             });
