@@ -33,7 +33,14 @@ import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
   render: renderOutputNotebook,
+  outputFile,
 };
+
+function outputFile(
+  nbAbsPath: string,
+): string {
+  return ipynbOutputFile(nbAbsPath);
+}
 
 function resolveOutputNotebook(
   nbAbsPath: string,
@@ -71,7 +78,6 @@ async function renderOutputNotebook(
   _subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(
@@ -81,7 +87,7 @@ async function renderOutputNotebook(
       flags: {
         metadata: {
           [kTo]: "ipynb",
-          [kOutputFile]: outputFile || ipynbOutputFile(nbPath),
+          [kOutputFile]: ipynbOutputFile(nbPath),
         },
         quiet: false,
       },

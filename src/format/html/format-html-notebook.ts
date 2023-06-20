@@ -147,7 +147,6 @@ export async function emplaceNotebookPreviews(
           input,
           input,
           undefined, // title
-          undefined, // preview file name
           (nbPreview) => {
             // If this is a cell _in_ a source notebook, it will not be parented
             // by an embed cell
@@ -198,17 +197,11 @@ export async function emplaceNotebookPreviews(
       const title = nbDivEl.getAttribute("data-notebook-title");
       nbDivEl.removeAttribute("data-notebook-title");
 
-      const notebookPreviewFile = nbDivEl.getAttribute(
-        "data-notebook-preview-file",
-      );
-      nbDivEl.removeAttribute("data-notebook-preview-file");
-
       if (notebookPath) {
         previewer.enQueuePreview(
           input,
           nbAbsPath(input, notebookPath),
           title === null ? undefined : title,
-          notebookPreviewFile === null ? undefined : notebookPreviewFile,
           (nbPreview) => {
             // Add a decoration to this div node
             if (inline) {

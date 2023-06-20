@@ -803,7 +803,18 @@ function previewControlChannelRequestHandler(
                 watcher.project(),
               );
 
-              info("Output created: " + finalOutput + "\n");
+              const projType = projectType(
+                project.config?.project?.[kProjectType],
+              );
+
+              if (projType.filterOutputFile) {
+                info(
+                  "Output created: " + projType.filterOutputFile(finalOutput) +
+                    "\n",
+                );
+              } else {
+                info("Output created: " + finalOutput + "\n");
+              }
 
               // notify user we are watching for reload
               printWatchingForChangesMessage();

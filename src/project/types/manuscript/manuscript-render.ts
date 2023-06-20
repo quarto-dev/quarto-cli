@@ -94,14 +94,14 @@ export const manuscriptRenderer = (
         executedFile,
       );
       return [{
-        completion: await renderPandoc(resolvedExecutedFile, quiet),
+        completion: await renderPandoc(resolvedExecutedFile, true),
         cleanup: !isArticle,
       }];
     } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
       const result = [];
 
       // Use the executed file to render the output ipynb
-      const notebook = nbContext.get(input);
+      const notebook = nbContext.get(input, context);
       let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
         progressMessage("Rendering output notebook");
@@ -113,7 +113,7 @@ export const manuscriptRenderer = (
         const [_dir, stem] = dirAndStem(input);
         downloadHref = `${stem}.out.ipynb`;
         result.push({
-          completion: await renderPandoc(ipynbExecutedFile, quiet),
+          completion: await renderPandoc(ipynbExecutedFile, true),
         });
       }
       progressMessage("Rendering HTML preview");
@@ -153,7 +153,7 @@ export const manuscriptRenderer = (
         notebookMetadata,
       );
       result.push({
-        completion: await renderPandoc(resolvedExecutedFile, quiet),
+        completion: await renderPandoc(resolvedExecutedFile, true),
         cleanup: !isArticle,
       });
       return result;

@@ -39,7 +39,14 @@ import { Format } from "../../config/types.ts";
 export const jatsContributor: NotebookContributor = {
   resolve: resolveJats,
   render: renderJats,
+  outputFile,
 };
+
+function outputFile(
+  nbAbsPath: string,
+): string {
+  return jatsOutputFile(nbAbsPath);
+}
 
 function resolveJats(
   nbAbsPath: string,
@@ -77,7 +84,6 @@ async function renderJats(
   subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFiles(
@@ -90,7 +96,7 @@ async function renderJats(
           [kLintXml]: false,
           [kJatsSubarticle]: true,
           [kJatsSubarticleId]: subArticleToken,
-          [kOutputFile]: outputFile || jatsOutputFile(nbPath),
+          [kOutputFile]: jatsOutputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,

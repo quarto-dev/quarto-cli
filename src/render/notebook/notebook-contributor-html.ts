@@ -46,7 +46,14 @@ import { Format } from "../../config/types.ts";
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
   render: renderHtmlNotebook,
+  outputFile,
 };
+
+function outputFile(
+  nbAbsPath: string,
+): string {
+  return `${basename(nbAbsPath)}.html`;
+}
 
 async function resolveHtmlNotebook(
   nbAbsPath: string,
@@ -103,7 +110,6 @@ async function renderHtmlNotebook(
   _subArticleToken: string,
   services: RenderServices,
   notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
   // Use the special `embed` template for this render
@@ -121,7 +127,7 @@ async function renderHtmlNotebook(
         metadata: {
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: outputFile || `${basename(nbPath)}`,
+          [kOutputFile]: `${basename(nbPath)}.html`,
           [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",

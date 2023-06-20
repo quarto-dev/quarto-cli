@@ -44,6 +44,7 @@ function manuscript()
     local notebookLinks = param(constants.kNotebookLinks)
 
     return {
+      traverse = 'topdown',
 
       -- Process any cells that originated from notebooks
       Div = function(divEl)        
@@ -54,29 +55,67 @@ function manuscript()
           return
         end        
 
-        local nbPath = divEl.attributes[constants.kNotebook]
+        -- we can't process links without a base url
+        if not manuscriptBaseUrl then
+          return
+        end
+
+        -- Read notebook parameters from the cell, if present
+        local nbAbsPath = divEl.attributes[constants.kNotebook]
         local nbTitle = divEl.attributes[constants.kNotebookTitle]
-        if manuscriptBaseUrl ~= nil and nbPath == nil then
+
+        -- If this is a notebook embed cell, 'lift' the contents of any child divs
+        -- up (unroll their contents), this will help us avoid
+        -- labeling divs marked as `cells` more than once
+        local blocks = pandoc.List()
+        for _, childBlock in ipairs(divEl.content) do
+          if childBlock.t == "Div" then
+              tappend(blocks, childBlock.content)
+          else
+            blocks:insert(childBlock)
+          end
+        end
+        divEl.content = blocks
+
+        if nbAbsPath == nil then
           -- if this is a computational cell, synthesize the nbPath
           if divEl.classes:includes("cell") then
-            local relativeInputPath = pandoc.path.make_relative(quarto.doc.input_file, quarto.project.directory)
-            nbPath = relativeInputPath
+            -- See if this cell contains a div with explicit notebook info, if it does, we can safely ignore
+            nbAbsPath = quarto.doc.input_file
             nbTitle = language['article-notebook-label']
           end
         end
 
-        if manuscriptBaseUrl ~= nil and nbPath ~= nil then
-          
+
+        if nbAbsPath ~= nil then
+          local nbRelPath = pandoc.path.make_relative(nbAbsPath, quarto.project.directory)
+                      
+          -- Use the notebook cotnext to try to determine the name
+          -- of the output file
+          local notebooks = param("notebook-context", {})
+          local nbFileName = pandoc.path.filename(nbRelPath)
+          local previewFile = nbFileName .. ".html"
+          for _i, notebook in ipairs(notebooks) do            
+            if notebook.source == nbAbsPath then
+              if notebook['html-preview'].output then
+                previewFile = pandoc.path.filename(notebook['html-preview'].output.path)
+              end
+              break
+            end
+          end
+
           -- Provide preview path for the preview generator - this
           -- will specify a preview file name to use when generating this preview
-          -- TODO Should we really just handle this by convention?
-          local nbFileName = pandoc.path.filename(nbPath)
-          local nbDir = pandoc.path.directory(nbPath)
+          -- 
+          -- NOTE: This is a point of coordinate where the name of the notebooks is important
+          -- and this is relying upon that name being present in order to form these links
+          --
+          -- TODO: Make the filter params include notebook-context information that
+          -- can be used to resolve links (if they are present)         
+          local nbDir = pandoc.path.directory(nbRelPath)
           if nbDir == "." then
             nbDir = ""
           end
-          local previewFile = nbFileName .. ".html"
-          divEl.attributes['notebook-preview-file'] = previewFile;
           local previewPath = pandoc.path.join({nbDir, previewFile})
 
           -- The title for the notebook

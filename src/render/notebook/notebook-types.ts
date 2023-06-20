@@ -44,6 +44,12 @@ export interface NotebookOutput {
   resourceFiles: RenderResourceFiles;
 }
 
+export interface NotebookRenderResult {
+  file: string;
+  supporting?: string[];
+  resourceFiles: RenderResourceFiles;
+}
+
 // Metadata that can be passed when rendering/resolving a notebook
 export interface NotebookMetadata {
   title: string;
@@ -61,7 +67,8 @@ export interface NotebookTemplateMetadata extends NotebookMetadata {
 
 export interface NotebookContext {
   // Retrieves the notebook from the context.
-  get: (nbPath: string) => Notebook | undefined;
+  get: (nbPath: string, context?: ProjectContext) => Notebook | undefined;
+  all: () => Notebook[];
   // Resolves the data on an executedFile into data that will
   // create a `renderType` output when rendered.
   resolve: (
@@ -89,7 +96,6 @@ export interface NotebookContext {
     renderType: RenderType,
     renderServices: RenderServices,
     notebookMetadata?: NotebookMetadata,
-    outputFile?: string,
     project?: ProjectContext,
   ) => Promise<NotebookPreview>;
   // Previews are cleaned up when the notebook context is disposed, but
@@ -100,6 +106,7 @@ export interface NotebookContext {
 }
 
 export interface NotebookContributor {
+  outputFile(nbAbsPath: string): string;
   resolve(
     nbAbsPath: string,
     token: string,
@@ -113,7 +120,6 @@ export interface NotebookContributor {
     token: string,
     services: RenderServices,
     notebookMetadata?: NotebookMetadata,
-    outputFile?: string,
     project?: ProjectContext,
-  ): Promise<RenderedFile>;
+  ): Promise<NotebookRenderResult>;
 }
