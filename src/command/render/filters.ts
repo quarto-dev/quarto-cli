@@ -136,6 +136,7 @@ export async function filterParamsJson(
     ...layoutFilterParams(options.format),
     ...languageFilterParams(options.format.language),
     ...jatsFilterParams(options),
+    ...notebookContextFilterParams(options),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
@@ -463,6 +464,16 @@ function jatsFilterParams(options: PandocOptions) {
     };
   } else {
     return {};
+  }
+}
+
+function notebookContextFilterParams(options: PandocOptions) {
+  const nbContext = options.services.notebook;
+  const notebooks = nbContext.all();
+  if (notebooks.length > 0) {
+    return {
+      "notebook-context": notebooks,
+    };
   }
 }
 

@@ -68,6 +68,7 @@ export interface NotebookTemplateMetadata extends NotebookMetadata {
 export interface NotebookContext {
   // Retrieves the notebook from the context.
   get: (nbPath: string, context?: ProjectContext) => Notebook | undefined;
+  all: () => Notebook[];
   // Resolves the data on an executedFile into data that will
   // create a `renderType` output when rendered.
   resolve: (

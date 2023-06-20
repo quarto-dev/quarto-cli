@@ -155,6 +155,9 @@ export function notebookContext(): NotebookContext {
   }
 
   return {
+    all: () => {
+      return Object.values(notebooks);
+    },
     get: (nbAbsPath: string, context?: ProjectContext) => {
       const notebook = notebooks[nbAbsPath];
       const reviveRenders: RenderType[] = [];
