@@ -45,10 +45,6 @@ function manuscript()
 
     return {
       traverse = 'topdown',
-      Pandoc = function(el)
-        local html = pandoc.write(el, "html")
-        _quarto.file.write("/Users/ct/Desktop/test.html", html)
-      end,
 
       -- Process any cells that originated from notebooks
       Div = function(divEl)        
