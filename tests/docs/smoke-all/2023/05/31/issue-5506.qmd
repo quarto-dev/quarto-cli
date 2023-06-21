@@ -1,13 +1,18 @@
 ---
-title: plots and output = "asis"
+title: "plots and output equals asis"
 _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - []
         - ["div.cell-output-display"]
+        - []
       ensureFileRegexMatches:
-        - ["<li>.*one.*</li>", "<li>.*two.*</li>", "<li>.*three.*</li>", "<li>.*three.*</li>", "<td.*>Mazda RX4</td>"]
+        - 
+          - "<td[^>]*>Mazda RX4</td>"
+          - "<li>one</li>"
+          - "<li>two</li>"
+          - "<li>three</li>"
+          - "<li>four</li>"
         - ["::: cell-output-display"]
 ---
 
