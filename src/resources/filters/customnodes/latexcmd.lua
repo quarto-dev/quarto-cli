@@ -9,7 +9,7 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "LatexCommand",
 
-  kind = "Block",
+  kind = "Inline",
 
   parse = function(div)
     fail("LatexCommand nodes should not be parsed")
@@ -46,5 +46,5 @@ function(cmd)
     end
     result:insert(pandoc.RawInline("latex", "}"))
   end
-  return pandoc.Plain(result)
+  return result
 end)

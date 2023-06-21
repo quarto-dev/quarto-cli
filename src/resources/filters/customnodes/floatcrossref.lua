@@ -130,19 +130,8 @@ end
 _quarto.ast.add_renderer("FloatCrossref", function(_)
   return _quarto.format.isLatexOutput()
 end, function(float)
-
-  -- create container
-  -- local figure = pandoc.Div({})
-
-  -- begin the figure
   local figEnv = latexFigureEnv(float)
   local figPos = latexFigurePosition(float, figEnv)
-
-  -- figure.content:insert(latexBeginEnv(figEnv, figPos))
-  
-  -- get the figure content and caption inlines
-  -- local figureContent, captionInlines = render(figure)  
-
   local capLoc = capLocation("fig", "bottom")
   local caption_cmd_name = latexCaptionEnv(float)
 
@@ -168,11 +157,16 @@ end, function(float)
   local latex_caption
 
   if float.caption_long then
-    float.caption_long.content:insert(1, pandoc.RawInline("latex", "\\label{" .. float.identifier .. "}"))
+    -- print(float.caption_long)
+    local cmd = quarto.LatexCommand({
+      name = "label",
+      arg = pandoc.Str(float.identifier)
+    })
+    float.caption_long.content:insert(1, cmd)
     latex_caption = quarto.LatexCommand({
       name = caption_cmd_name,
       opt_arg = fig_scap,
-      arg = float.caption_long
+      arg = pandoc.Span(quarto.utils.as_inlines(float.caption_long) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
     })
   end
 
