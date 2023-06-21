@@ -161,9 +161,17 @@ initCrossrefIndex()
 initShortcodeHandlers()
 
 local quartoInit = {
-  { name = "init-configure-filters", filter = configure_filters() },
-  { name = "init-read-includes", filter = read_includes() },
-  { name = "init-custom-crossref", filter = initialize_custom_crossref_categories() },
+  { name = "init-quarto-init", filter = {
+    Meta = function(meta)
+      configure_filters()
+      read_includes(meta)
+      initialize_custom_crossref_categories(meta)
+      content_hidden_meta(meta)
+    end
+  }},
+
+  -- FIXME this could probably be moved into the next combineFilters below,
+  -- in quartoNormalize
   { name = "init-metadata-resource-refs", filter = combineFilters({
     file_metadata(),
     resourceRefs()
@@ -186,25 +194,26 @@ local quartoNormalize = {
     filter = table_merge_raw_html()
   },
 
-  { name = "pre-content-hidden-meta",
-    filter = content_hidden_meta() },
+  -- { name = "pre-content-hidden-meta",
+  --   filter = content_hidden_meta() },
 
-  -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
-  -- can't be combined with parse_html_tables because combineFilters
-  -- doesn't inspect the contents of the results in the inner loop.
-  { name = "normalize-combined", filter = combineFilters({
+  -- 2023-04-11: We want to combine combine-1 and combine-2, but parse_md_in_html_rawblocks
+  -- can't be combined with parse_html_tables. combineFilters
+  -- doesn't inspect the contents of the results in the inner loop in case
+  -- the result is "spread" into a Blocks or Inlines.
+  
+  { name = "normalize-combined-1", filter = combineFilters({
       parse_html_tables(),
       parse_extended_nodes(),
       code_filename(),
     })
   },
   { 
-    name = "normalize-extractQuartoDom", 
-    filter = parse_md_in_html_rawblocks(),
-  },
-
-  { name = "normalize-parse-float-divs",
-    filter = parse_floats(),
+    name = "normalize-combine-2", 
+    filter = combineFilters({
+      parse_md_in_html_rawblocks(),
+      parse_floats(),
+    }),
   },
 }
 

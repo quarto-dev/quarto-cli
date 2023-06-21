@@ -3,9 +3,9 @@
 
 local constants = require("modules/constants")
 
-function read_includes()
-  return {
-    Meta = function(meta)
+function read_includes(meta)
+  -- return {
+  --   Meta = function(meta)
       -- ensure all includes are meta lists
       ensureIncludes(meta, constants.kHeaderIncludes)
       ensureIncludes(meta, constants.kIncludeBefore)
@@ -22,8 +22,8 @@ function read_includes()
       readIncludeStrings(meta, constants.kIncludeAfter)
      
       return meta
-    end
-  }
+  --   end
+  -- }
 end
 
 function readIncludeStrings(meta, includes)

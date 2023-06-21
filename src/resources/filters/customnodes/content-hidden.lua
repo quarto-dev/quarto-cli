@@ -93,12 +93,14 @@ _quarto.ast.add_handler({
 
 local _content_hidden_meta = nil
 
-function content_hidden_meta()
-  return {
-    Meta = function(meta)
-      _content_hidden_meta = meta
-    end
-  }
+-- we capture a copy of meta here for convenience;
+-- 
+function content_hidden_meta(meta)
+  -- return {
+  --   Meta = function(meta)
+  _content_hidden_meta = meta
+  --   end
+  -- }
 end
 
 local function get_meta(key)
