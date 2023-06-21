@@ -201,7 +201,7 @@ function renderLatexFigure(el, render)
 end
 
 function latexCaptionEnv(el) 
-  if el.attr.classes:includes(kSideCaptionClass) then
+  if el.classes:includes(kSideCaptionClass) then
     return kSideCaptionEnv
   else
     return 'caption'

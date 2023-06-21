@@ -146,6 +146,8 @@ import("./quarto-pre/theorems.lua")
 
 import("./layout/html.lua")
 
+import("./customnodes/latexenv.lua")
+import("./customnodes/latexcmd.lua")
 import("./customnodes/htmltag.lua")
 import("./customnodes/shortcodes.lua")
 import("./customnodes/content-hidden.lua")

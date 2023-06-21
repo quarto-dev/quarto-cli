@@ -10,7 +10,7 @@ end
 -- read attribute w/ default
 function attribute(el, name, default)
   -- FIXME: Doesn't attributes respond to __index?
-  for k,v in pairs(el.attr.attributes) do
+  for k,v in pairs(el.attributes) do
     if k == name then
       return v
     end

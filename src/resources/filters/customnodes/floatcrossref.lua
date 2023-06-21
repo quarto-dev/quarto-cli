@@ -128,9 +128,75 @@ local function get_figure_attributes(el)
 end
 
 _quarto.ast.add_renderer("FloatCrossref", function(_)
-  return true
+  return _quarto.format.isLatexOutput()
 end, function(float)
-  return float.content
+
+  -- create container
+  -- local figure = pandoc.Div({})
+
+  -- begin the figure
+  local figEnv = latexFigureEnv(float)
+  local figPos = latexFigurePosition(float, figEnv)
+
+  -- figure.content:insert(latexBeginEnv(figEnv, figPos))
+  
+  -- get the figure content and caption inlines
+  -- local figureContent, captionInlines = render(figure)  
+
+  local capLoc = capLocation("fig", "bottom")
+  local caption_cmd_name = latexCaptionEnv(float)
+
+  -- FIXME the old code had this bit about kSideCaptionEnv that
+  -- we need to handle still
+  -- 
+  -- markupLatexCaption(divEl, captionInlines, captionEnv)
+  -- if captionEnv == kSideCaptionEnv then
+  --   if #content > 1 then
+  --     content:insert(2, pandoc.Para(captionInlines))
+  --   else
+  --     content:insert(#content, pandoc.Para(captionInlines))
+  --   end
+  -- else 
+  --   content:insert(pandoc.Para(captionInlines))
+  -- end
+
+  local fig_scap = attribute(float, kFigScap, nil)
+  if fig_scap then
+    fig_scap = pandoc.Plain(markdownToInlines(fig_scap))
+  end
+
+  local latex_caption
+
+  if float.caption_long then
+    float.caption_long.content:insert(1, pandoc.RawInline("latex", "\\label{" .. float.identifier .. "}"))
+    latex_caption = quarto.LatexCommand({
+      name = caption_cmd_name,
+      opt_arg = fig_scap,
+      arg = float.caption_long
+    })
+  end
+
+  local figure_content = pandoc.Blocks({float.content})
+
+  -- align the figure
+  local align = figAlignAttribute(float)
+  figure_content:insert(1, pandoc.RawInline("latex", latexBeginAlign(align)))
+  figure_content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
+
+  -- insert caption
+  if latex_caption then
+    if capLoc == "top" then
+      figure_content:insert(1, latex_caption)
+    else
+      figure_content:insert(latex_caption)
+    end
+  end
+
+  return quarto.LatexEnvironment({
+    name = figEnv,
+    pos = figPos,
+    content = figure_content
+  })
 end)
 
 _quarto.ast.add_renderer("FloatCrossref", function(_)
