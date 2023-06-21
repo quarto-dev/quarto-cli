@@ -25,7 +25,10 @@ import("../common/apishim.lua")
 -- and do not require the full custom AST work.
 
 return {
-  read_includes(),
+  {
+    Meta = read_includes
+  },
+  -- read_includes(),
   combineFilters({
     file_metadata(),
     resourceRefs()
