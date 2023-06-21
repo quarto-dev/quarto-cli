@@ -1,0 +1,13 @@
+---
+title: issue-6002
+--- 
+
+```{ojs}
+foo = 1
+// this needs to be here to cause the OJS engine to be run.
+```
+
+We need this particularly complicated sequence of inline statements to trigger the bug:
+
+`${radio[0].NAME}` Gives me this: ${radio[0].NAME}. 
+Median income in ${radio[0].NAME} is $${radio[0].medincE.toLocaleString("en-US")} and the median age is ${radio[0].medageE} years old.
