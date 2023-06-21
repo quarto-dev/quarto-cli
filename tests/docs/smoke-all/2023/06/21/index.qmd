@@ -1,6 +1,6 @@
 ---
 title: issue-6002
---- 
+---
 
 ```{ojs}
 foo = 1
