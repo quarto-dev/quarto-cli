@@ -164,8 +164,8 @@ export const manuscriptRenderer = (
     onFilterContexts: (
       file: string,
       contexts: Record<string, RenderContext>,
-      files: RenderFile[],
-      options: RenderOptions,
+      _files: RenderFile[],
+      _options: RenderOptions,
     ) => {
       const isValidNotebookOutput = (to: string) => {
         return [isJatsOutput, (format: string) => {
@@ -174,19 +174,6 @@ export const manuscriptRenderer = (
           return fn(to);
         });
       };
-
-      // if the render file list doesn't contain any article, and there is a custom too
-      // (so this is an attemp to render only manuscript notebooks), throw error
-      if (
-        options.flags?.to && !isValidNotebookOutput(options.flags.to) &&
-        !files.find((renderFile) => {
-          return isArticle(renderFile.path, context, manuscriptConfig);
-        })
-      ) {
-        throw new Error(
-          "Notebooks within manuscript projects can only be rendered as a part of rendering the article or as an HTML or JATS preview.",
-        );
-      }
 
       // Articles can be any format, notebooks can only be HTML or JATS
       if (isNotebook(file)) {

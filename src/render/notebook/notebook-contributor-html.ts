@@ -49,7 +49,7 @@ export const htmlNotebookContributor: NotebookContributor = {
   outputFile,
 };
 
-function outputFile(
+export function outputFile(
   nbAbsPath: string,
 ): string {
   return `${basename(nbAbsPath)}.html`;

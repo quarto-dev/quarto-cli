@@ -78,6 +78,7 @@ import { logProgress } from "../../../core/log.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { manuscriptRenderer } from "./manuscript-render.ts";
 import { isRStudioPreview } from "../../../core/platform.ts";
+import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -258,6 +259,20 @@ export const manuscriptProjectType: ProjectType = {
   },
   pandocRenderer: manuscriptRenderer,
   outputDir: kOutputDir,
+  outputFile: (input: string, format: Format, project: ProjectContext) => {
+    const manuscriptConfig = project.config
+      ?.[kManuscriptType] as ResolvedManuscriptConfig;
+
+    // Enable this stuff only if this is not the notebook view of an article
+    if (
+      !isArticleManuscript(input, format, project, manuscriptConfig) &&
+      isHtmlOutput(format.pandoc)
+    ) {
+      return outputFile(input);
+    } else {
+      return undefined;
+    }
+  },
   cleanOutputDir: true,
   incrementalFormatPreviewing: true,
   filterParams: async (options: PandocOptions) => {
@@ -452,7 +467,7 @@ export const manuscriptProjectType: ProjectType = {
 
     return Promise.resolve(extras);
   },
-  previewSkipUnmodified: false,
+  previewSkipUnmodified: true,
   renderResultFinalOutput: (
     renderResults: RenderResult,
   ) => {
