@@ -47,12 +47,9 @@ function resolveOutputNotebook(
   _token: string,
   executedFile: ExecutedFile,
   _notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
 ) {
   const resolved = ld.cloneDeep(executedFile);
-  resolved.recipe.format.pandoc[kOutputFile] = outputFile || ipynbOutputFile(
-    nbAbsPath,
-  );
+  resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(nbAbsPath);
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   resolved.recipe.format.pandoc.to = "ipynb";

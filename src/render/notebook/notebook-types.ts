@@ -112,7 +112,6 @@ export interface NotebookContributor {
     token: string,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
-    outputFile?: string,
   ): Promise<ExecutedFile>;
   render(
     nbAbsPath: string,
