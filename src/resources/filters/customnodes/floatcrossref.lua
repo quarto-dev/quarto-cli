@@ -151,18 +151,17 @@ end, function(float)
 
   local fig_scap = attribute(float, kFigScap, nil)
   if fig_scap then
-    fig_scap = pandoc.Plain(markdownToInlines(fig_scap))
+    fig_scap = pandoc.Span(markdownToInlines(fig_scap))
   end
 
   local latex_caption
 
   if float.caption_long then
-    -- print(float.caption_long)
-    local cmd = quarto.LatexCommand({
+    local label_cmd = quarto.LatexCommand({
       name = "label",
       arg = pandoc.Str(float.identifier)
     })
-    float.caption_long.content:insert(1, cmd)
+    float.caption_long.content:insert(1, label_cmd)
     latex_caption = quarto.LatexCommand({
       name = caption_cmd_name,
       opt_arg = fig_scap,
