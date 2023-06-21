@@ -4,12 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../core/lodash.ts";
 
-import { ProjectContext } from "./types.ts";
+import { kProjectType, ProjectContext } from "./types.ts";
 import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
@@ -34,6 +34,7 @@ import {
 } from "./types/website/website-config.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { formatOutputFile } from "../core/render.ts";
+import { projectType } from "./types/project-types.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -247,8 +248,16 @@ export async function resolveInputTarget(
   if (index) {
     const formats = formatsPreferHtml(index.formats) as Record<string, Format>;
     const format = Object.values(formats)[0];
+
+    // lookup the project type
+    const projType = projectType(project.config?.project?.[kProjectType]);
+    const projOutputFile = projType.outputFile
+      ? projType.outputFile(href, format, project)
+      : undefined;
+
     const [hrefDir, hrefStem] = dirAndStem(href);
-    const outputFile = formatOutputFile(format) || `${hrefStem}.html`;
+    const outputFile = projOutputFile || formatOutputFile(format) ||
+      `${hrefStem}.html`;
     const outputHref = pathWithForwardSlashes(
       (absolute ? "/" : "") + join(hrefDir, outputFile),
     );

@@ -4,6 +4,12 @@ toc-title-website: "Bu sayfada"
 related-formats-title: "Diğer Formatlar"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Kaynak"
+other-links-title: "Diğer Bağlantılar"
+
+article-notebook-label: "Makale Defteri"
+notebook-preview-download: "Defteri İndir"
+notebook-preview-back: "Makaleye Geri Dön"
+manuscript-meca-bundle: "MECA Arşivi"
 
 section-title-abstract: "Özet"
 section-title-appendices: "Ekler"

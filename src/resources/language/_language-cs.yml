@@ -4,6 +4,12 @@ toc-title-website: "Na této stránce"
 related-formats-title: "Jiné formáty"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Zdroj"
+other-links-title: "Další odkazy"
+
+article-notebook-label: "Poznámkový blok článku"
+notebook-preview-download: "Stáhnout poznámkový blok"
+notebook-preview-back: "Zpět na článek"
+manuscript-meca-bundle: "Archiv MECA"
 
 section-title-abstract: "Abstrakt"
 section-title-appendices: "Přílohy"

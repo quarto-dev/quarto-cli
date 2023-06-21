@@ -4,6 +4,12 @@ toc-title-website: "Di halaman ini"
 related-formats-title: "Format Lain"
 related-notebooks-title: "Notes"
 source-notebooks-prefix: "Sumber"
+other-links-title: "Tautan Lain"
+
+article-notebook-label: "Buku Catatan Artikel"
+notebook-preview-download: "Unduh Buku Catatan"
+notebook-preview-back: "Kembali ke Artikel"
+manuscript-meca-bundle: "Arsip MECA"
 
 section-title-abstract: "Abstrak"
 section-title-appendices: "Lampiran"

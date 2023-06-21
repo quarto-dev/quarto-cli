@@ -119,6 +119,7 @@ import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
+import { kManuscriptType } from "../types/manuscript/manuscript-types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -474,10 +475,16 @@ async function internalPreviewServer(
   const pdfOutputFile = (finalOutput && pdfOutput)
     ? (): string => {
       const project = watcher.project();
-      return join(
-        dirname(finalOutput),
-        bookOutputStem(project.dir, project.config) + ".pdf",
-      );
+      if (projType.type == kManuscriptType) {
+        // For manuscripts, just use the final output as is
+        return finalOutput;
+      } else {
+        const outputFile = join(
+          dirname(finalOutput),
+          bookOutputStem(project.dir, project.config) + ".pdf",
+        );
+        return outputFile;
+      }
     }
     : undefined;
 

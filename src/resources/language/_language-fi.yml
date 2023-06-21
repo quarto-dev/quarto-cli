@@ -4,6 +4,12 @@ toc-title-website: "Tällä sivulla"
 related-formats-title: "Muut muodot"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Lähde"
+other-links-title: "Muut linkit"
+
+article-notebook-label: "Artikkelin muistiinpanovihko"
+notebook-preview-download: "Lataa muistiinpanovihko"
+notebook-preview-back: "Takaisin artikkeliin"
+manuscript-meca-bundle: "MECA-arkisto"
 
 section-title-abstract: "Tiivistelmä"
 section-title-appendices: "Liitteet"

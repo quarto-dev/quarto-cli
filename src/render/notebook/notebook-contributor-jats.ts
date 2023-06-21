@@ -53,7 +53,6 @@ function resolveJats(
   token: string,
   executedFile: ExecutedFile,
   _notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
 ) {
   const resolved = ld.cloneDeep(executedFile);
   resolved.recipe.format.metadata[kLintXml] = false;
@@ -62,9 +61,8 @@ function resolveJats(
   resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
     nbAbsPath,
   );
+  resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
   resolved.recipe.format.pandoc.to = "jats";
-  resolved.recipe.output = outputFile ||
-    resolved.recipe.format.pandoc[kOutputFile];
   resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
 
   // Configure echo for this rendering

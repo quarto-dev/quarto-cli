@@ -49,7 +49,7 @@ export const htmlNotebookContributor: NotebookContributor = {
   outputFile,
 };
 
-function outputFile(
+export function outputFile(
   nbAbsPath: string,
 ): string {
   return `${basename(nbAbsPath)}.html`;
@@ -60,13 +60,11 @@ async function resolveHtmlNotebook(
   _token: string,
   executedFile: ExecutedFile,
   notebookMetadata?: NotebookMetadata,
-  outputFile?: string,
 ) {
   const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
-  resolved.recipe.format.pandoc[kOutputFile] = outputFile ||
-    `${basename(nbAbsPath)}.html`;
+  resolved.recipe.format.pandoc[kOutputFile] = `${basename(nbAbsPath)}.html`;
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   // Configure echo for this rendering to ensure there is output

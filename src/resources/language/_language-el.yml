@@ -4,6 +4,12 @@ toc-title-website: "Σε αυτήν τη σελίδα"
 related-formats-title: "Άλλες μορφές"
 related-notebooks-title: "Σημειωματάρια"
 source-notebooks-prefix: "Πηγή"
+other-links-title: "Άλλοι Σύνδεσμοι"
+
+article-notebook-label: "Σημειωματάριο Άρθρου"
+notebook-preview-download: "Λήψη Σημειωματαρίου"
+notebook-preview-back: "Πίσω στο Άρθρο"
+manuscript-meca-bundle: "Αρχείο MECA"
 
 section-title-abstract: "Περίληψη"
 section-title-appendices: "Παραρτήματα"
