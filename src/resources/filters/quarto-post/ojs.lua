@@ -58,7 +58,18 @@ function ojs()
     return sub
   end
 
-  local function stringifyTokenInto(token, sequence)
+  local stringifyTokens
+  local stringifyTokenInto
+
+  stringifyTokens = function(sequence)
+    local result = pandoc.List()
+    for i = 1, #sequence do
+      stringifyTokenInto(sequence[i], result)
+    end
+    return table.concat(result, "")
+  end
+
+  stringifyTokenInto = function(token, sequence)
     local function unknown()
       fail("Don't know how to handle token " .. token.t)
     end
@@ -123,14 +134,6 @@ function ojs()
     end
   end
   
-  local function stringifyTokens(sequence)
-    local result = pandoc.List()
-    for i = 1, #sequence do
-      stringifyTokenInto(sequence[i], result)
-    end
-    return table.concat(result, "")
-  end
-
   local function escape_quotes(str)
     local sub, _ = string.gsub(str, '\\', '\\\\')
     sub, _ = string.gsub(sub, '"', '\\"')
