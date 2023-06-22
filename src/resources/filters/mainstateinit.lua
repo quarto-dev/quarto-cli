@@ -32,6 +32,7 @@ crossref = {
         kind = "float",
         name = "Figure",
         prefix = "Figure",
+        latex_env = "figure",
         ref_type = "fig",
       },
       {
@@ -39,6 +40,7 @@ crossref = {
         kind = "float",
         name = "Table",
         prefix = "Table",
+        latex_env = "table",
         ref_type = "tbl",
       },
       {
@@ -46,6 +48,7 @@ crossref = {
         kind = "float",
         name = "Listing",
         prefix = "Listing",
+        latex_env = "codelisting",
         ref_type = "lst",
       }
     }

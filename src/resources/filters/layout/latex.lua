@@ -595,11 +595,13 @@ function latexFigureEnv(el)
   if figEnv ~= nil then
     -- the user specified figure environment
     return figEnv
-  else
+  else    
+    local env_name = crossref.categories.by_name[el.type].latex_env or "figure"
     -- if not user specified, look for other classes which might determine environment
     local classes = el.classes
     for i,class in ipairs(classes) do
 
+      -- FIXME how to deal with margin custom floats?
       -- a margin figure or aside
       if isMarginEnv(class) then 
         noteHasColumns()
@@ -609,12 +611,12 @@ function latexFigureEnv(el)
       -- any column that resolves to full width
       if isStarEnv(class) then
         noteHasColumns()
-        return "figure*"
+        return env_name .. "*"
       end
     end  
 
     -- the default figure environment
-    return "figure"
+    return env_name
   end
 end
 

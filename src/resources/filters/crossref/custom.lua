@@ -4,8 +4,6 @@
 -- custom crossref categories
 
 function initialize_custom_crossref_categories(meta)
-  -- return {
-  --   Meta = function(meta)
   if meta["crossref-custom"] == nil then
     return nil
   end
@@ -19,6 +17,7 @@ function initialize_custom_crossref_categories(meta)
     "name",
     "prefix",
     "ref_type",
+    "latex_env"
   }
   for _, v in ipairs(meta["crossref-custom"]) do
     local entry = {}
@@ -35,6 +34,19 @@ function initialize_custom_crossref_categories(meta)
     -- we expect to see in documents
     add_crossref_category(entry)
   end
-  --   end
-  -- }
+
+  -- hardcode diagram injection in latex formats for now
+  if quarto.doc.isFormat("pdf") then
+    metaInjectLatex(meta, function(inject)
+      inject(
+      usePackage("float") .. "\n" ..
+      "\\floatstyle{plain}\n" ..
+      "\\@ifundefined{c@chapter}{\\newfloat{diagram}{h}{lop}}{\\newfloat{diagram}{h}{lop}[chapter]}\n" ..
+      "\\floatname{diagram}{" .. titleString("dia", "Diagram") .. "}\n"
+      )
+      inject(
+        "\\newcommand*\\listofdiagrams{\\listof{diagram}{" .. listOfTitle("lod", "List of Diagrams") .. "}}\n"
+      )
+    end)
+  end
 end

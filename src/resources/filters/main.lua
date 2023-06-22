@@ -165,8 +165,11 @@ initShortcodeHandlers()
 local quartoInit = {
   { name = "init-quarto-init", filter = {
     Meta = function(meta)
+  -- do this early so we can compute maxHeading while in the big traversal
+  -- { name = "crossref-init-crossref-options", filter =  },
       configure_filters()
       read_includes(meta)
+      init_crossref_options(meta)
       initialize_custom_crossref_categories(meta)
       content_hidden_meta(meta)
     end
@@ -224,9 +227,6 @@ local quartoPre = {
 
   -- TODO we need to compute flags on the results of the user filters
   { name = "pre-run-user-filters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
-
-  -- do this early so we can compute maxHeading while in the big traversal
-  { name = "crossref-init-crossref-options", filter = init_crossref_options() },
 
   { name = "flags", filter = compute_flags() },
 
