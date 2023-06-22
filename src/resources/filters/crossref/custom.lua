@@ -17,7 +17,8 @@ function initialize_custom_crossref_categories(meta)
     "name",
     "prefix",
     "ref_type",
-    "latex_env"
+    "latex_env",
+    "latex_list_of_name"
   }
   for _, v in ipairs(meta["crossref-custom"]) do
     local entry = {}
@@ -33,20 +34,27 @@ function initialize_custom_crossref_categories(meta)
     -- every call, but should be totally ok for the number of categories
     -- we expect to see in documents
     add_crossref_category(entry)
-  end
+
+    if quarto.doc.isFormat("pdf") then
+      metaInjectLatex(meta, function(inject)
+        local env_name = entry["latex_env"]
+        local name = entry["name"]
+        local env_prefix = entry["prefix"]
+        local ref_type = entry["ref_type"]
+        local list_of_name = entry["latex_list_of_name"]
+
+        inject(
+        usePackage("float") .. "\n" ..
+        "\\floatstyle{plain}\n" ..
+        "\\@ifundefined{c@chapter}{\\newfloat{" .. env_name .. "}{h}{lop}}{\\newfloat{" .. env_name .. "}{h}{lop}[chapter]}\n" ..
+        "\\floatname{".. env_name .. "}{" .. titleString(ref_type, env_prefix) .. "}\n"
+        )
+        inject(
+          "\\newcommand*\\listof" .. env_name .. "s{\\listof{" .. env_name .. "}{" .. listOfTitle(list_of_name, "List of " .. name .. "s") .. "}}\n"
+        )
+      end)
+    end
+    end
 
   -- hardcode diagram injection in latex formats for now
-  if quarto.doc.isFormat("pdf") then
-    metaInjectLatex(meta, function(inject)
-      inject(
-      usePackage("float") .. "\n" ..
-      "\\floatstyle{plain}\n" ..
-      "\\@ifundefined{c@chapter}{\\newfloat{diagram}{h}{lop}}{\\newfloat{diagram}{h}{lop}[chapter]}\n" ..
-      "\\floatname{diagram}{" .. titleString("dia", "Diagram") .. "}\n"
-      )
-      inject(
-        "\\newcommand*\\listofdiagrams{\\listof{diagram}{" .. listOfTitle("lod", "List of Diagrams") .. "}}\n"
-      )
-    end)
-  end
 end
