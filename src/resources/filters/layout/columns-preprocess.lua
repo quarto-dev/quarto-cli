@@ -13,13 +13,13 @@ function columns_preprocess()
     end,
 
     Div = function(el)
-      if el.attr.classes:includes('cell') then      
+      if el.classes:includes('cell') then      
         -- for code chunks that aren't layout panels, forward the column classes to the output
         -- figures or tables (otherwise, the column class should be used to layout the whole panel)
         resolveColumnClassesForCodeCell(el)
       else
         resolveColumnClassesForEl(el)
-      end      
+      end
       return el      
     end,
 
@@ -45,15 +45,26 @@ function resolveColumnClassesForEl(el)
 end
 
 -- forward column classes from code chunks onto their display / outputs
-function resolveColumnClassesForCodeCell(el) 
+function resolveColumnClassesForCodeCell(el)
+
+  local float_classes = {}
+  local float_caption_classes = {}
+  local found = false
+
+  for k, v in ipairs(crossref.categories.all) do
+    local ref_type = v.ref_type
+    float_classes[ref_type] = computeClassesForScopedColumns(el, ref_type)
+    float_caption_classes[ref_type] = computeClassesForScopedCaption(el, ref_type)
+    found = #float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0
+  end
 
   -- read the classes that should be forwarded
-  local figClasses = computeClassesForScopedColumns(el, 'fig')
-  local tblClasses = computeClassesForScopedColumns(el, 'tbl')
-  local figCaptionClasses = computeClassesForScopedCaption(el, 'fig')
-  local tblCaptionClasses = computeClassesForScopedCaption(el, 'tbl')
+  local figClasses = float_classes.fig
+  local tblClasses = float_classes.tbl
+  local figCaptionClasses = float_caption_classes.fig
+  local tblCaptionClasses = float_caption_classes.tbl
 
-  if #tblClasses > 0 or #figClasses > 0 or #figCaptionClasses > 0 or #tblCaptionClasses > 0 then 
+  if found then
     noteHasColumns()
     
     if hasLayoutAttributes(el) then
@@ -63,28 +74,35 @@ function resolveColumnClassesForCodeCell(el)
     else
       -- Forward the column classes inside code blocks
       for i, childEl in ipairs(el.content) do 
-        if childEl.attr ~= nil and childEl.attr.classes:includes('cell-output-display') then
-
+        if childEl.classes ~= nil and childEl.classes:includes('cell-output-display') then
           -- look through the children for any figures or tables
           local forwarded = false
           for j, figOrTableEl in ipairs(childEl.content) do
-            local figure = discoverFigure(figOrTableEl, false)
-            if figure ~= nil then
-              -- forward to figures
-              applyClasses(figClasses, figCaptionClasses, el, childEl, figure, 'fig')
-              forwarded = true
-            elseif figOrTableEl.attr ~= nil and hasFigureRef(figOrTableEl) then
-              -- forward to figure divs
-              applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
-              forwarded = true
-            elseif (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
-              -- for a table div, apply the classes to the figOrTableEl itself
-              applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
-              forwarded = true
-            elseif figOrTableEl.t == 'Table' then
-              -- the figOrTableEl is a table, just apply the classes to the div around it
-              applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
-              forwarded = true
+            local custom = _quarto.ast.resolve_custom_data(figOrTableEl)
+            if custom ~= nil then
+              local ref_type = crossref.categories.by_name[custom.type].ref_type
+              local custom_classes = float_classes[ref_type]
+              local custom_caption_classes = float_caption_classes[ref_type]
+              applyClasses(custom_classes, custom_caption_classes, el, custom, custom, ref_type)
+            else
+              local figure = discoverFigure(figOrTableEl, false)
+              if figure ~= nil then
+                -- forward to figures
+                applyClasses(figClasses, figCaptionClasses, el, childEl, figure, 'fig')
+                forwarded = true
+              elseif hasFigureRef(figOrTableEl) then
+                -- forward to figure divs
+                applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
+                forwarded = true
+              elseif (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+                -- for a table div, apply the classes to the figOrTableEl itself
+                applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
+                forwarded = true
+              elseif figOrTableEl.t == 'Table' then
+                -- the figOrTableEl is a table, just apply the classes to the div around it
+                applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
+                forwarded = true
+              end
             end
           end
 
@@ -159,7 +177,7 @@ function applyCaptionClasses(el, classes, scope)
   end
 
   -- write the resolve scopes
-  tappend(el.attr.classes, classes)
+  tappend(el.classes, classes)
 end
 
 function applyColumnClasses(el, classes, scope) 
@@ -173,7 +191,7 @@ function applyColumnClasses(el, classes, scope)
   end
 
   -- write the resolve scopes
-  tappend(el.attr.classes, classes)
+  tappend(el.classes, classes)
 end
 
 function computeClassesForScopedCaption(el, scope)
@@ -248,7 +266,7 @@ function mergedScopedColumnClasses(el, scope)
 end
 
 function resolveScopedColumnClasses(el, scope)
-  local filtered = el.attr.classes:filter(function(clz)
+  local filtered = el.classes:filter(function(clz)
     return clz:match('^' .. scope .. '%-column%-')
   end)
 
@@ -258,7 +276,7 @@ function resolveScopedColumnClasses(el, scope)
 end
 
 function resolveScopedCaptionClasses(el, scope)
-  local filtered = el.attr.classes:filter(function(clz)
+  local filtered = el.classes:filter(function(clz)
     return clz:match('^' .. scope .. '%-cap%-location%-')
   end)
 
@@ -273,18 +291,30 @@ function resolveScopedCaptionClasses(el, scope)
   end
 end
 
+function is_scoped_column_class(scope)
+  return function(clz)
+    return clz:match('^' .. scope .. '%-column%-')
+  end
+end
+
+function is_scoped_caption_class(scope)
+  return function(clz)
+    return clz:match('^' .. scope .. '%-cap%-location%-')
+  end
+end
+
 function removeScopedColumnClasses(el, scope) 
-  for i, clz in ipairs(el.attr.classes) do 
+  for i, clz in ipairs(el.classes) do 
     if clz:match('^' .. scope .. '%-column%-') then
-      el.attr.classes:remove(i)
+      el.classes:remove(i)
     end
   end
 end
 
 function removeScopedCaptionClasses(el, scope)
-  for i, clz in ipairs(el.attr.classes) do 
+  for i, clz in ipairs(el.classes) do 
     if clz:match('^' .. scope .. '%-cap%-location%-') then
-      el.attr.classes:remove(i)
+      el.classes:remove(i)
     end
   end  
 end

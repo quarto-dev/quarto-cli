@@ -43,6 +43,9 @@ function initialize_custom_crossref_categories(meta)
         local ref_type = entry["ref_type"]
         local list_of_name = entry["latex_list_of_name"]
 
+        -- FIXME do we need different "lop" extensions for each category?
+        -- we should be able to test this by creating a document with listings and diagrams
+        
         inject(
         usePackage("float") .. "\n" ..
         "\\floatstyle{plain}\n" ..
@@ -54,7 +57,5 @@ function initialize_custom_crossref_categories(meta)
         )
       end)
     end
-    end
-
-  -- hardcode diagram injection in latex formats for now
+  end
 end
