@@ -198,25 +198,6 @@ end, function(float)
   prepare_caption(float)
 
   ------------------------------------------------------------------------------------
-  -- Special handling for tables
-
-  -- -- if we have a Table AST element, then we forward the caption
-  -- -- into the node and display only that.
-  -- local found_table = get_node_from_float_and_type(float, "Table")
-  -- if found_table then
-  --   -- in HTML, we insert the float caption directly in the table
-  --   -- and render that as the result
-  --   found_table.caption.long = float.caption_long
-  --   local div = pandoc.Div({ 
-  --     pandoc.RawBlock("html", "<figure>"),
-  --     found_table,
-  --     pandoc.RawBlock("html", "</figure>"),
-  --    })
-  --   div.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
-  --   return div
-  -- end
-
-  ------------------------------------------------------------------------------------
   -- Special handling for listings
   local found_listing = get_node_from_float_and_type(float, "CodeBlock")
   if found_listing then
@@ -248,8 +229,6 @@ local function create_figcaption(float)
   }), caption_id
 end
 
--- FINISH ME WE ARE WORKING ON MAKING COLUMN LAYOUTS FOR TABLES AND FIGURES
--- AND NEED CAPTIONS TO BE MOVED INTO THE CELL-OUTPUT-DISPLAY DIVS
 function float_crossref_render_html_figure(float)
   float = ensure_custom(float)
   if float == nil then
