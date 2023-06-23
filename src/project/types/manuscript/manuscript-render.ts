@@ -208,12 +208,12 @@ export const manuscriptRenderer = (
       // Process articles or notebooks
       // Note that sometimes articles may produce a notebook also
       const target = executedFile.context.target;
-      if (isArticle(target.input, context, manuscriptConfig)) {
+      if (isArticle(target.source, context, manuscriptConfig)) {
         // Handle subarticle rendering, if any is needed
-        if (await hasComputations(target.input)) {
+        if (await hasComputations(target.source)) {
           // Render the various previews
           const renderedNb = await pandocRenderNb(
-            target.input,
+            target.source,
             articleOutputFiles,
             executedFile,
             context,
@@ -231,7 +231,7 @@ export const manuscriptRenderer = (
         });
       } else {
         const renderedNb = await pandocRenderNb(
-          target.input,
+          target.source,
           articleOutputFiles,
           executedFile,
           context,
