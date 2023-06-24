@@ -114,6 +114,7 @@ export const manuscriptRenderer = (
         downloadHref = `${stem}.out.ipynb`;
         result.push({
           completion: await renderPandoc(ipynbExecutedFile, true),
+          cleanup: !isArticle,
         });
       }
       progressMessage("Rendering HTML preview");
@@ -152,6 +153,7 @@ export const manuscriptRenderer = (
         executedFile,
         notebookMetadata,
       );
+
       result.push({
         completion: await renderPandoc(resolvedExecutedFile, true),
         cleanup: !isArticle,
