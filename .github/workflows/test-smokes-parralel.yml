@@ -1,6 +1,6 @@
 # Tests a broad set of Quarto functionality that users are likely to encounter.
 # A failure indicates some signficant portion of functionality is likely to be broken.
-name: Smoke Tests
+name: Parallel Smokes Tests
 on:
   workflow_dispatch:
 
@@ -18,7 +18,7 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "buckets=$(./run-parallel-test.sh 10 --dry-run)" >> "$GITHUB_OUTPUT"
+          echo "buckets=$(./run-parallel-tests.sh 10 --dry-run)" >> "$GITHUB_OUTPUT"
         working-directory: tests
 
       - name: Read buckets
