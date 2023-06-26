@@ -57,10 +57,10 @@ initCrossrefIndex()
 
 -- chain of filters
 return {
-  init_crossref_options(),
+  initCrossrefOptions(),
   parse_pandoc3_figures(),
-  crossref_preprocess(),
-  crossref_preprocess_theorems(),
+  crossrefPreprocess(),
+  crossrefPreprocessTheorems(),
   combineFilters({
     fileMetadata(),
     qmd(),

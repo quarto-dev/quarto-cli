@@ -1,6 +1,6 @@
 ## Fixed In This Release
 
-- Fix issue that prevented Quarto from properly reporting crossreferenceable figures to IDEs
+- Fix issue that prevented Quarto from properly reporting crossreferenceable figures to IDEs (note that Quarto 1.3.427 contained an attempted fix for this issue which did not work properly. This release contains a functional fix.)
 - Fix incorrect behavior when previewing `--to all`
 - Fix missing handling of `rel="..."` values in the navbar's tools template ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756))
 - Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port. ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882))
