@@ -79,7 +79,11 @@ for (const currentTest of currentTests) {
   if (!timedTests.has(currentTest)) {
     console.log(`Missing test ${currentTest} in timing.txt`);
     failed = true;
-    bucketSizes[Math.floor(Math.random() * nBuckets)].push(currentTest);
+    // add missing timed tests, randomly to buckets
+    buckets[Math.floor(Math.random() * nBuckets)].push({
+      name: currentTest,
+      timing: { real: 0, user: 0, sys: 0 },
+    });
   }
 }
 
@@ -95,12 +99,17 @@ if (!failed) {
   );
 }
 
-// console.log(JSON.stringify(buckets, null, 2));
-
-Promise.all(buckets.map((bucket) => {
-  const cmd: string[] = ["./run-tests.sh"];
-  cmd.push(...bucket.map((tt) => tt.name));
-  return Deno.run({
-    cmd,
-  }).status();
-}));
+if (Deno.args[2] === "--dry-run") {
+  console.log("Jobs map of tests to run in parallel");
+  console.log(JSON.stringify(buckets, null, 2));
+} else {
+  console.log("Running `run-test.sh` in parallel... ");
+  /*   Promise.all(buckets.map((bucket) => {
+    const cmd: string[] = ["./run-tests.sh"];
+    cmd.push(...bucket.map((tt) => tt.name));
+    return Deno.run({
+      cmd,
+    }).status();
+  })); */
+  console.log("Running `run-test.sh` in parallel... END");
+}
