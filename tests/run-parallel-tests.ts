@@ -1,5 +1,12 @@
 import { expandGlobSync } from "https://deno.land/std/fs/expand_glob.ts";
 import { relative } from "https://deno.land/std/path/mod.ts";
+import { parse } from "https://deno.land/std/flags/mod.ts";
+
+const flags = parse(Deno.args, {
+  boolean: ["dry-run", "verbose"],
+  string: ["n"],
+  default: { verbose: false, "dry-run": false },
+});
 
 try {
   Deno.readTextFileSync("timing.txt");
@@ -51,7 +58,7 @@ let failed = false;
 // Deno.exit(0);
 
 const buckets: TestTiming[][] = [];
-const nBuckets = Number(Deno.args[1]) || navigator.hardwareConcurrency;
+const nBuckets = Number(flags.n) || navigator.hardwareConcurrency;
 const bucketSizes = (new Array(nBuckets)).fill(0);
 
 const argmin = (a: number[]): number => {
@@ -77,7 +84,7 @@ for (const timing of testTimings) {
 
 for (const currentTest of currentTests) {
   if (!timedTests.has(currentTest)) {
-    console.log(`Missing test ${currentTest} in timing.txt`);
+    flags.verbose && console.log(`Missing test ${currentTest} in timing.txt`);
     failed = true;
     // add missing timed tests, randomly to buckets
     buckets[Math.floor(Math.random() * nBuckets)].push({
@@ -87,8 +94,8 @@ for (const currentTest of currentTests) {
   }
 }
 
-console.log(`Will run in ${nBuckets} cores`);
-if (!failed) {
+flags.verbose && console.log(`Will run in ${nBuckets} cores`);
+if (!failed && flags.verbose) {
   console.log(
     `Expected speedup: ${
       (bucketSizes.reduce((a, b) => a + b, 0) / Math.max(...bucketSizes))
@@ -99,8 +106,8 @@ if (!failed) {
   );
 }
 
-if (Deno.args[2] === "--dry-run") {
-  console.log("Jobs map of tests to run in parallel");
+if (flags["dry-run"]) {
+  flags.verbose && console.log("Jobs map of tests to run in parallel");
   console.log(JSON.stringify(buckets, null, 2));
 } else {
   console.log("Running `run-test.sh` in parallel... ");
