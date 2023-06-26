@@ -135,6 +135,13 @@ end, function(float)
   local capLoc = capLocation("fig", "bottom")
   local caption_cmd_name = latexCaptionEnv(float)
 
+  if float.parent_id then
+    if caption_cmd_name == kSideCaptionEnv then
+      fail("Don't know how to make subcaptions for side captions yet")
+      return {}
+    end
+    caption_cmd_name = "subcaption"
+  end
   -- FIXME the old code had this bit about kSideCaptionEnv that
   -- we need to handle still
   -- 
@@ -157,24 +164,46 @@ end, function(float)
   local latex_caption
 
   if float.caption_long then
-    local label_cmd = quarto.LatexCommand({
+    local label_cmd = quarto.LatexInlineCommand({
       name = "label",
       arg = pandoc.Str(float.identifier)
     })
     float.caption_long.content:insert(1, label_cmd)
-    latex_caption = quarto.LatexCommand({
+    latex_caption = quarto.LatexInlineCommand({
       name = caption_cmd_name,
       opt_arg = fig_scap,
       arg = pandoc.Span(quarto.utils.as_inlines(float.caption_long) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
     })
   end
 
-  local figure_content = pandoc.Blocks({float.content})
+  local figure_content
+  local pt = pandoc.utils.type(float.content)
+  if pt == "Block" then
+    figure_content = pandoc.Blocks({ float.content })
+  elseif pt == "Blocks" then
+    figure_content = float.content
+  else
+    fail("Unexpected type for float content: " .. pt)
+    return {}
+  end
 
   -- align the figure
   local align = figAlignAttribute(float)
-  figure_content:insert(1, pandoc.RawInline("latex", latexBeginAlign(align)))
-  figure_content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
+  if align == "center" then
+    figure_content = pandoc.Blocks({
+      quarto.LatexBlockCommand({
+        name = "centering",
+        inside = true,
+        arg = figure_content
+      })
+    })
+  elseif align == "right" then
+    figure_content:insert(1, quarto.LatexInlineCommand({
+      name = "hfill",
+    }))
+  end -- otherwise, do nothing
+  -- figure_content:insert(1, pandoc.RawInline("latex", latexBeginAlign(align)))
+  -- figure_content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
 
   -- insert caption
   if latex_caption then
@@ -185,11 +214,19 @@ end, function(float)
     end
   end
 
-  return quarto.LatexEnvironment({
-    name = figEnv,
-    pos = figPos,
-    content = figure_content
-  })
+  if float.parent_id then
+    return quarto.LatexEnvironment({
+      name = "minipage",
+      pos = "[t]{0.50\\linewidth}",
+      content = figure_content
+    })
+  else
+    return quarto.LatexEnvironment({
+      name = figEnv,
+      pos = figPos,
+      content = figure_content
+    })
+  end
 end)
 
 _quarto.ast.add_renderer("FloatCrossref", function(_)

@@ -23,6 +23,7 @@ import("./ast/wrappedwriter.lua")
 import("./common/base64.lua")
 import("./common/citations.lua")
 import("./common/colors.lua")
+import("./common/collate.lua")
 import("./common/debug.lua")
 import("./common/error.lua")
 import("./common/figures.lua")
@@ -76,6 +77,7 @@ import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
+import("./quarto-finalize/coalesceraw.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
@@ -165,8 +167,6 @@ initShortcodeHandlers()
 local quartoInit = {
   { name = "init-quarto-init", filter = {
     Meta = function(meta)
-  -- do this early so we can compute maxHeading while in the big traversal
-  -- { name = "crossref-init-crossref-options", filter =  },
       configure_filters()
       read_includes(meta)
       init_crossref_options(meta)
@@ -357,7 +357,13 @@ local quartoFinalize = {
   { name = "finalize-cites", filter = writeCites() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
-  { name = "finalize-wrapped-writer", filter = wrapped_writer() }
+  { name = "finalize-coalesce-raw", filter = coalesce_raw() },
+  { filter = {
+    Pandoc = function(doc)
+      print(pandoc.write(doc, "native"))
+    end
+  }},
+  { name = "finalize-wrapped-writer", filter = wrapped_writer() },
 }
 
 local quartoLayout = {

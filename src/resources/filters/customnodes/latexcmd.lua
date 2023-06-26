@@ -2,29 +2,26 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 _quarto.ast.add_handler({
-
-  -- empty table so this handler is only called programmatically
   class_name = {},
-
-  -- the name of the ast node, used as a key in extended ast filter tables
-  ast_name = "LatexCommand",
-
+  ast_name = "LatexInlineCommand",
   kind = "Inline",
-
-  parse = function(div)
-    fail("LatexCommand nodes should not be parsed")
-  end,
-
+  parse = function() fail("LatexInlineCommand nodes should not be parsed") end,
   slots = { "arg", "opt_arg" },
-
-  constructor = function(tbl)
-    return tbl
-  end
+  constructor = function(tbl) return tbl end
 })
 
-_quarto.ast.add_renderer("LatexCommand", function(_) return true end,
+_quarto.ast.add_handler({
+  class_name = {},
+  ast_name = "LatexBlockCommand",
+  kind = "Block",
+  parse = function() fail("LatexBlockCommand nodes should not be parsed") end,
+  slots = { "arg", "opt_arg" },
+  constructor = function(tbl) return tbl end
+})
+
+_quarto.ast.add_renderer("LatexInlineCommand", function(_) return true end,
 function(cmd)
-  local result = pandoc.Inlines({}) -- feels safer than Inlines({})
+  local result = pandoc.Inlines({})
   result:insert(pandoc.RawInline("latex", "\\" .. cmd.name))
   local opt_arg = cmd.opt_arg
   if opt_arg then
@@ -46,5 +43,44 @@ function(cmd)
     end
     result:insert(pandoc.RawInline("latex", "}"))
   end
+  return result
+end)
+
+_quarto.ast.add_renderer("LatexBlockCommand", function(_) return true end,
+function(cmd)
+  local result = pandoc.Blocks({})
+  local preamble = pandoc.Inlines({})
+  local postamble = pandoc.Inlines({})
+  preamble:insert(pandoc.RawInline("latex", "\\" .. cmd.name))
+  local opt_arg = cmd.opt_arg
+  if opt_arg then
+    preamble:insert(pandoc.RawInline("latex", "["))
+    if opt_arg.content then
+      preamble:extend(opt_arg.content)
+    else
+      preamble:insert(opt_arg)
+    end
+    preamble:insert(pandoc.RawInline("latex", "]"))
+  end
+  preamble:insert(pandoc.RawInline("latex", "{"))
+  result:insert(pandoc.Plain(preamble))
+  local arg = cmd.arg
+  if arg then
+    local pt = pandoc.utils.type(arg)
+    if pt == "Blocks" then
+      result:extend(arg)
+    elseif pt == "Block" then
+      if arg.content then
+        result:extend(arg.content)
+      else
+        result:insert(arg)
+      end
+    else
+      fail("Unexpected type for LatexBlockCommand arg: " .. pt)
+      return nil
+    end
+  end
+  postamble:insert(pandoc.RawInline("latex", "}"))
+  result:insert(pandoc.Plain(postamble))
   return result
 end)

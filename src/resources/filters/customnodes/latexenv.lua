@@ -37,6 +37,6 @@ function(env)
   local result = pandoc.Blocks({})
   result:insert(latexBeginEnv(env.name, env.pos))
   result:extend(env.content.content) 
-  result:insert(latexEndEnv(env.name))
+  result:insert(pandoc.RawBlock("latex-merge", "\\end{" .. env.name .. "}%"))
   return result
 end)

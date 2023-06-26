@@ -329,7 +329,7 @@ function latexBeginEnv(env, pos, inline)
   if inline then
     return pandoc.RawInline("latex", beginEnv)
   else
-    return pandoc.RawBlock("latex", beginEnv)
+    return pandoc.RawBlock("latex-merge", beginEnv)
   end
 end
 
@@ -337,7 +337,7 @@ function latexEndEnv(env, inline)
   if inline then
     return pandoc.RawInline("latex", "\\end{" .. env .. "}")
   else
-    return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
+    return pandoc.RawBlock("latex-merge", "\\end{" .. env .. "}%")
   end
 end
 

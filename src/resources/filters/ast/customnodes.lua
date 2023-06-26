@@ -1,7 +1,7 @@
 -- customnodes.lua
 -- support for custom nodes in quarto's emulated ast
 -- 
--- Copyright (C) 2022 by RStudio, PBC
+-- Copyright (C) 2023 Posit Software, PBC
 
 local handlers = {}
 
