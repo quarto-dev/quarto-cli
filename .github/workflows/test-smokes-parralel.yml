@@ -12,8 +12,10 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Install Quarto
-        uses: ./.github/workflows/actions/quarto-dev
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: pre-release
 
       - name: Create Job for tests
         id: tests-buckets
