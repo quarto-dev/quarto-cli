@@ -20,9 +20,8 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "buckets=$(./run-parallel-tests.sh 10 --dry-run)" >> "$GITHUB_OUTPUT"
+          ./run-parallel-tests.sh -n=10 --dry-run
         working-directory: tests
-
-      - name: Read buckets
-        run: |
-          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
+#      - name: Read buckets
+#        run: |
+#          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
