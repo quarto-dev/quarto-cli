@@ -2,6 +2,12 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 kSideCaptionEnv = 'sidecaption'
 
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isLatexOutput()
+end, function(panel_layout)
+  fail("womp womp")
+end)
+
 function latexPanel(divEl, layout, caption)
   
    -- create container
