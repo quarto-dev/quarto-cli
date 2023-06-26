@@ -2,14 +2,24 @@
 # A failure indicates some signficant portion of functionality is likely to be broken.
 name: Smoke Tests
 on:
+  workflow_call:
+    inputs:
+      buckets:
+        required: true
+        type: string
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-  push:
-    # only trigger on branches, not on tags
-    branches: [main]
-  schedule:
-    - cron: "0 6 * * *"
+    inputs:
+      buckets:
+        required: false
+        type: string
+        default: ""
+#  pull_request:
+#    branches: [main]
+#  push:
+#    # only trigger on branches, not on tags
+#    branches: [main]
+#  schedule:
+#    - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
@@ -22,9 +32,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-        with:
-          # checkout full tree
-          fetch-depth: 0
 
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
@@ -135,39 +142,17 @@ jobs:
         run: |
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
-      - name: Smoke Test Commits
-        if: github.event.before != ''
+      - name: Run Smoke Tests
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git checkout ${{ github.sha}}
-          pushd tests
           case $RUNNER_OS in
             "Windows")
-              pwsh -F ./run-tests.ps1
+              pwsh -F ./run-tests.ps1 ${{ inputs.buckets }}
               ;;
             *)
-              ./run-tests.sh
-              ;;
-          esac
-          popd
-        shell: bash
-
-      - name: Smoke Test Head
-        env:
-          # Useful as TinyTeX latest release is checked in run-test.sh
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.event.before == ''
-        run: |
-          case $RUNNER_OS in
-            "Windows")
-              ../package/dist/bin/quarto.cmd render docs/test.qmd --to pdf
-              pwsh -F ./run-tests.ps1
-              ;;
-            *)
-              quarto render docs/test.qmd --to pdf
-              ./run-tests.sh
+              ./run-tests.sh ${{ inputs.buckets }}
               ;;
           esac
         working-directory: tests
