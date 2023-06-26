@@ -1,0 +1,26 @@
+# Tests a broad set of Quarto functionality that users are likely to encounter.
+# A failure indicates some signficant portion of functionality is likely to be broken.
+name: Smoke Tests
+on:
+  workflow_dispatch:
+
+jobs:
+  jobs-matrix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Install Quarto
+        uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Create Job for tests
+        id: tests-buckets
+        run: |
+          echo "buckets=$(./run-parallel-test.sh 10 --dry-run)" >> "$GITHUB_OUTPUT"
+        working-directory: tests
+
+      - name: Read buckets
+        run: |
+          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
