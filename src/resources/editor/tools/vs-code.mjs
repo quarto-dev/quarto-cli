@@ -9599,6 +9599,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Provide a 'back to top' navigation button"
                 }
               },
+              "bread-crumbs": {
+                boolean: {
+                  description: "Whether to show navigation breadcrumbs for pages more than 1 level deep"
+                }
+              },
               "page-footer": {
                 anyOf: [
                   "string",
@@ -20776,7 +20781,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
         {
           short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>left</code> - Show the Table of Contents in right\nmargin of the document. <code>left-body</code> - Show two Tables of\nContents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
         },
         "The title used for the table of contents.",
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -21634,12 +21639,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158637,
+        _internalId: 158639,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158629,
+            _internalId: 158631,
             type: "enum",
             enum: [
               "png",
@@ -21655,7 +21660,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158636,
+            _internalId: 158638,
             type: "anyOf",
             anyOf: [
               {

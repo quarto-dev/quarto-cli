@@ -83,6 +83,7 @@ import {
 
 import {
   kBackToTopNavigation,
+  kBreadCrumbNavigation,
   kSiteIssueUrl,
   kSiteNavbar,
   kSitePageNavigation,
@@ -251,6 +252,11 @@ export async function websiteNavigationExtras(
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
     language: format.language,
+    showBreadCrumbs: websiteConfigBoolean(
+      kBreadCrumbNavigation,
+      true,
+      project.config,
+    ),
   };
 
   // Determine the previous and next page
@@ -396,20 +402,38 @@ function navigationHtmlPostprocessor(
   const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
 
+  const showBreadCrumbs = websiteConfigBoolean(
+    kBreadCrumbNavigation,
+    true,
+    project.config,
+  );
+
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process the breadcrumbs and collapsed title
     // This needs to happen before resolving the pipeline
     const secondaryNavTitleEl = doc.querySelector(
       ".quarto-secondary-nav .quarto-secondary-nav-title",
     );
-
     if (secondaryNavTitleEl) {
-      const navEl = makeBreadCrumbs(doc);
-      if (secondaryNavTitleEl.parentElement) {
-        secondaryNavTitleEl.parentElement.replaceChild(
-          navEl,
-          secondaryNavTitleEl,
-        );
+      if (showBreadCrumbs) {
+        const navEl = makeBreadCrumbs(doc);
+        if (secondaryNavTitleEl.parentElement) {
+          secondaryNavTitleEl.parentElement.replaceChild(
+            navEl,
+            secondaryNavTitleEl,
+          );
+        }
+      } else {
+        // Process the title into the secondary nav bar
+        const titleEl = doc.querySelector("h1.title");
+        if (titleEl) {
+          for (const child of titleEl.childNodes) {
+            secondaryNavTitleEl.append(child.cloneNode(true));
+          }
+          // Decorate the title so we know to hide it
+          titleEl.classList.add("d-none");
+          titleEl.classList.add("d-lg-block");
+        }
       }
 
       // hide the entire title block (encompassing code button) if we have it
@@ -418,6 +442,17 @@ function navigationHtmlPostprocessor(
         // hide below lg
         titleBlock.classList.add("d-none");
         titleBlock.classList.add("d-lg-block");
+      }
+    }
+
+    const titleBlockEl = doc.querySelector(".quarto-title-block");
+    if (showBreadCrumbs && titleBlockEl) {
+      if (navigation.breadCrumbs && navigation.breadCrumbs.length > 1) {
+        const titleBreadCrumbEl = makeBreadCrumbs(
+          doc,
+          ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
+        );
+        titleBlockEl.prepend(titleBreadCrumbEl);
       }
     }
 
@@ -792,10 +827,15 @@ async function resolveFooter(
   return footer;
 }
 
-function makeBreadCrumbs(doc: Document) {
+function makeBreadCrumbs(doc: Document, clz?: string[]) {
   // Make bootstrap breadcrumbs
   const navEl = doc.createElement("nav");
   navEl.classList.add("quarto-page-breadcrumbs");
+  if (clz && clz.length) {
+    clz.forEach((cls) => {
+      navEl.classList.add(cls);
+    });
+  }
   navEl.setAttribute("aria-label", "breadcrumb");
 
   const olEl = doc.createElement("ol");

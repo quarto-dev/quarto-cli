@@ -979,6 +979,9 @@
       back-to-top-navigation:
         boolean:
           description: "Provide a 'back to top' navigation button"
+      bread-crumbs:
+        boolean:
+          description: "Whether to show navigation breadcrumbs for pages more than 1 level deep"
       page-footer:
         anyOf:
           - string
