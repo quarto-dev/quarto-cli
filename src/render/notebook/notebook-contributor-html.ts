@@ -55,7 +55,7 @@ export function outputFile(
   return `${basename(nbAbsPath)}.html`;
 }
 
-async function resolveHtmlNotebook(
+function resolveHtmlNotebook(
   nbAbsPath: string,
   _token: string,
   executedFile: ExecutedFile,
@@ -102,6 +102,7 @@ async function resolveHtmlNotebook(
 
   return resolved;
 }
+
 async function renderHtmlNotebook(
   nbPath: string,
   format: Format,
