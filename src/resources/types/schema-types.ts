@@ -1156,7 +1156,7 @@ export type NotebookViewSchema = {
 
 export type ManuscriptSchema = {
   "manuscript-url"?: string /* The deployed url for this manuscript */;
-  "meca-archive"?:
+  "meca-bundle"?:
     | boolean
     | string /* Whether to generate a MECA bundle for this manuscript */;
   article?:

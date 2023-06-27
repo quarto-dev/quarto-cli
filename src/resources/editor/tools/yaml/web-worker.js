@@ -11214,7 +11214,7 @@ try {
                       description: "The deployed url for this manuscript"
                     }
                   },
-                  "meca-archive": {
+                  "meca-bundle": {
                     anyOf: [
                       "boolean",
                       "string"

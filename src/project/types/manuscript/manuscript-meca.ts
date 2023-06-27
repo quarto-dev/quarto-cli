@@ -20,14 +20,13 @@ import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
   kEnvironmentFiles,
-  kMecaArchive,
+  kMecaBundle,
   ManuscriptConfig,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
-import { info } from "log/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
@@ -62,9 +61,9 @@ export const shouldMakeMecaBundle = (
   formats: Array<string | Format>,
   manuConfig?: ManuscriptConfig,
 ) => {
-  if (!manuConfig || manuConfig[kMecaArchive] !== false) {
+  if (!manuConfig || manuConfig[kMecaBundle] !== false) {
     // See if it was explicitely on
-    if (manuConfig && manuConfig[kMecaArchive] === true) {
+    if (manuConfig && manuConfig[kMecaBundle] === true) {
       return true;
     }
 
@@ -83,8 +82,8 @@ export const shouldMakeMecaBundle = (
 };
 
 export const mecaFileName = (file: string, config: ManuscriptConfig) => {
-  if (typeof (config[kMecaArchive]) === "string") {
-    return config[kMecaArchive];
+  if (typeof (config[kMecaBundle]) === "string") {
+    return config[kMecaBundle];
   } else {
     const [_, stem] = dirAndStem(file);
     return `${stem}${kMecaSuffix}`;

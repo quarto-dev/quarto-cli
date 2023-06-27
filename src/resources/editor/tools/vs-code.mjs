@@ -11213,7 +11213,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "The deployed url for this manuscript"
                   }
                 },
-                "meca-archive": {
+                "meca-bundle": {
                   anyOf: [
                     "boolean",
                     "string"
