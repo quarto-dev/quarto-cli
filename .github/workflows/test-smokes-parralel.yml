@@ -22,6 +22,23 @@ jobs:
         run: |
           ./run-parallel-tests.sh -n=10 --dry-run
         working-directory: tests
-#      - name: Read buckets
-#        run: |
-#          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
+  #      - name: Read buckets
+  #        run: |
+  #          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
+
+  run-smoke-tests:
+    #    strategy:
+    #      fail-fast: false
+    #      matrix:
+    #        tests:
+    #          - [
+    #              "./smoke/yaml-intelligence/yaml-intelligence.test.ts",
+    #              "./smoke/render/render-citeproc.test.ts",
+    #            ]
+    #          - [
+    #              "./smoke/extensions/extension-render-project.test.ts",
+    #              "./smoke/jats/render-jats.test.ts",
+    #            ]
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      buckets: "./smoke/yaml-intelligence/yaml-intelligence.test.ts ./smoke/render/render-citeproc.test.ts"
