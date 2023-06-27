@@ -138,17 +138,8 @@ export const manuscriptProjectType: ProjectType = {
     // Compute the article path
     const article = computeProjectArticleFile(projectDir, manuscriptConfig);
 
-    // Determine the notebooks that are being declared explicitly in
-    // in the manuscript configuration
-    const notebooks: NotebookPreviewDescriptor[] = [];
-    if (manuscriptConfig.notebooks !== undefined) {
-      const specifiedNotebooks = Array.isArray(manuscriptConfig.notebooks)
-        ? manuscriptConfig.notebooks
-        : [manuscriptConfig.notebooks];
-      notebooks.push(...resolveNotebookDescriptors(specifiedNotebooks));
-    }
-
     // Go through project inputs and use any of these as notebooks
+    const notebooks: Record<string, NotebookPreviewDescriptor> = {};
     const inputNotebooks = inputs.files.map((input) => {
       return relative(projectDir, input);
     }).filter((file) => {
@@ -164,11 +155,16 @@ export const manuscriptProjectType: ProjectType = {
       return true;
     });
     if (inputNotebooks) {
-      notebooks.push(...resolveNotebookDescriptors(inputNotebooks));
+      resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+        notebooks[nb.notebook] = nb;
+      });
     }
 
     // Build the final render list, ensuring that the article is last in the list
-    config.project.render = [...notebooks.map((nb) => (nb.notebook)), article];
+    config.project.render = [
+      ...Object.values(notebooks).map((nb) => (nb.notebook)),
+      article,
+    ];
 
     let count = 0;
 
@@ -176,7 +172,7 @@ export const manuscriptProjectType: ProjectType = {
     // subnotebooks are used to configure the JATS format with
     // additional notebooks that should be included within the
     // rendered JATS article
-    const jatsNotebooks = notebooks.map((notebookDesc) => {
+    const jatsNotebooks = Object.values(notebooks).map((notebookDesc) => {
       return {
         input: join(projectDir, notebookDesc.notebook),
         token: `nb-${++count}`,
@@ -187,14 +183,25 @@ export const manuscriptProjectType: ProjectType = {
     // If there are computations in the main article, the add
     // it as a notebook to be rendered with computations intact
     if (await hasComputations(join(projectDir, article))) {
-      notebooks.unshift({
+      notebooks[article] = {
         notebook: article,
         title: language[kArticleNotebookLabel],
-      });
+      };
       jatsNotebooks.unshift({
         input: join(projectDir, article),
         token: `nb-article`,
         render: true,
+      });
+    }
+
+    // Determine the notebooks that are being declared explicitly in
+    // in the manuscript configuration
+    if (manuscriptConfig.notebooks !== undefined) {
+      const specifiedNotebooks = Array.isArray(manuscriptConfig.notebooks)
+        ? manuscriptConfig.notebooks
+        : [manuscriptConfig.notebooks];
+      resolveNotebookDescriptors(specifiedNotebooks).forEach((nb) => {
+        notebooks[nb.notebook] = nb;
       });
     }
 
@@ -220,7 +227,7 @@ export const manuscriptProjectType: ProjectType = {
     const resolvedManuscriptOptions: ResolvedManuscriptConfig = {
       ...manuscriptConfig,
       article,
-      notebooks,
+      notebooks: Object.values(notebooks),
       mecaFile: mecaFileOutput,
       [kEnvironmentFiles]: environmentFiles,
     };
@@ -441,7 +448,7 @@ export const manuscriptProjectType: ProjectType = {
       // If the user isn't explicitly providing a notebook list
       // then automatically create notebooks for the other items in
       // the project
-      const outputNbs: NotebookPreviewDescriptor[] = [];
+      const outputNbs: Record<string, NotebookPreviewDescriptor> = {};
       const notebooks = manuscriptConfig.notebooks || [];
       for (const notebook of notebooks) {
         // Use the input to create a title for the notebook
@@ -457,12 +464,12 @@ export const manuscriptProjectType: ProjectType = {
           }
         };
 
-        outputNbs.push({
+        outputNbs[notebook.notebook] = {
           ...notebook,
           title: notebook.title || await createTitle(),
-        });
+        };
       }
-      extras[kNotebooks] = outputNbs;
+      extras[kNotebooks] = Object.values(outputNbs);
     }
 
     return Promise.resolve(extras);
