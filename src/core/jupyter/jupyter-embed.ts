@@ -57,8 +57,8 @@ import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
 import { kRenderedIPynb } from "../../render/notebook/notebook-types.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { relative } from "../../vendor/deno.land/std@0.185.0/path/win32.ts";
 import { logProgress } from "../log.ts";
+import * as ld from "../../../src/core/lodash.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -152,12 +152,11 @@ export async function ensureNotebookContext(
 ) {
   const regex = placeholderRegex();
   let match = regex.exec(markdown);
-  let shownHeading = false;
+  const nbsToRender: Array<{ path: string; name: string }> = [];
+
   while (match) {
     // Parse the address and if this is a notebook
     // then proceed with the replacement
-    // TODO: Gather all renderings and then count them up and render them
-    // providing numerical progress
     const nbAddr = match[2];
     const nbAddress = parseNotebookAddress(nbAddr);
     if (!nbAddress) {
@@ -168,22 +167,30 @@ export async function ensureNotebookContext(
     const nbAbsPath = resolveNbPath(input, nbAddress.path, context);
     if (!isNotebook(nbAbsPath)) {
       if (!services.notebook.get(nbAbsPath, context)?.[kRenderedIPynb].output) {
-        if (!shownHeading) {
-          logProgress("Rendering qmd embeds");
-          shownHeading = true;
-        }
-        logProgress(`${nbAddress.path}`);
-        await services.notebook.render(
-          nbAbsPath,
-          ipynbFormat(),
-          kRenderedIPynb,
-          services,
-          undefined,
-          context,
-        );
+        nbsToRender.push({ path: nbAbsPath, name: nbAddress.path });
       }
     }
     match = regex.exec(markdown);
+  }
+
+  const uniqueRenders = ld.uniqBy(
+    nbsToRender,
+    (nb: { path: string }) => nb.path,
+  ) as Array<{ path: string; name: string }>;
+  if (uniqueRenders.length) {
+    logProgress("Rendering qmd embeds");
+  }
+  let count = 0;
+  for (const nb of uniqueRenders) {
+    logProgress(`[${++count}/${uniqueRenders.length}]${nb.name}`);
+    await services.notebook.render(
+      nb.path,
+      ipynbFormat(),
+      kRenderedIPynb,
+      services,
+      undefined,
+      context,
+    );
   }
 }
 
