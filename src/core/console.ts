@@ -72,13 +72,13 @@ export function progressBar(total: number, prefixMessage?: string): {
   };
 }
 
-export async function withSpinner(
+export async function withSpinner<T>(
   options: SpinnerOptions,
-  op: () => Promise<void>,
+  op: () => Promise<T>,
 ) {
   const cancel = spinner(options.message);
   try {
-    await op();
+    return await op();
   } finally {
     cancel(options.doneMessage);
   }

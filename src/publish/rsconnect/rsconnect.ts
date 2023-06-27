@@ -26,10 +26,10 @@ import {
 import { ensureProtocolAndTrailingSlash } from "../../core/url.ts";
 
 import { createTempContext } from "../../core/temp.ts";
-import { createBundle } from "./bundle.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { randomHex } from "../../core/random.ts";
 import { RenderFlags } from "../../command/render/types.ts";
+import { createBundle } from "../common/bundle.ts";
 
 export const kRSConnect = "connect";
 const kRSConnectDescription = "Posit Connect";
