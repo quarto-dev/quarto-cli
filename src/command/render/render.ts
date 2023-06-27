@@ -117,6 +117,7 @@ export async function renderPandoc(
     context,
     context.options.flags || {},
     executeResult.markdown,
+    context.options.services,
   );
 
   const embedSupporting: string[] = [];
