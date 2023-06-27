@@ -7,7 +7,8 @@ on:
 jobs:
   jobs-matrix:
     runs-on: ubuntu-latest
-
+    outputs:
+      buckets: ${{ steps.tests-buckets.outputs.buckets }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -20,13 +21,14 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          ./run-parallel-tests.sh -n=10 --dry-run
+          echo "buckets=$(run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) | { buckets: . }')" >> "$GITHUB_OUTPUT"
         working-directory: tests
-  #      - name: Read buckets
-  #        run: |
-  #          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
+      - name: Read buckets
+        run: |
+          echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
 
   run-smoke-tests:
+    needs: jobs-matrix
     #    strategy:
     #      fail-fast: false
     #      matrix:
