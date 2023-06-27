@@ -662,22 +662,25 @@ mark {
   padding: 0em;
 }
 
-// FIXME: this needs a full cleanup once we have
-// a firmer idea of what the DOM looks like in 1.4
+// The 1.4 figcaption classes are
 //
-// I think we should replace these classes with
-// .figure-caption => .quarto-caption.quarto-float-figure
-// .subfigure-caption => .quarto-caption.quarto-subfloat-figure
-// etc.
+// quarto-float-caption or quarto-subfloat-caption, depending
+// on whether it's a main or subfloat caption.
 //
-// this way, custom float types can be supported and
+// In addition, the name of the float is added as a class
+// as well ("figure", "table", etc, including custom
+// float types like a hypothetical "diagram")
+//
+// this way, custom float types can be both supported and
 // offered good defaults.
-
+//
+// FIXME right now we're classing all of figcaption,
+// but we should clean this up.
 .panel-caption,
 .figure-caption,
 .subfigure-caption,
 .table-caption,
-figcaption,
+figcaption.quarto-float-caption,
 caption {
   font-size: 0.9rem;
   @include body-secondary;

@@ -252,16 +252,29 @@ end)
 local figcaption_uuid = "0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"
 
 local function create_figcaption(float)
+  -- local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
+  -- local class = "figure-caption"
+  -- if float.parent_id then
+  --   class = "subfigure-caption"
+  -- end
+  -- return quarto.HtmlTag({
+  --   name = "figcaption",
+  --   attr = pandoc.Attr(caption_id, {class}, {}),
+  --   content = float.caption_long,
+  -- }), caption_id
+  -- 
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
-  local class = "figure-caption"
+  local classes = { float.type:lower() }
   if float.parent_id then
-    class = "subfigure-caption"
+    table.insert(classes, "quarto-subfloat-caption")
+  else
+    table.insert(classes, "quarto-float-caption")
   end
   return quarto.HtmlTag({
     name = "figcaption",
-    attr = pandoc.Attr(caption_id, {class}, {}),
+    attr = pandoc.Attr(caption_id, classes, {}),
     content = float.caption_long,
   }), caption_id
 end

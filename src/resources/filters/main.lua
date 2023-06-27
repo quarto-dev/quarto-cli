@@ -358,11 +358,6 @@ local quartoFinalize = {
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
   { name = "finalize-coalesce-raw", filter = coalesce_raw() },
-  { filter = {
-    Pandoc = function(doc)
-      print(pandoc.write(doc, "native"))
-    end
-  }},
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
 }
 
