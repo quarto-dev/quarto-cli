@@ -28,7 +28,7 @@ jobs:
           echo ${{ fromJSON(steps.tests-buckets.outputs.buckets) }} | jq .
 
   run-smoke-tests:
-    needs: jobs-matrix
+    # needs: jobs-matrix
     #    strategy:
     #      fail-fast: false
     #      matrix:
