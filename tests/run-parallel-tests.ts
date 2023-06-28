@@ -124,6 +124,7 @@ if (flags["dry-run"]) {
     return Deno.run({
       cmd,
     }).status();
-  }));
-  console.log("Running `run-test.sh` in parallel... END");
+  })).then(() => {
+    console.log("Running `run-test.sh` in parallel... END");
+  });
 }
