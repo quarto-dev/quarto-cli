@@ -118,12 +118,12 @@ if (flags["dry-run"]) {
   console.log(JSON.stringify(buckets, null, 2));
 } else {
   console.log("Running `run-test.sh` in parallel... ");
-  /*   Promise.all(buckets.map((bucket) => {
+  Promise.all(buckets.map((bucket) => {
     const cmd: string[] = ["./run-tests.sh"];
     cmd.push(...bucket.map((tt) => tt.name));
     return Deno.run({
       cmd,
     }).status();
-  })); */
+  }));
   console.log("Running `run-test.sh` in parallel... END");
 }
