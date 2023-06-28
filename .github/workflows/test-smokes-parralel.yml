@@ -19,13 +19,15 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "buckets=$(run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) | { buckets: . }')" >> "$GITHUB_OUTPUT"
+          echo "$(run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) | { buckets: . }')"
+          # echo "BUCKETS=$(run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) | { buckets: . }')" >> "$GITHUB_OUTPUT"
         working-directory: tests
       - name: Read buckets
         run: |
-          echo ${{ steps.tests-buckets.outputs.buckets }}
+          echo ${{ steps.tests-buckets.outputs.BUCKETS }}
 
   run-smoke-tests:
+    if: false
     # needs: jobs-matrix
     #    strategy:
     #      fail-fast: false
