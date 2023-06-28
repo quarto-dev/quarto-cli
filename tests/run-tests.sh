@@ -51,6 +51,10 @@ if [ "$QUARTO_TEST_TIMING" != "" ]; then
     FILES=`find . | grep \.test\.ts$`
   fi
   for i in $FILES; do
+    if [ "$FILES" == "./test.ts" ]; then
+     # ignoring this file as this is not a test file to time
+     continue
+    fi
     echo $i >> timing.txt
     /usr/bin/time -a -o timing.txt "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
   done
