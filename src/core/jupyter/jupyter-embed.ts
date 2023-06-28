@@ -206,7 +206,7 @@ export function notebookMarkdownPlaceholder(
 ) {
   return `<!-- 12A0366C|${input}|:${nbPath} | ${outputs || ""} | ${
     optionsToPlaceholder(options)
-  } -->`;
+  } -->\n`;
 }
 
 // Replaces any notebook markdown placeholders with the
