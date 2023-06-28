@@ -40,6 +40,13 @@ const testTimings: TestTiming[] = [];
 
 for (let i = 0; i < lines.length; i += 2) {
   const name = lines[i].trim();
+  if (!currentTests.has(name)) {
+    flags.verbose &&
+      console.log(
+        `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING=timing.txt'`,
+      );
+    continue;
+  }
   const timingStrs = lines[i + 1].trim().replaceAll(/ +/g, " ").split(" ");
   const timing = {
     real: Number(timingStrs[0]),
