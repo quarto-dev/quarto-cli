@@ -62,12 +62,20 @@ $QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-wr
 # PowerShell quietly strips -- from the list of arguments and `--` is need for Deno to pass argument to the script
 # Code adapted from: https://stackoverflow.com/questions/56750826/how-to-use-dash-argument-in-powershell
 
-# Extract the argument list from the invocation command line.
-$argList = ($MyInvocation.Line -replace ('^.*' + [regex]::Escape($MyInvocation.InvocationName)) -split '[;|]')[0].Trim()
-
-# Use Invoke-Expression with a Write-Output call to parse the raw argument list,
-# performing evaluation and splitting it into an array:
-$customArgs = if ($argList) { @(Invoke-Expression "Write-Output -- $argList") } else { @() }
+# First case is when script is called from main process
+# e.g ./run-tests.ps1 smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd
+# Second case is when script is ran from a child process 
+# e.g pwsh -F ./run-tests.ps1 smoke/smoke-all.test.ts -- docs\smoke-all\2023\02\08\4272.qmd
+if( $MyInvocation.Line ) {
+  $argList = ($MyInvocation.Line -replace ('^.*' + [regex]::Escape($MyInvocation.InvocationName)) -split '[;|]')[0].Trim()
+  # Extract the argument list from the invocation command line.
+  
+  # Use Invoke-Expression with a Write-Output call to parse the raw argument list,
+  # performing evaluation and splitting it into an array:
+  $customArgs = if ($argList) { @(Invoke-Expression "Write-Output -- $argList") } else { @() }  
+} else {
+  $customArgs = $MyInvocation.UnboundArguments
+}
 
 # ---- Running tests with Deno -------
 
