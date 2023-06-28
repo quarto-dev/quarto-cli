@@ -56,7 +56,19 @@ test({
   context: {},
   execute: async () => {
     await runEditorSupportCrossref(
-      docs("crossrefs/unnumbered-crossrefs.qmd"),
+      docs("crossrefs/editor-support/unnumbered-crossrefs.qmd"),
+    );
+  },
+  verify: [],
+  type: "smoke",
+});
+
+test({
+  name: "editor-support:crossref:smoke-3",
+  context: {},
+  execute: async () => {
+    await runEditorSupportCrossref(
+      docs("crossrefs/all.qmd"),
     );
   },
   verify: [],

@@ -35,7 +35,7 @@ export const crossrefCommand = new Command()
     const cmd = [pandocBinaryPath(), "+RTS", "-K512m", "-RTS"];
     cmd.push(...[
       "--from",
-      "markdown",
+      resourcePath("filters/qmd-reader.lua"),
       "--to",
       "native",
       "--data-dir",
