@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFiles } from "../../command/render/render-files.ts";
+import { renderFile, renderFiles } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
@@ -118,8 +118,8 @@ async function renderHtmlNotebook(
   );
 
   // Render the notebook and update the path
-  const rendered = await renderFiles(
-    [{ path: nbPath, formats: ["html"] }],
+  const rendered = await renderFile(
+    { path: nbPath, formats: ["html"] },
     {
       services,
       flags: {
@@ -143,8 +143,7 @@ async function renderHtmlNotebook(
       warning: true,
       quietPandoc: true,
     },
-    [],
-    undefined,
+    services,
     project,
   );
 
