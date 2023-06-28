@@ -1,9 +1,8 @@
 /*
-* command.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * command.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join } from "path/posix.ts";
 import { readAll } from "streams/mod.ts";
@@ -64,6 +63,7 @@ export const crossrefCommand = new Command()
           "QUARTO_FILTER_PARAMS": filterParams,
           "QUARTO_SHARE_PATH": resourcePath(),
         },
+        stdout: "piped",
       },
       input,
     );
