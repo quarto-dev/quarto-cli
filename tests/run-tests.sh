@@ -44,6 +44,7 @@ then
 fi
 
 if [ "$QUARTO_TEST_TIMING" != "" ]; then
+  echo "> Running tests with timing"
   QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
   rm -f timing.txt
   FILES=$@
