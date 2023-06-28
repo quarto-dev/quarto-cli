@@ -113,7 +113,6 @@ export async function renderPandoc(
   // Process any placeholder for notebooks that have been injected
   const notebookResult = await replaceNotebookPlaceholders(
     format.pandoc.to || "html",
-    context.target.source,
     context,
     context.options.flags || {},
     executeResult.markdown,

@@ -145,7 +145,6 @@ function unsupportedEmbed(path: string) {
 }
 
 export async function ensureNotebookContext(
-  input: string,
   markdown: string,
   services: RenderServices,
   context?: ProjectContext,
@@ -157,6 +156,7 @@ export async function ensureNotebookContext(
   while (match) {
     // Parse the address and if this is a notebook
     // then proceed with the replacement
+    const inputPath = match[1];
     const nbAddr = match[2];
     const nbAddress = parseNotebookAddress(nbAddr);
     if (!nbAddress) {
@@ -164,7 +164,7 @@ export async function ensureNotebookContext(
         "Unexpected - there must be a notebook address since we matched.",
       );
     }
-    const nbAbsPath = resolveNbPath(input, nbAddress.path, context);
+    const nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context);
     if (!isNotebook(nbAbsPath)) {
       if (!services.notebook.get(nbAbsPath, context)?.[kRenderedIPynb].output) {
         nbsToRender.push({ path: nbAbsPath, name: nbAddress.path });
@@ -213,7 +213,6 @@ export function notebookMarkdownPlaceholder(
 // rendered contents.
 export async function replaceNotebookPlaceholders(
   to: string,
-  input: string,
   context: RenderContext,
   flags: RenderFlags,
   markdown: string,
@@ -229,6 +228,7 @@ export async function replaceNotebookPlaceholders(
     // then proceed with the replacement
     const inputPath = match[1];
     const nbAddressStr = match[2];
+
     const nbAddress = parseNotebookAddress(nbAddressStr);
     if (!nbAddress) {
       throw new InternalError(
@@ -238,7 +238,7 @@ export async function replaceNotebookPlaceholders(
 
     // This holds the notebook path that will end being used
     // for reading the embed
-    let nbAbsPath = resolveNbPath(input, nbAddress.path, context.project);
+    let nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context.project);
 
     // See if we can resolve non-notebooks. Note that this
     // requires that we have pre-rendered any notebooks that we discover
@@ -251,13 +251,13 @@ export async function replaceNotebookPlaceholders(
       }
     }
 
-    let assets = assetCache[nbAbsPath];
+    let assets = assetCache[inputPath];
     if (!assets) {
       assets = jupyterAssets(
-        nbAbsPath,
+        inputPath,
         to,
       );
-      assetCache[nbAbsPath] = assets;
+      assetCache[inputPath] = assets;
     }
 
     if (nbAddress) {

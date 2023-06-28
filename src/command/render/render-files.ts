@@ -620,13 +620,7 @@ async function renderFileInternal(
         });
 
         // Ensure that we have rendered any notebooks
-        const input = isAbsolute(file.path)
-          ? file.path
-          : project
-          ? join(project.dir, file.path)
-          : join(Deno.cwd(), file.path);
         await ensureNotebookContext(
-          input,
           unmappedExecuteResult!.markdown,
           context.options.services,
           project,
