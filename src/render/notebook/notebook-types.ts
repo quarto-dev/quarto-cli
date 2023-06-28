@@ -77,7 +77,7 @@ export interface NotebookContext {
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
     outputFile?: string,
-  ) => Promise<ExecutedFile>;
+  ) => ExecutedFile;
   // Provide a preview to the notebook context (for example, if you rendered it yourself)
   addRendering: (
     nbPath: string,
@@ -112,7 +112,7 @@ export interface NotebookContributor {
     token: string,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
-  ): Promise<ExecutedFile>;
+  ): ExecutedFile;
   render(
     nbAbsPath: string,
     format: Format,

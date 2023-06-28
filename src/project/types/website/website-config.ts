@@ -57,6 +57,7 @@ type WebsiteConfigKey =
   | "sidebar"
   | "page-navigation"
   | "back-to-top-navigation"
+  | "bread-crumbs"
   | "page-footer"
   | "margin-header"
   | "margin-footer"

@@ -125,10 +125,6 @@ export function templateMarkdownHandler(
           );
         }
       }
-
-      // If there is no image and there is a placeholder, use that
-      record.image = record.image || listing[kImagePlaceholder];
-
       return record;
     },
   );

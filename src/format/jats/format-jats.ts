@@ -8,6 +8,7 @@ import {
   kDefaultImageExtension,
   kIncludeAfterBody,
   kLinkCitations,
+  kNotebookSubarticles,
   kQuartoInternal,
   kResources,
   kVariant,
@@ -102,7 +103,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
           kSubArticles
         ]) as Array<JatsRenderSubArticle> | undefined;
 
-        if (subArticles) {
+        if (subArticles && format.render[kNotebookSubarticles] !== false) {
           const placeholderFile = services.temp.createFile({
             suffix: ".placeholder.xml",
           });

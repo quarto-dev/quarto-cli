@@ -41,6 +41,8 @@
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
 - ([#5805](https://github.com/quarto-dev/quarto-cli/pull/5805)): Update the inherited `word-break: break-word` style (Bootstrap) to `word-break: keep-all` to prevent hyphenation of words in listings.
 - ([#5802](https://github.com/quarto-dev/quarto-cli/pull/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
+- ([#6029](https://github.com/quarto-dev/quarto-cli/pull/6029)): Only use the `image-placeholder` for a listing if no other image is available.
+- Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 
 ## Websites
 
@@ -75,6 +77,7 @@
 ## Beamer Format
 
 - [#5536](https://github.com/quarto-dev/quarto-cli/issues/5536): Correctly support Code Filename feature for Beamer output by fixing issue with float environment.
+- [#6041](https://github.com/quarto-dev/quarto-cli/issues/6041): Correctly support code block appearance options (`code-block-bg` and `code-block-border-left`).
 
 ## OJS engine
 

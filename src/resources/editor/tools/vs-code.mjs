@@ -9599,6 +9599,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Provide a 'back to top' navigation button"
                 }
               },
+              "bread-crumbs": {
+                boolean: {
+                  description: "Whether to show navigation breadcrumbs for pages more than 1 level deep"
+                }
+              },
               "page-footer": {
                 anyOf: [
                   "string",
@@ -11208,7 +11213,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "The deployed url for this manuscript"
                   }
                 },
-                "meca-archive": {
+                "meca-bundle": {
                   anyOf: [
                     "boolean",
                     "string"
@@ -11602,7 +11607,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Show a thick left border on code blocks.",
-            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.=\n"
+            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.\n"
           }
         },
         {
@@ -18807,6 +18812,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -18934,6 +18940,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20776,7 +20783,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
         {
           short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>left</code> - Show the Table of Contents in right\nmargin of the document. <code>left-body</code> - Show two Tables of\nContents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
         },
         "The title used for the table of contents.",
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -20931,6 +20938,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -21241,6 +21249,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -21634,12 +21643,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158637,
+        _internalId: 158641,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158629,
+            _internalId: 158633,
             type: "enum",
             enum: [
               "png",
@@ -21655,7 +21664,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158636,
+            _internalId: 158640,
             type: "anyOf",
             anyOf: [
               {

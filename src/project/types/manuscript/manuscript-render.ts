@@ -88,7 +88,7 @@ export const manuscriptRenderer = (
 
     if (isJatsOutput(executedFile.context.format.pandoc)) {
       progressMessage("Rendering JATS embedded notebook");
-      const resolvedExecutedFile = await nbContext.resolve(
+      const resolvedExecutedFile = nbContext.resolve(
         input,
         kJatsSubarticle,
         executedFile,
@@ -105,7 +105,7 @@ export const manuscriptRenderer = (
       let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
         progressMessage("Rendering output notebook");
-        const ipynbExecutedFile = await nbContext.resolve(
+        const ipynbExecutedFile = nbContext.resolve(
           input,
           kRenderedIPynb,
           executedFile,
@@ -147,7 +147,7 @@ export const manuscriptRenderer = (
         downloadFile: basename(input),
       };
 
-      const resolvedExecutedFile = await nbContext.resolve(
+      const resolvedExecutedFile = nbContext.resolve(
         input,
         kHtmlPreview,
         executedFile,

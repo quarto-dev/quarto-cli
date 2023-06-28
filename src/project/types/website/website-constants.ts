@@ -26,6 +26,7 @@ export const kSiteSidebarFooter = "footer";
 export const kSitePageNavigation = "page-navigation";
 export const kPageFooter = "page-footer";
 export const kBackToTopNavigation = "back-to-top-navigation";
+export const kBreadCrumbNavigation = "bread-crumbs";
 
 export const kMarginHeader = "margin-header";
 export const kMarginFooter = "margin-footer";

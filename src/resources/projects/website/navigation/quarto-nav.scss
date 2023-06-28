@@ -396,6 +396,10 @@ $sidebar-section-bottom-margin: 0.2em;
       margin-right: 0.15rem;
     }
 
+    nav.quarto-title-breadcrumbs {
+      display: none;
+    }
+
     nav.quarto-page-breadcrumbs {
       display: flex;
       align-items: center;
@@ -416,6 +420,17 @@ $sidebar-section-bottom-margin: 0.2em;
 @include media-breakpoint-up(lg) {
   .quarto-secondary-nav {
     display: none;
+  }
+}
+
+.quarto-title-breadcrumbs .breadcrumb {
+  margin-bottom: 0.5em;
+  font-size: 0.9rem;
+
+  li:last-of-type {
+    a {
+      color: $text-muted;
+    }
   }
 }
 
@@ -451,6 +466,10 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 .quarto-secondary-nav {
   cursor: pointer;
+}
+
+.no-decor {
+  text-decoration: none;
 }
 
 .quarto-secondary-nav-title {
