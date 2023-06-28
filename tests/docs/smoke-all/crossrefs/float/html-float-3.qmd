@@ -10,7 +10,7 @@ _quarto:
 
 This tests:
 
-- float syntax for implicit figures as images with identifiers
+- float syntax for implicit figures and tables as images with identifiers
 
 ![This is a figure](img/surus.jpg){#fig-foo}
 

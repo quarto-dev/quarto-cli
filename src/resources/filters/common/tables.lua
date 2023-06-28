@@ -32,7 +32,7 @@ function parseTableCaption(caption)
         end
       end
       if beginIndex ~= nil then 
-        local attrText = trim(inlinesToString(tslice(caption, beginIndex, #caption)))
+        local attrText = trim(inlinesToString(pandoc.Inlines(tslice(caption, beginIndex, #caption))))
         attrText = attrText:gsub("“", "'"):gsub("”", "'")
         local elWithAttr = pandoc.read("## " .. attrText).blocks[1]
         if elWithAttr.attr ~= nil then

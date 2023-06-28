@@ -71,23 +71,12 @@ function combineFilters(filters)
 end
 
 function inlinesToString(inlines)
-  local merged_inlines = pandoc.Inlines({})
   local pt = pandoc.utils.type(inlines)
-  local filter = {
-    Inlines = function(inner)
-      merged_inlines:extend(inner)
-    end
-  }
-  if pt == "List" then
-    for _, v in ipairs(inlines) do
-      _quarto.ast.walk(v, filter)
-    end
-  elseif pt == "Inlines" then
-    return pandoc.utils.stringify(pandoc.Span(inlines))
-  else
-    _quarto.ast.walk(inlines, filter)
+  if pt ~= "Inlines" then
+    fail("inlinesToString: expected Inlines, got " .. pt)
+    return ""
   end
-  return pandoc.utils.stringify(pandoc.Span(merged_inlines))
+  return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
 -- lua string to pandoc inlines
