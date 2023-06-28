@@ -21,7 +21,7 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "BUCKETS=$(./run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) | { buckets: . }')" >> "$GITHUB_OUTPUT"
+          echo "BUCKETS=$(./run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) | { buckets: ., num: to_entries | map( (.value = "\(1+.key)" ) | .value)}')" >> "$GITHUB_OUTPUT"
         working-directory: tests
       - name: Read buckets
         run: |
@@ -43,12 +43,14 @@ jobs:
           echo $matrix | json2yaml
   run-smoke-tests:
     # needs: jobs-matrix
+    name: Running Tests buckets ${{ matrix.num }}
     strategy:
       fail-fast: false
       matrix:
-        tests:
+        num: [1, 2]
+        buckets:
           - "./smoke/yaml-intelligence/yaml-intelligence.test.ts ./smoke/render/render-citeproc.test.ts"
           - "./smoke/extensions/extension-render-project.test.ts ./smoke/jats/render-jats.test.ts"
     uses: ./.github/workflows/test-smokes.yml
     with:
-      buckets: ${{ matrix.tests }}
+      buckets: ${{ matrix.buckets }}
