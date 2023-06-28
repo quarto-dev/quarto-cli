@@ -13,7 +13,7 @@ try {
 } catch (e) {
   console.log(e);
   console.log(
-    "timing.txt missing. run ./run-tests.sh with QUARTO_TEST_TIMING=timing.txt",
+    "timing.txt missing. run ./run-tests.sh with QUARTO_TEST_TIMING=true",
   );
   Deno.exit(1);
 }
@@ -43,7 +43,7 @@ for (let i = 0; i < lines.length; i += 2) {
   if (!currentTests.has(name)) {
     flags.verbose &&
       console.log(
-        `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING=timing.txt'`,
+        `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING=true'`,
       );
     continue;
   }
