@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFile, renderFiles } from "../../command/render/render-files.ts";
+import { renderFiles } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
@@ -84,8 +84,8 @@ async function renderJats(
   _notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
-  const rendered = await renderFile(
-    { path: nbPath, formats: ["jats"] },
+  const rendered = await renderFiles(
+    [{ path: nbPath, formats: ["jats"] }],
     {
       services,
       flags: {
@@ -106,7 +106,8 @@ async function renderJats(
       warning: true,
       quietPandoc: true,
     },
-    services,
+    [],
+    undefined,
     project,
   );
 

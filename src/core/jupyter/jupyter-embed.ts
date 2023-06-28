@@ -31,11 +31,7 @@ import {
   isPresentationOutput,
 } from "../../config/format.ts";
 import { resolveParams } from "../../command/render/flags.ts";
-import {
-  RenderContext,
-  RenderFlags,
-  RenderServices,
-} from "../../command/render/types.ts";
+import { RenderContext, RenderFlags } from "../../command/render/types.ts";
 import {
   JupyterAssets,
   JupyterCell,
@@ -54,11 +50,6 @@ import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
 import { normalizePath, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 import { InternalError } from "../lib/error.ts";
-import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
-import { kRenderedIPynb } from "../../render/notebook/notebook-types.ts";
-import { ProjectContext } from "../../project/types.ts";
-import { relative } from "../../vendor/deno.land/std@0.185.0/path/win32.ts";
-import { logProgress } from "../log.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -87,10 +78,7 @@ const kOutput = "output";
 
 const kHashRegex = /(.*?)#(.*)/;
 const kIndexRegex = /(.*)\[([0-9,-]*)\]/;
-
-const placeholderRegex = () => {
-  return /<!-- 12A0366C\|(.*)\|:(.*?) \| (.*?) \| (.*?) -->/g;
-};
+const kPlaceholderRegex = /<!-- 12A0366C\|(.*)\|:(.*?) \| (.*?) \| (.*?) -->/;
 
 const kNotebookCache = "notebook-cache";
 const kRenderFileLifeTime = "render-file";
@@ -100,11 +88,15 @@ const kRenderFileLifeTime = "render-file";
 export function parseNotebookAddress(
   path: string,
 ): JupyterNotebookAddress | undefined {
+  const isNotebook = (path: string) => {
+    return extname(path) === ".ipynb";
+  };
+
   // This is a hash based path
   const hashResult = path.match(kHashRegex);
   if (hashResult) {
     const path = hashResult[1];
-    if (isEmbeddable(path)) {
+    if (isNotebook(path)) {
       return {
         path,
         ids: resolveCellIds(hashResult[2]),
@@ -118,7 +110,7 @@ export function parseNotebookAddress(
   const indexResult = path.match(kIndexRegex);
   if (indexResult) {
     const path = indexResult[1];
-    if (isEmbeddable(path)) {
+    if (isNotebook(path)) {
       return {
         path,
         indexes: resolveRange(indexResult[2]),
@@ -129,7 +121,7 @@ export function parseNotebookAddress(
   }
 
   // This is the path to a notebook
-  if (isEmbeddable(path)) {
+  if (isNotebook(path)) {
     return {
       path,
     };
@@ -142,49 +134,6 @@ function unsupportedEmbed(path: string) {
   throw new Error(
     `Unable to embed content from ${path}. Embedding currently only supports content from Juptyer Notebooks.`,
   );
-}
-
-export async function ensureNotebookContext(
-  input: string,
-  markdown: string,
-  services: RenderServices,
-  context?: ProjectContext,
-) {
-  const regex = placeholderRegex();
-  let match = regex.exec(markdown);
-  let shownHeading = false;
-  while (match) {
-    // Parse the address and if this is a notebook
-    // then proceed with the replacement
-    // TODO: Gather all renderings and then count them up and render them
-    // providing numerical progress
-    const nbAddr = match[2];
-    const nbAddress = parseNotebookAddress(nbAddr);
-    if (!nbAddress) {
-      throw new InternalError(
-        "Unexpected - there must be a notebook address since we matched.",
-      );
-    }
-    const nbAbsPath = resolveNbPath(input, nbAddress.path, context);
-    if (!isNotebook(nbAbsPath)) {
-      if (!services.notebook.get(nbAbsPath, context)?.[kRenderedIPynb].output) {
-        if (!shownHeading) {
-          logProgress("Rendering qmd embeds");
-          shownHeading = true;
-        }
-        logProgress(`${nbAddress.path}`);
-        await services.notebook.render(
-          nbAbsPath,
-          ipynbFormat(),
-          kRenderedIPynb,
-          services,
-          undefined,
-          context,
-        );
-      }
-    }
-    match = regex.exec(markdown);
-  }
 }
 
 // Creates a placeholder that will later be replaced with
@@ -206,15 +155,13 @@ export function notebookMarkdownPlaceholder(
 // rendered contents.
 export async function replaceNotebookPlaceholders(
   to: string,
-  input: string,
+  _input: string,
   context: RenderContext,
   flags: RenderFlags,
   markdown: string,
-  services: RenderServices,
 ) {
   const assetCache: Record<string, JupyterAssets> = {};
-  const regex = placeholderRegex();
-  let match = regex.exec(markdown);
+  let match = kPlaceholderRegex.exec(markdown);
   let includes;
   const notebooks: string[] = [];
   while (match) {
@@ -222,37 +169,17 @@ export async function replaceNotebookPlaceholders(
     // then proceed with the replacement
     const inputPath = match[1];
     const nbAddressStr = match[2];
-    const nbAddress = parseNotebookAddress(nbAddressStr);
-    if (!nbAddress) {
-      throw new InternalError(
-        "Expected to find a valid notebook address string for an embed.",
-      );
-    }
 
-    // This holds the notebook path that will end being used
-    // for reading the embed
-    let nbAbsPath = resolveNbPath(input, nbAddress.path, context.project);
-
-    // See if we can resolve non-notebooks. Note that this
-    // requires that we have pre-rendered any notebooks that we discover
-    // along the embed pipeline
-    if (!isNotebook(nbAbsPath)) {
-      const notebook = services.notebook.get(nbAbsPath, context.project);
-      if (notebook?.[kRenderedIPynb] && notebook[kRenderedIPynb].output) {
-        nbAbsPath = notebook[kRenderedIPynb].output?.path;
-        nbAddress.path = join(dirname(nbAddress.path), basename(nbAbsPath));
-      }
-    }
-
-    let assets = assetCache[nbAbsPath];
+    let assets = assetCache[inputPath];
     if (!assets) {
       assets = jupyterAssets(
-        nbAbsPath,
+        inputPath,
         to,
       );
-      assetCache[nbAbsPath] = assets;
+      assetCache[inputPath] = assets;
     }
 
+    const nbAddress = parseNotebookAddress(nbAddressStr);
     if (nbAddress) {
       // If a list of outputs are provided, resolve that range
       const outputsStr = match[3];
@@ -267,8 +194,9 @@ export async function replaceNotebookPlaceholders(
       // Compute appropriate includes based upon the note
       // dependendencies
       const notebookIncludes = () => {
-        if (safeExistsSync(nbAbsPath)) {
-          const notebook = jupyterFromFile(nbAbsPath);
+        const nbPath = resolveNbPath(inputPath, nbAddress.path);
+        if (safeExistsSync(nbPath)) {
+          const notebook = jupyterFromFile(nbPath);
           const dependencies = isHtmlOutput(context.format.pandoc)
             ? extractJupyterWidgetDependencies(notebook)
             : undefined;
@@ -282,8 +210,9 @@ export async function replaceNotebookPlaceholders(
             return undefined;
           }
         } else {
+          const notebookName = basename(nbPath);
           throw new Error(
-            `Unable to embed content from notebook '${nbAddress.path}'\nThe file ${nbAbsPath} doesn't exist or cannot be read.`,
+            `Unable to embed content from notebook '${notebookName}'\nThe file ${nbPath} doesn't exist or cannot be read.`,
           );
         }
       };
@@ -307,9 +236,9 @@ export async function replaceNotebookPlaceholders(
       // Replace the placeholders with the rendered markdown
       markdown = markdown.replaceAll(match[0], nbMarkdown || "");
     }
-    match = regex.exec(markdown);
+    match = kPlaceholderRegex.exec(markdown);
   }
-  regex.lastIndex = 0;
+  kPlaceholderRegex.lastIndex = 0;
 
   const supporting = Object.values(assetCache).map((assets) => {
     return join(assets.base_dir, assets.supporting_dir);
@@ -323,16 +252,11 @@ export async function replaceNotebookPlaceholders(
   };
 }
 
-function resolveNbPath(input: string, path: string, context?: ProjectContext) {
+function resolveNbPath(input: string, path: string) {
   if (isAbsolute(path)) {
     return path;
   } else {
-    if (isAbsolute(input)) {
-      return join(dirname(input), path);
-    } else {
-      const baseDir = context ? context.dir : Deno.cwd();
-      return join(baseDir, dirname(input), path);
-    }
+    return join(dirname(input), path);
   }
 }
 
@@ -440,14 +364,6 @@ export async function notebookMarkdown(
   }
 }
 
-const isNotebook = (path: string) => {
-  return extname(path) === ".ipynb";
-};
-
-const isEmbeddable = (path: string) => {
-  return isNotebook(path) || extname(path) === ".qmd";
-};
-
 // Caches the notebook info for a a particular notebook and
 // set of options. Since the markdown is what is cached,
 // the cache will include options that control markdown output
@@ -465,7 +381,7 @@ async function getCachedNotebookInfo(
   // improve performance
   const lifetime = getNamedLifetime(kRenderFileLifeTime);
   if (lifetime === undefined) {
-    throw new InternalError(`named lifetime ${kRenderFileLifeTime} not found`);
+    throw new InternalError("named lifetime render-file not found");
   }
   const nbCache =
     lifetime.get(kNotebookCache) as unknown as JupyterNotebookOutputCache ||
@@ -487,7 +403,7 @@ async function getCachedNotebookInfo(
     // Render the notebook and place it in the cache
     // Read and filter notebook
     const notebook = jupyterFromFile(
-      resolveNbPath(inputPath, nbAddress.path, context.project),
+      resolveNbPath(inputPath, nbAddress.path),
     );
     if (options) {
       notebook.cells = notebook.cells.map((cell) => {

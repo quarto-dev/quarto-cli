@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFile, renderFiles } from "../../command/render/render-files.ts";
+import { renderFiles } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
@@ -77,8 +77,8 @@ async function renderOutputNotebook(
   _notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
-  const rendered = await renderFile(
-    { path: nbPath, formats: ["ipynb"] },
+  const rendered = await renderFiles(
+    [{ path: nbPath, formats: ["ipynb"] }],
     {
       services,
       flags: {
@@ -92,7 +92,8 @@ async function renderOutputNotebook(
       warning: true,
       quietPandoc: true,
     },
-    services,
+    [],
+    undefined,
     project,
   );
 
