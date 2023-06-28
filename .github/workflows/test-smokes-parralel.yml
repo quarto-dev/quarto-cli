@@ -21,7 +21,7 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "BUCKETS=$(./run-parallel-tests.sh -n=10 --dry-run | jq -rc '.[][] |= .name | map_values(join(" ")) as $b | to_entries | map(.key | tostring) as $a | [ $b, $a ] | transpose | map({file: .[0], num: .[1] | tonumber | (. + 1) }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
+          echo "BUCKETS=$(./run-parallel-tests.sh -n=10 --dry-run | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; .[][] |= .name | map_values(join(" ")) as $b | to_entries | map(.key | tostring) as $a | [ $b, $a ] | transpose | map({file: .[0], num: .[1] | tonumber | (. + 1) | lpad(2)}) | {buckets: .}')" >> "$GITHUB_OUTPUT"
         working-directory: tests
       - name: Read buckets
         run: |
