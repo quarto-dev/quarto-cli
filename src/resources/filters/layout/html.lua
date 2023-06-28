@@ -92,7 +92,6 @@ end, function(panel_layout)
       })))
     rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
   else
-    quarto.utils.dump({panel_layout = panel_layout})
     rendered_panel = panel
     rendered_panel.attr = pandoc.Attr(
       panel_layout.identifier or "",
@@ -100,14 +99,23 @@ end, function(panel_layout)
       panel_layout.attributes)
     rendered_panel.attr.classes:insert("quarto-layout-panel")
   end
-  if #panel_layout.preamble.content > 0 then
-    local result = pandoc.Blocks({})
-    result:extend(panel_layout.preamble.content)
-    result:insert(rendered_panel)
-    return result
-  else
+  local preamble = panel_layout.preamble
+  if preamble == nil then
     return rendered_panel
   end
+  
+  local result = pandoc.Blocks({})
+  local pt = pandoc.utils.type(preamble)
+  if preamble.content and #preamble.content > 0 then
+    result:extend(preamble.content)
+  elseif pt == "Inline" or pt == "Block" then
+    result:insert(preamble)
+  else
+    fail("Don't know what to do with preamble of type " .. pt)
+    return nil
+  end
+  result:insert(rendered_panel)
+  return result
 end)
 
 -- function htmlPanel(divEl, layout, caption)
