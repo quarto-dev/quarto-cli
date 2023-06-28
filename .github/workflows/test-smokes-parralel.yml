@@ -7,6 +7,8 @@ on:
 jobs:
   jobs-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      BUCKETS: ${{ steps.tests-buckets.outputs.BUCKETS }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -23,23 +25,30 @@ jobs:
         working-directory: tests
       - name: Read buckets
         run: |
-          echo ${{ fromJSON(steps.tests-buckets.outputs.BUCKETS) }} | jq .
+          echo ${{ steps.tests-buckets.outputs.BUCKETS }}
 
+  check-matrix:
+    runs-on: ubuntu-latest
+    needs: jobs-matrix
+    steps:
+      - name: Install json2yaml
+        run: |
+          sudo npm install -g json2yaml
+
+      - name: Check matrix definition
+        run: |
+          matrix='${{ needs.jobs-matrix.outputs.BUCKETS }}'
+          echo $matrix
+          echo $matrix | jq .
+          echo $matrix | json2yaml
   run-smoke-tests:
-    if: false
     # needs: jobs-matrix
-    #    strategy:
-    #      fail-fast: false
-    #      matrix:
-    #        tests:
-    #          - [
-    #              "./smoke/yaml-intelligence/yaml-intelligence.test.ts",
-    #              "./smoke/render/render-citeproc.test.ts",
-    #            ]
-    #          - [
-    #              "./smoke/extensions/extension-render-project.test.ts",
-    #              "./smoke/jats/render-jats.test.ts",
-    #            ]
+    strategy:
+      fail-fast: false
+      matrix:
+        tests:
+          - "./smoke/yaml-intelligence/yaml-intelligence.test.ts ./smoke/render/render-citeproc.test.ts"
+          - "./smoke/extensions/extension-render-project.test.ts ./smoke/jats/render-jats.test.ts"
     uses: ./.github/workflows/test-smokes.yml
     with:
-      buckets: "./smoke/yaml-intelligence/yaml-intelligence.test.ts ./smoke/render/render-citeproc.test.ts"
+      buckets: ${{ matrix.tests }}
