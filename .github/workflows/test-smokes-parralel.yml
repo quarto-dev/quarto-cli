@@ -23,7 +23,7 @@ jobs:
         working-directory: tests
       - name: Read buckets
         run: |
-          echo ${{ steps.tests-buckets.outputs.BUCKETS }}
+          echo ${{ fromJSON(steps.tests-buckets.outputs.BUCKETS) }} | jq .
 
   run-smoke-tests:
     if: false
