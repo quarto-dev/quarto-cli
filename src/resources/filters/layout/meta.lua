@@ -82,7 +82,6 @@ function layout_meta_inject_latex_packages()
           ['sharp corners'] = "",
           ['breakable'] = "",
           enhanced = "",
-          ['borderline west'] = '{3pt}{0pt}{shadecolor}'
         }
         if bgColor then 
           options.colback = "{codebgcolor}"
@@ -90,7 +89,7 @@ function layout_meta_inject_latex_packages()
           options['interior hidden'] = ""
         end
 
-        if shadeColor then
+        if useCodeBlockBorder then
           options['borderline west'] = '{3pt}{0pt}{shadecolor}'
         end
         
