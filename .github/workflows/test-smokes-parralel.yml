@@ -43,14 +43,19 @@ jobs:
           echo $matrix | json2yaml
   run-smoke-tests:
     # needs: jobs-matrix
-    name: Running Tests buckets ${{ matrix.num }}
+    name: Running Tests buckets ${{ matrix.buckets.num }}
     strategy:
       fail-fast: false
       matrix:
-        num: [1, 2]
         buckets:
-          - "./smoke/yaml-intelligence/yaml-intelligence.test.ts ./smoke/render/render-citeproc.test.ts"
-          - "./smoke/extensions/extension-render-project.test.ts ./smoke/jats/render-jats.test.ts"
+          - {
+              num: 1,
+              files: "./smoke/yaml-intelligence/yaml-intelligence.test.ts ./smoke/render/render-citeproc.test.ts",
+            }
+          - {
+              num: 2,
+              files: "./smoke/extensions/extension-render-project.test.ts ./smoke/jats/render-jats.test.ts",
+            }
     uses: ./.github/workflows/test-smokes.yml
     with:
-      buckets: ${{ matrix.buckets }}
+      buckets: ${{ matrix.buckets.files }}
