@@ -1,0 +1,19 @@
+---
+title: float crossref test
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div#tbl-foo figure.quarto-float-tbl img", "div#fig-foo figure.quarto-float-fig img"]
+---
+
+This tests:
+
+- float syntax for implicit figures as images with identifiers
+
+![This is a figure](img/surus.jpg){#fig-foo}
+
+![This is a table](img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.
