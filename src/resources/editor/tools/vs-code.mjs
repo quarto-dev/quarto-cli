@@ -11607,7 +11607,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Show a thick left border on code blocks.",
-            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.=\n"
+            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.\n"
           }
         },
         {
@@ -18812,6 +18812,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -18939,6 +18940,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -20936,6 +20938,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -21246,6 +21249,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -21639,12 +21643,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158639,
+        _internalId: 158641,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158631,
+            _internalId: 158633,
             type: "enum",
             enum: [
               "png",
@@ -21660,7 +21664,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158638,
+            _internalId: 158640,
             type: "anyOf",
             anyOf: [
               {
