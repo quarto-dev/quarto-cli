@@ -95,7 +95,7 @@ function layout_meta_inject_latex_packages()
         
         -- redefined the 'Shaded' environment that pandoc uses for fenced 
         -- code blocks
-        metaInjectLatexBefore(meta, function(inject)
+        metaInjectLatex(meta, function(inject)
           inject("\\ifdefined\\Shaded\\renewenvironment{Shaded}{\\begin{tcolorbox}[" .. tColorOptions(options) .. "]}{\\end{tcolorbox}}\\fi")
         end)
       end
