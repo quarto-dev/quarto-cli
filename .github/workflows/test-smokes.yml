@@ -165,7 +165,7 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          readarray -t my_array < <(echo ${{ inputs.buckets }} | jq -rc '.[]')
+          readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
           for file in "${my_array[@]}"; do 
             ./run-tests.sh $file
           done
@@ -178,7 +178,7 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          foreach ($file in (${{ inputs.buckets }} | ConvertFrom-Json)) {
+          foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
             ./run-tests.ps1 $file
           done
         working-directory: tests
