@@ -59,6 +59,16 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
      # ignoring this file as this is not a test file to time
      continue
     fi
+    SMOKE_TEST_FILE="./smoke/smoke-all.test.ts"
+    if [ "$FILES" == "$SMOKE_TEST_FILE" ]; then
+      echo "> Timing smoke-all tests"
+      SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -name "*.qmd" -o -name "*.ipynb"`
+      for j in $SMOKE_ALL_FILES; do
+        echo "${SMOKE_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" ${SMOKE_TEST_FILE} -- ${j}
+      done
+      continue
+    fi
     echo $i >> timing.txt
     /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
   done
