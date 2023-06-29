@@ -3,9 +3,9 @@ import { relative } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
 const flags = parse(Deno.args, {
-  boolean: ["dry-run", "verbose"],
+  boolean: ["dry-run", "verbose", "with-time"],
   string: ["n"],
-  default: { verbose: false, "dry-run": false },
+  default: { verbose: false, "dry-run": false, "with-time": false },
 });
 
 try {
@@ -118,11 +118,12 @@ if (flags["dry-run"]) {
   console.log(JSON.stringify(buckets, null, 2));
 } else {
   console.log("Running `run-test.sh` in parallel... ");
-  Promise.all(buckets.map((bucket) => {
+  Promise.all(buckets.map((bucket, i) => {
     const cmd: string[] = ["./run-tests.sh"];
     cmd.push(...bucket.map((tt) => tt.name));
     return Deno.run({
       cmd,
+      env: flags["with-time"] ? { QUARTO_TEST_TIMING: `timing-${i}.txt` } : {},
     }).status();
   })).then(() => {
     console.log("Running `run-test.sh` in parallel... END");
