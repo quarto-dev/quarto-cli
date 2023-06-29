@@ -95,10 +95,10 @@ function manuscript()
           local notebooks = param("notebook-context", {})
           local nbFileName = pandoc.path.filename(nbRelPath)
           local previewFile = nbFileName .. ".html"
-          for _i, notebook in ipairs(notebooks) do            
+          for _i, notebook in ipairs(notebooks) do      
             if notebook.source == nbAbsPath then
-              if notebook['html-preview'].output then
-                previewFile = pandoc.path.filename(notebook['html-preview'].output.path)
+              if notebook['html-preview'] then
+                previewFile = pandoc.path.filename(notebook['html-preview'].path)
               end
               break
             end

@@ -128,7 +128,8 @@ export const notebookPreviewer = (
         const nbContext = services.notebook;
         const notebook = nbContext.get(nbAbsPath, project);
 
-        const resolvedTitle = descriptor?.title || title || basename(nbAbsPath);
+        const resolvedTitle = descriptor?.title || title ||
+          notebook?.metadata?.title || basename(nbAbsPath);
 
         // Ensure this has an rendered ipynb and an html preview
         if (!notebook || !notebook[kHtmlPreview] || !notebook[kRenderedIPynb]) {
@@ -149,7 +150,7 @@ export const notebookPreviewer = (
               },
               project,
             );
-            if (renderedIpynb && renderedIpynb.output && !project) {
+            if (renderedIpynb && !project) {
               nbContext.preserve(nbAbsPath, kRenderedIPynb);
             }
           }
@@ -161,8 +162,8 @@ export const notebookPreviewer = (
               : undefined;
 
             let downloadHref = basename(nbAbsPath);
-            if (notebook && notebook[kRenderedIPynb].output) {
-              downloadHref = notebook[kRenderedIPynb].output.path;
+            if (notebook && notebook[kRenderedIPynb]) {
+              downloadHref = notebook[kRenderedIPynb].path;
             }
 
             const htmlPreview = await nbContext.render(
@@ -179,14 +180,14 @@ export const notebookPreviewer = (
               },
               project,
             );
-            if (htmlPreview.output && !project) {
+            if (htmlPreview && !project) {
               nbContext.preserve(nbAbsPath, kHtmlPreview);
             }
           }
         }
 
         const renderedNotebook = nbContext.get(nbAbsPath, project);
-        if (!renderedNotebook || !renderedNotebook[kHtmlPreview].output) {
+        if (!renderedNotebook || !renderedNotebook[kHtmlPreview]) {
           throw new InternalError(
             "We just ensured that notebooks had rendered previews, but the preview then didn't exist.",
           );
@@ -196,7 +197,7 @@ export const notebookPreviewer = (
         const supporting: string[] = [];
         const resources: string[] = [];
         if (renderedNotebook[kRenderedIPynb]) {
-          const renderedIpynb = renderedNotebook[kRenderedIPynb].output;
+          const renderedIpynb = renderedNotebook[kRenderedIPynb];
           if (renderedIpynb) {
             if (project) {
               supporting.push(
@@ -211,7 +212,7 @@ export const notebookPreviewer = (
         }
 
         if (renderedNotebook[kHtmlPreview]) {
-          const htmlPreview = renderedNotebook[kHtmlPreview].output;
+          const htmlPreview = renderedNotebook[kHtmlPreview];
           if (htmlPreview) {
             if (project) {
               supporting.push(relative(project.dir, htmlPreview.path));
@@ -227,7 +228,7 @@ export const notebookPreviewer = (
         // to form links to this notebook
         const nbPreview = {
           title: resolvedTitle,
-          href: relative(inputDir, renderedNotebook[kHtmlPreview].output.path),
+          href: relative(inputDir, renderedNotebook[kHtmlPreview].path),
           supporting,
           resources,
         };

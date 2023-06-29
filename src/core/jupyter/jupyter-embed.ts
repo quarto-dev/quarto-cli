@@ -55,7 +55,10 @@ import { normalizePath, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
-import { kRenderedIPynb } from "../../render/notebook/notebook-types.ts";
+import {
+  kRenderedIPynb,
+  NotebookMetadata,
+} from "../../render/notebook/notebook-types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../log.ts";
 import * as ld from "../../../src/core/lodash.ts";
@@ -166,7 +169,7 @@ export async function ensureNotebookContext(
     }
     const nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context);
     if (!isNotebook(nbAbsPath)) {
-      if (!services.notebook.get(nbAbsPath, context)?.[kRenderedIPynb].output) {
+      if (!services.notebook.get(nbAbsPath, context)?.[kRenderedIPynb]) {
         nbsToRender.push({ path: nbAbsPath, name: nbAddress.path });
       }
     }
@@ -183,14 +186,38 @@ export async function ensureNotebookContext(
   let count = 0;
   for (const nb of uniqueRenders) {
     logProgress(`[${++count}/${uniqueRenders.length}]${nb.name}`);
-    await services.notebook.render(
+
+    // See if we can get a nice title
+
+    const partitioned = partitionMarkdown(Deno.readTextFileSync(nb.path));
+    let notebookMeta: NotebookMetadata | undefined;
+    const filename = basename(nb.path);
+    if (partitioned.yaml && partitioned.yaml.title) {
+      notebookMeta = {
+        title: partitioned.yaml.title as string,
+        filename,
+      };
+    } else {
+      notebookMeta = {
+        title: filename,
+        filename: filename,
+      };
+    }
+    console.log({ notebookMeta });
+
+    // Render the document
+    const outputNotebook = await services.notebook.render(
       nb.path,
       ipynbFormat(),
       kRenderedIPynb,
       services,
-      undefined,
+      notebookMeta,
       context,
     );
+
+    // For this output notebook, inject some metadata in the event that
+    // a preview is rendered
+    services.notebook.addMetadata(outputNotebook.path, notebookMeta);
   }
 }
 
@@ -245,8 +272,8 @@ export async function replaceNotebookPlaceholders(
     // along the embed pipeline
     if (!isNotebook(nbAbsPath)) {
       const notebook = services.notebook.get(nbAbsPath, context.project);
-      if (notebook?.[kRenderedIPynb] && notebook[kRenderedIPynb].output) {
-        nbAbsPath = notebook[kRenderedIPynb].output?.path;
+      if (notebook?.[kRenderedIPynb] && notebook[kRenderedIPynb]) {
+        nbAbsPath = notebook[kRenderedIPynb]?.path;
         nbAddress.path = join(dirname(nbAddress.path), basename(nbAbsPath));
       }
     }

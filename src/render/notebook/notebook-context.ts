@@ -46,9 +46,6 @@ export function notebookContext(): NotebookContext {
   const emptyNotebook = (nbAbsPath: string): Notebook => {
     return {
       source: nbAbsPath,
-      [kJatsSubarticle]: {},
-      [kHtmlPreview]: {},
-      [kRenderedIPynb]: {},
     };
   };
 
@@ -66,7 +63,7 @@ export function notebookContext(): NotebookContext {
     };
 
     const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
-    nb[renderType].output = output;
+    nb[renderType] = output;
     notebooks[nbAbsPath] = nb;
   };
 
@@ -90,9 +87,9 @@ export function notebookContext(): NotebookContext {
     if (nb) {
       const rendering = nb[renderType];
 
-      if (rendering.output) {
-        safeRemoveIfExists(rendering.output.path);
-        const filteredSupporting = rendering.output.supporting.filter(
+      if (rendering) {
+        safeRemoveIfExists(rendering.path);
+        const filteredSupporting = rendering.supporting.filter(
           (file) => {
             const absPath = join(dirname(nbAbsPath), file);
             return !preserveFiles.includes(absPath);
@@ -120,13 +117,10 @@ export function notebookContext(): NotebookContext {
   // Add metadata to a given notebook rendering
   function addMetadata(
     nbAbsPath: string,
-    renderType: RenderType,
-    nbMeta?: NotebookMetadata,
+    nbMeta: NotebookMetadata,
   ) {
     const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
-    if (nbMeta) {
-      nb[renderType].metadata = nbMeta;
-    }
+    nb.metadata = nbMeta;
     notebooks[nbAbsPath] = nb;
   }
 
@@ -167,7 +161,7 @@ export function notebookContext(): NotebookContext {
         [kJatsSubarticle, kHtmlPreview, kRenderedIPynb].forEach(
           (renderTypeStr) => {
             const renderType = renderTypeStr as RenderType;
-            if (!notebook[renderType].output) {
+            if (!notebook[renderType]) {
               reviveRenders.push(renderType);
             }
           },
@@ -189,13 +183,18 @@ export function notebookContext(): NotebookContext {
       }
       return notebooks[nbAbsPath];
     },
+    addMetadata: (nbAbsPath: string, notebookMetadata: NotebookMetadata) => {
+      addMetadata(nbAbsPath, notebookMetadata);
+    },
     resolve: (
       nbAbsPath: string,
       renderType: RenderType,
       executedFile: ExecutedFile,
       notebookMetadata?: NotebookMetadata,
     ) => {
-      addMetadata(nbAbsPath, renderType, notebookMetadata);
+      if (notebookMetadata) {
+        addMetadata(nbAbsPath, notebookMetadata);
+      }
       return contributor(renderType).resolve(
         nbAbsPath,
         token(),
@@ -213,7 +212,9 @@ export function notebookContext(): NotebookContext {
       notebookMetadata?: NotebookMetadata,
       project?: ProjectContext,
     ) => {
-      addMetadata(nbAbsPath, renderType, notebookMetadata);
+      if (notebookMetadata) {
+        addMetadata(nbAbsPath, notebookMetadata);
+      }
       const renderedFile = await contributor(renderType).render(
         nbAbsPath,
         format,
@@ -249,10 +250,10 @@ export function notebookContext(): NotebookContext {
               !preserveNotebooks[notebook.source] ||
               !preserveNotebooks[notebook.source].includes(renderType)
             ) {
-              const notebookPreview = notebook[renderType];
-              if (notebookPreview.output) {
-                safeRemoveIfExists(notebookPreview.output.path);
-                for (const supporting of notebookPreview.output.supporting) {
+              const notebookOutput = notebook[renderType];
+              if (notebookOutput) {
+                safeRemoveIfExists(notebookOutput.path);
+                for (const supporting of notebookOutput.supporting) {
                   safeRemoveIfExists(supporting);
                 }
               }

@@ -28,14 +28,10 @@ export interface NotebookPreviewOptions {
 // The core notebook interface
 export interface Notebook {
   source: string;
-  [kHtmlPreview]: NotebookPreview;
-  [kJatsSubarticle]: NotebookPreview;
-  [kRenderedIPynb]: NotebookPreview;
-}
-
-export interface NotebookPreview {
-  output?: NotebookOutput;
   metadata?: NotebookMetadata;
+  [kHtmlPreview]?: NotebookOutput;
+  [kJatsSubarticle]?: NotebookOutput;
+  [kRenderedIPynb]?: NotebookOutput;
 }
 
 export interface NotebookOutput {
@@ -71,6 +67,7 @@ export interface NotebookContext {
   all: () => Notebook[];
   // Resolves the data on an executedFile into data that will
   // create a `renderType` output when rendered.
+  addMetadata: (nbPath: string, notebookMetadata: NotebookMetadata) => void;
   resolve: (
     nbPath: string,
     renderType: RenderType,
@@ -97,7 +94,7 @@ export interface NotebookContext {
     renderServices: RenderServices,
     notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
-  ) => Promise<NotebookPreview>;
+  ) => Promise<NotebookOutput>;
   // Previews are cleaned up when the notebook context is disposed, but
   // you can use this to mark specific notebook > rendertypes to not be cleaned up.
   preserve: (nbAbsPath: string, renderType: RenderType) => void;
