@@ -167,6 +167,7 @@ jobs:
         run: |
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
           for file in "${my_array[@]}"; do 
+            echo ">>> ./run-tests.sh ${file}"
             ./run-tests.sh $file
           done
         working-directory: tests
@@ -179,6 +180,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
+            Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
           }
         working-directory: tests
