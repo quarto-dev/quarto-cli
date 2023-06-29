@@ -28,7 +28,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-
+    env:
+      QUARTO_TESTS_FORCE_NO_PIPENV: true
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
