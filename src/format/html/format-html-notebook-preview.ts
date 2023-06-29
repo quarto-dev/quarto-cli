@@ -131,13 +131,16 @@ export const notebookPreviewer = (
         const resolvedTitle = descriptor?.title || title ||
           notebook?.metadata?.title || basename(nbAbsPath);
 
+        const notebookIsQmd = !nbAbsPath.endsWith(".ipynb");
+
         // Ensure this has an rendered ipynb and an html preview
         if (!notebook || !notebook[kHtmlPreview] || !notebook[kRenderedIPynb]) {
           // Render an ipynb if needed
           if (
             (!notebook || !notebook[kRenderedIPynb]) &&
             !descriptor?.[kDownloadUrl] &&
-            !isBook
+            !isBook &&
+            !notebookIsQmd
           ) {
             const renderedIpynb = await nbContext.render(
               nbAbsPath,
@@ -163,14 +166,17 @@ export const notebookPreviewer = (
 
             let downloadHref = basename(nbAbsPath);
             let downloadFileName = basename(nbAbsPath);
-            if (notebook && notebook[kRenderedIPynb]) {
+            // If this is an ipynb and there is a rendered version of it
+            // use that instead.
+            if (
+              notebook && notebook[kRenderedIPynb] &&
+              !notebookIsQmd
+            ) {
               downloadHref = relative(
                 dirname(nbAbsPath),
                 notebook[kRenderedIPynb].path,
               );
-              if (!downloadFileName.endsWith(".ipynb")) {
-                downloadFileName = basename(notebook[kRenderedIPynb].path);
-              }
+              downloadFileName = basename(notebook[kRenderedIPynb].path);
             }
 
             const htmlPreview = await nbContext.render(
