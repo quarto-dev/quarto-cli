@@ -162,8 +162,15 @@ export const notebookPreviewer = (
               : undefined;
 
             let downloadHref = basename(nbAbsPath);
+            let downloadFileName = basename(nbAbsPath);
             if (notebook && notebook[kRenderedIPynb]) {
-              downloadHref = notebook[kRenderedIPynb].path;
+              downloadHref = relative(
+                dirname(nbAbsPath),
+                notebook[kRenderedIPynb].path,
+              );
+              if (!downloadFileName.endsWith(".ipynb")) {
+                downloadFileName = basename(notebook[kRenderedIPynb].path);
+              }
             }
 
             const htmlPreview = await nbContext.render(
@@ -176,7 +183,7 @@ export const notebookPreviewer = (
                 filename: basename(nbAbsPath),
                 backHref,
                 downloadHref,
-                downloadFile: basename(nbAbsPath),
+                downloadFile: downloadFileName,
               },
               project,
             );
