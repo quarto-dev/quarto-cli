@@ -10,6 +10,7 @@ import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   kHtmlPreview,
+  kQmdIPynb,
   kRenderedIPynb,
   Notebook,
   NotebookContext,
@@ -27,11 +28,14 @@ import { Format } from "../../config/types.ts";
 import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
 import { relative } from "path/mod.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
+import { qmdNotebookContributor } from "./notebook-contribute-qmd.ts";
+import { debug } from "log/mod.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
   [kHtmlPreview]: htmlNotebookContributor,
   [kRenderedIPynb]: outputNotebookContributor,
+  [kQmdIPynb]: qmdNotebookContributor,
 };
 
 export function notebookContext(): NotebookContext {
@@ -55,6 +59,7 @@ export function notebookContext(): NotebookContext {
     renderType: RenderType,
     result: NotebookRenderResult,
   ) => {
+    debug(`[NotebookContext]: Add Rendering (${renderType}):${nbAbsPath}`);
     const absPath = join(dirname(nbAbsPath), basename(result.file));
     const output = {
       path: absPath,
@@ -76,6 +81,7 @@ export function notebookContext(): NotebookContext {
     renderType: RenderType,
     preserveFiles: string[],
   ) => {
+    debug(`[NotebookContext]: Remove Rendering (${renderType}):${nbAbsPath}`);
     if (
       preserveNotebooks[nbAbsPath] &&
       preserveNotebooks[nbAbsPath].includes(renderType)
@@ -119,6 +125,7 @@ export function notebookContext(): NotebookContext {
     nbAbsPath: string,
     nbMeta: NotebookMetadata,
   ) {
+    debug(`[NotebookContext]: Add Notebook Metadata:${nbAbsPath}`);
     const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
     nb.metadata = nbMeta;
     notebooks[nbAbsPath] = nb;
@@ -129,6 +136,7 @@ export function notebookContext(): NotebookContext {
     renderType: RenderType,
     nbOutputDir: string,
   ) {
+    debug(`[NotebookContext]: Revived Rendering (${renderType}):${nbAbsPath}`);
     const contrib = contributor(renderType);
     const outFile = contrib.outputFile(nbAbsPath);
     const outPath = join(nbOutputDir, outFile);
@@ -153,6 +161,7 @@ export function notebookContext(): NotebookContext {
       return Object.values(notebooks);
     },
     get: (nbAbsPath: string, context?: ProjectContext) => {
+      debug(`[NotebookContext]: Get Notebook:${nbAbsPath}`);
       const notebook = notebooks[nbAbsPath];
       const reviveRenders: RenderType[] = [];
       if (notebook) {
@@ -192,6 +201,9 @@ export function notebookContext(): NotebookContext {
       executedFile: ExecutedFile,
       notebookMetadata?: NotebookMetadata,
     ) => {
+      debug(
+        `[NotebookContext]: Resolving ExecutedFile (${renderType}):${nbAbsPath}`,
+      );
       if (notebookMetadata) {
         addMetadata(nbAbsPath, notebookMetadata);
       }
@@ -212,11 +224,22 @@ export function notebookContext(): NotebookContext {
       notebookMetadata?: NotebookMetadata,
       project?: ProjectContext,
     ) => {
+      debug(`[NotebookContext]: Rendering (${renderType}):${nbAbsPath}`);
+
       if (notebookMetadata) {
         addMetadata(nbAbsPath, notebookMetadata);
       }
+
+      // If there is a source representation of the qmd file
+      // we should use that, which will prevent rexecution of the
+      // QMD
+      const notebook = notebooks[nbAbsPath];
+      const toRenderPath = notebook
+        ? notebook[kQmdIPynb] ? notebook[kQmdIPynb].path : nbAbsPath
+        : nbAbsPath;
+
       const renderedFile = await contributor(renderType).render(
-        nbAbsPath,
+        toRenderPath,
         format,
         token(),
         services,
@@ -233,12 +256,14 @@ export function notebookContext(): NotebookContext {
       return notebooks[nbAbsPath][renderType]!;
     },
     preserve: (nbAbsPath: string, renderType: RenderType) => {
+      debug(`[NotebookContext]: Preserving (${renderType}):${nbAbsPath}`);
       preserveNotebooks[nbAbsPath] = preserveNotebooks[nbAbsPath] || [];
       if (!preserveNotebooks[nbAbsPath].includes(renderType)) {
         preserveNotebooks[nbAbsPath].push(renderType);
       }
     },
     cleanup: () => {
+      debug(`[NotebookContext]: Starting Cleanup`);
       const hasNotebooks = Object.keys(notebooks).length > 0;
       if (hasNotebooks) {
         Object.keys(contributors).forEach((renderTypeStr) => {
@@ -252,6 +277,9 @@ export function notebookContext(): NotebookContext {
             ) {
               const notebookOutput = notebook[renderType];
               if (notebookOutput) {
+                debug(
+                  `[NotebookContext]: Cleanup (${renderType}):${notebook.source}`,
+                );
                 safeRemoveIfExists(notebookOutput.path);
                 for (const supporting of notebookOutput.supporting) {
                   safeRemoveIfExists(supporting);

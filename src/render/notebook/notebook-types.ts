@@ -17,8 +17,13 @@ export const kRemoteHref = "remote-href";
 export const kHtmlPreview = "html-preview";
 export const kJatsSubarticle = "jats-subarticle";
 export const kRenderedIPynb = "rendered-ipynb";
+export const kQmdIPynb = "qmd-ipynb";
 
-export type RenderType = "html-preview" | "jats-subarticle" | "rendered-ipynb";
+export type RenderType =
+  | "html-preview"
+  | "jats-subarticle"
+  | "rendered-ipynb"
+  | "qmd-ipynb";
 
 // Preview Options for HTML Previews
 export interface NotebookPreviewOptions {
@@ -32,6 +37,7 @@ export interface Notebook {
   [kHtmlPreview]?: NotebookOutput;
   [kJatsSubarticle]?: NotebookOutput;
   [kRenderedIPynb]?: NotebookOutput;
+  [kQmdIPynb]?: NotebookOutput;
 }
 
 export interface NotebookOutput {
@@ -79,7 +85,7 @@ export interface NotebookContext {
   addRendering: (
     nbPath: string,
     renderType: RenderType,
-    result: RenderedFile,
+    result: NotebookRenderResult,
   ) => void;
   removeRendering: (
     nbAbsPath: string,

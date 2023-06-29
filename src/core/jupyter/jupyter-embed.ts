@@ -56,6 +56,7 @@ import { basename } from "path/mod.ts";
 import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
 import {
+  kQmdIPynb,
   kRenderedIPynb,
   NotebookMetadata,
 } from "../../render/notebook/notebook-types.ts";
@@ -188,7 +189,6 @@ export async function ensureNotebookContext(
     logProgress(`[${++count}/${uniqueRenders.length}]${nb.name}`);
 
     // See if we can get a nice title
-
     const partitioned = partitionMarkdown(Deno.readTextFileSync(nb.path));
     let notebookMeta: NotebookMetadata | undefined;
     const filename = basename(nb.path);
@@ -205,19 +205,14 @@ export async function ensureNotebookContext(
     }
 
     // Render the document
-    const outputNotebook = await services.notebook.render(
+    await services.notebook.render(
       nb.path,
       ipynbFormat(),
-      kRenderedIPynb,
+      kQmdIPynb,
       services,
       notebookMeta,
       context,
     );
-
-    // For this output notebook, inject some metadata in the event that
-    // a preview is rendered (we are basically creating an alias for the
-    // output notebook back to the original source file test.out.ipynb -> test.qmd)
-    services.notebook.addMetadata(outputNotebook.path, notebookMeta);
   }
 }
 
@@ -265,18 +260,7 @@ export async function replaceNotebookPlaceholders(
 
     // This holds the notebook path that will end being used
     // for reading the embed
-    let nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context.project);
-
-    // See if we can resolve non-notebooks. Note that this
-    // requires that we have pre-rendered any notebooks that we discover
-    // along the embed pipeline
-    if (!isNotebook(nbAbsPath)) {
-      const notebook = services.notebook.get(nbAbsPath, context.project);
-      if (notebook?.[kRenderedIPynb] && notebook[kRenderedIPynb]) {
-        nbAbsPath = notebook[kRenderedIPynb]?.path;
-        nbAddress.path = join(dirname(nbAddress.path), basename(nbAbsPath));
-      }
-    }
+    const nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context.project);
 
     let assets = assetCache[inputPath];
     if (!assets) {
@@ -302,7 +286,12 @@ export async function replaceNotebookPlaceholders(
       // dependendencies
       const notebookIncludes = () => {
         if (safeExistsSync(nbAbsPath)) {
-          const notebook = jupyterFromFile(nbAbsPath);
+          const notebook = jupyterFromNotebookOrQmd(
+            nbAbsPath,
+            services,
+            context.project,
+          );
+
           const dependencies = isHtmlOutput(context.format.pandoc)
             ? extractJupyterWidgetDependencies(notebook)
             : undefined;
@@ -520,8 +509,16 @@ async function getCachedNotebookInfo(
   if (!nbCache.cache[cacheKey]) {
     // Render the notebook and place it in the cache
     // Read and filter notebook
-    const notebook = jupyterFromFile(
-      resolveNbPath(inputPath, nbAddress.path, context.project),
+
+    const nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context.project);
+
+    // See if we can resolve non-notebooks. Note that this
+    // requires that we have pre-rendered any notebooks that we discover
+    // along the embed pipeline
+    const notebook = jupyterFromNotebookOrQmd(
+      nbAbsPath,
+      context.options.services,
+      context.project,
     );
     if (options) {
       notebook.cells = notebook.cells.map((cell) => {
@@ -759,4 +756,30 @@ function resolveRange(rangeRaw?: string) {
   } else {
     return undefined;
   }
+}
+
+function jupyterFromNotebookOrQmd(
+  nbAbsPath: string,
+  services: RenderServices,
+  project?: ProjectContext,
+) {
+  // See if we can resolve non-notebooks. Note that this
+  // requires that we have pre-rendered any notebooks that we discover
+  // along the embed pipeline
+  let jupyterNotebookPath = nbAbsPath;
+  if (!isNotebook(jupyterNotebookPath)) {
+    const notebook = services.notebook.get(
+      nbAbsPath,
+      project,
+    );
+    if (notebook?.[kQmdIPynb] && notebook[kQmdIPynb]) {
+      jupyterNotebookPath = notebook[kQmdIPynb].path;
+    } else {
+      throw new InternalError(
+        `Expected an 'ipynb' file to be present for the 'qmd' file ${nbAbsPath}`,
+      );
+    }
+  }
+
+  return jupyterFromFile(jupyterNotebookPath);
 }
