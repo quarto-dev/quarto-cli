@@ -43,10 +43,13 @@ then
   quarto_venv_activated="true"
 fi
 
-if [ "$QUARTO_TEST_TIMING" != "" ]; then
-  echo "> Running tests with timing"
+if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
+  if [ "$QUARTO_TEST_TIMING" == "true" ]; then
+    QUARTO_TEST_TIMING="timing.txt"
+  fi
+  echo "> Running tests with timing and writing to ${QUARTO_TEST_TIMING}"
   QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
-  rm -f timing.txt
+  rm -f $QUARTO_TEST_TIMING
   FILES=$@
   if [ "$FILES" == "" ]; then
     FILES=`find . | grep \.test\.ts$`
@@ -57,7 +60,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ]; then
      continue
     fi
     echo $i >> timing.txt
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o timing.txt "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
   done
 else
   "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
