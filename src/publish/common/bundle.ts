@@ -12,8 +12,14 @@ import { Tar } from "archive/tar.ts";
 
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
-import { md5Hash } from "../../core/hash.ts";
+import { md5HashBytes } from "../../core/hash.ts";
 
+/** Creates a compressed bundle file in the format required by Posit Connect and Cloud.
+ * @param type Whether this is a site or document.
+ * @param files Information on what should be included in the bundle.
+ * @param tempContext Temporary directory where file operations will be performed.
+ * @returns The absolute path of the bundle file.
+ */
 export async function createBundle(
   type: "site" | "document",
   files: PublishFiles,
@@ -24,8 +30,9 @@ export async function createBundle(
   for (const file of files.files) {
     const filePath = join(files.baseDir, file);
     if (Deno.statSync(filePath).isFile) {
-      const f = Deno.readTextFileSync(filePath);
-      manifestFiles[file] = { checksum: md5Hash(f) as string };
+      const fileBytes = Deno.readFileSync(filePath);
+      const checksum = md5HashBytes(fileBytes);
+      manifestFiles[file] = { checksum };
     }
   }
 
