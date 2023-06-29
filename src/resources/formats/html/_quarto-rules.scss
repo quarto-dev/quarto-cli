@@ -107,6 +107,7 @@ figure .quarto-layout-row figure figcaption {
   text-align: right;
 }
 
+.quarto-figure > figure > div.cell-annotation,
 .quarto-figure > figure > div code {
   text-align: left; /* override align center for code blocks */
 }
