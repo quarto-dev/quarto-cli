@@ -603,7 +603,7 @@ const captionFootnoteLineProcessor = () => {
         }
       case "capturing":
         capturedLines.push(line);
-        if (line.match(/^\\end{figure}%$/)) {
+        if (line.match(/^\\end{figure}%*$/)) {
           state = "scanning";
 
           // read the whole figure and clear any capture state
