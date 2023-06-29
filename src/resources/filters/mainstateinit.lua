@@ -80,4 +80,4 @@ function add_crossref_category(category)
   setup_crossref_category_indices()
 end
 
-setup_crossref_category_indices() 
+setup_crossref_category_indices()

@@ -115,7 +115,7 @@ function writeKeysIndex(indexFile)
     }
     -- add caption if we have one
     if v.caption ~= nil then
-      entry.caption = inlinesToString(v.caption)
+      entry.caption = inlinesToString(pandoc.Inlines(v.caption[1].content))
     else
       entry.caption = ""
     end

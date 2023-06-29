@@ -158,23 +158,21 @@ import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
 import("./customnodes/floatcrossref.lua")
 
+import("./quarto-init/metainit.lua")
+
 -- [/import]
 
 initCrossrefIndex()
 
 initShortcodeHandlers()
 
-local quartoInit = {
-  { name = "init-quarto-init", filter = {
+local quarto_init_filters = {
+  { name = "init-quarto-meta-init", filter = quarto_meta_init() },
+  { name = "init-quarto-custom-meta-init", filter = {
     Meta = function(meta)
-      configure_filters()
-      read_includes(meta)
-      init_crossref_options(meta)
-      initialize_custom_crossref_categories(meta)
       content_hidden_meta(meta)
     end
   }},
-
   -- FIXME this could probably be moved into the next combineFilters below,
   -- in quartoNormalize
   { name = "init-metadata-resource-refs", filter = combineFilters({
@@ -190,8 +188,11 @@ local quartoInit = {
 -- going to be present, and will instead be represented by
 -- our custom AST infrastructure (FloatCrossref specifically).
 
-local quartoNormalize = {
+local quarto_normalize_filters = {
   { name = "normalize", filter = filterIf(function()
+    if quarto_global_state.active_filters == nil then
+      return false
+    end
     return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
@@ -222,7 +223,7 @@ local quartoNormalize = {
   },
 }
 
-local quartoPre = {
+local quarto_pre_filters = {
   -- quarto-pre
 
   -- TODO we need to compute flags on the results of the user filters
@@ -302,7 +303,7 @@ local quartoPre = {
   { name = "pre-write-results", filter = write_results() },
 }
 
-local quartoPost = {
+local quarto_post_filters = {
   -- quarto-post
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
@@ -345,7 +346,7 @@ local quartoPost = {
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
 
-local quartoFinalize = {
+local quarto_finalize_filters = {
     -- quarto-finalize
     { name = "finalize-fileMetadataAndMediabag", filter =
     combineFilters({
@@ -361,7 +362,7 @@ local quartoFinalize = {
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
 }
 
-local quartoLayout = {
+local quarto_layout_filters = {
   { name = "manuscript filtering", filter = manuscript() },
   { name = "manuscript filtering", filter = manuscriptUnroll() },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
@@ -374,24 +375,10 @@ local quartoLayout = {
   { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
 }
 
-local quartoCrossref = {
+local quarto_crossref_filters = {
 
   { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
-    -- flags = { 
-    --   "has_figure_or_table_ref", 
-    --   "has_discoverable_figures",
-    --   "has_table_with_long_captions",
-    --   "has_latex_table_captions"
-    -- } 
   },
-
-  -- { filter = {
-  --   FloatCrossref = function(float)
-  --     quarto.utils.dump { float = float }
-  --     print()
-  --   end
-  -- }
-  -- },
 
   { name = "crossref-preprocessTheorems", 
     filter = crossref_preprocess_theorems(),
@@ -416,13 +403,13 @@ local quartoCrossref = {
 
 local filterList = {}
 
-tappend(filterList, quartoInit)
-tappend(filterList, quartoNormalize)
-tappend(filterList, quartoPre)
-tappend(filterList, quartoCrossref)
-tappend(filterList, quartoLayout)
-tappend(filterList, quartoPost)
-tappend(filterList, quartoFinalize)
+tappend(filterList, quarto_init_filters)
+tappend(filterList, quarto_normalize_filters)
+tappend(filterList, quarto_pre_filters)
+tappend(filterList, quarto_crossref_filters)
+tappend(filterList, quarto_layout_filters)
+tappend(filterList, quarto_post_filters)
+tappend(filterList, quarto_finalize_filters)
 
 local result = run_as_extended_ast({
   pre = {
