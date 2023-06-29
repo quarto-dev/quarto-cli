@@ -143,24 +143,24 @@ jobs:
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
       - name: Run all Smoke Tests
-        if: ${{ github.event_name != 'workflow_call' }}
+        if: ${{ format('{0}', inputs.buckets) == '' }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           case $RUNNER_OS in
             "Windows")
-              pwsh -F ./run-tests.ps1 ${{ inputs.buckets }}
+              pwsh -F ./run-tests.ps1
               ;;
             *)
-              ./run-tests.sh ${{ inputs.buckets }}
+              ./run-tests.sh
               ;;
           esac
         working-directory: tests
         shell: bash
 
       - name: Run Smoke Tests as a bucket on Linux
-        if: ${{ runner.os != 'Windows' && github.event_name == 'workflow_call' }}
+        if: ${{ runner.os != 'Windows' && format('{0}', inputs.buckets) != '' }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,7 +173,7 @@ jobs:
         shell: bash
 
       - name: Run Smoke Tests as a bucket on Windows
-        if: ${{ runner.os == 'Windows' && github.event_name == 'workflow_call' }}
+        if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) != '' }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
