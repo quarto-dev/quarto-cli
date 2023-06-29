@@ -55,7 +55,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
     FILES=`find . | grep \.test\.ts$`
   fi
   for i in $FILES; do
-    if [ "$FILES" == "./test.ts" ]; then
+    if [ "$i" == "./test.ts" ]; then
      # ignoring this file as this is not a test file to time
      continue
     fi
