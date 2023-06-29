@@ -2,7 +2,6 @@
 -- Determine which filter chains will be active
 
 function configure_filters()
-  print("ASLDKUHADJLSLJHAKSJLHKASJLHKAS")
   -- return {
   --   Meta = function(meta)
   quarto_global_state.active_filters = param("active-filters")
