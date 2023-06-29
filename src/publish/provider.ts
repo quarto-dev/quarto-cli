@@ -40,6 +40,7 @@ export function publishProviders() {
   providers.push(quartoPubProvider);
   providers.push(ghpagesProvider);
   providers.push(rsconnectProvider);
+  providers.push(positCloudProvider);
   providers.push(netlifyProvider);
   providers.push(confluenceProvider);
   return providers;
