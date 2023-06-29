@@ -8,37 +8,68 @@ import { docs } from "../../utils.ts";
 import { test } from "../../test.ts";
 import { assertEquals } from "testing/asserts.ts";
 
+async function runEditorSupportCrossref(doc: string) {
+  let cmdLine: string;
+  switch (Deno.build.os) {
+    case "windows":
+      cmdLine = "../package/dist/bin/quarto.cmd";
+      break;
+    default:
+      cmdLine = "../package/dist/bin/quarto";
+      break;
+  }
+  const cmd = new Deno.Command(cmdLine, {
+    args: ["editor-support", "crossref"],
+    stdin: "piped",
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const child = cmd.spawn();
+  const writer = child.stdin.getWriter();
+  const buf = new TextEncoder().encode(
+    Deno.readTextFileSync(doc),
+  );
+  await writer.write(buf);
+  await writer.close();
+  const outputBuf = await child.output();
+  const status = await child.status;
+  assertEquals(status.code, 0);
+  const output = new TextDecoder().decode(outputBuf.stdout);
+  const json = JSON.parse(output);
+  return json;
+}
+
 test({
-  name: "editor-support:crossref",
+  name: "editor-support:crossref:smoke-1",
   context: {},
   execute: async () => {
-    let cmdLine: string;
-    switch (Deno.build.os) {
-      case "windows":
-        cmdLine = "../package/dist/bin/quarto.cmd";
-        break;
-      default:
-        cmdLine = "../package/dist/bin/quarto";
-        break;
-    }
-    const cmd = new Deno.Command(cmdLine, {
-      args: ["editor-support", "crossref"],
-      stdin: "piped",
-      stdout: "piped",
-      stderr: "piped",
-    });
-    const child = cmd.spawn();
-    const writer = child.stdin.getWriter();
-    const buf = new TextEncoder().encode(
-      Deno.readTextFileSync(docs("crossrefs/sections.qmd")),
-    );
-    await writer.write(buf);
-    await writer.close();
-    const outputBuf = await child.output();
-    const output = new TextDecoder().decode(outputBuf.stdout);
-    const json = JSON.parse(output);
+    const json = await runEditorSupportCrossref(docs("crossrefs/sections.qmd"));
     assertEquals(json.entries[0].key, "sec-introduction");
     assertEquals(json.entries[0].caption, "Introduction");
+  },
+  verify: [],
+  type: "smoke",
+});
+
+test({
+  name: "editor-support:crossref:smoke-2",
+  context: {},
+  execute: async () => {
+    await runEditorSupportCrossref(
+      docs("crossrefs/editor-support/unnumbered-crossrefs.qmd"),
+    );
+  },
+  verify: [],
+  type: "smoke",
+});
+
+test({
+  name: "editor-support:crossref:smoke-3",
+  context: {},
+  execute: async () => {
+    await runEditorSupportCrossref(
+      docs("crossrefs/all.qmd"),
+    );
   },
   verify: [],
   type: "smoke",
