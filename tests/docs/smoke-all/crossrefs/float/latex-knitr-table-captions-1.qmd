@@ -1,0 +1,22 @@
+---
+title: Knitr Table Test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - []
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars {#tbl-cars}")
+kable(head(pressure), caption = "Pressure {#tbl-pressure}")
+```
+
+See @tbl-cars for more information.
