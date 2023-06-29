@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
@@ -41,16 +40,15 @@ export const installCommand = new Command()
   )
   .example(
     "Install TinyTeX",
-    "quarto install tool tinytex",
+    "quarto install tinytex",
   )
-  // temporarily disabled until we get things in order in 1.28.*
-  // .example(
-  //   "Install Chromium",
-  //   "quarto install tool chromium",
-  // )
+  .example(
+    "Install Chromium",
+    "quarto install chromium",
+  )
   .example(
     "Choose tool to install",
-    "quarto install tool",
+    "quarto install",
   )
   .action(
     async (
