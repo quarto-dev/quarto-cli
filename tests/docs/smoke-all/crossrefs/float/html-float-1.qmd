@@ -4,7 +4,13 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ["div.figure-content", "div.table-content", "figcaption.figure", "figcaption.table"]
+        - 
+          - "div.figure-content"
+          - "div.table-content"
+          - "figcaption.figure"
+          - "figcaption.table"
+          - "a[href='#fig-1'].quarto-xref"
+          - "a[href='#tbl-1'].quarto-xref"
         - []
 ---
 

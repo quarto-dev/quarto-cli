@@ -5,7 +5,11 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ["div#tbl-foo figure.quarto-float-tbl img", "div#fig-foo figure.quarto-float-fig img"]
+        - 
+          - "div#tbl-foo figure.quarto-float-tbl img"
+          - "div#fig-foo figure.quarto-float-fig img"
+          - "a[href='#fig-foo'].quarto-xref"
+          - "a[href='#tbl-foo'].quarto-xref"
 ---
 
 This tests:
