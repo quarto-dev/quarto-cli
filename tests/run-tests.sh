@@ -60,7 +60,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
      continue
     fi
     SMOKE_TEST_FILE="./smoke/smoke-all.test.ts"
-    if [ "$FILES" == "$SMOKE_TEST_FILE" ]; then
+    if [ "$i" == "$SMOKE_TEST_FILE" ]; then
       echo "> Timing smoke-all tests"
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -name "*.qmd" -o -name "*.ipynb"`
       for j in $SMOKE_ALL_FILES; do
