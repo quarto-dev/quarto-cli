@@ -38,14 +38,32 @@ type TestTiming = {
 
 const testTimings: TestTiming[] = [];
 
+const RegSmokeAllFile = new RegExp("^\.\/smoke\/smoke-all\.test\.ts");
+
 for (let i = 0; i < lines.length; i += 2) {
   const name = lines[i].trim();
-  if (!currentTests.has(name)) {
-    flags.verbose &&
-      console.log(
-        `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING='timing.txt'`,
-      );
-    continue;
+  if (RegSmokeAllFile.test(name)) {
+    // checking smoke file existence
+    const smokeFile = name.split(" -- ")[1];
+    const currentSmokeFiles = new Set(
+      [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", { globstar: true })]
+        .map((entry) => `${relative(Deno.cwd(), entry.path)}`),
+    );
+    if (!currentSmokeFiles.has(smokeFile)) {
+      flags.verbose &&
+        console.log(
+          `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING='timing.txt'`,
+        );
+      continue;
+    }
+  } else {
+    if (!currentTests.has(name)) {
+      flags.verbose &&
+        console.log(
+          `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING='timing.txt'`,
+        );
+      continue;
+    }
   }
   const timingStrs = lines[i + 1].trim().replaceAll(/ +/g, " ").split(" ");
   const timing = {
@@ -90,7 +108,7 @@ for (const timing of testTimings) {
 }
 
 for (const currentTest of currentTests) {
-  if (!timedTests.has(currentTest)) {
+  if (!timedTests.has(currentTest) && !RegSmokeAllFile.test(currentTest)) {
     flags.verbose && console.log(`Missing test ${currentTest} in timing.txt`);
     failed = true;
     // add missing timed tests, randomly to buckets
@@ -114,7 +132,8 @@ if (!failed && flags.verbose) {
 }
 
 if (flags["dry-run"]) {
-  flags.verbose && console.log("Jobs map of tests to run in parallel");
+  flags.verbose && console.log("Buckets of tests to run in parallel");
+  //flags.verbose && console.log(buckets.map((e) => e.length));
   console.log(JSON.stringify(buckets, null, 2));
 } else {
   console.log("Running `run-test.sh` in parallel... ");
@@ -127,5 +146,24 @@ if (flags["dry-run"]) {
     }).status();
   })).then(() => {
     console.log("Running `run-test.sh` in parallel... END");
+    if (flags["with-time"]) {
+      try {
+        Deno.removeSync("timing.txt");
+      } catch (_e) {
+        null;
+      }
+      for (const f of Deno.readDirSync(".")) {
+        if (/^timing-/.test(f.name)) {
+          console.log(f.name);
+          const text = Deno.readTextFileSync(f.name);
+          Deno.writeTextFileSync("timing.txt", text, { append: true });
+          try {
+            Deno.removeSync(f.name);
+          } catch (_e) {
+            null;
+          }
+        }
+      }
+    }
   });
 }
