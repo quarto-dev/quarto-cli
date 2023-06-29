@@ -142,7 +142,8 @@ jobs:
         run: |
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
-      - name: Run Smoke Tests
+      - name: Run all Smoke Tests
+        if: ${{ github.event_name != "workflow_call" }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -157,3 +158,28 @@ jobs:
           esac
         working-directory: tests
         shell: bash
+
+      - name: Run Smoke Tests as a bucket on Linux
+        if: ${{ runner.os == "Linux" && github.event_name == "workflow_call" }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          readarray -t my_array < <(echo ${{ inputs.buckets }} | jq -rc '.[]')
+          for file in "${my_array[@]}"; do 
+            ./run-tests.sh $file
+          done
+        working-directory: tests
+        shell: bash
+
+      - name: Run Smoke Tests as a bucket on Windows
+        if: ${{ runner.os == "Windows" && github.event_name == "workflow_call" }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          foreach ($file in (${{ inputs.buckets }} | ConvertFrom-Json)) {
+            ./run-tests.ps1 $file
+          done
+        working-directory: tests
+        shell: pwsh
