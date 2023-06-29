@@ -321,9 +321,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # allow table lable through
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
-    } else if (is_ipynb_output(format$pandoc$to) && is_figure_label(options["label"])) {
-      label <- options[["label"]]
-    }
+    } 
     if (!is.null(label)) {
       label <- paste0(label, " ")
     }

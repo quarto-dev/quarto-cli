@@ -203,7 +203,6 @@ export async function ensureNotebookContext(
         filename: filename,
       };
     }
-    console.log({ notebookMeta });
 
     // Render the document
     const outputNotebook = await services.notebook.render(
@@ -216,7 +215,8 @@ export async function ensureNotebookContext(
     );
 
     // For this output notebook, inject some metadata in the event that
-    // a preview is rendered
+    // a preview is rendered (we are basically creating an alias for the
+    // output notebook back to the original source file test.out.ipynb -> test.qmd)
     services.notebook.addMetadata(outputNotebook.path, notebookMeta);
   }
 }
