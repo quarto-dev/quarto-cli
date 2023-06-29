@@ -180,6 +180,6 @@ jobs:
         run: |
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
             ./run-tests.ps1 $file
-          done
+          }
         working-directory: tests
         shell: pwsh
