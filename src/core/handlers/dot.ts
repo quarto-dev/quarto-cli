@@ -9,6 +9,7 @@ import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
 import { join, toFileUrl } from "path/mod.ts";
 import {
+  isIpynbOutput,
   isJavascriptCompatible,
   isLatexOutput,
   isRevealjsOutput,
@@ -143,7 +144,10 @@ const dotHandler: LanguageHandler = {
       }
     };
 
-    if (isJavascriptCompatible(handlerContext.options.format)) {
+    if (
+      isJavascriptCompatible(handlerContext.options.format) &&
+      !isIpynbOutput(handlerContext.options.format.pandoc)
+    ) {
       const responsive = options?.[kFigResponsive] ??
         handlerContext.options.context.format.metadata
           ?.[kFigResponsive];
