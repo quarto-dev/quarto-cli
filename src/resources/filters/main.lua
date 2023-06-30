@@ -290,10 +290,10 @@ local quartoPost = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
+  { name = "post-ipynb", filter = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
-    ipynb(),
     quartoBook(),
     reveal(),
     tikz(),

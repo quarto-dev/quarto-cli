@@ -4,6 +4,9 @@
 
 function ipynb()
   if FORMAT == "ipynb" then
+
+    local produceSourceNotebook = param('produce-source-notebook', false)
+
     return {
 
       Pandoc = function(doc)
@@ -57,9 +60,52 @@ function ipynb()
       -- remove image classes/attributes (as this causes Pandoc to write raw html, which in turn
       -- prevents correct handling of attachments in some environments including VS Code)
       Image = function(el)
+        -- If we are in source mode, we should produce a markdown image with all the additional attributes and data
+        -- but we can't let Pandoc do that (or it will produce an HTML image), so we do this 
+        -- little hack
+        local imgAttr = el.attr
         el.attr = pandoc.Attr()
-        return el
+        if produceSourceNotebook then
+          if imgAttr.identifier or imgAttr.classes or #imgAttr.attributes then
+
+            -- process identifier
+            local idStr = ''
+            if imgAttr.identifier then 
+              idStr = '#' .. imgAttr.identifier
+            end
+
+            -- process classes
+            local clzStr = ''
+            if imgAttr.classes and #imgAttr.classes > 0 then
+              local clzTbl = {}
+              for i, v in ipairs(imgAttr.classes) do
+                clzTbl[i] = '.' .. v
+              end
+              clzStr = ' ' .. table.concat(clzTbl, ' ')
+            end
+
+            -- process atrributes
+            local attrStr = ''
+            if imgAttr.attributes then
+              local attrTbl = {}
+              for k, v in pairs(imgAttr.attributes) do
+                table.insert(attrTbl, k .. '=' .. '"' .. v .. '"')
+              end
+              attrStr = ' ' .. table.concat(attrTbl, ' ')
+            end
+
+            -- return an markdown identifier directly adjacent to the image (tricking pandoc ;-) )
+            idInline = pandoc.RawInline("markdown", '{' .. idStr .. clzStr .. attrStr .. '}')
+            return {el, idInline}  
+          else
+            return el
+          end
+        else
+          return el
+        end
+        
       end,
+
 
       -- note that this also catches raw blocks inside display_data 
       -- but pandoc seems to ignore the .cell .raw envelope in this
