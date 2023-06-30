@@ -33,9 +33,6 @@ export interface TestDescriptor {
 
   // type of test
   type: "smoke" | "unit";
-
-  // Message to test for inside render error
-  isRenderError?: string;
 }
 
 export interface TestContext {
@@ -68,16 +65,28 @@ export function testQuartoCmd(
   isRenderError?: string,
 ) {
   const name = `quarto ${cmd} ${args.join(" ")}`;
+  const executeFun = async (expr: PromiseLike<unknown>) => {
+    if (isRenderError) {
+      return await assertRejects(
+          () => {
+              return expr
+            },
+            Error,
+            isRenderError,
+        );
+     } else {
+      return await expr
+    }
+  };
 
   test({
     name,
     execute: async () => {
-        await quarto([cmd, ...args]);
+        await executeFun(quarto([cmd, ...args]));
     },
     verify,
     context: context || {},
     type: "smoke",
-    isRenderError,
   });
 }
 
@@ -167,27 +176,7 @@ export function test(test: TestDescriptor) {
         };
         let lastVerify;
         try {
-          
-          const executeFun = async (expr: PromiseLike<unknown>) => {
-            if (test.isRenderError) {
-              lastVerify = {name: `Rendering error includes specific message "${test.isRenderError}"`, verify: () => {} }
-              if (userSession) {
-                const verifyMsg = "[verify] > " + lastVerify.name;
-                console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
-              }
-              return await assertRejects(
-                  () => {
-                      return expr
-                    },
-                    Error,
-                    test.isRenderError,
-                );
-              } else {
-              return await expr
-            }
-          };
-
-          await executeFun(test.execute());
+          await test.execute();
 
           // Cleanup the output logging
           await cleanupLogOnce();
