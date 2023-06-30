@@ -269,7 +269,7 @@ export const createMecaBundle = async (
 };
 
 const toMecaItem = (href: string, type: string): MecaItem => {
-  const mediaType = contentType(href);
+  const mediaType = contentType(href) || "application/octet-stream";
   return {
     type,
     instance: {
