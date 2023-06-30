@@ -13,7 +13,7 @@ import {
   kIncludeInHeader,
   kKeepMd,
   kLang,
-  kQuartoVersion,
+  kQuartoRequired,
 } from "../../config/constants.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -106,7 +106,7 @@ export async function renderExecute(
 ): Promise<ExecuteResult> {
   // are we running a compatible quarto version for this file?
   const versionConstraint = context
-    .format.metadata[kQuartoVersion] as (string | undefined);
+    .format.metadata[kQuartoRequired] as (string | undefined);
   if (versionConstraint) {
     const ourVersion = quartoConfig.version();
     let result: boolean;
