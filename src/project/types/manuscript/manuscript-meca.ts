@@ -30,6 +30,17 @@ import { inputFileForOutputFile } from "../../project-index.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
+const kArticleMetadata = "article-metadata";
+const kArticleSupportingFile = "article-supporting-file";
+// TODO: need to support source directory and files
+// TODO: Move source files into their own directory and type
+// TODO: Differentiate between manuscript and article supporting files
+const kArticleSource = "article-source";
+const kArticleSourceDirectory = "article-source-directory";
+const kArticleSourceEnvironment = "article-source-environment";
+const kManuscript = "manuscript";
+const kManuscriptSupportingFile = "manuscript-supporting-file";
+
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
 const kExecutionFiles = [
@@ -52,10 +63,6 @@ const kExecutionFiles = [
 ];
 
 const kMecaSuffix = "-meca.zip";
-
-const kReferencedFileType = "manuscript_reference";
-const kExecutionEnvironmentType = "execution_environment";
-const kResourceFileType = "manuscript_resource";
 
 export const shouldMakeMecaBundle = (
   formats: Array<string | Format>,
@@ -162,7 +169,7 @@ export const createMecaBundle = async (
         const workingPath = toWorkingDir(absPath, relPath, false);
 
         // Add Supporting files to manifest
-        const items = mecaItemsForPath(workingDir, workingPath);
+        const items = mecaItemsForPath(workingDir, workingPath, "article");
         manuscriptResources.push(...items);
 
         // Note to include in zip
@@ -177,7 +184,7 @@ export const createMecaBundle = async (
       // Make the MECA item
       const mecaItem = toMecaItem(
         file,
-        kExecutionEnvironmentType,
+        kArticleSourceEnvironment,
       );
 
       // Add to MECA bundle
@@ -224,7 +231,7 @@ export const createMecaBundle = async (
       manuscriptResources.push(
         toMecaItem(
           relPath,
-          kResourceFileType,
+          kManuscriptSupportingFile,
         ),
       );
 
@@ -233,9 +240,9 @@ export const createMecaBundle = async (
     });
 
     // Generate a manifest
-    const articleItem = toMecaItem(articlePath, "article-metadata");
+    const articleItem = toMecaItem(articlePath, kArticleMetadata);
     const renderedItems = articleRenderingPaths.map((path) => {
-      return toMecaItem(path, "manuscript");
+      return toMecaItem(path, kManuscript);
     });
     const manifest: MecaManifest = {
       version: kMecaVersion,
@@ -282,6 +289,7 @@ const toMecaItem = (href: string, type: string): MecaItem => {
 const mecaItemsForPath = (
   basePath: string,
   relPath: string,
+  type: "article" | "manuscript",
   isDir?: boolean,
 ): MecaItem[] => {
   const path = join(basePath, relPath);
@@ -290,19 +298,28 @@ const mecaItemsForPath = (
     for (const subPath of Deno.readDirSync(path)) {
       if (subPath.isDirectory) {
         items.push(
-          ...mecaItemsForPath(basePath, join(relPath, subPath.name), true),
+          ...mecaItemsForPath(
+            basePath,
+            join(relPath, subPath.name),
+            type,
+            true,
+          ),
         );
       } else {
         const filePath = join(relPath, subPath.name);
-        items.push(toMecaItem(filePath, mecaType(filePath)));
+        items.push(toMecaItem(filePath, mecaType(filePath, type)));
       }
     }
     return items;
   } else {
-    return [toMecaItem(relPath, mecaType(path))];
+    return [toMecaItem(relPath, mecaType(path, type))];
   }
 };
 
-const mecaType = (_path: string) => {
-  return kReferencedFileType;
+const mecaType = (_path: string, type: "article" | "manuscript") => {
+  if (type === "article") {
+    return kArticleSupportingFile;
+  } else {
+    return kManuscriptSupportingFile;
+  }
 };
