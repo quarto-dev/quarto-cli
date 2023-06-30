@@ -39,7 +39,7 @@ export function testRender(
   context?: TestContext,
   args?: string[],
   projectOutDir?: string,
-  isRenderError?: string
+  renderErrorMsg?: string
 ) {
   // Verify that the output was created and
   // that supporting files are present or missing
@@ -72,7 +72,7 @@ export function testRender(
         cleanoutput(input, to);
       },
     },
-    isRenderError,
+    renderErrorMsg,
   );
 }
 
