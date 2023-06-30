@@ -35,7 +35,7 @@ export interface TestDescriptor {
   type: "smoke" | "unit";
 
   // Message to test for inside render error
-  renderErrorMsg?: string;
+  isRenderError?: string;
 }
 
 export interface TestContext {
@@ -65,7 +65,7 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
-  renderErrorMsg?: string,
+  isRenderError?: string,
 ) {
   const name = `quarto ${cmd} ${args.join(" ")}`;
 
@@ -77,7 +77,7 @@ export function testQuartoCmd(
     verify,
     context: context || {},
     type: "smoke",
-    renderErrorMsg,
+    isRenderError,
   });
 }
 
@@ -169,8 +169,8 @@ export function test(test: TestDescriptor) {
         try {
           
           const executeFun = async (expr: PromiseLike<unknown>) => {
-            if (test.renderErrorMsg) {
-              lastVerify = {name: `Rendering error includes specific message "${test.renderErrorMsg}"`, verify: () => {} }
+            if (test.isRenderError) {
+              lastVerify = {name: `Rendering error includes specific message "${test.isRenderError}"`, verify: () => {} }
               if (userSession) {
                 const verifyMsg = "[verify] > " + lastVerify.name;
                 console.log(userSession ? colors.dim(verifyMsg) : verifyMsg);
@@ -180,7 +180,7 @@ export function test(test: TestDescriptor) {
                       return expr
                     },
                     Error,
-                    test.renderErrorMsg,
+                    test.isRenderError,
                 );
               } else {
               return await expr
