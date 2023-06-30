@@ -1,8 +1,0 @@
----
-title: Hello Callout!
-format:
-  html:
-    quarto-required: "<= 0.0.0"
----
-
-This file will not be rendered as it does not respect the quarto version requirement

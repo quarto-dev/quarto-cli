@@ -38,8 +38,7 @@ export function testRender(
   addtlVerify?: Verify[],
   context?: TestContext,
   args?: string[],
-  projectOutDir?: string,
-  isRenderError?: string
+  projectOutDir?: string
 ) {
   // Verify that the output was created and
   // that supporting files are present or missing
@@ -72,7 +71,6 @@ export function testRender(
         cleanoutput(input, to);
       },
     },
-    isRenderError,
   );
 }
 
