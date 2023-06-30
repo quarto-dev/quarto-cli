@@ -5,7 +5,7 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
-import { fail } from "testing/asserts.ts";
+import { assertRejects, fail } from "testing/asserts.ts";
 import { warning } from "log/mod.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
@@ -62,12 +62,27 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
+  isRenderError?: string,
 ) {
   const name = `quarto ${cmd} ${args.join(" ")}`;
+  const executeFun = async (expr: PromiseLike<unknown>) => {
+    if (isRenderError) {
+      return await assertRejects(
+          () => {
+              return expr
+            },
+            Error,
+            isRenderError,
+        );
+     } else {
+      return await expr
+    }
+  };
+
   test({
     name,
     execute: async () => {
-      await quarto([cmd, ...args]);
+        await executeFun(quarto([cmd, ...args]));
     },
     verify,
     context: context || {},
