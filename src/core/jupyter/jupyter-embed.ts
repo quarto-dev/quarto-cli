@@ -688,23 +688,33 @@ function cellForId(id: string, cells: JupyterCellOutput[]) {
     if (hasId) {
       // It's an ID
       return cell;
-    } else {
-      const hasLabel = cell.options && cell.options[kCellLabel]
-        ? id === cell.options[kCellLabel]
-        : false;
+    }
 
-      if (hasLabel) {
-        // It matches a label
+    // Check label
+    const hasLabel = cell.options && cell.options[kCellLabel]
+      ? id === cell.options[kCellLabel]
+      : false;
+
+    if (hasLabel) {
+      // It matches a label
+      return cell;
+    }
+
+    // Check tags
+    const hasTag = cell.metadata && cell.metadata.tags
+      ? cell.metadata.tags.find((tag) => id === tag) !==
+        undefined
+      : false;
+
+    if (hasTag) {
+      return cell;
+    }
+
+    // Check contents of the cell itself
+    if (cell.markdown && cell.markdown.includes(id)) {
+      // Now look more carefully to see if id is indeed an attr
+      if (cell.markdown.match(new RegExp(`.*{#${id}.*}$`, "gm"))) {
         return cell;
-      } else {
-        // Check tags
-        const hasTag = cell.metadata && cell.metadata.tags
-          ? cell.metadata.tags.find((tag) => id === tag) !==
-            undefined
-          : false;
-        if (hasTag) {
-          return cell;
-        }
       }
     }
   }
