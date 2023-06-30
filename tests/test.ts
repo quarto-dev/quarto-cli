@@ -9,7 +9,7 @@ import { fail } from "testing/asserts.ts";
 import { warning } from "log/mod.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
-import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
+import { cleanupLogger, initializeLogger, logError } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
 import { join } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
@@ -164,7 +164,9 @@ export function test(test: TestDescriptor) {
 
           try {
             await test.execute();
-          } catch (e) {}
+          } catch (e) {
+            logError(e)
+          }
 
           // Cleanup the output logging
           await cleanupLogOnce();
