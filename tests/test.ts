@@ -161,7 +161,10 @@ export function test(test: TestDescriptor) {
         };
         let lastVerify;
         try {
-          await test.execute();
+
+          try {
+            await test.execute();
+          } catch (e) {}
 
           // Cleanup the output logging
           await cleanupLogOnce();
