@@ -155,6 +155,9 @@ initCrossrefIndex()
 
 initShortcodeHandlers()
 
+-- see whether the cross ref filter is enabled
+local enableCrossRef = param("enable-crossref", true)
+
 local quartoInit = {
   { name = "init-configure-filters", filter = configure_filters() },
   { name = "init-read-includes", filter = read_includes() },
@@ -388,7 +391,9 @@ local filterList = {}
 tappend(filterList, quartoInit)
 tappend(filterList, quartoNormalize)
 tappend(filterList, quartoPre)
-tappend(filterList, quartoCrossref)
+if enableCrossRef then
+  tappend(filterList, quartoCrossref)
+end
 tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)
