@@ -14,5 +14,5 @@ const input = docs("quarto-required.qmd");
 testQuartoCmd(
   "render",
   [input],
-  [printsMessage("ERROR", /satisfy/)]
+  [printsMessage("ERROR", /does not satisfy version/)]
 );
