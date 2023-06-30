@@ -12,6 +12,7 @@ import {
 } from "../../command/render/types.ts";
 import {
   kClearHiddenClasses,
+  kIpynbProduceSourceNotebook,
   kIPynbTitleBlockTemplate,
   kKeepHidden,
   kNotebookPreserveCells,
@@ -55,7 +56,7 @@ function resolveOutputNotebook(
 
   resolved.recipe.format.pandoc.to = "ipynb";
 
-  // TODO: Move to shared
+  // TODO: Allow YAML to pass through as raw or markdown block
   const template = ipynbTitleTemplatePath();
 
   // Configure echo for this rendering
@@ -66,6 +67,7 @@ function resolveOutputNotebook(
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
+  resolved.recipe.format.render[kIpynbProduceSourceNotebook] = true;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -88,6 +90,7 @@ async function renderOutputNotebook(
           [kTo]: "ipynb",
           [kOutputFile]: ipynbOutputFile(nbPath),
           [kNotebookPreserveCells]: true,
+          [kIpynbProduceSourceNotebook]: true,
         },
         quiet: false,
       },

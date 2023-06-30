@@ -39,6 +39,9 @@ export const kResources = "resources";
 export const kFormatResources = "format-resources";
 export const kSupporting = "supporting";
 
+export const kIpynbProduceSourceNotebook = "produce-source-notebook";
+export const kEnableCrossRef = "enable-crossref";
+
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
 export const kOtherLinks = "other-links";
@@ -195,6 +198,7 @@ export const kRenderDefaultsKeys = [
   kLinkExternalFilter,
   kFormatResources,
   kFormatLinks,
+  kIpynbProduceSourceNotebook,
   kNotebookLinks,
   kNotebookSubarticles,
   kNotebookView,
