@@ -14,6 +14,7 @@ import { removeIfEmptyDir } from "../../../src/core/path.ts";
 const journalRepos = [
   { repo: "acm", noSupporting: true },
   { repo: "acs", noSupporting: true },
+  { repo: "agu", noSupporting: true },
   { repo: "biophysical-journal", format: "bj", noSupporting: true },
   { repo: "elsevier", noSupporting: false },
   { repo: "jasa", noSupporting: true },
