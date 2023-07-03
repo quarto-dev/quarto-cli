@@ -57,9 +57,34 @@ testManuscriptRender(
 );
 
 const qmdSingleArticle = docs("manuscript/qmd-single/index.qmd");
+const qmdSingleOutputs = [
+  "index-meca.zip",
+  "data/lapalma_ign.csv",
+  "images/la-palma-map.png",
+  "images/reservoirs.png",
+  "article.ipynb.html",
+  "article.out.ipynb",
+];
+
 testManuscriptRender(
   qmdSingleArticle,
   "all",
   ["html", "jats", "docx", "pdf"],
-  [],
+  qmdSingleOutputs,
+);
+
+const qmdFullArticle = docs("manuscript/qmd-full/index.qmd");
+const qmdFullOutputs = [
+  "index-meca.zip",
+  "images/la-palma-map.png",
+  "images/reservoirs.png",
+  "notebook.qmd",
+  "notebook.out.ipynb",
+  "notebook.qmd.html",
+];
+testManuscriptRender(
+  qmdFullArticle,
+  "all",
+  ["html", "jats", "docx", "pdf"],
+  qmdFullOutputs,
 );
