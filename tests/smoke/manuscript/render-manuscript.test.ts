@@ -59,11 +59,10 @@ testManuscriptRender(
 const qmdSingleArticle = docs("manuscript/qmd-single/index.qmd");
 const qmdSingleOutputs = [
   "index-meca.zip",
-  "data/lapalma_ign.csv",
   "images/la-palma-map.png",
   "images/reservoirs.png",
-  "article.ipynb.html",
-  "article.out.ipynb",
+  "index.qmd.html",
+  "index.out.ipynb",
 ];
 
 testManuscriptRender(
