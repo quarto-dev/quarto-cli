@@ -6,8 +6,7 @@
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
-import { siteOutputForInput } from "../../utils.ts";
-import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
+import { fileExists, noErrorsOrWarnings } from "../../verify.ts";
 
 export type targetFormat = "html" | "jats" | "docx" | "pdf";
 
@@ -15,8 +14,8 @@ export const testManuscriptRender = (
   article: string,
   to: "all" | targetFormat,
   formats: targetFormat[],
-  _expectedOutputs: string[],
-  _articleVerify?: Verify[],
+  expectedOutputs: string[],
+  articleVerify: Verify[] = [],
 ) => {
   const articleDir = dirname(article);
 
@@ -24,54 +23,27 @@ export const testManuscriptRender = (
     return manuscriptOutputForInput(article, fmt);
   });
 
+  const verifyFileExists = articleOuts.map((out) => {
+    return fileExists(out.outputPath);
+  });
+
+  expectedOutputs.forEach((out) => {
+    verifyFileExists.push(fileExists(join(articleDir, "_manuscript", out)));
+  });
+
   // Render the manuscript
   testQuartoCmd(
     "render",
     [articleDir, "--to", to],
-    [noErrorsOrWarnings],
+    [noErrorsOrWarnings, ...verifyFileExists, ...articleVerify],
     {
       teardown: () => {
         articleOuts.forEach((out) => {
-          if (existsSync(out.outputPath)) {
-            Deno.removeSync(out.outputPath);
-          }
-
-          if (out.supportPath && existsSync(out.supportPath)) {
-            Deno.removeSync(out.supportPath, { recursive: true });
+          if (existsSync(out.manuscriptDir)) {
+            Deno.removeSync(out.manuscriptDir, { recursive: true });
           }
         });
         return Promise.resolve();
-      },
-    },
-  );
-};
-
-export const testManuscript = (
-  article: string,
-  renderTarget: string,
-  includeSelectors: string[],
-  excludeSelectors: string[],
-  ...verify: Verify[]
-) => {
-  const output = siteOutputForInput(article);
-
-  const verifySel = ensureHtmlElements(
-    output.outputPath,
-    includeSelectors,
-    excludeSelectors,
-  );
-
-  // Run the command
-  testQuartoCmd(
-    "render",
-    [renderTarget],
-    [noErrorsOrWarnings, verifySel, ...verify],
-    {
-      teardown: async () => {
-        const siteDir = dirname(output.outputPath);
-        if (existsSync(siteDir)) {
-          await Deno.remove(siteDir, { recursive: true });
-        }
       },
     },
   );
@@ -81,7 +53,10 @@ function manuscriptOutputForInput(
   input: string,
   format: targetFormat,
 ) {
+  const inputStem = basename(input, extname(input));
   let ext = "html";
+  let stem = inputStem;
+
   let supporting = true;
   if (format === "jats") {
     ext = "xml";
@@ -91,10 +66,11 @@ function manuscriptOutputForInput(
   } else if (format === "docx") {
     ext = "docx";
     supporting = false;
+  } else if (format === "html") {
+    stem = "index";
   }
 
   const dir = join(dirname(input), "_manuscript");
-  const stem = basename(input, extname(input));
 
   const outputPath = join(dir, `${stem}.${ext}`);
   const supportPath = join(dir, `${stem}_files`);
@@ -102,5 +78,6 @@ function manuscriptOutputForInput(
   return {
     outputPath,
     supportPath: supporting ? supportPath : undefined,
+    manuscriptDir: dir,
   };
 }
