@@ -19,7 +19,7 @@ const journalRepos = [
   { repo: "elsevier", noSupporting: false },
   { repo: "jasa", noSupporting: true },
   { repo: "jss", noSupporting: true },
-  // { repo: "plos", noSupporting: true },
+  { repo: "plos", noSupporting: true },
 ];
 
 for (const journalRepo of journalRepos) {
@@ -42,6 +42,7 @@ for (const journalRepo of journalRepos) {
 
     // Sets up the test
     setup: async () => {
+      console.log(`using quarto-journals/${journalRepo.repo}`);
       const wd = Deno.cwd();
       Deno.chdir(workingDir);
       await quarto([
