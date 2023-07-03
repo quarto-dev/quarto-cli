@@ -113,7 +113,7 @@ function compute_flags()
         flags.has_output_cells = true
 
         -- tbl_colwidths
-        local tblColwidths = node.attr.attributes[constants.kTblColwidths]
+        local tblColwidths = node.attr.attributes[constants.kTblColWidths]
         if tblColwidths ~= nil then
           flags.has_tbl_colwidths = true
         end

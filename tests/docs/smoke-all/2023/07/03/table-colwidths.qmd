@@ -1,0 +1,21 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - '#tbl-res1 table > colgroup > col[style|="width: 25%"]:nth-child(1)'
+          - '#tbl-res1 table > colgroup > col[style|="width: 25%"]:nth-child(2)'
+          - '#tbl-res1 table > colgroup > col[style|="width: 25%"]:nth-child(3)'
+          - '#tbl-res1 table > colgroup > col[style|="width: 25%"]:nth-child(4)'
+        - 
+          - '#tbl-res1 table > colgroup > col[style|="width: 25%"]:nth-child(5)'
+---
+
+```{r}
+#| label: tbl-res1
+#| tbl-cap: "mtcars using colwidths doesn't work."
+#| tbl-colwidths: [25, 25, 25, 25]
+knitr::kable(mtcars[,1:3])
+```
