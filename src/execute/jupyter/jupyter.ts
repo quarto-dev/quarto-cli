@@ -87,6 +87,7 @@ import { asMappedString } from "../../core/lib/mapped-text.ts";
 import { MappedString, mappedStringFromFile } from "../../core/mapped-text.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { isQmdFile } from "../qmd.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -420,11 +421,6 @@ export const jupyterEngine: ExecutionEngine = {
     return files;
   },
 };
-
-function isQmdFile(file: string) {
-  const ext = extname(file);
-  return kQmdExtensions.includes(ext);
-}
 
 async function ensureYamlKernelspec(
   target: ExecutionTarget,
