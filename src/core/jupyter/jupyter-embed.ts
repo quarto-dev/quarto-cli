@@ -170,7 +170,7 @@ export async function ensureNotebookContext(
     }
     const nbAbsPath = resolveNbPath(inputPath, nbAddress.path, context);
     if (!isNotebook(nbAbsPath)) {
-      if (!services.notebook.get(nbAbsPath, context)?.[kRenderedIPynb]) {
+      if (!services.notebook.get(nbAbsPath, context)?.[kQmdIPynb]) {
         nbsToRender.push({ path: nbAbsPath, name: nbAddress.path });
       }
     }
