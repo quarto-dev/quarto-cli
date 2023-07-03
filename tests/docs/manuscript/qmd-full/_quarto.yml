@@ -1,0 +1,20 @@
+project:
+  type: manuscript
+
+execute:
+  freeze: true
+  
+format:
+  html:
+    toc: true
+    format-links: [agu-pdf, docx]
+    comments: 
+      hypothesis: true
+    repo-url: https://github.com/cwickham/submission-quarto-lite-r
+    repo-actions: [edit, issue]    
+  agu-pdf: default
+  docx: default
+  jats: default
+
+
+  
