@@ -586,14 +586,43 @@ async function updateBootstrapFromBslib(
       // Checkout the appropriate version
       await repo.checkout(commit);
 
-      // Copy the scss files
-      info("Copying scss files");
-      const from = join(repo.dir, "inst", "lib", "bs5", "scss");
-      const to = join(distDir, "scss");
-      info(`Copying ${from} to ${to}`);
-      copySync(from, to);
+      const copySyncVerbose = (msg: string, from: string, to: string) => {
+        info(msg);
+        info(`Copying ${from} to ${to}`);
+        copySync(from, to);
+      };
 
-      // Fix up the Boostrap rules files
+      copySyncVerbose(
+        "Copying Bootstrap 5 scss files",
+        join(repo.dir, "inst", "lib", "bs5", "scss"), 
+        join(distDir, "scss")
+      );
+
+      copySyncVerbose(
+        "Copying bslib's component scss",
+        join(repo.dir, "inst", "components"), 
+        join(distDir, "scss", "components")
+      );
+
+      copySyncVerbose(
+        "Copying bslib's BS3 compat",
+        join(repo.dir, "inst", "bs3compat"), 
+        join(distDir, "scss", "bs3compat")
+      );
+
+      copySyncVerbose(
+        "Copying bslib's Sass utilities",
+        join(repo.dir, "inst", "sass-utils"), 
+        join(distDir, "scss", "sass-utils")
+      );
+
+      copySyncVerbose(
+        "Copying bslib's nav-spacer",
+        join(repo.dir, "inst", "nav-spacer"), 
+        join(distDir, "scss", "nav-spacer")
+      );
+
+      // Fix up the Bootstrap rules files
       info(
         "Rewriting bootstrap.scss to exclude functions, mixins, and variables.",
       );
@@ -602,22 +631,20 @@ async function updateBootstrapFromBslib(
         '@import "variables";',
         '@import "mixins";',
       ];
-      const bootstrapScssFile = join(to, "bootstrap.scss");
-      const bootstrapScssContents = lines(
-        Deno.readTextFileSync(bootstrapScssFile),
-      ).filter((line: string) => {
+      const bslibScss = Deno.readTextFileSync(
+        join(repo.dir, "inst", "css-precompiled", "5", "bootstrap.scss")
+      );
+      const bslibScssPatched = lines(bslibScss).filter((line: string) => {
+        line = line.replace('@import "inst/lib/bs5/scss/', '@import "scss/');
+        line = line.replace('@import "inst/', '@import "scss/');
         return !bootstrapFilter.includes(line);
       }).join("\n");
-      Deno.writeTextFileSync(bootstrapScssFile, bootstrapScssContents);
+      Deno.writeTextFileSync(
+        join(repo.dir, "bootstrap.scss"), 
+        bslibScssPatched
+      );
       info("done.");
       info("");
-
-      // Copy utils
-      info("Copying scss files");
-      const utilsFrom = join(repo.dir, "inst", "sass-utils");
-      const utilsTo = join(distDir, "sass-utils");
-      info(`Copying ${utilsFrom} to ${utilsTo}`);
-      copySync(utilsFrom, utilsTo);
 
       // Grab the js file that we need
       info("Copying dist files");
