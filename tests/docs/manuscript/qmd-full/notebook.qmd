@@ -1,0 +1,134 @@
+
+
+```{r}
+#| message: false
+library(tidyverse)
+library(ggExtra)
+```
+
+```{r}
+#| label: "data-import"
+#| message: false
+#| results: hide
+df_ign <- read_csv("data/lapalma_ign.csv")
+df_ign <- df_ign |>
+  mutate(
+    Mag = floor(Magnitude),
+    Depth = case_when(
+      `Depth(km)` >= 28 ~ "Deep (>28km)",
+      `Depth(km)` >= 18 ~ "Interchange (18km>x>28km)",
+      TRUE ~ "Shallow (< 18km)"
+    ))
+df_ign
+```
+
+
+```{r} 
+#| label: epochs
+cut_times <- ymd_hms(c("2021-09-11", "2021-09-19 14:13:00", "2021-10-01", "2021-12-01", "2021-12-31", "2022-01-01"), truncated = 3)
+epochs <- tibble(
+  start = cut_times[-length(cut_times)], 
+  end = cut_times[-1], 
+  label = c("pre", "early", "phase1", "phase2", "phase3"),
+  text = c('Pre\nEruptive\nSwarm', 
+           'Early Eruptive\nPhase',
+           'Main Eruptive Phase\n(sustained gas and lava ejection)', 
+           'Final Eruptive Phase\n(reducing gas and lava ejection)',
+            NA
+  )
+)
+```
+
+
+```{r}
+#| label: "erupt-data"
+mag_breaks <- c(0, 1, 2, 3, 4, 6)
+mag_labels <- c("0 < M <= 1","1 < M <= 2","2 < M <= 3","3 < M <= 4","M > 4")
+df_erupt <- df_ign |>
+  filter(Date < as.Date("2022-01-01") & Date > as.Date("2021-09-11")) |>
+  mutate(Magnitude_categories = cut(Magnitude, 
+    breaks = mag_breaks, labels = mag_labels, right = FALSE))
+```
+
+
+```{r}
+#| label: colors
+colors <- c("#1f77b4","#aec7e8","#ff7f0e","#ffbb78","#2ca02c","#98df8a",
+  "#d62728","#ff9896","#9467bd","#c5b0d5","#8c564b","#c49c94","#e377c2",
+  "#f7b6d2","#7f7f7f","#c7c7c7","#bcbd22","#dbdb8d","#17becf","#9edae5")
+```
+
+```{r}
+#| label: "plot-timeline"
+#| warning: false
+#| fig-width: 24
+#| fig-height: 12
+eruption <- ymd_hms("2021-09-19 14:13:00")
+date_axis_breaks <- as.Date("2021-10-15") + months(rep(0:2, each = 2)) - 
+      days(rep(c(14, 0), times = 3))
+date_axis_breaks <- c(eruption, date_axis_breaks[-1])
+
+# Custom Magnitude Scale transform
+trans_mag <- scales::trans_new(
+  name = "Magnitude transformation",
+  transform = \(x) 3*2^(1.3*x),
+  inverse = \(x) (1/1.3) * log2(x/3)
+)
+
+  
+df_erupt |>
+  arrange(Magnitude) |> 
+  ggplot(aes(DateTime, `Depth(km)`)) + 
+  geom_point(aes(fill = Magnitude_categories, size = Magnitude,
+    alpha = Magnitude_categories), shape = 21, color = "black") +
+  geom_vline(xintercept = eruption, color = colors[7]) +
+  annotate("text", x = eruption, y = 20, label = "ERUPTION", 
+    color = colors[7], angle = 90, hjust = 1, vjust = -0.2, size = 6) +
+  annotate("rect", xmin = epochs$start, xmax = epochs$end,
+    ymin = -Inf, ymax = Inf, fill = colors[c(1, 3, 5, 7, 7)], alpha = 0.1) + 
+  annotate("text", x =  epochs$start + 0.5*(epochs$end - epochs$start), y = -4, 
+    label = epochs$text, color = colors[c(1, 3, 5, 7, NA)], size = 7) +
+  scale_y_continuous("Depth (km)", trans = scales::reverse_trans(), 
+    breaks = seq(0, 40, 10), limits = c( 45, -5), sec.axis = dup_axis()) +
+  scale_x_datetime("Eruption Timeline", expand = c(0, 0), 
+    date_labels = "%Y-%m-%d", breaks = date_axis_breaks) +
+  scale_fill_manual("Event Magnitude (M)", values = colors[c(13, 17, 5, 3, 7)]) +
+  scale_alpha_manual("Event Magnitude (M)", values = c(0.3, 0.4, 0.5, 0.6, 0.8)) +
+  scale_size("Event Magnitude (M)", breaks = 1:5, labels = mag_labels, 
+    trans = trans_mag) +
+  theme_bw(base_size = 20, base_family = "Helvetica") + 
+  theme(
+    legend.position = c(0.01, 0.01), 
+    legend.justification = c("left", "bottom"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.border = element_blank(),
+    axis.line.x.bottom = element_line(color = "grey50"),
+    axis.title.y.right = element_blank(),
+    plot.title = element_text(hjust = 0.5, margin = margin(t = 20, b = 20))
+  ) +
+  labs(title = "Recorded seismicity during the La Palma eruption 11 September - 15 December 2021 (INVOLCAN Dataset)")
+```
+
+```{r}
+#| label: "plot-dists"
+#| fig-height: 10
+#| fig-width: 8
+blue <- "#336699"
+
+p <- df_ign |> 
+  ggplot(aes(Magnitude, `Depth(km)`)) +
+  geom_point(alpha = 0.6, color = blue) +
+  geom_density2d(color = blue, n = 100, h = c(1, 8), bins = 20) + 
+  scale_y_continuous(trans = "reverse") +
+  coord_fixed(ratio = 1/8) +
+  labs(title = "Cumulative Events 01-01-2017 to 01-01-2022") + 
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = 0.5, margin = margin(t = 20, b = 20))) 
+  
+
+ggMarginal(p, type = "histogram", bins = 20, fill = blue, color = "white") 
+```
+

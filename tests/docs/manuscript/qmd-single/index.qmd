@@ -1,0 +1,276 @@
+---
+title: La Palma Earthquakes
+author:
+  - name: Steve Purves
+    orcid: 0000-0002-0760-5497
+    corresponding: true
+    email: steve@curvenote.com
+    roles:
+      - Investigation
+      - Project administration
+      - Software
+      - Visualization
+    affiliations:
+      - Curvenote
+  - name: Rowan Cockett
+    orcid: 0000-0002-7859-8394
+    corresponding: false
+    roles: []
+    affiliations:
+      - Curvenote
+license: CC BY-SA 4.0
+keywords:
+  - La Palma
+  - Earthquakes
+date: '2022-05-11'
+abstract: |
+  In September 2021, a significant jump in seismic activity on the island of La Palma (Canary Islands, Spain) signaled the start of a volcanic crisis that still continues at the time of writing. Earthquake data is continually collected and published by the Instituto Geográphico Nacional (IGN). We have created an accessible dataset from this and completed preliminary data analysis which shows seismicity originating at two distinct depths, consistent with the model of a two reservoir system feeding the currently very active volcano.
+keypoints:
+  - You may specify 1 to 3 keypoints for this PDF template
+  - These keypoints are complete sentences and less than or equal to 140 characters
+  - 'They are specific to this PDF template, so they will not appear in other exports'
+citation:
+  container-title: Notebooks Now!
+draft: false
+bibliography: references.bib
+echo: false
+---
+
+## Introduction
+
+> The content of your notebook may be broken into any number of markdown or code cells. Markdown cells use Quarto markdown. Quarto markdown supports an extended version of the basic Markdown syntax originally created by John Gruber, which adds support for many common document elements including citations, figures, tables, admonitions, and more. Quarto markdown also supports the use of LaTeX for mathematical equations, advanced layout control, as well as other advanced formatting.
+
+La Palma is one of the west most islands in the Volcanic Archipelago of the Canary Islands, a Spanish territory situated is the Atlantic Ocean where at their closest point are 100km from the African coast @fig-map. The island is one of the youngest, remains active and is still in the island forming stage.
+
+> Figures may be added to your notebook using [markdown images or specifial markdown elements](https://quarto.org/docs/authoring/figures.html) ('fenced divs'). They may refer to images saved in your `images/` folder (or other folders), images from the web, or generated directly using code cells. You may embed figures produced in other notebooks using the [embed shortcode](https://quarto.org/docs/authoring/notebook-embed.html) (this embed figures, tables, or any other content from Jupyter Notebooks). Refer to figures by their label (e.g. `@fig-map`).
+
+![Map of La Palma in the Canary Islands. Image credit [NordNordWest](https://commons.wikimedia.org/w/index.php?curid=76638603)](images/la-palma-map.png){#fig-map align="center" width="100%"}
+
+La Palma has been constructed by various phases of volcanism, the most recent and currently active being the *Cumbre Vieja* volcano, a north-south volcanic ridge that constitutes the southern half of the island.
+
+### Eruption History
+
+A number of eruptions were recorded since the colonization of the islands by Europeans in the late 1400s, these are summarised in @tbl-history.
+
+> Quarto supports a number of ways to create tables using both standard markdown tables (pipe tables) and more complex markdown tables using a grid style syntax (grid tables). In addition, Quarto provides the ability to control column width, caption position, create subtables, and more. See [Quarto's table document](https://quarto.org/docs/authoring/tables.html) to learn more. Refer to tables in the text by their label (e.g. `@tbl-history`).
+
+
+| Name      | Year |
+| ----------- | ----------- |
+| Current      | 2021       |
+| Teneguía   | 1971        |
+| Nambroque   | 1949        |
+| El Charco   | 1712        |
+| Volcán San Antonio   | 1677        |
+| Volcán San Martin   | 1646        |
+| Tajuya near El Paso   | 1585        |
+| Montaña Quemada   | 1492        |
+
+: Recent historic eruptions on La Palma {#tbl-history}
+
+This equates to an eruption on average every 79 years up until the 1971 event. The probability of a future eruption can be modeled by a Poisson distribution @eq-poisson.
+
+> Numbered equations may be defined using 'dollar math' by placing equations between matching pairs of dollar signs. Learn more about Quarto's equation here: [https://quarto.org/docs/authoring/cross-references.html#equations](https://quarto.org/docs/authoring/cross-references.html#equations). Refer to equations in the text by their label (e.g. `@eq-poisson`).
+
+$$
+p(x)=\frac{e^{-\lambda} \lambda^{x}}{x !}
+$$ {#eq-poisson}
+
+
+Where $\lambda$ is the number of eruptions per year, $\lambda=\frac{1}{79}$ in this case. The probability of a future eruption in the next $t$ years can be calculated by:
+
+$$
+p_e = 1-\mathrm{e}^{-t \lambda}
+$$ {#eq-probability}
+
+So following the 1971 eruption the probability of an eruption in the following 50 years — the period ending this year — was 0.469. After the event, the number of eruptions per year moves to $\lambda=\frac{1}{75}$ and the probability of a further eruption within the next 50 years (2022-2071) rises to 0.487 and in the next 100 years, this rises again to 0.736.
+
+### Magma Reservoirs
+
+> You may provide the bibliography directly as a bibtex, biblatex, CSL JSON, or CSL YAML file (defined in the document front matter or `_quarto.yml` project file) then embed the citation by citation key in your text using the `[@cite]` or `@cite` for parenthetical or textual citations, respectively. The following paragraph provides an example of this. Quarto's [documentation on citations](https://quarto.org/docs/authoring/footnotes-and-citations.html) provides more details on working with bibliographies and citations.
+
+Studies of the magma systems feeding the volcano, such as @marrero2019 has proposed that there are two main magma reservoirs feeding the Cumbre Vieja volcano; one in the mantle (30-40km depth) which charges and in turn feeds a shallower crustal reservoir (10-20km depth).
+
+![Proposed model from Marrero et al](images/reservoirs.png){#fig-reservoirs align="center" width="100%"}
+
+In this paper, we look at recent seismicity data to see if we can see evidence of such a system action, see @fig-reservoirs.
+
+# Dataset
+
+> All data used in the notebook should be present in the `data/` folder so notebooks may be executed in place with no additional input.
+
+The earthquake dataset used in our analysis was generated from the [IGN web portal](https://www.ign.es/web/resources/volcanologia/tproximos/canarias.html) this is public data released under a permissive license. Data recorded using the network of Seismic Monitoring Stations on the island. A web scraping script was developed to pull data into a machine-readable form for analysis. That code tool [is available on GitHub](https://github.com/stevejpurves/ign-earthquake-data) along with a copy of recently updated data.
+
+## Main Timeline Figure
+
+> Code cells may be seamlessly interleaved with markdown cells. There are a variety of execution options to control the behavior of code cells - learn more in [Quarto's documentation on execution options](https://quarto.org/docs/computations/execution-options.html).
+
+```{r}
+#| message: false
+library(tidyverse)
+library(ggExtra)
+```
+
+## Visualising Long term earthquake data
+
+Data taken directly from the IGN Catalog
+
+> Supported cell outputs below include `pandas` dataframe, raw text output, `matplotlib` plot, and `seaborn` plot.
+
+```{r}
+#| label: "data-import"
+#| message: false
+#| results: hide
+df_ign <- read_csv("data/lapalma_ign.csv")
+df_ign <- df_ign |>
+  mutate(
+    Mag = floor(Magnitude),
+    Depth = case_when(
+      `Depth(km)` >= 28 ~ "Deep (>28km)",
+      `Depth(km)` >= 18 ~ "Interchange (18km>x>28km)",
+      TRUE ~ "Shallow (< 18km)"
+    ))
+df_ign
+```
+
+
+```{r} 
+#| label: epochs
+cut_times <- ymd_hms(c("2021-09-11", "2021-09-19 14:13:00", "2021-10-01", "2021-12-01", "2021-12-31", "2022-01-01"), truncated = 3)
+epochs <- tibble(
+  start = cut_times[-length(cut_times)], 
+  end = cut_times[-1], 
+  label = c("pre", "early", "phase1", "phase2", "phase3"),
+  text = c('Pre\nEruptive\nSwarm', 
+           'Early Eruptive\nPhase',
+           'Main Eruptive Phase\n(sustained gas and lava ejection)', 
+           'Final Eruptive Phase\n(reducing gas and lava ejection)',
+            NA
+  )
+)
+```
+
+
+```{r}
+#| label: "erupt-data"
+mag_breaks <- c(0, 1, 2, 3, 4, 6)
+mag_labels <- c("0 < M <= 1","1 < M <= 2","2 < M <= 3","3 < M <= 4","M > 4")
+df_erupt <- df_ign |>
+  filter(Date < as.Date("2022-01-01") & Date > as.Date("2021-09-11")) |>
+  mutate(Magnitude_categories = cut(Magnitude, 
+    breaks = mag_breaks, labels = mag_labels, right = FALSE))
+```
+
+
+```{r}
+#| label: colors
+colors <- c("#1f77b4","#aec7e8","#ff7f0e","#ffbb78","#2ca02c","#98df8a",
+  "#d62728","#ff9896","#9467bd","#c5b0d5","#8c564b","#c49c94","#e377c2",
+  "#f7b6d2","#7f7f7f","#c7c7c7","#bcbd22","#dbdb8d","#17becf","#9edae5")
+```
+
+
+```{r}
+#| label: "plot-timeline"
+#| warning: false
+#| fig-width: 24
+#| fig-height: 12
+eruption <- ymd_hms("2021-09-19 14:13:00")
+date_axis_breaks <- as.Date("2021-10-15") + months(rep(0:2, each = 2)) - 
+      days(rep(c(14, 0), times = 3))
+date_axis_breaks <- c(eruption, date_axis_breaks[-1])
+
+# Custom Magnitude Scale transform
+trans_mag <- scales::trans_new(
+  name = "Magnitude transformation",
+  transform = \(x) 3*2^(1.3*x),
+  inverse = \(x) (1/1.3) * log2(x/3)
+)
+
+  
+df_erupt |>
+  arrange(Magnitude) |> 
+  ggplot(aes(DateTime, `Depth(km)`)) + 
+  geom_point(aes(fill = Magnitude_categories, size = Magnitude,
+    alpha = Magnitude_categories), shape = 21, color = "black") +
+  geom_vline(xintercept = eruption, color = colors[7]) +
+  annotate("text", x = eruption, y = 20, label = "ERUPTION", 
+    color = colors[7], angle = 90, hjust = 1, vjust = -0.2, size = 6) +
+  annotate("rect", xmin = epochs$start, xmax = epochs$end,
+    ymin = -Inf, ymax = Inf, fill = colors[c(1, 3, 5, 7, 7)], alpha = 0.1) + 
+  annotate("text", x =  epochs$start + 0.5*(epochs$end - epochs$start), y = -4, 
+    label = epochs$text, color = colors[c(1, 3, 5, 7, NA)], size = 7) +
+  scale_y_continuous("Depth (km)", trans = scales::reverse_trans(), 
+    breaks = seq(0, 40, 10), limits = c( 45, -5), sec.axis = dup_axis()) +
+  scale_x_datetime("Eruption Timeline", expand = c(0, 0), 
+    date_labels = "%Y-%m-%d", breaks = date_axis_breaks) +
+  scale_fill_manual("Event Magnitude (M)", values = colors[c(13, 17, 5, 3, 7)]) +
+  scale_alpha_manual("Event Magnitude (M)", values = c(0.3, 0.4, 0.5, 0.6, 0.8)) +
+  scale_size("Event Magnitude (M)", breaks = 1:5, labels = mag_labels, 
+    trans = trans_mag) +
+  theme_bw(base_size = 20, base_family = "Helvetica") + 
+  theme(
+    legend.position = c(0.01, 0.01), 
+    legend.justification = c("left", "bottom"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.border = element_blank(),
+    axis.line.x.bottom = element_line(color = "grey50"),
+    axis.title.y.right = element_blank(),
+    plot.title = element_text(hjust = 0.5, margin = margin(t = 20, b = 20))
+  ) +
+  labs(title = "Recorded seismicity during the La Palma eruption 11 September - 15 December 2021 (INVOLCAN Dataset)")
+```
+
+## Cumulative Distribution Plots
+
+```{r}
+#| label: "plot-dists"
+#| fig-height: 10
+#| fig-width: 8
+blue <- "#336699"
+
+p <- df_ign |> 
+  ggplot(aes(Magnitude, `Depth(km)`)) +
+  geom_point(alpha = 0.6, color = blue) +
+  geom_density2d(color = blue, n = 100, h = c(1, 8), bins = 20) + 
+  scale_y_continuous(trans = "reverse") +
+  coord_fixed(ratio = 1/8) +
+  labs(title = "Cumulative Events 01-01-2017 to 01-01-2022") + 
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = 0.5, margin = margin(t = 20, b = 20))) 
+  
+
+ggMarginal(p, type = "histogram", bins = 20, fill = blue, color = "white") 
+```
+
+# Results
+
+The dataset was loaded into this Jupyter notebook and filtered down to La Palma events only. This results in 5465 data points which we then visualized to understand their distributions spatially, by depth, by magnitude and in time.
+
+From our analysis above, we can see 3 different systems in play.
+
+Firstly, the shallow earthquake swarm leading up to the eruption on 19th September, related to significant surface deformation and shallow magma intrusion.
+
+After the eruption, continuous shallow seismicity started at 10-15km corresponding to magma movement in the crustal reservoir.
+
+Subsequently, high magnitude events begin occurring at 30-40km depths corresponding to changes in the mantle reservoir. These are also continuous but occur with a lower frequency than in the crustal reservoir.
+
+# Conclusions
+
+From the analysis of the earthquake data collected and published by IGN for the period of 11 September through to 9 November 2021. Visualization of the earthquake events at different depths appears to confirm the presence of both mantle and crustal reservoirs as proposed by @marrero2019.
+
+> Data availability statement should be specified in a separate cell with metadata `"part": "availability"`, similar to the abstract.
+>
+> AGU requires an Availability Statement for the underlying data needed to understand, evaluate, and build upon the reported research at the time of peer review and publication.
+
+A web scraping script was developed to pull data into a machine-readable form for analysis. That code tool [is available on GitHub](https://github.com/stevejpurves/ign-earthquake-data) along with a copy of recently updated data.
+
+## References {.unnumbered}
+
+:::{#refs}
+
+:::
+

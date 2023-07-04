@@ -1,0 +1,14 @@
+---
+title: Embed Test
+format: html
+---
+
+## Hi There
+
+{{< embed notebook.qmd#fig-mtcars >}}
+
+{{< embed notebook.qmd#fig-mermaid >}}
+
+{{< embed notebook.qmd#fig-simple >}}
+
+

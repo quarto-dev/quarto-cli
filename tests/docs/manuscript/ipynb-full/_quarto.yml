@@ -1,0 +1,23 @@
+project:
+  type: manuscript
+
+manuscript:
+  article: article.qmd
+  resources:
+    - data/catalogoComunSV_1663233588717.csv
+    - data/lapalma_ign.csv
+
+format:
+  html:
+    comments: 
+      hypothesis: true   
+  agu-pdf: 
+    notebook-links: inline
+  docx: default
+  jats: default
+
+citation:
+  container-title: Earth and Space Science
+  type: article-journal
+  issued: 2023-05-01
+  doi: "10.1136/bmj.m4290"

@@ -90,6 +90,7 @@ import {
   kIncludeInHeader,
   kInlineIncludes,
   kIpynbFilters,
+  kIpynbProduceSourceNotebook,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -447,6 +448,7 @@ export interface FormatRender {
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
   [kNotebookPreserveCells]?: boolean;
+  [kIpynbProduceSourceNotebook]?: boolean;
 }
 
 export interface FormatExecute {

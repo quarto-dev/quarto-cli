@@ -1,5 +1,5 @@
 ---
-title: My Manscript
+title: My Manuscript
 ---
 
 ## Section 1

@@ -1,0 +1,20 @@
+---
+title: Jupyter Embed Test
+author: Charles Teague
+---
+
+## Cell Id
+
+{{< embed penguins.ipynb#fig-bill-scatter >}}
+
+## Cell Tag
+
+{{< embed penguins.ipynb#bill-ratio >}}
+
+## Subfigs
+
+{{< embed penguins.ipynb#fig-bill-marginal >}}
+
+## Echo
+
+{{< embed penguins.ipynb#species-counts echo=true >}}

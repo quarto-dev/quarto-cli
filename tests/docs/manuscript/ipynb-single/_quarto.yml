@@ -1,0 +1,19 @@
+project:
+  type: manuscript
+
+manuscript:
+  article: article.ipynb
+  resources:
+    - data/lapalma_ign.csv
+
+format:
+  html:
+    comments: 
+      hypothesis: true
+  agu-pdf: default
+  docx: default
+  jats: default
+
+
+
+  
