@@ -86,7 +86,7 @@ You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` e
 ./run-tests.ps1 smoke/extensions/extension-render-doc.test.ts
 ```
 
-- `docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts`
+- `docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts`. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file
 
 ```bash
 # run tests for all documents in docs/smoke-all/
@@ -94,9 +94,13 @@ You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` e
 
 # run tests for some `.qmd` document in a specific place (using glob)
 ./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2022/**/*.qmd
+# or using short version
+./run-tests.sh docs/smoke-all/2022/**/*.qmd
 
 # run test for a specific document
 ./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
+# or using short version
+./run-tests.sh docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
 
 <details><summary> Examples of tests output after it ran </summary>
@@ -144,6 +148,8 @@ ok | 1 passed | 0 failed (1s)
 # run test for a specific document
 ./run-tests.ps1 smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
+
+_`run-tests.ps1` does not have yet the short version feature to run `smoke-all` test documents._
 
 <details><summary> Examples of tests output after it ran </summary>
 
