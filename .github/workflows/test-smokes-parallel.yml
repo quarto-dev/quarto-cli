@@ -5,9 +5,48 @@ on:
   workflow_dispatch:
 
 jobs:
-  do-nothing:
+  jobs-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      BUCKETS: ${{ steps.tests-buckets.outputs.BUCKETS }}
     steps:
-      - name: Placeholder
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: pre-release
+
+      - name: Create Job for tests
+        id: tests-buckets
         run: |
-          echo "This is a dummy workflow to be able to run the real one leaving on a branch for now."
+          echo "BUCKETS=$(./run-parallel-tests.sh -n=10 --dry-run | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; .[][] |= .name | to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
+        working-directory: tests
+      - name: Read buckets
+        run: |
+          echo ${{ steps.tests-buckets.outputs.BUCKETS }}
+
+  check-matrix:
+    runs-on: ubuntu-latest
+    needs: jobs-matrix
+    steps:
+      - name: Install json2yaml
+        run: |
+          sudo npm install -g json2yaml
+
+      - name: Check matrix definition
+        run: |
+          matrix='${{ needs.jobs-matrix.outputs.BUCKETS }}'
+          echo $matrix
+          echo $matrix | jq .
+          echo $matrix | json2yaml
+  run-smoke-tests:
+    needs: jobs-matrix
+    name: Running Tests buckets ${{ matrix.buckets.num }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.jobs-matrix.outputs.BUCKETS) }}
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      buckets: ${{ matrix.buckets.files }}
