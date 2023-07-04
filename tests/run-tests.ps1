@@ -77,6 +77,42 @@ if( $MyInvocation.Line ) {
   $customArgs = $MyInvocation.UnboundArguments
 }
 
+## Short version syntax to run smoke-all.test.ts
+## Only use if different than ./run-test.ps1 ./smoke/smoke-all.test.ts
+If ($customArgs[0] -notlike "*smoke-all.test.ts") {
+  
+  $SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
+  # Check file argument
+  $SMOKE_ALL_FILES=@()
+  $TESTS_TO_RUN=@()
+
+  ForEach ($file in $customArgs) {
+    If ($file -Like "*.qmd" || $file -Like "*.ipynb") {
+      $SMOKE_ALL_FILES+=$file
+    } elseif ($file -Like "*.ts") {
+      $TESTS_TO_RUN+=$file
+    } else {
+      Write-Host "#### WARNING"
+      Write-Host "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+      Write-Host "####"
+      Exit 1
+    }
+  }
+
+  If ($SMOKE_ALL_FILES.count -ne 0) {
+    if ($TESTS_TO_RUN.count -ne 0) {
+      Write-Host "#### WARNING"
+      Write-Host "  When passing .qmd and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
+      Write-Host "  Ignoring $($TESTS_TO_RUN -join ' ')"
+      Write-Host "####"
+    }
+    $TESTS_TO_RUN= @("${SMOKE_ALL_TEST_FILE}", "--") + $SMOKE_ALL_FILES
+  }
+
+} else {
+  $TESTS_TO_RUN=$customArgs
+}
+
 # ---- Running tests with Deno -------
 
 $DENO_ARGS = @()
@@ -87,7 +123,7 @@ If ($QUARTO_DENO_EXTRA_OPTIONS -ne $null) {
   $DENO_ARGS += -split $QUARTO_DENO_EXTRA_OPTIONS
 }
 $DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
-$DENO_ARGS += $customArgs
+$DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv
 # set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtalenv manage by pipenv for the project
