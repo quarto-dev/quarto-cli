@@ -133,8 +133,16 @@ if (!failed && flags.verbose) {
 
 if (flags["dry-run"]) {
   flags.verbose && console.log("Buckets of tests to run in parallel");
+  const bucketSimple = buckets.map((bucket) => {
+    return bucket.map((tt) => {
+      tt.name = RegSmokeAllFile.test(tt.name)
+        ? tt.name.split(" -- ")[1]
+        : tt.name;
+      return tt.name;
+    });
+  });
   //flags.verbose && console.log(buckets.map((e) => e.length));
-  console.log(JSON.stringify(buckets, null, 2));
+  console.log(JSON.stringify(bucketSimple, null, 2));
 } else {
   console.log("Running `run-test.sh` in parallel... ");
   Promise.all(buckets.map((bucket, i) => {
