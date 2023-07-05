@@ -28,7 +28,7 @@ import { Format } from "../../config/types.ts";
 import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
 import { relative } from "path/mod.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { qmdNotebookContributor } from "./notebook-contribute-qmd.ts";
+import { qmdNotebookContributor } from "./notebook-contributor-qmd.ts";
 import { debug } from "log/mod.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
