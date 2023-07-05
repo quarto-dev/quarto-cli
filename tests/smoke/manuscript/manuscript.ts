@@ -14,7 +14,7 @@ import {
 } from "../../verify.ts";
 
 export type targetFormat = "html" | "jats" | "docx" | "pdf";
-const enableJatsValidation = false;
+const enableJatsValidation = true;
 
 export const testManuscriptRender = (
   article: string,
