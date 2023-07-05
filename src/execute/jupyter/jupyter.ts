@@ -36,6 +36,7 @@ import {
   kIncludeAfterBody,
   kIncludeInHeader,
   kIpynbFilters,
+  kIpynbProduceSourceNotebook,
   kKeepHidden,
   kKeepIpynb,
   kNotebookPreserveCells,
@@ -291,6 +292,7 @@ export const jupyterEngine: ExecutionEngine = {
         ? options.format.execute[kIpynbFilters]
         : [],
     );
+
     const nb = jupyterFromJSON(nbContents);
 
     // cells tagged 'shinylive' should be emmited as markdown
@@ -322,6 +324,8 @@ export const jupyterEngine: ExecutionEngine = {
         figPos: options.format.render[kFigPos],
         preserveCellMetadata:
           options.format.render[kNotebookPreserveCells] === true,
+        preserveCodeCellYaml:
+          options.format.render[kIpynbProduceSourceNotebook] === true,
       },
     );
 
