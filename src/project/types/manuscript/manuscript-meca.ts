@@ -29,7 +29,6 @@ import { dirAndStem, kSkipHidden } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import { projectOutputDir } from "../../project-shared.ts";
 import { projectType } from "../project-types.ts";
 
 const kArticleMetadata = "article-metadata";
@@ -113,7 +112,6 @@ export const createMecaBundle = async (
   // Make a source directory and copy all the source files
   const srcDir = join(workingDir, kSrcDirName);
   ensureDirSync(srcDir);
-  const sourceDir = toMecaItem(kSrcDirName, kArticleSourceDirectory);
 
   // Vacuum up every file that isn't the manuscript output, hidden, etc..
   const sourceFiles: MecaItem[] = [];
@@ -291,7 +289,6 @@ export const createMecaBundle = async (
         ...renderedItems,
         ...manuscriptResources,
         ...sourceFiles,
-        sourceDir,
       ],
     };
 
