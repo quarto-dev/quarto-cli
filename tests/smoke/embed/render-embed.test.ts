@@ -20,8 +20,8 @@ const output = outputForInput(input, format);
 
 // Test qmd embedding
 // The notebook preview that is generated
-const nbOutput = join(dirname(output.outputPath), "notebook.ipynb.html");
-const nbSupporting = join(dirname(nbOutput), "notebook_files");
+const nbOutput = join(dirname(output.outputPath), "notebook.qmd.ipynb.html");
+const nbSupporting = join(dirname(nbOutput), "notebook.qmd_files");
 
 testRender(input, format, false, [
   noErrorsOrWarnings,
