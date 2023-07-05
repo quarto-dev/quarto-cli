@@ -87,7 +87,10 @@ function resolveHtmlNotebook(
   // Metadata used by template when rendering
   resolved.recipe.format.metadata["nbMeta"] = {
     ...notebookMetadata,
-    downloadLabel: downloadLabel(nbAbsPath, resolved.recipe.format),
+    downloadLabel: downloadLabel(
+      notebookMetadata?.filename || nbAbsPath,
+      resolved.recipe.format,
+    ),
     backLabel: resolved.recipe.format.language[kNotebookPreviewBack],
   } as NotebookTemplateMetadata;
 
@@ -135,7 +138,10 @@ async function renderHtmlNotebook(
           [kNotebookPreserveCells]: true,
           ["nbMeta"]: {
             ...notebookMetadata,
-            downloadLabel: downloadLabel(nbPath, format),
+            downloadLabel: downloadLabel(
+              notebookMetadata?.filename || nbPath,
+              format,
+            ),
             backLabel: format.language[kNotebookPreviewBack],
           } as NotebookTemplateMetadata,
         },
