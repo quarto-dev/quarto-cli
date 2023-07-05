@@ -6,7 +6,9 @@ local kUnrollMarkdownCells = "unroll-markdown-cells"
 
 function manuscriptUnroll() 
   local unrollMdCells = param(kUnrollMarkdownCells, false)
-  if unrollMdCells then
+
+  -- JATS implements its own custom unrolling
+  if unrollMdCells and not _quarto.format.isJatsOutput() then
     return {
       -- Process any cells that originated from notebooks
       Div = function(divEl)   
@@ -30,7 +32,7 @@ function manuscriptUnroll()
       }
   else
     return {}
-  end
+  end  
 end
 
 function manuscript() 
