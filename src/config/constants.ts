@@ -317,6 +317,7 @@ export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
+export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
 export const kArticleNotebookLabel = "article-notebook-label";
 export const kManuscriptMecaBundle = "manuscript-meca-bundle";
@@ -431,6 +432,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockPublished,
   kTitleBlockModified,
   kNotebookPreviewDownload,
+  kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
   kArticleNotebookLabel,
   kManuscriptMecaBundle,

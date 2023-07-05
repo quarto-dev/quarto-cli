@@ -141,6 +141,7 @@ import {
   kNotebookPreserveCells,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
+  kNotebookPreviewDownloadSrc,
   kNotebooks,
   kNotebookSubarticles,
   kNotebookView,
@@ -652,6 +653,7 @@ export interface FormatLanguage {
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
   [kNotebookPreviewDownload]?: string;
+  [kNotebookPreviewDownloadSrc]?: string;
   [kNotebookPreviewBack]?: string;
   [kArticleNotebookLabel]?: string;
   [kManuscriptMecaBundle]?: string;
