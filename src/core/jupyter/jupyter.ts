@@ -100,6 +100,7 @@ import {
   kCellRawMimeType,
   kCellSlideshow,
   kCellSlideshowSlideType,
+  kCellTags,
   kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
@@ -392,6 +393,14 @@ export async function quartoMdToJupyter(
               yaml,
             );
             cell.source = yamlOutput.concat(source);
+          }
+
+          // Also place the label directly in the cell as metadata. This will make
+          // it so the label is present (unmodified) in the cell tags list, which will
+          // allow the label to be targeted by embeds
+          if (yaml[kCellLabel]) {
+            cell.metadata[kCellTags] = cell.metadata[kCellTags] || [];
+            cell.metadata[kCellTags].push(String(yaml[kCellLabel]));
           }
         }
 
