@@ -122,9 +122,17 @@ function jatsSubarticle()
       end
     end
 
+    local cellId = function(identifier)
+      if identifier == nil or identifier == "" then
+        return ""
+      else
+        return ' id="' .. ensureValidIdentifier(identifier) .. '"'
+      end
+    end
+
     local function renderCell(el, type)
       local renderedCell = pandoc.List()
-      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. ensureValidIdentifier(el.identifier) .. '" specific-use="' .. type .. '">'))
+      renderedCell:insert(pandoc.RawBlock('jats', '<sec' .. cellId(el.identifier) .. ' specific-use="' .. type .. '">'))
       for _i, v in ipairs(el.content) do
         renderedCell:insert(v)
       end
@@ -134,7 +142,7 @@ function jatsSubarticle()
 
     local function renderCellOutput(el, type)
       local renderedCell = pandoc.List()
-      renderedCell:insert(pandoc.RawBlock('jats', '<sec id="' .. ensureValidIdentifier(el.identifier) .. '" specific-use="' .. type .. '">'))
+      renderedCell:insert(pandoc.RawBlock('jats', '<sec' .. cellId(el.identifier) .. ' specific-use="' .. type .. '">'))
       for _i, v in ipairs(el.content) do
         renderedCell:insert(v)
       end
@@ -142,19 +150,39 @@ function jatsSubarticle()
       return renderedCell
     end
 
+    local unidentifiedCodeCellCount = 0
     return {
       Meta = jatsMeta,
       Div = function(div)
         
-        -- TODO: Code cell with #fig-asdas label gets turned into a figure div, need to stop that
-
         -- this is a notebook cell, handle it
         if isCell(div) then
           if isCodeCell(div) then
 
               -- if this is an executable notebook cell, walk the contents and add identifiers
               -- to the outputs
+              if div.identifier == nil or div.identifier == "" then
+                unidentifiedCodeCellCount = unidentifiedCodeCellCount + 1
+                div.identifier = 'nb-code-cell-' .. tostring(unidentifiedCodeCellCount)
+              end
               local parentId = div.identifier
+
+              -- JATS requires that sections that contain other sections must 
+              -- have the section after elements like code
+              -- so this moves the sections to the bottom of the element
+              local outputEls = pandoc.List()
+              local otherEls = pandoc.List()
+              for i, v in ipairs(div.content) do
+                if v.t == "Div" and isCodeCellOutput(v) then
+                  outputEls:extend({v})
+                else
+                  otherEls:extend({v})
+                end
+              end
+              local orderedContents = pandoc.List()
+              orderedContents:extend(otherEls)
+              orderedContents:extend(outputEls)
+              div.content = orderedContents
 
               local count = 0
               div = _quarto.ast.walk(div, {

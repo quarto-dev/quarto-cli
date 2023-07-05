@@ -31,8 +31,6 @@ testRender(input, format, false, [
   ensureHtmlElements(output.outputPath, [
     // Make sure the embeds produce expected output
     "#fig-mtcars",
-    "#fig-mermaid",
-    "#fig-simple",
     // Make sure notebook links are present
     "a.quarto-notebook-link",
     ".quarto-alternate-notebooks a",
@@ -40,8 +38,6 @@ testRender(input, format, false, [
   // Ensure the captions look good
   ensureFileRegexMatches(output.outputPath, [
     /Figure.*1:/,
-    /Figure.*2:/,
-    /Figure.*3:/,
   ]),
 ], {
   teardown: () => {

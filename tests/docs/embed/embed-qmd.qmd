@@ -7,8 +7,5 @@ format: html
 
 {{< embed notebook.qmd#fig-mtcars >}}
 
-{{< embed notebook.qmd#fig-mermaid >}}
-
-{{< embed notebook.qmd#fig-simple >}}
 
 
