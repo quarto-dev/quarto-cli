@@ -14,7 +14,7 @@ import { contentType } from "../../../core/mime.ts";
 import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
@@ -113,19 +113,27 @@ export const createMecaBundle = async (
   const srcDir = join(workingDir, kSrcDirName);
   ensureDirSync(srcDir);
 
-  // Vacuum up every file that isn't the manuscript output, hidden, etc..
-  const sourceFiles: MecaItem[] = [];
-  const sourceZipFiles: string[] = [];
-  const copySrcFile = (file: string) => {
-    const relPath = join(kSrcDirName, relative(context.dir, file));
-    const targetPath = join(workingDir, relPath);
-    ensureDirSync(dirname(targetPath));
-    Deno.copyFileSync(file, targetPath);
-    const item = toMecaItem(relPath, kArticleSource);
-    sourceFiles.push(item);
-    sourceZipFiles.push(relPath);
+  // A data structure that holds article source files, making it
+  // easy to ensure that we copy each source file only once
+  // (and that the first time it is added, the type is set)
+  const srcFiles: Record<string, string> = {};
+  const addSrcFile = (absPath: string, type: string) => {
+    if (srcFiles[absPath] === undefined) {
+      srcFiles[absPath] = type;
+    }
   };
 
+  // Process explicit environment files
+  let hasExplicitEnvironment = false;
+  if (manuscriptConfig[kEnvironmentFiles]) {
+    manuscriptConfig[kEnvironmentFiles].forEach((file) => {
+      const absPath = join(context.dir, file);
+      addSrcFile(absPath, kArticleSourceEnvironment);
+      hasExplicitEnvironment = true;
+    });
+  }
+
+  // Process src files
   const skip = [
     kSkipHidden,
     /\.DS_Store/,
@@ -136,12 +144,34 @@ export const createMecaBundle = async (
     skip.push(RegExp(`[\/\\\\]${projType.outputDir}[\/\\\\]`));
   }
 
-  for (
-    const walkEntry of walkSync(context.dir, { skip })
-  ) {
+  for (const walkEntry of walkSync(context.dir, { skip })) {
     if (walkEntry.isFile) {
-      copySrcFile(walkEntry.path);
+      // Find execution resources and include them in the bundle
+      // (if they weren't explicitly assigned)
+      const type = !hasExplicitEnvironment &&
+          kExecutionFiles.includes(basename(walkEntry.path))
+        ? kArticleSourceEnvironment
+        : kArticleSource;
+      addSrcFile(walkEntry.path, type);
     }
+  }
+
+  // Now that we've built list of src Files, move them and turn
+  // them into Meca Items
+  const sourceFiles: MecaItem[] = [];
+  const sourceZipFiles: string[] = [];
+  const copySrcFile = (file: string, type: string) => {
+    const relPath = join(kSrcDirName, relative(context.dir, file));
+    const targetPath = join(workingDir, relPath);
+    ensureDirSync(dirname(targetPath));
+    Deno.copyFileSync(file, targetPath);
+    const item = toMecaItem(relPath, type);
+    sourceFiles.push(item);
+    sourceZipFiles.push(relPath);
+  };
+  for (const path of Object.keys(srcFiles)) {
+    const type = srcFiles[path];
+    copySrcFile(path, type);
   }
 
   // Filter to permitted output formats
@@ -214,39 +244,6 @@ export const createMecaBundle = async (
         manuscriptZipFiles.push(workingPath);
       });
     }
-
-    const addEnvFile = (file: string, absPath: string) => {
-      // Copy to working dir
-      const workingPath = toWorkingDir(absPath, file);
-
-      // Make the MECA item
-      const mecaItem = toMecaItem(
-        file,
-        kArticleSourceEnvironment,
-      );
-
-      // Add to MECA bundle
-      manuscriptResources.push(mecaItem);
-
-      // Note to include in zip
-      manuscriptZipFiles.push(workingPath);
-    };
-
-    if (manuscriptConfig[kEnvironmentFiles]) {
-      manuscriptConfig[kEnvironmentFiles].forEach((file) => {
-        const absPath = join(context.dir, file);
-        addEnvFile(file, absPath);
-      });
-    } else {
-      // Find execution resources and include them in the bundle
-      kExecutionFiles.forEach((file) => {
-        const absPath = join(context.dir, file);
-        if (existsSync(absPath)) {
-          addEnvFile(file, absPath);
-        }
-      });
-    }
-
     // Copy resources
     const resources = [];
     resources.push(...jatsArticle.resources);
