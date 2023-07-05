@@ -11,11 +11,11 @@ import {
 } from "../../../config/format.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { contentType } from "../../../core/mime.ts";
-import { ProjectContext } from "../../types.ts";
+import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
@@ -25,10 +25,12 @@ import {
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
-import { dirAndStem } from "../../../core/path.ts";
+import { dirAndStem, kSkipHidden } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
 
 import * as ld from "../../../core/lodash.ts";
+import { projectOutputDir } from "../../project-shared.ts";
+import { projectType } from "../project-types.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
@@ -40,6 +42,8 @@ const kArticleSourceDirectory = "article-source-directory";
 const kArticleSourceEnvironment = "article-source-environment";
 const kManuscript = "manuscript";
 const kManuscriptSupportingFile = "manuscript-supporting-file";
+
+const kSrcDirName = "source";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
@@ -105,6 +109,42 @@ export const createMecaBundle = async (
   manuscriptConfig: ResolvedManuscriptConfig,
 ) => {
   const workingDir = globalTempContext().createDir();
+
+  // Make a source directory and copy all the source files
+  const srcDir = join(workingDir, kSrcDirName);
+  ensureDirSync(srcDir);
+  const sourceDir = toMecaItem(kSrcDirName, kArticleSourceDirectory);
+
+  // Vacuum up every file that isn't the manuscript output, hidden, etc..
+  const sourceFiles: MecaItem[] = [];
+  const sourceZipFiles: string[] = [];
+  const copySrcFile = (file: string) => {
+    const relPath = join(kSrcDirName, relative(context.dir, file));
+    const targetPath = join(workingDir, relPath);
+    ensureDirSync(dirname(targetPath));
+    Deno.copyFileSync(file, targetPath);
+    const item = toMecaItem(relPath, kArticleSource);
+    sourceFiles.push(item);
+    sourceZipFiles.push(relPath);
+  };
+
+  const skip = [
+    kSkipHidden,
+    /\.DS_Store/,
+  ];
+  const projType = projectType(context.config?.project?.[kProjectType]);
+  if (projType.outputDir) {
+    skip.push(RegExp(`^${projType.outputDir}[\/\\\\]`));
+    skip.push(RegExp(`[\/\\\\]${projType.outputDir}[\/\\\\]`));
+  }
+
+  for (
+    const walkEntry of walkSync(context.dir, { skip })
+  ) {
+    if (walkEntry.isFile) {
+      copySrcFile(walkEntry.path);
+    }
+  }
 
   // Filter to permitted output formats
   const filters = [isPdfOutput, isDocxOutput];
@@ -246,7 +286,13 @@ export const createMecaBundle = async (
     });
     const manifest: MecaManifest = {
       version: kMecaVersion,
-      items: [articleItem, ...renderedItems, ...manuscriptResources],
+      items: [
+        articleItem,
+        ...renderedItems,
+        ...manuscriptResources,
+        ...sourceFiles,
+        sourceDir,
+      ],
     };
 
     // Write the manifest
@@ -259,6 +305,7 @@ export const createMecaBundle = async (
       articlePath,
       ...articleRenderingPaths,
       ...manuscriptZipFiles,
+      ...sourceZipFiles,
     ]);
 
     // Compress the working directory in a zip
