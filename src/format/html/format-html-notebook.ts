@@ -20,14 +20,13 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   NotebookPreview,
   notebookPreviewer,
 } from "./format-html-notebook-preview.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
-import { isAbsolute } from "../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 const kQuartoNbClass = "quarto-notebook";
 const kQuartoCellContainerClass = "cell-container";
