@@ -167,6 +167,23 @@ function jatsSubarticle()
               end
               local parentId = div.identifier
 
+              -- JATS requires that sections that contain other sections must 
+              -- have the section after elements like code
+              -- so this moves the sections to the bottom of the element
+              local outputEls = pandoc.List()
+              local otherEls = pandoc.List()
+              for i, v in ipairs(div.content) do
+                if v.t == "Div" and isCodeCellOutput(v) then
+                  outputEls:extend({v})
+                else
+                  otherEls:extend({v})
+                end
+              end
+              local orderedContents = pandoc.List()
+              orderedContents:extend(otherEls)
+              orderedContents:extend(outputEls)
+              div.content = orderedContents
+
               local count = 0
               div = _quarto.ast.walk(div, {
                 Div = function(childEl)
