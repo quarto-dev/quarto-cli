@@ -3,6 +3,12 @@
 name: Parallel Smokes Tests
 on:
   workflow_dispatch:
+    inputs:
+      nBuckets:
+        description: "Number of buckets to split tests into"
+        required: true
+        default: 10
+        type: number
 
 jobs:
   jobs-matrix:
@@ -21,7 +27,7 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "BUCKETS=$(./run-parallel-tests.sh -n=10 --dry-run | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
+          echo "BUCKETS=$(./run-parallel-tests.sh -n=${{ inputs.nBuckets }} --dry-run | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
         working-directory: tests
       - name: Read buckets
         run: |
