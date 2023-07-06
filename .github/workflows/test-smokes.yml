@@ -39,8 +39,7 @@ jobs:
         with:
           r-version: "4.2.2"
 
-      - name: Install node (for Playwright)
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+      - name: Install node (for Playwright, MECA)
         uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -55,6 +54,9 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
+        
+      - name: Install MECA validator
+        run: npm install -g meca
 
       - name: Set RENV_PATHS_ROOT
         shell: bash
