@@ -15,4 +15,7 @@ format:
   # (other formats)
   # pdf: default
 
+execute:
+  freeze: true
+
 <% if(editor){ %>editor: <%= editor %><% } %>
