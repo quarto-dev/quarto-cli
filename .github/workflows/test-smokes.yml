@@ -56,6 +56,7 @@ jobs:
         working-directory: ./tests/integration/playwright
         
       - name: Install MECA validator
+        if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
 
       - name: Set RENV_PATHS_ROOT
