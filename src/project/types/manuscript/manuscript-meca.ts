@@ -15,7 +15,7 @@ import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
@@ -33,9 +33,6 @@ import { projectType } from "../project-types.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
-// TODO: need to support source directory and files
-// TODO: Move source files into their own directory and type
-// TODO: Differentiate between manuscript and article supporting files
 const kArticleSource = "article-source";
 const kArticleSourceDirectory = "article-source-directory";
 const kArticleSourceEnvironment = "article-source-environment";
@@ -237,7 +234,7 @@ export const createMecaBundle = async (
         const workingPath = toWorkingDir(absPath, relPath, false);
 
         // Add Supporting files to manifest
-        const items = mecaItemsForPath(workingDir, workingPath, "article");
+        const items = mecaItemsForPath(workingDir, workingPath, "manuscript");
         manuscriptResources.push(...items);
 
         // Note to include in zip
