@@ -310,7 +310,7 @@ export const createMecaBundle = async (
       return join(workingDir, mecaFile);
     } else {
       throw new Error(
-        `An error occurred while attempting to generate MECA bundle.\n${zipResult.stderr}`,
+        `An error occurred while attempting to generate MECA archive.\n${zipResult.stderr}`,
       );
     }
   }
