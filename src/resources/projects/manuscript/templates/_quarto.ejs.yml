@@ -10,9 +10,9 @@ format:
       hypothesis: true
     toc: true
   docx: default
+  jats: default
 
   # (other formats)
-  # jats: default
   # pdf: default
 
 <% if(editor){ %>editor: <%= editor %><% } %>
