@@ -412,19 +412,27 @@ export const ensureMECAValidates = (
   return {
     name: "Validating MECA Archive",
     verify: async (_output: ExecuteOutput[]) => {
-      const hasNpm = await which("npm");
-      if (hasNpm) {
-        const result = await execProcess({
-          cmd: ["meca", "validate", mecaFile],
-          stderr: "piped",
-          stdout: "piped",
-        });
-        assert(
-          result.success,
-          `Failed MECA Validation\n${result.stderr}`,
-        );
-      } else {
-        console.log("npm not present, skipping MECA validation");
+      if (Deno.build.os !== "windows") {
+        const hasNpm = await which("npm");
+        if (hasNpm) {
+          const hasMeca = await which("meca");
+          if (hasMeca) {
+            const result = await execProcess({
+              cmd: ["meca", "validate", mecaFile],
+              stderr: "piped",
+              stdout: "piped",
+            });
+            assert(
+              result.success,
+              `Failed MECA Validation\n${result.stderr}`,
+            );  
+          } else {
+            console.log("meca not present, skipping MECA validation");
+          }
+        } else {
+          console.log("npm not present, skipping MECA validation");
+        }
+  
       }
     },
   };
