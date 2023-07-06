@@ -59,3 +59,14 @@ If ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
   }
 }
 quarto install tinytex
+
+# Get npm in place
+Write-Host -ForegroundColor green ">>>> Configuring npm for MECA testing environment"
+try {$null = gcm npm -ea stop; $npm=$true } catch {
+  Write-Host -ForegroundColor red "No npm found - will skip any tests that require npm (e.g. JATS / MECA validation)"
+}
+If ($npm_exists) {
+  # TODO: Check to do equivalent of virtualenv
+  Write-Host "Setting up npm testing environment"
+  npm install -g meca
+}

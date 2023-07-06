@@ -8,10 +8,12 @@ import { basename, dirname, extname, join } from "path/mod.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import {
+ensureMECAValidates,
   ensureXmlValidatesWithXsd,
   fileExists,
   noErrorsOrWarnings,
 } from "../../verify.ts";
+import { dirAndStem } from "../../../src/core/path.ts";
 
 export type targetFormat = "html" | "jats" | "docx" | "pdf";
 const enableJatsValidation = true;
@@ -35,6 +37,11 @@ export const testManuscriptRender = (
 
       // Test a basic JATS document that tests a variety of elements
       verifications.push(ensureXmlValidatesWithXsd(output.outputPath, xsdPath));
+
+      // Validate the MECA file as well
+      const [dir, stem] = dirAndStem(output.outputPath);
+      const mecaFile = join(dir, `${stem}-meca.zip`);
+      verifications.push(ensureMECAValidates(mecaFile));
     }
     return output;
   });
@@ -46,6 +53,7 @@ export const testManuscriptRender = (
   expectedOutputs.forEach((out) => {
     verifications.push(fileExists(join(articleDir, "_manuscript", out)));
   });
+
 
   // Render the manuscript
   testQuartoCmd(
