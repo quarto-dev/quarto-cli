@@ -1,3 +1,12 @@
+- name: pdf-max-pages-per-slide
+  tags:
+    formats: [revealjs]
+  schema: number
+  description:
+    short: "Slides that are too tall to fit within a single page will expand onto multiple pages"
+    long: |
+      "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"
+
 - name: pdf-separate-fragments
   tags:
     formats: [revealjs]
