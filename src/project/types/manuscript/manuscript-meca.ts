@@ -150,7 +150,7 @@ export const createMecaBundle = async (
     skip.push(RegExp(`[\/\\\\]${projType.outputDir}[\/\\\\]`));
     engineIgnoreDirs().map((ignore) =>
       skip.push(
-        globToRegExp(join(context.dir, projType.outputDir!, ignore) + SEP),
+        globToRegExp(join(context.dir, ignore) + SEP),
       )
     );
   }
