@@ -14,7 +14,15 @@ import { contentType } from "../../../core/mime.ts";
 import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  globToRegExp,
+  isAbsolute,
+  join,
+  relative,
+  SEP,
+} from "path/mod.ts";
 import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
@@ -30,6 +38,7 @@ import { inputFileForOutputFile } from "../../project-index.ts";
 
 import * as ld from "../../../core/lodash.ts";
 import { projectType } from "../project-types.ts";
+import { engineIgnoreDirs } from "../../../execute/engine.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
@@ -137,8 +146,13 @@ export const createMecaBundle = async (
   ];
   const projType = projectType(context.config?.project?.[kProjectType]);
   if (projType.outputDir) {
-    skip.push(RegExp(`^${projType.outputDir}[\/\\\\]`));
+    skip.push(RegExp(`^${join(context.dir, projType.outputDir)}[\/\\\\]`));
     skip.push(RegExp(`[\/\\\\]${projType.outputDir}[\/\\\\]`));
+    engineIgnoreDirs().map((ignore) =>
+      skip.push(
+        globToRegExp(join(context.dir, projType.outputDir!, ignore) + SEP),
+      )
+    );
   }
 
   for (const walkEntry of walkSync(context.dir, { skip })) {
