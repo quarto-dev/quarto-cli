@@ -16592,6 +16592,19 @@ try {
         ],
         "schema/document-reveal-print.yml": [
           {
+            name: "pdf-max-pages-per-slide",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: "number",
+            description: {
+              short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
+              long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+            }
+          },
+          {
             name: "pdf-separate-fragments",
             tags: {
               formats: [
@@ -19836,7 +19849,7 @@ try {
           },
           {
             short: "Show a thick left border on code blocks.",
-            long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder.="
+            long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder."
           },
           {
             short: "Show a background color for code blocks.",
@@ -21420,7 +21433,11 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -21644,12 +21661,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158641,
+          _internalId: 158643,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158633,
+              _internalId: 158635,
               type: "enum",
               enum: [
                 "png",
@@ -21665,7 +21682,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158640,
+              _internalId: 158642,
               type: "anyOf",
               anyOf: [
                 {
