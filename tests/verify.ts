@@ -14,7 +14,7 @@ import { readYamlFromString } from "../src/core/yaml.ts";
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
-import { dirAndStem } from "../src/core/path.ts";
+import { dirAndStem, which } from "../src/core/path.ts";
 import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 
@@ -115,7 +115,11 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
-export const outputCreated = (input: string, to: string, projectOutDir?: string): Verify => {
+export const outputCreated = (
+  input: string,
+  to: string,
+  projectOutDir?: string,
+): Verify => {
   return {
     name: "Output Created",
     verify: (outputs: ExecuteOutput[]) => {
@@ -298,7 +302,11 @@ export function requireLatexPackage(pkg: string, opts?: string): RegExp {
   }
 }
 
-export const noSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
+export const noSupportingFiles = (
+  input: string,
+  to: string,
+  projectOutDir?: string,
+): Verify => {
   return {
     name: "Verify No Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
@@ -309,7 +317,11 @@ export const noSupportingFiles = (input: string, to: string, projectOutDir?: str
   };
 };
 
-export const hasSupportingFiles = (input: string, to: string, projectOutDir?: string): Verify => {
+export const hasSupportingFiles = (
+  input: string,
+  to: string,
+  projectOutDir?: string,
+): Verify => {
   return {
     name: "Has Supporting Files Dir",
     verify: (_output: ExecuteOutput[]) => {
@@ -389,6 +401,30 @@ export const ensureXmlValidatesWithXsd = (
           result.success,
           `Failed XSD Validation\n${result.stderr}`,
         );
+      }
+    },
+  };
+};
+
+export const ensureMECAValidates = (
+  mecaFile: string,
+): Verify => {
+  return {
+    name: "Validating MECA Archive",
+    verify: async (_output: ExecuteOutput[]) => {
+      const hasNpm = await which("npm");
+      if (hasNpm) {
+        const result = await execProcess({
+          cmd: ["meca", "validate", mecaFile],
+          stderr: "piped",
+          stdout: "piped",
+        });
+        assert(
+          result.success,
+          `Failed MECA Validation\n${result.stderr}`,
+        );
+      } else {
+        console.log("npm not present, skipping MECA validation");
       }
     },
   };
