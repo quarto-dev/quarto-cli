@@ -134,7 +134,6 @@ export function revealjsFormat() {
         const extraConfig: Record<string, unknown> = {
           [kControlsAuto]: controlsAuto,
           [kPreviewLinksAuto]: previewLinksAuto,
-          [kSmaller]: !!format.metadata[kSmaller],
           [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
           [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
           [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
