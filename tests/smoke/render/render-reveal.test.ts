@@ -7,6 +7,7 @@
 
 import { docs, fileLoader, outputForInput } from "../../utils.ts";
 import {
+ensureFileRegexMatches,
   ensureHtmlElements,
   ensureHtmlSelectorSatisfies,
 } from "../../verify.ts";
@@ -107,4 +108,18 @@ testRender(outputLocation.input, "revealjs", false, [
       return nodeList.length === 2;
     },
   ),
+]);
+
+// reveal-config
+const revealConfigs = fileLoader("reveal")("reveal-configs.qmd", "revealjs");
+testRender(revealConfigs.input, "revealjs", false, [
+  ensureFileRegexMatches(revealConfigs.output.outputPath, [
+    "pdfSeparateFragments.*true",
+    "smaller.*true",
+    "pdfSeparateFragments.*true",
+    "autoAnimateEasing.*\"ease-in-out\"",
+    "autoAnimateDuration.*5",
+    "autoAnimateUnmatched.*false",
+    "pdfMaxPagesPerSlide.*1",
+  ], [])
 ]);
