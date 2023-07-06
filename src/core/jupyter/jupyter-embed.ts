@@ -186,7 +186,7 @@ export async function ensureNotebookContext(
   }
   let count = 0;
   for (const nb of uniqueRenders) {
-    logProgress(`[${++count}/${uniqueRenders.length}]${nb.name}`);
+    logProgress(`[${++count}/${uniqueRenders.length}] ${nb.name}`);
 
     // See if we can get a nice title
     const partitioned = partitionMarkdown(Deno.readTextFileSync(nb.path));
