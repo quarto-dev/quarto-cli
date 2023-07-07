@@ -10,33 +10,3 @@ author: Norah Jones
 plot(mtcars)
 ```
 
-```{mermaid}
-%%| label: fig-mermaid
-%%| fig-cap: Yo dawg.
-flowchart LR
-  A[Hard edge] --> B(Round edge)
-  B --> C{Decision}
-  C --> D[Result one]
-  C --> E[Result two]
-```
-
-```{dot}
-//| label: fig-simple
-//| fig-cap: "This is a simple graphviz graph."
-graph G {
-  layout=neato
-  run -- intr;
-  intr -- runbl;
-  runbl -- run;
-  run -- kernel;
-  kernel -- zombie;
-  kernel -- sleep;
-  kernel -- runmem;
-  sleep -- swap;
-  swap -- runswap;
-  runswap -- new;
-  runswap -- runmem;
-  new -- runmem;
-  sleep -- runmem;
-}
-```
