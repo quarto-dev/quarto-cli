@@ -13,7 +13,15 @@ function import(script)
 end
 
 import("../mainstateinit.lua")
-import("../common/apishim.lua")
+
+import("../ast/customnodes.lua")
+import("../ast/emulatedfilter.lua")
+import("../ast/parse.lua")
+import("../ast/render.lua")
+import("../ast/runemulation.lua")
+import("../ast/traceexecution.lua")
+import("../ast/wrappedwriter.lua")
+
 
 import("index.lua")
 import("preprocess.lua")
@@ -48,8 +56,6 @@ import("../common/debug.lua")
 import("../common/layout.lua")
 
 -- [/import]
-
--- note that the apishim.lua import should _not_ happen on main.lua
 
 initCrossrefIndex()
 
