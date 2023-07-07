@@ -280,6 +280,9 @@ export function notebookContext(): NotebookContext {
                 debug(
                   `[NotebookContext]: Cleanup (${renderType}):${notebook.source}`,
                 );
+                debug(
+                  `[NotebookContext]: Deleting (${notebookOutput.path}`,
+                );
                 safeRemoveIfExists(notebookOutput.path);
                 for (const supporting of notebookOutput.supporting) {
                   safeRemoveIfExists(supporting);
