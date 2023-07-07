@@ -51,26 +51,26 @@ test({
   type: "smoke",
 });
 
-test({
-  name: "editor-support:crossref:smoke-2",
-  context: {},
-  execute: async () => {
-    await runEditorSupportCrossref(
-      docs("crossrefs/editor-support/unnumbered-crossrefs.qmd"),
-    );
-  },
-  verify: [],
-  type: "smoke",
-});
+function smokeTestCrossref(name: string, doc: string) {
+  test({
+    name,
+    context: {},
+    execute: async () => {
+      await runEditorSupportCrossref(doc);
+    },
+    verify: [],
+    type: "smoke",
+  });
+}
 
-test({
-  name: "editor-support:crossref:smoke-3",
-  context: {},
-  execute: async () => {
-    await runEditorSupportCrossref(
-      docs("crossrefs/all.qmd"),
-    );
-  },
-  verify: [],
-  type: "smoke",
-});
+const smokeTestCrossrefDocs = [
+  "crossrefs/editor-support/unnumbered-crossrefs.qmd",
+  "crossrefs/editor-support/all.qmd",
+  "crossrefs/editor-support/crossref-with-raw-latex.qmd",
+];
+for (const doc of smokeTestCrossrefDocs) {
+  smokeTestCrossref(
+    `editor-support:crossref:smoke-${doc}`,
+    docs(doc),
+  );
+}
