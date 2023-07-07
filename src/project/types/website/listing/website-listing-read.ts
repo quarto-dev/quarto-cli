@@ -917,8 +917,8 @@ async function listItemFromMeta(
   project: ProjectContext,
   listing: ListingDehydrated,
   baseDir: string,
-) {
-  let listingItem = cloneDeep(meta);
+): Promise<{ item: ListingItem; source: ListingItemSource }> {
+  let listingItem: ListingItem = cloneDeep(meta);
   let source = ListingItemSource.metadata;
 
   // If there is a path, try to complete the filename and
