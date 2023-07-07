@@ -126,12 +126,8 @@ const _quartoMermaid = {
     const kFigWidth = "figWidth",
       kFigHeight = "figHeight";
     const options = this.resolveOptions(svgEl);
-    const width = svgEl.getAttribute("width");
-    const height = svgEl.getAttribute("height");
-    if (!width || !height) {
-      // attempt to resolve figure dimensions via viewBox
-      throw new Error("Internal error: couldn't find figure dimensions");
-    }
+    let width = svgEl.getAttribute("width");
+    let height = svgEl.getAttribute("height");
     const getViewBox = () => {
       const vb = svgEl.attributes.getNamedItem("viewBox").value; // do it the roundabout way so that viewBox isn't dropped by deno_dom and text/html
       if (!vb) return undefined;
@@ -140,6 +136,19 @@ const _quartoMermaid = {
       if (lst.some(isNaN)) return undefined;
       return lst;
     };
+    if (!width || !height) {
+      // attempt to resolve figure dimensions via viewBox
+      const viewBox = getViewBox();
+      if (viewBox !== undefined) {
+        const [_mx, _my, vbWidth, vbHeight] = viewBox;
+        width = `${vbWidth}px`;
+        height = `${vbHeight}px`;
+      } else {
+        throw new Error(
+          "Mermaid generated an SVG without a viewbox attribute. Without knowing the diagram dimensions, quarto cannot convert it to a PNG"
+        );
+      }
+    }
 
     let svgWidthInInches, svgHeightInInches;
 
