@@ -143,7 +143,7 @@ import {
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import { readYamlFromMarkdown } from "../yaml.ts";
+import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import {
   normalizePath,
@@ -673,7 +673,6 @@ export async function jupyterToMarkdown(
     ? extractJupyterWidgetDependencies(nb)
     : undefined;
   const htmlPreserve = isHtml ? removeAndPreserveHtml(nb) : undefined;
-  const codeYamlPreserve = !!options.preserveCodeCellYaml;
 
   // generate markdown
   const cellOutputs: JupyterCellOutput[] = [];
@@ -683,6 +682,8 @@ export async function jupyterToMarkdown(
 
   // track current code cell index (for progress)
   let codeCellIndex = 0;
+
+  let frontMatter = undefined;
 
   for (let i = 0; i < nb.cells.length; i++) {
     // Collection the markdown for this cell
@@ -722,7 +723,21 @@ export async function jupyterToMarkdown(
     // markdown from cell
     switch (cell.cell_type) {
       case "markdown":
-        md.push(...mdFromContentCell(cell, options));
+        {
+          const markdownOptions = {
+            ...options,
+          };
+
+          // If this is the front matter cell, don't wrap it in
+          // a cell envelope, as it need to be remain discoverable
+          if (frontMatter === undefined) {
+            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            if (frontMatter) {
+              markdownOptions.preserveCellMetadata = false;
+            }
+          }
+          md.push(...mdFromContentCell(cell, markdownOptions));
+        }
         break;
       case "raw":
         md.push(...mdFromRawCell(cell, options));
@@ -955,7 +970,15 @@ export function mdFromRawCell(
     }
   }
 
-  return mdFromContentCell(cell, options);
+  return mdFromContentCell(
+    cell,
+    options
+      ? {
+        ...options,
+        preserveCellMetadata: false,
+      }
+      : undefined,
+  );
 }
 
 export function mdEnsureTrailingNewline(source: string[]) {
