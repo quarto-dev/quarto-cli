@@ -1,7 +1,7 @@
 /*
  * types.ts
  *
- * Copyright (C) 2020 by RStudio, PBC
+ * Copyright (C) 2020 by Posit, PBC
  */
 
 import { RenderFlags } from "../../../command/render/types.ts";

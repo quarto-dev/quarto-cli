@@ -79,7 +79,7 @@ export async function makeInstallerDeb(
   control = control + val("Installed-Size", `${Math.round(size / 1024)}`);
   control = control + val("Section", "user/text");
   control = control + val("Priority", "optional");
-  control = control + val("Maintainer", "RStudio, PBC <quarto@rstudio.org>");
+  control = control + val("Maintainer", "Posit, PBC <quarto@posit.co>");
   control = control + val("Homepage", url);
   control = control +
     val(
@@ -105,7 +105,7 @@ export async function makeInstallerDeb(
   copyrightLines.push(`Source: ${url}`);
   copyrightLines.push("");
   copyrightLines.push("Files: *");
-  copyrightLines.push("Copyright: RStudio, PBC.");
+  copyrightLines.push("Copyright: Posit, PBC.");
   copyrightLines.push("License: GPL-2+");
   const copyrightText = copyrightLines.join("\n");
   Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);
