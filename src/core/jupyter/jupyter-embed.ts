@@ -713,7 +713,7 @@ function cellForId(id: string, cells: JupyterCellOutput[]) {
     // Check contents of the cell itself
     if (cell.markdown && cell.markdown.includes(id)) {
       // Now look more carefully to see if id is indeed an attr
-      if (cell.markdown.match(new RegExp(`.*{#${id}.*}$`, "gm"))) {
+      if (cell.markdown.match(new RegExp(`.*{#${id}((\s\S*\})|\})$`, "gm"))) {
         return cell;
       }
     }

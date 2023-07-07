@@ -100,7 +100,6 @@ import {
   kCellRawMimeType,
   kCellSlideshow,
   kCellSlideshowSlideType,
-  kCellTags,
   kCellTblColumn,
   kCodeFold,
   kCodeLineNumbers,
