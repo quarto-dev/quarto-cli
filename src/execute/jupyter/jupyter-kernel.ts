@@ -376,7 +376,9 @@ async function connectToKernel(
       return await denoConnectToKernel(transport);
     } catch {
       // remove the transport file
-      Deno.removeSync(transportFile);
+      if (existsSync(transportFile)) {
+        Deno.removeSync(transportFile);
+      }
     }
   }
 
