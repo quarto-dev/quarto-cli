@@ -14,7 +14,7 @@ function asciidocFigure(image)
   -- caption
   local captionText = nil
   if image.caption and #image.caption > 0 then
-    captionText = pandoc.write(pandoc.Pandoc({image.caption}), "asciidoctor")
+    captionText = pandoc.write(pandoc.Pandoc({image.caption}), "asciidoc")
     captionText = captionText:gsub("\n", " ")
   end
   if captionText ~= nil then
@@ -45,7 +45,7 @@ function asciidocDivFigure(el)
   -- return the figure and caption
   local caption = refCaptionFromDiv(el)
   if caption then
-    local renderedCaption = pandoc.write(pandoc.Pandoc({caption}), "asciidoctor")
+    local renderedCaption = pandoc.write(pandoc.Pandoc({caption}), "asciidoc")
     figure:insert(pandoc.RawBlock('asciidoc', '.' .. renderedCaption))
   end
   

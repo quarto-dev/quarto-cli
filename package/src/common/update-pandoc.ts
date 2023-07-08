@@ -220,7 +220,7 @@ async function writePandocTemplates(
         { from: "default.latex", to: "latex.template" },
       ],
       [asciidocOutdir]: [
-        { from: "default.asciidoctor", to: "asciidoc.template" },
+        { from: "default.asciidoc", to: "asciidoc.template" },
       ],
     };
 
