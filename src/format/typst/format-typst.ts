@@ -8,7 +8,6 @@ import { join } from "path/mod.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 import {
-  kBibliography,
   kCiteproc,
   kColumns,
   kDefaultImageExtension,
@@ -16,7 +15,6 @@ import {
   kFigHeight,
   kFigWidth,
   kNumberSections,
-  kReferences,
   kSectionNumbering,
   kShiftHeadingLevelBy,
   kVariables,
