@@ -1,10 +1,10 @@
 $if(citations)$
 $if(bibliographystyle)$
+
 #set bibliography(style: "$bibliographystyle$")
 $endif$
+$if(bibliography)$
 
-$for(bibliography)$
-
-#bibliography("$bibliography$")
-$endfor$
+#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$)
+$endif$
 $endif$
