@@ -29,7 +29,7 @@ export function esBuild(version: string): Dependency {
           const dir = dirname(path);
 
           // extracts to package/bin
-          const esbuildDir = join(dir, `package`);
+          const esbuildDir = join(dir, `package`, config.arch);
           if (existsSync(esbuildDir)) {
             Deno.removeSync(esbuildDir, { recursive: true });
           }

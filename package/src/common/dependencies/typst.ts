@@ -18,7 +18,7 @@ export function typst(version: string ): Dependency {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // establish archive expand dir and remove existing if necessary
-          const dir = dirname(path);
+          const dir = join(dirname(path), config.arch);
           const archiveDir = basename(path, archiveExt);
           const typstDir = join(dir, archiveDir);
           const cleanup = () => {

@@ -19,12 +19,12 @@ export function dartSass(version: string): Dependency {
       filename,
       url:
         `https://github.com/sass/dart-sass/releases/download/${version}/${filename}`,
-      configure: async (_config: Configuration, path: string) => {
+      configure: async (config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // Remove existing dart-sass dir
           const dir = dirname(path);
-          const dartSubdir = join(dir, `dart-sass`);
+          const dartSubdir = join(dir, `dart-sass`, config.arch);
           if (existsSync(dartSubdir)) {
             Deno.removeSync(dartSubdir, { recursive: true });
           }
