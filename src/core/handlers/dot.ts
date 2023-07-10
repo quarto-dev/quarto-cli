@@ -163,6 +163,7 @@ const dotHandler: LanguageHandler = {
         svg = await setSvgSize(svg, options, fixupRevealAlignment);
       }
 
+      svg = mappedConcat(["```{=html}\n", svg, "\n```\n"]);
       return this.build(handlerContext, cell, svg, options);
     } else {
       const {
