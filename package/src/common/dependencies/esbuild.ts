@@ -75,6 +75,7 @@ export function esBuild(version: string): Dependency {
       },
       "aarch64": {
         "linux": esBuildRelease("linux-arm64"),
+        "darwin": esBuildRelease("darwin-arm64")
       },
     },
   };

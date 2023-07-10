@@ -95,6 +95,10 @@ export function pandoc(version: string): Dependency {
           `pandoc-${version}-linux-arm64.tar.gz`,
           "pandoc",
         ),
+        "darwin" : pandocRelease(
+          `pandoc-${version}-arm64-macOS.zip`,
+          "pandoc",
+        )
       },
     },
   };
