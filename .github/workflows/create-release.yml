@@ -166,7 +166,7 @@ jobs:
         run: |
 
           source ./configuration
-        
+
           echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
           curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-he8a937b_0.conda --output deno.conda
           unzip deno.conda
@@ -372,6 +372,7 @@ jobs:
         env:
           QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
           QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_INSTALLER_ID }}
+          QUARTO_APPLE_CONNECT_TEAMID: ${{ secrets.APPLE_CONNECT_TEAMID }}
           QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
           QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
 
