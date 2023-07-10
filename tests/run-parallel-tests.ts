@@ -3,22 +3,34 @@ import { relative } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
 const flags = parse(Deno.args, {
-  boolean: ["dry-run", "verbose", "with-time"],
-  string: ["n"],
-  default: { verbose: false, "dry-run": false, "with-time": false },
+  boolean: ["json-for-ci", "verbose", "dry-run"],
+  string: ["n", "timing-file"],
+  default: {
+    verbose: false,
+    "dry-run": false,
+    "json-for-ci": false,
+    "timing-file": "timing.txt",
+  },
 });
 
+// Name of the file containing test timing for buckets grouping
+const timingFile = flags["timing-file"];
+// Use detailed smoke-all timing results when generating json for CI matrix runs
+const detailedSmokeAll = flags["json-for-ci"];
+
+const smokeAllTestFile = "./smoke/smoke-all.test.ts";
+
 try {
-  Deno.readTextFileSync("timing.txt");
+  Deno.readTextFileSync(timingFile);
 } catch (e) {
   console.log(e);
   console.log(
-    "timing.txt missing. run ./run-tests.sh with QUARTO_TEST_TIMING='timing.txt'",
+    `'${timingFile}' missing. Run './run-tests.sh' with QUARTO_TEST_TIMING='${timingFile}'`,
   );
   Deno.exit(1);
 }
 
-const lines = Deno.readTextFileSync("timing.txt").trim().split("\n");
+const lines = Deno.readTextFileSync(timingFile).trim().split("\n");
 const currentTests = new Set(
   [...expandGlobSync("**/*.test.ts", { globstar: true })].map((entry) =>
     `./${relative(Deno.cwd(), entry.path)}`
@@ -38,29 +50,39 @@ type TestTiming = {
 
 const testTimings: TestTiming[] = [];
 
-const RegSmokeAllFile = new RegExp("^\.\/smoke\/smoke-all\.test\.ts");
+// Regex to match detailed smoke-all results
+const RegSmokeAllFile = new RegExp("smoke\/smoke-all\.test\.ts -- (.*)$");
+let dontUseDetailledSmokeAll = false;
 
+// Checking that timed tests still exists, otherwise log and exclude
 for (let i = 0; i < lines.length; i += 2) {
   const name = lines[i].trim();
   if (RegSmokeAllFile.test(name)) {
-    // checking smoke file existence
-    const smokeFile = name.split(" -- ")[1];
-    const currentSmokeFiles = new Set(
-      [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", { globstar: true })]
-        .map((entry) => `${relative(Deno.cwd(), entry.path)}`),
-    );
-    if (!currentSmokeFiles.has(smokeFile)) {
-      flags.verbose &&
-        console.log(
-          `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING='timing.txt'`,
-        );
+    if (!detailedSmokeAll) {
+      dontUseDetailledSmokeAll = true;
       continue;
+    } else {
+      // checking smoke file existence
+      const smokeFile = name.split(" -- ")[1];
+      const currentSmokeFiles = new Set(
+        [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", {
+          globstar: true,
+        })]
+          .map((entry) => `${relative(Deno.cwd(), entry.path)}`),
+      );
+      if (!currentSmokeFiles.has(smokeFile)) {
+        flags.verbose &&
+          console.log(
+            `Test ${name} in '${timingFile}' does not exists anymore. Update '${timingFile} with 'run ./run-tests.sh with QUARTO_TEST_TIMING='${timingFile}'`,
+          );
+        continue;
+      }
     }
   } else {
     if (!currentTests.has(name)) {
       flags.verbose &&
         console.log(
-          `Test ${name} in timing.txt does not exists anymore. Update timing.txt with 'run ./run-tests.sh with QUARTO_TEST_TIMING='timing.txt'`,
+          `Test ${name} in '${timingFile}' does not exists anymore. Update '${timingFile} with 'run ./run-tests.sh with QUARTO_TEST_TIMING='${timingFile}'`,
         );
       continue;
     }
@@ -101,6 +123,18 @@ for (let i = 0; i < nBuckets; ++i) {
   buckets.push([]);
 }
 
+// If we don't use detailled smoke-all, be sure to place smoke-all.tests.ts first for its own bucket
+if (dontUseDetailledSmokeAll) {
+  failed = true;
+  flags.verbose &&
+    console.log(`${smokeAllTestFile} will run it is own bucket`);
+  buckets[0].push({
+    name: smokeAllTestFile,
+    timing: { real: 99999, user: 99999, sys: 99999 },
+  });
+  bucketSizes[0] += 99999;
+}
+// Add other test to the bucket will less overall timing
 for (const timing of testTimings) {
   const ix = argmin(bucketSizes);
   buckets[ix].push(timing);
@@ -108,6 +142,13 @@ for (const timing of testTimings) {
 }
 
 for (const currentTest of currentTests) {
+  // smoke-all.tests.ts is handled specificifally
+  if (
+    currentTest.match(/smoke-all\.test\.ts/) &&
+    (detailedSmokeAll || dontUseDetailledSmokeAll)
+  ) {
+    continue;
+  }
   if (!timedTests.has(currentTest) && !RegSmokeAllFile.test(currentTest)) {
     flags.verbose && console.log(`Missing test ${currentTest} in timing.txt`);
     failed = true;
@@ -132,6 +173,11 @@ if (!failed && flags.verbose) {
 }
 
 if (flags["dry-run"]) {
+  console.log(JSON.stringify(buckets, null, 2));
+  Deno.exit(0);
+}
+
+if (flags["json-for-ci"]) {
   flags.verbose && console.log("Buckets of tests to run in parallel");
   const bucketSimple = buckets.map((bucket) => {
     return bucket.map((tt) => {
@@ -148,30 +194,8 @@ if (flags["dry-run"]) {
   Promise.all(buckets.map((bucket, i) => {
     const cmd: string[] = ["./run-tests.sh"];
     cmd.push(...bucket.map((tt) => tt.name));
-    return Deno.run({
-      cmd,
-      env: flags["with-time"] ? { QUARTO_TEST_TIMING: `timing-${i}.txt` } : {},
-    }).status();
+    return Deno.run({ cmd }).status();
   })).then(() => {
     console.log("Running `run-test.sh` in parallel... END");
-    if (flags["with-time"]) {
-      try {
-        Deno.removeSync("timing.txt");
-      } catch (_e) {
-        null;
-      }
-      for (const f of Deno.readDirSync(".")) {
-        if (/^timing-/.test(f.name)) {
-          console.log(f.name);
-          const text = Deno.readTextFileSync(f.name);
-          Deno.writeTextFileSync("timing.txt", text, { append: true });
-          try {
-            Deno.removeSync(f.name);
-          } catch (_e) {
-            null;
-          }
-        }
-      }
-    }
   });
 }
