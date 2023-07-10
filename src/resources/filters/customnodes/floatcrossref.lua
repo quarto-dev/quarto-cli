@@ -132,7 +132,8 @@ _quarto.ast.add_renderer("FloatCrossref", function(_)
 end, function(float)
   local figEnv = latexFigureEnv(float)
   local figPos = latexFigurePosition(float, figEnv)
-  local capLoc = capLocation("fig", "bottom")
+  local float_type = refType(float.identifier)
+  local capLoc = capLocation(float_type, "bottom")
   local caption_cmd_name = latexCaptionEnv(float)
 
   if float.parent_id then
@@ -215,9 +216,10 @@ end, function(float)
   end
 
   if float.parent_id then
+    local width = float.width or "0.50"
     return quarto.LatexEnvironment({
       name = "minipage",
-      pos = "[t]{0.50\\linewidth}",
+      pos = "[t]{" .. width .. "\\linewidth}",
       content = figure_content
     })
   else

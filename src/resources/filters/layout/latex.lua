@@ -4,8 +4,24 @@ kSideCaptionEnv = 'sidecaption'
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isLatexOutput()
-end, function(panel_layout)
-  fail("womp womp")
+end, function(layout)
+  quarto.utils.dump { layout = layout }
+  -- forward computed widths to the subfloats
+
+  
+  fail("boo")
+  -- begin container
+  local env_name, pos = latexPanelEnv(layout.float, layout)
+  local cap_loc = cap_location(layout.float)
+
+  local caption_content, caption_id = create_figcaption(float)
+
+  local env = quarto.LatexEnvironment({
+    name = env_name,
+    pos = pos,
+  })
+
+
 end)
 
 function latexPanel(divEl, layout, caption)
