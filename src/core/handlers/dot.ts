@@ -9,6 +9,7 @@ import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
 import { join, toFileUrl } from "path/mod.ts";
 import {
+  isIpynbOutput,
   isJavascriptCompatible,
   isLatexOutput,
   isRevealjsOutput,
@@ -23,6 +24,7 @@ import {
   kFigHeight,
   kFigResponsive,
   kFigWidth,
+  kIpynbProduceSourceNotebook,
 } from "../../config/constants.ts";
 import {
   fixupAlignment,
@@ -143,7 +145,10 @@ const dotHandler: LanguageHandler = {
       }
     };
 
-    if (isJavascriptCompatible(handlerContext.options.format)) {
+    if (
+      isJavascriptCompatible(handlerContext.options.format) &&
+      !isIpynbOutput(handlerContext.options.format.pandoc)
+    ) {
       const responsive = options?.[kFigResponsive] ??
         handlerContext.options.context.format.metadata
           ?.[kFigResponsive];
@@ -175,15 +180,37 @@ const dotHandler: LanguageHandler = {
         heightInInches,
       } = await resolveSize(svg, options);
 
-      return this.build(
-        handlerContext,
-        cell,
-        mappedConcat([
-          makeFigLink(sourceName, widthInInches, heightInInches),
-          //          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
-        ]),
-        options,
-      );
+      const isIpynbSourceOutput =
+        isIpynbOutput(handlerContext.options.context.format.pandoc) &&
+        handlerContext.options.context.format
+          .render[kIpynbProduceSourceNotebook];
+
+      if (isIpynbSourceOutput) {
+        // If we're producing a source notebook, we know that we're just
+        // producing an image, so present the output as an image in
+        //  a markdown cell (and allow the figure attributes through)
+        const figLink = makeFigLink(
+          sourceName,
+          widthInInches,
+          heightInInches,
+          true,
+        );
+        return mappedConcat(["\n:::{.cell .markdown}", figLink, ":::\n"]);
+      } else {
+        return this.build(
+          handlerContext,
+          cell,
+          mappedConcat([
+            makeFigLink(
+              sourceName,
+              widthInInches,
+              heightInInches,
+            ),
+            //          `\n![](${sourceName}){width="${widthInInches}in" height="${heightInInches}in" fig-pos='H'}\n`,
+          ]),
+          options,
+        );
+      }
     }
   },
 };

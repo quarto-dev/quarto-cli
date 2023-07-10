@@ -1,4 +1,4 @@
-<sub-article article-type="notebook">
+<sub-article article-type="notebook" id="$jats-subarticle-id$">
 <front-stub>
 $if(title)$
 <title-group>

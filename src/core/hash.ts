@@ -1,14 +1,24 @@
 /*
-* hash.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * hash.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
+import { crypto } from "https://deno.land/std@0.185.0/crypto/mod.ts";
 import blueimpMd5 from "blueimpMd5";
 
 export function md5Hash(content: string) {
   return blueimpMd5(content);
+}
+
+export function md5HashBytes(content: Uint8Array) {
+  const buffer = crypto.subtle.digestSync(
+    "MD5",
+    content,
+  );
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 // Simple insecure hash for a string

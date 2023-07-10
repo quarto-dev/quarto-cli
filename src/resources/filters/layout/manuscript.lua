@@ -6,7 +6,9 @@ local kUnrollMarkdownCells = "unroll-markdown-cells"
 
 function manuscriptUnroll() 
   local unrollMdCells = param(kUnrollMarkdownCells, false)
-  if unrollMdCells then
+
+  -- JATS implements its own custom unrolling
+  if unrollMdCells and not _quarto.format.isJatsOutput() then
     return {
       -- Process any cells that originated from notebooks
       Div = function(divEl)   
@@ -30,7 +32,7 @@ function manuscriptUnroll()
       }
   else
     return {}
-  end
+  end  
 end
 
 function manuscript() 
@@ -95,10 +97,10 @@ function manuscript()
           local notebooks = param("notebook-context", {})
           local nbFileName = pandoc.path.filename(nbRelPath)
           local previewFile = nbFileName .. ".html"
-          for _i, notebook in ipairs(notebooks) do            
+          for _i, notebook in ipairs(notebooks) do      
             if notebook.source == nbAbsPath then
-              if notebook['html-preview'].output then
-                previewFile = pandoc.path.filename(notebook['html-preview'].output.path)
+              if notebook['html-preview'] then
+                previewFile = pandoc.path.filename(notebook['html-preview'].path)
               end
               break
             end

@@ -166,6 +166,9 @@ initCrossrefIndex()
 
 initShortcodeHandlers()
 
+-- see whether the cross ref filter is enabled
+local enableCrossRef = param("enable-crossref", true)
+
 local quarto_init_filters = {
   { name = "init-quarto-meta-init", filter = quarto_meta_init() },
   { name = "init-quarto-custom-meta-init", filter = {
@@ -311,10 +314,11 @@ local quarto_post_filters = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
+  { name = "post-ipynb", filter = ipynbCode()},
+  { name = "post-ipynb", filter = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
-    ipynb(),
     quartoBook(),
     reveal(),
     tikz(),
@@ -406,7 +410,9 @@ local filterList = {}
 tappend(filterList, quarto_init_filters)
 tappend(filterList, quarto_normalize_filters)
 tappend(filterList, quarto_pre_filters)
-tappend(filterList, quarto_crossref_filters)
+if enableCrossRef then
+  tappend(filterList, quarto_crossref_filters)
+end
 tappend(filterList, quarto_layout_filters)
 tappend(filterList, quarto_post_filters)
 tappend(filterList, quarto_finalize_filters)

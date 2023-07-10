@@ -94,6 +94,7 @@ export const kHtmlResourceTags: Record<string, string[]> = {
   "embed": ["src"],
   "iframe": ["src"],
   "section": ["data-background-image", "data-background-video"],
+  "source": ["src"],
 };
 
 export function discoverResourceRefs(

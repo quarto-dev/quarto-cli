@@ -90,6 +90,7 @@ import {
   kIncludeInHeader,
   kInlineIncludes,
   kIpynbFilters,
+  kIpynbProduceSourceNotebook,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -140,6 +141,7 @@ import {
   kNotebookPreserveCells,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
+  kNotebookPreviewDownloadSrc,
   kNotebooks,
   kNotebookSubarticles,
   kNotebookView,
@@ -447,6 +449,7 @@ export interface FormatRender {
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
   [kNotebookPreserveCells]?: boolean;
+  [kIpynbProduceSourceNotebook]?: boolean;
 }
 
 export interface FormatExecute {
@@ -650,6 +653,7 @@ export interface FormatLanguage {
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
   [kNotebookPreviewDownload]?: string;
+  [kNotebookPreviewDownloadSrc]?: string;
   [kNotebookPreviewBack]?: string;
   [kArticleNotebookLabel]?: string;
   [kManuscriptMecaBundle]?: string;

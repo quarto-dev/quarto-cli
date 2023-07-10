@@ -17,8 +17,13 @@ export const kRemoteHref = "remote-href";
 export const kHtmlPreview = "html-preview";
 export const kJatsSubarticle = "jats-subarticle";
 export const kRenderedIPynb = "rendered-ipynb";
+export const kQmdIPynb = "qmd-ipynb";
 
-export type RenderType = "html-preview" | "jats-subarticle" | "rendered-ipynb";
+export type RenderType =
+  | "html-preview"
+  | "jats-subarticle"
+  | "rendered-ipynb"
+  | "qmd-ipynb";
 
 // Preview Options for HTML Previews
 export interface NotebookPreviewOptions {
@@ -28,14 +33,11 @@ export interface NotebookPreviewOptions {
 // The core notebook interface
 export interface Notebook {
   source: string;
-  [kHtmlPreview]: NotebookPreview;
-  [kJatsSubarticle]: NotebookPreview;
-  [kRenderedIPynb]: NotebookPreview;
-}
-
-export interface NotebookPreview {
-  output?: NotebookOutput;
   metadata?: NotebookMetadata;
+  [kHtmlPreview]?: NotebookOutput;
+  [kJatsSubarticle]?: NotebookOutput;
+  [kRenderedIPynb]?: NotebookOutput;
+  [kQmdIPynb]?: NotebookOutput;
 }
 
 export interface NotebookOutput {
@@ -71,6 +73,7 @@ export interface NotebookContext {
   all: () => Notebook[];
   // Resolves the data on an executedFile into data that will
   // create a `renderType` output when rendered.
+  addMetadata: (nbPath: string, notebookMetadata: NotebookMetadata) => void;
   resolve: (
     nbPath: string,
     renderType: RenderType,
@@ -82,7 +85,7 @@ export interface NotebookContext {
   addRendering: (
     nbPath: string,
     renderType: RenderType,
-    result: RenderedFile,
+    result: NotebookRenderResult,
   ) => void;
   removeRendering: (
     nbAbsPath: string,
@@ -97,7 +100,7 @@ export interface NotebookContext {
     renderServices: RenderServices,
     notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
-  ) => Promise<NotebookPreview>;
+  ) => Promise<NotebookOutput>;
   // Previews are cleaned up when the notebook context is disposed, but
   // you can use this to mark specific notebook > rendertypes to not be cleaned up.
   preserve: (nbAbsPath: string, renderType: RenderType) => void;

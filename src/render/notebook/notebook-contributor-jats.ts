@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFiles } from "../../command/render/render-files.ts";
+import { renderFile } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
@@ -19,7 +19,6 @@ import {
   kRemoveHidden,
   kTemplate,
   kTo,
-  kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -72,8 +71,6 @@ function resolveJats(
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
 
-  // Configure markdown behavior for this rendering
-  resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
   return resolved;
 }
 async function renderJats(
@@ -84,8 +81,8 @@ async function renderJats(
   _notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
-  const rendered = await renderFiles(
-    [{ path: nbPath, formats: ["jats"] }],
+  const rendered = await renderFile(
+    { path: nbPath, formats: ["jats"] },
     {
       services,
       flags: {
@@ -98,7 +95,6 @@ async function renderJats(
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,
-          [kUnrollMarkdownCells]: false,
         },
         quiet: false,
       },
@@ -106,8 +102,7 @@ async function renderJats(
       warning: true,
       quietPandoc: true,
     },
-    [],
-    undefined,
+    services,
     project,
   );
 

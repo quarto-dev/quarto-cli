@@ -126,7 +126,6 @@ export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
@@ -206,18 +205,24 @@ export async function serveProject(
     }
   }
 
-  const renderResult = await renderProject(
-    project,
-    {
-      services,
-      progress: true,
-      useFreezer: !renderBefore,
-      flags,
-      pandocArgs,
-      previewServer: true,
-    },
-    files,
-  );
+  let renderResult;
+  const services = renderServices();
+  try {
+    renderResult = await renderProject(
+      project,
+      {
+        services,
+        progress: true,
+        useFreezer: !renderBefore,
+        flags,
+        pandocArgs,
+        previewServer: true,
+      },
+      files,
+    );
+  } finally {
+    services.cleanup();
+  }
 
   // exit if there was an error
   if (renderResult.error) {

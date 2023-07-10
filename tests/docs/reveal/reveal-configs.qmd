@@ -1,0 +1,43 @@
+---
+title: "Test custom options not supported by Pandoc"
+format:
+  revealjs: 
+    pdf-max-pages-per-slide: 1
+    smaller: true
+    auto-animate-easing: 'ease-in-out'
+    auto-animate-duration: 5
+    auto-animate-unmatched: false
+    pdf-separate-fragments: true
+---
+
+
+## a long slide
+
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+- 9
+- 10
+- 11
+- 12
+- 13
+- 14
+- 15
+- 16
+- 17
+- 18
+- 19
+- 20
+
+## a short slide
+
+- 1
+- 2
+- 3
+- 4
+- 5

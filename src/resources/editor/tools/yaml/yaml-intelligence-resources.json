@@ -9567,6 +9567,19 @@
   ],
   "schema/document-reveal-print.yml": [
     {
+      "name": "pdf-max-pages-per-slide",
+      "tags": {
+        "formats": [
+          "revealjs"
+        ]
+      },
+      "schema": "number",
+      "description": {
+        "short": "Slides that are too tall to fit within a single page will expand onto multiple pages",
+        "long": "\"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option\"\n"
+      }
+    },
+    {
       "name": "pdf-separate-fragments",
       "tags": {
         "formats": [
@@ -12811,7 +12824,7 @@
     },
     {
       "short": "Show a thick left border on code blocks.",
-      "long": "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder.="
+      "long": "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder."
     },
     {
       "short": "Show a background color for code blocks.",
@@ -14395,7 +14408,11 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack"
+    "internal-schema-hack",
+    {
+      "short": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+      "long": "“Slides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option”"
+    }
   ],
   "schema/external-schemas.yml": [
     {
@@ -14619,12 +14636,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 158641,
+    "_internalId": 158643,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 158633,
+        "_internalId": 158635,
         "type": "enum",
         "enum": [
           "png",
@@ -14640,7 +14657,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 158640,
+        "_internalId": 158642,
         "type": "anyOf",
         "anyOf": [
           {

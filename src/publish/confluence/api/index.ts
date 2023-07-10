@@ -1,7 +1,7 @@
 /*
  * index.ts
  *
- * Copyright (C) 2020 by RStudio, PBC
+ * Copyright (C) 2020 by Posit, PBC
  */
 
 import { encode as base64encode } from "encoding/base64.ts";
@@ -27,10 +27,10 @@ import {
 } from "./types.ts";
 
 import {
-  DESCENDANT_PAGE_SIZE,
   CAN_SET_PERMISSIONS_DISABLED,
-  V2EDITOR_METADATA,
   CAN_SET_PERMISSIONS_ENABLED_CACHED,
+  DESCENDANT_PAGE_SIZE,
+  V2EDITOR_METADATA,
 } from "../constants.ts";
 import { logError, trace } from "../confluence-logger.ts";
 import { buildContentCreate } from "../confluence-helper.ts";
@@ -105,19 +105,25 @@ export class ConfluenceClient {
    * permissions on it, then delete it.
    */
   public async canSetPermissions(
-      parent: ConfluenceParent,
-      space: Space,
-      user: User,
+    parent: ConfluenceParent,
+    space: Space,
+    user: User,
   ): Promise<boolean> {
     let result = true;
 
     trace("canSetPermissions check");
 
-    trace("localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED)", localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED));
-    trace("localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED)",
-      localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED));
+    trace(
+      "localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED)",
+      localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED),
+    );
+    trace(
+      "localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED)",
+      localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED),
+    );
 
-    const permissionsTestDisabled = localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED) === "true" ||
+    const permissionsTestDisabled =
+      localStorage.getItem(CAN_SET_PERMISSIONS_DISABLED) === "true" ||
       localStorage.getItem(CAN_SET_PERMISSIONS_ENABLED_CACHED) === "true";
 
     trace("permissionsTestDisabled", permissionsTestDisabled);
@@ -127,15 +133,15 @@ export class ConfluenceClient {
     }
 
     const testContent: ContentCreate = buildContentCreate(
-        `quarto-permission-test-${globalThis.crypto.randomUUID()}`,
-        space,
-        {
-          storage: {
-            value: "",
-            representation: "storage",
-          },
+      `quarto-permission-test-${globalThis.crypto.randomUUID()}`,
+      space,
+      {
+        storage: {
+          value: "",
+          representation: "storage",
         },
-        "permisson-test",
+      },
+      "permisson-test",
     );
     const testContentCreated = await this.createContent(user, testContent);
 
@@ -143,7 +149,7 @@ export class ConfluenceClient {
 
     try {
       await this.put<Content>(
-          `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`,
+        `content/${testContentId}/restriction/byOperation/update/user?accountId=${user.accountId}`,
       );
     } catch (error) {
       trace("lockDownResult Error", error);
@@ -178,7 +184,10 @@ export class ConfluenceClient {
     }
 
     if (attemptArchive) {
-      trace("Disabling Permissions Test: confluenceCanSetPermissionsDisabled", 'true');
+      trace(
+        "Disabling Permissions Test: confluenceCanSetPermissionsDisabled",
+        "true",
+      );
       // https://github.com/quarto-dev/quarto-cli/issues/5299
       // This account can't delete the test document, we attempted an archive
       // Let's prevent this "canSetPermissions" test from being run in the future
@@ -258,9 +267,9 @@ export class ConfluenceClient {
     const toArchive = {
       pages: [
         {
-          id: content.id
-        }
-      ]
+          id: content.id,
+        },
+      ],
     };
     return this.post<Content>(`content/archive`, JSON.stringify(toArchive));
   }

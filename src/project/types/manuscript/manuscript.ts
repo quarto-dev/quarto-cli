@@ -13,6 +13,8 @@ import {
   FormatExtras,
   FormatLanguage,
   FormatLink,
+  kHtmlPostprocessors,
+  Metadata,
   NotebookPreviewDescriptor,
   PandocFlags,
 } from "../../../config/types.ts";
@@ -41,7 +43,10 @@ import {
 import { projectOutputDir } from "../../project-shared.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
+  HtmlPostProcessResult,
+  PandocInputTraits,
   PandocOptions,
+  RenderedFormat,
   RenderFlags,
   RenderResult,
   RenderServices,
@@ -79,6 +84,9 @@ import { formatLanguage } from "../../../core/language.ts";
 import { manuscriptRenderer } from "./manuscript-render.ts";
 import { isRStudioPreview } from "../../../core/platform.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
+import { Document } from "../../../core/deno-dom.ts";
+import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
+import { resolveProjectInputLinks } from "../project-utilities.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -254,14 +262,22 @@ export const manuscriptProjectType: ProjectType = {
           content: [
             "---",
             `title: ${title}`,
+            `authors:`,
+            `  - name: Norah Jones`,
+            `    affiliation: The University`,
+            `    roles: writing`,
+            `    corresponding: true`,
+            `bibliography: references.bib`,
             "---",
             "",
             "## Section",
-            "This is a simple placeholder for the manuscript's main document.",
+            "This is a simple placeholder for the manuscript's main document [@knuth84].",
           ].join("\n"),
         },
       ],
-      supporting: [],
+      supporting: [
+        "references.bib",
+      ],
     };
   },
   pandocRenderer: manuscriptRenderer,
@@ -471,6 +487,21 @@ export const manuscriptProjectType: ProjectType = {
       }
       extras[kNotebooks] = Object.values(outputNbs);
     }
+
+    // Resolve input links
+    extras.html = extras.html || {};
+    extras.html[kHtmlPostprocessors] = [async (
+      doc: Document,
+      _options: {
+        inputMetadata: Metadata;
+        inputTraits: PandocInputTraits;
+        renderedFormats: RenderedFormat[];
+        quiet?: boolean;
+      },
+    ) => {
+      await resolveProjectInputLinks(source, context, doc);
+      return Promise.resolve(kHtmlEmptyPostProcessResult);
+    }];
 
     return Promise.resolve(extras);
   },

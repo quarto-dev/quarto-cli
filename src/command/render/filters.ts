@@ -14,6 +14,7 @@ import {
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
+  kEnableCrossRef,
   kFigAlign,
   kFigEnv,
   kFigPos,
@@ -25,6 +26,7 @@ import {
   kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kIpynbProduceSourceNotebook,
   kIPynbTitleBlockTemplate,
   kJatsSubarticleId,
   kKeepHidden,
@@ -450,10 +452,16 @@ async function projectFilterParams(options: PandocOptions) {
 }
 
 function ipynbFilterParams(options: PandocOptions) {
-  return {
+  const params: Record<string, unknown> = {
     [kIPynbTitleBlockTemplate]:
       options.format.metadata[kIPynbTitleBlockTemplate],
   };
+  if (options.format.render[kIpynbProduceSourceNotebook]) {
+    params[kEnableCrossRef] = false;
+    params[kIpynbProduceSourceNotebook] = true;
+  }
+
+  return params;
 }
 
 function jatsFilterParams(options: PandocOptions) {

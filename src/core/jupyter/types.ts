@@ -204,6 +204,7 @@ export interface JupyterToMarkdownOptions {
   execute: FormatExecute;
   keepHidden?: boolean;
   preserveCellMetadata?: boolean;
+  preserveCodeCellYaml?: boolean;
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;

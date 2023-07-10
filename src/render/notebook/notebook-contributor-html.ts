@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFiles } from "../../command/render/render-files.ts";
+import { renderFile, renderFiles } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
@@ -17,6 +17,7 @@ import {
   kNotebookPreserveCells,
   kNotebookPreviewBack,
   kNotebookPreviewDownload,
+  kNotebookPreviewDownloadSrc,
   kNotebookViewStyle,
   kOutputFile,
   kRemoveHidden,
@@ -42,6 +43,7 @@ import { kNotebookViewStyleNotebook } from "../../format/html/format-html-consta
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
 import { basename, join } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
+import { isQmdFile } from "../../execute/qmd.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
@@ -85,7 +87,10 @@ function resolveHtmlNotebook(
   // Metadata used by template when rendering
   resolved.recipe.format.metadata["nbMeta"] = {
     ...notebookMetadata,
-    downloadLabel: resolved.recipe.format.language[kNotebookPreviewDownload],
+    downloadLabel: downloadLabel(
+      notebookMetadata?.filename || nbAbsPath,
+      resolved.recipe.format,
+    ),
     backLabel: resolved.recipe.format.language[kNotebookPreviewBack],
   } as NotebookTemplateMetadata;
 
@@ -118,8 +123,8 @@ async function renderHtmlNotebook(
   );
 
   // Render the notebook and update the path
-  const rendered = await renderFiles(
-    [{ path: nbPath, formats: ["html"] }],
+  const rendered = await renderFile(
+    { path: nbPath, formats: ["html"] },
     {
       services,
       flags: {
@@ -133,7 +138,10 @@ async function renderHtmlNotebook(
           [kNotebookPreserveCells]: true,
           ["nbMeta"]: {
             ...notebookMetadata,
-            downloadLabel: format.language[kNotebookPreviewDownload],
+            downloadLabel: downloadLabel(
+              notebookMetadata?.filename || nbPath,
+              format,
+            ),
             backLabel: format.language[kNotebookPreviewBack],
           } as NotebookTemplateMetadata,
         },
@@ -143,8 +151,7 @@ async function renderHtmlNotebook(
       warning: true,
       quietPandoc: true,
     },
-    [],
-    undefined,
+    services,
     project,
   );
 
@@ -162,4 +169,10 @@ async function renderHtmlNotebook(
   }
 
   return rendered.files[0];
+}
+
+function downloadLabel(file: string, format: Format) {
+  return isQmdFile(file)
+    ? format.language[kNotebookPreviewDownloadSrc]
+    : format.language[kNotebookPreviewDownload];
 }
