@@ -175,6 +175,8 @@ function compileTemplate(template, meta)
   end
 end
 
+local md_shortcode = require("lpegshortcode")
+
 function merge_attrs(attr, ...)
   local result = pandoc.Attr(attr.identifier, attr.classes, attr.attributes)
   for _, a in ipairs({...}) do
@@ -197,4 +199,14 @@ function as_plain_table(value)
     result[k] = v
   end
   return result
+end
+
+-- FIXME pick a better name for this.
+function string_to_quarto_ast_blocks(text)
+  local after_shortcodes = md_shortcode.md_shortcode:match(text) or ""
+  local after_reading = pandoc.read(after_shortcodes, "markdown")
+  
+  -- FIXME we should run the whole normalization pipeline here
+  local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
+  return after_parsing.blocks
 end

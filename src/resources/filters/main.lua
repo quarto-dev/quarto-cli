@@ -345,7 +345,7 @@ local quarto_post_filters = {
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
-  { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
+  -- { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
 

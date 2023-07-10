@@ -212,7 +212,6 @@ function parse_floats()
         content = { decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
         caption_long = caption,
       })
-
     end,
 
     CodeBlock = function(code)
@@ -224,6 +223,7 @@ function parse_floats()
       if caption == nil then
         return nil
       end
+      local caption_inlines = string_to_quarto_ast_blocks(caption)[1].content
       code.attr.attributes['lst-cap'] = nil
       local content = code
       if code.attr.attributes["filename"] then
@@ -239,7 +239,7 @@ function parse_floats()
         attr = attr,
         type = "Listing",
         content = { content },
-        caption_long = caption,
+        caption_long = caption_inlines,
       })
     end
   }
