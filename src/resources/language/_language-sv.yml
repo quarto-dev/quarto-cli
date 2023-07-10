@@ -4,6 +4,13 @@ toc-title-website: "På denna sida"
 related-formats-title: "Andra Format"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Källa"
+other-links-title: "Övriga länkar"
+
+article-notebook-label: "Artikelanteckningsbok"
+notebook-preview-download: "Ladda ner anteckningsbok"
+notebook-preview-download-src: "Ladda ner källkod"
+notebook-preview-back: "Tillbaka till artikel"
+manuscript-meca-bundle: "MECA-arkiv"
 
 section-title-abstract: "Sammanfattning"
 section-title-appendices: "Bilagor"

@@ -191,7 +191,6 @@ import {
 import { kRevealJSPlugins } from "../../extension/constants.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
-import { quartoConfig } from "../../core/quarto.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -350,6 +349,7 @@ export async function runPandoc(
         options.services,
         options.offset,
         options.project,
+        options.quiet,
       ))
       : {};
 

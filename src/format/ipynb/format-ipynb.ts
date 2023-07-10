@@ -1,9 +1,8 @@
 /*
-* format-ipynb.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-ipynb.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, dirname, join } from "path/mod.ts";
 import { readPartials } from "../../command/render/template.ts";
@@ -33,6 +32,13 @@ import {
   JupyterOutputDisplayData,
 } from "../../core/jupyter/types.ts";
 
+export function ipynbTitleTemplatePath() {
+  return formatResourcePath(
+    "ipynb",
+    join("templates", "title-block.md"),
+  );
+}
+
 export function ipynbFormat(): Format {
   return createFormat("Jupyter", "ipynb", {
     pandoc: {
@@ -50,10 +56,7 @@ export function ipynbFormat(): Format {
       const resolveTemplate = () => {
         // iPynbs have a special title-block template partial that they can provide
         // to permit the customization of the title block
-        const titleTemplate = formatResourcePath(
-          "ipynb",
-          join("templates", "title-block.md"),
-        );
+        const titleTemplate = ipynbTitleTemplatePath();
 
         const partials = readPartials(format.metadata, dirname(input));
         if (partials.length > 0) {
@@ -116,11 +119,11 @@ export function ipynbFormat(): Format {
                 const cellDisplayOutput =
                   cellOutput as JupyterOutputDisplayData;
                 if (cellDisplayOutput.data["application/json"]) {
-                  const jsonData =
-                    (cellDisplayOutput.data["application/json"] as Record<
+                  const jsonData = cellDisplayOutput
+                    .data["application/json"] as Record<
                       string,
                       unknown
-                    >);
+                    >;
                   if (jsonData[kQuartoMimeType]) {
                     const realMimetype = jsonData[kQuartoMimeType] as string;
                     delete jsonData[kQuartoMimeType];

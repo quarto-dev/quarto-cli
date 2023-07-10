@@ -332,6 +332,8 @@ $sidebar-section-bottom-margin: 0.2em;
 
 .sidebar-item {
   margin-bottom: $sidebar-items-gap-spacing;
+  line-height: 1rem;
+  margin-top: 0.7rem;
 }
 
 .sidebar-section {
@@ -394,6 +396,10 @@ $sidebar-section-bottom-margin: 0.2em;
       margin-right: 0.15rem;
     }
 
+    nav.quarto-title-breadcrumbs {
+      display: none;
+    }
+
     nav.quarto-page-breadcrumbs {
       display: flex;
       align-items: center;
@@ -414,6 +420,17 @@ $sidebar-section-bottom-margin: 0.2em;
 @include media-breakpoint-up(lg) {
   .quarto-secondary-nav {
     display: none;
+  }
+}
+
+.quarto-title-breadcrumbs .breadcrumb {
+  margin-bottom: 0.5em;
+  font-size: 0.9rem;
+
+  li:last-of-type {
+    a {
+      color: $text-muted;
+    }
   }
 }
 
@@ -451,6 +468,10 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   cursor: pointer;
 }
 
+.no-decor {
+  text-decoration: none;
+}
+
 .quarto-secondary-nav-title {
   margin-top: 0.3em;
   color: $sidebar-color;
@@ -468,6 +489,10 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   .breadcrumb-item::before {
     color: theme-dim($sidebar-color, 20%);
   }
+}
+
+.breadcrumb-item {
+  line-height: 1.2rem;
 }
 
 div.sidebar-item-container {

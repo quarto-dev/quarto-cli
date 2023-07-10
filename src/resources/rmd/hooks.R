@@ -321,7 +321,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # allow table lable through
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
-    }
+    } 
     if (!is.null(label)) {
       label <- paste0(label, " ")
     }
@@ -412,10 +412,22 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         class = trimws(class),
         attr = attr
       )
+
+      # If requested, preserve the code yaml and emit it into the code blocks
+      if (is_ipynb_output(format$pandoc$to) && isTRUE(format$render$`produce-source-notebook`)) {
+        yamlCode <- lastYamlCode
+        if (!is.null(yamlCode)) {
+          yamlCode <- paste(yamlCode, collapse = "\n")
+          if (!nzchar(yamlCode)) {
+            x <- trimws(x, "left")
+          }
+          x <- paste0("\n", yamlCode, x)
+        }
+      }
       ticks <- "```"
     }
-    paste0('\n\n', ticks, attrs, x, '\n', ticks, '\n\n')
-   
+    
+    paste0('\n\n', ticks, attrs, x, '\n', ticks, '\n\n')   
   }
   knit_hooks$output <- delegating_output_hook("output", c("stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stderr"))
@@ -1000,4 +1012,8 @@ latex_animation <- function(x, options) {
 
 is_latex_output <- function(to) {
   knitr:::is_latex_output() || identical(to, "pdf")
+}
+
+is_ipynb_output <- function(to) {
+  identical(to, "ipynb")
 }

@@ -3,43 +3,28 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { formatResourcePath } from "../../core/resources.ts";
-import { renderEjs } from "../../core/ejs.ts";
 import { asArray } from "../../core/array.ts";
 import * as ld from "../../core/lodash.ts";
 
 import {
   kDownloadUrl,
-  kNotebookPreserveCells,
-  kNotebookPreviewBack,
-  kNotebookPreviewDownload,
   kNotebookPreviewOptions,
-  kNotebookViewStyle,
-  kOutputFile,
-  kTemplate,
-  kTheme,
-  kTo,
 } from "../../config/constants.ts";
 import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 
-import {
-  basename,
-  dirname,
-  extname,
-  isAbsolute,
-  join,
-  relative,
-} from "path/mod.ts";
-import { renderFiles } from "../../command/render/render-files.ts";
-import { kNotebookViewStyleNotebook } from "./format-html-constants.ts";
-import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
-import { kAppendixStyle } from "./format-html-shared.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
+import {
+  kHtmlPreview,
+  NotebookPreviewOptions,
+} from "../../render/notebook/notebook-types.ts";
+import { kRenderedIPynb } from "../../render/notebook/notebook-types.ts";
+import { InternalError } from "../../core/lib/error.ts";
 import { logProgress } from "../../core/log.ts";
-import { readBaseInputIndex } from "../../project/project-index.ts";
 
 export interface NotebookPreview {
   title: string;
@@ -57,25 +42,11 @@ export interface NotebookPreviewTask {
   callback?: (nbPreview: NotebookPreview) => void;
 }
 
-interface NotebookPreviewOptions {
-  back?: boolean;
-}
-
-interface NotebookPreviewConfig {
-  title: string;
-  url?: string;
-  previewFileName: string;
-  downloadUrl?: string;
-  downloadFileName?: string;
-  backHref?: string;
-}
-
 export const notebookPreviewer = (
   nbView: boolean | NotebookPreviewDescriptor | NotebookPreviewDescriptor[],
   format: Format,
   services: RenderServices,
   project?: ProjectContext,
-  quiet?: boolean,
 ) => {
   const isBook = projectIsBook(project);
   const previewQueue: NotebookPreviewTask[] = [];
@@ -100,36 +71,50 @@ export const notebookPreviewer = (
 
   const enQueuePreview = (
     input: string,
-    nbPath: string,
+    nbAbsPath: string,
     title?: string,
-    nbPreviewFile?: string,
     callback?: (nbPreview: NotebookPreview) => void,
   ) => {
-    previewQueue.push({ input, nbPath, title, nbPreviewFile, callback });
+    // Try to provide a title
+    previewQueue.push({
+      input,
+      nbPath: nbAbsPath,
+      title: title,
+      callback,
+    });
   };
 
-  const renderPreviews = async (output?: string) => {
+  const renderPreviews = async (output?: string, quiet?: boolean) => {
     const rendered: Record<string, NotebookPreview> = {};
 
     const nbOptions = format
       .metadata[kNotebookPreviewOptions] as NotebookPreviewOptions;
 
-    // Render each notebook only once (so filter by
-    // notebook path to consolidate the list)
-    const uniqueWork = ld.uniqBy(
-      previewQueue,
-      (work: NotebookPreviewTask) => {
-        return work.nbPath;
-      },
-    ) as NotebookPreviewTask[];
-
-    const total = uniqueWork.length;
-    if (total > 0) {
-      logProgress(`Rendering notebooks`);
+    const notebookPaths = previewQueue.map((work) => (work.nbPath));
+    const uniquePaths = ld.uniq(notebookPaths);
+    const toRenderPaths = uniquePaths.filter((nbPath) => {
+      return services.notebook.get(nbPath, project) === undefined;
+    });
+    const haveRenderedPaths: string[] = [];
+    if (toRenderPaths.length > 0 && !quiet) {
+      logProgress(
+        `Rendering notebook previews`,
+      );
     }
+    const total = previewQueue.length;
+    let renderCount = 0;
     for (let i = 0; i < total; i++) {
-      const work = uniqueWork[i];
-      const { nbPath, input, title, nbPreviewFile } = work;
+      const work = previewQueue[i];
+      const { nbPath, input, title } = work;
+      if (
+        toRenderPaths.includes(nbPath) && !haveRenderedPaths.includes(nbPath) &&
+        !quiet
+      ) {
+        logProgress(
+          `[${++renderCount}/${toRenderPaths.length}] ${basename(nbPath)}`,
+        );
+        haveRenderedPaths.push(nbPath);
+      }
 
       const nbDir = dirname(nbPath);
       const filename = basename(nbPath);
@@ -138,76 +123,125 @@ export const notebookPreviewer = (
       if (nbView !== false) {
         // Read options for this notebook
         const descriptor: NotebookPreviewDescriptor | undefined =
-          nbDescriptors[nbPath];
+          nbDescriptors[relative(dirname(input), nbPath)];
         const nbAbsPath = isAbsolute(nbPath) ? nbPath : join(inputDir, nbPath);
+        const nbContext = services.notebook;
+        const notebook = nbContext.get(nbAbsPath, project);
 
-        const supporting: string[] = [];
-        const resources: string[] = [];
-        const nbRelPath = relative(inputDir, nbAbsPath);
-        logProgress(`[${i + 1}/${total}] ${nbRelPath}`);
+        const resolvedTitle = descriptor?.title || title ||
+          notebook?.metadata?.title || basename(nbAbsPath);
 
-        // Render an output version of the notebook
-        let downloadUrl = undefined;
-        let downloadFileName = undefined;
-        if (!descriptor?.[kDownloadUrl] && !isBook) {
-          const outputNb = await renderOutputNotebook(
-            inputDir,
-            nbAbsPath,
-            services,
-            project,
-            quiet,
-          );
-          downloadUrl = outputNb.href;
+        const notebookIsQmd = !nbAbsPath.endsWith(".ipynb");
 
-          // Ensure that the output file name for this notebook preview is an `.ipynb`
-          if (extname(nbAbsPath) !== ".ipynb") {
-            downloadFileName = `${basename(nbAbsPath)}.ipynb`;
-          }
-
-          supporting.push(...outputNb.supporting);
-        }
-
-        // Make sure that we have a resolved title
-        const resolveTitle = async () => {
-          let resolvedTitle = descriptor?.title || title;
-          if (!resolvedTitle && project) {
-            const inputIndex = await readBaseInputIndex(nbPath, project);
-            if (inputIndex) {
-              resolvedTitle = inputIndex.title;
+        // Ensure this has an rendered ipynb and an html preview
+        if (!notebook || !notebook[kHtmlPreview] || !notebook[kRenderedIPynb]) {
+          // Render an ipynb if needed
+          if (
+            (!notebook || !notebook[kRenderedIPynb]) &&
+            !descriptor?.[kDownloadUrl] &&
+            !isBook &&
+            !notebookIsQmd
+          ) {
+            const renderedIpynb = await nbContext.render(
+              nbAbsPath,
+              format,
+              kRenderedIPynb,
+              services,
+              {
+                title: resolvedTitle,
+                filename: basename(nbAbsPath),
+              },
+              project,
+            );
+            if (renderedIpynb && !project) {
+              nbContext.preserve(nbAbsPath, kRenderedIPynb);
             }
           }
-          return resolvedTitle || basename(nbPath);
-        };
 
-        const backHref = nbOptions && nbOptions.back && output
-          ? relative(dirname(nbAbsPath), output)
-          : undefined;
-        const htmlPreview = await renderHtmlView(
-          inputDir,
-          nbAbsPath,
-          {
-            title: await resolveTitle(),
-            previewFileName: nbPreviewFile || `${basename(nbPath)}.html`,
-            url: descriptor?.url,
-            downloadUrl: descriptor?.[kDownloadUrl] || downloadUrl,
-            downloadFileName,
-            backHref,
-          },
-          format,
-          services,
-          project,
-          quiet,
-        );
-        if (htmlPreview.supporting) {
-          supporting.push(...htmlPreview.supporting);
-        }
-        if (htmlPreview.resources) {
-          resources.push(...htmlPreview.resources);
+          // Render the HTML preview, if needed
+          if (!notebook || !notebook[kHtmlPreview]) {
+            const backHref = nbOptions && nbOptions.back && output
+              ? relative(dirname(nbAbsPath), output)
+              : undefined;
+
+            let downloadHref = basename(nbAbsPath);
+            let downloadFileName = basename(nbAbsPath);
+            // If this is an ipynb and there is a rendered version of it
+            // use that instead.
+            if (
+              notebook && notebook[kRenderedIPynb] &&
+              !notebookIsQmd
+            ) {
+              downloadHref = relative(
+                dirname(nbAbsPath),
+                notebook[kRenderedIPynb].path,
+              );
+              downloadFileName = basename(notebook[kRenderedIPynb].path);
+            }
+
+            const htmlPreview = await nbContext.render(
+              nbAbsPath,
+              format,
+              kHtmlPreview,
+              services,
+              {
+                title: resolvedTitle,
+                filename: basename(nbAbsPath),
+                backHref,
+                downloadHref,
+                downloadFile: downloadFileName,
+              },
+              project,
+            );
+            if (htmlPreview && !project) {
+              nbContext.preserve(nbAbsPath, kHtmlPreview);
+            }
+          }
         }
 
+        const renderedNotebook = nbContext.get(nbAbsPath, project);
+        if (!renderedNotebook || !renderedNotebook[kHtmlPreview]) {
+          throw new InternalError(
+            "We just ensured that notebooks had rendered previews, but the preview then didn't exist.",
+          );
+        }
+
+        // Forward along resources and supporting files from previews
+        const supporting: string[] = [];
+        const resources: string[] = [];
+        if (renderedNotebook[kRenderedIPynb]) {
+          const renderedIpynb = renderedNotebook[kRenderedIPynb];
+          if (renderedIpynb) {
+            if (project) {
+              supporting.push(
+                relative(project.dir, renderedIpynb.path),
+              );
+            } else {
+              supporting.push(renderedIpynb.path);
+            }
+            supporting.push(...renderedIpynb.supporting);
+            resources.push(...renderedIpynb.resourceFiles.files);
+          }
+        }
+
+        if (renderedNotebook[kHtmlPreview]) {
+          const htmlPreview = renderedNotebook[kHtmlPreview];
+          if (htmlPreview) {
+            if (project) {
+              supporting.push(relative(project.dir, htmlPreview.path));
+            } else {
+              supporting.push(htmlPreview.path);
+            }
+            supporting.push(...htmlPreview.supporting);
+            resources.push(...htmlPreview.resourceFiles.files);
+          }
+        }
+
+        // Compute the final preview information that will be used
+        // to form links to this notebook
         const nbPreview = {
-          title: htmlPreview.title,
-          href: htmlPreview.href,
+          title: resolvedTitle,
+          href: relative(inputDir, renderedNotebook[kHtmlPreview].path),
           supporting,
           resources,
         };
@@ -236,158 +270,3 @@ export const notebookPreviewer = (
     descriptor,
   };
 };
-
-async function renderOutputNotebook(
-  inputDir: string,
-  nbAbsPath: string,
-  services: RenderServices,
-  project?: ProjectContext,
-  quiet?: boolean,
-): Promise<{ href: string; supporting: string[] }> {
-  // The target output file name
-  const [_dir, stem] = dirAndStem(nbAbsPath);
-  const outputFileName = `${stem}.out.ipynb`;
-
-  // Render the notebook and update the path
-  const rendered = await renderFiles(
-    [{ path: nbAbsPath, formats: ["ipynb"] }],
-    {
-      services,
-      flags: {
-        metadata: {
-          [kTo]: "ipynb",
-          [kOutputFile]: outputFileName,
-        },
-        quiet,
-      },
-      echo: true,
-      warning: true,
-      quietPandoc: true,
-    },
-    [],
-    undefined,
-    project,
-  );
-  if (rendered.error) {
-    throw new Error(`Failed to render output ipynb for notebook ${nbAbsPath}`, {
-      cause: rendered.error,
-    });
-  }
-
-  const supporting = [];
-  for (const renderedFile of rendered.files) {
-    supporting.push(join(inputDir, renderedFile.file));
-    if (renderedFile.supporting) {
-      supporting.push(...renderedFile.supporting.map((file) => {
-        return isAbsolute(file) ? file : join(inputDir, file);
-      }));
-    }
-  }
-
-  return {
-    href: outputFileName,
-    supporting,
-  };
-}
-
-// Renders an HTML preview of a notebook
-async function renderHtmlView(
-  inputDir: string,
-  nbAbsPath: string,
-  previewConfig: NotebookPreviewConfig,
-  format: Format,
-  services: RenderServices,
-  project?: ProjectContext,
-  quiet?: boolean,
-): Promise<NotebookPreview> {
-  // Compute the preview title
-  if (previewConfig.url === undefined) {
-    // Create a link back to the input
-    const href = previewConfig.backHref;
-    const label = format.language[kNotebookPreviewBack];
-
-    // Use the special `embed` template for this render
-    const embedHtmlEjs = formatResourcePath(
-      "html",
-      join("embed", "template.ejs.html"),
-    );
-    const embedTemplate = renderEjs(embedHtmlEjs, {
-      title: previewConfig.title,
-      path: previewConfig.downloadUrl || basename(nbAbsPath),
-      filename: previewConfig.downloadFileName || basename(nbAbsPath),
-      backOptions: {
-        href,
-        label,
-      },
-      downloadOptions: {
-        label: format.language[kNotebookPreviewDownload],
-      },
-    });
-    const templatePath = services.temp.createFile({ suffix: ".html" });
-    Deno.writeTextFileSync(templatePath, embedTemplate);
-
-    // Render the notebook and update the path
-    const rendered = await renderFiles(
-      [{ path: nbAbsPath, formats: ["html"] }],
-      {
-        services,
-        flags: {
-          metadata: {
-            [kTo]: "html",
-            [kTheme]: format.metadata[kTheme],
-            [kOutputFile]: previewConfig.previewFileName,
-            [kTemplate]: templatePath,
-            [kNotebookViewStyle]: kNotebookViewStyleNotebook,
-            [kAppendixStyle]: "none",
-            [kNotebookPreserveCells]: true,
-          },
-          quiet,
-        },
-        echo: true,
-        warning: true,
-        quietPandoc: true,
-      },
-      [],
-      undefined,
-      project,
-    );
-    if (rendered.error) {
-      throw new Error(`Failed to render preview for notebook ${nbAbsPath}`, {
-        cause: rendered.error,
-      });
-    }
-
-    const nbDir = dirname(nbAbsPath);
-    const supporting = [];
-    const resources = [];
-    for (const renderedFile of rendered.files) {
-      supporting.push(join(inputDir, renderedFile.file));
-      if (renderedFile.supporting) {
-        supporting.push(...renderedFile.supporting.map((file) => {
-          return isAbsolute(file) ? file : join(nbDir, file);
-        }));
-      }
-
-      if (renderedFile.resourceFiles) {
-        resources.push(...renderedFile.resourceFiles.files.map((file) => {
-          return isAbsolute(file) ? file : join(nbDir, file);
-        }));
-      }
-    }
-
-    const nbRelPath = relative(inputDir, nbAbsPath);
-    return {
-      title: previewConfig.title,
-      href: pathWithForwardSlashes(
-        join(dirname(nbRelPath), previewConfig.previewFileName),
-      ),
-      supporting,
-      resources,
-    };
-  } else {
-    return {
-      title: previewConfig.title,
-      href: previewConfig.url,
-    };
-  }
-}

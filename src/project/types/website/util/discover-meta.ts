@@ -83,12 +83,14 @@ export function findPreviewImgEl(
     }
   }
 
-  // as a last resort, just use the auto-discovered image from the lua
-  // filter chain, if it exists
+  // as a last resort, just use the first _local_ image found within the document body
   if (!strict) {
     const autoImg = doc.querySelector("#quarto-document-content img");
     if (autoImg) {
-      return autoImg;
+      const src = autoImg.getAttribute("src");
+      if (src && !src.startsWith("http:") && !src.startsWith("https:")) {
+        return autoImg;
+      }
     }
   }
 }

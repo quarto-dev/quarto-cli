@@ -119,13 +119,13 @@ import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
+import { kManuscriptType } from "../types/manuscript/manuscript-types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
@@ -205,18 +205,24 @@ export async function serveProject(
     }
   }
 
-  const renderResult = await renderProject(
-    project,
-    {
-      services,
-      progress: true,
-      useFreezer: !renderBefore,
-      flags,
-      pandocArgs,
-      previewServer: true,
-    },
-    files,
-  );
+  let renderResult;
+  const services = renderServices();
+  try {
+    renderResult = await renderProject(
+      project,
+      {
+        services,
+        progress: true,
+        useFreezer: !renderBefore,
+        flags,
+        pandocArgs,
+        previewServer: true,
+      },
+      files,
+    );
+  } finally {
+    services.cleanup();
+  }
 
   // exit if there was an error
   if (renderResult.error) {
@@ -474,10 +480,16 @@ async function internalPreviewServer(
   const pdfOutputFile = (finalOutput && pdfOutput)
     ? (): string => {
       const project = watcher.project();
-      return join(
-        dirname(finalOutput),
-        bookOutputStem(project.dir, project.config) + ".pdf",
-      );
+      if (projType.type == kManuscriptType) {
+        // For manuscripts, just use the final output as is
+        return finalOutput;
+      } else {
+        const outputFile = join(
+          dirname(finalOutput),
+          bookOutputStem(project.dir, project.config) + ".pdf",
+        );
+        return outputFile;
+      }
     }
     : undefined;
 
@@ -803,7 +815,18 @@ function previewControlChannelRequestHandler(
                 watcher.project(),
               );
 
-              info("Output created: " + finalOutput + "\n");
+              const projType = projectType(
+                project.config?.project?.[kProjectType],
+              );
+
+              if (projType.filterOutputFile) {
+                info(
+                  "Output created: " + projType.filterOutputFile(finalOutput) +
+                    "\n",
+                );
+              } else {
+                info("Output created: " + finalOutput + "\n");
+              }
 
               // notify user we are watching for reload
               printWatchingForChangesMessage();

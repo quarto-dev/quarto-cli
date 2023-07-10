@@ -39,6 +39,9 @@ export const kResources = "resources";
 export const kFormatResources = "format-resources";
 export const kSupporting = "supporting";
 
+export const kIpynbProduceSourceNotebook = "produce-source-notebook";
+export const kEnableCrossRef = "enable-crossref";
+
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
 export const kOtherLinks = "other-links";
@@ -54,6 +57,8 @@ export const kNotebookPreviewOptionBack = "back";
 export const kKeepHidden = "keep-hidden";
 export const kRemoveHidden = "remove-hidden";
 export const kClearHiddenClasses = "clear-hidden-classes";
+
+export const kUnrollMarkdownCells = "unroll-markdown-cells";
 
 export const kExecuteEnabled = "enabled";
 export const kExecuteIpynb = "ipynb";
@@ -193,6 +198,7 @@ export const kRenderDefaultsKeys = [
   kLinkExternalFilter,
   kFormatResources,
   kFormatLinks,
+  kIpynbProduceSourceNotebook,
   kNotebookLinks,
   kNotebookSubarticles,
   kNotebookView,
@@ -311,6 +317,7 @@ export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
+export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
 export const kArticleNotebookLabel = "article-notebook-label";
 export const kManuscriptMecaBundle = "manuscript-meca-bundle";
@@ -425,6 +432,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockPublished,
   kTitleBlockModified,
   kNotebookPreviewDownload,
+  kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
   kArticleNotebookLabel,
   kManuscriptMecaBundle,

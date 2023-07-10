@@ -268,7 +268,12 @@ function resolveCaptionClasses(el)
   if #filtered > 0 then
     return {'margin-caption'}
   else
-    return {}
+    -- try looking for attributes
+    if el.attr.attributes['cap-location'] == "margin" then
+      return {'margin-caption'}
+    else
+      return {}
+    end
   end
 end
 

@@ -113,10 +113,10 @@ export async function renderPandoc(
   // Process any placeholder for notebooks that have been injected
   const notebookResult = await replaceNotebookPlaceholders(
     format.pandoc.to || "html",
-    context.target.source,
     context,
     context.options.flags || {},
     executeResult.markdown,
+    context.options.services,
   );
 
   const embedSupporting: string[] = [];
@@ -200,7 +200,7 @@ export async function renderPandoc(
   }
 
   return {
-    complete: async (renderedFormats: RenderedFormat[]) => {
+    complete: async (renderedFormats: RenderedFormat[], cleanup?: boolean) => {
       pushTiming("render-postprocessor");
       // run optional post-processor (e.g. to restore html-preserve regions)
       if (executeResult.postProcess) {
@@ -336,14 +336,16 @@ export async function renderPandoc(
         supporting.push(...postProcessSupporting);
       }
 
-      withTiming("render-cleanup", () =>
-        renderCleanup(
-          context.target.input,
-          finalOutput!,
-          format,
-          selfContained! ? supporting : undefined,
-          executionEngineKeepMd(context.target.input),
-        ));
+      if (cleanup !== false) {
+        withTiming("render-cleanup", () =>
+          renderCleanup(
+            context.target.input,
+            finalOutput!,
+            format,
+            selfContained! ? supporting : undefined,
+            executionEngineKeepMd(context.target.input),
+          ));
+      }
 
       // if there is a project context then return paths relative to the project
       const projectPath = (path: string) => {

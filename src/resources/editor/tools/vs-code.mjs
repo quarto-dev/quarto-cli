@@ -9599,6 +9599,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Provide a 'back to top' navigation button"
                 }
               },
+              "bread-crumbs": {
+                boolean: {
+                  description: "Whether to show navigation breadcrumbs for pages more than 1 level deep"
+                }
+              },
               "page-footer": {
                 anyOf: [
                   "string",
@@ -11208,7 +11213,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     description: "The deployed url for this manuscript"
                   }
                 },
-                "meca-archive": {
+                "meca-bundle": {
                   anyOf: [
                     "boolean",
                     "string"
@@ -11602,7 +11607,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Show a thick left border on code blocks.",
-            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.=\n"
+            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.\n"
           }
         },
         {
@@ -16586,6 +16591,19 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "schema/document-reveal-print.yml": [
         {
+          name: "pdf-max-pages-per-slide",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "number",
+          description: {
+            short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
+            long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+          }
+        },
+        {
           name: "pdf-separate-fragments",
           tags: {
             formats: [
@@ -17315,7 +17333,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`left` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
           }
         },
         {
@@ -17786,7 +17804,8 @@ var require_yaml_intelligence_resources = __commonJS({
                     completions: [
                       "default",
                       "website",
-                      "book. manuscript"
+                      "book",
+                      "manuscript"
                     ],
                     description: "Project type (`default`, `website`, `book`, or `manuscript`)"
                   }
@@ -18806,6 +18825,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -18933,6 +18953,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -19827,7 +19848,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Show a thick left border on code blocks.",
-          long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder.="
+          long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder."
         },
         {
           short: "Show a background color for code blocks.",
@@ -20775,7 +20796,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
         {
           short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>left</code> - Show the Table of Contents in right\nmargin of the document. <code>left-body</code> - Show two Tables of\nContents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
         },
         "The title used for the table of contents.",
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -20930,6 +20951,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -21240,6 +21262,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Markdown to place below margin content (text or file path)",
         "Provide next and previous article links in footer",
         "Provide a \u2018back to top\u2019 navigation button",
+        "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
         "Shared page footer",
         "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
         "Publish open graph metadata",
@@ -21409,7 +21432,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+          long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -21633,12 +21660,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 158637,
+        _internalId: 158643,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 158629,
+            _internalId: 158635,
             type: "enum",
             enum: [
               "png",
@@ -21654,7 +21681,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 158636,
+            _internalId: 158642,
             type: "anyOf",
             anyOf: [
               {
@@ -30768,7 +30795,7 @@ function isBlockShortcode(content) {
   }
 }
 function parseShortcodeCapture(capture) {
-  const nameMatch = capture.match(/^[a-zA-Z0-9_]+/);
+  const nameMatch = capture.match(/^\/?[a-zA-Z0-9_]+/);
   if (!nameMatch) {
     return;
   }

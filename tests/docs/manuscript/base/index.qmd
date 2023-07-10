@@ -1,0 +1,6 @@
+---
+title: My Manuscript
+---
+
+## Section 1
+This is a section of my manuscript what up.

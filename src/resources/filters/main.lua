@@ -66,7 +66,6 @@ import("./quarto-post/ojs.lua")
 import("./quarto-post/jats.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
-import("./quarto-post/typst.lua")
 import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
@@ -154,6 +153,9 @@ import("./customnodes/panel-tabset.lua")
 initCrossrefIndex()
 
 initShortcodeHandlers()
+
+-- see whether the cross ref filter is enabled
+local enableCrossRef = param("enable-crossref", true)
 
 local quartoInit = {
   { name = "init-configure-filters", filter = configure_filters() },
@@ -287,10 +289,11 @@ local quartoPost = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
+  { name = "post-ipynb", filter = ipynbCode()},
+  { name = "post-ipynb", filter = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
-    ipynb(),
     quartoBook(),
     reveal(),
     tikz(),
@@ -313,7 +316,6 @@ local quartoPost = {
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
-  { name = "post-render-typst", filter = render_typst() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
@@ -339,6 +341,7 @@ local quartoFinalize = {
 
 local quartoLayout = {
   { name = "manuscript filtering", filter = manuscript() },
+  { name = "manuscript filtering", filter = manuscriptUnroll() },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
@@ -387,7 +390,9 @@ local filterList = {}
 tappend(filterList, quartoInit)
 tappend(filterList, quartoNormalize)
 tappend(filterList, quartoPre)
-tappend(filterList, quartoCrossref)
+if enableCrossRef then
+  tappend(filterList, quartoCrossref)
+end
 tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)

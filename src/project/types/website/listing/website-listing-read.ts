@@ -61,6 +61,7 @@ import {
   kImageAlign,
   kImageAlt,
   kImageHeight,
+  kImagePlaceholder,
   kInclude,
   kListing,
   kMaxDescLength,
@@ -304,6 +305,13 @@ export function completeListingItems(
       // Read the listing page
       let fileContents = Deno.readTextFileSync(outputFile.file);
 
+      // See if there is a default image
+      const listingMetadata = outputFile.format.metadata[kListing] as Metadata;
+      const listingDefaultImage =
+        listingMetadata && listingMetadata[kImagePlaceholder]
+          ? listingMetadata[kImagePlaceholder] as string
+          : undefined;
+
       // Use a regex to identify any placeholders
       const regex = descriptionPlaceholderRegex;
       regex.lastIndex = 0;
@@ -390,6 +398,14 @@ export function completeListingItems(
             fileContents = fileContents.replace(
               imgPlaceholder,
               imgHtml,
+            );
+          } else if (listingDefaultImage) {
+            const imagePreview: PreviewImage = {
+              src: listingDefaultImage,
+            };
+            fileContents = fileContents.replace(
+              imgPlaceholder,
+              imageSrc(imagePreview, progressive, imgHeight),
             );
           } else {
             fileContents = fileContents.replace(
@@ -901,8 +917,8 @@ async function listItemFromMeta(
   project: ProjectContext,
   listing: ListingDehydrated,
   baseDir: string,
-) {
-  let listingItem = cloneDeep(meta);
+): Promise<{ item: ListingItem; source: ListingItemSource }> {
+  let listingItem: ListingItem = cloneDeep(meta);
   let source = ListingItemSource.metadata;
 
   // If there is a path, try to complete the filename and

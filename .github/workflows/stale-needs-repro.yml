@@ -24,7 +24,7 @@ jobs:
 
             Unfortunately, this issue is now considered stale because it has been opened since 14 days without providing a "working" reproducible example to help us investigate.
             If you are still facing the issue, please review the ["Bug Reports" guide](https://quarto.org/bug-reports.html) on how to provide a fully reproducible example as a self-contained Quarto document or a link to a Git repository.
-            Without a reproducible example, it is unlikely that the issue will be addressed and thus will be closed.
+            Without a reproducible example, it is unlikely that the issue will be addressed.
 
             You can share a Quarto document using the following syntax, _i.e._, using more backticks than you have in your document (usually four ` ```` `).
 
@@ -46,8 +46,6 @@ jobs:
             The end.
             ````
             `````
-
-            _Remove `stale` / `needs-repro` labels or this will be closed in 14 days._
           close-issue-message: |
             This issue has been automatically closed because it has been opened for some time without providing a "working" reproducible example that would help us investigate.
           days-before-stale: 14

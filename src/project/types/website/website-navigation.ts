@@ -83,6 +83,7 @@ import {
 
 import {
   kBackToTopNavigation,
+  kBreadCrumbNavigation,
   kSiteIssueUrl,
   kSiteNavbar,
   kSitePageNavigation,
@@ -132,6 +133,7 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
+import { resolveProjectInputLinks } from "../project-utilities.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -251,6 +253,11 @@ export async function websiteNavigationExtras(
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
     language: format.language,
+    showBreadCrumbs: websiteConfigBoolean(
+      kBreadCrumbNavigation,
+      true,
+      project.config,
+    ),
   };
 
   // Determine the previous and next page
@@ -393,8 +400,13 @@ function navigationHtmlPostprocessor(
   language: FormatLanguage,
 ) {
   const sourceRelative = relative(project.dir, source);
-  const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
+
+  const showBreadCrumbs = websiteConfigBoolean(
+    kBreadCrumbNavigation,
+    true,
+    project.config,
+  );
 
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process the breadcrumbs and collapsed title
@@ -402,14 +414,26 @@ function navigationHtmlPostprocessor(
     const secondaryNavTitleEl = doc.querySelector(
       ".quarto-secondary-nav .quarto-secondary-nav-title",
     );
-
     if (secondaryNavTitleEl) {
-      const navEl = makeBreadCrumbs(doc);
-      if (secondaryNavTitleEl.parentElement) {
-        secondaryNavTitleEl.parentElement.replaceChild(
-          navEl,
-          secondaryNavTitleEl,
-        );
+      if (showBreadCrumbs) {
+        const navEl = makeBreadCrumbs(doc);
+        if (secondaryNavTitleEl.parentElement) {
+          secondaryNavTitleEl.parentElement.replaceChild(
+            navEl,
+            secondaryNavTitleEl,
+          );
+        }
+      } else {
+        // Process the title into the secondary nav bar
+        const titleEl = doc.querySelector("h1.title");
+        if (titleEl) {
+          for (const child of titleEl.childNodes) {
+            secondaryNavTitleEl.append(child.cloneNode(true));
+          }
+          // Decorate the title so we know to hide it
+          titleEl.classList.add("d-none");
+          titleEl.classList.add("d-lg-block");
+        }
       }
 
       // hide the entire title block (encompassing code button) if we have it
@@ -418,6 +442,17 @@ function navigationHtmlPostprocessor(
         // hide below lg
         titleBlock.classList.add("d-none");
         titleBlock.classList.add("d-lg-block");
+      }
+    }
+
+    const titleBlockEl = doc.querySelector(".quarto-title-block");
+    if (showBreadCrumbs && titleBlockEl) {
+      if (navigation.breadCrumbs && navigation.breadCrumbs.length > 1) {
+        const titleBreadCrumbEl = makeBreadCrumbs(
+          doc,
+          ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
+        );
+        titleBlockEl.prepend(titleBreadCrumbEl);
       }
     }
 
@@ -473,47 +508,8 @@ function navigationHtmlPostprocessor(
       }
     }
 
-    // resolve links to input (src) files
-    const links = doc.querySelectorAll("a[href]");
-    for (let i = 0; i < links.length; i++) {
-      const link = links[i] as Element;
-      const resolveInput = link.getAttribute("data-noresolveinput") === null;
-      if (!resolveInput) {
-        link.removeAttribute("data-noresolveinput");
-      }
-      const linkHref = getDecodedAttribute(link, "href");
-      if (linkHref && !isExternalPath(linkHref)) {
-        let projRelativeHref = linkHref.startsWith("/")
-          ? linkHref.slice(1)
-          : join(dirname(sourceRelative), linkHref);
-        const hashLoc = projRelativeHref.indexOf("#");
-        const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
-        if (hash) {
-          projRelativeHref = projRelativeHref.slice(0, hashLoc);
-        }
-        const resolved = resolveInput
-          ? await resolveInputTarget(project, projRelativeHref)
-          : { outputHref: pathWithForwardSlashes(join("/", projRelativeHref)) };
-
-        if (resolved) {
-          link.setAttribute("href", offset + resolved.outputHref + hash);
-        } else {
-          // if this is a unresolvable markdown/ipynb link then print a warning
-          if (!safeExistsSync(join(project.dir, projRelativeHref))) {
-            const targetFile = join(
-              projectOutputDir(project),
-              projRelativeHref,
-            );
-            if (
-              engineValidExtensions().includes(extname(targetFile)) &&
-              !safeExistsSync(join(projectOutputDir(project), projRelativeHref))
-            ) {
-              warning("Unable to resolve link target: " + projRelativeHref);
-            }
-          }
-        }
-      }
-    }
+    // Resolve any links to project inputs
+    await resolveProjectInputLinks(source, project, doc);
 
     // handle repo links
     handleRepoLinks(
@@ -792,10 +788,15 @@ async function resolveFooter(
   return footer;
 }
 
-function makeBreadCrumbs(doc: Document) {
+function makeBreadCrumbs(doc: Document, clz?: string[]) {
   // Make bootstrap breadcrumbs
   const navEl = doc.createElement("nav");
   navEl.classList.add("quarto-page-breadcrumbs");
+  if (clz && clz.length) {
+    clz.forEach((cls) => {
+      navEl.classList.add(cls);
+    });
+  }
   navEl.setAttribute("aria-label", "breadcrumb");
 
   const olEl = doc.createElement("ol");

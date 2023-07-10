@@ -125,10 +125,6 @@ export function templateMarkdownHandler(
           );
         }
       }
-
-      // If there is no image and there is a placeholder, use that
-      record.image = record.image || listing[kImagePlaceholder];
-
       return record;
     },
   );
@@ -159,7 +155,7 @@ export function templateMarkdownHandler(
   const filterRendered = renderEjs(
     resourcePath("projects/website/listing/_filter.ejs.md"),
     {
-      items: reshapedItems,
+      items: tempateItems,
       listing: reshapedListing,
     },
   );
@@ -176,7 +172,7 @@ export function templateMarkdownHandler(
   const paginationRendered = renderEjs(
     resourcePath("projects/website/listing/_pagination.ejs.md"),
     {
-      items: reshapedItems,
+      items: tempateItems,
       listing: reshapedListing,
     },
   );

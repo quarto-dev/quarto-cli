@@ -1,0 +1,13 @@
+# Tests a broad set of Quarto functionality that users are likely to encounter.
+# A failure indicates some signficant portion of functionality is likely to be broken.
+name: Parallel Smokes Tests
+on:
+  workflow_dispatch:
+
+jobs:
+  do-nothing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: |
+          echo "This is a dummy workflow to be able to run the real one leaving on a branch for now."

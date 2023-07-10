@@ -300,7 +300,7 @@ export const previewCommand = new Command()
               if (renderResult.error) {
                 throw renderResult.error;
               }
-              handleRenderResult(file, renderResult);
+              handleRenderResult(file, renderResult, project);
               if (projectPreviewServe(project) && renderResult.baseDir) {
                 touchPath = join(
                   renderResult.baseDir,
@@ -326,24 +326,19 @@ export const previewCommand = new Command()
     // see if we are serving a project or a file
     if (Deno.statSync(file).isDirectory) {
       // project preview
-      const services = renderServices();
-      try {
-        await serveProject(projectTarget, services, flags, args, {
-          port: options.port,
-          host: options.host,
-          browser: (options.browser === false || options.browse === false)
-            ? false
-            : undefined,
-          [kProjectWatchInputs]: options.watchInputs,
-          timeout: options.timeout,
-          render: options.render,
-          touchPath,
-          browserPath: options.browserPath,
-          navigate: options.navigate,
-        }, options.noServe === true);
-      } finally {
-        services.cleanup();
-      }
+      await serveProject(projectTarget, flags, args, {
+        port: options.port,
+        host: options.host,
+        browser: (options.browser === false || options.browse === false)
+          ? false
+          : undefined,
+        [kProjectWatchInputs]: options.watchInputs,
+        timeout: options.timeout,
+        render: options.render,
+        touchPath,
+        browserPath: options.browserPath,
+        navigate: options.navigate,
+      }, options.noServe === true);
     } else {
       // single file preview
       if (

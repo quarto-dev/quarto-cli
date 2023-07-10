@@ -37,8 +37,7 @@ end
 function processCitationMeta(meta)
   if meta then
     local citationMeta = meta[constants.kCitation]
-    if citationMeta then
-
+    if citationMeta and type(citationMeta) == "object" then
       local containerIds = citationMeta[constants.kContainerId]
       if containerIds ~= nil then
         meta[constants.kCitation][constants.kContainerId] = normalizeTypedId(containerIds)

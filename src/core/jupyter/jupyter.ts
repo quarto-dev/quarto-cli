@@ -142,7 +142,7 @@ import {
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import { readYamlFromMarkdown } from "../yaml.ts";
+import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import {
   normalizePath,
@@ -682,6 +682,8 @@ export async function jupyterToMarkdown(
   // track current code cell index (for progress)
   let codeCellIndex = 0;
 
+  let frontMatter = undefined;
+
   for (let i = 0; i < nb.cells.length; i++) {
     // Collection the markdown for this cell
     const md: string[] = [];
@@ -720,7 +722,21 @@ export async function jupyterToMarkdown(
     // markdown from cell
     switch (cell.cell_type) {
       case "markdown":
-        md.push(...mdFromContentCell(cell, options));
+        {
+          const markdownOptions = {
+            ...options,
+          };
+
+          // If this is the front matter cell, don't wrap it in
+          // a cell envelope, as it need to be remain discoverable
+          if (frontMatter === undefined) {
+            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            if (frontMatter) {
+              markdownOptions.preserveCellMetadata = false;
+            }
+          }
+          md.push(...mdFromContentCell(cell, markdownOptions));
+        }
         break;
       case "raw":
         md.push(...mdFromRawCell(cell, options));
@@ -953,7 +969,15 @@ export function mdFromRawCell(
     }
   }
 
-  return mdFromContentCell(cell, options);
+  return mdFromContentCell(
+    cell,
+    options
+      ? {
+        ...options,
+        preserveCellMetadata: false,
+      }
+      : undefined,
+  );
 }
 
 export function mdEnsureTrailingNewline(source: string[]) {
@@ -1302,38 +1326,40 @@ async function mdFromCodeCell(
     );
 
     md.push(ticks + " {");
-    if (typeof cell.options[kCellLstLabel] === "string") {
-      let label = cell.options[kCellLstLabel]!;
-      if (!label.startsWith("#")) {
-        label = "#" + label;
+    if (!options.preserveCodeCellYaml) {
+      if (typeof cell.options[kCellLstLabel] === "string") {
+        let label = cell.options[kCellLstLabel]!;
+        if (!label.startsWith("#")) {
+          label = "#" + label;
+        }
+        md.push(label + " ");
       }
-      md.push(label + " ");
-    }
-    if (!fenced) {
-      md.push("." + (cellOptions.language || options.language));
-    }
-    md.push(" .cell-code");
-    if (hideCode(cell, options)) {
-      md.push(" .hidden");
-    }
+      if (!fenced) {
+        md.push("." + (cellOptions.language || options.language));
+      }
+      md.push(" .cell-code");
+      if (hideCode(cell, options)) {
+        md.push(" .hidden");
+      }
 
-    if (cell.options[kCodeOverflow] === "wrap") {
-      md.push(" .code-overflow-wrap");
-    } else if (cell.options[kCodeOverflow] === "scroll") {
-      md.push(" .code-overflow-scroll");
-    }
+      if (cell.options[kCodeOverflow] === "wrap") {
+        md.push(" .code-overflow-wrap");
+      } else if (cell.options[kCodeOverflow] === "scroll") {
+        md.push(" .code-overflow-scroll");
+      }
 
-    if (typeof cell.options[kCellLstCap] === "string") {
-      md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
-    }
-    if (typeof cell.options[kCodeFold] !== "undefined") {
-      md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
-    }
-    if (typeof cell.options[kCodeSummary] !== "undefined") {
-      md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
-    }
-    if (typeof cell.options[kCodeLineNumbers] !== "undefined") {
-      md.push(` code-line-numbers=\"${cell.options[kCodeLineNumbers]}\"`);
+      if (typeof cell.options[kCellLstCap] === "string") {
+        md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
+      }
+      if (typeof cell.options[kCodeFold] !== "undefined") {
+        md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
+      }
+      if (typeof cell.options[kCodeSummary] !== "undefined") {
+        md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
+      }
+      if (typeof cell.options[kCodeLineNumbers] !== "undefined") {
+        md.push(` code-line-numbers=\"${cell.options[kCodeLineNumbers]}\"`);
+      }
     }
     md.push("}\n");
     let source = ld.cloneDeep(cell.source);
@@ -1351,6 +1377,9 @@ async function mdFromCodeCell(
       source.push("\n```\n");
     } else if (cell.optionsSource.length > 0) {
       source = mdTrimEmptyLines(source, "leading");
+    }
+    if (options.preserveCodeCellYaml) {
+      md.push(...cell.optionsSource);
     }
     md.push(...source, "\n");
     md.push(ticks + "\n");

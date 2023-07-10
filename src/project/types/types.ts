@@ -31,6 +31,12 @@ export interface ProjectType {
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
+  outputFile?: (
+    input: string,
+    format: Format,
+    project: ProjectContext,
+  ) => string | undefined;
+  filterOutputFile?: (file: string) => string;
   cleanOutputDir?: boolean;
   formatLibDirs?: () => string[];
   filterFormat?: (

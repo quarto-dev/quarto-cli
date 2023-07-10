@@ -80,7 +80,7 @@
     short: "Show a thick left border on code blocks."
     long: |
       Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is
-      enabled as well as the color of the border.=
+      enabled as well as the color of the border.
 - name: code-block-bg
   tags:
     formats: [$html-doc, $pdf-all]

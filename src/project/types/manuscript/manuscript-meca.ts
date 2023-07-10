@@ -11,23 +11,44 @@ import {
 } from "../../../config/format.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { contentType } from "../../../core/mime.ts";
-import { ProjectContext } from "../../types.ts";
+import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import {
+  basename,
+  dirname,
+  globToRegExp,
+  isAbsolute,
+  join,
+  relative,
+  SEP,
+} from "path/mod.ts";
+import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
   kEnvironmentFiles,
-  kMecaArchive,
+  kMecaBundle,
   ManuscriptConfig,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
-import { dirAndStem } from "../../../core/path.ts";
+import { dirAndStem, kSkipHidden } from "../../../core/path.ts";
 import { inputFileForOutputFile } from "../../project-index.ts";
-import { info } from "log/mod.ts";
+
+import * as ld from "../../../core/lodash.ts";
+import { projectType } from "../project-types.ts";
+import { engineIgnoreDirs } from "../../../execute/engine.ts";
+
+const kArticleMetadata = "article-metadata";
+const kArticleSupportingFile = "article-supporting-file";
+const kArticleSource = "article-source";
+const kArticleSourceDirectory = "article-source-directory";
+const kArticleSourceEnvironment = "article-source-environment";
+const kManuscript = "manuscript";
+const kManuscriptSupportingFile = "manuscript-supporting-file";
+
+const kSrcDirName = "source";
 
 // REES Compatible execution files
 // from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
@@ -52,17 +73,13 @@ const kExecutionFiles = [
 
 const kMecaSuffix = "-meca.zip";
 
-const kReferencedFileType = "manuscript_reference";
-const kExecutionEnvironmentType = "execution_environment";
-const kResourceFileType = "manuscript_resource";
-
 export const shouldMakeMecaBundle = (
   formats: Array<string | Format>,
   manuConfig?: ManuscriptConfig,
 ) => {
-  if (!manuConfig || manuConfig[kMecaArchive] !== false) {
+  if (!manuConfig || manuConfig[kMecaBundle] !== false) {
     // See if it was explicitely on
-    if (manuConfig && manuConfig[kMecaArchive] === true) {
+    if (manuConfig && manuConfig[kMecaBundle] === true) {
       return true;
     }
 
@@ -81,8 +98,8 @@ export const shouldMakeMecaBundle = (
 };
 
 export const mecaFileName = (file: string, config: ManuscriptConfig) => {
-  if (typeof (config[kMecaArchive]) === "string") {
-    return config[kMecaArchive];
+  if (typeof (config[kMecaBundle]) === "string") {
+    return config[kMecaBundle];
   } else {
     const [_, stem] = dirAndStem(file);
     return `${stem}${kMecaSuffix}`;
@@ -97,6 +114,76 @@ export const createMecaBundle = async (
   manuscriptConfig: ResolvedManuscriptConfig,
 ) => {
   const workingDir = globalTempContext().createDir();
+
+  // Make a source directory and copy all the source files
+  const srcDir = join(workingDir, kSrcDirName);
+  ensureDirSync(srcDir);
+
+  // A data structure that holds article source files, making it
+  // easy to ensure that we copy each source file only once
+  // (and that the first time it is added, the type is set)
+  const srcFiles: Record<string, string> = {};
+  const addSrcFile = (absPath: string, type: string) => {
+    if (srcFiles[absPath] === undefined) {
+      srcFiles[absPath] = type;
+    }
+  };
+
+  // Process explicit environment files
+  let hasExplicitEnvironment = false;
+  if (manuscriptConfig[kEnvironmentFiles]) {
+    manuscriptConfig[kEnvironmentFiles].forEach((file) => {
+      const absPath = join(context.dir, file);
+      addSrcFile(absPath, kArticleSourceEnvironment);
+      hasExplicitEnvironment = true;
+    });
+  }
+
+  // Process src files
+  const skip = [
+    kSkipHidden,
+    /\.DS_Store/,
+  ];
+  const projType = projectType(context.config?.project?.[kProjectType]);
+  if (projType.outputDir) {
+    skip.push(RegExp(`^${join(context.dir, projType.outputDir)}[\/\\\\]`));
+    skip.push(RegExp(`[\/\\\\]${projType.outputDir}[\/\\\\]`));
+    engineIgnoreDirs().map((ignore) =>
+      skip.push(
+        globToRegExp(join(context.dir, ignore) + SEP),
+      )
+    );
+  }
+
+  for (const walkEntry of walkSync(context.dir, { skip })) {
+    if (walkEntry.isFile) {
+      // Find execution resources and include them in the bundle
+      // (if they weren't explicitly assigned)
+      const type = !hasExplicitEnvironment &&
+          kExecutionFiles.includes(basename(walkEntry.path))
+        ? kArticleSourceEnvironment
+        : kArticleSource;
+      addSrcFile(walkEntry.path, type);
+    }
+  }
+
+  // Now that we've built list of src Files, move them and turn
+  // them into Meca Items
+  const sourceFiles: MecaItem[] = [];
+  const sourceZipFiles: string[] = [];
+  const copySrcFile = (file: string, type: string) => {
+    const relPath = join(kSrcDirName, relative(context.dir, file));
+    const targetPath = join(workingDir, relPath);
+    ensureDirSync(dirname(targetPath));
+    Deno.copyFileSync(file, targetPath);
+    const item = toMecaItem(relPath, type);
+    sourceFiles.push(item);
+    sourceZipFiles.push(relPath);
+  };
+  for (const path of Object.keys(srcFiles)) {
+    const type = srcFiles[path];
+    copySrcFile(path, type);
+  }
 
   // Filter to permitted output formats
   const filters = [isPdfOutput, isDocxOutput];
@@ -155,52 +242,19 @@ export const createMecaBundle = async (
     const manuscriptResources: MecaItem[] = [];
     const manuscriptZipFiles: string[] = [];
     if (jatsArticle.supporting) {
-      jatsArticle.supporting.forEach((file) => {
+      ld.uniq(jatsArticle.supporting).forEach((file) => {
         const relPath = isAbsolute(file) ? relative(outputDir, file) : file;
         const absPath = isAbsolute(file) ? file : join(outputDir, file);
         const workingPath = toWorkingDir(absPath, relPath, false);
 
         // Add Supporting files to manifest
-        const items = mecaItemsForPath(workingDir, workingPath);
+        const items = mecaItemsForPath(workingDir, workingPath, "manuscript");
         manuscriptResources.push(...items);
 
         // Note to include in zip
         manuscriptZipFiles.push(workingPath);
       });
     }
-
-    const addEnvFile = (file: string, absPath: string) => {
-      // Copy to working dir
-      const workingPath = toWorkingDir(absPath, file);
-
-      // Make the MECA item
-      const mecaItem = toMecaItem(
-        file,
-        kExecutionEnvironmentType,
-      );
-
-      // Add to MECA bundle
-      manuscriptResources.push(mecaItem);
-
-      // Note to include in zip
-      manuscriptZipFiles.push(workingPath);
-    };
-
-    if (manuscriptConfig[kEnvironmentFiles]) {
-      manuscriptConfig[kEnvironmentFiles].forEach((file) => {
-        const absPath = join(context.dir, file);
-        addEnvFile(file, absPath);
-      });
-    } else {
-      // Find execution resources and include them in the bundle
-      kExecutionFiles.forEach((file) => {
-        const absPath = join(context.dir, file);
-        if (existsSync(absPath)) {
-          addEnvFile(file, absPath);
-        }
-      });
-    }
-
     // Copy resources
     const resources = [];
     resources.push(...jatsArticle.resources);
@@ -223,7 +277,7 @@ export const createMecaBundle = async (
       manuscriptResources.push(
         toMecaItem(
           relPath,
-          kResourceFileType,
+          kManuscriptSupportingFile,
         ),
       );
 
@@ -232,13 +286,18 @@ export const createMecaBundle = async (
     });
 
     // Generate a manifest
-    const articleItem = toMecaItem(articlePath, "article-metadata");
+    const articleItem = toMecaItem(articlePath, kArticleMetadata);
     const renderedItems = articleRenderingPaths.map((path) => {
-      return toMecaItem(path, "manuscript");
+      return toMecaItem(path, kManuscript);
     });
     const manifest: MecaManifest = {
       version: kMecaVersion,
-      items: [articleItem, ...renderedItems, ...manuscriptResources],
+      items: [
+        articleItem,
+        ...renderedItems,
+        ...manuscriptResources,
+        ...sourceFiles,
+      ],
     };
 
     // Write the manifest
@@ -246,15 +305,15 @@ export const createMecaBundle = async (
     const manifestXML = toXml(manifest);
     Deno.writeTextFileSync(join(workingDir, manifestFile), manifestXML);
 
-    const filesToZip: string[] = [
+    const filesToZip: string[] = ld.uniq([
       manifestFile,
       articlePath,
       ...articleRenderingPaths,
       ...manuscriptZipFiles,
-    ];
+      ...sourceZipFiles,
+    ]);
 
     // Compress the working directory in a zip
-    info(`Bundling ${filesToZip.length} files\n`);
     const zipResult = await zip(filesToZip, mecaFile, {
       cwd: workingDir,
     });
@@ -262,14 +321,14 @@ export const createMecaBundle = async (
       return join(workingDir, mecaFile);
     } else {
       throw new Error(
-        `An error occurred while attempting to generate MECA bundle.\n${zipResult.stderr}`,
+        `An error occurred while attempting to generate MECA archive.\n${zipResult.stderr}`,
       );
     }
   }
 };
 
 const toMecaItem = (href: string, type: string): MecaItem => {
-  const mediaType = contentType(href);
+  const mediaType = contentType(href) || "application/octet-stream";
   return {
     type,
     instance: {
@@ -282,6 +341,7 @@ const toMecaItem = (href: string, type: string): MecaItem => {
 const mecaItemsForPath = (
   basePath: string,
   relPath: string,
+  type: "article" | "manuscript",
   isDir?: boolean,
 ): MecaItem[] => {
   const path = join(basePath, relPath);
@@ -290,19 +350,28 @@ const mecaItemsForPath = (
     for (const subPath of Deno.readDirSync(path)) {
       if (subPath.isDirectory) {
         items.push(
-          ...mecaItemsForPath(basePath, join(relPath, subPath.name), true),
+          ...mecaItemsForPath(
+            basePath,
+            join(relPath, subPath.name),
+            type,
+            true,
+          ),
         );
       } else {
         const filePath = join(relPath, subPath.name);
-        items.push(toMecaItem(filePath, mecaType(filePath)));
+        items.push(toMecaItem(filePath, mecaType(filePath, type)));
       }
     }
     return items;
   } else {
-    return [toMecaItem(relPath, mecaType(path))];
+    return [toMecaItem(relPath, mecaType(path, type))];
   }
 };
 
-const mecaType = (_path: string) => {
-  return kReferencedFileType;
+const mecaType = (_path: string, type: "article" | "manuscript") => {
+  if (type === "article") {
+    return kArticleSupportingFile;
+  } else {
+    return kManuscriptSupportingFile;
+  }
 };

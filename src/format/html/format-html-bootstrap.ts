@@ -122,6 +122,7 @@ export function boostrapExtras(
   services: RenderServices,
   offset?: string,
   project?: ProjectContext,
+  quiet?: boolean,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
   const tocLocation = toc
@@ -209,6 +210,7 @@ export function boostrapExtras(
           services,
           offset,
           project,
+          quiet,
         ),
       ],
       [kHtmlFinalizers]: [
@@ -232,6 +234,7 @@ function bootstrapHtmlPostprocessor(
   services: RenderServices,
   offset?: string,
   project?: ProjectContext,
+  quiet?: boolean,
 ): HtmlPostProcessor {
   return async (
     doc: Document,
@@ -363,8 +366,8 @@ function bootstrapHtmlPostprocessor(
         format,
         services,
         project,
-        options.quiet,
         renderedHtml?.path,
+        quiet,
       );
       if (notebookResults) {
         resources.push(...notebookResults.resources);
@@ -902,6 +905,15 @@ function processColumnElements(
   }
   processMarginNodes(doc, marginProcessors);
 
+  // If margin footnotes are enabled, remove any containers provided
+  if (refsInMargin) {
+    const footnoteContainer = doc.getElementById("footnotes");
+    // Since it has margin footnotes, remove the end notes section
+    if (footnoteContainer) {
+      footnoteContainer.remove();
+    }
+  }
+
   const columnLayouts = getColumnLayoutElements(doc);
 
   // If there are any of these elements, we need to be sure that their
@@ -1245,6 +1257,31 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
             backLinkEl.remove();
           }
 
+          const invalidParentTags = [
+            "SPAN",
+            "EM",
+            "STRONG",
+            "DEL",
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5",
+            "H6",
+          ];
+          const findValidParentEl = (el: Element): Element | undefined => {
+            if (
+              el.parentElement &&
+              !invalidParentTags.includes(el.parentElement.tagName)
+            ) {
+              return el.parentElement;
+            } else if (el.parentElement) {
+              return findValidParentEl(el.parentElement);
+            } else {
+              return undefined;
+            }
+          };
+
           // Prepend the footnote mark
           if (refContentsEl.childNodes.length > 0) {
             const firstChild = refContentsEl.childNodes[0];
@@ -1259,7 +1296,12 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
               firstChild.firstChild,
             );
           }
-          addContentToMarginContainerForEl(el, refContentsEl, doc);
+          const validParent = findValidParentEl(el);
+          addContentToMarginContainerForEl(
+            validParent || el,
+            refContentsEl,
+            doc,
+          );
         }
       }
     }

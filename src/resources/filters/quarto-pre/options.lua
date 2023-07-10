@@ -32,19 +32,18 @@ end
 
 function parseOption(name, options, def) 
   local keys = split(name, ".")
-
   local value = nil
   for i, key in ipairs(keys) do
     if value == nil then
       value = readOption(options, key, nil)
     else
       value = value[key]
-
-      -- the key doesn't match a value, stop indexing
-      if value == nil then
-        break
-      end
     end
+
+    -- the key doesn't match a value, stop indexing
+    if value == nil then
+      break
+    end    
   end
   if value == nil then
     return def

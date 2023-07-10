@@ -398,6 +398,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     boolean /* Provide next and previous article links in footer */;
   "back-to-top-navigation"?:
     boolean /* Provide a 'back to top' navigation button */;
+  "bread-crumbs"?:
+    boolean /* Whether to show navigation breadcrumbs for pages more than 1 level deep */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
@@ -1154,7 +1156,7 @@ export type NotebookViewSchema = {
 
 export type ManuscriptSchema = {
   "manuscript-url"?: string /* The deployed url for this manuscript */;
-  "meca-archive"?:
+  "meca-bundle"?:
     | boolean
     | string /* Whether to generate a MECA bundle for this manuscript */;
   article?:

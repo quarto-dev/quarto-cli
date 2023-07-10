@@ -28,6 +28,7 @@ src/resources/editor/tools/** linguist-vendored
 src/vendor/** linguist-vendored
 src/resources/vendor/** linguist-vendored
 tests/docs/** linguist-vendored
+src/resources/library/dayjs/** linguist-vendored
 
 # use lf line-endings for source files
 src/** text eol=lf
