@@ -17,7 +17,6 @@ import {
   kNumberSections,
   kSectionNumbering,
   kShiftHeadingLevelBy,
-  kVariables,
   kVariant,
   kWrap,
 } from "../../config/constants.ts";
@@ -43,10 +42,6 @@ export function typstFormat(): Format {
       [kDefaultImageExtension]: "svg",
       [kWrap]: "none",
       [kCiteproc]: false,
-      // TODO: Patch to do what Pandoc > 3.1.2 will do next when `+citations` (the default) is set.
-      [kVariables]: {
-        citations: true,
-      },
     },
     resolveFormat: typstResolveFormat,
     formatExtras: (
@@ -114,13 +109,16 @@ export function typstFormat(): Format {
 function typstResolveFormat(format: Format) {
   // Pandoc citeproc with typst output requires adjustment
   // https://github.com/jgm/pandoc/commit/e89a3edf24a025d5bb0fe8c4c7a8e6e0208fa846
-  if (format.pandoc?.[kCiteproc] === true) {
+  if (
+    format.pandoc?.[kCiteproc] === true &&
+    !format.pandoc.to?.includes("-citations") &&
+    !format.render[kVariant]?.includes("-citations")
+  ) {
     // citeproc: false is the default, so user setting it to true means they want to use
     // Pandoc's citeproc which requires `citations` extensions to be disabled (e.g typst-citations)
+    // This adds the variants for them if not set already
     format.render[kVariant] = [format.render?.[kVariant], "-citations"].join(
       "",
     );
-    format.pandoc[kVariables] = format.pandoc[kVariables] || {};
-    format.pandoc[kVariables]["citations"] = false;
   }
 }
