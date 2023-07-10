@@ -82,7 +82,6 @@ import("./quarto-finalize/coalesceraw.lua")
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
-import("./normalize/pandoc3.lua")
 import("./normalize/extractquartodom.lua")
 
 import("./layout/asciidoc.lua")

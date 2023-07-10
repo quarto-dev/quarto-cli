@@ -4,7 +4,9 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ["div.lst-customers figcaption:nth-child(1)"]
+        - 
+          - "div#lst-customers figcaption:nth-child(1)"
+          - "div#lst-customers-2 figcaption:nth-child(2)"
 ---
 
 ```{#lst-customers .sql lst-cap="Customers _query_"}
