@@ -316,7 +316,6 @@ local quartoPost = {
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
-  { name = "post-render-typst", filter = render_typst() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
