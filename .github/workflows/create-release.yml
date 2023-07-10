@@ -434,140 +434,6 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{needs.configure.outputs.tag_name}}
-          release_name: ${{needs.configure.outputs.release}}
-          body: |
-            ${{ needs.configure.outputs.changes }}
-          draft: ${{ inputs.draft }}
-          prerelease: ${{ inputs.pre-release }}
-
-      - name: Attach Source Tarball
-        id: attach-source-tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Source/quarto-${{needs.configure.outputs.version}}.tar.gz
-          asset_name: quarto-${{needs.configure.outputs.version}}.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Attach Release Tarball
-        id: attach-release-tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
-          asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Attach Arm64 Release Tarball
-        id: attach-arm4-release-tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
-          asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Attach RHEL Tarball
-        id: attach-rhel-tarball
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
-          asset_name: quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Attach Debian Installer
-        id: attach-deb-installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-          asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
-          asset_content_type: application/deb
-
-      - name: Attach Arm64 Debian Installer
-        id: attach-arm64-deb-installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
-          asset_name: quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
-          asset_content_type: application/deb
-
-      - name: Attach Windows Installer
-        id: attach-win-installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
-          asset_name: quarto-${{needs.configure.outputs.version}}-win.msi
-          asset_content_type: application/msi
-
-      - name: Attach Windows Zip
-        id: attach-win-zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
-          asset_name: quarto-${{needs.configure.outputs.version}}-win.zip
-          asset_content_type: application/pkg
-
-      - name: Attach Mac Installer
-        id: attach-mac-installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
-          asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
-          asset_content_type: application/pkg
-
-      - name: Attach Mac Zip
-        id: attach-mac-zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-          asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-          asset_content_type: application/pkg
-
-      - name: Attach News
-        id: attach-news
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./News/changelog-${{needs.configure.outputs.version_base}}.md
-          asset_name: changelog.md
-          asset_content_type: text/markdown
-
       - name: Generate Checksums
         id: generate_checksum
         run: |
@@ -611,16 +477,31 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
-      - name: Attach Checksum
-        id: attach-checksum
-        uses: actions/upload-release-asset@v1
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
-          asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
-          asset_content_type: text/plain
+          tag_name: ${{needs.configure.outputs.tag_name}}
+          name: ${{needs.configure.outputs.release}}
+          body: |
+            ${{ needs.configure.outputs.changes }}
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.pre-release }}
+          files: |
+            ./Source/quarto-${{needs.configure.outputs.version}}.tar.gz
+            ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+            ./Deb Arm64 Zip/quarto-${{needs.configure.outputs.version}}-linux-arm64.tar.gz
+            ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
+            ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+            ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
+            ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
+            ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
+            ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+            ./News/changelog-${{needs.configure.outputs.version_base}}.md
+            quarto-${{needs.configure.outputs.version}}-checksums.txt
 
   docker-push:
     if: ${{ inputs.publish-release }}
