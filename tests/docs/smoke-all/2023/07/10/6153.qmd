@@ -1,0 +1,12 @@
+---
+key: X
+filters:
+  - 6153.lua
+---
+
+```{dot}
+digraph G {
+  label="Steps"
+  "1 Entferne Gruppe auf Position P5"
+}
+```
