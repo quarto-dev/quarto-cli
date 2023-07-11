@@ -25,7 +25,9 @@
 - ([#5794](https://github.com/quarto-dev/quarto-cli/issues/5794)): Fix incorrect caching behavior when `import` is used in scss themes.
 - ([#5798](https://github.com/quarto-dev/quarto-cli/issues/5798)): Improve the layout consistency of HTML callouts.
 - ([#5856](https://github.com/quarto-dev/quarto-cli/issues/5856)): Always render the title block of HTML pages (previously would only render when title or subtitle was provided).
+- ([#5929](https://github.com/quarto-dev/quarto-cli/issues/5929)): Split border-bottom properties to avoid invalid `inherit` entry in resulting CSS.
 - ([#5957](https://github.com/quarto-dev/quarto-cli/issues/5957)): Fix layout issues when margin footnotes are contained in headings or other formatted text.
+- ([#6163](https://github.com/quarto-dev/quarto-cli/issues/6163)): Wrap `svg` output of `dot` cells in RawBlock `html` elements.
 
 ## RevealJS Format
 
@@ -68,6 +70,11 @@
 - Ability to cancel an executing preview from within the progress UI
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
+
+## Dependencies
+
+- Update to Pandoc 3.1.5
+- Update to Typst 0.6.0
 
 ## Miscellaneous
 

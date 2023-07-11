@@ -1993,7 +1993,9 @@ code.sourceCode a.code-annotation-anchor {
   // we like thinner borders
   > :not(:first-child) {
     border-top: $table-border-width solid $table-group-separator-color;
-    border-bottom: $table-border-width solid inherit;
+    border-bottom-width: $table-border-width;
+    border-bottom-style: solid;
+    border-bottom-color: inherit;
   }
 }
 
