@@ -1,6 +1,6 @@
 
 import { join, dirname, basename } from "path/mod.ts"
-import { existsSync } from "fs/mod.ts"
+import { ensureDirSync, existsSync } from "fs/mod.ts"
 
 import { Configuration } from "../config.ts";
 import { Dependency } from "./dependencies.ts";
@@ -19,6 +19,11 @@ export function typst(version: string ): Dependency {
         if (vendor === undefined || vendor === "true") {
           // establish archive expand dir and remove existing if necessary
           const dir = dirname(path);
+
+          const targetDir = join(dir, config.arch);
+          ensureDirSync(targetDir);
+
+          
           const archiveDir = basename(path, archiveExt);
           const typstDir = join(dir, archiveDir);
           const cleanup = () => {
@@ -34,7 +39,7 @@ export function typst(version: string ): Dependency {
           // move the file and cleanup
           try {
             const extractedPath = join(typstDir, file);
-            Deno.renameSync(extractedPath, join(dir, file));
+            Deno.renameSync(extractedPath, join(targetDir, file));
           } finally {
             cleanup();
           }

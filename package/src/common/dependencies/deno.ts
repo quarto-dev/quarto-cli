@@ -41,7 +41,7 @@ export function deno(version: string): Dependency {
       configure: async (_config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-          const dest = join(dirname(path), "deno-aarch64-unknown-linux-gnu");
+          const dest = join(dirname(path), "aarch64");
 
           // Expand
           await unzip(path, dest);
@@ -56,20 +56,20 @@ export function deno(version: string): Dependency {
     version,
     architectureDependencies: {
       "x86_64": {
-        "windows": officialDenoRelease("x86_64-pc-windows-msvc", ""),
+        "windows": officialDenoRelease("x86_64-pc-windows-msvc", "x86_64"),
         "linux": officialDenoRelease(
           "x86_64-unknown-linux-gnu",
-          "deno-x86_64-unknown-linux-gnu",
+          "x86_64",
         ),
         "darwin": officialDenoRelease(
           "x86_64-apple-darwin",
-          "deno-x86_64-apple-darwin",
+          "x86_64",
         ),
       },
       "aarch64": {
         "darwin": officialDenoRelease(
           "aarch64-apple-darwin",
-          "deno-aarch64-apple-darwin",
+          "aarch64",
         ),
         "linux": linuxAmd64DenoRelease(),
       },

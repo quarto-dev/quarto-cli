@@ -8,7 +8,11 @@ import { existsSync, expandGlobSync } from "fs/mod.ts";
 import { extname, join, normalize } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
-import { resourcePath, toolsPath } from "../resources.ts";
+import {
+  architectureToolsPath,
+  resourcePath,
+  toolsPath,
+} from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./types.ts";
 import { removeIfExists } from "../path.ts";
 import { copyTo } from "../copy.ts";
@@ -38,7 +42,7 @@ export const denoRunHandler: RunHandler = {
     return await execProcess(
       {
         cmd: [
-          toolsPath("deno"),
+          architectureToolsPath("deno"),
           "run",
           "--import-map",
           importMap,

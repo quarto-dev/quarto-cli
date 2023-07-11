@@ -74,46 +74,53 @@ export async function makeInstallerMac(config: Configuration) {
       "entitlements.plist",
     );
 
-    // Sign these executable / binary files
-    // and include our entitlements declaration
-    const signWithEntitlements: string[] = [
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno-x86_64-apple-darwin",
-        "deno",
-      ),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno-aarch64-apple-darwin",
-        "deno",
-      ),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno_dom",
-        "libplugin.dylib",
-      ),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "esbuild"),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "dart-sass",
-        "src",
-        "dart",
-      ),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "typst"),
-    ];
-
     // Sign these non-binary files and don't include
     // the entitlements declaration
     const signWithoutEntitlements: string[] = [
-      join(config.directoryInfo.pkgWorking.bin, "tools", "dart-sass", "sass"),
       join(config.directoryInfo.pkgWorking.bin, "quarto.js"),
       join(config.directoryInfo.pkgWorking.bin, "quarto"),
+      join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
     ];
+
+
+    // Sign these executable / binary files
+    // and include our entitlements declaration
+    const signWithEntitlements: string[] = [];
+    ["aarch64", "x86_64"].forEach((arch) => {
+      signWithEntitlements.push(join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        arch,
+        "deno",
+      ));
+
+      signWithEntitlements.push(join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        arch,
+        "dart-sass",
+        "src",
+        "dart",
+      ));
+      signWithoutEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "sass"));
+
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "esbuild"));
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "pandoc"));
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "typst"));
+
+      const denoDomPath = join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        "x86_64",
+        "deno_dom",
+        "libplugin.dylib",
+      );
+      if (existsSync(denoDomPath)) {
+        signWithEntitlements.push(denoDomPath);
+      }
+    });
+
+
 
     for (const fileToSign of signWithEntitlements) {
       info(fileToSign);

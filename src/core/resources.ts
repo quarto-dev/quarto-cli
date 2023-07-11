@@ -1,9 +1,8 @@
 /*
-* resources.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * resources.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
@@ -27,6 +26,12 @@ export function resourcePath(resource?: string): string {
 
 export function formatResourcePath(format: string, resource: string) {
   return join(resourcePath("formats"), format, resource);
+}
+
+export function architectureToolsPath(path: string) {
+  const arch = Deno.build.arch;
+  const archDir = join(arch, path);
+  return toolsPath(archDir);
 }
 
 export function toolsPath(binary: string): string {
@@ -71,7 +76,9 @@ export function toolsPath(binary: string): string {
 }
 
 export function pandocBinaryPath(): string {
-  return toolsPath("pandoc");
+  return Deno.build.os === "windows"
+    ? toolsPath("pandoc")
+    : architectureToolsPath("pandoc");
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {
