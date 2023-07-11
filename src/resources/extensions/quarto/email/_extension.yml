@@ -1,0 +1,6 @@
+title: Email
+author: Posit, PBC
+organization: quarto
+contributes:
+  filters:
+    - email.lua
