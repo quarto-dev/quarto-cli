@@ -2,26 +2,46 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 kSideCaptionEnv = 'sidecaption'
 
+local function parse_width(value)
+  if value:sub(-1) == "%" then
+    return tonumber(value:sub(1, -2)) / 100
+  else
+    return tonumber(value)
+  end
+end
+
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isLatexOutput()
 end, function(layout)
-  quarto.utils.dump { layout = layout }
   -- forward computed widths to the subfloats
-
+  local width_table = {}
   
-  fail("boo")
-  -- begin container
-  local env_name, pos = latexPanelEnv(layout.float, layout)
-  local cap_loc = cap_location(layout.float)
-
-  local caption_content, caption_id = create_figcaption(float)
-
-  local env = quarto.LatexEnvironment({
-    name = env_name,
-    pos = pos,
+  for i, row in ipairs(layout.layout) do
+    for j, cell in ipairs(row) do
+      local width = cell.attributes["width"]
+      if cell.t == "Div" and width then
+        local data = _quarto.ast.resolve_custom_data(cell)
+        _quarto.ast.walk(cell, {
+          FloatCrossref = function(float)
+            local id = float.identifier
+            width_table[id] = parse_width(width)
+          end
+        })
+      end
+    end
+  end
+  
+  _quarto.ast.walk(layout.float, {
+    FloatCrossref = function(float)
+      local id = float.identifier
+      if width_table[id] then
+        float.width = width_table[id]
+      end
+    end
   })
-
-
+  -- render layout by rendering the float
+  -- now that the widths have been computed
+  return layout.float  
 end)
 
 function latexPanel(divEl, layout, caption)

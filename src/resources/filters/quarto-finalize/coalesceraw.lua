@@ -11,7 +11,17 @@
 -- This specifically matters in the case of some latex rawblocks which
 -- cannot be separated by a newline (like minipages in a figure)
 function coalesce_raw() 
-  return {
+  local filters = {}
+  if quarto.doc.isFormat("latex") then
+    -- flatten out divs before merging raw blocks
+    table.insert(filters, {
+      Div = function(div)
+        return div.content
+      end
+    })
+  end
+  
+  table.insert(filters, {
     Inlines = function(inlines)
       local list_of_lists = collate(inlines, function(block, prev_block)
         return block.t == "RawInline" and 
@@ -48,5 +58,6 @@ function coalesce_raw()
       end
       return result
     end
-  }
+  })
+  return filters
 end

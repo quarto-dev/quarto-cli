@@ -359,7 +359,7 @@ local quarto_finalize_filters = {
   { name = "finalize-cites", filter = writeCites() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
-  { name = "finalize-coalesce-raw", filter = coalesce_raw() },
+  { name = "finalize-coalesce-raw", filters = coalesce_raw() },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
 }
 

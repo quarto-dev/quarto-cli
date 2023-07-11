@@ -67,6 +67,16 @@ function run_emulated_filter(doc, filter)
 
   ::regular::
 
+  -- if user passed the table corresponding to the a custom node instead 
+  -- of the custom node, then first we will get the actual node
+  local converted = false
+  if doc.__quarto_custom_node ~= nil then
+    doc = doc.__quarto_custom_node
+    needs_custom = true
+    converted = true
+    print("CONVERTED", converted)
+  end
+
   local is_custom = is_custom_node(doc)
   if not needs_custom or (not is_custom and filter._is_wrapped) then
     local result, recurse = doc:walk(filter)
@@ -94,7 +104,6 @@ function run_emulated_filter(doc, filter)
       Inline = "CustomInline"
     }
     local filter_fn = filter[t] or filter[node_type[kind]] or filter.Custom
-
     if filter_fn ~= nil then
       local result, recurse = filter_fn(custom_data, custom_node)
       if result == nil then
@@ -106,18 +115,6 @@ function run_emulated_filter(doc, filter)
       end
       return result, recurse
     end
-  end
-
-  if is_custom then
-    local custom_data, t, kind = _quarto.ast.resolve_custom_data(doc)
-    local result, recurse = process_custom_preamble(custom_data, t, kind, doc)
-    if in_filter then
-      profiler.category = ""
-    end
-    if result == nil then
-      result = doc
-    end
-    return result, recurse
   end
 
   function wrapped_filter.Div(node)
@@ -153,6 +150,20 @@ function run_emulated_filter(doc, filter)
       return filter.Span(node)
     end
     return nil
+  end
+
+  if is_custom then
+    local custom_data, t, kind = _quarto.ast.resolve_custom_data(doc)
+    local result, recurse = process_custom_preamble(custom_data, t, kind, doc)
+    if in_filter then
+      profiler.category = ""
+    end
+    if result ~= nil then
+      doc = result
+    end
+    if recurse == false then
+      return doc, recurse
+    end
   end
 
   return doc:walk(wrapped_filter)
