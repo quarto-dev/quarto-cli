@@ -1,1 +1,1 @@
-x86_64/pandoc.exe %*
+x86_64\pandoc.exe %*
