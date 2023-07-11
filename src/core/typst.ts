@@ -11,10 +11,10 @@ import * as colors from "fmt/colors.ts";
 import { satisfies } from "semver/mod.ts";
 
 import { execProcess } from "./process.ts";
-import { toolsPath } from "./resources.ts";
+import { architectureToolsPath } from "./resources.ts";
 
 export function typstBinaryPath() {
-  return toolsPath("typst");
+  return architectureToolsPath("typst");
 }
 
 export async function typstCompile(
