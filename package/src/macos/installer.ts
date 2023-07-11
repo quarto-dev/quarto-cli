@@ -76,36 +76,39 @@ export async function makeInstallerMac(config: Configuration) {
 
     // Sign these executable / binary files
     // and include our entitlements declaration
-    const signWithEntitlements: string[] = [
-      join(
+    const signWithEntitlements: string[] = [];
+    ["aarch64", "x86_64"].forEach((arch) => {
+      signWithEntitlements.push(join(
         config.directoryInfo.pkgWorking.bin,
         "tools",
-        "deno-x86_64-apple-darwin",
+        arch,
         "deno",
-      ),
+      ));
+
       join(
         config.directoryInfo.pkgWorking.bin,
         "tools",
-        "deno-aarch64-apple-darwin",
-        "deno",
-      ),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno_dom",
-        "libplugin.dylib",
-      ),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "esbuild"),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
+        arch,
         "dart-sass",
         "src",
         "dart",
-      ),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "typst"),
-    ];
+      );
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "esbuild"));
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "pandoc"));
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "typst"));
+
+      const denoDomPath = join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        "x86_64",
+        "deno_dom",
+        "libplugin.dylib",
+      );
+      if (existsSync(denoDomPath)) {
+        signWithEntitlements.push(denoDomPath);
+      }
+    });
+
 
     // Sign these non-binary files and don't include
     // the entitlements declaration
