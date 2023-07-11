@@ -22,12 +22,31 @@ function parse_floats()
     if caption ~= nil then
       div.content:remove(#div.content)
     elseif div.attributes[caption_attr_key] ~= nil then
-      caption = pandoc.Plain({
-        pandoc.Str(div.attributes[caption_attr_key]) -- FIXME PROCESS THIS AS MARKDOWN
-      })
+      caption = string_to_quarto_ast_blocks(div.attributes[caption_attr_key])
       div.attributes[caption_attr_key] = nil
     else
-      caption = pandoc.Plain({})
+      -- it's possible that the content of this div includes a table with a caption
+      -- so we'll go root around for that.
+      local found_caption = false
+      content = _quarto.ast.walk(content, {
+        Table = function(table)
+          if table.caption.long ~= nil then
+            found_caption = true
+            caption = table.caption.long[1] -- what if there's more than one entry here?
+            table.caption.long = nil
+            return table
+          end
+        end
+      })
+      if content == nil then
+        internal_error()
+        return nil
+      end
+      
+      -- TODO are there other cases where we should look for captions?
+      if not found_caption then
+        caption = pandoc.Plain({})
+      end
     end
 
     local identifier = div.identifier
