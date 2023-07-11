@@ -14,7 +14,8 @@ import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
 
 export function typstBinaryPath() {
-  return architectureToolsPath("typst");
+  return Deno.env.get("QUARTO_TYPST") ||
+    architectureToolsPath("typst");
 }
 
 export async function typstCompile(
