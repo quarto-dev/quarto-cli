@@ -106,6 +106,12 @@ figure .quarto-layout-row figure figcaption {
 .quarto-figure-right > figure > div /* for mermaid and dot diagrams */ {
   text-align: right;
 }
+
+.quarto-figure > figure > div.cell-annotation,
+.quarto-figure > figure > div code {
+  text-align: left; /* override align center for code blocks */
+}
+
 figure > p:empty {
   display: none;
 }
