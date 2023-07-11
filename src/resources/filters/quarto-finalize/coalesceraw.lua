@@ -10,6 +10,10 @@
 --
 -- This specifically matters in the case of some latex rawblocks which
 -- cannot be separated by a newline (like minipages in a figure)
+--
+-- note that in LaTeX output, we need to strip Div nodes, since they
+-- can "delimit" two raw blocks and prevent them from being coalesced.
+
 function coalesce_raw() 
   local filters = {}
   if quarto.doc.isFormat("latex") then
