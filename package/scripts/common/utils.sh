@@ -3,12 +3,14 @@
 if [[ $OSTYPE == 'darwin'* ]]; then
   DENOURL=https://github.com/denoland/deno/releases/download
   FULLARCH=$(uname -sm)
-  DENOFILES="deno-x86_64-apple-darwin.zip deno-aarch64-apple-darwin.zip"
+  
   
   if [[ $FULLARCH == "Darwin x86_64" ]]; then
     DENO_DIR=x86_64
+    DENOFILES="deno-x86_64-apple-darwin.zip"
   elif [[ $FULLARCH == "Darwin arm64" ]]; then
     DENO_DIR=aarch64
+    DENOFILES="deno-aarch64-apple-darwin.zip"
   else
     echo "configure script failed: unrecognized architecture " ${FULLARCH}
     exit 1
