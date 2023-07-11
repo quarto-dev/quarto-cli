@@ -113,7 +113,7 @@ export async function makeInstallerMac(config: Configuration) {
     // Sign these non-binary files and don't include
     // the entitlements declaration
     const signWithoutEntitlements: string[] = [
-      join(config.directoryInfo.pkgWorking.bin, "tools", "dart-sass", "sass"),
+      join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "sass"),
       join(config.directoryInfo.pkgWorking.bin, "quarto.js"),
       join(config.directoryInfo.pkgWorking.bin, "quarto"),
     ];
