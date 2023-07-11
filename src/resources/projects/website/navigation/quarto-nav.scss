@@ -346,6 +346,7 @@ $sidebar-section-bottom-margin: 0.2em;
   // Positions the link and dongle
   display: flex;
   justify-content: space-between;
+  cursor: pointer;
 }
 
 .sidebar-item-toggle:hover {
