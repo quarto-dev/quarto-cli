@@ -439,7 +439,7 @@ def cell_execute_inline(client, cell):
       kc = client.kc
       user_expressions = dict()
       for idx, expr in enumerate(expressions):
-         user_expressions[str(idx)] = expr 
+         user_expressions[str(idx).strip()] = expr 
       msg_id = kc.execute('', user_expressions = user_expressions)
       reply = client.wait_for_reply(msg_id)
 

@@ -101,6 +101,7 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTblColumn,
+  kCellUserExpressions,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -139,6 +140,7 @@ import {
   JupyterOutputStream,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
+  JupyterUserExpressionResult,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
@@ -159,6 +161,7 @@ import {
   isJatsOutput,
 } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import { matchAll } from "../lib/text.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -901,12 +904,42 @@ export function mdFromContentCell(
 ) {
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
+  // clone source for manipulation
+  const source = ld.cloneDeep(cell.source) as string[];
+
+  // get user expressions (if any)
+  const language = options?.language;
+  if (language) {
+    const userExpressions = (cell.metadata[kCellUserExpressions] || [])
+      .reduce((userExpressions, userExpression) => {
+        userExpressions.set(userExpression.expression, userExpression.result);
+        return userExpressions;
+      }, new Map<string, JupyterUserExpressionResult>());
+    // resolve user expressions
+    const exprPattern = new RegExp(
+      "(^|[^`])`{" + language + "}[ \t]([^`]+)`",
+      "g",
+    );
+    for (let i = 0; i < source.length; i++) {
+      let line = source[i];
+      line = line.replaceAll(exprPattern, (match, prefix, expr) => {
+        const result = userExpressions.get(expr.trim());
+        if (result) {
+          // TODO: ascertain correct markdown w/ raw, etc.
+          return (prefix + result?.data[kTextPlain]);
+        } else {
+          return match;
+        }
+      });
+      source[i] = line;
+    }
+  }
+
   // process each file attachment
 
   // if we have attachments then extract them and markup the source
-  if (options && cell.attachments && cell.source) {
+  if (options && cell.attachments && source) {
     // close source so we can modify it
-    const source = ld.cloneDeep(cell.source) as string[];
     Object.keys(cell.attachments).forEach((file, index) => {
       const attachment = cell.attachments![file];
       for (const mimeType of Object.keys(attachment)) {
@@ -940,11 +973,9 @@ export function mdFromContentCell(
         }
       }
     });
-
-    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
-  } else {
-    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(cell.source));
   }
+
+  return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
 }
 
 export function mdFromRawCell(
