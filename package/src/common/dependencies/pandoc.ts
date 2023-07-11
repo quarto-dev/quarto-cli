@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { unTar } from "../../util/tar.ts";
@@ -25,9 +25,14 @@ export function pandoc(version: string): Dependency {
       url:
         `https://github.com/jgm/pandoc/releases/download/${version}/${filename}`,
       configure: async (config: Configuration, path: string) => {
-        const dir = join(dirname(path), config.arch);
-        // TODO: deal with aarch64 pandoc
-        const pandocSubdir = join(dir, `pandoc-${version}${(config.os === "darwin" ) ? ("-" + "x86_64") : ""}`);
+        const dir = dirname(path);
+        // Mac subdirectories include architecture
+        const pandocSuffix = config.os !== "darwin" ? "" : config.arch === "aarch64" ? "-arm64" : "-" + config.arch;
+
+        const pandocSubdir = join(dir, `pandoc-${version}${pandocSuffix}`);
+        const targetDir = join(dir, config.arch);
+        ensureDirSync(targetDir);
+
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
           // Clean pandoc interim dir
@@ -37,20 +42,25 @@ export function pandoc(version: string): Dependency {
 
           // Extract pandoc
           if (config.os !== "windows") {
+
             await unTar(path);
 
             // move the binary
             Deno.renameSync(
               join(pandocSubdir, "bin", pandocBinary),
-              join(dir, pandocBinary),
+              join(targetDir, pandocBinary),
             );
+
+            // TODO: If this is darwin, we need to emit a bash script
+            // that is executable at tools/pandoc
+
           } else {
             await unzip(path, dir);
 
             // move the binary
             Deno.renameSync(
               join(pandocSubdir, pandocBinary),
-              join(dir, pandocBinary),
+              join(targetDir, pandocBinary),
             );
           }
 

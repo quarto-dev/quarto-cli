@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { unTar } from "../../util/tar.ts";
@@ -24,13 +24,16 @@ export function dartSass(version: string): Dependency {
         if (vendor === undefined || vendor === "true") {
           // Remove existing dart-sass dir
           const dir = dirname(path);
-          const dartSubdir = join(dir, `dart-sass`, config.arch);
+          const targetDir = join(dir, config.arch);
+          ensureDirSync(targetDir);
+
+          const dartSubdir = join(targetDir, `dart-sass`);
           if (existsSync(dartSubdir)) {
             Deno.removeSync(dartSubdir, { recursive: true });
           }
-
+          
           // Expand
-          await unTar(path);
+          await unTar(path, targetDir);
         }
       },
     };

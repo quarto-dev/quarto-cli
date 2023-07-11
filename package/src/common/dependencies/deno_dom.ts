@@ -17,10 +17,10 @@ export function deno_dom(version: string): Dependency {
       filename,
       url:
         `https://github.com/b-fuze/deno-dom/releases/download/${version}/${filename}`,
-      configure: async (_config: Configuration, path: string) => {
+      configure: async (config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
-          const targetPath = join(dirname(path), "deno_dom", basename(path));
+          const targetPath = join(dirname(path), config.arch, "deno_dom", basename(path));
           await ensureDir(dirname(targetPath));
           await Deno.copyFile(path, targetPath);
         } else {
