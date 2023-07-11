@@ -54,8 +54,8 @@ fn main() {
         if env::consts::OS == "windows" {
             deno_file = bin_dir
                 .join("tools")
-                .join("deno")
-                .join("x86_64");
+                .join("x86_64")
+                .join("deno");
         } else {
             deno_file = bin_dir
                 .join("tools")
