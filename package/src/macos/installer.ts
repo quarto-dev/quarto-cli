@@ -79,7 +79,7 @@ export async function makeInstallerMac(config: Configuration) {
     const signWithoutEntitlements: string[] = [
       join(config.directoryInfo.pkgWorking.bin, "quarto.js"),
       join(config.directoryInfo.pkgWorking.bin, "quarto"),
-      join(config.directoryInfo.pkgWorking.bin, "pandoc"),
+      join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
     ];
 
 
