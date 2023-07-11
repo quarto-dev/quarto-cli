@@ -150,3 +150,27 @@ export function copyQuartoScript(config: Configuration, targetDir: string) {
     Deno.chmodSync(out, 0o755);
   }
 }
+
+export function copyPandocAliasScript(config: Configuration, toolsDir: string) {
+    // Move the quarto script into place
+    if (config.os === "windows") {
+      Deno.copyFileSync(
+        join(config.directoryInfo.pkg, "scripts", "windows", "pandoc.cmd"),
+        join(toolsDir, "pandoc.cmd"),
+      );
+    } else if (config.os === "darwin") {
+      const out = join(toolsDir, "pandoc");
+      Deno.copyFileSync(
+        join(config.directoryInfo.pkg, "scripts", "macos", "pandoc"),
+        out,
+      );
+      Deno.chmodSync(out, 0o755);
+    } else {
+      const out = join(toolsDir, "pandoc");
+      Deno.copyFileSync(
+        join(config.directoryInfo.pkg, "scripts", "linux", "pandoc"),
+        out,
+      );
+      Deno.chmodSync(out, 0o755);
+    }
+}

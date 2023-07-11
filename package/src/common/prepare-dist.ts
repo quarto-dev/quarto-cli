@@ -20,7 +20,7 @@ Dependency,
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { copyQuartoScript } from "./configure.ts";
+import { copyPandocAliasScript, copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
@@ -115,6 +115,9 @@ export async function prepareDist(
   // Move the quarto script into place
   info("Moving Quarto script");
   copyQuartoScript(config, config.directoryInfo.pkgWorking.bin);
+
+  info("Placing Pandoc Alias Script");
+  copyPandocAliasScript(config, join(config.directoryInfo.pkgWorking.bin, "tools"));
 
   // Move the supporting files into place
   info("\nMoving supporting files");
