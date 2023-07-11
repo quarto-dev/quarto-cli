@@ -44,8 +44,8 @@ export async function knitrCapabilities() {
     });
     if (result.success && result.stdout) {
       const jsonLines = result.stdout
-        .replace(/^.*--- JSON_START ---/sm, "")
-        .replace(/--- JSON_END ---.*$/sm, "");
+        .replace(/^.*--- YAML_START ---/sm, "")
+        .replace(/--- YAML_END ---.*$/sm, "");
 
       const caps = readYamlFromString(jsonLines) as KnitrCapabilities;
       // check knitr requirement

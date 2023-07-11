@@ -1,5 +1,5 @@
 version <- getRversion()
-cat("--- JSON_START ---\n")
+cat("--- YAML_START ---\n")
 cat("versionMajor:", version$major, "\n")
 cat("versionMinor:", version$minor, "\n")
 cat("versionPatch:", version$patch, "\n")
@@ -23,4 +23,4 @@ if (requireNamespace("rmarkdown", quietly = TRUE)) {
   cat("null")
 }
 cat("\n")
-cat("--- JSON_END ---\n")
+cat("--- YAML_END ---\n")
