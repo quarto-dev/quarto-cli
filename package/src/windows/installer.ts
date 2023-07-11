@@ -66,7 +66,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
   const tempDir = Deno.makeTempDirSync();
   const workingDistPath = join(tempDir, "dist");
   const workingBinPath = join(workingDistPath, "bin");
-  const workingToolsPath = join(workingBinPath, "tools");
+  const workingToolsPath = join(workingBinPath, "tools", "x86_64");
   copySync(configuration.directoryInfo.pkgWorking.root, workingDistPath);
 
   if (sign) {
