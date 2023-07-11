@@ -76,6 +76,7 @@
 - Exit if project pre or post render script fails
 - Use InternalError in typescript code, and offer a more helpful error message when an internal error happens.
 - ([#6042](https://github.com/quarto-dev/quarto-cli/issues/6042)): Correctly support empty lines in YAML blocks.
+- ([#6154](https://github.com/quarto-dev/quarto-cli/issues/6154)): `quarto check knitr` does not fail anymore when user's `.Rprofile` contains `cat()` calls.
 
 ## Docusaurus Format
 
