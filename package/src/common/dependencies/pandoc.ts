@@ -30,7 +30,7 @@ export function pandoc(version: string): Dependency {
         const pandocSuffix = config.os !== "darwin" ? "" : config.arch === "aarch64" ? "-arm64" : "-" + config.arch;
 
         const pandocSubdir = join(dir, `pandoc-${version}${pandocSuffix}`);
-        const targetDir = join(dir, config.arch);
+        const targetDir = config.os === "windows" ? dir : join(dir, config.arch);
         ensureDirSync(targetDir);
 
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");

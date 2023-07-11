@@ -76,7 +76,9 @@ export function toolsPath(binary: string): string {
 }
 
 export function pandocBinaryPath(): string {
-  return architectureToolsPath("pandoc");
+  return Deno.build.os === "windows"
+    ? toolsPath("pandoc")
+    : architectureToolsPath("pandoc");
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {
