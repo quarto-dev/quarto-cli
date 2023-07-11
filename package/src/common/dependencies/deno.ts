@@ -56,7 +56,7 @@ export function deno(version: string): Dependency {
     version,
     architectureDependencies: {
       "x86_64": {
-        "windows": officialDenoRelease("x86_64", ""),
+        "windows": officialDenoRelease("x86_64-pc-windows-msvc", "x86_64"),
         "linux": officialDenoRelease(
           "x86_64-unknown-linux-gnu",
           "x86_64",
