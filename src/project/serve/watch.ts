@@ -207,7 +207,8 @@ export function watchProject(
           !existsSync(file)
         );
         const configResourceFile = paths.some((path) =>
-          (project.files.configResources || []).includes(path)
+          (project.files.configResources || []).includes(path) &&
+          !project.files.input.includes(path)
         );
         const resourceFile = paths.some(isResourceFile);
         const extensionFile = paths.some(isExtensionFile);
