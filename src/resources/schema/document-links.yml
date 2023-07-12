@@ -66,6 +66,13 @@
       Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
       Specify `global` to show a set of global links to source notebooks.
 
+- name: other-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    ref: other-links
+  description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
+
 - name: notebook-subarticles
   tags:
     formats: [$jats-all]

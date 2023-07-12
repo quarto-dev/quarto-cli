@@ -1006,6 +1006,12 @@
           - boolean
           - ref: twitter-card-config
         description: "Publish twitter card metadata"
+      other-links:
+        schema:
+          ref: other-links
+        tags:
+          formats: [$html-doc]
+        description: "A list of other links to appear below the TOC."
 
 - id: book-schema
   schema:
@@ -1098,6 +1104,27 @@
 - id: chapter-list
   arrayOf:
     ref: chapter-item
+
+- id: other-links
+  arrayOf:
+    object:
+      properties:
+        text:
+          string:
+            description: "The text for the link."
+        href:
+          string:
+            description: "The href for the link."
+        icon:
+          string:
+            description: "The bootstrap icon name for the link."
+        rel:
+          string:
+            description: "The rel attribute value for the link."
+        target:
+          string:
+            description: "The target attribute value for the link."
+      required: [text, href]
 
 - id: crossref-labels-schema
   string:
