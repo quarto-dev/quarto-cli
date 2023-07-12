@@ -89,6 +89,7 @@ import {
 } from "./book-shared.ts";
 import {
   kLanguageDefaults,
+  kOtherLinks,
   kOutputExt,
   kSectionTitleAppendices,
 } from "../../../config/constants.ts";
@@ -144,6 +145,7 @@ export async function bookProjectConfig(
     site[kCookieConsent] = book[kCookieConsent];
     site[kComments] = book[kComments];
     site[kBreadCrumbNavigation] = book[kBreadCrumbNavigation];
+    site[kOtherLinks] = book[kOtherLinks];
 
     // If there is an explicitly set footer use that
     if (book[kPageFooter]) {
