@@ -63,7 +63,7 @@ function resolveOutputNotebook(
   resolved.recipe.format.execute.echo = false;
   resolved.recipe.format.execute.warning = false;
   resolved.recipe.format.render[kKeepHidden] = true;
-  resolved.recipe.format.remder[kNotebookPreserveCells] = true;
+  resolved.recipe.format.render[kNotebookPreserveCells] = true;
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
