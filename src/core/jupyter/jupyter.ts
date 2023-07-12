@@ -26,6 +26,7 @@ import {
   kRestructuredText,
   kTextHtml,
   kTextLatex,
+  kTextMarkdown,
   kTextPlain,
 } from "../mime.ts";
 
@@ -161,7 +162,6 @@ import {
   isJatsOutput,
 } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
-import { matchAll } from "../lib/text.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -907,14 +907,16 @@ export function mdFromContentCell(
   // clone source for manipulation
   const source = ld.cloneDeep(cell.source) as string[];
 
-  // get user expressions (if any)
+  // handle user expressions (if any)
   const language = options?.language;
-  if (language) {
+  if (language && source) {
+    // collect user expressions
     const userExpressions = (cell.metadata[kCellUserExpressions] || [])
       .reduce((userExpressions, userExpression) => {
         userExpressions.set(userExpression.expression, userExpression.result);
         return userExpressions;
       }, new Map<string, JupyterUserExpressionResult>());
+
     // resolve user expressions
     const exprPattern = new RegExp(
       "(^|[^`])`{" + language + "}[ \t]([^`]+)`",
@@ -925,8 +927,25 @@ export function mdFromContentCell(
       line = line.replaceAll(exprPattern, (match, prefix, expr) => {
         const result = userExpressions.get(expr.trim());
         if (result) {
-          // TODO: ascertain correct markdown w/ raw, etc.
-          return (prefix + result?.data[kTextPlain]);
+          const mimeType = displayDataMimeType(result, options);
+          if (mimeType) {
+            let data = result.data[mimeType];
+            if (Array.isArray(data)) {
+              data = data.map(String).join("");
+            }
+            switch (mimeType) {
+              case kTextHtml:
+                return `${prefix}${"`"}${data}${"`"}{=html}`;
+              case kTextLatex:
+                return `${prefix}${"`"}${data}${"`"}{=tex}`;
+              case kTextMarkdown:
+              case kTextPlain:
+              default:
+                return `${prefix}${data}`;
+            }
+          } else {
+            return match;
+          }
         } else {
           return match;
         }
@@ -935,7 +954,7 @@ export function mdFromContentCell(
     }
   }
 
-  // process each file attachment
+  // process file attachments
 
   // if we have attachments then extract them and markup the source
   if (options && cell.attachments && source) {

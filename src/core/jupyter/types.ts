@@ -148,8 +148,11 @@ export interface JupyterUserExpression {
   result: JupyterUserExpressionResult;
 }
 
-export interface JupyterUserExpressionResult {
-  data: Record<string, string>;
+export interface JupyterCellOutputData {
+  data: { [mimeType: string]: unknown };
+}
+
+export interface JupyterUserExpressionResult extends JupyterCellOutputData {
   metadata: Metadata;
   status: string;
 }
