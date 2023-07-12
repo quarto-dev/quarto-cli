@@ -45,7 +45,6 @@ import { kNotebookViewStyle, kOutputFile } from "../../../config/constants.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { basename } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 import { readBaseInputIndex } from "../../project-index.ts";
-import { isQmdFile } from "../../../execute/qmd.ts";
 
 interface ManuscriptCompletion {
   completion: PandocRenderCompletion;
@@ -98,74 +97,67 @@ export const manuscriptRenderer = (
         completion: await renderPandoc(resolvedExecutedFile, true),
         cleanup: !isArticle,
       }];
-    } else if (
-      isHtmlOutput(executedFile.context.format.pandoc, true)
-    ) {
+    } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
       const result = [];
-      if (!isQmdFile(input)) {
-        // Use the executed file to render the output ipynb
-        const notebook = nbContext.get(input, context);
-        let downloadHref;
-        if (!notebook || !notebook[kRenderedIPynb]) {
-          progressMessage("Rendering output notebook");
-          const ipynbExecutedFile = nbContext.resolve(
-            input,
-            kRenderedIPynb,
-            executedFile,
-          );
-          const [_dir, stem] = dirAndStem(input);
-          downloadHref = `${stem}.out.ipynb`;
-          result.push({
-            completion: await renderPandoc(ipynbExecutedFile, true),
-            cleanup: !isArticle,
-          });
-        }
-        progressMessage("Rendering HTML preview");
 
-        // Find the title of this notebook
-        let title;
-        const nbDescriptor = notebookDescriptor(
+      // Use the executed file to render the output ipynb
+      const notebook = nbContext.get(input, context);
+      let downloadHref;
+      if (!notebook || !notebook[kRenderedIPynb]) {
+        progressMessage("Rendering output notebook");
+        const ipynbExecutedFile = nbContext.resolve(
           input,
-          manuscriptConfig,
-          context,
-        );
-        if (nbDescriptor) {
-          title = nbDescriptor.title;
-          downloadHref = nbDescriptor["download-url"];
-        }
-
-        if (!title) {
-          const inputIndex = await readBaseInputIndex(input, context);
-          if (inputIndex) {
-            title = inputIndex.title;
-          }
-        }
-
-        // Compute the back href
-        const dirOffset = relative(dirname(input), context.dir);
-        const index = join(dirOffset, "index.html");
-
-        // Compute the notebook metadata
-        const notebookMetadata = {
-          title: title || basename(input),
-          filename: basename(input),
-          backHref: parentOutputFiles["html"] || index,
-          downloadHref: downloadHref || basename(input),
-          downloadFile: basename(input),
-        };
-
-        const resolvedExecutedFile = nbContext.resolve(
-          input,
-          kHtmlPreview,
+          kRenderedIPynb,
           executedFile,
-          notebookMetadata,
         );
-
+        const [_dir, stem] = dirAndStem(input);
+        downloadHref = `${stem}.out.ipynb`;
         result.push({
-          completion: await renderPandoc(resolvedExecutedFile, true),
+          completion: await renderPandoc(ipynbExecutedFile, true),
           cleanup: !isArticle,
         });
       }
+      progressMessage("Rendering HTML preview");
+
+      // Find the title of this notebook
+      let title;
+      const nbDescriptor = notebookDescriptor(input, manuscriptConfig, context);
+      if (nbDescriptor) {
+        title = nbDescriptor.title;
+        downloadHref = nbDescriptor["download-url"];
+      }
+
+      if (!title) {
+        const inputIndex = await readBaseInputIndex(input, context);
+        if (inputIndex) {
+          title = inputIndex.title;
+        }
+      }
+
+      // Compute the back href
+      const dirOffset = relative(dirname(input), context.dir);
+      const index = join(dirOffset, "index.html");
+
+      // Compute the notebook metadata
+      const notebookMetadata = {
+        title: title || basename(input),
+        filename: basename(input),
+        backHref: parentOutputFiles["html"] || index,
+        downloadHref: downloadHref || basename(input),
+        downloadFile: basename(input),
+      };
+
+      const resolvedExecutedFile = nbContext.resolve(
+        input,
+        kHtmlPreview,
+        executedFile,
+        notebookMetadata,
+      );
+
+      result.push({
+        completion: await renderPandoc(resolvedExecutedFile, true),
+        cleanup: !isArticle,
+      });
       return result;
     }
   };
