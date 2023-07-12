@@ -1,4 +1,7 @@
 #!/bin/bash
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
 FULLARCH="$(sysctl machdep.cpu.brand_string)"
   
 if [[ $FULLARCH == *"Intel"* ]]; then
