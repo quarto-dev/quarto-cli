@@ -246,7 +246,7 @@ export function watchProject(
   const reloadClients = ld.debounce(async (changes: WatchChanges) => {
     const services = renderServices();
     try {
-      // fully render project if we aren't aleady rendering on reload (e.g. for pdf)
+      // fully render project if we aren't already rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
         await refreshProjectConfig();
         const result = await renderManager.submitRender(() =>
