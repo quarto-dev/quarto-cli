@@ -16,6 +16,7 @@ import {
   kHtmlPostprocessors,
   Metadata,
   NotebookPreviewDescriptor,
+  OtherLink,
   PandocFlags,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
@@ -452,11 +453,12 @@ export const manuscriptProjectType: ProjectType = {
       if (ghContext) {
         const repoUrl = ghContext.repoUrl;
         if (repoUrl) {
-          extras.metadata[kOtherLinks] = [{
+          const repoLink: OtherLink = {
             icon: "github",
             text: "GitHub Repo",
             href: repoUrl,
-          }];
+          };
+          extras.metadata[kOtherLinks] = [repoLink];
         }
       }
 

@@ -674,3 +674,11 @@ export interface FormatLink {
   order?: number;
   attr?: Record<string, string>;
 }
+
+export interface OtherLink {
+  icon?: string;
+  text: string;
+  href: string;
+  rel?: string;
+  target?: string;
+}

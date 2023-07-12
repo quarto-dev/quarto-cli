@@ -41,6 +41,7 @@ import {
   kHtmlPostprocessors,
   kSassBundles,
   Metadata,
+  OtherLink,
   SassLayer,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
@@ -558,6 +559,21 @@ function processOtherLinks(
     }
     containerEl.appendChild(heading);
 
+    const getAttrs = (otherLink: OtherLink) => {
+      if (otherLink.rel || otherLink.target) {
+        const attrs: Record<string, string> = {};
+        if (otherLink.rel) {
+          attrs.rel = otherLink.rel;
+        }
+        if (otherLink.target) {
+          attrs.target = otherLink.target;
+        }
+        return attrs;
+      } else {
+        return undefined;
+      }
+    };
+
     const linkList = doc.createElement("ul");
     let order = 0;
     for (const otherLink of otherLinks) {
@@ -566,6 +582,7 @@ function processOtherLinks(
         href: otherLink.href,
         title: otherLink.text,
         order: ++order,
+        attr: getAttrs(otherLink),
       };
       const li = createLinkLi(alternateLink, doc);
       linkList.appendChild(li);
