@@ -564,7 +564,7 @@ function processOtherLinks(
       const alternateLink: AlternateLink = {
         icon: otherLink.icon || "link-45deg",
         href: otherLink.href,
-        title: otherLink.title,
+        title: otherLink.text,
         order: ++order,
       };
       const li = createLinkLi(alternateLink, doc);
@@ -733,7 +733,7 @@ function alternateLinks(
     } else {
       // This an explicit link
       const alternate = {
-        title: userLink.title,
+        title: userLink.text,
         href: userLink.href,
         icon: userLink.icon || fileBsIconForExt(userLink.href),
         dlAttrValue: "",

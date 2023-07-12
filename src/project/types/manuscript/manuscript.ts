@@ -43,7 +43,6 @@ import {
 import { projectOutputDir } from "../../project-shared.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
-  HtmlPostProcessResult,
   PandocInputTraits,
   PandocOptions,
   RenderedFormat,
@@ -352,7 +351,7 @@ export const manuscriptProjectType: ProjectType = {
               links.push(...format.render[kFormatLinks] || []);
             }
             links.push({
-              title: format.language[kManuscriptMecaBundle] || "MECA Bundle",
+              text: format.language[kManuscriptMecaBundle] || "MECA Bundle",
               href: mecaFileName(source, manuscriptConfig),
               icon: kMecaIcon,
               attr: { "data-meca-link": "true" },
@@ -455,7 +454,7 @@ export const manuscriptProjectType: ProjectType = {
         if (repoUrl) {
           extras.metadata[kOtherLinks] = [{
             icon: "github",
-            title: "GitHub Repo",
+            text: "GitHub Repo",
             href: repoUrl,
           }];
         }

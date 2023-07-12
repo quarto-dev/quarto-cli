@@ -669,7 +669,7 @@ export interface FormatTemplateContext {
 
 export interface FormatLink {
   icon?: string;
-  title: string;
+  text: string;
   href: string;
   order?: number;
   attr?: Record<string, string>;
