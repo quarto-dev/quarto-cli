@@ -36,7 +36,7 @@
             - string
             - object:
                 properties:
-                  title:
+                  text:
                     string:
                       description: "The title for this alternative link."
                   href:
