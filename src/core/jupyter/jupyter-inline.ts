@@ -5,6 +5,7 @@
  */
 
 import { kCellUserExpressions } from "../../config/constants.ts";
+import { executeInlineCodeHandler } from "../execute-inline.ts";
 import { kTextHtml, kTextLatex, kTextMarkdown, kTextPlain } from "../mime.ts";
 import { displayDataMimeType } from "./display-data.ts";
 import {
@@ -30,14 +31,10 @@ export function resolveUserExpressions(
   options: JupyterToMarkdownOptions,
 ) {
   // resolve user expressions
-  const exprPattern = new RegExp(
-    "(^|[^`])`{" + options.language + "}[ \t]([^`]+)`",
-    "g",
-  );
-  for (let i = 0; i < source.length; i++) {
-    let line = source[i];
-    line = line.replaceAll(exprPattern, (match, prefix, expr) => {
-      const result = userExpressions.get(expr.trim());
+  const executeInlineCode = executeInlineCodeHandler(
+    options.language,
+    (expr: string) => {
+      const result = userExpressions.get(expr);
       if (result) {
         const mimeType = displayDataMimeType(result, options);
         if (mimeType) {
@@ -47,21 +44,19 @@ export function resolveUserExpressions(
           }
           switch (mimeType) {
             case kTextHtml:
-              return `${prefix}${"`"}${data}${"`"}{=html}`;
+              return `${"`"}${data}${"`"}{=html}`;
             case kTextLatex:
-              return `${prefix}${"`"}${data}${"`"}{=tex}`;
+              return `${"`"}${data}${"`"}{=tex}`;
             case kTextMarkdown:
             case kTextPlain:
             default:
-              return `${prefix}${data}`;
+              return `${data}`;
           }
-        } else {
-          return match;
         }
-      } else {
-        return match;
       }
-    });
-    source[i] = line;
+    },
+  );
+  for (let i = 0; i < source.length; i++) {
+    source[i] = executeInlineCode(source[i]);
   }
 }
