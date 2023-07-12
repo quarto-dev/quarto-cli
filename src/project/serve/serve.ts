@@ -86,11 +86,7 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources, kTargetFormat } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import {
-  RenderFlags,
-  RenderResult,
-  RenderServices,
-} from "../../command/render/types.ts";
+import { RenderFlags, RenderResult } from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -187,6 +183,9 @@ export async function serveProject(
   // are we targeting pdf output?
   const pdfOutput = isPdfOutput(flags.to || "");
 
+  // Configure render services
+  const services = renderServices();
+
   // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
   // isn't up to date. for those files we aren't rendering, compute their
@@ -206,7 +205,6 @@ export async function serveProject(
   }
 
   let renderResult;
-  const services = renderServices();
   try {
     renderResult = await renderProject(
       project,

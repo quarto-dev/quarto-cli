@@ -1,9 +1,8 @@
 /*
-* knitr.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * knitr.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as colors from "fmt/colors.ts";
 
@@ -44,7 +43,11 @@ export async function knitrCapabilities() {
       stdout: "piped",
     });
     if (result.success && result.stdout) {
-      const caps = readYamlFromString(result.stdout) as KnitrCapabilities;
+      const jsonLines = result.stdout
+        .replace(/^.*--- YAML_START ---/sm, "")
+        .replace(/--- YAML_END ---.*$/sm, "");
+
+      const caps = readYamlFromString(jsonLines) as KnitrCapabilities;
       // check knitr requirement
       const knitrVersion = caps.packages.knitr
         ? coerce(caps.packages.knitr)

@@ -1,0 +1,16 @@
+#!/bin/bash
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
+FULLARCH="$(sysctl machdep.cpu.brand_string)"
+  
+if [[ $FULLARCH == *"Intel"* ]]; then
+  ARCH_DIR=x86_64
+elif [[ $FULLARCH == *"Apple"* ]]; then
+  ARCH_DIR=aarch64
+else
+  echo "quarto script failed: unrecognized architecture " ${FULLARCH}
+  exit 1
+fi
+
+./${ARCH_DIR}/pandoc "$@"

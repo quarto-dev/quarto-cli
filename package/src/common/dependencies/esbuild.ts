@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { unTar } from "../../util/tar.ts";
@@ -28,6 +28,9 @@ export function esBuild(version: string): Dependency {
           // Remove existing dir
           const dir = dirname(path);
 
+          const targetDir = join(dir, config.arch);
+          ensureDirSync(targetDir);
+  
           // extracts to package/bin
           const esbuildDir = join(dir, `package`);
           if (existsSync(esbuildDir)) {
@@ -42,9 +45,10 @@ export function esBuild(version: string): Dependency {
             const intialPath = config.os === "windows"
               ? join(esbuildDir, file)
               : join(esbuildDir, "bin", file);
+
             Deno.renameSync(
               intialPath,
-              join(dir, file),
+              join(targetDir, file),
             );
           } finally {
             if (existsSync(esbuildDir)) {
@@ -75,6 +79,7 @@ export function esBuild(version: string): Dependency {
       },
       "aarch64": {
         "linux": esBuildRelease("linux-arm64"),
+        "darwin": esBuildRelease("darwin-arm64")
       },
     },
   };

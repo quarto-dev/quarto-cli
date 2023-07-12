@@ -1,0 +1,15 @@
+#!/bin/bash
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
+NIXARCH=$(uname -m)
+if [[ $NIXARCH == "x86_64" ]]; then
+  ARCH_DIR=x86_64
+elif [[ $NIXARCH == "aarch64" ]]; then
+  ARCH_DIR=aarch64
+else
+  echo "configure script failed: unrecognized architecture " ${NIXARCH}
+  exit 1
+fi
+
+./${ARCH_DIR}/pandoc "$@"

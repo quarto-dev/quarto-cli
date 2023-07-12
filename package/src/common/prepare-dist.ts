@@ -16,10 +16,11 @@ import { info } from "log/mod.ts";
 import { buildAssets } from "../../../src/command/build-js/cmd.ts";
 import { initTreeSitter } from "../../../src/core/schema/deno-init-tree-sitter.ts";
 import {
+Dependency,
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { copyQuartoScript } from "./configure.ts";
+import { copyPandocAliasScript, copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
@@ -58,31 +59,37 @@ export async function prepareDist(
     "tools",
   );
 
-  // Download Deno
-  const denoVersion = Deno.env.get("DENO");
-  if (denoVersion) {
-    const denoDependency = deno(denoVersion);
-
+  // Function to wrap architecture specific configuration
+  const configArchDependency = async (dep: Dependency, 
+    dir: string,
+    config: Configuration) => {
     if (config.os === "darwin") {
       // add a secondary config specifically for Mac
-      await configureDependency(denoDependency, targetDir, {
+      await configureDependency(dep, dir, {
         os: config.os,
         arch: "aarch64",
       });
 
-      await configureDependency(denoDependency, targetDir, {
+      await configureDependency(dep, dir, {
         os: config.os,
         arch: "x86_64",
       });
     } else {
-      await configureDependency(denoDependency, targetDir, config);
+      await configureDependency(dep, targetDir, config);
     }
+  }
+
+  // Download Deno
+  const denoVersion = Deno.env.get("DENO");
+  if (denoVersion) {
+    const denoDependency = deno(denoVersion);
+    await configArchDependency(denoDependency, targetDir, config)
   }
 
   // Download the dependencies
   for (const dependency of kDependencies) {
     try {
-      await configureDependency(dependency, targetDir, config);
+      await configArchDependency(dependency, targetDir, config)
     } catch (e) {
       if (
         e.message ===
@@ -108,6 +115,9 @@ export async function prepareDist(
   // Move the quarto script into place
   info("Moving Quarto script");
   copyQuartoScript(config, config.directoryInfo.pkgWorking.bin);
+
+  info("Placing Pandoc Alias Script");
+  copyPandocAliasScript(config, join(config.directoryInfo.pkgWorking.bin, "tools"));
 
   // Move the supporting files into place
   info("\nMoving supporting files");

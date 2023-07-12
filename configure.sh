@@ -47,14 +47,9 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     for DENOFILE in $DENOFILES; do
       download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
       unzip -o $DENOFILE
-      DENO_ARCH_DIR=$(basename $DENOFILE .zip)
       
-      if [[ "${DENO_ARCH_DIR}" = "deno-linux-arm64" ]]; then
-        DENO_ARCH_DIR="deno-aarch64-unknown-linux-gnu"
-      fi
-      
-      mkdir $DENO_ARCH_DIR
-      mv deno $DENO_ARCH_DIR
+      mkdir -p $DENO_DIR
+      mv deno $DENO_DIR
       rm $DENOFILE
     done
 

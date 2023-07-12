@@ -432,7 +432,7 @@ async function renderForPreview(
 
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references
-  // in css files, then fitler out the _files dir
+  // in css files, then filter out the _files dir
   file = normalizePath(file);
   const filesDir = join(dirname(file), inputFilesDir(file));
   const resourceFiles = renderResult.files.reduce(
