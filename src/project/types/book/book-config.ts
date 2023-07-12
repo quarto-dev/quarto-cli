@@ -34,6 +34,7 @@ import { kProjectRender, ProjectConfig } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,
+  kBreadCrumbNavigation,
   kContents,
   kImage,
   kMarginFooter,
@@ -142,6 +143,7 @@ export async function bookProjectConfig(
     site[kGoogleAnalytics] = book[kGoogleAnalytics];
     site[kCookieConsent] = book[kCookieConsent];
     site[kComments] = book[kComments];
+    site[kBreadCrumbNavigation] = book[kBreadCrumbNavigation];
 
     // If there is an explicitly set footer use that
     if (book[kPageFooter]) {
