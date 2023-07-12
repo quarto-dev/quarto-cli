@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import * as ld from "../../../core/lodash.ts";
 
@@ -14,7 +14,7 @@ import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
-import { asHtmlId, getDecodedAttribute } from "../../../core/html.ts";
+import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
 import { removeChapterNumber } from "./website-utils.ts";
 
@@ -127,7 +127,6 @@ import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
-import { engineValidExtensions } from "../../../execute/engine.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
@@ -674,28 +673,30 @@ function handleRepoLinks(
             }];
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
-          if (repoInfo) {
-            const iconDiv = doc.createElement("div");
-            const iconEl = doc.createElement("i");
-            iconEl.classList.add("bi");
 
-            iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
-
-            iconDiv.appendChild(iconEl);
-            actionsDiv.appendChild(iconDiv);
-          }
-          const linksDiv = doc.createElement("div");
-          linksDiv.classList.add("action-links");
+          const ulEl = doc.createElement("ul");
           links.forEach((link) => {
             const a = doc.createElement("a");
             a.setAttribute("href", link.url);
             a.classList.add("toc-action");
             a.innerHTML = link.text;
-            const p = doc.createElement("p");
-            p.appendChild(a);
-            linksDiv.appendChild(p);
+
+            const i = doc.createElement("i");
+            i.classList.add("bi");
+            if (link.icon) {
+              i.classList.add(`bi-${link.icon}`);
+            } else {
+              i.classList.add(`empty`);
+            }
+
+            a.prepend(i);
+
+            const liEl = doc.createElement("li");
+            liEl.appendChild(a);
+
+            ulEl.appendChild(liEl);
           });
-          actionsDiv.appendChild(linksDiv);
+          actionsDiv.appendChild(ulEl);
           repoTarget.appendChild(actionsDiv);
         }
       }
@@ -722,14 +723,15 @@ function repoActionLinks(
   source: string,
   language: FormatLanguage,
   issueUrl?: string,
-): Array<{ text: string; url: string }> {
-  return actions.map((action) => {
+): Array<{ text: string; url: string; icon?: string }> {
+  return actions.map((action, i) => {
     switch (action) {
       case "edit":
         if (!isJupyterNotebook(source)) {
           return {
             text: language[kRepoActionLinksEdit],
             url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
+            icon: i === 0 ? "github" : undefined,
           };
         } else if (repoInfo.baseUrl.indexOf("github.com") !== -1) {
           return {
@@ -737,6 +739,7 @@ function repoActionLinks(
             url: `${
               repoInfo.baseUrl.replace("github.com", "github.dev")
             }blob/${branch}/${repoInfo.path}${source}`,
+            icon: i === 0 ? "github" : undefined,
           };
         } else {
           return null;
@@ -745,11 +748,13 @@ function repoActionLinks(
         return {
           text: language[kRepoActionLinksSource],
           url: `${repoInfo.baseUrl}blob/${branch}/${repoInfo.path}${source}`,
+          icon: i === 0 ? "github" : undefined,
         };
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
           url: issueUrl || `${repoInfo.baseUrl}issues/new`,
+          icon: i === 0 ? "github" : undefined,
         };
 
       default: {
@@ -758,7 +763,7 @@ function repoActionLinks(
       }
     }
   }).filter((action) => action !== null) as Array<
-    { text: string; url: string }
+    { text: string; url: string; icon: string }
   >;
 }
 

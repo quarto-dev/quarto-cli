@@ -285,7 +285,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // move the toc if there is a sidebar
-    let toc = doc.querySelector('nav[role="doc-toc"]');
+    const toc = doc.querySelector('nav[role="doc-toc"]');
 
     const tocTarget = doc.getElementById("quarto-toc-target");
 
@@ -294,9 +294,16 @@ function bootstrapHtmlPostprocessor(
 
     if (toc && tocTarget) {
       if (useDoubleToc) {
-        const clonedToc = toc.cloneNode(true);
-        toc.id = "TOC-body";
-        toc = clonedToc as Element;
+        // Clone the TOC
+        // Leave it where it is in the document, and just mutate it
+        const clonedToc = toc.cloneNode(true) as Element;
+        clonedToc.id = "TOC-body";
+        const tocActionsEl = clonedToc.querySelector(".toc-actions");
+        if (tocActionsEl) {
+          tocActionsEl.remove();
+        }
+
+        toc.parentElement?.insertBefore(clonedToc, toc);
       }
 
       // activate selection behavior for this
