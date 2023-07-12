@@ -671,11 +671,18 @@ export async function ojsCompile(
       ls.push(cell.sourceVerbatim);
     } else if (cell.cell_type === "markdown") {
       // Convert to native OJS inline expression syntax then delegate to lua filter
+      // TODO: for now we just do this to detect use of `{ojs} x` syntax and then
+      // throw an error indicating its unsupported. This code needs to be updated
+      // to handle mapped strings correctly.
       const markdown = executeInlineCodeHandler(
         "ojs",
         (exec) => "${" + exec + "}",
       )(cell.sourceVerbatim.value);
-      ls.push(markdown);
+      if (markdown !== cell.sourceVerbatim.value) {
+        throw new Error("`{ojs}` inline expressions not yet supported");
+      }
+
+      ls.push(cell.sourceVerbatim);
     } else if (cell.cell_type?.language === "ojs") {
       await handleOJSCell(cell);
     } else {
