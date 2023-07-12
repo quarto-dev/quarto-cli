@@ -405,6 +405,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   "twitter-card"?:
     | boolean
     | TwitterCardConfig /* Publish twitter card metadata */;
+  "other-links"?: OtherLinks;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;
@@ -595,6 +596,14 @@ export type ChapterItem = NavigationItem | {
 };
 
 export type ChapterList = (ChapterItem)[];
+
+export type OtherLinks = ({
+  href: string /* The href for the link. */;
+  icon?: string /* The bootstrap icon name for the link. */;
+  rel?: string /* The rel attribute value for the link. */;
+  text: string /* The text for the link. */;
+  target?: string; /* The target attribute value for the link. */
+})[];
 
 export type CrossrefLabelsSchema = string;
 

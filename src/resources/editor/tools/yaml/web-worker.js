@@ -9641,6 +9641,17 @@ try {
                     }
                   ],
                   description: "Publish twitter card metadata"
+                },
+                "other-links": {
+                  schema: {
+                    ref: "other-links"
+                  },
+                  tags: {
+                    formats: [
+                      "$html-doc"
+                    ]
+                  },
+                  description: "A list of other links to appear below the TOC."
                 }
               }
             }
@@ -9801,6 +9812,44 @@ try {
             id: "chapter-list",
             arrayOf: {
               ref: "chapter-item"
+            }
+          },
+          {
+            id: "other-links",
+            arrayOf: {
+              object: {
+                properties: {
+                  text: {
+                    string: {
+                      description: "The text for the link."
+                    }
+                  },
+                  href: {
+                    string: {
+                      description: "The href for the link."
+                    }
+                  },
+                  icon: {
+                    string: {
+                      description: "The bootstrap icon name for the link."
+                    }
+                  },
+                  rel: {
+                    string: {
+                      description: "The rel attribute value for the link."
+                    }
+                  },
+                  target: {
+                    string: {
+                      description: "The target attribute value for the link."
+                    }
+                  }
+                },
+                required: [
+                  "text",
+                  "href"
+                ]
+              }
             }
           },
           {
@@ -14477,7 +14526,7 @@ try {
                       {
                         object: {
                           properties: {
-                            title: {
+                            text: {
                               string: {
                                 description: "The title for this alternative link."
                               }
@@ -14526,6 +14575,18 @@ try {
               short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
               long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
             }
+          },
+          {
+            name: "other-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              ref: "other-links"
+            },
+            description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
           },
           {
             name: "notebook-subarticles",
@@ -18473,6 +18534,7 @@ try {
         ],
         "pandoc/formats.yml": [
           "asciidoc",
+          "asciidoc_legacy",
           "asciidoctor",
           "beamer",
           "biblatex",
@@ -18831,6 +18893,7 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -18959,6 +19022,7 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -18979,6 +19043,11 @@ try {
           "The Digital Object Identifier for this book.",
           "Part title or path to input file",
           "Path to chapter input file",
+          "The text for the link.",
+          "The href for the link.",
+          "The bootstrap icon name for the link.",
+          "The rel attribute value for the link.",
+          "The target attribute value for the link.",
           {
             short: "The role of this creator or contributor.",
             long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
@@ -20380,6 +20449,7 @@ try {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
+          "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
           {
             short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
@@ -20680,6 +20750,10 @@ try {
           "Monitor the hash and change slides accordingly",
           "Include the current fragment in the URL",
           "Play a subtle sound when changing slides",
+          {
+            short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+          },
           "Prints each fragment on a separate slide",
           {
             short: "Offset used to reduce the height of content within exported PDF\npages.",
@@ -20957,6 +21031,7 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -21268,6 +21343,7 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -21433,11 +21509,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          {
-            short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
-          }
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21661,12 +21733,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158643,
+          _internalId: 161290,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158635,
+              _internalId: 161282,
               type: "enum",
               enum: [
                 "png",
@@ -21682,7 +21754,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158642,
+              _internalId: 161289,
               type: "anyOf",
               anyOf: [
                 {
