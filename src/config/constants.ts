@@ -677,6 +677,7 @@ export const kCellLanguage = "language";
 export const kCellSlideshow = "slideshow";
 export const kCellSlideshowSlideType = "slide_type";
 export const kCellRawMimeType = "raw_mimetype";
+export const kCellUserExpressions = "user_expressions";
 
 export const kCellId = "id";
 export const kCellLabel = "label";

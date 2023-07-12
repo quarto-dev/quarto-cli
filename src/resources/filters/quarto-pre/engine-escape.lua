@@ -25,6 +25,11 @@ function engine_escape()
         return "```" .. engine 
       end)
       return el
+    end,
+
+    Code = function(el)
+      el.text = el.text:gsub("^" .. patterns.engine_escape, "%1")
+      return el
     end
   }
 end

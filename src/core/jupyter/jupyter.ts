@@ -159,6 +159,10 @@ import {
   isJatsOutput,
 } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import {
+  resolveUserExpressions,
+  userExpressionsFromCell,
+} from "./jupyter-inline.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -901,12 +905,18 @@ export function mdFromContentCell(
 ) {
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
-  // process each file attachment
+  // clone source for manipulation
+  const source = ld.cloneDeep(cell.source) as string[];
+
+  // handle user expressions (if any)
+  if (options && source) {
+    const userExpressions = userExpressionsFromCell(cell);
+    resolveUserExpressions(source, userExpressions, options);
+  }
 
   // if we have attachments then extract them and markup the source
-  if (options && cell.attachments && cell.source) {
+  if (options && cell.attachments && source) {
     // close source so we can modify it
-    const source = ld.cloneDeep(cell.source) as string[];
     Object.keys(cell.attachments).forEach((file, index) => {
       const attachment = cell.attachments![file];
       for (const mimeType of Object.keys(attachment)) {
@@ -940,11 +950,9 @@ export function mdFromContentCell(
         }
       }
     });
-
-    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
-  } else {
-    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(cell.source));
   }
+
+  return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
 }
 
 export function mdFromRawCell(
