@@ -26,7 +26,6 @@ import {
   kRestructuredText,
   kTextHtml,
   kTextLatex,
-  kTextMarkdown,
   kTextPlain,
 } from "../mime.ts";
 
@@ -102,7 +101,6 @@ import {
   kCellSlideshow,
   kCellSlideshowSlideType,
   kCellTblColumn,
-  kCellUserExpressions,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -141,7 +139,6 @@ import {
   JupyterOutputStream,
   JupyterToMarkdownOptions,
   JupyterToMarkdownResult,
-  JupyterUserExpressionResult,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
@@ -162,6 +159,10 @@ import {
   isJatsOutput,
 } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import {
+  resolveUserExpressions,
+  userExpressionsFromCell,
+} from "./jupyter-inline.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -908,53 +909,10 @@ export function mdFromContentCell(
   const source = ld.cloneDeep(cell.source) as string[];
 
   // handle user expressions (if any)
-  const language = options?.language;
-  if (language && source) {
-    // collect user expressions
-    const userExpressions = (cell.metadata[kCellUserExpressions] || [])
-      .reduce((userExpressions, userExpression) => {
-        userExpressions.set(userExpression.expression, userExpression.result);
-        return userExpressions;
-      }, new Map<string, JupyterUserExpressionResult>());
-
-    // resolve user expressions
-    const exprPattern = new RegExp(
-      "(^|[^`])`{" + language + "}[ \t]([^`]+)`",
-      "g",
-    );
-    for (let i = 0; i < source.length; i++) {
-      let line = source[i];
-      line = line.replaceAll(exprPattern, (match, prefix, expr) => {
-        const result = userExpressions.get(expr.trim());
-        if (result) {
-          const mimeType = displayDataMimeType(result, options);
-          if (mimeType) {
-            let data = result.data[mimeType];
-            if (Array.isArray(data)) {
-              data = data.map(String).join("");
-            }
-            switch (mimeType) {
-              case kTextHtml:
-                return `${prefix}${"`"}${data}${"`"}{=html}`;
-              case kTextLatex:
-                return `${prefix}${"`"}${data}${"`"}{=tex}`;
-              case kTextMarkdown:
-              case kTextPlain:
-              default:
-                return `${prefix}${data}`;
-            }
-          } else {
-            return match;
-          }
-        } else {
-          return match;
-        }
-      });
-      source[i] = line;
-    }
+  if (options && source) {
+    const userExpressions = userExpressionsFromCell(cell);
+    resolveUserExpressions(source, userExpressions, options);
   }
-
-  // process file attachments
 
   // if we have attachments then extract them and markup the source
   if (options && cell.attachments && source) {
