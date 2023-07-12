@@ -1,9 +1,8 @@
 /*
-* compile.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * compile.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import * as ld from "../../core/lodash.ts";
 import { dirname, join, relative, resolve } from "path/mod.ts";
@@ -80,6 +79,7 @@ import {
 } from "../../core/lib/mapped-text.ts";
 import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+import { executeInlineCodeHandler } from "../../core/execute-inline.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -526,8 +526,8 @@ export async function ojsCompile(
       // then pandoc will clobber our classes and our runtime error
       // reporting things will break anyway. So just don't emit
       // the source in that case.
-      const shouldEmitSource = (echoVal !== "fenced" &&
-        !(echoVal === false && isHtmlMarkdown));
+      const shouldEmitSource = echoVal !== "fenced" &&
+        !(echoVal === false && isHtmlMarkdown);
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
@@ -665,11 +665,17 @@ export async function ojsCompile(
     };
 
     if (
-      cell.cell_type === "raw" ||
-      cell.cell_type === "markdown"
+      cell.cell_type === "raw"
     ) {
       // The lua filter is in charge of this, we're a NOP.
       ls.push(cell.sourceVerbatim);
+    } else if (cell.cell_type === "markdown") {
+      // Convert to native OJS inline expression syntax then delegate to lua filter
+      const markdown = executeInlineCodeHandler(
+        "ojs",
+        (exec) => "${" + exec + "}",
+      )(cell.sourceVerbatim.value);
+      ls.push(markdown);
     } else if (cell.cell_type?.language === "ojs") {
       await handleOJSCell(cell);
     } else {
