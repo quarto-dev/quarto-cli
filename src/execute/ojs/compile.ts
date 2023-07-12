@@ -79,7 +79,7 @@ import {
 } from "../../core/lib/mapped-text.ts";
 import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
-import { executeInlineCodeHandler } from "../../core/execute-inline.ts";
+import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -674,15 +674,12 @@ export async function ojsCompile(
       // TODO: for now we just do this to detect use of `{ojs} x` syntax and then
       // throw an error indicating its unsupported. This code needs to be updated
       // to handle mapped strings correctly.
-      const markdown = executeInlineCodeHandler(
+      const markdown = executeInlineCodeHandlerMapped(
         "ojs",
         (exec) => "${" + exec + "}",
-      )(cell.sourceVerbatim.value);
-      if (markdown !== cell.sourceVerbatim.value) {
-        throw new Error("`{ojs}` inline expressions not yet supported");
-      }
+      )(cell.sourceVerbatim);
 
-      ls.push(cell.sourceVerbatim);
+      ls.push(markdown);
     } else if (cell.cell_type?.language === "ojs") {
       await handleOJSCell(cell);
     } else {
