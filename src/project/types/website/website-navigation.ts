@@ -543,9 +543,11 @@ function navigationHtmlPostprocessor(
         ".breadcrumb-item a",
       ];
       for (const sel of sels) {
-        const el = doc.querySelector(sel);
-        if (el) {
-          removeChapterNumber(el);
+        const nodes = doc.querySelectorAll(sel);
+        if (nodes !== null) {
+          for (const node of nodes) {
+            removeChapterNumber(node as Element);
+          }
         }
       }
     }
