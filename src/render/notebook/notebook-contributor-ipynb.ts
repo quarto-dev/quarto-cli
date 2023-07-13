@@ -36,7 +36,7 @@ export const outputNotebookContributor: NotebookContributor = {
   outputFile,
 };
 
-function outputFile(
+export function outputFile(
   nbAbsPath: string,
 ): string {
   return ipynbOutputFile(nbAbsPath);
