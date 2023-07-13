@@ -1023,13 +1023,6 @@ td code:not(.sourceCode) {
   padding-top: 1em;
 }
 
-.sidebar.toc-left,
-.sidebar.margin-sidebar {
-  & > * {
-    padding-top: 0.5em;
-  }
-}
-
 .sidebar.quarto-banner-title-block-sidebar {
   & > * {
     padding-top: 1.65em;
