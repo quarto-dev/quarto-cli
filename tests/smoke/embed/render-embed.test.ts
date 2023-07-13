@@ -20,7 +20,7 @@ const output = outputForInput(input, format);
 
 // Test qmd embedding
 // The notebook preview that is generated
-const nbOutput = join(dirname(output.outputPath), "notebook.html");
+const nbOutput = join(dirname(output.outputPath), "notebook-preview.html");
 const nbSupporting = join(dirname(nbOutput), "notebook_files");
 
 testRender(input, format, false, [
@@ -56,7 +56,7 @@ const ipynbOutput = outputForInput(ipynbInput, format);
 
 const ipynbPreviewNb = join(
   dirname(ipynbOutput.outputPath),
-  "penguins.html",
+  "penguins-preview.html",
 );
 const ipynbPreviewSupporting = join(
   dirname(ipynbOutput.outputPath),

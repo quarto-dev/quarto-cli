@@ -56,7 +56,7 @@ export function outputFile(
   nbAbsPath: string,
 ): string {
   const [_dir, stem] = dirAndStem(basename(nbAbsPath));
-  return `${stem}.html`;
+  return `${stem}-preview.html`;
 }
 
 function resolveHtmlNotebook(
