@@ -670,6 +670,7 @@ function handleRepoLinks(
             : [{
               text: language[kRepoActionLinksIssue]!,
               url: issueUrl!,
+              icon: "chat-right",
             }];
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
