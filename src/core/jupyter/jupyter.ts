@@ -492,9 +492,16 @@ export async function jupyterKernelspecFromMarkdown(
         }
       }
     }
-  }
-
-  if (typeof (yamlJupyter) === "string") {
+    return Promise.reject(
+      new Error(
+        `No kernel found for any language checked (${
+          Array.from(languages).join(", ")
+        }) in any of the kernelspecs checked (${
+          Array.from(kernelspecs.values()).map((k) => k.name).join(", ")
+        }).`,
+      ),
+    );
+  } else if (typeof (yamlJupyter) === "string") {
     const kernel = yamlJupyter;
     const kernelspec = await jupyterKernelspec(kernel);
     if (kernelspec) {
