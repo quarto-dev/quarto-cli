@@ -44,6 +44,7 @@ import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
 import { basename, join } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
 import { isQmdFile } from "../../execute/qmd.ts";
+import { dirAndStem } from "../../core/path.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
@@ -54,7 +55,8 @@ export const htmlNotebookContributor: NotebookContributor = {
 export function outputFile(
   nbAbsPath: string,
 ): string {
-  return `${basename(nbAbsPath)}.html`;
+  const [_dir, stem] = dirAndStem(basename(nbAbsPath));
+  return `${stem}.html`;
 }
 
 function resolveHtmlNotebook(
@@ -66,7 +68,7 @@ function resolveHtmlNotebook(
   const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
-  resolved.recipe.format.pandoc[kOutputFile] = `${basename(nbAbsPath)}.html`;
+  resolved.recipe.format.pandoc[kOutputFile] = `${outputFile(nbAbsPath)}`;
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   // Configure echo for this rendering to ensure there is output
@@ -131,7 +133,7 @@ async function renderHtmlNotebook(
         metadata: {
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: `${basename(nbPath)}.html`,
+          [kOutputFile]: `${outputFile(nbPath)}`,
           [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",

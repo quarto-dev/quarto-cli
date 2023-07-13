@@ -49,7 +49,7 @@ function resolveOutputNotebook(
   _notebookMetadata?: NotebookMetadata,
 ) {
   const resolved = ld.cloneDeep(executedFile);
-  resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(nbAbsPath);
+  resolved.recipe.format.pandoc[kOutputFile] = outputFile(nbAbsPath);
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   resolved.recipe.format.pandoc.to = "ipynb";
@@ -84,7 +84,7 @@ async function renderOutputNotebook(
       flags: {
         metadata: {
           [kTo]: "ipynb",
-          [kOutputFile]: ipynbOutputFile(nbPath),
+          [kOutputFile]: outputFile(nbPath),
         },
         quiet: false,
       },

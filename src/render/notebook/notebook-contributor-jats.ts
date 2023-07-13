@@ -57,7 +57,7 @@ function resolveJats(
   resolved.recipe.format.metadata[kLintXml] = false;
   resolved.recipe.format.metadata[kJatsSubarticle] = true;
   resolved.recipe.format.metadata[kJatsSubarticleId] = token;
-  resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
+  resolved.recipe.format.pandoc[kOutputFile] = outputFile(
     nbAbsPath,
   );
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
@@ -91,7 +91,7 @@ async function renderJats(
           [kLintXml]: false,
           [kJatsSubarticle]: true,
           [kJatsSubarticleId]: subArticleToken,
-          [kOutputFile]: jatsOutputFile(nbPath),
+          [kOutputFile]: outputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,
