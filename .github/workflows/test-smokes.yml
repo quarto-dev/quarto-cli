@@ -166,11 +166,15 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          haserror=0
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
           for file in "${my_array[@]}"; do 
             echo ">>> ./run-tests.sh ${file}"
             ./run-tests.sh $file
+            status=$?
+            [ $status -eq 0 ] && echo "No error in this test file" || haserror=1
           done
+          [ $haserror -eq 0 ] && echo "All tests passed" || exit 1
         working-directory: tests
         shell: bash
 
@@ -180,9 +184,19 @@ jobs:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $haserror=$false
           foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
             Write-Host ">>> ./run-tests.ps1 ${file}"
             ./run-tests.ps1 $file
+            $status=$LASTEXITCODE
+            if ($status -eq 1) {
+              $haserror=$true
+            } 
+          }
+          if ($haserror) {
+            Exit 1
+          } else {
+            Write-Host "All tests have passed"
           }
         working-directory: tests
         shell: pwsh
