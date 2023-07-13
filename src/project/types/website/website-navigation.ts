@@ -725,6 +725,9 @@ function repoActionLinks(
   language: FormatLanguage,
   issueUrl?: string,
 ): Array<{ text: string; url: string; icon?: string }> {
+  const firstIcon = repoInfo.baseUrl.indexOf("github.com") !== -1
+    ? "github"
+    : "git";
   return actions.map((action, i) => {
     switch (action) {
       case "edit":
@@ -732,7 +735,7 @@ function repoActionLinks(
           return {
             text: language[kRepoActionLinksEdit],
             url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
-            icon: i === 0 ? "github" : undefined,
+            icon: i === 0 ? firstIcon : undefined,
           };
         } else if (repoInfo.baseUrl.indexOf("github.com") !== -1) {
           return {
@@ -740,7 +743,7 @@ function repoActionLinks(
             url: `${
               repoInfo.baseUrl.replace("github.com", "github.dev")
             }blob/${branch}/${repoInfo.path}${source}`,
-            icon: i === 0 ? "github" : undefined,
+            icon: i === 0 ? firstIcon : undefined,
           };
         } else {
           return null;
@@ -749,13 +752,13 @@ function repoActionLinks(
         return {
           text: language[kRepoActionLinksSource],
           url: `${repoInfo.baseUrl}blob/${branch}/${repoInfo.path}${source}`,
-          icon: i === 0 ? "github" : undefined,
+          icon: i === 0 ? firstIcon : undefined,
         };
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
           url: issueUrl || `${repoInfo.baseUrl}issues/new`,
-          icon: i === 0 ? "github" : undefined,
+          icon: i === 0 ? firstIcon : undefined,
         };
 
       default: {
