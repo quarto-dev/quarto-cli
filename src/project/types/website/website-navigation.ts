@@ -54,7 +54,7 @@ import {
   ProjectConfig,
   ProjectContext,
 } from "../../types.ts";
-import { projectOffset, projectOutputDir } from "../../project-shared.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
   kCollapseBelow,
@@ -725,9 +725,7 @@ function repoActionLinks(
   language: FormatLanguage,
   issueUrl?: string,
 ): Array<{ text: string; url: string; icon?: string }> {
-  const firstIcon = repoInfo.baseUrl.indexOf("github.com") !== -1
-    ? "github"
-    : "git";
+  const firstIcon = repoUrlIcon(repoInfo.baseUrl);
   return actions.map((action, i) => {
     switch (action) {
       case "edit":

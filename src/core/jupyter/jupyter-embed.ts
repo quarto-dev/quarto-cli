@@ -57,7 +57,6 @@ import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
 import {
   kQmdIPynb,
-  kRenderedIPynb,
   NotebookMetadata,
 } from "../../render/notebook/notebook-types.ts";
 import { ProjectContext } from "../../project/types.ts";
