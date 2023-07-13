@@ -87,14 +87,14 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=@()
 
   ForEach ($file in $customArgs) {
-    If ($file -Like "*.qmd" || $file -Like "*.ipynb") {
+    If ($file -Like "*.qmd" -Or $file -Like "*.ipynb") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file
     } else {
-      Write-Host "#### WARNING"
-      Write-Host "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
-      Write-Host "####"
+      Write-Host -ForegroundColor red "#### ERROR"
+      Write-Host -ForegroundColor red "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+      Write-Host -ForegroundColor red "####"
       Exit 1
     }
   }
