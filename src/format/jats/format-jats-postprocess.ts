@@ -63,7 +63,7 @@ export const renderSubarticlePostProcessor = (
     // Go through the subarticles, embed them into the article
     const supportingOut: string[] = [];
     for (const subArticle of subArticles) {
-      const nb = services.notebook.get(subArticle.input);
+      const nb = services.notebook.get(subArticle.input, project);
       if (nb && nb[kJatsSubarticle]) {
         let outputContents = Deno.readTextFileSync(output);
 

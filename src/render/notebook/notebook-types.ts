@@ -41,8 +41,10 @@ export interface Notebook {
 
 export interface NotebookOutput {
   path: string;
+  hrefPath: string;
   supporting: string[];
   resourceFiles: RenderResourceFiles;
+  cached?: boolean;
 }
 
 export interface NotebookRenderResult {
@@ -85,6 +87,7 @@ export interface NotebookContext {
     nbPath: string,
     renderType: RenderType,
     result: NotebookRenderResult,
+    project?: ProjectContext,
   ) => void;
   removeRendering: (
     nbAbsPath: string,
@@ -123,4 +126,9 @@ export interface NotebookContributor {
     notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
   ): Promise<NotebookRenderResult>;
+  cache?: (output: NotebookOutput, project?: ProjectContext) => void;
+  cachedPath?: (
+    nbAbsPath: string,
+    project?: ProjectContext,
+  ) => string | undefined;
 }

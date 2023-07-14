@@ -116,7 +116,7 @@ export const manuscriptRenderer = (
 
         result.push({
           completion: await renderPandoc(qmdExecuted, true),
-          cleanup: !isArticle,
+          cleanup: true,
           contribute: kQmdIPynb,
         });
       }
@@ -303,6 +303,7 @@ export const manuscriptRenderer = (
             nbAbsPath,
             renderType,
             renderedFile,
+            context,
           );
         };
 

@@ -175,9 +175,9 @@ export const notebookPreviewer = (
             ) {
               downloadHref = relative(
                 dirname(nbAbsPath),
-                notebook[kRenderedIPynb].path,
+                notebook[kRenderedIPynb].hrefPath,
               );
-              downloadFileName = basename(notebook[kRenderedIPynb].path);
+              downloadFileName = basename(notebook[kRenderedIPynb].hrefPath);
             }
 
             const htmlPreview = await nbContext.render(
@@ -215,10 +215,10 @@ export const notebookPreviewer = (
           if (renderedIpynb) {
             if (project) {
               supporting.push(
-                relative(project.dir, renderedIpynb.path),
+                relative(project.dir, renderedIpynb.hrefPath),
               );
             } else {
-              supporting.push(renderedIpynb.path);
+              supporting.push(renderedIpynb.hrefPath);
             }
             supporting.push(...renderedIpynb.supporting);
             resources.push(...renderedIpynb.resourceFiles.files);
@@ -229,9 +229,9 @@ export const notebookPreviewer = (
           const htmlPreview = renderedNotebook[kHtmlPreview];
           if (htmlPreview) {
             if (project) {
-              supporting.push(relative(project.dir, htmlPreview.path));
+              supporting.push(relative(project.dir, htmlPreview.hrefPath));
             } else {
-              supporting.push(htmlPreview.path);
+              supporting.push(htmlPreview.hrefPath);
             }
             supporting.push(...htmlPreview.supporting);
             resources.push(...htmlPreview.resourceFiles.files);
@@ -242,7 +242,7 @@ export const notebookPreviewer = (
         // to form links to this notebook
         const nbPreview = {
           title: resolvedTitle,
-          href: relative(inputDir, renderedNotebook[kHtmlPreview].path),
+          href: relative(inputDir, renderedNotebook[kHtmlPreview].hrefPath),
           supporting,
           resources,
         };

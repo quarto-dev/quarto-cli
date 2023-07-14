@@ -29,17 +29,34 @@ import * as ld from "../../core/lodash.ts";
 import { error } from "log/mod.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { existsSync } from "fs/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
   render: renderOutputNotebook,
   outputFile,
+  cachedPath,
 };
 
 export function outputFile(
   nbAbsPath: string,
 ): string {
   return ipynbOutputFile(nbAbsPath);
+}
+
+function cachedPath(nbAbsPath: string, project?: ProjectContext) {
+  if (project) {
+    const nbRelative = relative(project.dir, dirname(nbAbsPath));
+    const nbOutputDir = join(projectOutputDir(project), nbRelative);
+
+    const outFile = outputFile(nbAbsPath);
+    const outPath = join(nbOutputDir, outFile);
+    if (existsSync(outPath)) {
+      return outPath;
+    }
+  }
 }
 
 function resolveOutputNotebook(
