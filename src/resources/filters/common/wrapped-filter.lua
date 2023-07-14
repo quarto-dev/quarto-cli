@@ -113,7 +113,21 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
             return meta
           end
         })
-        local result = pandoc.utils.run_json_filter(doc, path)
+        local success, result = pcall(pandoc.utils.run_json_filter, doc, path)
+        if not success then
+          local pandoc_error = tostring(result)
+          local filename = pandoc.path.filename(path)
+          local message = {
+            "Could not run " .. path .. " as a JSON filter.",
+            "Please make sure the file exists and is executable.",
+            "\nDid you intend '" .. filename .. "' as a Lua filter in an extension?",
+            "If so, make sure you've spelled the name of the extension correctly.",
+            "\nThe original Pandoc error follows below.",
+            pandoc_error
+          }
+          fail(table.concat(message, "\n"))
+          return nil
+        end
         if has_custom_nodes then
           doc:walk({
             Meta = function(meta)
