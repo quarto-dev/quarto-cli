@@ -57,7 +57,7 @@ export function mappedDiff(
     );
     if (diffResult === undefined) {
       warning(
-        "Warning: diff of engine output timed out. No source lines will be available.",
+        "Warning: The computation used to determine source line information from the engine timed out.\nLine number information will be unavailable and/or inaccurate.",
       );
       return asMappedString(target);
     }
