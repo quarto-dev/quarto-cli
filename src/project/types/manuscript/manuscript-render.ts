@@ -26,14 +26,11 @@ import {
   isArticle,
   notebookDescriptor,
 } from "./manuscript-config.ts";
-import {
-  isHtmlOutput,
-  isIpynbOutput,
-  isJatsOutput,
-} from "../../../config/format.ts";
+import { isHtmlOutput, isJatsOutput } from "../../../config/format.ts";
 import {
   kHtmlPreview,
   kJatsSubarticle,
+  kQmdIPynb,
   kRenderedIPynb,
   RenderType,
 } from "../../../render/notebook/notebook-types.ts";
@@ -41,14 +38,19 @@ import {
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
-import { kNotebookViewStyle, kOutputFile } from "../../../config/constants.ts";
-import { dirAndStem } from "../../../core/path.ts";
+import { kOutputFile } from "../../../config/constants.ts";
 import { readBaseInputIndex } from "../../project-index.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-ipynb.ts";
+import { isQmdFile } from "../../../execute/qmd.ts";
 
 interface ManuscriptCompletion {
   completion: PandocRenderCompletion;
   cleanup?: boolean;
+  contribute?:
+    | typeof kHtmlPreview
+    | typeof kQmdIPynb
+    | typeof kJatsSubarticle
+    | typeof kRenderedIPynb;
 }
 
 export const manuscriptRenderer = (
@@ -96,12 +98,29 @@ export const manuscriptRenderer = (
       return [{
         completion: await renderPandoc(resolvedExecutedFile, true),
         cleanup: !isArticle,
+        contribute: kJatsSubarticle,
       }];
     } else if (isHtmlOutput(executedFile.context.format.pandoc, true)) {
-      const result = [];
+      const result: ManuscriptCompletion[] = [];
 
       // Use the executed file to render the output ipynb
       const notebook = nbContext.get(input, context);
+
+      if (isQmdFile(input) && (!notebook || !notebook[kQmdIPynb])) {
+        progressMessage("Rendering qmd embeds");
+        const qmdExecuted = nbContext.resolve(
+          input,
+          kQmdIPynb,
+          executedFile,
+        );
+
+        result.push({
+          completion: await renderPandoc(qmdExecuted, true),
+          cleanup: !isArticle,
+          contribute: kQmdIPynb,
+        });
+      }
+
       let downloadHref;
       if (!notebook || !notebook[kRenderedIPynb]) {
         progressMessage("Rendering output notebook");
@@ -110,11 +129,11 @@ export const manuscriptRenderer = (
           kRenderedIPynb,
           executedFile,
         );
-        const [_dir, stem] = dirAndStem(input);
         downloadHref = outputFile(input);
         result.push({
           completion: await renderPandoc(ipynbExecutedFile, true),
           cleanup: !isArticle,
+          contribute: kRenderedIPynb,
         });
       }
       progressMessage("Rendering HTML preview");
@@ -157,6 +176,7 @@ export const manuscriptRenderer = (
       result.push({
         completion: await renderPandoc(resolvedExecutedFile, true),
         cleanup: !isArticle,
+        contribute: kHtmlPreview,
       });
       return result;
     }
@@ -187,6 +207,7 @@ export const manuscriptRenderer = (
         for (const allowedFormat of allowedFormats || []) {
           outContexts[allowedFormat] = contexts[allowedFormat];
         }
+
         return outContexts;
       } else {
         // This is the article file, note output files
@@ -288,26 +309,14 @@ export const manuscriptRenderer = (
         // If rendered a notebook preview / rendering, we need to
         // contribute those back to the notebook context in case
         // others need to make use of them
-        if (
-          isJatsOutput(renderedFile.format.pandoc) &&
-          renderedFile.format.metadata[kJatsSubarticle]
-        ) {
-          contributeNotebook(renderedFile, kJatsSubarticle);
-          // Don't add to the rendering since these are just intermediaries
-          // to be addressed directly by the notebook context
-        } else if (
-          isHtmlOutput(renderedFile.format.pandoc, true) &&
-          renderedFile.format.render[kNotebookViewStyle] === "notebook"
-        ) {
-          contributeNotebook(renderedFile, kHtmlPreview);
-          renderedFiles.unshift(renderedFile);
-        } else if (isIpynbOutput(renderedFile.format.pandoc)) {
-          contributeNotebook(renderedFile, kRenderedIPynb);
-          renderedFiles.unshift(renderedFile);
+        if (manuscriptCompletion.contribute) {
+          contributeNotebook(renderedFile, manuscriptCompletion.contribute);
+          if (manuscriptCompletion.contribute !== kJatsSubarticle) {
+            renderedFiles.unshift(renderedFile);
+          }
         } else {
           renderedFiles.unshift(renderedFile);
         }
-
         manuscriptCompletion = renderCompletions.shift();
       }
     },
