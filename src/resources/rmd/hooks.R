@@ -414,7 +414,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       )
 
       # If requested, preserve the code yaml and emit it into the code blocks
-      if (is_ipynb_output(format$pandoc$to) && isTRUE(format$render$`produce-source-notebook`)) {
+      if (isTRUE(format$render$`produce-source-notebook`)) {
         yamlCode <- lastYamlCode
         if (!is.null(yamlCode)) {
           yamlCode <- paste(yamlCode, collapse = "\n")
