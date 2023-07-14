@@ -71,20 +71,15 @@ function combineFilters(filters)
 end
 
 function inlinesToString(inlines)
-  local pt = pandoc.utils.type(inlines)
-  if pt ~= "Inlines" then
-    fail("inlinesToString: expected Inlines, got " .. pt)
-    return ""
-  end
   return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then
-    return pandoc.Inlines({pandoc.Str(str)})
+    return pandoc.List({pandoc.Str(str)})
   else
-    return pandoc.Inlines({})
+    return pandoc.List({})
   end
 end
 
