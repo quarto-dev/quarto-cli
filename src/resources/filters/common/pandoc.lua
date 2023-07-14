@@ -210,3 +210,14 @@ function string_to_quarto_ast_blocks(text)
   local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
   return after_parsing.blocks
 end
+
+function string_to_quarto_ast_inlines(text)
+  local blocks = string_to_quarto_ast_blocks(text)
+  if #blocks ~= 1 then
+    fail("Expected a single block, got " .. #blocks)
+  end
+  if blocks[1].t ~= "Para" and blocks[1].t ~= "Plain" then
+    fail("Expected a Para or Plain block, got " .. blocks[1].t)
+  end
+  return blocks[1].content
+end

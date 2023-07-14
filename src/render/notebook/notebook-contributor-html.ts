@@ -41,15 +41,18 @@ import { error } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
 import { isQmdFile } from "../../execute/qmd.ts";
 import { dirAndStem } from "../../core/path.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { existsSync } from "fs/mod.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
   render: renderHtmlNotebook,
   outputFile,
+  cachedPath,
 };
 
 export function outputFile(
@@ -57,6 +60,19 @@ export function outputFile(
 ): string {
   const [_dir, stem] = dirAndStem(basename(nbAbsPath));
   return `${stem}-preview.html`;
+}
+
+function cachedPath(nbAbsPath: string, project?: ProjectContext) {
+  if (project) {
+    const nbRelative = relative(project.dir, dirname(nbAbsPath));
+    const nbOutputDir = join(projectOutputDir(project), nbRelative);
+
+    const outFile = outputFile(nbAbsPath);
+    const outPath = join(nbOutputDir, outFile);
+    if (existsSync(outPath)) {
+      return outPath;
+    }
+  }
 }
 
 function resolveHtmlNotebook(

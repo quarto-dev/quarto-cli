@@ -25,6 +25,7 @@ import {
   kClearHiddenClasses,
   kEcho,
   kFormatLinks,
+  kIpynbProduceSourceNotebook,
   kKeepHidden,
   kLanguageDefaults,
   kManuscriptMecaBundle,
@@ -71,6 +72,7 @@ import { readLines } from "io/mod.ts";
 import { isOutputFile } from "../../../command/render/output.ts";
 import {
   computeProjectArticleFile,
+  isArticle,
   isArticleManuscript,
 } from "./manuscript-config.ts";
 import { InternalError } from "../../../core/lib/error.ts";
@@ -87,6 +89,7 @@ import { outputFile } from "../../../render/notebook/notebook-contributor-html.t
 import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
+import { isQmdFile } from "../../../execute/qmd.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -394,6 +397,10 @@ export const manuscriptProjectType: ProjectType = {
       format.execute.echo = false;
       format.execute.warning = false;
       format.render[kKeepHidden] = true;
+
+      if (!isArticle(source, project, manuscriptConfig) && isQmdFile(source)) {
+        format.render[kIpynbProduceSourceNotebook] = true;
+      }
 
       if (userEcho === true) {
         clearVal.push("code");

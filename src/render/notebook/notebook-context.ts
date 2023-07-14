@@ -16,18 +16,17 @@ import {
   NotebookContext,
   NotebookContributor,
   NotebookMetadata,
+  NotebookOutput,
   NotebookRenderResult,
   RenderType,
 } from "./notebook-types.ts";
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 import { jatsContributor } from "./notebook-contributor-jats.ts";
 import { htmlNotebookContributor } from "./notebook-contributor-html.ts";
 import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
 import { Format } from "../../config/types.ts";
 import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
-import { relative } from "path/mod.ts";
-import { projectOutputDir } from "../../project/project-shared.ts";
 import { qmdNotebookContributor } from "./notebook-contributor-qmd.ts";
 import { debug } from "log/mod.ts";
 
@@ -58,18 +57,31 @@ export function notebookContext(): NotebookContext {
     nbAbsPath: string,
     renderType: RenderType,
     result: NotebookRenderResult,
+    context?: ProjectContext,
+    cached?: boolean,
   ) => {
     debug(`[NotebookContext]: Add Rendering (${renderType}):${nbAbsPath}`);
-    const absPath = join(dirname(nbAbsPath), basename(result.file));
-    const output = {
+
+    const hrefPath = join(dirname(nbAbsPath), basename(result.file));
+    const absPath = isAbsolute(result.file) ? result.file : hrefPath;
+    const output: NotebookOutput = {
       path: absPath,
+      hrefPath,
       supporting: result.supporting || [],
       resourceFiles: result.resourceFiles,
+      cached,
     };
 
     const nb: Notebook = notebooks[nbAbsPath] || emptyNotebook(nbAbsPath);
     nb[renderType] = output;
     notebooks[nbAbsPath] = nb;
+
+    if (context) {
+      const contrib = contributor(renderType);
+      if (contrib.cache) {
+        contrib.cache(output, context);
+      }
+    }
   };
 
   // Removes a rendering of a notebook from the notebook context
@@ -134,28 +146,46 @@ export function notebookContext(): NotebookContext {
   function reviveOutput(
     nbAbsPath: string,
     renderType: RenderType,
-    nbOutputDir: string,
+    context?: ProjectContext,
   ) {
     debug(`[NotebookContext]: Reviving Rendering (${renderType}):${nbAbsPath}`);
     const contrib = contributor(renderType);
-    const outFile = contrib.outputFile(nbAbsPath);
-    const outPath = join(nbOutputDir, outFile);
-    if (safeExistsSync(outPath)) {
-      const inputTime = Deno.statSync(nbAbsPath).mtime?.valueOf() || 0;
-      const outputTime = Deno.statSync(outPath).mtime?.valueOf() || 0;
-      if (inputTime <= outputTime) {
-        debug(
-          `[NotebookContext]: Revived Rendering (${renderType}):${nbAbsPath}`,
-        );
-        addRendering(nbAbsPath, renderType, {
-          file: outPath,
-          supporting: [],
-          resourceFiles: {
-            globs: [],
-            files: [],
-          },
-        });
+
+    if (contrib.cachedPath) {
+      const existingPath = contrib.cachedPath(nbAbsPath, context);
+      if (existingPath) {
+        if (safeExistsSync(existingPath)) {
+          const inputTime = Deno.statSync(nbAbsPath).mtime?.valueOf() || 0;
+          const outputTime = Deno.statSync(existingPath).mtime?.valueOf() || 0;
+          if (inputTime <= outputTime) {
+            debug(
+              `[NotebookContext]: Revived Rendering (${renderType}):${nbAbsPath}`,
+            );
+            addRendering(
+              nbAbsPath,
+              renderType,
+              {
+                file: existingPath,
+                supporting: [],
+                resourceFiles: {
+                  globs: [],
+                  files: [],
+                },
+              },
+              undefined,
+              true,
+            );
+          }
+        }
       }
+    }
+  }
+
+  function preserve(nbAbsPath: string, renderType: RenderType) {
+    debug(`[NotebookContext]: Preserving (${renderType}):${nbAbsPath}`);
+    preserveNotebooks[nbAbsPath] = preserveNotebooks[nbAbsPath] || [];
+    if (!preserveNotebooks[nbAbsPath].includes(renderType)) {
+      preserveNotebooks[nbAbsPath].push(renderType);
     }
   }
 
@@ -182,18 +212,16 @@ export function notebookContext(): NotebookContext {
         reviveRenders.push(kHtmlPreview);
         reviveRenders.push(kJatsSubarticle);
         reviveRenders.push(kRenderedIPynb);
+        reviveRenders.push(kQmdIPynb);
       }
 
       if (context) {
-        const nbRelative = relative(context.dir, dirname(nbAbsPath));
-        const nbOutputDir = join(projectOutputDir(context), nbRelative);
-
         // See if an up to date rendered result exists for each contributor
         // TODO: consider doing this check only when a render type is requested
         // or at some other time to reduce the frequency (currently revive is being
         // attempted anytime a notebook `get` is called)
         for (const renderType of reviveRenders) {
-          reviveOutput(nbAbsPath, renderType, nbOutputDir);
+          reviveOutput(nbAbsPath, renderType, context);
         }
       }
       return notebooks[nbAbsPath];
@@ -253,7 +281,7 @@ export function notebookContext(): NotebookContext {
         project,
       );
 
-      addRendering(nbAbsPath, renderType, renderedFile);
+      addRendering(nbAbsPath, renderType, renderedFile, project);
       if (!notebooks[nbAbsPath][renderType]) {
         throw new InternalError(
           "We just rendered and contributed a notebook, but it isn't present in the notebook context.",
@@ -261,13 +289,7 @@ export function notebookContext(): NotebookContext {
       }
       return notebooks[nbAbsPath][renderType]!;
     },
-    preserve: (nbAbsPath: string, renderType: RenderType) => {
-      debug(`[NotebookContext]: Preserving (${renderType}):${nbAbsPath}`);
-      preserveNotebooks[nbAbsPath] = preserveNotebooks[nbAbsPath] || [];
-      if (!preserveNotebooks[nbAbsPath].includes(renderType)) {
-        preserveNotebooks[nbAbsPath].push(renderType);
-      }
-    },
+    preserve,
     cleanup: () => {
       debug(`[NotebookContext]: Starting Cleanup`);
       const hasNotebooks = Object.keys(notebooks).length > 0;
@@ -282,7 +304,7 @@ export function notebookContext(): NotebookContext {
               !preserveNotebooks[notebook.source].includes(renderType)
             ) {
               const notebookOutput = notebook[renderType];
-              if (notebookOutput) {
+              if (notebookOutput && notebookOutput.cached !== true) {
                 debug(
                   `[NotebookContext]: Cleanup (${renderType}):${notebook.source}`,
                 );
