@@ -251,20 +251,83 @@ end, function(float)
   return float_crossref_render_html_figure(float)
 end)
 
+_quarto.ast.add_renderer("FloatCrossref", function(_)
+  return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
+end, function(float)
+  -- docx format requires us to annotate the caption prefix explicitly
+  prepare_caption(float)
+
+  -- options
+  local options = {
+    pageWidth = wpPageWidth(),
+  }
+
+  -- determine divCaption handler (always left-align)
+  local divCaption = nil
+  if _quarto.format.isDocxOutput() then
+    divCaption = docxDivCaption
+  elseif _quarto.format.isOdtOutput() then
+    divCaption = odtDivCaption
+  else
+    internal_error()
+    return
+  end
+
+  options.divCaption = function(el, align) return divCaption(el, "left") end
+
+  -- get alignment
+  local align = align_attribute(float)
+  
+  -- create the row/cell for the figure
+  local row = pandoc.List()
+  local cell = pandoc.Div({})
+  cell.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+  cell.content = float.content.content
+
+  transfer_float_image_width_to_cell(float, cell)
+  row:insert(cell)
+
+  -- handle caption
+  local new_caption = options.divCaption(float.caption_long, align)
+  cell.content:insert(new_caption)
+
+  -- content fixups for docx, based on old docx.lua code
+  cell = _quarto.ast.walk(cell, {
+    Image = function(image)
+      if options.pageWidth then
+        local layoutPercent = horizontalLayoutPercent(cell)
+        if layoutPercent then
+          local inches = (layoutPercent/100) * options.pageWidth
+          image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+          return image
+        end
+      end
+    end,
+    Table = function(tbl)
+      if align == "center" then
+        -- force widths to occupy 100%
+        layoutEnsureFullTableWidth(tbl)
+        return tbl
+      end
+    end
+  }) or pandoc.Div({}) -- not necessary but the lua analyzer doesn't know that
+
+  -- make the table
+  local figureTable = pandoc.SimpleTable(
+    pandoc.List(), -- caption
+    { layoutTableAlign(align) },  
+    {   1   },         -- full width
+    pandoc.List(), -- no headers
+    { row }            -- figure
+  )
+  
+  -- return it
+  return pandoc.utils.from_simple_table(figureTable)
+end)
+
 local figcaption_uuid = "0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"
 
 local function create_figcaption(float)
-  -- local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
-  -- local class = "figure-caption"
-  -- if float.parent_id then
-  --   class = "subfigure-caption"
-  -- end
-  -- return quarto.HtmlTag({
-  --   name = "figcaption",
-  --   attr = pandoc.Attr(caption_id, {class}, {}),
-  --   content = float.caption_long,
-  -- }), caption_id
-  -- 
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
@@ -331,9 +394,7 @@ function float_crossref_render_html_figure(float)
   local ref = refType(float.identifier)
   local figure_class = "quarto-float-" .. ref
 
-  -- This is relatively ugly, and another instance
-  -- of the impedance mismatch we have in the custom AST
-  -- API. Notice that we need to insert the figure_div value
+  -- Notice that we need to insert the figure_div value
   -- into the div, but we need to use figure_tbl
   -- to manipulate the contents of the custom node. 
   --
@@ -341,6 +402,10 @@ function float_crossref_render_html_figure(float)
   -- be inserted into pandoc divs), but figure_tbl is
   -- the lua table with the metatable required to marshal
   -- the inner contents of the custom node.
+  --
+  -- This is relatively ugly, and another instance
+  -- of the impedance mismatch we have in the custom AST
+  -- API. 
   -- 
   -- it's possible that the better API is for custom constructors
   -- to always return a Lua object and then have a separate
@@ -349,22 +414,6 @@ function float_crossref_render_html_figure(float)
     name = "figure",
     attr = pandoc.Attr("", {figure_class}, {}),
   })
-
-  -- FIXME I DON'T KNOW WHY THIS CODE WAS HERE :(
-  --
-  -- float_content = _quarto.ast.walk(float_content, {
-  --   Div = function(div)
-  --     if caption_content ~= nil and div.classes:includes("cell-output-display") then
-  --       if caption_location == 'top' then
-  --         div.content:insert(1, caption_content)
-  --       else
-  --         div.content:insert(caption_content)
-  --       end
-  --       caption_content = nil
-  --     end
-  --     return div
-  --   end
-  -- }) or pandoc.Div({}) -- this should never happen but the lua analyzer doesn't know it
   
   figure_tbl.content.content:insert(float_content)
   if caption_content ~= nil then
