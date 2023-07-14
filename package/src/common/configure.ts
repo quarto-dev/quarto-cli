@@ -52,8 +52,11 @@ export async function configure(
   }
 
   // Move the quarto script into place
-  info("Creating Quarto script");
+  info("Placing Quarto script");
   copyQuartoScript(config, config.directoryInfo.bin);
+
+  info("Placing Pandoc script");
+  copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
 
   // record dev config. These are versions as defined in the root configuration file.
   const devConfig = createDevConfig(
@@ -145,6 +148,26 @@ export function copyQuartoScript(config: Configuration, targetDir: string) {
     const out = join(targetDir, "quarto");
     Deno.copyFileSync(
       join(config.directoryInfo.pkg, "scripts", "common", "quarto"),
+      out,
+    );
+    Deno.chmodSync(out, 0o755);
+  }
+}
+
+export function copyPandocScript(config: Configuration, targetDir: string) {
+  const out = join(targetDir, "pandoc");
+
+  // Move the quarto script into place
+  if (config.os === "darwin") {
+    Deno.copyFileSync(
+      join(config.directoryInfo.pkg, "scripts", "macos", "pandoc"),
+      out,
+    );
+    Deno.chmodSync(out, 0o755);
+
+  } else if (config.os === "linux") {
+    Deno.copyFileSync(
+      join(config.directoryInfo.pkg, "scripts", "linux", "pandoc"),
       out,
     );
     Deno.chmodSync(out, 0o755);

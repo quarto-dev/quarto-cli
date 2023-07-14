@@ -7,7 +7,6 @@
 import { info } from "log/mod.ts";
 import {
   Checkbox,
-  Confirm,
   prompt,
   Select,
   SelectOption,

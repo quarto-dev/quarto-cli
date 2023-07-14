@@ -136,7 +136,7 @@ export function notebookContext(): NotebookContext {
     renderType: RenderType,
     nbOutputDir: string,
   ) {
-    debug(`[NotebookContext]: Revived Rendering (${renderType}):${nbAbsPath}`);
+    debug(`[NotebookContext]: Reviving Rendering (${renderType}):${nbAbsPath}`);
     const contrib = contributor(renderType);
     const outFile = contrib.outputFile(nbAbsPath);
     const outPath = join(nbOutputDir, outFile);
@@ -144,6 +144,9 @@ export function notebookContext(): NotebookContext {
       const inputTime = Deno.statSync(nbAbsPath).mtime?.valueOf() || 0;
       const outputTime = Deno.statSync(outPath).mtime?.valueOf() || 0;
       if (inputTime <= outputTime) {
+        debug(
+          `[NotebookContext]: Revived Rendering (${renderType}):${nbAbsPath}`,
+        );
         addRendering(nbAbsPath, renderType, {
           file: outPath,
           supporting: [],
@@ -186,6 +189,9 @@ export function notebookContext(): NotebookContext {
         const nbOutputDir = join(projectOutputDir(context), nbRelative);
 
         // See if an up to date rendered result exists for each contributor
+        // TODO: consider doing this check only when a render type is requested
+        // or at some other time to reduce the frequency (currently revive is being
+        // attempted anytime a notebook `get` is called)
         for (const renderType of reviveRenders) {
           reviveOutput(nbAbsPath, renderType, nbOutputDir);
         }

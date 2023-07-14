@@ -38,13 +38,13 @@ import {
   RenderType,
 } from "../../../render/notebook/notebook-types.ts";
 
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
 import { kNotebookViewStyle, kOutputFile } from "../../../config/constants.ts";
 import { dirAndStem } from "../../../core/path.ts";
-import { basename } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 import { readBaseInputIndex } from "../../project-index.ts";
+import { outputFile } from "../../../render/notebook/notebook-contributor-ipynb.ts";
 
 interface ManuscriptCompletion {
   completion: PandocRenderCompletion;
@@ -111,7 +111,7 @@ export const manuscriptRenderer = (
           executedFile,
         );
         const [_dir, stem] = dirAndStem(input);
-        downloadHref = `${stem}.out.ipynb`;
+        downloadHref = outputFile(input);
         result.push({
           completion: await renderPandoc(ipynbExecutedFile, true),
           cleanup: !isArticle,

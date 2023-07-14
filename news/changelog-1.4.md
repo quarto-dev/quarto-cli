@@ -71,6 +71,10 @@
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 
+## Jupyter
+
+- Support for executing inline expressions (e.g. `` `{python} x` ``)
+
 ## Dependencies
 
 - Update to Pandoc 3.1.5

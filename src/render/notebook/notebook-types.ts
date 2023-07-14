@@ -6,7 +6,6 @@
 
 import {
   ExecutedFile,
-  RenderedFile,
   RenderResourceFiles,
   RenderServices,
 } from "../../command/render/types.ts";

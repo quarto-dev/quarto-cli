@@ -21,7 +21,7 @@ const ipynbSingleOutputs = [
   "data/lapalma_ign.csv",
   "images/la-palma-map.png",
   "images/reservoirs.png",
-  "article.ipynb.html",
+  "article-preview.html",
   "article.out.ipynb",
 ];
 testManuscriptRender(
@@ -40,13 +40,13 @@ const ipynbFullOutputs = [
   "images/reservoirs.png",
   "images/stations.png",
   "notebooks/data-screening.ipynb",
-  "notebooks/data-screening.ipynb.html",
+  "notebooks/data-screening-preview.html",
   "notebooks/data-screening.out.ipynb",
   "notebooks/seismic-monitoring-stations.out.ipynb",
   "notebooks/seismic-monitoring-stations.qmd",
-  "notebooks/seismic-monitoring-stations.qmd.html",
+  "notebooks/seismic-monitoring-stations-preview.html",
   "notebooks/visualization-figure-creation-seaborn.ipynb",
-  "notebooks/visualization-figure-creation-seaborn.ipynb.html",
+  "notebooks/visualization-figure-creation-seaborn-preview.html",
   "notebooks/visualization-figure-creation-seaborn.out.ipynb",
 ];
 testManuscriptRender(
@@ -61,7 +61,7 @@ const qmdSingleOutputs = [
   "index-meca.zip",
   "images/la-palma-map.png",
   "images/reservoirs.png",
-  "index.qmd.html",
+  "index-preview.html",
   "index.out.ipynb",
 ];
 
@@ -79,7 +79,7 @@ const qmdFullOutputs = [
   "images/reservoirs.png",
   "notebook.qmd",
   "notebook.out.ipynb",
-  "notebook.qmd.html",
+  "notebook-preview.html",
 ];
 testManuscriptRender(
   qmdFullArticle,

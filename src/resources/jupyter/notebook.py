@@ -184,8 +184,9 @@ def notebook_execute(options, status):
       cell = cell_clear_output(cell)
 
       # execute cell
+      trace("Executing cell {0}".format(index))
+      
       if cell.cell_type == 'code':
-         trace("Executing cell {0}".format(index))
          cell = cell_execute(
             client, 
             cell, 
@@ -195,8 +196,11 @@ def notebook_execute(options, status):
             index > 0 # add_to_history
          )
          cell.execution_count = current_code_cell
-         trace("Executed cell {0}".format(index))
+      elif cell.cell_type == 'markdown':
+         cell = cell_execute_inline(client, cell)
 
+      trace("Executed cell {0}".format(index))
+        
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
          kernel_deps = nb_kernel_depenencies(cell)
@@ -407,6 +411,66 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
    # return cell
    return cell
    
+def cell_execute_inline(client, cell):
+   
+   # helper to raise an error from a result
+   def raise_error(result):
+      ename = result.get('ename')
+      evalue = result.get('evalue')
+      raise Exception(f'{ename}: {evalue}')
+
+   # helper to clear existing user_expressions if they exist
+   def clear_user_expressions():
+      if "metadata" in cell:
+         metadata = cell.get("metadata")
+         if "user_expressions" in metadata:
+            del metadata["user_expressions"]
+   
+   # find expressions in source
+   language = client.nb.metadata.kernelspec.language
+   source = ''.join(cell.source)
+   expressions = re.findall(
+      fr'(?:^|[^`])`{{{language}}}[ \t]([^`]+)`',
+      source, 
+      re.MULTILINE
+   )
+   if len(expressions):
+      # send and wait for 'execute' kernel message w/ user_expressions
+      kc = client.kc
+      user_expressions = dict()
+      for idx, expr in enumerate(expressions):
+         user_expressions[str(idx).strip()] = expr 
+      msg_id = kc.execute('', user_expressions = user_expressions)
+      reply = client.wait_for_reply(msg_id)
+
+      # process reply
+      content = reply.get('content')
+      if content.get('status') == 'ok': 
+         # build results (check for error on each one)
+         results = []
+         for key in user_expressions:
+            result = content.get('user_expressions').get(key)
+            if result.get('status') == 'ok':
+               results.append({
+                  'expression' : user_expressions.get(key),
+                  'result': result
+               }) 
+            elif result.get('status') == 'error':
+               raise_error(result)  
+
+         # set results into metadata
+         if not "metadata" in cell:
+            cell["metadata"] = {}
+         cell["metadata"]["user_expressions"] = results
+         
+      elif content.get('status') == 'error':
+         raise_error(content)
+   else:
+      clear_user_expressions()
+
+   # return cell
+   return cell
+
 
 def cell_clear_output(cell):
    remove_metadata = ['collapsed', 'scrolled']

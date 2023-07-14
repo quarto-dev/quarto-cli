@@ -50,6 +50,7 @@ export const notebookPreviewer = (
 ) => {
   const isBook = projectIsBook(project);
   const previewQueue: NotebookPreviewTask[] = [];
+  const outputDir = project?.config?.project["output-dir"];
 
   const nbDescriptors: Record<string, NotebookPreviewDescriptor> = {};
   if (nbView) {
@@ -153,7 +154,7 @@ export const notebookPreviewer = (
               },
               project,
             );
-            if (renderedIpynb && !project) {
+            if (renderedIpynb && (!project || !outputDir)) {
               nbContext.preserve(nbAbsPath, kRenderedIPynb);
             }
           }
@@ -193,7 +194,7 @@ export const notebookPreviewer = (
               },
               project,
             );
-            if (htmlPreview && !project) {
+            if (htmlPreview && (!project || !outputDir)) {
               nbContext.preserve(nbAbsPath, kHtmlPreview);
             }
           }

@@ -57,7 +57,6 @@ import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
 import {
   kQmdIPynb,
-  kRenderedIPynb,
   NotebookMetadata,
 } from "../../render/notebook/notebook-types.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -316,6 +315,7 @@ export async function replaceNotebookPlaceholders(
       const nbMarkdown = await notebookMarkdown(
         inputPath,
         nbAddress,
+        nbAbsPath,
         assets,
         context,
         flags,
@@ -347,6 +347,14 @@ export async function replaceNotebookPlaceholders(
 }
 
 function resolveNbPath(input: string, path: string, context?: ProjectContext) {
+  // If this is a project, absolute means project relative
+  if (context) {
+    const projectMatch = path.match(/^[\\/](.*)/);
+    if (projectMatch) {
+      return join(context.dir, projectMatch[1]);
+    }
+  }
+
   if (isAbsolute(path)) {
     return path;
   } else {
@@ -363,6 +371,7 @@ function resolveNbPath(input: string, path: string, context?: ProjectContext) {
 export async function notebookMarkdown(
   inputPath: string,
   nbAddress: JupyterNotebookAddress,
+  nbAbsPath: string,
   assets: JupyterAssets,
   context: RenderContext,
   flags: RenderFlags,
@@ -388,14 +397,14 @@ export async function notebookMarkdown(
   // Wrap any injected cells with a div that includes a back link to
   // the notebook that originated the cells
   const notebookMarkdown = (
-    nbAddress: JupyterNotebookAddress,
+    nbAbsPath: string,
     cells: JupyterCellOutput[],
     title?: string,
   ) => {
     const cellId = cells.length > 0 ? cells[0].id || "" : "";
     const markdown = [
       "",
-      `:::{.quarto-embed-nb-cell notebook="${nbAddress.path}" ${
+      `:::{.quarto-embed-nb-cell notebook="${nbAbsPath}" ${
         title ? `notebook-title="${title}"` : ""
       } notebook-cellId="${cellId}"}`,
     ];
@@ -426,7 +435,7 @@ export async function notebookMarkdown(
         return cell;
       }
     });
-    return notebookMarkdown(nbAddress, theCells, notebookInfo.title);
+    return notebookMarkdown(nbAbsPath, theCells, notebookInfo.title);
   } else if (nbAddress.indexes) {
     // Filter and sort based upon cell indexes
     const theCells = nbAddress.indexes.map((idx) => {
@@ -444,12 +453,12 @@ export async function notebookMarkdown(
         return cell;
       }
     });
-    return notebookMarkdown(nbAddress, theCells, notebookInfo.title);
+    return notebookMarkdown(nbAbsPath, theCells, notebookInfo.title);
   } else {
     // Return all the cell outputs as there is no addtional
     // specification of cells
     const notebookMd = notebookMarkdown(
-      nbAddress,
+      nbAbsPath,
       notebookInfo.outputs,
       notebookInfo.title,
     );
