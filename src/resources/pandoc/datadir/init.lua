@@ -2058,7 +2058,9 @@ quarto = {
    resolve_path = resolvePathExt,
    resolve_path_relative_to_document = resolvePath,
    as_inlines = utils.as_inlines,
-   as_blocks = utils.as_blocks
+   as_blocks = utils.as_blocks,
+   string_to_blocks = string_to_quarto_ast_blocks,
+   string_to_inlines = string_to_quarto_ast_inlines,
   },
   json = json,
   base64 = base64,
