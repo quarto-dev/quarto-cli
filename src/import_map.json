@@ -44,6 +44,9 @@
     "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0",
     "js-yaml": "https://cdn.skypack.dev/js-yaml@4.1.0",
 
+    "slimdom": "https://cdn.skypack.dev/slimdom@4.2.0",
+    "fontoxpath": "https://cdn.skypack.dev/fontoxpath@3.29.1",
+
     "https://deno.land/std@0.161.0/": "https://deno.land/std@0.185.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.185.0/",
     "https://deno.land/std@0.105.0/": "https://deno.land/std@0.185.0/",

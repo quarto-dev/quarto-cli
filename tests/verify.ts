@@ -7,7 +7,9 @@
 import { existsSync } from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { dirname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
+import { parseXmlDocument } from "slimdom";
+import { evaluateXPath } from "fontoxpath";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -220,12 +222,12 @@ export const ensureFileRegexMatches = (
   };
 };
 
-export const ensureDocxRegexMatches = (
-  file: string,
-  regexes: (string | RegExp)[],
-): Verify => {
-  return {
-    name: "Inspecting Docx for Regex matches",
+export const verifyDocXDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Docx",
     verify: async (_output: ExecuteOutput[]) => {
       const [_dir, stem] = dirAndStem(file);
       const temp = await Deno.makeTempDir();
@@ -238,21 +240,88 @@ export const ensureDocxRegexMatches = (
         // Open the core xml document and match the matches
         const docXml = join(temp, "word", "document.xml");
         const xml = await Deno.readTextFile(docXml);
-        regexes.forEach((regex) => {
-          if (typeof regex === "string") {
-            regex = new RegExp(regex);
-          }
-          assert(
-            regex.test(xml),
-            `Required DocX Element ${String(regex)} is missing.`,
-          );
-        });
+        await callback(xml);
       } finally {
         await Deno.remove(temp, { recursive: true });
       }
     },
-  };
+  });
 };
+
+export const ensureDocxXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyDocXDocument((xmlText) => {
+    const xmlDoc = parseXmlDocument(xmlText);
+    for (const selector of selectors) {
+      assert(
+        evaluateXPath(selector, xmlDoc) !== null,
+        `Required XPath selector ${selector} returned null.`,
+      );
+    }
+    for (const falseSelector of noMatchSelectors ?? []) {
+      assert(
+        evaluateXPath(falseSelector, xmlDoc) === null,
+        `Illegal XPath selector ${falseSelector} returned non-null.`,
+      );
+    }
+    return Promise.resolve();
+  }, "Inspecting Docx for XPath selectors")(file);
+};
+
+export const ensureDocxRegexMatches = (
+  file: string,
+  regexes: (string | RegExp)[],
+): Verify => {
+  return verifyDocXDocument((xml) => {
+    regexes.forEach((regex) => {
+      if (typeof regex === "string") {
+        regex = new RegExp(regex);
+      }
+      assert(
+        regex.test(xml),
+        `Required DocX Element ${String(regex)} is missing.`,
+      );
+    });
+    return Promise.resolve();
+  }, "Inspecting Docx for Regex matches")(file);
+};
+
+// export const ensureDocxRegexMatches = (
+//   file: string,
+//   regexes: (string | RegExp)[],
+// ): Verify => {
+//   return {
+//     name: "Inspecting Docx for Regex matches",
+//     verify: async (_output: ExecuteOutput[]) => {
+//       const [_dir, stem] = dirAndStem(file);
+//       const temp = await Deno.makeTempDir();
+//       try {
+//         // Move the docx to a temp dir and unzip it
+//         const zipFile = join(temp, stem + ".zip");
+//         await Deno.rename(file, zipFile);
+//         await unzip(zipFile);
+
+//         // Open the core xml document and match the matches
+//         const docXml = join(temp, "word", "document.xml");
+//         const xml = await Deno.readTextFile(docXml);
+//         regexes.forEach((regex) => {
+//           if (typeof regex === "string") {
+//             regex = new RegExp(regex);
+//           }
+//           assert(
+//             regex.test(xml),
+//             `Required DocX Element ${String(regex)} is missing.`,
+//           );
+//         });
+//       } finally {
+//         await Deno.remove(temp, { recursive: true });
+//       }
+//     },
+//   };
+// };
 
 export const ensurePptxRegexMatches = (
   file: string,
@@ -425,14 +494,13 @@ export const ensureMECAValidates = (
             assert(
               result.success,
               `Failed MECA Validation\n${result.stderr}`,
-            );  
+            );
           } else {
             console.log("meca not present, skipping MECA validation");
           }
         } else {
           console.log("npm not present, skipping MECA validation");
         }
-  
       }
     },
   };
