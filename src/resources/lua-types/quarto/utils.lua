@@ -21,3 +21,18 @@ not be visible to the user.
 ---@return string
 function quarto.utils.resolve_path(path) end
 
+--[[
+Converts a string to a list of Pandoc Inlines, processing any Quarto custom
+syntax in the string.
+]]
+---@param path string String to be converted
+---@return pandoc.Inlines
+function quarto.utils.string_to_inlines(path) end
+
+--[[
+Converts a string to a list of Pandoc Blocks, processing any Quarto custom
+syntax in the string.
+]]
+---@param path string String to be converted
+---@return pandoc.Blocks
+function quarto.utils.string_to_blocks(path) end

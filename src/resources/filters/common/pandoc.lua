@@ -10,7 +10,7 @@ end
 -- read attribute w/ default
 function attribute(el, name, default)
   -- FIXME: Doesn't attributes respond to __index?
-  for k,v in pairs(el.attr.attributes) do
+  for k,v in pairs(el.attributes) do
     if k == name then
       return v
     end
@@ -170,3 +170,25 @@ function compileTemplate(template, meta)
   end
 end
 
+local md_shortcode = require("lpegshortcode")
+
+-- FIXME pick a better name for this.
+function string_to_quarto_ast_blocks(text)
+  local after_shortcodes = md_shortcode.md_shortcode:match(text) or ""
+  local after_reading = pandoc.read(after_shortcodes, "markdown")
+  
+  -- FIXME we should run the whole normalization pipeline here
+  local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
+  return after_parsing.blocks
+end
+
+function string_to_quarto_ast_inlines(text)
+  local blocks = string_to_quarto_ast_blocks(text)
+  if #blocks ~= 1 then
+    fail("Expected a single block, got " .. #blocks)
+  end
+  if blocks[1].t ~= "Para" and blocks[1].t ~= "Plain" then
+    fail("Expected a Para or Plain block, got " .. blocks[1].t)
+  end
+  return blocks[1].content
+end

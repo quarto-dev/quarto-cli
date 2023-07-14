@@ -1293,7 +1293,6 @@ local json = require '_json'
 local utils = require '_utils'
 local logging = require 'logging'
 
-
 -- determines whether a path is a relative path
 local function isRelativeRef(ref)
   return ref:find("^/") == nil and 
@@ -1897,7 +1896,19 @@ _quarto = {
       exists = file_exists,
       remove = remove_file
    }
- } 
+}
+
+-- this injection here is ugly but gets around
+-- a hairy order-of-import issue that would otherwise happen
+-- because string_to_inlines requires some filter code that is only
+-- later imported
+
+_quarto.utils.string_to_inlines = function(s)
+   return string_to_quarto_ast_inlines(s)
+end 
+_quarto.utils.string_to_blocks = function(s)
+   return string_to_quarto_ast_blocks(s)
+end 
 
 -- The main exports of the quarto module
 quarto = {
@@ -2058,7 +2069,9 @@ quarto = {
    resolve_path = resolvePathExt,
    resolve_path_relative_to_document = resolvePath,
    as_inlines = utils.as_inlines,
-   as_blocks = utils.as_blocks
+   as_blocks = utils.as_blocks,
+   string_to_blocks = utils.string_to_blocks,
+   string_to_inlines = utils.string_to_inlines,
   },
   json = json,
   base64 = base64,
