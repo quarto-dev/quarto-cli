@@ -9,7 +9,7 @@ import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
 import { parseXmlDocument } from "slimdom";
-import { evaluateXPath } from "fontoxpath";
+import xpath from "fontoxpath";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -255,16 +255,27 @@ export const ensureDocxXpath = (
 ): Verify => {
   return verifyDocXDocument((xmlText) => {
     const xmlDoc = parseXmlDocument(xmlText);
+    console.log("FOO!!!");
     for (const selector of selectors) {
+      const xpathResult = xpath.evaluateXPath(selector, xmlDoc);
+      const isNonEmpty =
+        // either an object or a non-empty array
+        (typeof xpathResult === "object" && xpathResult !== null) ||
+        (Array.isArray(xpathResult) && xpathResult.length > 0);
       assert(
-        evaluateXPath(selector, xmlDoc) !== null,
-        `Required XPath selector ${selector} returned null.`,
+        isNonEmpty,
+        `Required XPath selector ${selector} returned empty array.`,
       );
     }
     for (const falseSelector of noMatchSelectors ?? []) {
+      const xpathResult = xpath.evaluateXPath(falseSelector, xmlDoc);
+      const isNonEmpty =
+        // either an object or a non-empty array
+        (typeof xpathResult === "object" && xpathResult !== null) ||
+        (Array.isArray(xpathResult) && xpathResult.length > 0);
       assert(
-        evaluateXPath(falseSelector, xmlDoc) === null,
-        `Illegal XPath selector ${falseSelector} returned non-null.`,
+        !isNonEmpty,
+        `Illegal XPath selector ${falseSelector} returned non-empty array.`,
       );
     }
     return Promise.resolve();

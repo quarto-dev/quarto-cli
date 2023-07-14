@@ -17,6 +17,7 @@ import { parse } from "yaml/mod.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
+  ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
   ensurePptxRegexMatches,
@@ -88,6 +89,7 @@ function resolveTestSpecs(
     ensureHtmlElements,
     ensureFileRegexMatches,
     ensureDocxRegexMatches,
+    ensureDocxXpath,
     ensurePptxRegexMatches,
   };
 
