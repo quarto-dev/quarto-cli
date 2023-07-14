@@ -40,10 +40,20 @@ export interface Notebook {
 }
 
 export interface NotebookOutput {
+  // The literal path to the notebook output
+  // This could be a file in the output directory, in a cache, or from anywhere really.
   path: string;
+  // The original input like path to the notebook output
+  // which should be used when forming input or project relative paths to be used
+  // for things like making links, or computing resources/supporting files
   hrefPath: string;
+
+  // The list of supporting files and resources
   supporting: string[];
   resourceFiles: RenderResourceFiles;
+
+  // A flag indicating whether this output was provided by a cache
+  // (in which case, it will not be cleaned up, for example)
   cached?: boolean;
 }
 
