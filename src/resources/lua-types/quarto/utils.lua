@@ -26,8 +26,9 @@ Converts a string to a list of Pandoc Inlines, processing any Quarto custom
 syntax in the string.
 ]]
 ---@param path string String to be converted
+---@param sep pandoc.Inline|nil separator to be used between parsed blocks (default is pandoc.LineBreak)
 ---@return pandoc.Inlines
-function quarto.utils.string_to_inlines(path) end
+function quarto.utils.string_to_inlines(path, sep) end
 
 --[[
 Converts a string to a list of Pandoc Blocks, processing any Quarto custom

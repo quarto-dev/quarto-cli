@@ -182,13 +182,6 @@ function string_to_quarto_ast_blocks(text)
   return after_parsing.blocks
 end
 
-function string_to_quarto_ast_inlines(text)
-  local blocks = string_to_quarto_ast_blocks(text)
-  if #blocks ~= 1 then
-    fail("Expected a single block, got " .. #blocks)
-  end
-  if blocks[1].t ~= "Para" and blocks[1].t ~= "Plain" then
-    fail("Expected a Para or Plain block, got " .. blocks[1].t)
-  end
-  return blocks[1].content
+function string_to_quarto_ast_inlines(text, sep)
+  return pandoc.utils.blocks_to_inlines(string_to_quarto_ast_blocks(text), sep)
 end
