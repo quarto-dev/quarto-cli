@@ -88,6 +88,7 @@ export function needsRecompilation(log: string) {
 }
 const explicitMatchers = [
   /(Rerun to get | Please \(re\)run | [rR]erun LaTeX\.)/, // explicitly request recompile
+  /^No file .*?.aux\.\s*$/gm, // missing aux file from a beamer run using lualatex #6226
 ];
 
 // Resolving matchers are matchers that may resolve later in the log
