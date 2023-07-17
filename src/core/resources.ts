@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { warning } from "log/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
@@ -84,11 +85,15 @@ export function pandocBinaryPath(): string {
 export async function rBinaryPath(binary: string): Promise<string> {
   // if there is a QUARTO_R environment variable then respect that
   const quartoR = Deno.env.get("QUARTO_R");
-  if (quartoR && existsSync(quartoR)) {
-    const rBinDir = Deno.statSync(quartoR).isDirectory
-      ? quartoR
-      : dirname(quartoR);
-    return join(rBinDir, binary);
+  if (quartoR) {
+    if (existsSync(quartoR)) {
+      const rBinDir = Deno.statSync(quartoR).isDirectory
+        ? quartoR
+        : dirname(quartoR);
+      return join(rBinDir, binary);
+    } else {
+      warning(`Specified QUARTO_R '${quartoR}' does not exist.`);
+    }
   }
 
   // if there is an R_HOME then respect that
