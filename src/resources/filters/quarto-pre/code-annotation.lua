@@ -55,8 +55,9 @@ local kLangCommentChars = {
   swift = { "//" },
   javascript = { "//"},
   elm = { "#" },
-  vhdl = { "--"}
-  
+  vhdl = { "--"},
+  html = { "<!--", "-->"},
+  markdown = {"<!--", "-->"}
 }
 
 local hasAnnotations = false
