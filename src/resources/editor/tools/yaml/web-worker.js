@@ -17370,7 +17370,8 @@ try {
               formats: [
                 "!man",
                 "!$docbook-all",
-                "!$jats-all"
+                "!$jats-all",
+                "!beamer"
               ]
             },
             schema: "number",
