@@ -134,3 +134,4 @@
 - ([#5902](https://github.com/quarto-dev/quarto-cli/issues/5902)): Support paired shortcode syntax.
 - ([#6013](https://github.com/quarto-dev/quarto-cli/issues/6013)): Don't error if citation is passed as a boolean value in metadata via flags
 - ([#6207](https://github.com/quarto-dev/quarto-cli/issues/6207)): When QUARTO_R is set to a non-existing path, a warning is now thrown like with QUARTO_PYTHON. Quarto still fallback to search a working R version.
+- ([#6244](https://github.com/quarto-dev/quarto-cli/issues/6244)): Code annotation now works for executable code cells using `echo: fenced`. Also it now supports HTML and Markdown code cells.
