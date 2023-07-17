@@ -11,7 +11,9 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kClearCellOptions,
   kClearHiddenClasses,
+  kIpynbProduceSourceNotebook,
   kIPynbTitleBlockTemplate,
   kKeepHidden,
   kOutputFile,
@@ -81,6 +83,12 @@ function resolveOutputNotebook(
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
+
+  // If this recipe is using a a source notebook, clear the cell options
+  // from the output when rendering
+  if (resolved.recipe.format.render[kIpynbProduceSourceNotebook]) {
+    resolved.recipe.format.render[kClearCellOptions] = true;
+  }
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;

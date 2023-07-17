@@ -3,62 +3,6 @@
 
 local constants = require("modules/constants")
 
--- for a given language, the comment character(s)
-local kLangCommentChars = {
-  r = {"#"},
-  python = {"#"},
-  julia = {"#"},
-  scala = {"//"},
-  matlab = {"%"},
-  csharp = {"//"},
-  fsharp = {"//"},
-  c = {"/*", "*/"},
-  css = {"/*", "*/"},
-  sas = {"*", ";"},
-  powershell = {"#"},
-  bash = {"#"},
-  sql = {"--"},
-  mysql = {"--"},
-  psql = {"--"},
-  lua = {"--"},
-  cpp = {"//"},
-  cc = {"//"},
-  stan = {"#"},
-  octave = {"#"},
-  fortran = {"!"},
-  fortran95 = {"!"},
-  awk = {"#"},
-  gawk = {"#"},
-  stata = {"*"},
-  java = {"//"},
-  groovy = {"//"},
-  sed = {"#"},
-  perl = {"#"},
-  ruby = {"#"},
-  tikz = {"%"},
-  js = {"//"},
-  d3 = {"//"},
-  node = {"//"},
-  sass = {"//"},
-  scss = {"//"},
-  coffee = {"#"},
-  go = {"//"},
-  asy = {"//"},
-  haskell = {"--"},
-  dot = {"//"},
-  mermaid = {"%%"},
-  apl = {"⍝"},
-  yaml = {"#"},
-  json = {"//"},
-  latex = {"%"},
-  typescript = {"//"},
-  swift = { "//" },
-  javascript = { "//"},
-  elm = { "#" },
-  vhdl = { "--"},
-  html = { "<!--", "-->"},
-  markdown = {"<!--", "-->"}
-}
 
 local hasAnnotations = false
 
@@ -76,7 +20,7 @@ end
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
 local function annoteProvider(lang) 
-  local commentChars = kLangCommentChars[lang]
+  local commentChars = constants.kLangCommentChars[lang]
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])

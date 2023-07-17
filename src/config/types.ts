@@ -19,6 +19,7 @@ import {
   kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
+  kClearCellOptions,
   kCodeFold,
   kCodeLine,
   kCodeLineNumbers,
@@ -449,6 +450,7 @@ export interface FormatRender {
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
   [kNotebookPreserveCells]?: boolean;
+  [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
 }
 
