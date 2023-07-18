@@ -2,6 +2,7 @@ import { expandGlobSync } from "https://deno.land/std/fs/expand_glob.ts";
 import { relative } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
+// Command line flags to use when calling `run-paralell-tests.sh`.
 const flags = parse(Deno.args, {
   boolean: ["json-for-ci", "verbose", "dry-run"],
   string: ["n", "timing-file"],
@@ -58,7 +59,9 @@ let dontUseDetailledSmokeAll = false;
 for (let i = 0; i < lines.length; i += 2) {
   const name = lines[i].trim();
   if (RegSmokeAllFile.test(name)) {
+    // Detailled smoke-all timed tests are found
     if (!detailedSmokeAll) {
+      // Detailled tests are not used so they are ignored.
       dontUseDetailledSmokeAll = true;
       continue;
     } else {
@@ -79,6 +82,7 @@ for (let i = 0; i < lines.length; i += 2) {
       }
     }
   } else {
+    // Regular smoke tests
     if (!currentTests.has(name)) {
       flags.verbose &&
         console.log(
@@ -142,7 +146,7 @@ for (const timing of testTimings) {
 }
 
 for (const currentTest of currentTests) {
-  // smoke-all.tests.ts is handled specificifally
+  // smoke-all.tests.ts is handled specifically
   if (
     currentTest.match(/smoke-all\.test\.ts/) &&
     (detailedSmokeAll || dontUseDetailledSmokeAll)
@@ -161,6 +165,7 @@ for (const currentTest of currentTests) {
 }
 
 flags.verbose && console.log(`Will run in ${nBuckets} cores`);
+// FIXME: Not sure this still applies after new smoke-all treatment
 if (!failed && flags.verbose) {
   console.log(
     `Expected speedup: ${
@@ -172,12 +177,14 @@ if (!failed && flags.verbose) {
   );
 }
 
+// DRY-RUN MODE
 if (flags["dry-run"]) {
   console.log(JSON.stringify(buckets, null, 2));
   Deno.exit(0);
 }
 
 if (flags["json-for-ci"]) {
+  // JSON for CI matrix (GHA MODE)
   flags.verbose && console.log("Buckets of tests to run in parallel");
   const bucketSimple = buckets.map((bucket) => {
     return bucket.map((tt) => {
@@ -190,6 +197,7 @@ if (flags["json-for-ci"]) {
   //flags.verbose && console.log(buckets.map((e) => e.length));
   console.log(JSON.stringify(bucketSimple, null, 2));
 } else {
+  // LOCAL EXECUTION ON CORES
   console.log("Running `run-test.sh` in parallel... ");
   Promise.all(buckets.map((bucket, i) => {
     const cmd: string[] = ["./run-tests.sh"];

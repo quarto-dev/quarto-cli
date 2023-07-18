@@ -62,6 +62,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
      # ignoring this file as this is not a test file to time
      continue
     fi
+    # For smoke-all.test.ts, each smoke-all document test needs to be timed.
     if [ "$i" == "$SMOKE_ALL_TEST_FILE" ]; then
       echo "> Timing smoke-all tests"
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -name "*.qmd" -o -name "*.ipynb"`
@@ -71,11 +72,12 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       done
       continue
     fi
+    # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
     /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
   done
 else
-  # RUN FOR RUNNING TESTS WITHOUT TIMING
+  # RUN WHEN NO TIMING (GENERIC CASE)
 
   ## Short version syntax to run smoke-all.test.ts
   ## Only use if different than ./run-test.sh ./smoke/smoke-all.test.ts
