@@ -537,7 +537,7 @@ export const manuscriptProjectType: ProjectType = {
       shouldMakeMecaBundle(
         outputFiles.map((file) => file.format),
         manuscriptConfig,
-      )
+      ) && outputFiles.length > 0
     ) {
       const language = outputFiles[0].format.language;
 
