@@ -10,7 +10,6 @@ import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 import { basename, join, relative } from "path/mod.ts";
 import {
   Format,
-  FormatDependency,
   FormatExtras,
   FormatLanguage,
   FormatLink,
@@ -92,7 +91,6 @@ import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
-import { projectResourceFiles } from "../../project-resources.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
