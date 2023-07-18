@@ -5,11 +5,13 @@ on:
   workflow_call:
     inputs:
       buckets:
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
         required: true
         type: string
   workflow_dispatch:
     inputs:
       buckets:
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
         required: false
         type: string
         default: ""
