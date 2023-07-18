@@ -220,6 +220,7 @@
     "https://deno.land/std@0.185.0/uuid/v1.ts": "fe36009afce7ced96e1b5928565e12c5a8eb0df1a2b5063c0a72bda6b75c0de5",
     "https://deno.land/std@0.185.0/uuid/v4.ts": "0f081880c156fd59b9e44e2f84ea0f94a3627e89c224eaf6cc982b53d849f37e",
     "https://deno.land/std@0.185.0/uuid/v5.ts": "a6b4da1235c6e554eafe812bdc7617b5e8666a86368fa729f11f1eca81a3a4d3",
+    "https://deno.land/std@0.185.0/version.ts": "93afd5db05c6a6f5854b5f42c815f6d37c4956a0a8ed06fa73f8ebf2313f000d",
     "https://deno.land/std@0.185.0/yaml/_dumper/dumper.ts": "a2c937a53a2b0473125a31a330334cc3f30e98fd82f8143bc225583d1260890b",
     "https://deno.land/std@0.185.0/yaml/_dumper/dumper_state.ts": "f0d0673ceea288334061ca34b63954c2bb5feb5bf6de5e4cfe9a942cdf6e5efe",
     "https://deno.land/std@0.185.0/yaml/_error.ts": "b59e2c76ce5a47b1b9fa0ff9f96c1dd92ea1e1b17ce4347ece5944a95c3c1a84",

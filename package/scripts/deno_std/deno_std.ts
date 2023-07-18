@@ -77,6 +77,7 @@ import * as semver from "https://deno.land/std@0.185.0/semver/mod.ts";
 import * as signal from "https://deno.land/std@0.185.0/signal/mod.ts";
 import * as streams from "https://deno.land/std@0.185.0/streams/mod.ts";
 import * as uuid from "https://deno.land/std@0.185.0/uuid/mod.ts";
+import * as version from "https://deno.land/std@0.185.0/version.ts";
 
 /*
 

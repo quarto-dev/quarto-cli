@@ -22,6 +22,7 @@
     "streams/": "https://deno.land/std@0.185.0/streams/",
     "testing/": "https://deno.land/std@0.185.0/testing/",
     "uuid/": "https://deno.land/std@0.185.0/uuid/",
+    "version": "https://deno.land/std@0.185.0/version.ts",
     "wasi/": "https://deno.land/std@0.185.0/wasi/",
     "events/": "https://deno.land/x/events@v1.0.0/",
     "cache/": "https://deno.land/x/cache@0.2.12/",
