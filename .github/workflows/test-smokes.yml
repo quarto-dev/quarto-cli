@@ -5,11 +5,13 @@ on:
   workflow_call:
     inputs:
       buckets:
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
         required: true
         type: string
   workflow_dispatch:
     inputs:
       buckets:
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
         required: false
         type: string
         default: ""
@@ -62,7 +64,7 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
-        
+
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
