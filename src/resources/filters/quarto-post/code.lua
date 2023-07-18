@@ -14,7 +14,7 @@ function removeCodeOptions()
   
       local commentChars = constants.kLangCommentChars[lang]
       if commentChars then
-        local pattern = '^' .. patternEscape(commentChars[1]) .. "|%s*%S+%s*:%s*%S+%s*" 
+        local pattern = '^' .. patternEscape(commentChars[1]) .. "|%s*%S+%s*:.+" 
         if #commentChars == 2 then
           pattern = pattern .. patternEscape(commentChars[2])
         end
