@@ -15,11 +15,11 @@
     </style>
 
     <style>
-      body.hypothesis-enabled .quarto-embed-header {
+      body.hypothesis-enabled #quarto-embed-header {
         padding-right: 36px;
       }
 
-      .quarto-embed-header {
+      #quarto-embed-header {
         height: 3em;
         width: 100%;
         display: flex;
@@ -28,7 +28,7 @@
         border-bottom: solid 1px;
       }
 
-      .quarto-embed-header h6 {
+      #quarto-embed-header h6 {
         font-size: 1.1em;
         padding-top: 0.6em;
         margin-left: 1em;
@@ -36,8 +36,8 @@
         font-weight: 400;
       }
 
-      .quarto-embed-header a.quarto-back-link,
-      .quarto-embed-header a.quarto-download-embed {
+      #quarto-embed-header a.quarto-back-link,
+      #quarto-embed-header a.quarto-download-embed {
         font-size: 0.8em;
         margin-top: 1em;
         margin-bottom: 1em;
@@ -49,7 +49,36 @@
         padding-left: 0.5em;
         display: flex;
       }
+
+      .headroom {
+          will-change: transform;
+          transition: transform 200ms linear;
+      }
+
+      .headroom--pinned {
+          transform: translateY(0%);
+      }
+
+      .headroom--unpinned {
+          transform: translateY(-100%);
+      }      
     </style>
+
+    <script>
+    window.document.addEventListener("DOMContentLoaded", function () {
+      var header = window.document.querySelector("#quarto-embed-header");
+      window.document.body.style.paddingTop = header.clientHeight + "px";
+
+      const headroom = new window.Headroom(header, {
+        tolerance: 5,
+        onPin: function () {
+        },
+        onUnpin: function () {
+        },
+      });
+      headroom.init();
+    });
+    </script>
 
     <!-- htmldependencies:E3FAD763 -->
     $for(header-includes)$ $header-includes$ $endfor$ $if(math)$ $math$ $endif$
@@ -59,8 +88,8 @@
   </head>
 
   <body>
-    <div class="quarto-embed-header">
-      $if(nbMeta.backHref)$<a href="$nbMeta.backHref$" class="btn btn-outline-secondary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>$endif$
+    <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
+      $if(nbMeta.backHref)$<a href="$nbMeta.backHref$" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>$endif$
       <h6><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
 
       $if(nbMeta.downloadHref)$

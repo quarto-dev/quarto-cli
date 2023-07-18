@@ -10,9 +10,11 @@ import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 import { basename, join, relative } from "path/mod.ts";
 import {
   Format,
+  FormatDependency,
   FormatExtras,
   FormatLanguage,
   FormatLink,
+  kDependencies,
   kHtmlPostprocessors,
   Metadata,
   NotebookPreviewDescriptor,
@@ -90,6 +92,7 @@ import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
+import { projectResourceFiles } from "../../project-resources.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -463,7 +466,13 @@ export const manuscriptProjectType: ProjectType = {
     extras.metadata = {};
 
     // Only do all this for the main article
-    if (isArticleManuscript(source, format, context, manuscriptConfig)) {
+    const isArticle = isArticleManuscript(
+      source,
+      format,
+      context,
+      manuscriptConfig,
+    );
+    if (isArticle) {
       // Add the github repo as a metadata link
       const ghContext = await gitHubContext(context.dir);
       if (ghContext) {
@@ -519,6 +528,19 @@ export const manuscriptProjectType: ProjectType = {
       await resolveProjectInputLinks(source, context, doc);
       return Promise.resolve(kHtmlEmptyPostProcessResult);
     }];
+
+    // If this is a notebook, include headroom
+    if (!isArticle) {
+      extras.html[kDependencies] = [{
+        name: "manuscript-notebook",
+        scripts: [
+          {
+            name: "headroom.min.js",
+            path: resourcePath(`projects/website/navigation/headroom.min.js`),
+          },
+        ],
+      }];
+    }
 
     return Promise.resolve(extras);
   },
