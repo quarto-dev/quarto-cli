@@ -15,13 +15,8 @@ on:
         required: false
         type: string
         default: ""
-#  pull_request:
-#    branches: [main]
-#  push:
-#    # only trigger on branches, not on tags
-#    branches: [main]
-#  schedule:
-#    - cron: "0 6 * * *"
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
