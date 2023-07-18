@@ -67,9 +67,6 @@ See [documentation](https://pkgdocs.julialang.org/v1/managing-packages/) on how 
 
 Tests are run using `run-tests.sh` on UNIX, and `run-tests.ps1` on Windows.
 
-Those files will run `configure-test-env` scripts to check for requirements and set up dependencies (except on Github Action as this is done in the workflow file directly).
-You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` environment variable to a non-empty value.
-
 ```bash
 # run all tests
 ./run-tests.sh
@@ -86,21 +83,37 @@ You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` e
 ./run-tests.ps1 smoke/extensions/extension-render-doc.test.ts
 ```
 
-- `docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts`. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file
+#### Prevent configuration for dependencies (R, Julia, Python, ...)
+
+Those files will run `configure-test-env` scripts to check for requirements and set up dependencies (except on Github Action as this is done in the workflow file directly).
+You can prevent test configuration locally by setting `QUARTO_TESTS_NO_CONFIG` environment variable to a non-empty value.
+
+```bash
+QUARTO_TESTS_NO_CONFIG="true" ./run-tests.sh
+```
+
+```powershell
+$env:QUARTO_TESTS_NO_CONFIG=$true
+./run-tests.ps1
+```
+
+#### About smoke-all tests
+
+`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file
 
 ```bash
 # run tests for all documents in docs/smoke-all/
 ./run-tests.sh smoke/smoke-all.tests.ts
 
 # run tests for some `.qmd` document in a specific place (using glob)
-./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2022/**/*.qmd
-# or using short version
 ./run-tests.sh docs/smoke-all/2022/**/*.qmd
+# or using longer version
+./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2022/**/*.qmd
 
 # run test for a specific document
-./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
-# or using short version
 ./run-tests.sh docs/smoke-all/2023/01/04/issue-3847.qmd
+# or using using longer version
+./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
 
 <details><summary> Examples of tests output after it ran </summary>
@@ -143,13 +156,15 @@ ok | 1 passed | 0 failed (1s)
 ./run-tests.ps1 smoke/smoke-all.tests.ts
 
 # run tests for some `.qmd` document in a specific place (using glob)
+./run-tests.ps1 docs/smoke-all/2022/**/*.qmd
+# Or using longer version
 ./run-tests.ps1 smoke/smoke-all.test.ts -- docs/smoke-all/2022/**/*.qmd
 
 # run test for a specific document
+./run-tests.ps1 docs/smoke-all/2023/01/04/issue-3847.qmd
+# Or using longer version
 ./run-tests.ps1 smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
 ```
-
-_`run-tests.ps1` does not have yet the short version feature to run `smoke-all` test documents._
 
 <details><summary> Examples of tests output after it ran </summary>
 
@@ -196,8 +211,14 @@ Example:
 "args": ["--", "tests/docs/smoke-all/2023/01/04/issue-3847.qmd"], // args to the script here, like in command line smoke/smoke-all.test.t -- .\docs\smoke-all\2023\01\19\2107.qmd
 ```
 
+_Short version can't be use here as we are calling `deno test` directly and not `run-tests.sh` script._
+
 ## Parallel testing
 
 **WIP**
 
 This lives in `run-parallel-tests.ts` and called through `run-parallel-tests.sh`.
+
+```
+
+```
