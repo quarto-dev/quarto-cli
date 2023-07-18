@@ -151,24 +151,33 @@ export const manuscriptProjectType: ProjectType = {
 
     // Go through project inputs and use any of these as notebooks
     const notebooks: Record<string, NotebookPreviewDescriptor> = {};
-    const inputNotebooks = inputs.files.map((input) => {
-      return relative(projectDir, input);
-    }).filter((file) => {
-      // Filter the article
-      if (file === article) {
-        return false;
-      }
 
-      // Filter output notebooks
-      if (isOutputFile(file, "ipynb")) {
-        return false;
-      }
-      return true;
-    });
-    if (inputNotebooks) {
-      resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+    const explicitNotebooks = manuscriptConfig[kNotebooks];
+    if (explicitNotebooks) {
+      resolveNotebookDescriptors(explicitNotebooks).forEach((nb) => {
         notebooks[nb.notebook] = nb;
       });
+    } else {
+      const inputNotebooks = inputs.files.map((input) => {
+        return relative(projectDir, input);
+      }).filter((file) => {
+        // Filter the article
+        if (file === article) {
+          return false;
+        }
+
+        // Filter output notebooks
+        if (isOutputFile(file, "ipynb")) {
+          return false;
+        }
+        return true;
+      });
+
+      if (inputNotebooks) {
+        resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+          notebooks[nb.notebook] = nb;
+        });
+      }
     }
 
     // Build the final render list, ensuring that the article is last in the list
