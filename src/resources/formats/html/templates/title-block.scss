@@ -165,6 +165,7 @@ main.quarto-banner-title-block > section:first-child > h4 {
     margin-bottom: 0.1em;
   }
 
+  .keywords,
   .description,
   .abstract {
     margin-top: 0;
@@ -176,7 +177,7 @@ main.quarto-banner-title-block > section:first-child > h4 {
       margin-bottom: 0;
     }
 
-    .abstract-title {
+    .block-title {
       margin-top: 1em;
       text-transform: uppercase;
       font-size: 0.8em;

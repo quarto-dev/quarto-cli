@@ -8,7 +8,7 @@ other-links-title: "Andre lenker"
 
 article-notebook-label: "Artikkelskrivebok"
 notebook-preview-download: "Last ned skrivebok"
-notebook-preview-download-src: " Last ned kildekode"
+notebook-preview-download-src: "Last ned kildekode"
 notebook-preview-back: "Tilbake til artikkelen"
 manuscript-meca-bundle: "MECA-arkiv"
 
@@ -29,6 +29,7 @@ title-block-affiliation-single: "Tilknytning"
 title-block-affiliation-plural: "Tilknytninger"
 title-block-published: "Utgitt"
 title-block-modified: "Endret"
+title-block-keywords: "Nøkkelord"
 
 callout-tip-title: "Tips"
 callout-note-title: "Note"

@@ -235,6 +235,7 @@ export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
 export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
+export const kTitleBlockKeywords = "title-block-keywords";
 export const kCodeSummary = "code-summary";
 export const kCodeLine = "code-line";
 export const kCodeLines = "code-lines";
@@ -348,6 +349,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kTitleBlockKeywords,
   kCodeSummary,
   kCodeLine,
   kCodeLines,
@@ -433,6 +435,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAffiliationPlural,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kTitleBlockKeywords,
   kNotebookPreviewDownload,
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
