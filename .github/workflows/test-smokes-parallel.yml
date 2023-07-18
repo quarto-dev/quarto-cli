@@ -9,6 +9,11 @@ on:
         required: true
         default: 10
         type: number
+  pull_request:
+    branches: [main]
+  push:
+    # only trigger on branches, not on tags
+    branches: [main]
 
 jobs:
   jobs-matrix:
@@ -27,7 +32,7 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "BUCKETS=$(./run-parallel-tests.sh -n=${{ inputs.nBuckets }} --json-for-ci --timing-file=timing-for-ci.txt | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
+          echo "BUCKETS=$(./run-parallel-tests.sh -n=${{ inputs.nBuckets || 20 }} --json-for-ci --timing-file=timing-for-ci.txt | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
         working-directory: tests
       - name: Read buckets
         run: |
