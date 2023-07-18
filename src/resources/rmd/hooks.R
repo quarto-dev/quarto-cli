@@ -173,10 +173,17 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # read some options
+    
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
     cell.cap <- NULL
     fig.subcap = options[["fig.subcap"]]
+
+    # If we're preserving cells, we need provide a cell id
+    cellId <- NULL
+    if (isTRUE(format$render$`notebook-preserve-cells`) && !is.null(label)) {
+      cellId <- paste0("cell-", label)
+    }
     
     # fixup duplicate figure labels
     placeholder <- output_label_placeholder(options)
@@ -322,6 +329,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
     } 
+
+    if (is.null(label) && !is.null(cellId)) {
+      label <- cellId
+    }
+
     if (!is.null(label)) {
       label <- paste0(label, " ")
     }
