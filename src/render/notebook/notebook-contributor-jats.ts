@@ -11,7 +11,9 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kClearCellOptions,
   kClearHiddenClasses,
+  kIpynbProduceSourceNotebook,
   kJatsSubarticleId,
   kKeepHidden,
   kNotebookPreserveCells,
@@ -70,6 +72,12 @@ function resolveJats(
   resolved.recipe.format.render[kKeepHidden] = true;
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
+
+  // If this recipe is using a a source notebook, clear the cell options
+  // from the output when rendering
+  if (resolved.recipe.format.render[kIpynbProduceSourceNotebook]) {
+    resolved.recipe.format.render[kClearCellOptions] = true;
+  }
 
   return resolved;
 }

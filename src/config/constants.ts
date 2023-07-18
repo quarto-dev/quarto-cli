@@ -49,6 +49,7 @@ export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 export const kNotebookPreserveCells = "notebook-preserve-cells";
+export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 
 export const kNotebookPreviewOptions = "notebook-preview-options";
@@ -204,6 +205,7 @@ export const kRenderDefaultsKeys = [
   kNotebookView,
   kNotebookViewStyle,
   kNotebookPreserveCells,
+  kClearCellOptions,
 ];
 
 // language fields
@@ -233,6 +235,7 @@ export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
 export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
+export const kTitleBlockKeywords = "title-block-keywords";
 export const kCodeSummary = "code-summary";
 export const kCodeLine = "code-line";
 export const kCodeLines = "code-lines";
@@ -346,6 +349,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kTitleBlockKeywords,
   kCodeSummary,
   kCodeLine,
   kCodeLines,
@@ -431,6 +435,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAffiliationPlural,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kTitleBlockKeywords,
   kNotebookPreviewDownload,
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,

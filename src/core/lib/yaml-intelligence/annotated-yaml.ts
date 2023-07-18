@@ -161,7 +161,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
   function listener(what: string, state: any) {
     const { result, position, kind } = state;
     if (what === "close") {
-      const { position: openPosition } = stack.pop();
+      const { position: openPosition, kind: openKind } = stack.pop();
       if (results.length > 0) {
         const last = results[results.length - 1];
         // sometimes we get repeated instances of (start, end) pairs
@@ -184,10 +184,14 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
 
       const rawRange = yml.substring(openPosition, position);
       // trim spaces if needed
-      const leftTrim = rawRange.length - rawRange.trimLeft().length;
-      const rightTrim = rawRange.length - rawRange.trimRight().length;
+      const leftTrim = rawRange.length - rawRange.trimStart().length;
+      const rightTrim = rawRange.length - rawRange.trimEnd().length;
 
-      if (rawRange.trim().length === 0) {
+      if (openKind === null && kind === null) {
+        // We've observed that openKind === null && kind === null
+        // can happen sometimes while parsing multiline yaml strings, and
+        // should be ignored.
+      } else if (rawRange.trim().length === 0) {
         // special case for when string is empty
         results.push({
           start: position - rightTrim,
@@ -208,7 +212,7 @@ export function buildJsYamlAnnotation(mappedYaml: MappedString) {
         });
       }
     } else {
-      stack.push({ position });
+      stack.push({ position, kind });
     }
   }
 

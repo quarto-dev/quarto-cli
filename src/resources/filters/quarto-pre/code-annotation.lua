@@ -3,61 +3,6 @@
 
 local constants = require("modules/constants")
 
--- for a given language, the comment character(s)
-local kLangCommentChars = {
-  r = {"#"},
-  python = {"#"},
-  julia = {"#"},
-  scala = {"//"},
-  matlab = {"%"},
-  csharp = {"//"},
-  fsharp = {"//"},
-  c = {"/*", "*/"},
-  css = {"/*", "*/"},
-  sas = {"*", ";"},
-  powershell = {"#"},
-  bash = {"#"},
-  sql = {"--"},
-  mysql = {"--"},
-  psql = {"--"},
-  lua = {"--"},
-  cpp = {"//"},
-  cc = {"//"},
-  stan = {"#"},
-  octave = {"#"},
-  fortran = {"!"},
-  fortran95 = {"!"},
-  awk = {"#"},
-  gawk = {"#"},
-  stata = {"*"},
-  java = {"//"},
-  groovy = {"//"},
-  sed = {"#"},
-  perl = {"#"},
-  ruby = {"#"},
-  tikz = {"%"},
-  js = {"//"},
-  d3 = {"//"},
-  node = {"//"},
-  sass = {"//"},
-  scss = {"//"},
-  coffee = {"#"},
-  go = {"//"},
-  asy = {"//"},
-  haskell = {"--"},
-  dot = {"//"},
-  mermaid = {"%%"},
-  apl = {"⍝"},
-  yaml = {"#"},
-  json = {"//"},
-  latex = {"%"},
-  typescript = {"//"},
-  swift = { "//" },
-  javascript = { "//"},
-  elm = { "#" },
-  vhdl = { "--"}
-
-}
 
 local hasAnnotations = false
 
@@ -75,7 +20,7 @@ end
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
 local function annoteProvider(lang) 
-  local commentChars = kLangCommentChars[lang]
+  local commentChars = constants.kLangCommentChars[lang]
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])
@@ -150,7 +95,12 @@ end
 local function resolveCellAnnotes(codeBlockEl, processAnnotation) 
 
   -- collect any annotations on this code cell
-  local lang = codeBlockEl.attr.classes[1]  
+  local lang = codeBlockEl.attr.classes[1] 
+  -- handle fenced-echo block which will have no language
+  if lang == "cell-code" then 
+    _, _, matchedLang = string.find(codeBlockEl.text, "^`+%{%{([^%}]*)%}%}")
+    lang = matchedLang or lang
+  end
   local annotationProvider = annoteProvider(lang)
   if annotationProvider ~= nil then
     local annotations = {}
@@ -414,7 +364,7 @@ function code_annotations()
             local resolvedBlock = _quarto.ast.walk(block, {
               CodeBlock = function(el)
                 if el.attr.classes:find('cell-code') then
-                  
+
                   local cellId = resolveCellId(el.attr.identifier)
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then

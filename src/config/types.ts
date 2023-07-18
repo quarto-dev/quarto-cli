@@ -19,6 +19,7 @@ import {
   kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
+  kClearCellOptions,
   kCodeFold,
   kCodeLine,
   kCodeLineNumbers,
@@ -200,6 +201,7 @@ import {
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
   kTitleBlockAuthorSingle,
+  kTitleBlockKeywords,
   kTitleBlockModified,
   kTitleBlockPublished,
   kTitlePrefix,
@@ -449,6 +451,7 @@ export interface FormatRender {
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
   [kNotebookPreserveCells]?: boolean;
+  [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
 }
 
@@ -583,6 +586,7 @@ export interface FormatLanguage {
   [kTitleBlockAuthorPlural]?: string;
   [kTitleBlockPublished]?: string;
   [kTitleBlockModified]?: string;
+  [kTitleBlockKeywords]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;

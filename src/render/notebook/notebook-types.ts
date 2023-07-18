@@ -90,7 +90,6 @@ export interface NotebookContext {
     renderType: RenderType,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
-    outputFile?: string,
   ) => ExecutedFile;
   // Provide a preview to the notebook context (for example, if you rendered it yourself)
   addRendering: (

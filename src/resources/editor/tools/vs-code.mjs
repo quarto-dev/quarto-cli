@@ -17369,7 +17369,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "!man",
               "!$docbook-all",
-              "!$jats-all"
+              "!$jats-all",
+              "!beamer"
             ]
           },
           schema: "number",

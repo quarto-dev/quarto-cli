@@ -28,6 +28,7 @@
 - ([#5929](https://github.com/quarto-dev/quarto-cli/issues/5929)): Split border-bottom properties to avoid invalid `inherit` entry in resulting CSS.
 - ([#5957](https://github.com/quarto-dev/quarto-cli/issues/5957)): Fix layout issues when margin footnotes are contained in headings or other formatted text.
 - ([#6163](https://github.com/quarto-dev/quarto-cli/issues/6163)): Wrap `svg` output of `dot` cells in RawBlock `html` elements.
+- Add support for displaying `keywords` in HTML page title block, when present.
 
 ## RevealJS Format
 
@@ -45,7 +46,6 @@
 - ([#5805](https://github.com/quarto-dev/quarto-cli/pull/5805)): Update the inherited `word-break: break-word` style (Bootstrap) to `word-break: keep-all` to prevent hyphenation of words in listings.
 - ([#5802](https://github.com/quarto-dev/quarto-cli/pull/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
 - ([#6029](https://github.com/quarto-dev/quarto-cli/pull/6029)): Only use the `image-placeholder` for a listing if no other image is available.
-- Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - ([#6091](https://github.com/quarto-dev/quarto-cli/pull/6091)): Don't use remote / absolutes images when auto-discovering images.
 
 ## Websites
@@ -59,6 +59,7 @@
 - Add support for setting `page-navigation: true|false` in either a page or in `_metadata.yml`. This allows individual pages or sections of a website to control whether `page-navigaation` appears.
 - ([#5625](https://github.com/quarto-dev/quarto-cli/issues/5625)): Prefer the website image (if specified) over undecorated images that appear in the page.
 - ([#5932](https://github.com/quarto-dev/quarto-cli/issues/5932)): Correct Open Graph metadata key name for `og:site_name`
+- Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 
 ## Video (and Audio)
 
@@ -88,6 +89,7 @@
 - Use InternalError in typescript code, and offer a more helpful error message when an internal error happens.
 - ([#6042](https://github.com/quarto-dev/quarto-cli/issues/6042)): Correctly support empty lines in YAML blocks.
 - ([#6154](https://github.com/quarto-dev/quarto-cli/issues/6154)): `quarto check knitr` does not fail anymore when user's `.Rprofile` contains `cat()` calls.
+- ([#6269](https://github.com/quarto-dev/quarto-cli/issues/6259)): Fix issue with YAML validation where the annotated value was incorrectly built.
 
 ## Docusaurus Format
 
@@ -97,6 +99,7 @@
 
 - [#5536](https://github.com/quarto-dev/quarto-cli/issues/5536): Correctly support Code Filename feature for Beamer output by fixing issue with float environment.
 - [#6041](https://github.com/quarto-dev/quarto-cli/issues/6041): Correctly support code block appearance options (`code-block-bg` and `code-block-border-left`).
+- ([#6226](https://github.com/quarto-dev/quarto-cli/issues/6226)): Correctly detect the need for an additional compilation for TOC layout when using `lualatex`
 
 ## OJS engine
 
@@ -132,3 +135,5 @@
 - ([#5785](https://github.com/quarto-dev/quarto-cli/issues/5785)): Don't process juptyer notebook markdown into metadata when embedding notebooks into documents.
 - ([#5902](https://github.com/quarto-dev/quarto-cli/issues/5902)): Support paired shortcode syntax.
 - ([#6013](https://github.com/quarto-dev/quarto-cli/issues/6013)): Don't error if citation is passed as a boolean value in metadata via flags
+- ([#6207](https://github.com/quarto-dev/quarto-cli/issues/6207)): When QUARTO_R is set to a non-existing path, a warning is now thrown like with QUARTO_PYTHON. Quarto still fallback to search a working R version.
+- ([#6244](https://github.com/quarto-dev/quarto-cli/issues/6244)): Code annotation now works for executable code cells using `echo: fenced`. Also it now supports HTML and Markdown code cells.

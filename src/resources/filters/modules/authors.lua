@@ -189,6 +189,7 @@ local kModifiedLbl = 'modified'
 local kDoiLbl = 'doi'
 local kDescriptionLbl = 'description'
 local kAbstractLbl = 'abstract'
+local kKeywordsLbl = 'keywords'
 
 -- affiliation fields that might be parsed into other fields
 -- (e.g. if we see affiliation-url with author, we make that affiliation/url)
@@ -810,6 +811,12 @@ local function computeLabels(authors, affiliations, meta)
     if meta[kDescriptionTitle] then
       meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
     end
+
+    meta[kLabels][kKeywordsLbl] = {pandoc.Str(language["title-block-keywords"])}
+    if meta[kKeywordsTitle] then
+      meta[kLabels][kKeywordsLbl] = meta[kKeywordsTitle]
+    end
+    
   end
 
   return meta

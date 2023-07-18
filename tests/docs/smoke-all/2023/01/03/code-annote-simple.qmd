@@ -8,7 +8,16 @@ _quarto:
   tests: 
     html:
       ensureHtmlElements:
-        - ["a[data-target-annotation='1']", "a[data-target-annotation='2']", "div.cell-annotation > dl"]
+        - 
+          - "a[data-target-annotation='1']"
+          - "a[data-target-annotation='2']"
+          - "div.cell-annotation > dl"
+          - "div.sourceCode[id^='annotated-cell-1']"
+          - "div.sourceCode[id^='annotated-cell-2']"
+          - "div.sourceCode[id^='annotated-cell-3']"
+          - "div.sourceCode[id^='annotated-cell-4']"
+          - "div.sourceCode[id^='annotated-cell-5']"
+        - ['ol[type="1"]']
 ---
 
 ## Hi There
@@ -41,3 +50,19 @@ if (foo === "bar") {
 ```
 
 1. This is a console output
+
+```markdown
+# Some content <!-- <1> -->
+
+Some content
+```
+
+1. This is title
+
+```html
+<div> <!-- <1> -->
+content 
+<div>
+```
+
+1. This is div container in HTML

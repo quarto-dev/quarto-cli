@@ -39,6 +39,7 @@ import { inputFileForOutputFile } from "../../project-index.ts";
 import * as ld from "../../../core/lodash.ts";
 import { projectType } from "../project-types.ts";
 import { engineIgnoreDirs } from "../../../execute/engine.ts";
+import { lsFiles } from "../../../core/git.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
@@ -139,6 +140,13 @@ export const createMecaBundle = async (
     });
   }
 
+  const srcType = (path: string) => {
+    return !hasExplicitEnvironment &&
+        kExecutionFiles.includes(basename(path))
+      ? kArticleSourceEnvironment
+      : kArticleSource;
+  };
+
   // Process src files
   const skip = [
     kSkipHidden,
@@ -155,15 +163,22 @@ export const createMecaBundle = async (
     );
   }
 
-  for (const walkEntry of walkSync(context.dir, { skip })) {
-    if (walkEntry.isFile) {
+  // If git is available, use the ls-files command to enumerate the
+  // tracked files and use that to build the source list
+  const gitFiles = await lsFiles(context.dir);
+  if (gitFiles) {
+    for (const file of gitFiles) {
       // Find execution resources and include them in the bundle
       // (if they weren't explicitly assigned)
-      const type = !hasExplicitEnvironment &&
-          kExecutionFiles.includes(basename(walkEntry.path))
-        ? kArticleSourceEnvironment
-        : kArticleSource;
-      addSrcFile(walkEntry.path, type);
+      addSrcFile(join(context.dir, file), srcType(file));
+    }
+  } else {
+    for (const walkEntry of walkSync(context.dir, { skip })) {
+      if (walkEntry.isFile) {
+        // Find execution resources and include them in the bundle
+        // (if they weren't explicitly assigned)
+        addSrcFile(walkEntry.path, srcType(walkEntry.path));
+      }
     }
   }
 
@@ -180,6 +195,7 @@ export const createMecaBundle = async (
     sourceFiles.push(item);
     sourceZipFiles.push(relPath);
   };
+
   for (const path of Object.keys(srcFiles)) {
     const type = srcFiles[path];
     copySrcFile(path, type);

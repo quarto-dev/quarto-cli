@@ -10,6 +10,7 @@ import {
   kBibliography,
   kCitationLocation,
   kCiteMethod,
+  kClearCellOptions,
   kClearHiddenClasses,
   kCodeFold,
   kCodeLineNumbers,
@@ -559,6 +560,11 @@ async function quartoFilterParams(
   const unrollMarkdownCells = format.metadata[kUnrollMarkdownCells];
   if (unrollMarkdownCells) {
     params[kUnrollMarkdownCells] = unrollMarkdownCells;
+  }
+
+  const clearCellOptions = format.render[kClearCellOptions];
+  if (clearCellOptions) {
+    params[kClearCellOptions] = clearCellOptions;
   }
 
   // Provide other params that may be useful to filters
