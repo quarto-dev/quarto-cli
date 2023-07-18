@@ -99,7 +99,7 @@ $env:QUARTO_TESTS_NO_CONFIG=$true
 
 #### About smoke-all tests
 
-`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file
+`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file.
 
 ```bash
 # run tests for all documents in docs/smoke-all/
@@ -200,6 +200,32 @@ ok | 1 passed | 0 failed (2s)
 
 </details>
 
+### Limitations
+
+- `smoke-all.test.ts` accept only one argument. You need to use glob pattern to run several smoke-all test documents.
+
+- Individual `smoke-all` tests and other test can't be run at the same time with `run-test.[sh|ps1]`. This is because `smoke-all.test.ts` requires arguments. If a smoke-all document and another smoke-test are passed as argument, the smoke-all test will be prioritize and other will be ignored (with a warning).
+
+Example with Linux:
+
+You can do
+
+```bash
+# run all smoke-all tests and another smoke test
+./run-tests.sh smoke/extensions/extension-render-doc.test.ts smoke/smoke-all.test.ts
+# run tests for some `.qmd` document in a specific place (using glob)
+./run-tests.sh docs/smoke-all/2022/**/*.qmd
+```
+
+Don't do
+
+```bash
+# run .qmd smoke-all test and another smoke test - smoke-all test will have the priority and other will be ignored (with a warning)
+./run-test.sh smoke/extensions/extension-render-doc.test.ts ./docs/smoke-all/2023/01/04/issue-3847.qmd
+# run smoke-all.test.ts with argument and another smoke test
+./run-tests.sh smoke/extensions/extension-render-doc.test.ts smoke/smoke-all.test.ts -- ./docs/smoke-all/2023/01/04/issue-3847.qmd
+```
+
 ## Debugging within tests
 
 `.vscode/launch.json` has a `Run Quarto test` configuration that can be used to debug when running tests. One need to modify the `program` and `args` fields to match the test to run.
@@ -215,10 +241,77 @@ _Short version can't be use here as we are calling `deno test` directly and not 
 
 ## Parallel testing
 
-**WIP**
+**Linux only**
 
 This lives in `run-parallel-tests.ts` and called through `run-parallel-tests.sh`.
 
+### How does is works ?
+
+- It requires a text file with tested timed and following a specific format. (Default is `timing.txt` and here is an example [in our repo](./timing.txt))
+- Based on this file, the tests will be split in buckets to minimize the tests time (buckets are filled by their minimum overall time).
+- Then `./run-tests.sh` will be run for each bucket from deno using `Promise.all()` and `run-tests.sh` on the whole bucket's test files, so that the buckets are ran in parallel.
+
+This is a simple way to run all the tests or a subset of tests in parallel locally.
+
+### About timed tests
+
+To create a timed test file like `timing.txt`, this command needs to be run.
+
+```bash
+QUARTO_TEST_TIMING='timing.txt' ./run-tests.sh
 ```
 
+When this is done, any other argument will be ignored, and the following happens
+
+- All the `*.test.ts` file are found and run individually using `/usr/bin/time` to store timing in the file
+- When `smoke-all.test.ts` is found, all the `*.qmd` and `*.ipynb` in `docs/smoke-all/` are found and run individually using same logic. This means each `smoke-all` test is timed.
+
+The results is written in the `$QUARTO_TEST_TIMING` file. Here is an example:
+
 ```
+./smoke/directives/include-fixups.test.ts
+        0.02 real 0.02 user 0.00 sys
+./smoke/filters/filters.test.ts
+        3.26 real 3.79 user 0.47 sys
+./smoke/filters/editor-support.test.ts
+        0.72 real 0.58 user 0.14 sys
+./smoke/engine/include-engine-detection.test.ts
+        3.61 real 3.11 user 0.24 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/12/code-annotation.qmd
+        4.81 real 4.32 user 0.33 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/9/jats/computations.out.ipynb
+        2.22 real 2.83 user 0.27 sys
+```
+
+This will be read by `run-parallel-tests.ts` to get the `real` value and fill the bucket based on it.
+
+#### Specific behavior for `smoke-all.test.ts`
+
+`smoke-all` tests are special because they are in the form of individual `.qmd` or `.ipynb` document that needs to be run using `smoke-all.test.ts` script, with arguments. Unfortunately, this prevent running individual `smoke-all` documents in same buclets as other individual smoke test (which are their own `.test.ts` file).
+
+So, if the timed file contains some individual timing for `smoke-all` documents like this
+
+```
+./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/12/code-annotation.qmd
+```
+
+then they are ignored and `.smoke-all.test.ts` will be run in its own bucket. It will usually be the longest test run.
+
+Individual `smoke-all` tests timing are useful for Quarto parallelized smoke tests on GHA CI as the buckets are split into their own runners and each test in a bucket if run using `run-test.sh`. This allows a bucket to contains some `*.test.ts` but also some document `*.qmd` or `*.ipynb`. More details in [test-smoke.yml](.github/workflows/test-smokes.yml) and [test-smokes-parallel.yml](.github/workflows/test-smokes-parallel.yml)
+
+### Arguments that control behavior
+
+- `-n=`: Number of buckets to create to run in parallel. `run-parallel-tests.sh -n=5` split tests in 5 buckets and run them at the same time. For local run, `n` should be a number of core. For CI run, `n` will be the number of runners to use at the same time (mulplied by 2 because Linux and Windows are ran on CI).
+- `--verbose`: show some verbosity. Otherwise, no specific logging in console in done.
+- `--dry-run`: show the buckets of tests, but do not run. Otherwise, they are run.
+- `--timing-file=`: Which file to use as timed tests information to creates the buckets. (default to `timing.txt` ). `run-parallel-tests.sh --timing-file='timing2.txt'` will use `timing2.txt` to run the file.
+- `--json-for-ci`: Special flag to trigger splitting tests in buckets for the parallel run on CI and that makes `run-parallel-tests.sh` outputs JSON string specifically formatted for GHA processing.
+
+### About tests in CI with GHA
+
+- `test-smokes-parallel.yml` will be triggered to load `timing-for-ci.txt` and split tests in buckets. It will create a matrix to trigger `test-smokes.yml` on `workflow_call` event for each bucket.
+  - PR against main and commits to main will trigger this workflow, and tests will be ran in parallel jobs.
+  - A `workflow_dispatch` event can be used to trigger it through API call, `gh` CLI tool or GHA GUI online.
+- `test-smokes.yml` is the main CI workflow which configure the environment, and run the tests on Ubuntu and Windows.
+  - If it was triggerred by `workflow_call`, then it will run each test in using `run-tests.[sh|ps1]` in a for-loop.
+  - Scheduled tests are still run daily in their sequential version.
