@@ -67,6 +67,16 @@ const testTimings: TestTiming[] = [];
 const RegSmokeAllFile = new RegExp("smoke\/smoke-all\.test\.ts -- (.*)$");
 let dontUseDetailledSmokeAll = false;
 
+// Creating a JSON for CI require smoke-all timed tests
+if (
+  detailedSmokeAll &&
+  lines.filter((line) => RegSmokeAllFile.test(line.trim())).length == 0
+) {
+  throw new Error(
+    `No smoke-all timed tests found in ${timingFile}. Run './run-tests.sh' with QUARTO_TEST_TIMING to create a new file, and pass another file with '--timing-file='`,
+  );
+}
+
 // Checking that timed tests still exists, otherwise log and exclude
 for (let i = 0; i < lines.length; i += 2) {
   const name = lines[i].trim();
