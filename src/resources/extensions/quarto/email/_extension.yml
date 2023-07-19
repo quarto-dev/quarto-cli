@@ -2,5 +2,9 @@ title: Email
 author: Posit, PBC
 organization: quarto
 contributes:
-  filters:
-    - email.lua
+  formats:
+    html:
+      resource_files:
+        - .output_metadata.json
+      filters:
+        - email.lua
