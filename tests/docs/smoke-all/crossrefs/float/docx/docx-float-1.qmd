@@ -5,8 +5,8 @@ _quarto:
     docx:
       ensureDocxXpath:
         - 
-          - "//w:t[text()=\"Table 1\"]" # tests custom content in tables
-          - "//w:t[text()=\"Figure 1\"]" # tests custom content in figures
+          - "//w:t[contains(text(), \"Table\u00a01\")]" # tests custom content in tables
+          - "//w:t[contains(text(), \"Figure\u00a01\")]" # tests custom content in figures
         - []
 ---
 

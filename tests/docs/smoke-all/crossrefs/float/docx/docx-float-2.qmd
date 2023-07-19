@@ -6,10 +6,10 @@ _quarto:
     docx:
       ensureDocxXpath:
         - 
-          - "//w:tbl//w:p//w:r//w:t[text()=\"Figure 1\"]"
-          - "//w:tbl//w:p//w:r//w:t[text()=\"Table 1\"]"
-          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[text()=\"Table 1\"]"
-          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[text()=\"Figure 1\"]"
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[contains(text(), \"Figure\u00a01\")]"
         - []
 ---
 
