@@ -255,26 +255,21 @@ export const ensureDocxXpath = (
 ): Verify => {
   return verifyDocXDocument((xmlText) => {
     const xmlDoc = parseXmlDocument(xmlText);
-    console.log("FOO!!!");
     for (const selector of selectors) {
       const xpathResult = xpath.evaluateXPath(selector, xmlDoc);
-      const isNonEmpty =
-        // either an object or a non-empty array
-        (typeof xpathResult === "object" && xpathResult !== null) ||
+      const passes = (!Array.isArray(xpathResult) && xpathResult !== null) ||
         (Array.isArray(xpathResult) && xpathResult.length > 0);
       assert(
-        isNonEmpty,
+        passes,
         `Required XPath selector ${selector} returned empty array.`,
       );
     }
     for (const falseSelector of noMatchSelectors ?? []) {
       const xpathResult = xpath.evaluateXPath(falseSelector, xmlDoc);
-      const isNonEmpty =
-        // either an object or a non-empty array
-        (typeof xpathResult === "object" && xpathResult !== null) ||
+      const passes = (!Array.isArray(xpathResult) && xpathResult !== null) ||
         (Array.isArray(xpathResult) && xpathResult.length > 0);
       assert(
-        !isNonEmpty,
+        !passes,
         `Illegal XPath selector ${falseSelector} returned non-empty array.`,
       );
     }
