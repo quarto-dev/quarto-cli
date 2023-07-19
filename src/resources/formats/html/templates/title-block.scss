@@ -46,6 +46,11 @@ $title-banner-image: null !default;
     background-size: cover;
   }
 
+  h1,
+  h2 {
+    color: bannerColor();
+  }
+
   .code-tools-button {
     color: bannerDim();
   }

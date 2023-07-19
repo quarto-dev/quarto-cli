@@ -156,7 +156,7 @@ export function documentTitlePartial(
     partials.push("title-metadata.html");
 
     // For banner partials, configure the options and pass them along in the metadata
-    if (banner) {
+    if (banner || manuscriptTitle) {
       // When the toc is on the left, be sure to add the special grid notation
       const tocLeft = format.metadata[kTocLocation] === "left";
       if (tocLeft) {
@@ -184,7 +184,8 @@ export function processDocumentTitle(
   // when in banner mode, note on the main content region and
   // add any image to resources
   const banner = format.metadata[kTitleBlockBanner] as string | boolean;
-  if (banner) {
+  const manuscriptTitle = format.metadata[kTitleBlockStyle] === "manuscript";
+  if (banner || manuscriptTitle) {
     // Move the header above the content
     const headerEl = doc.getElementById("title-block-header");
     const contentEl = doc.getElementById("quarto-content");

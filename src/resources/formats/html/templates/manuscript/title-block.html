@@ -6,26 +6,12 @@
       $if(subtitle)$
       <p class="subtitle lead">$subtitle$</p>
       $endif$
-      $if(abstract)$
-      <div>
-        <div class="description">
-          $abstract$
-        </div>
-      </div>
-      $endif$
-      $if(categories)$
-        $if(quarto-template-params.title-block-categories)$
-      <div class="quarto-categories">
-        $for(categories)$
-        <div class="quarto-category">$categories$</div>
-        $endfor$
-      </div>
-        $endif$
-      $endif$
     </div>
+
+    $title-metadata.html()$
   </div>
     
-  $title-metadata.html()$
+  
   
   </header>
 
