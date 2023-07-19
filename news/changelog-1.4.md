@@ -47,6 +47,7 @@
 - ([#5802](https://github.com/quarto-dev/quarto-cli/pull/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
 - ([#6029](https://github.com/quarto-dev/quarto-cli/pull/6029)): Only use the `image-placeholder` for a listing if no other image is available.
 - ([#6091](https://github.com/quarto-dev/quarto-cli/pull/6091)): Don't use remote / absolutes images when auto-discovering images.
+- ([#6268](https://github.com/quarto-dev/quarto-cli/pull/6268)): Enable listings even when `theme: none`
 
 ## Websites
 
