@@ -31,13 +31,25 @@ try {
   Deno.exit(1);
 }
 
+// Get timed tests information
 const lines = Deno.readTextFileSync(timingFile).trim().split("\n");
+// Get all .test.ts files (including `smoke-all.test.ts`)
 const currentTests = new Set(
   [...expandGlobSync("**/*.test.ts", { globstar: true })].map((entry) =>
     `./${relative(Deno.cwd(), entry.path)}`
   ),
 );
+
+// Get all smoke-all documents (Only resolve glob when it will be needed)
+const currentSmokeFiles = new Set<string>(
+  detailedSmokeAll
+    ? [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", { globstar: true })]
+      .map((entry) => `${relative(Deno.cwd(), entry.path)}`)
+    : [],
+);
+
 const timedTests = new Set<string>();
+const timedSmokeAllDocs = new Set<string>();
 
 type Timing = {
   real: number;
@@ -67,12 +79,6 @@ for (let i = 0; i < lines.length; i += 2) {
     } else {
       // checking smoke file existence
       const smokeFile = name.split(" -- ")[1];
-      const currentSmokeFiles = new Set(
-        [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", {
-          globstar: true,
-        })]
-          .map((entry) => `${relative(Deno.cwd(), entry.path)}`),
-      );
       if (!currentSmokeFiles.has(smokeFile)) {
         flags.verbose &&
           console.log(
@@ -80,6 +86,7 @@ for (let i = 0; i < lines.length; i += 2) {
           );
         continue;
       }
+      timedSmokeAllDocs.add(smokeFile);
     }
   } else {
     // Regular smoke tests
@@ -145,20 +152,33 @@ for (const timing of testTimings) {
   bucketSizes[ix] += timing.timing.real;
 }
 
+// Add to buckets un-timed tests
 for (const currentTest of currentTests) {
+  let missingTest: string | undefined;
   // smoke-all.tests.ts is handled specifically
-  if (
-    currentTest.match(/smoke-all\.test\.ts/) &&
-    (detailedSmokeAll || dontUseDetailledSmokeAll)
-  ) {
-    continue;
-  }
-  if (!timedTests.has(currentTest) && !RegSmokeAllFile.test(currentTest)) {
-    flags.verbose && console.log(`Missing test ${currentTest} in timing.txt`);
+  if (currentTest.match(/smoke-all\.test\.ts/)) {
+    if (detailedSmokeAll && !dontUseDetailledSmokeAll) {
+      for (const currentSmokeFile of currentSmokeFiles) {
+        if (!timedSmokeAllDocs.has(currentSmokeFile)) {
+          flags.verbose &&
+            console.log(
+              `Missing smoke-all docs '${currentSmokeFile}' in ${timingFile}`,
+            );
+          failed = true;
+          missingTest = `${smokeAllTestFile} -- ${currentSmokeFile}`;
+        }
+      }
+    }
+  } else if (!timedTests.has(currentTest)) {
+    flags.verbose &&
+      console.log(`Missing test '${currentTest}' in ${timingFile}`);
     failed = true;
+    missingTest = currentTest;
+  }
+  if (missingTest !== undefined) {
     // add missing timed tests, randomly to buckets
     buckets[Math.floor(Math.random() * nBuckets)].push({
-      name: currentTest,
+      name: missingTest,
       timing: { real: 0, user: 0, sys: 0 },
     });
   }
