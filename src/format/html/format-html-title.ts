@@ -1,9 +1,8 @@
 /*
-* format-html-title.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-title.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join } from "path/mod.ts";
@@ -33,6 +32,12 @@ export function documentTitleScssLayer(format: Format) {
     format.metadata[kTitleBlockStyle] === "plain"
   ) {
     return undefined;
+  } else if (format.metadata[kTitleBlockStyle] === "manuscript") {
+    const titleBlockScss = formatResourcePath(
+      "html",
+      join("templates", "title-block.scss"),
+    );
+    return sassLayer(titleBlockScss);
   } else {
     const titleBlockScss = formatResourcePath(
       "html",
@@ -139,7 +144,11 @@ export function documentTitlePartial(
 
     // Select the appropriate title block partial (banner vs no banner)
     const banner = format.metadata[kTitleBlockBanner] as string | boolean;
-    if (banner) {
+    const manuscriptTitle = format.metadata[kTitleBlockStyle] === "manuscript";
+
+    if (manuscriptTitle) {
+      partials.push("manuscript/title-block.html");
+    } else if (banner) {
       partials.push("banner/title-block.html");
     } else {
       partials.push("title-block.html");
