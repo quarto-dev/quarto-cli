@@ -199,12 +199,18 @@ function parse_floats()
           return nil
         end
         img.identifier = ""
+        local type = refType(identifier)
+        local category = crossref.categories.by_ref_type[type]
+        if category == nil then
+          fail("Figure with invalid crossref category? " .. identifier)
+          return
+        end
         local combined = merge_attrs(img.attr, link.attr)
         return quarto.FloatCrossref({
           identifier = identifier,
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
-          type = "Figure",
+          type = category.name,
           content = link,
           caption_long = img.caption,
         })
