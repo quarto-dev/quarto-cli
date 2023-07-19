@@ -13,6 +13,7 @@ import {
 import {
   kClearCellOptions,
   kClearHiddenClasses,
+  kDisableArticleLayout,
   kFormatLinks,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
@@ -27,6 +28,7 @@ import {
   kTheme,
   kTo,
   kToc,
+  kTocLocation,
   kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
@@ -127,9 +129,12 @@ function resolveHtmlNotebook(
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
 
   // Configure the appearance
-  resolved.recipe.format.pandoc[kToc] = false;
+  resolved.recipe.format.pandoc[kToc] = true;
+  resolved.recipe.format.metadata[kTocLocation] = "right";
   resolved.recipe.format.metadata[kAppendixStyle] = "none";
   resolved.recipe.format.render[kFormatLinks] = false;
+
+  resolved.recipe.format.metadata[kDisableArticleLayout] = true;
 
   return resolved;
 }
@@ -170,6 +175,9 @@ async function renderHtmlNotebook(
             ),
             backLabel: format.language[kNotebookPreviewBack],
           } as NotebookTemplateMetadata,
+          [kToc]: true,
+          [kTocLocation]: "right",
+          [kDisableArticleLayout]: true,
         },
         quiet: false,
       },

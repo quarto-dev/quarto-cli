@@ -13,6 +13,7 @@ import { findParent } from "../../core/html.ts";
 
 import {
   kContentMode,
+  kDisableArticleLayout,
   kDisplayName,
   kExtensionName,
   kFormatLinks,
@@ -793,6 +794,30 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
       format,
       flags,
     );
+
+    if (format.metadata[kDisableArticleLayout]) {
+      const stripColumnClasses = (el: Element) => {
+        const stripClz: string[] = [];
+        el.classList.forEach((clz) => {
+          if (
+            clz === "margin-caption" || clz === "margin-ref" ||
+            clz.startsWith("column-") || clz === "page-columns" ||
+            clz === "page-full"
+          ) {
+            stripClz.push(clz);
+          }
+        });
+        el.classList.remove(...stripClz);
+        for (const childEl of el.children) {
+          stripColumnClasses(childEl);
+        }
+      };
+
+      const mainEl = doc.body.querySelector("main");
+      if (mainEl) {
+        stripColumnClasses(mainEl);
+      }
+    }
 
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)

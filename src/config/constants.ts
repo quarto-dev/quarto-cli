@@ -526,6 +526,7 @@ export const kTocLocation = "toc-location";
 export const kTocExpand = "toc-expand";
 export const kLang = "lang";
 export const kOrder = "order";
+export const kDisableArticleLayout = "disable-article-layout";
 
 // The authors user input
 export const KAuthor = "author";

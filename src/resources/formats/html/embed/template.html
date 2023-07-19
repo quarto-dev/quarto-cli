@@ -66,8 +66,13 @@
 
     <script>
     window.document.addEventListener("DOMContentLoaded", function () {
+
       var header = window.document.querySelector("#quarto-embed-header");
-      window.document.body.style.paddingTop = header.clientHeight + "px";
+      const contentEl = window.document.getElementById('quarto-content');
+      for (const child of contentEl.children) {
+        child.style.paddingTop = header.clientHeight + "px";
+        child.style.marginTop = "1em";
+      }
 
       const headroom = new window.Headroom(header, {
         tolerance: 5,
