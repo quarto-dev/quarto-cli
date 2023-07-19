@@ -1,0 +1,23 @@
+---
+title: float crossref test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:tbl//w:p//w:r//w:t[text()=\"Figure 1\"]"
+          - "//w:tbl//w:p//w:r//w:t[text()=\"Table 1\"]"
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[text()=\"Table 1\"]"
+          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[text()=\"Figure 1\"]"
+        - []
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as images with identifiers
+
+![This is a figure](../img/surus.jpg){#fig-foo}
+
+![This is a table](../img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.
