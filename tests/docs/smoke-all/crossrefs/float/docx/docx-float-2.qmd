@@ -1,0 +1,46 @@
+---
+title: float crossref test
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:tbl//w:p//w:r//w:t[text()=\"Figure 1\"]"
+          - "//w:tbl//w:p//w:r//w:t[text()=\"Table 1\"]"
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[text()=\"Table 1\"]"
+          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[text()=\"Figure 1\"]"
+        - []
+
+# _quarto:
+#   tests:
+#     html:
+#       ensureHtmlElements:
+#         - 
+#           - "div#tbl-foo figure.quarto-float-tbl img"
+#           - "div#fig-foo figure.quarto-float-fig img"
+#           - "a[href='#fig-foo'].quarto-xref"
+#           - "a[href='#tbl-foo'].quarto-xref"
+---
+
+This tests:
+
+- div float with image element as payload.
+- div float with image element as payload for non-figure floats.
+
+
+::: {#fig-foo}
+![](img/surus.jpg)
+
+This is the figure
+:::
+See @fig-foo for more.
+
+
+::: {#tbl-foo}
+![](img/surus.jpg)
+
+This is the table
+:::
+See @tbl-foo for more.
+
