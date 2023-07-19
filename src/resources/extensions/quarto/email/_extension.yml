@@ -4,7 +4,5 @@ organization: quarto
 contributes:
   formats:
     html:
-      resource_files:
-        - .output_metadata.json
       filters:
         - email.lua
