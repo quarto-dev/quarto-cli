@@ -54,7 +54,7 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
-        
+
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
@@ -90,8 +90,9 @@ jobs:
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
           # Install dev versions for our testing 
-          renv::install("yihui/knitr")
-          renv::install("rstudio/rmarkdown")
+          # FIXME: This is causing SSL cert issue. Put back when this is working again
+          # renv::install("yihui/knitr")
+          # renv::install("rstudio/rmarkdown")
         shell: Rscript {0}
         env:
           RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
