@@ -80,6 +80,8 @@ if (
 // Checking that timed tests still exists, otherwise log and exclude
 for (let i = 0; i < lines.length; i += 2) {
   const name = lines[i].trim();
+  // Ignore `./test.ts` as it is a helper file only
+  if (/(^|\/)test\.ts$/.test(name)) continue;
   if (RegSmokeAllFile.test(name)) {
     // Detailled smoke-all timed tests are found
     if (!detailedSmokeAll) {
