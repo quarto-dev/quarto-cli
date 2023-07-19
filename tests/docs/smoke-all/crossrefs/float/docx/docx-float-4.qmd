@@ -1,0 +1,23 @@
+---
+title: float test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:tbl//w:p//w:r//w:t[text()=\"Figure 1\"]"
+          - "//w:tbl//w:p//w:r//w:t[text()=\"Table 1\"]"
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[text()=\"Table 1\"]"
+          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[text()=\"Figure 1\"]"
+        - []
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as linked images with identifiers
+
+[![This is the figure](../img/surus.jpg){#fig-foo}](https://www.example.com/)
+
+[![This is the table](../img/surus.jpg){#tbl-foo}](https://www.example.com/)
+
+See @fig-foo and @tbl-foo for more.
