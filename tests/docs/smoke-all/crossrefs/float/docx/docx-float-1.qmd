@@ -1,0 +1,41 @@
+---
+title: float crossref test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:t[text()=\"Table 1\"]" # tests custom content in tables
+          - "//w:t[text()=\"Figure 1\"]" # tests custom content in figures
+        - []
+---
+
+This tests:
+
+- custom content in floats
+- classes of float captions
+
+::: {#fig-1}
+
+::: {.figure-content}
+This is the figure content.
+:::
+
+This is a caption.
+
+:::
+
+See @fig-1.
+
+
+::: {#tbl-1}
+
+::: {.table-content}
+This is the table content.
+:::
+
+This is a table.
+
+:::
+
+See @tbl-1.
