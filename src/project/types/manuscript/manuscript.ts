@@ -13,6 +13,7 @@ import {
   FormatExtras,
   FormatLanguage,
   FormatLink,
+  kDependencies,
   kHtmlPostprocessors,
   Metadata,
   NotebookPreviewDescriptor,
@@ -151,24 +152,33 @@ export const manuscriptProjectType: ProjectType = {
 
     // Go through project inputs and use any of these as notebooks
     const notebooks: Record<string, NotebookPreviewDescriptor> = {};
-    const inputNotebooks = inputs.files.map((input) => {
-      return relative(projectDir, input);
-    }).filter((file) => {
-      // Filter the article
-      if (file === article) {
-        return false;
-      }
 
-      // Filter output notebooks
-      if (isOutputFile(file, "ipynb")) {
-        return false;
-      }
-      return true;
-    });
-    if (inputNotebooks) {
-      resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+    const explicitNotebooks = manuscriptConfig[kNotebooks];
+    if (explicitNotebooks) {
+      resolveNotebookDescriptors(explicitNotebooks).forEach((nb) => {
         notebooks[nb.notebook] = nb;
       });
+    } else {
+      const inputNotebooks = inputs.files.map((input) => {
+        return relative(projectDir, input);
+      }).filter((file) => {
+        // Filter the article
+        if (file === article) {
+          return false;
+        }
+
+        // Filter output notebooks
+        if (isOutputFile(file, "ipynb")) {
+          return false;
+        }
+        return true;
+      });
+
+      if (inputNotebooks) {
+        resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+          notebooks[nb.notebook] = nb;
+        });
+      }
     }
 
     // Build the final render list, ensuring that the article is last in the list
@@ -454,7 +464,13 @@ export const manuscriptProjectType: ProjectType = {
     extras.metadata = {};
 
     // Only do all this for the main article
-    if (isArticleManuscript(source, format, context, manuscriptConfig)) {
+    const isArticle = isArticleManuscript(
+      source,
+      format,
+      context,
+      manuscriptConfig,
+    );
+    if (isArticle) {
       // Add the github repo as a metadata link
       const ghContext = await gitHubContext(context.dir);
       if (ghContext) {
@@ -510,6 +526,19 @@ export const manuscriptProjectType: ProjectType = {
       await resolveProjectInputLinks(source, context, doc);
       return Promise.resolve(kHtmlEmptyPostProcessResult);
     }];
+
+    // If this is a notebook, include headroom
+    if (!isArticle) {
+      extras.html[kDependencies] = [{
+        name: "manuscript-notebook",
+        scripts: [
+          {
+            name: "headroom.min.js",
+            path: resourcePath(`projects/website/navigation/headroom.min.js`),
+          },
+        ],
+      }];
+    }
 
     return Promise.resolve(extras);
   },
