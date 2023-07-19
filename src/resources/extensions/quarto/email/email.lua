@@ -13,7 +13,7 @@ Extension for generating email components needed for Posit Connect
    we must also include mime-type information
 5. generates a JSON file which contains specific email message components that Posit
    Connect is expecting for its own email generation code
-]]
+--]]
 
 local lpeg = require("lpeg")
 
@@ -194,6 +194,7 @@ function extract_div_html(doc)
 end
 
 function process_document(doc)
+
   -- Perform processing on the email HTML and generate the JSON file required for Connect
 
   -- TODO: examine environment variables on Connect to get these strings
@@ -207,13 +208,10 @@ function process_document(doc)
   email_html = string.gsub(email_html, "^<div class=\"email\">", '')
   email_html = string.gsub(email_html, "</div>$", '')
 
-  -- Use the Connect email template components along with the `email_html`
-  -- fragment to forge the email HTML
-
-  -- TODO: try to optimize this combining of strings, signal which of these
-  --       are variables; idea: use functions to generate key fragments that
-  --       will be combined
-
+  --[[
+  Use the Connect email template components along with the `email_html`
+  fragment to generate the email message body as HTML
+  --]]
   local html_email_body =
       html_email_template_1 ..
       "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
@@ -264,14 +262,7 @@ function process_document(doc)
        incrementing from `1`)
   ]]
 
-  -- This gets the project output directory
-  -- nil if no project, a path if so
-  --print(quarto.project.output_directory)
-
   local image_data = nil
-
-  --print("Directory Listing: \n" .. figure_html_dir_listing .. "\n")
-  --print(tbl_print(img_tag_filepaths_list))
 
   for key, value in ipairs(img_tag_list) do
     if (true) then -- TODO: replace with check for each value in `img_tag_filepaths_list` having membership in `figure_html_dir_listing`
@@ -298,12 +289,11 @@ function process_document(doc)
     end
   end
 
-  -- print(html_email_body)
-
-  -- Pandoc's resource processing is available in a JSON file
-
-  -- Encode all of the strings and tables of strings into a JSON file that's
-  --   needed for Connect's email feature
+  --[[
+  Encode all of the strings and tables of strings into a JSON file that's
+  needed for Connect's email feature
+  --]]
+  
   -- TODO: handle variant with text-based email message bodies
   --       (using `rsc_email_body_text` instead of `rsc_email_body_html`)
   local str = quarto.json.encode({
@@ -315,23 +305,22 @@ function process_document(doc)
     rsc_email_suppress_scheduled = false
   })
 
-  -- TODO: Find out what the Connect output directory and write the file there
-  --   (this is the Quarto project output dir)
-  io.open(".output_metadata.json", "w"):write(str):close()
+  local project_output_directory = quarto.project.output_directory
 
+  if (project_output_directory ~= nil) then
+    dir = project_output_directory
+  else
+    local file = quarto.doc.input_file
+    dir = pandoc.path.directory(file)
+  end
   
-  local file = quarto.doc.input_file
-
-  local dir = pandoc.path.directory(file)
-  local resource = pandoc.path.join({dir, ".output_metadata.json"})
-
-  print("directory is: " .. dir)
-  print("resource is: " .. resource)
-
-  quarto.doc.add_supporting(resource)
+  local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
+  
+  io.open(metadata_path_file, "w"):write(str):close()
 end
 
 function Pandoc(doc)
+
   -- local rendering_email = get_option() -- TODO
   -- if rendering_email then
   --   -- make the content of doc be only the content of the .email div
@@ -345,6 +334,8 @@ function Pandoc(doc)
 
   -- if json_file then
     -- local contents = json_file:read("*all")
+
+    -- print(contents)
     -- json_file:close()
   -- else
     -- print("Error: could not open file")
