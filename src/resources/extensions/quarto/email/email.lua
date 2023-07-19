@@ -226,9 +226,6 @@ function process_document(doc)
       html_email_template_3
 
   -- Get a listing of all image files in `report_files/figure-html`
-  -- TODO: does Quarto provide a facility for this? Dealing with the filesystem directly seems not ideal
-  -- TODO: there will certainly be more types of graphics than just PNG graphics, ensure that all graphics
-  --       files are accounted for
   local figure_html_path_ls_png_command = "ls " .. figure_html_path .. "/*.png"
   local figure_html_path_handle = io.popen(figure_html_path_ls_png_command)
   local figure_html_dir_listing = nil
