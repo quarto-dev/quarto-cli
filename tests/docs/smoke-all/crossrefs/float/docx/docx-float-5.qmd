@@ -1,0 +1,18 @@
+---
+title: Crossref Test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:p//w:r//w:t[contains(text(), \"?@fig-elephant1\")]"
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
+        - 
+          - "//w:p//w:hyperlink//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](../img/thinker.jpg){#fig-elephant}
+
+See @fig-elephant1 for examples. 
