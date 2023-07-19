@@ -89,7 +89,7 @@
 
   <body>
     <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
-      $if(nbMeta.backHref)$<a href="$nbMeta.backHref$" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>$endif$
+      <a onclick="history.back(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>
       <h6><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
 
       $if(nbMeta.downloadHref)$
