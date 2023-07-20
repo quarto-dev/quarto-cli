@@ -91,6 +91,7 @@
     short: "Include line numbers in code block output (`true` or `false`)"
     long: |
       Include line numbers in code block output (`true` or `false`).
+      Limitation: does not work properly with `code-link` set to `true`.
 
       For revealjs output only, you can also specify a string to highlight
       specific lines (and/or animate between sets of highlighted lines).
