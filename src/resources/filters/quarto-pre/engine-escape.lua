@@ -28,7 +28,10 @@ function engine_escape()
     end,
 
     Code = function(el)
+      -- handle `{{python}} code`
       el.text = el.text:gsub("^" .. patterns.engine_escape, "%1")
+      -- handles `` `{{python}} code` ``
+      el.text = el.text:gsub("^(`+)" .. patterns.engine_escape, "%1%2")
       return el
     end
   }
