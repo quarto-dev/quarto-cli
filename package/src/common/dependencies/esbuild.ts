@@ -1,9 +1,8 @@
 /*
-* esbuild.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * esbuild.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
@@ -20,7 +19,7 @@ export function esBuild(version: string): Dependency {
     return {
       filename: `esbuild-${platformstr}.tgz`,
       url:
-        `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
+        `https://registry.npmjs.org/@esbuild/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
       configure: async (config: Configuration, path: string) => {
         const file = config.os === "windows" ? "esbuild.exe" : "esbuild";
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
@@ -30,7 +29,7 @@ export function esBuild(version: string): Dependency {
 
           const targetDir = join(dir, config.arch);
           ensureDirSync(targetDir);
-  
+
           // extracts to package/bin
           const esbuildDir = join(dir, `package`);
           if (existsSync(esbuildDir)) {
@@ -79,7 +78,7 @@ export function esBuild(version: string): Dependency {
       },
       "aarch64": {
         "linux": esBuildRelease("linux-arm64"),
-        "darwin": esBuildRelease("darwin-arm64")
+        "darwin": esBuildRelease("darwin-arm64"),
       },
     },
   };
