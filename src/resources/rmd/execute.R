@@ -135,8 +135,8 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     source(file.path(resourceDir, "rmd", "ojs_static.R"))
   }
 
-  my_env <- new.env(parent = globalenv())
-  my_env$uuid_5b6f6da5_61c6_4cec_a0e0_0cdeaa1cb2b8 <- function(v) {
+  env <- globalenv()
+  env$.QuartoInlineRender <- function(v) {
     if (is.null(v)) {
       "NULL"
     } else if (inherits(v, "asis")) {
@@ -154,7 +154,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     knit_root_dir = knit_root_dir,
     params = params,
     run_pandoc = FALSE,
-    envir = my_env
+    envir = env
   )
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
