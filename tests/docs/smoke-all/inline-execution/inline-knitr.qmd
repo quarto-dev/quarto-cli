@@ -1,0 +1,37 @@
+---
+title: "inline knitr expressions"
+engine: knitr
+keep-md: true
+---
+
+```{r}
+x = 1
+y = "foo"
+z = '"foo"'
+a = '"foo'
+b = '*foo*'
+c = "*foo*"
+d = "'foo"
+e = "1"
+f = FALSE
+g = TRUE
+h = NULL
+i = "*foo*"
+class(i) <- c("character", "asis")
+```
+
+Here's inline output: 
+
+- `{r} x`
+- `{r} y`
+- `{r} z`
+- `{r} a`
+- `{r} b`
+- `{r} c`
+- `{r} d`
+- `{r} e`
+- `{r} f`
+- `{r} g`
+- `{r} h`
+- `{r} i`
+

@@ -1,0 +1,37 @@
+---
+title: "inline jupyter expressions"
+engine: jupyter
+keep-ipynb: true
+keep-md: true
+---
+
+```{python}
+from IPython.display import Markdown
+x = 1
+y = "foo"
+z = '"foo"'
+a = '"foo'
+b = '*foo*'
+c = "*foo*"
+d = "'foo"
+e = "1"
+f = False
+g = True
+h = None
+i = Markdown("*foo*")
+```
+
+Here's inline output: 
+
+- `{python} x`
+- `{python} y`
+- `{python} z`
+- `{python} a`
+- `{python} b`
+- `{python} c`
+- `{python} d`
+- `{python} e`
+- `{python} f`
+- `{python} g`
+- `{python} h`
+- `{python} i`
