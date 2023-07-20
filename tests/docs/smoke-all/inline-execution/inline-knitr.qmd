@@ -1,7 +1,6 @@
 ---
 title: "inline knitr expressions"
 engine: knitr
-keep-md: true
 ---
 
 ```{r}

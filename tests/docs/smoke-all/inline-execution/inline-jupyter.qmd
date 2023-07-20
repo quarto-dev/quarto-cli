@@ -1,8 +1,6 @@
 ---
 title: "inline jupyter expressions"
 engine: jupyter
-keep-ipynb: true
-keep-md: true
 ---
 
 ```{python}
