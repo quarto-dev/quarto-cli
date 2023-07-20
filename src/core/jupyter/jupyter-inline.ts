@@ -25,6 +25,19 @@ export function userExpressionsFromCell(
   return userExpressions;
 }
 
+function asEscapedMarkdown(s: string) {
+  const singleQuote = "'", doubleQuote = '"';
+  if (
+    (s.startsWith(singleQuote) && s.endsWith(singleQuote)) ||
+    (s.startsWith(doubleQuote) && s.endsWith(doubleQuote))
+  ) {
+    s = s.slice(1, -1);
+    return s.replace(/\\/g, "\\\\").replace(/([\\`*_{}\[\]()>#+-.!])/g, "\\$1");
+  } else {
+    return s;
+  }
+}
+
 export function resolveUserExpressions(
   source: string[],
   userExpressions: Map<string, JupyterUserExpressionResult>,
@@ -48,9 +61,10 @@ export function resolveUserExpressions(
             case kTextLatex:
               return `${"`"}${data}${"`"}{=tex}`;
             case kTextMarkdown:
+              return `${data}`;
             case kTextPlain:
             default:
-              return `${data}`;
+              return asEscapedMarkdown(`${data}`);
           }
         }
       }

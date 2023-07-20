@@ -321,5 +321,9 @@ function filterAlwaysAllowHtml(s: string): string {
 }
 
 function resolveInlineExecute(code: string) {
-  return executeInlineCodeHandler("r", (expr) => `${"`"}r ${expr}${"`"}`)(code);
+  return executeInlineCodeHandler(
+    "r",
+    (expr) =>
+      `${"`"}r uuid_5b6f6da5_61c6_4cec_a0e0_0cdeaa1cb2b8(${expr})${"`"}`,
+  )(code);
 }
