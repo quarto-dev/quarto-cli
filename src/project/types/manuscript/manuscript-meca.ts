@@ -165,8 +165,15 @@ export const createMecaBundle = async (
 
   // If git is available, use the ls-files command to enumerate the
   // tracked files and use that to build the source list
-  const gitFiles = await lsFiles(context.dir);
+  let gitFiles = await lsFiles(context.dir);
   if (gitFiles) {
+    const unstagedDeletes = await (lsFiles(context.dir, ["--deleted"]));
+    if (unstagedDeletes) {
+      gitFiles = gitFiles.filter((file) => {
+        return !unstagedDeletes.includes(file);
+      });
+    }
+
     for (const file of gitFiles) {
       // Find execution resources and include them in the bundle
       // (if they weren't explicitly assigned)
