@@ -17,4 +17,4 @@ export DENO_NO_UPDATE_CHECK=1
 
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle
-"$QUARTO_DENO" run --unstable --allow-env --allow-read --allow-write --allow-run --allow-net --allow-ffi --importmap="${SCRIPT_PATH}/../../src/dev_import_map.json" "$SCRIPT_PATH/bld.ts" $@
+"$QUARTO_DENO" run --unstable --allow-env --allow-read --allow-write --allow-run --allow-net --allow-ffi --v8-flags=--tstack-trace-limit=100 --importmap="${SCRIPT_PATH}/../../src/dev_import_map.json" "$SCRIPT_PATH/bld.ts" $@
