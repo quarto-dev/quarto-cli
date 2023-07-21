@@ -620,6 +620,7 @@ const bannerTextLinkProvider = {
 
 const kLinkProvidersOtherLinks: Record<selector, LinkProvider> = {
   "quarto-other-links-target": bannerHeadingLinkProvider,
+  "quarto-other-links-text-target": bannerTextLinkProvider,
 };
 
 const kLinkProvidersOtherFormats: Record<selector, LinkProvider> = {
