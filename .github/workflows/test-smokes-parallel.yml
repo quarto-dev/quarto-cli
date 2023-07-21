@@ -9,11 +9,12 @@ on:
         required: true
         default: 10
         type: number
-  pull_request:
-    branches: [main]
-  push:
-    # only trigger on branches, not on tags
-    branches: [main]
+# FIXME: Reactivate trigger when GITHUB_TOKEN issue with rate limiting is solved
+#  pull_request:
+#    branches: [main]
+#  push:
+#    # only trigger on branches, not on tags
+#    branches: [main]
 
 jobs:
   jobs-matrix:
