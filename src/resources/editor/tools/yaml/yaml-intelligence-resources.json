@@ -274,7 +274,7 @@
       "default": false,
       "description": {
         "short": "Include line numbers in code block output (`true` or `false`)",
-        "long": "Include line numbers in code block output (`true` or `false`).\nLimitation: does not work properly with `code-link` set to `true`.\n\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines).\n\n* Sets of lines are denoted with commas:\n  * `3,4,5`\n  * `1,10,12`\n* Ranges can be denoted with dashes and combined with commas:\n  * `1-3,5` \n  * `5-10,12,14`\n* Finally, animation steps are separated by `|`:\n  * `1-3|1-3,5` first shows `1-3`, then `1-3,5`\n  * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10\n    and 12\n"
+        "long": "Include line numbers in code block output (`true` or `false`).\n\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines).\n\n* Sets of lines are denoted with commas:\n  * `3,4,5`\n  * `1,10,12`\n* Ranges can be denoted with dashes and combined with commas:\n  * `1-3,5` \n  * `5-10,12,14`\n* Finally, animation steps are separated by `|`:\n  * `1-3|1-3,5` first shows `1-3`, then `1-3,5`\n  * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10\n    and 12\n"
       }
     },
     {
@@ -4559,7 +4559,7 @@
       "default": false,
       "description": {
         "short": "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
-        "long": "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true` and proper display\nof code annotations if `code-annotations` is also set to `true`.\nFor `code-line-numbers` and `code-annotations` to work properly,\nit is recommended to set `code-link` to `false`.\n"
+        "long": "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit prevents code linking \nif `code-line-numbers` and/or `code-annotations` are set to `true`.\nFor `code-link` to work properly, `code-line-numbers` and `code-annotations`\nrequire to be set to `false`.\n"
       }
     },
     {
@@ -4580,7 +4580,7 @@
       "default": "below",
       "description": {
         "short": "The style to use when displaying code annotations",
-        "long": "The style to use when displaying code annotations. Set this value\nto false to hide code annotations.\nLimitation: does not work properly with `code-link` set to `true`.\n"
+        "long": "The style to use when displaying code annotations. Set this value\nto false to hide code annotations.\n"
       }
     },
     {
@@ -12716,7 +12716,7 @@
     },
     {
       "short": "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
-      "long": "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
+      "long": "Include line numbers in code block output (<code>true</code> or\n<code>false</code>). Limitation: does not work properly with\n<code>code-link</code> set to <code>true</code>.\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
     },
     "Unique label for code listing (used in cross references)",
     "Caption for code listing",
@@ -12882,11 +12882,11 @@
     },
     {
       "short": "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
-      "long": "Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href=\"https://downlit.r-lib.org/\">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>."
+      "long": "Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href=\"https://downlit.r-lib.org/\">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code> and proper\ndisplay of code annotations if <code>code-annotations</code> is also set\nto <code>true</code>. For <code>code-line-numbers</code> and\n<code>code-annotations</code> to work properly, it is recommended to set\n<code>code-link</code> to <code>false</code>."
     },
     {
       "short": "The style to use when displaying code annotations",
-      "long": "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations."
+      "long": "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations. Limitation: does not work properly with\n<code>code-link</code> set to <code>true</code>."
     },
     {
       "short": "Include a code tools menu (for hiding and showing code).",
