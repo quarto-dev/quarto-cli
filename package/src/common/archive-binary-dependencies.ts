@@ -1,9 +1,8 @@
 /*
-* archive-binary-dependencies.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * archive-binary-dependencies.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
@@ -41,6 +40,59 @@ export async function archiveBinaryDependencies(_config: Configuration) {
       await archiveBinaryDependency(dependency, workingDir);
     }
   });
+}
+
+// Archives dependencies (if they are not present in the archive already)
+export async function checkBinaryDependencies(_config: Configuration) {
+  await withWorkingDir(async (workingDir) => {
+    info(`Updating binary dependencies...\n`);
+
+    for (const dependency of kDependencies) {
+      await checkBinaryDependency(dependency, workingDir);
+    }
+  });
+}
+
+export async function checkBinaryDependency(
+  dependency: Dependency,
+  workingDir: string,
+) {
+  info(`** ${dependency.name} ${dependency.version} **`);
+
+  const dependencyBucketPath = `${dependency.bucket}/${dependency.version}`;
+  info("Checking archive status...\n");
+
+  const archive = async (
+    architectureDependency: ArchitectureDependency,
+  ) => {
+    const platformDeps = [
+      architectureDependency.darwin,
+      architectureDependency.linux,
+      architectureDependency.windows,
+    ];
+    for (const platformDep of platformDeps) {
+      if (platformDep) {
+        // This dependency doesn't exist, archive it
+        info(
+          `Checking ${dependencyBucketPath} - ${platformDep.filename}`,
+        );
+
+        // Download the file
+        await download(
+          workingDir,
+          platformDep,
+        );
+      }
+    }
+  };
+
+  for (const arch of Object.keys(dependency.architectureDependencies)) {
+    info(`Checking ${dependency.name}`);
+    const archDep = dependency.architectureDependencies[arch];
+    await archive(archDep);
+  }
+
+  info("");
 }
 
 export async function archiveBinaryDependency(
