@@ -549,10 +549,17 @@ export const manuscriptProjectType: ProjectType = {
     if (renderResults.context) {
       const manuscriptConfig = renderResults.context.config
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
-      const renderResult = renderResults.files.find((file) => {
+
+      // Find any of the article inputs
+      const articleResults = renderResults.files.filter((file) => {
         return file.input === manuscriptConfig.article;
       });
-      return renderResult;
+
+      // The last file will be the first format in the user list of formats
+      if (articleResults.length > 0) {
+        return articleResults[articleResults.length - 1];
+      }
+      return undefined;
     }
   },
   postRender: async (
