@@ -7211,6 +7211,7 @@
             "enum": [
               "default",
               "plain",
+              "manuscript",
               "none"
             ]
           }
@@ -14709,12 +14710,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 161290,
+    "_internalId": 161289,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 161282,
+        "_internalId": 161281,
         "type": "enum",
         "enum": [
           "png",
@@ -14730,7 +14731,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 161289,
+        "_internalId": 161288,
         "type": "anyOf",
         "anyOf": [
           {

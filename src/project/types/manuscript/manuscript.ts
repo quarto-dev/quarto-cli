@@ -13,6 +13,7 @@ import {
   FormatExtras,
   FormatLanguage,
   FormatLink,
+  kDependencies,
   kHtmlPostprocessors,
   Metadata,
   NotebookPreviewDescriptor,
@@ -24,6 +25,7 @@ import {
   kArticleNotebookLabel,
   kClearHiddenClasses,
   kEcho,
+  kExtensionName,
   kFormatLinks,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
@@ -50,6 +52,7 @@ import {
   RenderedFormat,
   RenderFlags,
   RenderResult,
+  RenderResultFile,
   RenderServices,
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
@@ -90,6 +93,8 @@ import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
+
+import * as ld from "../../../core/lodash.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -151,24 +156,33 @@ export const manuscriptProjectType: ProjectType = {
 
     // Go through project inputs and use any of these as notebooks
     const notebooks: Record<string, NotebookPreviewDescriptor> = {};
-    const inputNotebooks = inputs.files.map((input) => {
-      return relative(projectDir, input);
-    }).filter((file) => {
-      // Filter the article
-      if (file === article) {
-        return false;
-      }
 
-      // Filter output notebooks
-      if (isOutputFile(file, "ipynb")) {
-        return false;
-      }
-      return true;
-    });
-    if (inputNotebooks) {
-      resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+    const explicitNotebooks = manuscriptConfig[kNotebooks];
+    if (explicitNotebooks) {
+      resolveNotebookDescriptors(explicitNotebooks).forEach((nb) => {
         notebooks[nb.notebook] = nb;
       });
+    } else {
+      const inputNotebooks = inputs.files.map((input) => {
+        return relative(projectDir, input);
+      }).filter((file) => {
+        // Filter the article
+        if (file === article) {
+          return false;
+        }
+
+        // Filter output notebooks
+        if (isOutputFile(file, "ipynb")) {
+          return false;
+        }
+        return true;
+      });
+
+      if (inputNotebooks) {
+        resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
+          notebooks[nb.notebook] = nb;
+        });
+      }
     }
 
     // Build the final render list, ensuring that the article is last in the list
@@ -454,7 +468,13 @@ export const manuscriptProjectType: ProjectType = {
     extras.metadata = {};
 
     // Only do all this for the main article
-    if (isArticleManuscript(source, format, context, manuscriptConfig)) {
+    const isArticle = isArticleManuscript(
+      source,
+      format,
+      context,
+      manuscriptConfig,
+    );
+    if (isArticle) {
       // Add the github repo as a metadata link
       const ghContext = await gitHubContext(context.dir);
       if (ghContext) {
@@ -511,6 +531,19 @@ export const manuscriptProjectType: ProjectType = {
       return Promise.resolve(kHtmlEmptyPostProcessResult);
     }];
 
+    // If this is a notebook, include headroom
+    if (!isArticle) {
+      extras.html[kDependencies] = [{
+        name: "manuscript-notebook",
+        scripts: [
+          {
+            name: "headroom.min.js",
+            path: resourcePath(`projects/website/navigation/headroom.min.js`),
+          },
+        ],
+      }];
+    }
+
     return Promise.resolve(extras);
   },
   previewSkipUnmodified: true,
@@ -520,10 +553,35 @@ export const manuscriptProjectType: ProjectType = {
     if (renderResults.context) {
       const manuscriptConfig = renderResults.context.config
         ?.[kManuscriptType] as ResolvedManuscriptConfig;
-      const renderResult = renderResults.files.find((file) => {
+
+      // Find any of the article inputs
+      const articleResults = renderResults.files.filter((file) => {
         return file.input === manuscriptConfig.article;
       });
-      return renderResult;
+
+      if (articleResults.length === 1) {
+        return articleResults[0];
+      } else if (articleResults.length > 1) {
+        // Try to find an output that is great for previewing
+        const preferredFormats = ["html", "pdf", "docx"];
+        const sorted = ld.orderBy(articleResults, (item: RenderResultFile) => {
+          const formatStr = item.format.identifier["base-format"];
+          if (formatStr) {
+            const index = preferredFormats.indexOf(formatStr);
+            if (index > -1) {
+              // Prefer the custom forms of formats when possible
+              if (item.format.identifier[kExtensionName]) {
+                return index * 2;
+              } else {
+                return (index * 2) + 1;
+              }
+            }
+          }
+          return Number.MAX_SAFE_INTEGER;
+        }, "asc");
+        return sorted[0];
+      }
+      return undefined;
     }
   },
   postRender: async (

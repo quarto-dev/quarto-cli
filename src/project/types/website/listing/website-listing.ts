@@ -66,6 +66,7 @@ import {
   updateGlobalListingIndex,
 } from "./website-listing-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
+import { formatHasBootstrap } from "../../../../format/html/format-html-info.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
@@ -273,7 +274,7 @@ export async function listingHtmlDependencies(
   };
 
   return {
-    [kSassBundles]: [listingSassBundle()],
+    [kSassBundles]: formatHasBootstrap(format) ? [listingSassBundle()] : [],
     [kDependencies]: pageHasListings ? listingDependencies : [],
     [kMarkdownAfterBody]: pageHasListings
       ? pipeline.markdownAfterBody()

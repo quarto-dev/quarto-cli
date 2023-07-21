@@ -7,10 +7,13 @@
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 
-export async function lsFiles(cwd?: string): Promise<string[] | undefined> {
+export async function lsFiles(
+  cwd?: string,
+  args?: string[],
+): Promise<string[] | undefined> {
   if (await which("git")) {
     const result = await execProcess({
-      cmd: ["git", "ls-files"],
+      cmd: ["git", "ls-files", ...(args || [])],
       cwd,
       stdout: "piped",
       stderr: "piped",

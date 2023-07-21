@@ -13,6 +13,7 @@ import { findParent } from "../../core/html.ts";
 
 import {
   kContentMode,
+  kDisableArticleLayout,
   kDisplayName,
   kExtensionName,
   kFormatLinks,
@@ -794,6 +795,30 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
       flags,
     );
 
+    if (format.metadata[kDisableArticleLayout]) {
+      const stripColumnClasses = (el: Element) => {
+        const stripClz: string[] = [];
+        el.classList.forEach((clz) => {
+          if (
+            clz === "margin-caption" || clz === "margin-ref" ||
+            clz.startsWith("column-") || clz === "page-columns" ||
+            clz === "page-full"
+          ) {
+            stripClz.push(clz);
+          }
+        });
+        el.classList.remove(...stripClz);
+        for (const childEl of el.children) {
+          stripColumnClasses(childEl);
+        }
+      };
+
+      const mainEl = doc.body.querySelector("main");
+      if (mainEl) {
+        stripColumnClasses(mainEl);
+      }
+    }
+
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
     if (refsInMargin) {
@@ -909,6 +934,11 @@ function processColumnElements(
 
   // Process margin elements that may appear in tabsets
   processMarginElsInTabsets(doc);
+
+  // Process non-margin figures - forward the column class
+  // down into the figure so that the caption remains in the document
+  // flow and the figure itself takes the column sizing
+  processFigureOutputs(doc);
 
   // Group margin elements by their parents and wrap them in a container
   // Be sure to ignore containers which are already processed
@@ -1195,6 +1225,43 @@ const processMarginElsInCallouts = (doc: Document) => {
       });
     }
   });
+};
+
+const processFigureOutputs = (doc: Document) => {
+  // For any non-margin figures, we want to actually place the figure itself
+  // into the column, and leave the caption as is, if possible
+  const columnEls = doc.querySelectorAll(
+    '[class^="column-"]:not(.column-margin), [class*=" column-"]:not(.column-margin)',
+  );
+
+  const moveColumnClasses = (fromEl: Element, toEl: Element) => {
+    const clzList: string[] = [];
+    for (const clz of fromEl.classList) {
+      if (clz.startsWith("column-")) {
+        clzList.push(clz);
+      }
+    }
+    fromEl.classList.remove(...clzList);
+    toEl.classList.add(...clzList);
+  };
+
+  for (const columnNode of columnEls) {
+    // See if this is a code cell with a single figure output
+    const columnEl = columnNode as Element;
+
+    // If there is a single figure, then forward the column class onto that
+    const figures = columnEl.querySelectorAll("figure img.figure-img");
+    if (figures && figures.length === 1) {
+      moveColumnClasses(columnEl, figures[0] as Element);
+    } else {
+      const layoutFigures = columnEl.querySelectorAll(
+        ".quarto-layout-panel > figure.figure .quarto-layout-row",
+      );
+      if (layoutFigures && layoutFigures.length === 1) {
+        moveColumnClasses(columnEl, layoutFigures[0] as Element);
+      }
+    }
+  }
 };
 
 const processMarginElsInTabsets = (doc: Document) => {

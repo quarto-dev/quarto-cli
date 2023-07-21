@@ -85,7 +85,7 @@ is the level specified.
 ]]
 ---@param number_sections boolean Whether section divs should get an additional `number` attribute containing the section number.
 ---@param base_level integer|nil Shift top-level headings to this level.
----@return pandoc.List
+---@return pandoc.Blocks
 function pandoc.utils.make_sections(number_sections, base_level, blocks) end
 
 --[[

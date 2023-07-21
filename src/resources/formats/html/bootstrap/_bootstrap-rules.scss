@@ -1244,7 +1244,11 @@ kbd,
 }
 
 // tweak pandoc default hanging indent
-div.hanging-indent {
+.quarto-appendix-contents div.hanging-indent {
+  margin-left: 0em;
+}
+
+.quarto-appendix-contents div.hanging-indent div.csl-entry {
   margin-left: 1em;
   text-indent: -1em;
 }
