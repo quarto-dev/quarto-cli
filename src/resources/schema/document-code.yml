@@ -47,7 +47,6 @@
     long: |
       The style to use when displaying code annotations. Set this value
       to false to hide code annotations.
-      Limitation: does not work properly with `code-link` set to `true`.
 
 - name: code-tools
   tags:
