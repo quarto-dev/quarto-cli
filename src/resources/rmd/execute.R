@@ -139,7 +139,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   env$.QuartoInlineRender <- function(v) {
     if (is.null(v)) {
       "NULL"
-    } else if (inherits(v, "asis")) {
+    } else if (inherits(v, "AsIs")) {
       v
     } else if (is.character(v)) {
       gsub(pattern="(\\[|\\]|[`*_{}()>#+-.!])", x=v, replacement="\\\\\\1")
