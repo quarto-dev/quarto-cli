@@ -31,11 +31,10 @@
 
       Code linking is currently implemented only for the knitr engine 
       (via the [downlit](https://downlit.r-lib.org/) package). 
-      A limitation of downlit currently prevents code linking 
-      if `code-line-numbers` is also `true` and proper display
-      of code annotations if `code-annotations` is also set to `true`.
-      For `code-line-numbers` and `code-annotations` to work properly,
-      it is recommended to set `code-link` to `false`.
+      A limitation of downlit prevents code linking 
+      if `code-line-numbers` and/or `code-annotations` are set to `true`.
+      For `code-link` to work properly, `code-line-numbers` and `code-annotations`
+      require to be set to `false`.
 
 - name: code-annotations
   schema:
