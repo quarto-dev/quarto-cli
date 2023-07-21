@@ -74,7 +74,7 @@ export function esBuild(version: string): Dependency {
       "x86_64": {
         "windows": esBuildRelease("windows-64"),
         "linux": esBuildRelease("linux-64"),
-        "darwin": esBuildRelease("darwin-64"),
+        "darwin": esBuildRelease("darwin-x64"),
       },
       "aarch64": {
         "linux": esBuildRelease("linux-arm64"),
