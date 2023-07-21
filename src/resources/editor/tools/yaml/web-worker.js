@@ -14236,6 +14236,7 @@ try {
                   enum: [
                     "default",
                     "plain",
+                    "manuscript",
                     "none"
                   ]
                 }
@@ -21734,12 +21735,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 161290,
+          _internalId: 161289,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 161282,
+              _internalId: 161281,
               type: "enum",
               enum: [
                 "png",
@@ -21755,7 +21756,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 161289,
+              _internalId: 161288,
               type: "anyOf",
               anyOf: [
                 {
@@ -28363,7 +28364,7 @@ ${tidyverseInfo(
     function listener(what, state) {
       const { result, position, kind } = state;
       if (what === "close") {
-        const { position: openPosition } = stack.pop();
+        const { position: openPosition, kind: openKind } = stack.pop();
         if (results.length > 0) {
           const last = results[results.length - 1];
           if (last.start === openPosition && last.end === position) {
@@ -28380,9 +28381,10 @@ ${tidyverseInfo(
         }
         components.reverse();
         const rawRange = yml.substring(openPosition, position);
-        const leftTrim = rawRange.length - rawRange.trimLeft().length;
-        const rightTrim = rawRange.length - rawRange.trimRight().length;
-        if (rawRange.trim().length === 0) {
+        const leftTrim = rawRange.length - rawRange.trimStart().length;
+        const rightTrim = rawRange.length - rawRange.trimEnd().length;
+        if (openKind === null && kind === null) {
+        } else if (rawRange.trim().length === 0) {
           results.push({
             start: position - rightTrim,
             end: position - rightTrim,
@@ -28402,7 +28404,7 @@ ${tidyverseInfo(
           });
         }
       } else {
-        stack.push({ position });
+        stack.push({ position, kind });
       }
     }
     load(yml, { listener, schema: QuartoJSONSchema });
