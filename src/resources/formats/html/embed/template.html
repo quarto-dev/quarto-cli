@@ -66,8 +66,13 @@
 
     <script>
     window.document.addEventListener("DOMContentLoaded", function () {
+
       var header = window.document.querySelector("#quarto-embed-header");
-      window.document.body.style.paddingTop = header.clientHeight + "px";
+      const contentEl = window.document.getElementById('quarto-content');
+      for (const child of contentEl.children) {
+        child.style.paddingTop = header.clientHeight + "px";
+        child.style.marginTop = "1em";
+      }
 
       const headroom = new window.Headroom(header, {
         tolerance: 5,
@@ -89,7 +94,7 @@
 
   <body>
     <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
-      $if(nbMeta.backHref)$<a href="$nbMeta.backHref$" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>$endif$
+      <a onclick="history.back(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>
       <h6><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
 
       $if(nbMeta.downloadHref)$

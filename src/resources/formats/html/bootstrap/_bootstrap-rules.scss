@@ -630,6 +630,10 @@ h1.title {
   margin-top: 0;
 }
 
+main.content > section:first-of-type > h2:first-child {
+  margin-top: 0;
+}
+
 h2 {
   border-bottom: 1px solid $table-border-color;
   padding-bottom: 0.5rem;
@@ -1254,7 +1258,11 @@ kbd,
 }
 
 // tweak pandoc default hanging indent
-div.hanging-indent {
+.quarto-appendix-contents div.hanging-indent {
+  margin-left: 0em;
+}
+
+.quarto-appendix-contents div.hanging-indent div.csl-entry {
   margin-left: 1em;
   text-indent: -1em;
 }

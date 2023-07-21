@@ -161,7 +161,6 @@ export const manuscriptRenderer = (
       const notebookMetadata = {
         title: title || basename(input),
         filename: basename(input),
-        backHref: parentOutputFiles["html"] || index,
         downloadHref: downloadHref || basename(input),
         downloadFile: basename(input),
       };

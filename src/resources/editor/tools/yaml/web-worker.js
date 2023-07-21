@@ -7009,6 +7009,10 @@ try {
     return to;
   };
   var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
     isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
     mod
   ));
@@ -14236,6 +14240,7 @@ try {
                   enum: [
                     "default",
                     "plain",
+                    "manuscript",
                     "none"
                   ]
                 }
@@ -21734,12 +21739,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 161290,
+          _internalId: 161289,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 161282,
+              _internalId: 161281,
               type: "enum",
               enum: [
                 "png",
@@ -21755,7 +21760,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 161289,
+              _internalId: 161288,
               type: "anyOf",
               anyOf: [
                 {
@@ -22314,6 +22319,8 @@ ${heading}`;
       this.printName = printName;
       this.printStack = printStack;
     }
+    printName;
+    printStack;
   };
   var UnreachableError = class extends InternalError {
     constructor() {
@@ -22364,6 +22371,7 @@ ${heading}`;
   function* attemptParsesAtLine(context, parser) {
     const {
       position
+      // row/column of cursor (0-based)
     } = context;
     const code2 = asMappedString(context.code);
     try {
@@ -22474,8 +22482,11 @@ ${heading}`;
   function locateFromIndentation(context) {
     const {
       line,
+      // editing line up to the cursor
       code: mappedCode,
+      // full contents of the buffer
       position
+      // row/column of cursor (0-based)
     } = context;
     const code2 = asMappedString(mappedCode).value;
     const { predecessor, indentation } = getYamlIndentTree(code2);
@@ -25317,6 +25328,7 @@ ${heading}`;
     explicit: [
       new Type("!expr", {
         kind: "scalar",
+        // deno-lint-ignore no-explicit-any
         construct(data) {
           const result = data !== null ? data : "";
           return {
@@ -27310,6 +27322,7 @@ ${heading}`;
           subSchema,
           key,
           allowPartialMatches !== void 0 && allowPartialMatches && index === path.length - 1
+          // allow prefix matches only if it's the last entry
         );
         if (patternPropMatch) {
           return inner(patternPropMatch, index + 1);
@@ -27439,6 +27452,7 @@ ${heading}`;
       schema2,
       (_schema) => {
       },
+      // visit
       (schema3) => {
         return schema3.tags !== void 0 && schema3.tags["complete-from"] !== void 0;
       },
@@ -27566,6 +27580,7 @@ ${heading}`;
           completions2.push({
             type: "key",
             display: "",
+            // attempt to not show completion title.
             value: `${k}: `,
             description,
             suggest_on_accept: true
@@ -27605,6 +27620,7 @@ ${heading}`;
         results.push(...s["enum"].map(String));
         return true;
       },
+      // don't recurse into anything that introduces instancePath values
       "array": (_s) => true,
       "object": (_s) => true
     });
@@ -28294,6 +28310,7 @@ ${reindented}
           start: violatingObject.start,
           end: violatingObject.end
         })
+        // location!),
       }
     };
   }
@@ -28363,7 +28380,7 @@ ${tidyverseInfo(
     function listener(what, state) {
       const { result, position, kind } = state;
       if (what === "close") {
-        const { position: openPosition } = stack.pop();
+        const { position: openPosition, kind: openKind } = stack.pop();
         if (results.length > 0) {
           const last = results[results.length - 1];
           if (last.start === openPosition && last.end === position) {
@@ -28380,9 +28397,10 @@ ${tidyverseInfo(
         }
         components.reverse();
         const rawRange = yml.substring(openPosition, position);
-        const leftTrim = rawRange.length - rawRange.trimLeft().length;
-        const rightTrim = rawRange.length - rawRange.trimRight().length;
-        if (rawRange.trim().length === 0) {
+        const leftTrim = rawRange.length - rawRange.trimStart().length;
+        const rightTrim = rawRange.length - rawRange.trimEnd().length;
+        if (openKind === null && kind === null) {
+        } else if (rawRange.trim().length === 0) {
           results.push({
             start: position - rightTrim,
             end: position - rightTrim,
@@ -28402,7 +28420,7 @@ ${tidyverseInfo(
           });
         }
       } else {
-        stack.push({ position });
+        stack.push({ position, kind });
       }
     }
     load(yml, { listener, schema: QuartoJSONSchema });
@@ -28469,6 +28487,9 @@ ${tidyverseInfo(
         end: node.endIndex,
         result: result2,
         kind: node.type,
+        // NB this doesn't match js-yaml, so you need
+        // to make sure your annotated walkers know
+        // about tree-sitter and js-yaml both.
         components,
         source: mappedSource2
       };
@@ -28711,6 +28732,9 @@ ${tidyverseInfo(
 
   // ../semaphore.ts
   var Semaphore = class {
+    value;
+    // deno-lint-ignore no-explicit-any
+    tasks;
     constructor(value) {
       this.value = value;
       this.tasks = [];
@@ -28793,6 +28817,10 @@ ${tidyverseInfo(
 
   // ../yaml-validation/validator.ts
   var ValidationContext = class {
+    instancePath;
+    root;
+    nodeStack;
+    currentNode;
     constructor() {
       this.instancePath = [];
       this.currentNode = { edge: "#", errors: [], children: [] };
@@ -28842,6 +28870,16 @@ ${tidyverseInfo(
       }
       return this.collectErrors(schema2, source, value, pruneErrors);
     }
+    // if pruneErrors is false, we return all errors. This is typically
+    // hard to interpret directly because of anyOf errors.
+    //
+    // it's possible that the best API is for LocalizedErrors to explicitly nest
+    // so that anyOf errors are reported in their natural structure.
+    //
+    // if pruneErrors is true, then we only report one of the anyOf
+    // errors, avoiding most issues. (`patternProperties` can still
+    // cause error overlap and potential confusion, and we need those
+    // because of pandoc properties..)
     collectErrors(_schema, source, _value, pruneErrors = true) {
       const inner = (node) => {
         const result2 = [];
@@ -29277,6 +29315,10 @@ ${tidyverseInfo(
 
   // ../yaml-validation/yaml-schema.ts
   var YAMLSchema = class {
+    schema;
+    // These are schema-specific error transformers to yield custom
+    // error messages.
+    errorHandlers;
     constructor(schema2) {
       this.errorHandlers = [];
       this.schema = schema2;
@@ -29296,6 +29338,7 @@ ${tidyverseInfo(
         return error;
       }).filter((error) => error !== null);
     }
+    // deno-lint-ignore require-await
     async validateParse(src, annotation, pruneErrors = true) {
       const validationErrors = validate(
         annotation,
@@ -29319,6 +29362,9 @@ ${tidyverseInfo(
         };
       }
     }
+    // NB this needs explicit params for "error" and "log" because it might
+    // get called from the IDE, where we lack quarto's "error" and "log"
+    // infra
     reportErrorsInSource(result, _src, message, error, log) {
       if (result.errors.length) {
         if (message.length) {
@@ -29330,6 +29376,9 @@ ${tidyverseInfo(
       }
       return result;
     }
+    // NB this needs explicit params for "error" and "log" because it might
+    // get called from the IDE, where we lack quarto's "error" and "log"
+    // infra
     async validateParseWithErrors(src, annotation, message, error, log) {
       const result = await this.validateParse(src, annotation);
       this.reportErrorsInSource(result, src, message, error, log);
@@ -29737,6 +29786,7 @@ ${tidyverseInfo(
       ...internalId(),
       "type": "enum",
       "enum": [val],
+      // enum takes non-strings too (!)
       "description": description || `be ${JSON.stringify(val)}`
     };
   }
@@ -30010,14 +30060,15 @@ ${tidyverseInfo(
   }
 
   // ../yaml-schema/validated-yaml.ts
-  var ValidationError2 = class extends Error {
+  var ValidationError2 = class _ValidationError extends Error {
+    validationErrors;
     constructor(msg, validationErrors) {
       super(
         [msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))].join(
           "\n\n"
         )
       );
-      Object.setPrototypeOf(this, ValidationError2.prototype);
+      Object.setPrototypeOf(this, _ValidationError.prototype);
       this.validationErrors = validationErrors;
     }
   };
@@ -30155,6 +30206,7 @@ ${tidyverseInfo(
       anyOfSchema(inner, arraySchema(inner)),
       {
         "complete-from": ["anyOf", 0]
+        // complete from `schema` completions, ignoring arrayOf
       }
     );
     return setBaseSchemaProperties(yaml, schema2);
@@ -30370,6 +30422,7 @@ ${tidyverseInfo(
     const literalValues = [
       { val: "object", schema: objectSchema() },
       { val: "path", schema: stringSchema },
+      // FIXME we should treat this one differently to record the autocompletion difference
       { val: "string", schema: stringSchema },
       { val: "number", schema: numberSchema },
       { val: "boolean", schema: booleanSchema },
@@ -30643,6 +30696,7 @@ ${tidyverseInfo(
     `engine-${engine}`
   );
   var markdownEngineSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: makeEngineSchema("markdown"),
@@ -30659,6 +30713,7 @@ ${tidyverseInfo(
     "engine-knitr"
   );
   var jupyterEngineSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: makeEngineSchema("jupyter"),
@@ -30774,12 +30829,15 @@ ${tidyverseInfo(
     }
     const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
     return {
+      // yaml: yaml as Record<string, unknown> | undefined,
+      // yamlValidationErrors,
       yaml: mappedYaml,
       optionsSource,
       source: mappedString(source, [{
         start: endOfYaml,
         end: source.value.length
       }]),
+      // .slice(yamlLines.length),
       sourceStartLine: yamlLines.length
     };
   }
@@ -30790,7 +30848,8 @@ ${tidyverseInfo(
       source,
       sourceStartLine
     } = partitionCellOptionsText(language, outerSource);
-    if (language !== "r" || guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
+    if (language !== "r" || // only skip validation when language === 'r' and guessChunkOptionsFormat == "knitr"
+    guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
       const yaml = await parseAndValidateCellOptions(
         mappedYaml || asMappedString(""),
         language,
@@ -30981,6 +31040,7 @@ ${tidyverseInfo(
           }
         };
         const cell = {
+          // deno-lint-ignore camelcase
           cell_type: makeCellType(),
           source,
           sourceOffset: 0,
@@ -31171,7 +31231,9 @@ ${tidyverseInfo(
     };
     const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
       "md",
+      // alias for 'commonmark'
       "hugo"
+      // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
     ).map(
       (format) => {
         const {
@@ -31180,6 +31242,12 @@ ${tidyverseInfo(
         } = hideFormat(format);
         return {
           regex: `^(.+-)?${name}([-+].+)?$`,
+          // NOTE: the following regex supports format:foo and format[foo]. It currently breaks
+          // our autocompletion because it uses non-capturing groups. Since we haven't decided
+          // on it, we're reverting for now.
+          //
+          // regex:
+          //   `^${name}(?:(?:[[][^\\]\\ s]+[\\]])|(?:[:][^:+\\s]+))?(?:[+].+)?$`,
           schema: getFormatSchema(name),
           name,
           hidden
@@ -31277,6 +31345,7 @@ ${tidyverseInfo(
 
   // ../yaml-schema/project-config.ts
   var getProjectConfigFieldsSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: objectSchemaFromFieldsObject(
@@ -31288,6 +31357,7 @@ ${tidyverseInfo(
     "project-config-fields"
   );
   var getExtensionConfigFieldsSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: objectSchemaFromFieldsObject(
@@ -31497,8 +31567,11 @@ ${tidyverseInfo(
   async function completionsFromGoodParseYAML(context) {
     const {
       line,
+      // editing line up to the cursor
       position,
+      // row/column of cursor (0-based)
       schema: schema2
+      // schema of yaml object
     } = context;
     const positionKind = context.positionKind || "metadata";
     const commentPrefix = context.commentPrefix || "";
@@ -31600,6 +31673,18 @@ ${tidyverseInfo(
           indent,
           commentPrefix,
           context,
+          // filter raw completions depending on cursor context. We use "_" to denote
+          // the cursor position. We need to handle:
+          //
+          // 1. "     _": empty line
+          // 2. "     foo: _": completion on value position of object
+          // 3. "     - _": completion on array sequence
+          // 4. "     - foo: ": completion on value position of object inside array sequence
+          // 5. "     foo_": completion on key position in partially-completed word
+          //
+          // case 1 was handled upstream of this, so we don't need to handle it here
+          // cases 2 and 4 take only value completions
+          // case 3 takes all completions, so no work is needed
           completionPosition: completionOnValuePosition ? "value" : completionOnArraySequence ? "key" : void 0,
           positionKind
         });
@@ -31706,6 +31791,7 @@ ${tidyverseInfo(
     const formats = [
       ...Array.from(context.formats),
       ...Array.from(context.project_formats)
+      // keep only pandoc valid formats here
     ].filter((x) => aliases["pandoc-all"].indexOf(x) !== -1);
     let completions2 = matchingSchemas.map((schema3) => {
       const result = schemaCompletions(schema3);
@@ -31858,8 +31944,12 @@ ${tidyverseInfo(
     }
     completions2 = uniqBy(completions2, (completion) => completion.value);
     return {
+      // token to replace
       token: word,
+      // array of completions
       completions: completions2,
+      // is this cacheable for subsequent results that add to the token
+      // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
       cacheable: true
     };
   }
@@ -31943,6 +32033,7 @@ ${tidyverseInfo(
               schemaName: "front-matter",
               line,
               position,
+              // we don't need to adjust position because front matter only shows up at start of file.
               positionKind: "metadata"
             })
           );
@@ -32025,8 +32116,13 @@ ${tidyverseInfo(
       line: context.line.slice(commentPrefix.length),
       code: yaml,
       commentPrefix,
+      // NB we get lucky here that the "inverse mapping" of the cursor
+      // position is easy enough to compute explicitly. This might not
+      // hold in the future...
       position: {
+        // -1 subtract the "{language}" line if necessary
         row: context.position.row - codeStartLine,
+        // subtract the "#| " entry
         column: context.position.column - commentPrefix.length
       },
       schema: schema2,
@@ -32179,5 +32275,5 @@ initialization does not contain language extensions`);
     getLint
   });
 })();
-/*! @author Toru Nagashima <https://github.com/mysticatea> */
 /*! js-yaml 4.1.0 https://github.com/nodeca/js-yaml @license MIT */
+/*! @author Toru Nagashima <https://github.com/mysticatea> */

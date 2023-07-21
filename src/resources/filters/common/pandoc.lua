@@ -92,7 +92,11 @@ end
 function markdownToInlines(str)
   if str then
     local doc = pandoc.read(str)
-    return doc.blocks[1].content
+    if #doc.blocks == 0 then
+      return pandoc.List({})
+    else
+      return doc.blocks[1].content
+    end
   else
     return pandoc.List()
   end

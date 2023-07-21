@@ -40,6 +40,7 @@ import * as ld from "../../../core/lodash.ts";
 import { projectType } from "../project-types.ts";
 import { engineIgnoreDirs } from "../../../execute/engine.ts";
 import { lsFiles } from "../../../core/git.ts";
+import { info } from "log/mod.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
@@ -165,8 +166,15 @@ export const createMecaBundle = async (
 
   // If git is available, use the ls-files command to enumerate the
   // tracked files and use that to build the source list
-  const gitFiles = await lsFiles(context.dir);
+  let gitFiles = await lsFiles(context.dir);
   if (gitFiles) {
+    const unstagedDeletes = await (lsFiles(context.dir, ["--deleted"]));
+    if (unstagedDeletes) {
+      gitFiles = gitFiles.filter((file) => {
+        return !unstagedDeletes.includes(file);
+      });
+    }
+
     for (const file of gitFiles) {
       // Find execution resources and include them in the bundle
       // (if they weren't explicitly assigned)
@@ -271,6 +279,23 @@ export const createMecaBundle = async (
         manuscriptZipFiles.push(workingPath);
       });
     }
+
+    const msg = (count: number, nameSing: string, namePlur: string) => {
+      if (count === 1) {
+        info(`  ${count} ${nameSing}`);
+      } else if (count > 1) {
+        info(`  ${count} ${namePlur}`);
+      }
+    };
+
+    // +1 for the manuscript file itself
+    msg(
+      1 + manuscriptResources.length + articleRenderingPaths.length,
+      "article file",
+      "article files",
+    );
+    msg(Object.keys(srcFiles).length, "source file", "source files");
+
     // Copy resources
     const resources = [];
     resources.push(...jatsArticle.resources);
@@ -283,6 +308,7 @@ export const createMecaBundle = async (
     notebooks.forEach((notebook) => {
       resources.push(notebook.notebook);
     });
+    msg(notebooks.length, "notebook", "notebooks");
 
     resources.forEach((file) => {
       const relPath = isAbsolute(file) ? relative(context.dir, file) : file;
@@ -300,6 +326,7 @@ export const createMecaBundle = async (
       // Note to include in zip
       manuscriptZipFiles.push(workingPath);
     });
+    msg(resources.length, "other file", "other files");
 
     // Generate a manifest
     const articleItem = toMecaItem(articlePath, kArticleMetadata);
@@ -315,6 +342,8 @@ export const createMecaBundle = async (
         ...sourceFiles,
       ],
     };
+
+    info("");
 
     // Write the manifest
     const manifestFile = "manifest.xml";
