@@ -19,7 +19,7 @@ export function esBuild(version: string): Dependency {
     return {
       filename: `esbuild-${platformstr}.tgz`,
       url:
-        `https://registry.npmjs.org/@esbuild/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
+        `https://registry.npmjs.org/@esbuild/${platformstr}/-/${platformstr}-${version}.tgz`,
       configure: async (config: Configuration, path: string) => {
         const file = config.os === "windows" ? "esbuild.exe" : "esbuild";
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
