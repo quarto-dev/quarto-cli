@@ -630,6 +630,10 @@ h1.title {
   margin-top: 0;
 }
 
+main.content > section:first-of-type > h2:first-child {
+  margin-top: 0;
+}
+
 h2 {
   border-bottom: 1px solid $table-border-color;
   padding-bottom: 0.5rem;

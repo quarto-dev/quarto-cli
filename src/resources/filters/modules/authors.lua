@@ -190,6 +190,7 @@ local kDoiLbl = 'doi'
 local kDescriptionLbl = 'description'
 local kAbstractLbl = 'abstract'
 local kKeywordsLbl = 'keywords'
+local kRelatedFormats = 'related_formats'
 
 -- affiliation fields that might be parsed into other fields
 -- (e.g. if we see affiliation-url with author, we make that affiliation/url)
@@ -817,6 +818,10 @@ local function computeLabels(authors, affiliations, meta)
       meta[kLabels][kKeywordsLbl] = meta[kKeywordsTitle]
     end
     
+    meta[kLabels][kRelatedFormats] = {pandoc.Str(language["related-formats-title"])}
+    if meta["related-formats-title"] then
+      meta[kLabels][kRelatedFormats] = meta["related-formats-title"]
+    end
   end
 
   return meta

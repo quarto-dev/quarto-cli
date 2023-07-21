@@ -146,15 +146,17 @@ export function documentTitlePartial(
     const banner = format.metadata[kTitleBlockBanner] as string | boolean;
     const manuscriptTitle = format.metadata[kTitleBlockStyle] === "manuscript";
 
+    partials.push("_title-meta-author.html");
+    partials.push("title-metadata.html");
+
     if (manuscriptTitle) {
       partials.push("manuscript/title-block.html");
+      partials.push("manuscript/title-metadata.html");
     } else if (banner) {
       partials.push("banner/title-block.html");
     } else {
       partials.push("title-block.html");
     }
-    partials.push("_title-meta-author.html");
-    partials.push("title-metadata.html");
 
     // For banner partials, configure the options and pass them along in the metadata
     if (banner || manuscriptTitle) {
