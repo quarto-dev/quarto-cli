@@ -153,6 +153,7 @@ export function documentTitlePartial(
     } else {
       partials.push("title-block.html");
     }
+    partials.push("_title-meta-author.html");
     partials.push("title-metadata.html");
 
     // For banner partials, configure the options and pass them along in the metadata
