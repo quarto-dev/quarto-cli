@@ -25,6 +25,7 @@ import {
   kArticleNotebookLabel,
   kClearHiddenClasses,
   kEcho,
+  kExtensionName,
   kFormatLinks,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
@@ -51,6 +52,7 @@ import {
   RenderedFormat,
   RenderFlags,
   RenderResult,
+  RenderResultFile,
   RenderServices,
 } from "../../../command/render/types.ts";
 import { gitHubContext } from "../../../core/github.ts";
@@ -91,6 +93,8 @@ import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
+
+import * as ld from "../../../core/lodash.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -555,9 +559,27 @@ export const manuscriptProjectType: ProjectType = {
         return file.input === manuscriptConfig.article;
       });
 
-      // The last file will be the first format in the user list of formats
-      if (articleResults.length > 0) {
-        return articleResults[articleResults.length - 1];
+      if (articleResults.length === 1) {
+        return articleResults[0];
+      } else if (articleResults.length > 1) {
+        // Try to find an output that is great for previewing
+        const preferredFormats = ["html", "pdf", "docx"];
+        const sorted = ld.orderBy(articleResults, (item: RenderResultFile) => {
+          const formatStr = item.format.identifier["base-format"];
+          if (formatStr) {
+            const index = preferredFormats.indexOf(formatStr);
+            if (index > -1) {
+              // Prefer the custom forms of formats when possible
+              if (item.format.identifier[kExtensionName]) {
+                return index * 2;
+              } else {
+                return (index * 2) + 1;
+              }
+            }
+          }
+          return Number.MAX_SAFE_INTEGER;
+        }, "asc");
+        return sorted[0];
       }
       return undefined;
     }
