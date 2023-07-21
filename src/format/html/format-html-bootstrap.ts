@@ -511,10 +511,9 @@ function processOtherLinks(
     const containerEl = doc.createElement("div");
     containerEl.classList.add("quarto-other-links");
 
-    const heading = dlLinkTarget.makeHeadingEl();
-    if (format.language[kOtherLinksTitle]) {
-      heading.innerText = format.language[kOtherLinksTitle];
-    }
+    const heading = dlLinkTarget.makeHeadingEl(
+      format.language[kOtherLinksTitle],
+    );
     containerEl.appendChild(heading);
 
     const getAttrs = (otherLink: OtherLink) => {
@@ -542,8 +541,7 @@ function processOtherLinks(
         order: ++order,
         attr: getAttrs(otherLink),
       };
-      const li = dlLinkTarget.makeItemEl();
-      li.appendChild(createLinkChild(alternateLink, doc));
+      const li = dlLinkTarget.makeItemEl(createLinkChild(alternateLink, doc));
       if (linkList) {
         linkList.appendChild(li);
       } else {
@@ -564,17 +562,24 @@ function getLinkTarget(doc: Document, explicitTargetClz: string) {
   if (explicitTarget !== null) {
     return {
       targetEl: explicitTarget,
-      makeHeadingEl: () => {
+      makeHeadingEl: (text?: string) => {
         const headingEl = doc.createElement("div");
         headingEl.classList.add("quarto-title-meta-heading");
+        if (text) {
+          headingEl.innerText = text;
+        }
         return headingEl;
       },
       makeContainerEl: () => {
         return undefined;
       },
-      makeItemEl: () => {
+      makeItemEl: (el: Element) => {
         const itemEl = doc.createElement("div");
         itemEl.classList.add("quarto-title-meta-contents");
+
+        const pEl = doc.createElement("p");
+        pEl.appendChild(el);
+        itemEl.appendChild(pEl);
         return itemEl;
       },
     };
@@ -588,14 +593,20 @@ function getLinkTarget(doc: Document, explicitTargetClz: string) {
   if (dlLinkTarget !== null) {
     return {
       targetEl: dlLinkTarget,
-      makeHeadingEl: () => {
-        return doc.createElement("h2");
+      makeHeadingEl: (text?: string) => {
+        const headingEl = doc.createElement("h2");
+        if (text) {
+          headingEl.innerText = text;
+        }
+        return headingEl;
       },
       makeContainerEl: () => {
         return doc.createElement("ul");
       },
-      makeItemEl: () => {
-        return doc.createElement("li");
+      makeItemEl: (el: Element) => {
+        const liEl = doc.createElement("li");
+        liEl.appendChild(el);
+        return liEl;
       },
     };
   }
@@ -618,10 +629,9 @@ function processAlternateFormatLinks(
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-formats");
 
-      const heading = dlLinkTarget.makeHeadingEl();
-      if (format.language[kRelatedFormatsTitle]) {
-        heading.innerText = format.language[kRelatedFormatsTitle];
-      }
+      const heading = dlLinkTarget.makeHeadingEl(
+        format.language[kRelatedFormatsTitle],
+      );
       containerEl.appendChild(heading);
 
       const otherLinks = otherFormatLinks(
@@ -636,8 +646,6 @@ function processAlternateFormatLinks(
           a - b
         )
       ) {
-        const li = dlLinkTarget.makeItemEl();
-
         const link = doc.createElement("a");
         link.setAttribute("href", alternateLink.href);
         if (alternateLink.dlAttrValue) {
@@ -656,7 +664,7 @@ function processAlternateFormatLinks(
         link.appendChild(icon);
         link.appendChild(doc.createTextNode(alternateLink.title));
 
-        li.appendChild(link);
+        const li = dlLinkTarget.makeItemEl(link);
         if (formatList) {
           formatList.appendChild(li);
         } else {
