@@ -294,7 +294,12 @@ end, function(float)
 
   -- handle caption
   local new_caption = options.divCaption(float.caption_long, align)
-  cell.content:insert(new_caption)
+  local caption_location = cap_location(float)
+  if caption_location == 'top' then
+    cell.content:insert(1, new_caption)
+  else
+    cell.content:insert(new_caption)
+  end
 
   -- content fixups for docx, based on old docx.lua code
   cell = _quarto.ast.walk(cell, {
