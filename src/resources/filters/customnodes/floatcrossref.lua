@@ -287,8 +287,9 @@ end, function(float)
     cell.content:insert(c)
   elseif pandoc.utils.type(c) == "Blocks" then
     cell.content = c
+  elseif pandoc.utils.type(c) == "Inlines" then
+    cell.content:insert(pandoc.Plain(c))
   end
-
   transfer_float_image_width_to_cell(float, cell)
   row:insert(cell)
 
