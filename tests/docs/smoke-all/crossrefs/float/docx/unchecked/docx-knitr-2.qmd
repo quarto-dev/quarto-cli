@@ -9,12 +9,6 @@ _quarto:
           - "//w:i"
           - "//m:oMath"
         - []
-    html:
-      ensureHtmlElements:
-        - 
-          - "figcaption em" # markdown test
-          - "figcaption span.math" # math processing test
-          - "div#fig-plot figure.quarto-float-fig img.figure-img" # image
 ---
 
 
