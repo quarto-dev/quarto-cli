@@ -282,7 +282,12 @@ end, function(float)
   local row = pandoc.List()
   local cell = pandoc.Div({})
   cell.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
-  cell.content = float.content.content
+  local c = float.content.content or float.content
+  if pandoc.utils.type(c) == "Block" then
+    cell.content:insert(c)
+  elseif pandoc.utils.type(c) == "Blocks" then
+    cell.content = c
+  end
 
   transfer_float_image_width_to_cell(float, cell)
   row:insert(cell)
