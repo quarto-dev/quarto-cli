@@ -1,0 +1,25 @@
+---
+format: html
+code-annotations: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["ol > li"]
+        - []
+      ensureFileRegexMatches:
+        - ["# &lt;1&gt;"] 
+        - []
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\textless{}1\\\\textgreater{}"]
+        - ["\\\\circled"]
+    pdf:
+      noErrors: default
+---
+
+```r
+1 + 1 # <1>
+```
+
+1. Simple addition.
