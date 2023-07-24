@@ -6,7 +6,7 @@ _quarto:
       ensureDocxXpath:
         - 
           - "//w:document"
-          - "//w:bookmarkStart[@id=\"fig-1\"]"
+          - "//w:bookmarkStart[@w:name=\"fig-1\"]"
         - []
 ---
 
