@@ -506,15 +506,14 @@ function processOtherLinks(
   format: Format,
 ) {
   const otherLinks = format.metadata[kOtherLinks] as FormatLink[];
-  const dlLinkTarget = getLinkTarget(doc, "quarto-other-links-target");
+  const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherLinks);
   if (otherLinks && otherLinks.length > 0 && dlLinkTarget) {
     const containerEl = doc.createElement("div");
     containerEl.classList.add("quarto-other-links");
 
-    const heading = dlLinkTarget.makeHeadingEl();
-    if (format.language[kOtherLinksTitle]) {
-      heading.innerText = format.language[kOtherLinksTitle];
-    }
+    const heading = dlLinkTarget.makeHeadingEl(
+      format.language[kOtherLinksTitle],
+    );
     containerEl.appendChild(heading);
 
     const getAttrs = (otherLink: OtherLink) => {
@@ -534,7 +533,8 @@ function processOtherLinks(
 
     const linkList = dlLinkTarget.makeContainerEl();
     let order = 0;
-    for (const otherLink of otherLinks) {
+    for (let i = 0; i < otherLinks.length; i++) {
+      const otherLink = otherLinks[i];
       const alternateLink: AlternateLink = {
         icon: otherLink.icon || "link-45deg",
         href: otherLink.href,
@@ -542,8 +542,11 @@ function processOtherLinks(
         order: ++order,
         attr: getAttrs(otherLink),
       };
-      const li = dlLinkTarget.makeItemEl();
-      li.appendChild(createLinkChild(alternateLink, doc));
+      const li = dlLinkTarget.makeItemEl(
+        createLinkChild(alternateLink, doc),
+        i,
+        otherLinks.length,
+      );
       if (linkList) {
         linkList.appendChild(li);
       } else {
@@ -558,26 +561,97 @@ function processOtherLinks(
   }
 }
 
-function getLinkTarget(doc: Document, explicitTargetClz: string) {
+type selector = string;
+interface LinkProvider {
+  makeHeadingEl: (doc: Document, text?: string) => Element;
+  makeContainerEl: (_doc: Document) => Element | undefined;
+  makeItemEl: (doc: Document, el: Element, idx: number, len: number) => Element;
+}
+
+const bannerHeadingLinkProvider = {
+  makeHeadingEl: (doc: Document, text?: string) => {
+    const headingEl = doc.createElement("div");
+    headingEl.classList.add("quarto-title-meta-heading");
+    if (text) {
+      headingEl.innerText = text;
+    }
+    return headingEl;
+  },
+  makeContainerEl: (_doc: Document) => {
+    return undefined;
+  },
+  makeItemEl: (doc: Document, el: Element) => {
+    const itemEl = doc.createElement("div");
+    itemEl.classList.add("quarto-title-meta-contents");
+
+    const pEl = doc.createElement("p");
+    pEl.appendChild(el);
+    itemEl.appendChild(pEl);
+    return itemEl;
+  },
+};
+
+const bannerTextLinkProvider = {
+  makeHeadingEl: (doc: Document, text?: string) => {
+    const headingEl = doc.createElement("div");
+    headingEl.classList.add("quarto-title-meta-heading");
+    if (text) {
+      headingEl.innerText = text;
+    }
+    return headingEl;
+  },
+  makeContainerEl: (doc: Document) => {
+    const headingEl = doc.createElement("div");
+    headingEl.classList.add("quarto-title-meta-contents");
+    return headingEl;
+  },
+  makeItemEl: (doc: Document, el: Element, idx: number, len: number) => {
+    const itemEl = doc.createElement("span");
+
+    itemEl.appendChild(el);
+    if (idx < len - 1) {
+      itemEl.append(doc.createTextNode(","));
+      itemEl.setAttribute("style", "padding-right: 0.5em;");
+    }
+
+    return itemEl;
+  },
+};
+
+const kLinkProvidersOtherLinks: Record<selector, LinkProvider> = {
+  "quarto-other-links-target": bannerHeadingLinkProvider,
+  "quarto-other-links-text-target": bannerTextLinkProvider,
+};
+
+const kLinkProvidersOtherFormats: Record<selector, LinkProvider> = {
+  "quarto-other-formats-target": bannerHeadingLinkProvider,
+  "quarto-other-formats-text-target": bannerTextLinkProvider,
+};
+
+function getLinkTarget(
+  doc: Document,
+  linkProviders?: Record<selector, LinkProvider>,
+) {
   // Look for an explicit target
-  const explicitTarget = doc.querySelector(`.${explicitTargetClz}`);
-  if (explicitTarget !== null) {
-    return {
-      targetEl: explicitTarget,
-      makeHeadingEl: () => {
-        const headingEl = doc.createElement("div");
-        headingEl.classList.add("quarto-title-meta-heading");
-        return headingEl;
-      },
-      makeContainerEl: () => {
-        return undefined;
-      },
-      makeItemEl: () => {
-        const itemEl = doc.createElement("div");
-        itemEl.classList.add("quarto-title-meta-contents");
-        return itemEl;
-      },
-    };
+  if (linkProviders) {
+    for (const sel of Object.keys(linkProviders)) {
+      const explicitTarget = doc.querySelector(`.${sel}`);
+      if (explicitTarget !== null) {
+        const linkProvider = linkProviders[sel];
+        return {
+          targetEl: explicitTarget,
+          makeHeadingEl: (text?: string) => {
+            return linkProvider.makeHeadingEl(doc, text);
+          },
+          makeContainerEl: () => {
+            return linkProvider.makeContainerEl(doc);
+          },
+          makeItemEl: (el: Element, idx: number, len: number) => {
+            return linkProvider.makeItemEl(doc, el, idx, len);
+          },
+        };
+      }
+    }
   }
 
   // Now search for a place to put the links
@@ -588,14 +662,20 @@ function getLinkTarget(doc: Document, explicitTargetClz: string) {
   if (dlLinkTarget !== null) {
     return {
       targetEl: dlLinkTarget,
-      makeHeadingEl: () => {
-        return doc.createElement("h2");
+      makeHeadingEl: (text?: string) => {
+        const headingEl = doc.createElement("h2");
+        if (text) {
+          headingEl.innerText = text;
+        }
+        return headingEl;
       },
       makeContainerEl: () => {
         return doc.createElement("ul");
       },
-      makeItemEl: () => {
-        return doc.createElement("li");
+      makeItemEl: (el: Element) => {
+        const liEl = doc.createElement("li");
+        liEl.appendChild(el);
+        return liEl;
       },
     };
   }
@@ -613,15 +693,14 @@ function processAlternateFormatLinks(
   resources: string[],
 ) {
   if (options.renderedFormats.length > 1) {
-    const dlLinkTarget = getLinkTarget(doc, "quarto-other-formats-target");
+    const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherFormats);
     if (dlLinkTarget) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-formats");
 
-      const heading = dlLinkTarget.makeHeadingEl();
-      if (format.language[kRelatedFormatsTitle]) {
-        heading.innerText = format.language[kRelatedFormatsTitle];
-      }
+      const heading = dlLinkTarget.makeHeadingEl(
+        format.language[kRelatedFormatsTitle],
+      );
       containerEl.appendChild(heading);
 
       const otherLinks = otherFormatLinks(
@@ -631,13 +710,11 @@ function processAlternateFormatLinks(
       );
 
       const formatList = dlLinkTarget.makeContainerEl();
-      for (
-        const alternateLink of otherLinks.sort(({ order: a }, { order: b }) =>
-          a - b
-        )
-      ) {
-        const li = dlLinkTarget.makeItemEl();
-
+      const sortedLinks = otherLinks.sort(({ order: a }, { order: b }) =>
+        a - b
+      );
+      for (let i = 0; i < sortedLinks.length; i++) {
+        const alternateLink = sortedLinks[i];
         const link = doc.createElement("a");
         link.setAttribute("href", alternateLink.href);
         if (alternateLink.dlAttrValue) {
@@ -656,7 +733,7 @@ function processAlternateFormatLinks(
         link.appendChild(icon);
         link.appendChild(doc.createTextNode(alternateLink.title));
 
-        li.appendChild(link);
+        const li = dlLinkTarget.makeItemEl(link, i, sortedLinks.length);
         if (formatList) {
           formatList.appendChild(li);
         } else {
