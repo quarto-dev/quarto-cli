@@ -69,12 +69,9 @@ function run_emulated_filter(doc, filter)
 
   -- if user passed the table corresponding to the a custom node instead 
   -- of the custom node, then first we will get the actual node
-  local converted = false
   if doc.__quarto_custom_node ~= nil then
     doc = doc.__quarto_custom_node
     needs_custom = true
-    converted = true
-    print("CONVERTED", converted)
   end
 
   local is_custom = is_custom_node(doc)
