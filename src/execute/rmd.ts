@@ -321,5 +321,8 @@ function filterAlwaysAllowHtml(s: string): string {
 }
 
 function resolveInlineExecute(code: string) {
-  return executeInlineCodeHandler("r", (expr) => `${"`"}r ${expr}${"`"}`)(code);
+  return executeInlineCodeHandler(
+    "r",
+    (expr) => `${"`"}r .QuartoInlineRender(${expr})${"`"}`,
+  )(code);
 }
