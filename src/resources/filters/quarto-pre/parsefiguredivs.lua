@@ -22,7 +22,7 @@ function parse_floats()
     if caption ~= nil then
       div.content:remove(#div.content)
     elseif div.attributes[caption_attr_key] ~= nil then
-      caption = string_to_quarto_ast_blocks(div.attributes[caption_attr_key])
+      caption = pandoc.Plain(string_to_quarto_ast_inlines(div.attributes[caption_attr_key]))
       div.attributes[caption_attr_key] = nil
     else
       -- it's possible that the content of this div includes a table with a caption
@@ -48,6 +48,7 @@ function parse_floats()
         caption = pandoc.Plain({})
       end
     end
+
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
