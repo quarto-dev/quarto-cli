@@ -36,6 +36,43 @@ function bootstrap_panel_layout()
   
 end
 
+local function parse_width(value)
+  if value:sub(-1) == "%" then
+    return tonumber(value:sub(1, -2)) / 100
+  else
+    return tonumber(value)
+  end
+end
+
+function forward_widths_to_subfloats(layout)
+  -- forward computed widths to the subfloats
+  local width_table = {}
+  
+  for i, row in ipairs(layout.layout) do
+    for j, cell in ipairs(row) do
+      local width = cell.attributes["width"]
+      if cell.t == "Div" and width then
+        local data = _quarto.ast.resolve_custom_data(cell)
+        _quarto.ast.walk(cell, {
+          FloatCrossref = function(float)
+            local id = float.identifier
+            width_table[id] = parse_width(width)
+          end
+        })
+      end
+    end
+  end
+  
+  _quarto.ast.walk(layout.float, {
+    FloatCrossref = function(float)
+      local id = float.identifier
+      if width_table[id] then
+        float.width = width_table[id]
+      end
+    end
+  })
+end
+
 _quarto.ast.add_handler({
 
   -- empty table so this handler is only called programmatically

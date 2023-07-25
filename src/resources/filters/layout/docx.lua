@@ -1,13 +1,20 @@
 -- docx.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function docx_content_fixups(el, align)
+function docx_content_fixups(el, align, layoutPercent)
+  local width = wpPageWidth()
   return _quarto.ast.walk(el, {
+    traverse = "topdown",
+    Div = function(div)
+      if div.classes:includes("quarto-layout-cell-subref") then
+        layoutPercent = horizontalLayoutPercent(div)
+        return docx_content_fixups(div, align, layoutPercent), false
+      end
+    end,
     Image = function(image)
-      if wpPageWidth() then
-        local layoutPercent = horizontalLayoutPercent(el)
+      if width then
         if layoutPercent then
-          local inches = (layoutPercent/100) * wpPageWidth()
+          local inches = (layoutPercent/100) * width
           image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
           return image
         end
