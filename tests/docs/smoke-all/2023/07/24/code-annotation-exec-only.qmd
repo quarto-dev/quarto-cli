@@ -1,0 +1,24 @@
+---
+title: Only comment code block without annotation
+format: 
+  html:
+    code-annotations: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.cell-code pre code']
+        - []
+      ensureFileRegexMatches:
+        - []
+        - ["# &lt;1&gt;"]
+---
+
+From https://github.com/quarto-dev/quarto-cli/issues/6313
+
+Computational code block with annotation comment but no comment.
+
+```{r}
+stats::rnorm(2) # <1>
+1 + 1
+```
