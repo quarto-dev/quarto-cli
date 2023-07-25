@@ -303,25 +303,26 @@ end, function(float)
   end
 
   -- content fixups for docx, based on old docx.lua code
-  cell = _quarto.ast.walk(cell, {
-    Image = function(image)
-      if options.pageWidth then
-        local layoutPercent = horizontalLayoutPercent(cell)
-        if layoutPercent then
-          local inches = (layoutPercent/100) * options.pageWidth
-          image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
-          return image
-        end
-      end
-    end,
-    Table = function(tbl)
-      if align == "center" then
-        -- force widths to occupy 100%
-        layoutEnsureFullTableWidth(tbl)
-        return tbl
-      end
-    end
-  }) or pandoc.Div({}) -- not necessary but the lua analyzer doesn't know that
+  cell = docx_content_fixups(cell, align)
+  -- cell = _quarto.ast.walk(cell, {
+  --   Image = function(image)
+  --     if options.pageWidth then
+  --       local layoutPercent = horizontalLayoutPercent(cell)
+  --       if layoutPercent then
+  --         local inches = (layoutPercent/100) * options.pageWidth
+  --         image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+  --         return image
+  --       end
+  --     end
+  --   end,
+  --   Table = function(tbl)
+  --     if align == "center" then
+  --       -- force widths to occupy 100%
+  --       layoutEnsureFullTableWidth(tbl)
+  --       return tbl
+  --     end
+  --   end
+  -- }) or pandoc.Div({}) -- not necessary but the lua analyzer doesn't know that
 
   -- make the table
   local figureTable = pandoc.SimpleTable(

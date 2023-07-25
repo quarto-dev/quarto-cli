@@ -1,20 +1,46 @@
 -- docx.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+function docx_content_fixups(el, align)
+  return _quarto.ast.walk(el, {
+    Image = function(image)
+      if wpPageWidth() then
+        local layoutPercent = horizontalLayoutPercent(el)
+        if layoutPercent then
+          local inches = (layoutPercent/100) * wpPageWidth()
+          image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+          return image
+        end
+      end
+    end,
+    Table = function(tbl)
+      if align == "center" then
+        -- force widths to occupy 100%
+        layoutEnsureFullTableWidth(tbl)
+        return tbl
+      end
+    end
+  }) or pandoc.Div({}) -- not necessary but the lua analyzer doesn't know that
+end
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
 end, function(layout)
   local div = pandoc.Div({})
 
+  local layout_attr = pandoc.Attr(layout.identifier or "", layout.classes or {}, layout.attributes or {})
+  local float_attr = pandoc.Attr(layout.float.identifier or "", layout.float.classes or {}, layout.float.attributes or {})
+  div.attr = merge_attrs(float_attr, layout_attr)
   local rows = layout.rows.content:map(function(div)
     return div.content
   end)
   prepare_caption(layout.float)
 
+  -- get alignment
+  local align = align_attribute(layout.float)
   local panel = tableDocxPanel(div, rows, layout.float.caption_long)
 
-  return panel
+  return docx_content_fixups(panel, align)
 end)
 
 

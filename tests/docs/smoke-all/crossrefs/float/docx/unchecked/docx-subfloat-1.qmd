@@ -1,5 +1,6 @@
 ---
 title: Crossref Test
+format: docx
 _quarto:
   tests:
     html:
