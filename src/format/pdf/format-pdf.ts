@@ -370,7 +370,6 @@ function pdfLatexPostProcessor(
       format.metadata[kCodeAnnotations] as boolean !== false &&
       format.metadata[kCodeAnnotations] as string !== "none"
     ) {
-      console.log("NOT HERE");
       lineProcessors.push(codeAnnotationPostProcessor());
       lineProcessors.push(codeListAnnotationPostProcessor());
     }
