@@ -2,6 +2,23 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
+end, function(layout)
+  local div = pandoc.Div({})
+
+  local rows = layout.rows.content:map(function(div)
+    return div.content
+  end)
+  prepare_caption(layout.float)
+
+  local panel = tableDocxPanel(div, rows, layout.float.caption_long)
+
+  return panel
+end)
+
+
+
 function tableDocxPanel(divEl, layout, caption)
   return tablePanel(divEl, layout, caption, {
     pageWidth = wpPageWidth(),
