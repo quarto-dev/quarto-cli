@@ -110,7 +110,6 @@ _quarto.ast.add_handler({
     end
     tbl.rows = rows_div
 
-    quarto.utils.dump({ tbl = tbl })
     return tbl
   end
 })
