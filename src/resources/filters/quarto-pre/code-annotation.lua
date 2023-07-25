@@ -253,7 +253,7 @@ end
 function code_meta()
   return {
     Meta = function(meta)
-      if _quarto.format.isLatexOutput() and hasAnnotations then
+      if _quarto.format.isLatexOutput() and hasAnnotations and param(constants.kCodeAnnotationsParam) ~= constants.kCodeAnnotationStyleNone then
         -- ensure we have tikx for making the circles
         quarto.doc.use_latex_package("tikz");
         quarto.doc.include_text('in-header', [[

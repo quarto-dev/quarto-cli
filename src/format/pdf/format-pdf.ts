@@ -364,12 +364,17 @@ function pdfLatexPostProcessor(
       // Replace notes with side notes
       lineProcessors.push(sideNoteLineProcessor());
     }
-
     lineProcessors.push(captionFootnoteLineProcessor());
-    if (format.metadata[kCodeAnnotations] !== false) {
+
+    if (
+      format.metadata[kCodeAnnotations] as boolean !== false &&
+      format.metadata[kCodeAnnotations] as string !== "none"
+    ) {
+      console.log("NOT HERE");
       lineProcessors.push(codeAnnotationPostProcessor());
       lineProcessors.push(codeListAnnotationPostProcessor());
     }
+
     lineProcessors.push(longTableSidenoteProcessor());
 
     await processLines(output, lineProcessors, temp);
