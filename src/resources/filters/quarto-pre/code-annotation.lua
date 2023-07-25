@@ -112,7 +112,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
-      
+
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -121,7 +121,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
           lineNumbers = pandoc.List({})
         end
         lineNumbers:insert(i)
-        annotations[annoteId] = lineNumbers      
+        annotations[annoteId] = lineNumbers
         outputs:insert(processAnnotation(line, annoteNumber, annotationProvider))
       else
         outputs:insert(line)
@@ -300,17 +300,21 @@ function code_annotations()
           pendingCellId = nil
           pendingCodeCell = nil
         end
-
-        local outputBlockClearPending = function(block)
-          if pendingCodeCell then
-            outputs:insert(pendingCodeCell)
-          end
-          outputs:insert(block)
-          clearPending()
-        end
-
+   
         local outputBlock = function(block)
           outputs:insert(block)
+        end
+        
+        local flushPending = function()
+          if pendingCodeCell then
+            outputBlock(pendingCodeCell)
+            clearPending()
+          end
+        end
+
+        local outputBlockClearPending = function(block)
+          flushPending()
+          outputBlock(block)
         end
 
         local allOutputs = function()
@@ -391,10 +395,7 @@ function code_annotations()
 
               -- If there is a pending code cell and we get here, just
               -- output the pending code cell and continue
-              if pendingCodeCell then
-                outputBlock(pendingCodeCell)
-                clearPending()
-              end
+              flushPending()
 
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
@@ -488,21 +489,21 @@ function code_annotations()
                 -- wrap the definition list in a cell
                 local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass}))
                 pendingCodeCell.content:insert(2, dlDiv)
-                outputBlock(pendingCodeCell)
-                clearPending()
+                flushPending()
               else
                 outputBlockClearPending(dl)
               end
             else
-              if pendingCodeCell then
-                outputBlock(pendingCodeCell)
-              end
-              clearPending()
+              flushPending()
             end
           else
             outputBlockClearPending(block)
           end
         end
+
+        -- Be sure to flush any pending Code Cell (usually when only annotated cell without annotation and no other following blocks)
+        flushPending()
+
         return allOutputs()
       end
     end

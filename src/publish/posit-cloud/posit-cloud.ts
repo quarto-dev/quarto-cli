@@ -291,7 +291,7 @@ async function createContent(
     const projectApplication = await client.getApplication(
       projectApplicationId,
     );
-    const project = await client.getContent(projectApplication.id);
+    const project = await client.getContent(projectApplication.content_id);
     projectId = project.id;
     spaceId = project.space_id;
   }

@@ -17,11 +17,6 @@ on:
         default: ""
   schedule:
     - cron: "0 6 * * *"
-  pull_request:
-    branches: [main]
-  push:
-    # only trigger on branches, not on tags
-    branches: [main]
 
 jobs:
   run-smokes:
@@ -64,7 +59,7 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
-
+        
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
