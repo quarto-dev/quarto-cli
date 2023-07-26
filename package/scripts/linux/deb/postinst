@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+
+
 # detect whether running as root (per machien installation)
 # if per machine (run without sudo):
 
@@ -11,5 +13,15 @@ else
 ln -fs /opt/quarto/bin/quarto ~/bin/quarto
 ln -fs /opt/quarto/share/man/quarto.man ~/man/quarto.1
 fi
+
+# Figure architecture
+NIXARCH=$(uname -m)
+if [[ $NIXARCH == "x86_64" ]]; then
+  ARCH_DIR=x86_64
+elif [[ $NIXARCH == "aarch64" ]]; then
+  ARCH_DIR=aarch64
+else
+fi
+ln -fs /opt/quarto/bin/tools/${NIXARCH}/pandoc /opt/quarto/bin/tools/pandoc
 
 exit 0

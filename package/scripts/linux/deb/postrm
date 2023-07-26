@@ -7,5 +7,6 @@ rm /usr/local/bin/quarto
 else
 rm ~/bin/quarto
 fi
+rm /opt/quarto/bin/tools/pandoc
 
 exit 0
