@@ -55,7 +55,7 @@ export async function configure(
   info("Placing Quarto script");
   copyQuartoScript(config, config.directoryInfo.bin);
 
-  info("Placing Pandoc script");
+  info("Creating architecture specific Pandoc link");
   copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
 
   // record dev config. These are versions as defined in the root configuration file.
@@ -155,23 +155,19 @@ export function copyQuartoScript(config: Configuration, targetDir: string) {
 }
 
 export function copyPandocScript(config: Configuration, targetDir: string) {
-  const out = join(targetDir, "pandoc");
-
-  // Move the quarto script into place
-  if (config.os === "darwin") {
-    Deno.copyFileSync(
-      join(config.directoryInfo.pkg, "scripts", "macos", "pandoc"),
-      out,
-    );
-    Deno.chmodSync(out, 0o755);
-
-  } else if (config.os === "linux") {
-    Deno.copyFileSync(
-      join(config.directoryInfo.pkg, "scripts", "linux", "pandoc"),
-      out,
-    );
-    Deno.chmodSync(out, 0o755);
+  const linkTarget = join(config.arch, "pandoc");
+  
+  const pandocFile = join(targetDir, "pandoc");
+  if (existsSync(pandocFile)) {
+    info("> removing existing pandoc link");
+    Deno.removeSync(pandocFile);
   }
+
+  info("> creating pandoc symlink");
+  Deno.run({
+    cwd: targetDir,
+    cmd: ["ln", "-s", linkTarget, "pandoc"]
+  });
 }
 
 export function copyPandocAliasScript(config: Configuration, toolsDir: string) {
