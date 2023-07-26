@@ -150,3 +150,29 @@ _quarto.ast.add_handler({
     return tbl
   end
 })
+
+function panel_insert_preamble(result, preamble)
+  if preamble == nil then
+    return
+  end
+
+  local pt = pandoc.utils.type(preamble)
+  if preamble.content and #preamble.content > 0 then
+    result:extend(preamble.content)
+  elseif pt == "Inline" or pt == "Block" then
+    result:insert(preamble)
+  else
+    fail("Don't know what to do with preamble of type " .. pt)
+    return nil
+  end
+end
+
+_quarto.ast.add_renderer("PanelLayout", function (panel)
+  return true
+end, function(panel)
+  warn("No renderer for PanelLayout")
+  local result = pandoc.Blocks({})
+  if panel.preamble then
+    result:extend(panel.preamble.content)
+  end
+end)

@@ -45,9 +45,19 @@ end, function(layout)
 
   -- get alignment
   local align = align_attribute(layout.float)
-  local panel = tableDocxPanel(div, rows, layout.float.caption_long)
+  local rendered_panel = tableDocxPanel(div, rows, layout.float.caption_long)
+  rendered_panel = docx_content_fixups(rendered_panel, align)
 
-  return docx_content_fixups(panel, align)
+  local preamble = layout.preamble
+  if preamble == nil then
+    return rendered_panel
+  end
+  
+  local result = pandoc.Blocks({})
+  panel_insert_preamble(result, preamble)
+  result:insert(rendered_panel)
+
+  return result
 end)
 
 

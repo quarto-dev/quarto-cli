@@ -105,15 +105,7 @@ end, function(panel_layout)
   end
   
   local result = pandoc.Blocks({})
-  local pt = pandoc.utils.type(preamble)
-  if preamble.content and #preamble.content > 0 then
-    result:extend(preamble.content)
-  elseif pt == "Inline" or pt == "Block" then
-    result:insert(preamble)
-  else
-    fail("Don't know what to do with preamble of type " .. pt)
-    return nil
-  end
+  panel_insert_preamble(result, preamble)
   result:insert(rendered_panel)
   return result
 end)
