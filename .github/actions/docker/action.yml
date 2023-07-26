@@ -59,8 +59,7 @@ runs:
     - name: Create Full DockerFile
       shell: bash
       run: |
-        mkdir full
-        cd full
+        rm -rf Dockerfile
         cat << 'EOF' >> Dockerfile
         FROM rocker/tidyverse:4.3
         ENV DEBIAN_FRONTEND=noninteractive
@@ -71,10 +70,7 @@ runs:
     - name: Push Full Image
       shell: bash
       run: |
-        cd full
         echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
         docker build -t ${{ env.FULL_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
         docker push ${{ env.FULL_NM }} --all-tags
-        cd ..
-        rm -rf full
         
