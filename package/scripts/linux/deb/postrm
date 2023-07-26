@@ -3,10 +3,10 @@ set -e
 
 if [[ "$EUID" -eq 0 ]]
 then
-rm /usr/local/bin/quarto
+rm -f /usr/local/bin/quarto
 else
-rm ~/bin/quarto
+rm -f ~/bin/quarto
 fi
-rm /opt/quarto/bin/tools/pandoc
+rm -f /opt/quarto/bin/tools/pandoc
 
 exit 0
