@@ -116,9 +116,6 @@ export async function prepareDist(
   info("Moving Quarto script");
   copyQuartoScript(config, config.directoryInfo.pkgWorking.bin);
 
-  info("Placing Pandoc Alias Script");
-  copyPandocAliasScript(config, join(config.directoryInfo.pkgWorking.bin, "tools"));
-
   // Move the supporting files into place
   info("\nMoving supporting files");
   supportingFiles(config);
