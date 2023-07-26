@@ -30,6 +30,7 @@ on:
 
 jobs:
   run-smokes:
+    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}
     strategy:
       fail-fast: false
       matrix:
@@ -160,7 +161,7 @@ jobs:
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
         run: |
-          echo "QUARTO_TEST_TIMING='timing-for-ci.txt" >> "$GITHUB_ENV"
+          echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
 
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
