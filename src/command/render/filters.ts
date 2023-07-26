@@ -136,7 +136,7 @@ export async function filterParamsJson(
     ...await quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
     ...citeIndexFilterParams(options, defaults),
-    ...layoutFilterParams(options.format),
+    ...layoutFilterParams(options.format, defaults),
     ...languageFilterParams(options.format.language),
     ...jatsFilterParams(options),
     ...notebookContextFilterParams(options),
