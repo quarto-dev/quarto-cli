@@ -128,7 +128,6 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     local caption
     local classes = pandoc.List()
     local fancy_output = false
-    quarto.utils.dump { node = node }
     if node.filename ~= nil then
       filenameEl = pandoc.Div({pandoc.Plain{
         pandoc.RawInline("html", "<pre>"),

@@ -5,15 +5,7 @@ kSideCaptionEnv = 'sidecaption'
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isLatexOutput()
 end, function(layout)
-  local div = pandoc.Div({})
-
-  local layout_attr = pandoc.Attr(layout.identifier or "", layout.classes or {}, layout.attributes or {})
-  local float_attr = pandoc.Attr(layout.float.identifier or "", layout.float.classes or {}, layout.float.attributes or {})
-  div.attr = merge_attrs(float_attr, layout_attr)
-
-  local rows = layout.rows.content:map(function(div) return div.content end)
-  local rendered_panel = latexPanel(div, rows, layout.float.caption_long)
-
+  local rendered_panel = latexPanel(layout)
   local preamble = layout.preamble
   if preamble == nil then
     return rendered_panel
@@ -24,42 +16,28 @@ end, function(layout)
   result:insert(rendered_panel)
 
   return result
-
-
-  -- forward_widths_to_subfloats(layout)
-
-  -- -- render layout by rendering the float
-  -- -- now that the widths have been computed
-  -- return layout.float  
 end)
 
-function latexPanel(divEl, layout, caption)
+-- function latexPanel(divEl, layout, caption)
+function latexPanel(layout)
   
-  -- create container
-  local panel = pandoc.Div({})
- 
   -- begin container
-  local env, pos = latexPanelEnv(divEl, layout)
-  panel.content:insert(latexBeginEnv(env, pos));
+  local env, pos = latexPanelEnv(layout)
+  local panel_node, panel = quarto.LatexEnvironment({
+    name = env,
+    pos = pos
+  })
 
-  local capType = "fig"
-  local locDefault = "bottom"
-  if hasTableRef(divEl) then
-    capType = "tbl"
-    locDefault = "top"
-  end
-  local capLoc = capLocation(capType, locDefault)
-  if (caption and capLoc == "top") then
-    insertLatexCaption(divEl, panel.content, caption.content)
-  end
+  local capLoc = cap_location(layout.float)
+  local caption = create_latex_caption(layout)
   
    -- read vertical alignment and strip attribute
-  local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
-  divEl.attr.attributes[kLayoutVAlign] = nil
+  local vAlign = validatedVAlign(layout.attributes[kLayoutVAlign])
+  layout.attributes[kLayoutVAlign] = nil
 
-  for i, row in ipairs(layout) do
+  for i, row in ipairs(layout.rows.content) do
     
-    for j, cell in ipairs(row) do
+    for j, cell in ipairs(row.content) do
       
       -- there should never be \begin{table} inside a panel (as that would 
       -- create a nested float). this can happen if knitr injected it as a 
@@ -67,64 +45,47 @@ function latexPanel(divEl, layout, caption)
       cell = latexRemoveTableDelims(cell)
       
       -- process cell (enclose content w/ alignment)
-      local endOfTable = i == #layout
-      local endOfRow = j == #row
+      local endOfTable = i == #layout.rows.content
+      local endOfRow = j == #row.content
       local prefix, content, suffix = latexCell(cell, vAlign, endOfRow, endOfTable)
-      panel.content:insert(prefix)
-      local align = cell.attr.attributes[kLayoutAlign]
-      if align == "center" then
-        panel.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-      end
-      tappend(panel.content, content)
-      if align == "center" then
-        panel.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-      end
-      panel.content:insert(suffix)
+      -- local align = cell.attr.attributes[kLayoutAlign]
+      -- if align == "center" then
+      --   panel.content.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
+      -- end
+      tappend(panel.content.content, content)
+      -- if align == "center" then
+      --   panel.content.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
+      -- end
+      -- panel.content.content:insert(suffix)
     end
     
   end
   
   -- surround caption w/ appropriate latex (and end the panel)
-  if caption and capLoc == "bottom" then
-    insertLatexCaption(divEl, panel.content, caption.content)
+  if caption then
+    if capLoc == "top" then
+      panel.content.content:insert(1, caption)
+    elseif capLoc == "bottom" then
+      panel.content.content:insert(caption)
+    else
+      warn("unknown caption location '" .. capLoc .. "'. Skipping caption.")
+    end
   end
-  
-  -- end latex env
-  panel.content:insert(latexEndEnv(env));
-  
-  -- conjoin paragarphs 
-  panel.content = latexJoinParas(panel.content)
- 
+  -- conjoin paragraphs 
+  panel.content.content = latexJoinParas(panel.content.content)
+
   -- return panel
-  return panel
-  
+  return panel_node
 end
 
 -- determine the environment (and pos) to use for a latex panel
-function latexPanelEnv(divEl, layout)
+function latexPanelEnv(layout)
   
   -- defaults
-  local env = latexFigureEnv(divEl)
-  local pos = nil
+  local env = latexFigureEnv(layout)
+  local pos = attribute(layout.float or { attributes = {} }, kFigPos)
   
-  -- explicit figure panel
-  if hasFigureRef(divEl) then
-    pos = attribute(divEl, kFigPos, pos)
-  -- explicit table panel
-  elseif hasTableRef(divEl) then
-    env = latexTableEnv(divEl)
-  -- if there are embedded tables then we need to use table
-  else 
-    local haveTables = layout:find_if(function(row)
-      return row:find_if(hasTableRef)
-    end)
-    if haveTables then
-      env = latexTableEnv(divEl)
-    end
-  end
-
   return env, pos
-  
 end
 
 -- conjoin paragraphs (allows % to work correctly between minipages or subfloats)
@@ -237,6 +198,29 @@ function latexCaptionEnv(el)
   else
     return 'caption'
   end
+end
+
+function create_latex_caption(layout)
+  local caption_env = latexCaptionEnv(layout.float)
+  if ((layout.caption_long == nil or #layout.caption_long.content == 0) and
+      (layout.caption_short == nil or #layout.caption_short.content == 0)) then
+    return nil
+  end
+  local cap_inlines = quarto.utils.as_inlines(layout.caption_long) or pandoc.Inlines({}) -- unneeded but the Lua analyzer doesn't know that
+  if layout.identifier then
+    -- local label_node = quarto.LatexInlineCommand({ name = "label", arg = layout.identifier })
+    local label_node = pandoc.RawInline("latex", "\\label{" .. layout.identifier .. "}")
+    
+    cap_inlines:insert(1, label_node)
+  end
+  local caption_node, caption = quarto.LatexInlineCommand({
+    name = caption_env,
+    arg = scaffold(cap_inlines),
+  })
+  if layout.caption_short ~= nil then
+    caption.opt_arg = quarto.utils.as_inlines(layout.caption_short)
+  end
+  return caption_node
 end
 
 function insertLatexCaption(divEl, content, captionInlines) 
@@ -369,7 +353,7 @@ end
 function latexCell(cell, vAlign, endOfRow, endOfTable)
 
   -- figure out what we are dealing with
-  local label = cell.attr.identifier
+  local label = cell.identifier
   local image = figureImageFromLayoutCell(cell)
   if (label == "") and image then
     label = image.attr.identifier

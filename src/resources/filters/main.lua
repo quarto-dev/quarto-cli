@@ -79,6 +79,7 @@ import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
 import("./quarto-finalize/coalesceraw.lua")
+import("./quarto-finalize/descaffold.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
@@ -366,6 +367,7 @@ local quarto_finalize_filters = {
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
   { name = "finalize-coalesce-raw", filters = coalesce_raw() },
+  { name = "finalize-descaffold", filter = descaffold() },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
 }
 

@@ -59,18 +59,6 @@ end, function(panel_layout)
         cell_div.attr.attributes[kRefParent] = parent_id
       end
       row_div.content[j] = cell_div
-      -- local tbl = tableFromLayoutCell(cell_div)
-      -- if tbl then
-      --   tbl.colspecs = tbl.colspecs:map(function(spec)
-      --     if spec[1] == pandoc.AlignDefault then
-      --       spec[1] = pandoc.AlignLeft
-      --     end
-      --     return spec
-      --   end)
-      -- end
-      
-      -- add div to row
-      -- row_div.content:insert(cell_div)
     end
     
     -- add row to the panel

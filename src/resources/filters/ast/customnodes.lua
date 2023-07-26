@@ -9,6 +9,17 @@ local custom_node_data = pandoc.List({})
 local n_custom_nodes = 0
 local profiler = require('profiler')
 
+function scaffold(node)
+  local pt = pandoc.utils.type(node)
+  if pt == "Blocks" then
+    return pandoc.Div(node, {"", {"quarto-scaffold"}})
+  elseif pt == "Inlines" then
+    return pandoc.Span(node, {"", {"quarto-scaffold"}})
+  else
+    return node
+  end
+end
+
 function is_custom_node(node)
   if node.attributes and node.attributes.__quarto_custom == "true" then
     return node
@@ -119,7 +130,7 @@ function run_emulated_filter(doc, filter)
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)
       -- here, if the node is actually an inline,
       -- it's ok, because Pandoc will wrap it in a Plain
-      return process_custom_preamble(custom_data, t, kind, custom)
+      return process_custom_preamble(custom_data, t, kind, node)
     end
     if node.attributes.__quarto_custom_scaffold == "true" then
       return nil
@@ -135,7 +146,7 @@ function run_emulated_filter(doc, filter)
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(node)
       -- only follow through if node matches the expected kind
       if kind == "Inline" then
-        return process_custom_preamble(custom_data, t, kind, custom)
+        return process_custom_preamble(custom_data, t, kind, node)
       end
       fatal("Custom node of type " .. t .. " is not an inline, but found in an inline context")
       return nil
@@ -162,7 +173,6 @@ function run_emulated_filter(doc, filter)
       return doc, recurse
     end
   end
-
   return doc:walk(wrapped_filter)
 end
 

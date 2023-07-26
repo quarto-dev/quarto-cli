@@ -133,7 +133,9 @@ end, function(float)
   local figEnv = latexFigureEnv(float)
   local figPos = latexFigurePosition(float, figEnv)
   local float_type = refType(float.identifier)
-  local capLoc = capLocation(float_type, "bottom")
+  local crossref_category = crossref.categories.by_ref_type[float_type] or crossref.categories.by_name.Figure
+
+  local capLoc = capLocation(float_type, crossref_category.default_caption_location)
   local caption_cmd_name = latexCaptionEnv(float)
 
   if float.parent_id then
@@ -177,6 +179,21 @@ end, function(float)
     })
   end
 
+  if float.parent_id then
+    -- need to fixup subtables because nested longtables appear to give latex fits
+    local vAlign = validatedVAlign(float.attributes[kLayoutVAlign])
+    local function handle_table(tbl)
+      return latexTabular(tbl, vAlign)
+    end
+    if float.content.t == "Table" then
+      float.content = handle_table(float.content)
+    else
+      float.content = _quarto.ast.walk(float.content, {
+        Table = handle_table
+      }) or pandoc.Div({}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
+    end
+  end
+
   local figure_content
   local pt = pandoc.utils.type(float.content)
   if pt == "Block" then
@@ -195,7 +212,7 @@ end, function(float)
       quarto.LatexBlockCommand({
         name = "centering",
         inside = true,
-        arg = figure_content
+        arg = scaffold(figure_content)
       })
     })
   elseif align == "right" then
@@ -304,25 +321,6 @@ end, function(float)
 
   -- content fixups for docx, based on old docx.lua code
   cell = docx_content_fixups(cell, align)
-  -- cell = _quarto.ast.walk(cell, {
-  --   Image = function(image)
-  --     if options.pageWidth then
-  --       local layoutPercent = horizontalLayoutPercent(cell)
-  --       if layoutPercent then
-  --         local inches = (layoutPercent/100) * options.pageWidth
-  --         image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
-  --         return image
-  --       end
-  --     end
-  --   end,
-  --   Table = function(tbl)
-  --     if align == "center" then
-  --       -- force widths to occupy 100%
-  --       layoutEnsureFullTableWidth(tbl)
-  --       return tbl
-  --     end
-  --   end
-  -- }) or pandoc.Div({}) -- not necessary but the lua analyzer doesn't know that
 
   -- make the table
   local figureTable = pandoc.SimpleTable(

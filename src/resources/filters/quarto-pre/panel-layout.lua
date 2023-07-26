@@ -88,7 +88,7 @@ _quarto.ast.add_handler({
     fail("PanelLayout nodes should not be parsed")
   end,
 
-  slots = { "preamble", "rows", "caption_long" },
+  slots = { "preamble", "rows", "caption_long", "caption_short" },
 
   -- NB this constructor mutates the .attributes field!
   constructor = function(tbl)
@@ -98,6 +98,7 @@ _quarto.ast.add_handler({
       tbl.identifier = tbl.float.identifier
       tbl.attributes = tbl.float.attributes
       tbl.caption_long = tbl.float.caption_long
+      tbl.caption_short = tbl.float.caption_short
       tbl.order = tbl.float.order
       tbl.type = tbl.float.type
     else
@@ -146,6 +147,10 @@ _quarto.ast.add_handler({
       rows_div.content:insert(row_div)
     end
     tbl.rows = rows_div
+
+    if tbl.float then 
+      forward_widths_to_subfloats(tbl)
+    end
 
     return tbl
   end

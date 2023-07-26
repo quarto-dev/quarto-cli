@@ -52,11 +52,13 @@ end
 
 -- we often wrap a table in a div, unwrap it
 function tableFromLayoutCell(cell)
-  if #cell.content == 1 and cell.content[1].t == "Table" then
-    return cell.content[1]
-  else
-    return nil
-  end
+  local tbl
+  cell:walk({
+    Table = function(t)
+      tbl = t
+    end
+  })
+  return tbl
 end
 
 -- resolve alignment for layout cell (default to center or left depending
