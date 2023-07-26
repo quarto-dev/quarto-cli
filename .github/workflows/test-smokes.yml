@@ -8,6 +8,11 @@ on:
         description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
         required: true
         type: string
+      time-test:
+        description: "Should we run tests to produce test file"
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       buckets:
@@ -15,6 +20,11 @@ on:
         required: false
         type: string
         default: ""
+      time-test:
+        description: "Should we run tests to produce test file"
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "0 6 * * *"
 
@@ -23,7 +33,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          # only run timed tests on Linux
+          - os: ubuntu-latest
+            time-test: ${{ inputs.time-test }}
+          - os: windows-latest
+            time-test: false
     runs-on: ${{ matrix.os }}
     env:
       QUARTO_TESTS_FORCE_NO_PIPENV: true
@@ -59,7 +74,7 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
-        
+
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
@@ -141,20 +156,26 @@ jobs:
         run: |
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
-      - name: Run all Smoke Tests
-        if: ${{ format('{0}', inputs.buckets) == '' }}
+      - name: Setup timing file for timed test
+        if: ${{ matrix.time-test == true }}
+        run: |
+          echo "QUARTO_TEST_TIMING='timing-for-ci.txt" >> "$GITHUB_ENV"
+
+      - name: Run all Smoke Tests Windows
+        if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          case $RUNNER_OS in
-            "Windows")
-              pwsh -F ./run-tests.ps1
-              ;;
-            *)
-              ./run-tests.sh
-              ;;
-          esac
+        run: ./run-tests.ps1
+        working-directory: tests
+        shell: pwsh
+
+      - name: Run all Smoke Tests Linux
+        if: ${{ runner.os != 'Windows' && format('{0}', inputs.buckets) == '' }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./run-tests.sh
         working-directory: tests
         shell: bash
 
@@ -201,3 +222,7 @@ jobs:
           }
         working-directory: tests
         shell: pwsh
+
+      - run: git diff tests/timing-for-ci.txt
+
+      - run: git status
