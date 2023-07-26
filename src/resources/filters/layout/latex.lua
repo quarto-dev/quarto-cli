@@ -5,15 +5,37 @@ kSideCaptionEnv = 'sidecaption'
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isLatexOutput()
 end, function(layout)
-  forward_widths_to_subfloats(layout)
-  -- render layout by rendering the float
-  -- now that the widths have been computed
-  return layout.float  
+  local div = pandoc.Div({})
+
+  local layout_attr = pandoc.Attr(layout.identifier or "", layout.classes or {}, layout.attributes or {})
+  local float_attr = pandoc.Attr(layout.float.identifier or "", layout.float.classes or {}, layout.float.attributes or {})
+  div.attr = merge_attrs(float_attr, layout_attr)
+
+  local rows = layout.rows.content:map(function(div) return div.content end)
+  local rendered_panel = latexPanel(div, rows, layout.float.caption_long)
+
+  local preamble = layout.preamble
+  if preamble == nil then
+    return rendered_panel
+  end
+  
+  local result = pandoc.Blocks({})
+  panel_insert_preamble(result, preamble)
+  result:insert(rendered_panel)
+
+  return result
+
+
+  -- forward_widths_to_subfloats(layout)
+
+  -- -- render layout by rendering the float
+  -- -- now that the widths have been computed
+  -- return layout.float  
 end)
 
 function latexPanel(divEl, layout, caption)
   
-   -- create container
+  -- create container
   local panel = pandoc.Div({})
  
   -- begin container
@@ -604,8 +626,24 @@ function latexFigureEnv(el)
   if figEnv ~= nil then
     -- the user specified figure environment
     return figEnv
-  else    
-    local env_name = crossref.categories.by_name[el.type].latex_env or "figure"
+  else
+    local crossref_cat
+    if pandoc.utils.type(el) == "Block" then
+      local ref_type = refType(el.identifier)
+      if ref_type ~= nil then
+        crossref_cat = crossref.categories.by_ref_type[ref_type]
+      else
+        crossref_cat = crossref.categories.by_name.Figure
+      end
+    elseif pandoc.utils.type(el) == "table" then
+      crossref_cat = crossref.categories.by_name[el.type]
+      if crossref_cat == nil then
+        crossref_cat = crossref.categories.by_name.Figure
+      end
+    else
+      fail("Don't know how to handle " .. pandoc.utils.type(el) .. " in latexFigureEnv")
+    end
+    local env_name = crossref_cat.latex_env
     -- if not user specified, look for other classes which might determine environment
     local classes = el.classes
     for i,class in ipairs(classes) do

@@ -33,19 +33,17 @@ end
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
 end, function(layout)
+  prepare_caption(layout.float)
+
   local div = pandoc.Div({})
 
   local layout_attr = pandoc.Attr(layout.identifier or "", layout.classes or {}, layout.attributes or {})
   local float_attr = pandoc.Attr(layout.float.identifier or "", layout.float.classes or {}, layout.float.attributes or {})
   div.attr = merge_attrs(float_attr, layout_attr)
-  local rows = layout.rows.content:map(function(div)
-    return div.content
-  end)
-  prepare_caption(layout.float)
 
-  -- get alignment
-  local align = align_attribute(layout.float)
+  local rows = layout.rows.content:map(function(div) return div.content end)
   local rendered_panel = tableDocxPanel(div, rows, layout.float.caption_long)
+  local align = align_attribute(layout.float)
   rendered_panel = docx_content_fixups(rendered_panel, align)
 
   local preamble = layout.preamble
