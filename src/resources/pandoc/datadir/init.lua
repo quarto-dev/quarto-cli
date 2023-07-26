@@ -1908,7 +1908,10 @@ _quarto.utils.string_to_inlines = function(s)
 end 
 _quarto.utils.string_to_blocks = function(s)
    return string_to_quarto_ast_blocks(s)
-end 
+end
+_quarto.utils.render = function(n)
+   return _quarto.ast.walk(n, render_extended_nodes())
+end
 
 -- The main exports of the quarto module
 quarto = {
@@ -2072,6 +2075,7 @@ quarto = {
    as_blocks = utils.as_blocks,
    string_to_blocks = utils.string_to_blocks,
    string_to_inlines = utils.string_to_inlines,
+   render = utils.render,
   },
   json = json,
   base64 = base64,
