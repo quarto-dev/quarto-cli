@@ -20,7 +20,6 @@ else
   ARCH_DIR=x86_64
 fi
 
-echo /opt/quarto/bin/tools/${ARCH_DIR}/pandoc
 ln -fs /opt/quarto/bin/tools/${ARCH_DIR}/pandoc /opt/quarto/bin/tools/pandoc
 
 exit 0
