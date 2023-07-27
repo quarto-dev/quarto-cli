@@ -65,7 +65,7 @@ runs:
         ENV DEBIAN_FRONTEND=noninteractive
         COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
         RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
-        quarto install tinytex --no-prompt
+        RUN quarto install tinytex --no-prompt
         EOF
     
     - name: Push Full Image
