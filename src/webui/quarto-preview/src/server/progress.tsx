@@ -15,7 +15,7 @@
 
 import React from "react"
 import { createRoot } from "react-dom/client";
-import { ANSIOutput, ANSIOutputLine } from "../core/ansi-output";
+import { ANSIOutput, ANSIOutputLine } from "ansi-output-test";
 import { Progress } from "../ui/Progress";
 
 interface LogEntry {

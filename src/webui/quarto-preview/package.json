@@ -21,7 +21,8 @@
     "@fluentui/react-icons": "^2.0.201",
     "@fluentui/react-components": "^9.19.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "ansi-output-test": "1.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

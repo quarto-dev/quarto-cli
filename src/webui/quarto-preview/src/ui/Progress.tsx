@@ -16,7 +16,7 @@
 import React, { useEffect, useState } from "react";
 import { FluentProvider, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 
-import { ANSIOutputLine } from "../core/ansi-output";
+import { ANSIOutputLine } from "ansi-output-test";
 
 import { ProgressDialog } from "./ProgressDialog";
 import { ProgressIndicator } from "./ProgressIndicator";
