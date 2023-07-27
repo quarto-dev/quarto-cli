@@ -222,6 +222,32 @@ export const ensureFileRegexMatches = (
   };
 };
 
+export const verifyOdtDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Odt",
+    verify: async (_output: ExecuteOutput[]) => {
+      const [_dir, stem] = dirAndStem(file);
+      const temp = await Deno.makeTempDir();
+      try {
+        // Move the docx to a temp dir and unzip it
+        const zipFile = join(temp, stem + ".zip");
+        await Deno.rename(file, zipFile);
+        await unzip(zipFile);
+
+        // Open the core xml document and match the matches
+        const docXml = join(temp, "content.xml");
+        const xml = await Deno.readTextFile(docXml);
+        await callback(xml);
+      } finally {
+        await Deno.remove(temp, { recursive: true });
+      }
+    },
+  });
+};
+
 export const verifyDocXDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -248,12 +274,11 @@ export const verifyDocXDocument = (
   });
 };
 
-export const ensureDocxXpath = (
-  file: string,
+const xmlChecker = (
   selectors: string[],
   noMatchSelectors?: string[],
-): Verify => {
-  return verifyDocXDocument((xmlText) => {
+): (xmlText: string) => Promise<void> => {
+  return (xmlText: string) => {
     const xmlDoc = parseXmlDocument(xmlText);
     for (const selector of selectors) {
       const xpathResult = xpath.evaluateXPath(selector, xmlDoc);
@@ -274,7 +299,29 @@ export const ensureDocxXpath = (
       );
     }
     return Promise.resolve();
-  }, "Inspecting Docx for XPath selectors")(file);
+  };
+};
+
+export const ensureOdtXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyOdtDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Odt for XPath selectors",
+  )(file);
+};
+
+export const ensureDocxXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyDocXDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Docx for XPath selectors",
+  )(file);
 };
 
 export const ensureDocxRegexMatches = (
