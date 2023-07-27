@@ -40,6 +40,10 @@
 
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
 
+## PDF Format
+
+- [#5620](https://github.com/quarto-dev/quarto-cli/discussions/5620): Add `title-short` option.
+ 
 ## Website Listings
 
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
