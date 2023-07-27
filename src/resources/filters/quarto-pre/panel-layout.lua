@@ -176,8 +176,11 @@ _quarto.ast.add_renderer("PanelLayout", function (panel)
   return true
 end, function(panel)
   warn("No renderer for PanelLayout")
-  local result = pandoc.Blocks({})
-  if panel.preamble then
-    result:extend(panel.preamble.content)
+  if panel.float then
+    return panel.float
   end
+
+  warn("Don't know how to render PanelLayout without a float; will return empty output")
+  return pandoc.Div({})
+
 end)
