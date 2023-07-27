@@ -77,9 +77,8 @@ end
 _quarto.ast.add_renderer("FloatCrossref", function(_)
   return true
 end, function(float)
-  return pandoc.Div({
-    pandoc.Str("This is a placeholder FloatCrossref")
-  })
+  warn("This is a placeholder FloatCrossref; this output format does not currently support FloatCrossref nodes.")
+  return scaffold(float.content)
 end)
 
 local function ensure_custom(node)
