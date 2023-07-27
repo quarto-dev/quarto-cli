@@ -108,7 +108,8 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
       const partitioned = await engine.partitionedMarkdown(path);
 
       // get formats
-      const formats = await renderFormats(path);
+      const context = await projectContext(path);
+      const formats = await renderFormats(path, "all", context);
 
       // accumulate resources from formats then resolve them
       const resourceConfig: string[] = Object.values(formats).reduce(
@@ -128,7 +129,6 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         [],
       );
 
-      const context = await projectContext(path);
       const fileDir = normalizePath(dirname(path));
 
       const excludeDirs = context ? projectExcludeDirs(context) : [];
