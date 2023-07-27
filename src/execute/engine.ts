@@ -1,9 +1,8 @@
 /*
-* engine.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * engine.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname, join } from "path/mod.ts";
 
@@ -28,10 +27,12 @@ import { MappedString } from "../core/lib/text-types.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
+import { plutoEngine } from "./pluto/pluto.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
   jupyterEngine,
+  plutoEngine,
   markdownEngine,
 ];
 
