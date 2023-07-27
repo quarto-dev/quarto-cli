@@ -1,0 +1,23 @@
+---
+title: float test
+format: html
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - "div#tbl-foo figure.quarto-float-tbl a img"
+          - "div#fig-foo figure.quarto-float-fig a img"
+          - "a[href='#/fig-foo'].quarto-xref"
+          - "a[href='#/tbl-foo'].quarto-xref"
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as linked images with identifiers
+
+[![This is the figure](img/surus.jpg){#fig-foo}](https://www.example.com/)
+
+[![This is the table](img/surus.jpg){#tbl-foo}](https://www.example.com/)
+
+See @fig-foo and @tbl-foo for more.

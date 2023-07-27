@@ -1,0 +1,26 @@
+---
+title: Knitr Table Test
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - "figure.quarto-float-tbl div#tbl-cars figure.quarto-float-tbl table.table"
+          - "figure.quarto-float-tbl div#tbl-cars figure.quarto-float-tbl figcaption.quarto-subfloat-caption"
+          - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-float-tbl table.table"
+          - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-float-tbl figcaption.quarto-subfloat-caption"
+          - "div#tbl-tables > figure.quarto-float-tbl > figcaption.quarto-float-caption"
+        - []
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars {#tbl-cars}")
+kable(head(pressure), caption = "Pressure {#tbl-pressure}")
+```
+
+See @tbl-cars for more information.
