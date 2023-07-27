@@ -225,6 +225,28 @@ jobs:
         working-directory: tests
         shell: pwsh
 
-      - run: git diff tests/timing-for-ci.txt
+      - name: Create Pull Request for new tests timing
+        if: matrix.time-test
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: tests/timing-for-ci.txt
+          commit-message: |
+            timing for new tests [auto PR]
+          branch: updates/timing-for-ci
+          delete-branch: true
+          assignees: cderv
+          reviewers: cderv
+          title: |
+            [CI] Update timing file
+          body: |
+            This PR was created automatically with new timing test file for our parallel smoke tests. 
+            Please review and merge to trigger a new build of the website.
 
-      - run: git status
+      - name: Check auto PR outputs
+        if: steps.cpr.outcome == 'success'
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"
