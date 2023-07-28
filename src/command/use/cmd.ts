@@ -6,7 +6,7 @@
 import { Command, ValidationError } from "cliffy/command/mod.ts";
 
 import { useTemplateCommand } from "./commands/template.ts";
-import { useDevContainerCommand } from "./commands/decontainer.ts";
+import { useDevContainerCommand } from "./commands/devcontainer.ts";
 
 const kUseCommands = [useTemplateCommand, useDevContainerCommand];
 

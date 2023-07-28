@@ -57,7 +57,7 @@ const kSrcDirName = "source";
 const kExecutionFiles = [
   "environment.yml",
   "requirements.txt",
-  "renv.lock",
+  "renv.lock", // not supported by repo2docker
   "Pipfile",
   "Pipfile.lock",
   "setup.py",
