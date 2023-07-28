@@ -258,7 +258,7 @@ const countTicks = (code: string[]) => {
   // FIXME do we need trim() here?
   const countLeadingTicks = (s: string) => {
     // count leading ticks using regexps
-    const m = s.match(/^`+/);
+    const m = s.match(/^\s*`+/);
     if (m) {
       return m[0].length;
     } else {
@@ -298,12 +298,12 @@ export async function quartoMdToJupyter(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^(\\s*)```+\\s*\\{" + kernelspec.language.toLowerCase() +
+    "^(\\s*)(```+)\\s*\\{" + kernelspec.language.toLowerCase() +
       "( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^(\s*)```/;
-  const endCodeRegEx = (indent = "") => {
-    return new RegExp("^" + indent + "```\\s*$");
+  const endCodeRegEx = (indent = "", backtickCount = 0) => {
+    return new RegExp("^" + indent + "`".repeat(backtickCount) + "\\s*$");
   };
 
   // read the file into lines
@@ -368,7 +368,7 @@ export async function quartoMdToJupyter(
           kernelspec.language.toLowerCase(),
           cell.source,
         );
-        if (yaml) {
+        if (yaml && !Array.isArray(yaml) && typeof yaml === "object") {
           // use label as id if necessary
           if (includeIds && yaml[kCellLabel] && !yaml[kCellId]) {
             yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
@@ -418,7 +418,8 @@ export async function quartoMdToJupyter(
   let parsedFrontMatter = false,
     inYaml = false,
     inCodeCell = false,
-    inCode = false;
+    inCode = false,
+    backtickCount = 0;
   for (const line of lines(inputContent)) {
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
@@ -433,13 +434,16 @@ export async function quartoMdToJupyter(
         inYaml = true;
       }
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line)) {
+    else if (!inCodeCell && startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
       codeIndent = line.match(startCodeCellRegEx)![1];
+      backtickCount = line.match(startCodeCellRegEx)![2].length;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx(codeIndent).test(line)) {
+    } else if (
+      inCodeCell && endCodeRegEx(codeIndent, backtickCount).test(line)
+    ) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
@@ -454,7 +458,7 @@ export async function quartoMdToJupyter(
       }
 
       // begin code block: ^```
-    } else if (startCodeRegEx.test(line)) {
+    } else if (!inCodeCell && startCodeRegEx.test(line)) {
       codeIndent = line.match(startCodeRegEx)![1];
       inCode = true;
       lineBuffer.push(line);
@@ -465,7 +469,6 @@ export async function quartoMdToJupyter(
 
   // if there is still a line buffer then make it a markdown cell
   flushLineBuffer("markdown");
-
   return nb;
 }
 

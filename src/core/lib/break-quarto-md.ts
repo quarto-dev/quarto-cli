@@ -41,10 +41,10 @@ export async function breakQuartoMd(
   // regexes
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
+    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^\s*```+\s*$/;
+  const endCodeRegEx = /^\s*(```+)\s*$/;
 
   let language = ""; // current language block
   let directiveParams: Shortcode | undefined = undefined;
@@ -210,15 +210,17 @@ export async function breakQuartoMd(
     } // begin code cell: ^```python
     else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);
-      language = (m as string[])[1];
+      language = (m as string[])[2];
       await flushLineBuffer("markdown", i);
       inCodeCell = true;
+      inCode = (m as string[])[1].length;
+
       codeStartRange = line;
 
       // end code block: ^``` (tolerate trailing ws)
     } else if (
       endCodeRegEx.test(line.substring) &&
-      (inCodeCell || (inCode && tickCount(line.substring) === inCode))
+      (inCode && (line.substring.match(endCodeRegEx)!)[1].length === inCode)
     ) {
       // in a code cell, flush it
       if (inCodeCell) {
