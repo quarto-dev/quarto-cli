@@ -15,7 +15,7 @@
 
 import * as React from 'react';
 
-import { ANSIColor, ANSIOutputLine, ANSIOutputRun, ANSIStyle } from 'ansi-output-test';
+import { ANSIColor, ANSIOutputLine, ANSIOutputRun, ANSIStyle } from 'ansi-output';
 
 import './ANSIDisplay.css';
 

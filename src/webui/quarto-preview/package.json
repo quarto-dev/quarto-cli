@@ -17,12 +17,12 @@
     "build": "tsc --noEmit && vite build",
     "dev": "tsc --noEmit && vite build --mode=development"
   },
-  "dependencies": {   
+  "dependencies": {
     "@fluentui/react-icons": "^2.0.201",
     "@fluentui/react-components": "^9.19.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "ansi-output-test": "1.0.1"
+    "ansi-output": "^0.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

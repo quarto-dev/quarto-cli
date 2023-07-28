@@ -31,7 +31,7 @@ import {
 
 import { Dismiss24Regular } from "@fluentui/react-icons";
 
-import { ANSIOutputLine } from "ansi-output-test";
+import { ANSIOutputLine } from "ansi-output";
 import { ANSIDisplay } from "./ANSIDisplay";
 
 export interface ProgressDialogProps {
