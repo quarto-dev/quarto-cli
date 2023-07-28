@@ -44,7 +44,7 @@ export async function breakQuartoMd(
     "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^\s*```+\s*$/;
+  const endCodeRegEx = /^\s*(```+)\s*$/;
 
   let language = ""; // current language block
   let directiveParams: Shortcode | undefined = undefined;
@@ -213,13 +213,14 @@ export async function breakQuartoMd(
       language = (m as string[])[2];
       await flushLineBuffer("markdown", i);
       inCodeCell = true;
-      inCode = tickCount(line.substring);
+      inCode = (m as string[])[1].length;
+
       codeStartRange = line;
 
       // end code block: ^``` (tolerate trailing ws)
     } else if (
       endCodeRegEx.test(line.substring) &&
-      (inCode && tickCount(line.substring) === inCode)
+      (inCode && (line.substring.match(endCodeRegEx)!)[1].length === inCode)
     ) {
       // in a code cell, flush it
       if (inCodeCell) {
