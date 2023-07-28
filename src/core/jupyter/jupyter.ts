@@ -298,12 +298,12 @@ export async function quartoMdToJupyter(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^(\\s*)```+\\s*\\{" + kernelspec.language.toLowerCase() +
+    "^(\\s*)(```+)\\s*\\{" + kernelspec.language.toLowerCase() +
       "( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^(\s*)```/;
-  const endCodeRegEx = (indent = "") => {
-    return new RegExp("^" + indent + "```\\s*$");
+  const endCodeRegEx = (indent = "", backtickCount = 0) => {
+    return new RegExp("^" + indent + "`".repeat(backtickCount) + "\\s*$");
   };
 
   // read the file into lines
@@ -368,7 +368,7 @@ export async function quartoMdToJupyter(
           kernelspec.language.toLowerCase(),
           cell.source,
         );
-        if (yaml) {
+        if (yaml && !Array.isArray(yaml) && typeof yaml === "object") {
           // use label as id if necessary
           if (includeIds && yaml[kCellLabel] && !yaml[kCellId]) {
             yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
@@ -418,7 +418,8 @@ export async function quartoMdToJupyter(
   let parsedFrontMatter = false,
     inYaml = false,
     inCodeCell = false,
-    inCode = false;
+    inCode = false,
+    backtickCount = 0;
   for (const line of lines(inputContent)) {
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
@@ -437,9 +438,10 @@ export async function quartoMdToJupyter(
       flushLineBuffer("markdown");
       inCodeCell = true;
       codeIndent = line.match(startCodeCellRegEx)![1];
+      backtickCount = line.match(startCodeCellRegEx)![2].length;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx(codeIndent).test(line)) {
+    } else if (endCodeRegEx(codeIndent, backtickCount).test(line)) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
