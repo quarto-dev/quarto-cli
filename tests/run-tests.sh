@@ -55,7 +55,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
   rm -f $QUARTO_TEST_TIMING
   FILES=$@
   if [ "$FILES" == "" ]; then
-    FILES=`find . | grep \.test\.ts$`
+    FILES=`find . | grep \.test\.ts$ | sort`
   fi
   for i in $FILES; do
     if [ "$i" == "./test.ts" ]; then

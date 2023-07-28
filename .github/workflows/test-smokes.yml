@@ -8,6 +8,11 @@ on:
         description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
         required: true
         type: string
+      time-test:
+        description: "Should we run tests to produce test file"
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       buckets:
@@ -15,15 +20,27 @@ on:
         required: false
         type: string
         default: ""
+      time-test:
+        description: "Should we run tests to produce test file"
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
+    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        time-test:
+          - ${{ inputs.time-test }}
+        exclude:
+          # only run timed tests on Linux
+          - os: windows-latest
+            time-test: true
     runs-on: ${{ matrix.os }}
     env:
       QUARTO_TESTS_FORCE_NO_PIPENV: true
@@ -59,7 +76,7 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
-        
+
       - name: Install MECA validator
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca
@@ -141,20 +158,26 @@ jobs:
         run: |
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
-      - name: Run all Smoke Tests
-        if: ${{ format('{0}', inputs.buckets) == '' }}
+      - name: Setup timing file for timed test
+        if: ${{ matrix.time-test == true }}
+        run: |
+          echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
+
+      - name: Run all Smoke Tests Windows
+        if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          case $RUNNER_OS in
-            "Windows")
-              pwsh -F ./run-tests.ps1
-              ;;
-            *)
-              ./run-tests.sh
-              ;;
-          esac
+        run: ./run-tests.ps1
+        working-directory: tests
+        shell: pwsh
+
+      - name: Run all Smoke Tests Linux
+        if: ${{ runner.os != 'Windows' && format('{0}', inputs.buckets) == '' }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./run-tests.sh
         working-directory: tests
         shell: bash
 
@@ -201,3 +224,29 @@ jobs:
           }
         working-directory: tests
         shell: pwsh
+
+      - name: Create Pull Request for new tests timing
+        if: matrix.time-test
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: tests/timing-for-ci.txt
+          commit-message: |
+            timing for new tests [auto PR]
+          branch: updates/timing-for-ci
+          delete-branch: true
+          assignees: cderv
+          reviewers: cderv
+          title: |
+            [CI] Update timing file
+          body: |
+            This PR was created automatically with new timing test file for our parallel smoke tests. 
+            Please review and merge to trigger a new build of the website.
+
+      - name: Check auto PR outputs
+        if: steps.cpr.outcome == 'success'
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"

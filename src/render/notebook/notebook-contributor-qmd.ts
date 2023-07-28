@@ -104,6 +104,7 @@ function resolveOutputNotebook(
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
   resolved.recipe.format.render[kIpynbProduceSourceNotebook] = true;
+  resolved.recipe.format.pandoc.citeproc = false;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -127,6 +128,7 @@ async function renderOutputNotebook(
           [kOutputFile]: ipynbOutputFile(nbPath),
           [kNotebookPreserveCells]: true,
           [kIpynbProduceSourceNotebook]: true,
+          citeproc: false,
         },
         quiet: false,
       },
