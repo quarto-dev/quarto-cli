@@ -157,11 +157,6 @@ local attachments = nil
 local email_html = nil
 local email_images = {}
 
--- TODO:
---   use a parameter to control whether to produce the contents
---   of the email div as the output, or everything but the email
---   div as the output
-
 function Meta(meta)
   attachments = {}
 
@@ -195,13 +190,13 @@ end
 
 function process_document(doc)
 
-  -- Perform processing on the email HTML and generate the JSON file required for Connect
+  -- Get the current date and time
+  local connect_date_time = os.date("%Y-%m-%d %H:%M:%S")
 
-  -- TODO: examine environment variables on Connect to get these strings
-  local connect_date_time = "2020-12-01 12:00:00"
-  local connect_report_rendering_url = "http://www.example.com"
-  local connect_report_url = "http://www.example.com"
-  local connect_report_subscription_url = "http://www.example.com"
+  -- Use Connect environment variables to get URLs for the email footer section
+  local connect_report_rendering_url = os.getenv("RSC_REPORT_RENDERING_URL") or "https://connect.example.com/content/1234/_rev5678"
+  local connect_report_url = os.getenv("RSC_REPORT_URL") or "https://connect.example.com/content/1234/"
+  local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL") or "https://connect.example.com/connect/#/apps/1234/subscriptions"
 
   -- The following regexes remove the surrounding <div> from the HTML text
   -- TODO: ensure that this works for a large variety of documents
