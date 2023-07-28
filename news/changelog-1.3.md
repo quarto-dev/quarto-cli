@@ -252,3 +252,4 @@
 - Fix incorrect copying of resource files during rendering ([#4544](https://github.com/quarto-dev/quarto-cli/issues/4544))
 - Extension authors may now force files to be included in their template by writing the file / file path in the `.quartoignore` file prefixed with a `!`. For example `!README.md` ([#4061](https://github.com/quarto-dev/quarto-cli/issues/4061)).
 - Fix issue when installing extensions on older Windows ([#4203](https://github.com/quarto-dev/quarto-cli/issues/4203)).
+- When `embed-resources: true`, do not stop ObservableJS execution when using `file://` URLs. ([#6371](https://github.com/quarto-dev/quarto-cli/issues/6371)).

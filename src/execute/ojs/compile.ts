@@ -164,9 +164,12 @@ export async function ojsCompile(
   const docToRoot = pathWithForwardSlashes(relative(docDir, rootDir));
   // the check for file:// protocol has to be done in an inline script because
   // script links are not loaded in file:// protocol cases
-  scriptContents.push(
-    `if (window.location.protocol === "file:") { alert("The OJS runtime does not work with file:// URLs. Please use a web server to view this document."); }`,
-  );
+  if (!selfContained) {
+    // Only warn if the html document is not self-contained
+    scriptContents.push(
+      `if (window.location.protocol === "file:") { alert("The OJS runtime does not work with file:// URLs. Please use a web server to view this document."); }`,
+    );
+  }
   scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}";`);
   scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}";`);
   scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}";`);
@@ -792,6 +795,9 @@ export async function ojsCompile(
 
   // script to append
   const afterBody = [
+    `<script type="application/javascript">`,
+    `window._selfContained = ${selfContained}`,
+    `</script>`,
     `<script type="ojs-module-contents">`,
     JSON.stringify({ contents: moduleContents }),
     `</script>`,

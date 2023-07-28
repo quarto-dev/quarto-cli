@@ -20269,7 +20269,7 @@ function createRuntime() {
   }
 
   // Are we file://? bail
-  if (window.location.protocol === "file:") {
+  if (!window._selfContained && window.location.protocol === "file:") {
     displayFileProtocolError();
     return;
   }
