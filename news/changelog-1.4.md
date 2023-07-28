@@ -76,6 +76,8 @@
 ## Jupyter
 
 - Support for executing inline expressions (e.g. `` `{python} x` ``)
+- ([#6344](https://github.com/quarto-dev/quarto-cli/issues/6344)): Somewhat improve the error message in case of YAML parsing errors in metadata of Python code cells.
+- ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
 
 ## Dependencies
 
