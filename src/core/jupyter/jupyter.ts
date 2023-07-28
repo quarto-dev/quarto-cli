@@ -258,7 +258,7 @@ const countTicks = (code: string[]) => {
   // FIXME do we need trim() here?
   const countLeadingTicks = (s: string) => {
     // count leading ticks using regexps
-    const m = s.match(/^`+/);
+    const m = s.match(/^\s*`+/);
     if (m) {
       return m[0].length;
     } else {
@@ -434,14 +434,16 @@ export async function quartoMdToJupyter(
         inYaml = true;
       }
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line)) {
+    else if (!inCodeCell && startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
       codeIndent = line.match(startCodeCellRegEx)![1];
       backtickCount = line.match(startCodeCellRegEx)![2].length;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx(codeIndent, backtickCount).test(line)) {
+    } else if (
+      inCodeCell && endCodeRegEx(codeIndent, backtickCount).test(line)
+    ) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
@@ -456,7 +458,7 @@ export async function quartoMdToJupyter(
       }
 
       // begin code block: ^```
-    } else if (startCodeRegEx.test(line)) {
+    } else if (!inCodeCell && startCodeRegEx.test(line)) {
       codeIndent = line.match(startCodeRegEx)![1];
       inCode = true;
       lineBuffer.push(line);
@@ -467,7 +469,6 @@ export async function quartoMdToJupyter(
 
   // if there is still a line buffer then make it a markdown cell
   flushLineBuffer("markdown");
-
   return nb;
 }
 
