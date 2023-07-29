@@ -339,6 +339,19 @@ const resolveFeatures = (ctx: ContainerContext) => {
       "packages": "chromium",
     };
   }
+
+  // For environments, add features
+  const commands = ctx.environments.map((env) => {
+    return environmentCommands[env];
+  });
+  for (const env of commands) {
+    if (env.features) {
+      for (const key of Object.keys(env.features)) {
+        features[key] = env.features[key];
+      }
+    }
+  }
+
   return features;
 };
 
@@ -444,7 +457,7 @@ const containerImage = (ctx: ContainerContext) => {
 
 const postCreate = async (ctx: ContainerContext) => {
   const command = ctx.environments.map((env) => {
-    return environmentCommands[env];
+    return environmentCommands[env].restore;
   });
 
   if (command.length > 0) {
@@ -464,9 +477,22 @@ const portAttributes = async (ctx: ContainerContext) => {
   return kPortAttr[ctx.codeEnvironment];
 };
 
-const environmentCommands: Record<string, string> = {
-  "renv.lock": `R -e "renv::restore()"`,
-  "requirements.txt": `python3 -m pip3 install -r requirements.txt`,
+interface EnvironmentOptions {
+  restore: string;
+  features?: Record<string, Record<string, unknown>>;
+}
+
+const environmentCommands: Record<string, EnvironmentOptions> = {
+  "renv.lock": { restore: `R -e "renv::restore()"` },
+  "requirements.txt": {
+    restore: `python3 -m pip3 install -r requirements.txt`,
+  },
+  "environment.yml": {
+    restore: "conda env update --prefix ./env --file environment.yml  --prune",
+    features: {
+      "ghcr.io/devcontainers/features/conda:1": {},
+    },
+  },
 };
 
 const kPortAttr: Record<string, Record<string, PortAttribute>> = {
