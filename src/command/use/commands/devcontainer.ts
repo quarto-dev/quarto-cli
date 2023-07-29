@@ -8,12 +8,6 @@ import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
 import { info } from "log/mod.ts";
-import {
-  inspectConfig,
-  InspectedDocumentConfig,
-  InspectedProjectConfig,
-  isProjectConfig,
-} from "../../../quarto-core/inspect.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 
 import { extname, join } from "path/mod.ts";
@@ -21,15 +15,14 @@ import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname } from "path/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { Confirm, Input } from "cliffy/prompt/mod.ts";
-import * as ld from "../../../core/lodash.ts";
 import { projectContext } from "../../../project/project-context.ts";
 import { projectType } from "../../../project/types/project-types.ts";
 import {
   kManuscriptType,
   ResolvedManuscriptConfig,
 } from "../../../project/types/manuscript/manuscript-types.ts";
-import { renderFormats } from "../../render/render-contexts.ts";
 import { isPdfOutput } from "../../../config/format.ts";
+import { ProjectContext } from "../../../project/types.ts";
 
 // Discover environment
 // Validate that lock file or requirements.txt is present
@@ -46,6 +39,12 @@ import { isPdfOutput } from "../../../config/format.ts";
 // Julia TBD
 
 // quarto inspect engines
+
+/*
+ "codespaces": {
+            "openFiles": ["README.md"]
+        }
+        */
 
 const kDefaultContainerTitle = "Default Container";
 
@@ -84,6 +83,7 @@ type pathType = "file" | "directory" | "subdirectory";
 
 // The current global image that we use for the devcontainer
 const kBaseContainerImage = "mcr.microsoft.com/devcontainers/base:ubuntu";
+const kRstudioContainerImage = "ghcr.io/rocker-org/rstudio:4.3.1";
 
 // Regex used to determine whether file contents will require the installation of Chromium
 const kChromiumHint = /````*{mermaid}|{dot}/gm;
@@ -135,17 +135,16 @@ export const useDevContainerCommand = new Command()
       // Note: this will throw if this isn't a project, which is expected
       // and desirable
       info("Inspecting configuration");
-      const config = await inspectConfig(Deno.cwd());
+      const context = await projectContext(Deno.cwd());
 
       info("Scanning project");
-      if (!isProjectConfig(config)) {
+      if (context === undefined) {
         throw new InternalError(
           "The quarto use devcontainer command expects to be run in a Quarto project",
         );
       }
-      const projectConfig = config as InspectedProjectConfig;
       const containerCtx = await resolveContainerContext(
-        projectConfig,
+        context,
         "prerelease",
       );
 
@@ -153,6 +152,13 @@ export const useDevContainerCommand = new Command()
       const userTitle = await confirmTitle(
         containerCtx.title || kDefaultContainerTitle,
       );
+      containerCtx.title = userTitle;
+
+      // Confirm the container context
+      const contextConfirmed = await confirmContext(containerCtx);
+      if (!contextConfirmed) {
+        return;
+      }
 
       // The devcontainer JSON that we are building
       const devcontainer: DevContainer = {
@@ -210,27 +216,24 @@ export const useDevContainerCommand = new Command()
   });
 
 const resolveContainerContext = async (
-  config: InspectedProjectConfig,
+  context: ProjectContext,
   quarto: "release" | "prerelease",
 ) => {
   const containerCtx: ContainerContext = {
-    engines: config.engines,
+    engines: context.engines,
     tools: [],
     codeEnvironment: "vscode",
     quarto,
   };
 
-  const qmdCodeTool = config.engines.includes("knitr") ? "rstudio" : "vscode";
+  const qmdCodeTool = context.engines.includes("knitr") ? "rstudio" : "vscode";
   const ipynbCodeTool = "jupyterlab";
-
-  // The project inspected configuration
-  const projectConfig = config as InspectedProjectConfig;
 
   // Determine the code environment
   // Special case manuscripts - the root article will drive the code environment
-  if (projectType(config.config.project.type).type === kManuscriptType) {
+  if (projectType(context.config?.project.type).type === kManuscriptType) {
     // Choose the code environment based upon the engine and article file type
-    const manuscriptConfig = config.config
+    const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
     if (extname(manuscriptConfig.article) === ".qmd") {
       containerCtx.codeEnvironment = qmdCodeTool;
@@ -240,7 +243,7 @@ const resolveContainerContext = async (
   } else {
     // Count the ipynb vs qmds and use that as guideline
     const exts: Record<string, number> = {};
-    const inputs = projectConfig.files.input;
+    const inputs = context.files.input;
     for (const input of inputs) {
       const ext = extname(input);
       exts[ext] = (exts[ext] || 0) + 1;
@@ -256,21 +259,22 @@ const resolveContainerContext = async (
   }
 
   // Determine the title
-  const title = projectConfig.config.project.title;
+  const title = context.config?.project.title;
   containerCtx.title = title;
 
   // Determine what tools (if any) we should also install
   let tinytex = false;
   let chromium = false;
-  for (const input of projectConfig.files.input) {
+
+  for (const input of context.files.input) {
     if (!tinytex) {
       // If we haven't yet found the need for tinytex,
       // go ahead and look for PDF format. Once a single
       // file needs, it we can stop looking
-      const formats = renderFormats(input);
-      const fmtStrs = Object.keys(formats);
-      const hasPdf = fmtStrs.some((fmtStr) => {
-        return isPdfOutput(fmtStr);
+      const formats = await context.renderFormats(input, "all", context);
+
+      const hasPdf = Object.values(formats).some((format) => {
+        return isPdfOutput(format.pandoc);
       });
       tinytex = hasPdf;
     }
@@ -302,10 +306,11 @@ const resolveContainerContext = async (
 const resolveFeatures = (ctx: ContainerContext) => {
   const features: Record<string, Record<string, unknown>> = {};
   if (ctx.engines.includes("knitr")) {
-    features["ghcr.io/rocker-org/devcontainer-features/r-apt:0"] = {
+    features["ghcr.io/rocker-org/devcontainer-features/r-rig:1"] = {
       vscodeRSupport: ctx.codeEnvironment === "vscode",
-      installRMarkdown: true,
       installJupyterlab: ctx.engines.includes("jupyter"),
+      installREnv: true,
+      installRMarkdown: false,
     };
   } else if (ctx.engines.includes("python")) {
     features["ghcr.io/devcontainers/features/python:1"] = {
@@ -319,10 +324,40 @@ const resolveFeatures = (ctx: ContainerContext) => {
     installTinyTex: ctx.tools.includes("tinytex"),
     installChromium: ctx.tools.includes("chromium"),
   };
+
+  // Actually install chromium
+  if (ctx.tools.includes("chromium")) {
+    features["ghcr.io/rocker-org/devcontainer-features/apt-packages:1"] = {
+      "packages": "chromium",
+    };
+  }
   return features;
 };
 
-const confirmChanges = async (devContainer: DevContainer) => {
+const confirmContext = async (ctx: ContainerContext) => {
+  const rows: string[][] = [];
+  const indent = "  ";
+
+  if (ctx.title) {
+    rows.push([indent, "Name:", ctx.title]);
+  }
+  rows.push([indent, "Quarto Version:", ctx.quarto]);
+  rows.push([indent, "Tools:", ctx.tools.join(",")]);
+  rows.push([indent, "Engines:", ctx.engines.join(",")]);
+  rows.push([indent, "IDE", ctx.codeEnvironment]);
+  const table = new Table(...rows);
+
+  info(
+    `\nThe following options will be used for your project container:\n\n${table.toString()}\n`,
+  );
+  const question = "Would you like to continue";
+  return await Confirm.prompt({ message: question, default: true });
+};
+
+const confirmChanges = async (_devContainer: DevContainer) => {
+  return true;
+
+  /*
   const rows: string[][] = [];
   const indent = "  ";
   rows.push([indent, "Name:", devContainer.name]);
@@ -337,6 +372,7 @@ const confirmChanges = async (devContainer: DevContainer) => {
   );
   const question = "Would you like to continue";
   return await Confirm.prompt({ message: question, default: true });
+  */
 };
 
 const confirmOverwrite = async (path: string) => {
@@ -376,10 +412,14 @@ const devcontainerPath = (
   }
 };
 
-const containerImage = (_containerCtx: ContainerContext) => {
-  // Always use our base image. If we get more sophisticated
-  // about images, we can add sophistication here
-  return kBaseContainerImage;
+const containerImage = (ctx: ContainerContext) => {
+  if (ctx.codeEnvironment === "rstudio") {
+    return kRstudioContainerImage;
+  } else {
+    // Always use our base image. If we get more sophisticated
+    // about images, we can add sophistication here
+    return kBaseContainerImage;
+  }
 };
 
 const postCreate = async () => {
@@ -408,7 +448,7 @@ const portAttributes = async (ctx: ContainerContext) => {
 };
 
 const environmentCommands: Record<string, string> = {
-  "renv.lock": `RScript -e "renv::restore()"`,
+  "renv.lock": `R -e "renv::restore()"`,
   "requirements.txt": `python3 -m pip3 install -r requirements.txt`,
 };
 
