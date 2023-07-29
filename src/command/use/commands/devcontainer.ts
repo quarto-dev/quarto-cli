@@ -75,6 +75,7 @@ interface ContainerContext {
   codeEnvironment: "vscode" | "rstudio" | "jupyterlab";
   engines: string[];
   quarto: "release" | "prerelease";
+  environments: string[];
 }
 
 // The devcontainer can be ina  file, directory, or a subdirectory (where multiple subdirectories
@@ -160,6 +161,8 @@ export const useDevContainerCommand = new Command()
         return;
       }
 
+      validateContext(containerCtx);
+
       // The devcontainer JSON that we are building
       const devcontainer: DevContainer = {
         name: userTitle,
@@ -168,7 +171,7 @@ export const useDevContainerCommand = new Command()
       };
 
       // Compute the depdendencies to restore
-      const postCreateCommand = await postCreate();
+      const postCreateCommand = await postCreate(containerCtx);
       if (postCreateCommand) {
         devcontainer.postCreateCommand = postCreateCommand;
       }
@@ -224,6 +227,7 @@ const resolveContainerContext = async (
     tools: [],
     codeEnvironment: "vscode",
     quarto,
+    environments: [],
   };
 
   const qmdCodeTool = context.engines.includes("knitr") ? "rstudio" : "vscode";
@@ -300,6 +304,14 @@ const resolveContainerContext = async (
     containerCtx.tools.push("chromium");
   }
 
+  // Determine environments
+  const envFiles = Object.keys(environmentCommands);
+  for (const envFile of envFiles) {
+    if (existsSync(envFile)) {
+      containerCtx.environments.push(envFile);
+    }
+  }
+
   return containerCtx;
 };
 
@@ -312,7 +324,7 @@ const resolveFeatures = (ctx: ContainerContext) => {
       installREnv: true,
       installRMarkdown: false,
     };
-  } else if (ctx.engines.includes("python")) {
+  } else if (ctx.engines.includes("jupyter")) {
     features["ghcr.io/devcontainers/features/python:1"] = {
       installJupyterlab: ctx.codeEnvironment === "jupyterlab",
     };
@@ -345,6 +357,10 @@ const confirmContext = async (ctx: ContainerContext) => {
   rows.push([indent, "Tools:", ctx.tools.join(",")]);
   rows.push([indent, "Engines:", ctx.engines.join(",")]);
   rows.push([indent, "IDE", ctx.codeEnvironment]);
+  if (ctx.environments.length > 0) {
+    rows.push([indent, "Environment", ctx.environments.join(",")]);
+  }
+
   const table = new Table(...rows);
 
   info(
@@ -352,6 +368,14 @@ const confirmContext = async (ctx: ContainerContext) => {
   );
   const question = "Would you like to continue";
   return await Confirm.prompt({ message: question, default: true });
+};
+
+const validateContext = (ctx: ContainerContext) => {
+  if (ctx.environments.length === 0) {
+    throw new Error(
+      "Unable to determine depedencies for this projects. Please ensure that a depedencies file is present.",
+    );
+  }
 };
 
 const confirmChanges = async (_devContainer: DevContainer) => {
@@ -422,14 +446,11 @@ const containerImage = (ctx: ContainerContext) => {
   }
 };
 
-const postCreate = async () => {
-  const command: string[] = [];
-  const envFiles = Object.keys(environmentCommands);
-  for (const envFile of envFiles) {
-    if (existsSync(envFile)) {
-      command.push(environmentCommands[envFile]);
-    }
-  }
+const postCreate = async (ctx: ContainerContext) => {
+  const command = ctx.environments.map((env) => {
+    return environmentCommands[env];
+  });
+
   if (command.length > 0) {
     return command.join(" && ");
   }
