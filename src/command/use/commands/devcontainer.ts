@@ -36,10 +36,6 @@ import { ProjectContext } from "../../../project/types.ts";
 // Python 3
 // https://github.com/devcontainers/templates/tree/main/src/python
 
-// Julia TBD
-
-// quarto inspect engines
-
 /*
  "codespaces": {
             "openFiles": ["README.md"]
@@ -353,7 +349,7 @@ const confirmContext = async (ctx: ContainerContext) => {
   if (ctx.title) {
     rows.push([indent, "Name:", ctx.title]);
   }
-  rows.push([indent, "Quarto Version:", ctx.quarto]);
+  rows.push([indent, "Quarto:", ctx.quarto]);
   rows.push([indent, "Tools:", ctx.tools.join(",")]);
   rows.push([indent, "Engines:", ctx.engines.join(",")]);
   rows.push([indent, "IDE", ctx.codeEnvironment]);
