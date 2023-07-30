@@ -57,6 +57,7 @@ interface DevContainer {
   postAttachCommand?: string;
   forwardPorts?: number[];
   portsAttributes?: Record<string, PortAttribute>;
+  codespaces?: Record<string, unknown>;
 }
 
 interface PortAttribute {
@@ -72,6 +73,7 @@ interface ContainerContext {
   engines: string[];
   quarto: "release" | "prerelease";
   environments: string[];
+  openFiles: string[];
 }
 
 // The devcontainer can be ina  file, directory, or a subdirectory (where multiple subdirectories
@@ -192,6 +194,12 @@ export const useDevContainerCommand = new Command()
         }
       }
 
+      if (containerCtx.openFiles.length > 0) {
+        devcontainer.codespaces = {
+          openFiles: containerCtx.openFiles,
+        };
+      }
+
       // Where to write the dev conatiner json
       const outputPath = devcontainerPath();
 
@@ -224,6 +232,7 @@ const resolveContainerContext = async (
     codeEnvironment: "vscode",
     quarto,
     environments: [],
+    openFiles: [],
   };
 
   const qmdCodeTool = context.engines.includes("knitr") ? "rstudio" : "vscode";
@@ -240,6 +249,9 @@ const resolveContainerContext = async (
     } else {
       containerCtx.codeEnvironment = ipynbCodeTool;
     }
+
+    // Open the main article file
+    containerCtx.openFiles.unshift(manuscriptConfig.article);
   } else {
     // Count the ipynb vs qmds and use that as guideline
     const exts: Record<string, number> = {};
@@ -318,7 +330,7 @@ const resolveFeatures = (ctx: ContainerContext) => {
       vscodeRSupport: ctx.codeEnvironment === "vscode",
       installJupyterlab: ctx.engines.includes("jupyter"),
       installREnv: true,
-      installRMarkdown: false,
+      installRMarkdown: true,
     };
   } else if (ctx.engines.includes("jupyter")) {
     features["ghcr.io/devcontainers/features/python:1"] = {
@@ -469,6 +481,9 @@ const postAttach = async (ctx: ContainerContext) => {
   const postAttachCmd: string[] = [];
   if (ctx.codeEnvironment === "rstudio") {
     postAttachCmd.push("sudo rstudio-server start");
+  } else if (ctx.codeEnvironment === "jupyterlab") {
+    postAttachCmd.push("python3 -m pip install jupyterlab-quarto");
+    postAttachCmd.push("sudo python3 -m juptyer lab");
   }
   return postAttachCmd.join("\n");
 };
