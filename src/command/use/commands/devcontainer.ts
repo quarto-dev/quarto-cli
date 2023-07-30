@@ -470,7 +470,7 @@ const containerImage = (ctx: ContainerContext) => {
 const postCreate = async (ctx: ContainerContext) => {
   const command = ctx.environments.map((env) => {
     return environmentCommands[env].restore;
-  });
+  }).filter((cmd) => cmd !== undefined);
 
   if (command.length > 0) {
     return command.join(" && ");
@@ -483,7 +483,7 @@ const postAttach = async (ctx: ContainerContext) => {
     postAttachCmd.push("sudo rstudio-server start");
   } else if (ctx.codeEnvironment === "jupyterlab") {
     postAttachCmd.push("python3 -m pip install jupyterlab-quarto");
-    postAttachCmd.push("sudo python3 -m juptyer lab");
+    postAttachCmd.push("sudo python3 -m jupyter lab");
   }
   return postAttachCmd.join("\n");
 };
@@ -493,7 +493,7 @@ const portAttributes = async (ctx: ContainerContext) => {
 };
 
 interface EnvironmentOptions {
-  restore: string;
+  restore?: string;
   features?: Record<string, Record<string, unknown>>;
 }
 
@@ -503,7 +503,7 @@ const environmentCommands: Record<string, EnvironmentOptions> = {
     restore: `python3 -m pip3 install -r requirements.txt`,
   },
   "environment.yml": {
-    restore: "conda env update --prefix ./env --file environment.yml  --prune",
+    // restore: "conda env create -f environment.yml",
     features: {
       "ghcr.io/devcontainers/features/conda:1": {},
     },
