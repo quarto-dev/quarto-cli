@@ -117,14 +117,14 @@ const kChromiumHint = /````*{mermaid}|{dot}/gm;
 export const useDevContainerCommand = new Command()
   .name("devcontainer")
   .description(
-    "Configure a Development Container for this project.",
+    "Setup a Dev Container for this project.",
   )
   .option(
     "--no-prompt",
     "Do not prompt to confirm actions",
   )
   .example(
-    "Set up a Development Container",
+    "Set up a Dev Container",
     "quarto use devcontainer",
   )
   .action(async (_options: { prompt?: boolean }) => {
