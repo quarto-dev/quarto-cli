@@ -42,7 +42,11 @@ $callout-margin-bottom: 1.25rem !default;
 
 // Navbar
 $theme-name: if(variable-exists(theme), $theme, "");
-$navbar-default: if(variable-exists(primary), $primary, #517699);
+$navbar-default: if(
+  variable-exists(theme),
+  if(variable-exists(primary), $primary, #517699),
+  #517699
+);
 
 // If the user provides a navbar-bg, we ned to ignore the
 // theme overide and just recalculate a good value

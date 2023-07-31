@@ -40,6 +40,7 @@ import {
   kQuartoInternal,
   kRemoveHidden,
   kResources,
+  kTheme,
   kToc,
   kUnrollMarkdownCells,
   kWarning,
@@ -265,6 +266,9 @@ export const manuscriptProjectType: ProjectType = {
     // By default, notebook previews enable the back button
     const previewOptions = { back: true };
     config[kNotebookPreviewOptions] = previewOptions;
+
+    // Default to cosmo theme
+    config[kTheme] = "cosmo";
 
     return config;
   },
