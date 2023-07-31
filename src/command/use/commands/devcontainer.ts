@@ -483,7 +483,7 @@ const postAttach = async (ctx: ContainerContext) => {
     postAttachCmd.push("sudo rstudio-server start");
   } else if (ctx.codeEnvironment === "jupyterlab") {
     postAttachCmd.push("python3 -m pip install jupyterlab-quarto");
-    postAttachCmd.push("sudo python3 -m jupyter lab");
+    postAttachCmd.push("sudo python3 -m jupyterlab");
   }
   return postAttachCmd.join("\n");
 };
