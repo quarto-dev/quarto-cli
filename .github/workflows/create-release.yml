@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./News/changelog.md
+          path: ./news/changelog.md
 
   make-source-tarball:
     runs-on: ubuntu-latest
