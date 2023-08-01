@@ -23,6 +23,7 @@ import {
 } from "../../../project/types/manuscript/manuscript-types.ts";
 import { isPdfOutput } from "../../../config/format.ts";
 import { ProjectContext } from "../../../project/types.ts";
+import { withSpinner } from "../../../core/console.ts";
 
 // Discover environment
 // Validate that lock file or requirements.txt is present
@@ -55,9 +56,11 @@ interface DevContainer {
   features?: Record<string, Record<string, unknown>>;
   postCreateCommand?: string;
   postAttachCommand?: string;
+  postStartCommand?: string;
   forwardPorts?: number[];
   portsAttributes?: Record<string, PortAttribute>;
   codespaces?: Record<string, unknown>;
+  containerEnv?: Record<string, string>;
 }
 
 interface PortAttribute {
@@ -74,6 +77,7 @@ interface ContainerContext {
   quarto: "release" | "prerelease";
   environments: string[];
   openFiles: string[];
+  envVars: Record<string, string>;
 }
 
 // The devcontainer can be ina  file, directory, or a subdirectory (where multiple subdirectories
@@ -133,10 +137,13 @@ export const useDevContainerCommand = new Command()
     try {
       // Note: this will throw if this isn't a project, which is expected
       // and desirable
-      info("Inspecting configuration");
-      const context = await projectContext(Deno.cwd());
+      const context = await withSpinner<ProjectContext | undefined>({
+        message: "Scanning project",
+        doneMessage: false,
+      }, () => {
+        return projectContext(Deno.cwd());
+      });
 
-      info("Scanning project");
       if (context === undefined) {
         throw new InternalError(
           "The quarto use devcontainer command expects to be run in a Quarto project",
@@ -180,6 +187,11 @@ export const useDevContainerCommand = new Command()
         devcontainer.postAttachCommand = postAttachCommand;
       }
 
+      const postStartCommand = await postStart(containerCtx);
+      if (postStartCommand) {
+        devcontainer.postStartCommand = postStartCommand;
+      }
+
       const portInfo = await portAttributes(containerCtx);
       if (portInfo) {
         // Forward ports
@@ -200,6 +212,14 @@ export const useDevContainerCommand = new Command()
         };
       }
 
+      const envVars = Object.keys(containerCtx.envVars);
+      if (envVars.length > 0) {
+        devcontainer.containerEnv = devcontainer.containerEnv || {};
+        for (const key of envVars) {
+          devcontainer.containerEnv[key] = containerCtx.envVars[key];
+        }
+      }
+
       // Where to write the dev conatiner json
       const outputPath = devcontainerPath();
 
@@ -214,7 +234,7 @@ export const useDevContainerCommand = new Command()
           const devcontainerJson = JSON.stringify(devcontainer, undefined, 2);
           Deno.writeTextFileSync(outputPath, devcontainerJson);
 
-          info("Development container successfully created.");
+          info("\nDevelopment container successfully created.");
         }
       }
     } finally {
@@ -233,6 +253,7 @@ const resolveContainerContext = async (
     quarto,
     environments: [],
     openFiles: [],
+    envVars: {},
   };
 
   const qmdCodeTool = context.engines.includes("knitr") ? "rstudio" : "vscode";
@@ -344,13 +365,6 @@ const resolveFeatures = (ctx: ContainerContext) => {
     installTinyTex: ctx.tools.includes("tinytex"),
     installChromium: ctx.tools.includes("chromium"),
   };
-
-  // Actually install chromium
-  if (ctx.tools.includes("chromium")) {
-    features["ghcr.io/rocker-org/devcontainer-features/apt-packages:1"] = {
-      "packages": "chromium",
-    };
-  }
 
   // For environments, add features
   const commands = ctx.environments.map((env) => {
@@ -483,9 +497,13 @@ const postAttach = async (ctx: ContainerContext) => {
     postAttachCmd.push("sudo rstudio-server start");
   } else if (ctx.codeEnvironment === "jupyterlab") {
     postAttachCmd.push("python3 -m pip install jupyterlab-quarto");
-    postAttachCmd.push("sudo python3 -m jupyterlab");
+    postAttachCmd.push("python3 -m jupyterlab");
   }
-  return postAttachCmd.join("\n");
+  return postAttachCmd.join(" && ");
+};
+
+const postStart = async (_ctx: ContainerContext) => {
+  return undefined;
 };
 
 const portAttributes = async (ctx: ContainerContext) => {
@@ -498,14 +516,17 @@ interface EnvironmentOptions {
 }
 
 const environmentCommands: Record<string, EnvironmentOptions> = {
-  "renv.lock": { restore: `R -e "renv::restore()"` },
+  // TODO: this needs to happen in correct directory post setup
+  "renv.lock": { restore: `Rscript -e "renv::restore();"` },
   "requirements.txt": {
     restore: `python3 -m pip3 install -r requirements.txt`,
   },
   "environment.yml": {
-    // restore: "conda env create -f environment.yml",
+    restore: "conda env create -f environment.yml",
     features: {
-      "ghcr.io/devcontainers/features/conda:1": {},
+      "ghcr.io/devcontainers/features/conda:1": {
+        addCondaForge: true,
+      },
     },
   },
 };
