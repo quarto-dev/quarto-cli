@@ -88,6 +88,13 @@ $title-banner-image: null !default;
     padding-bottom: 1em;
   }
 }
+@include media-breakpoint-down(md) {
+  body.hypothesis-enabled {
+    #title-block-header > * {
+      padding-right: 20px;
+    }
+  }
+}
 
 main.quarto-banner-title-block > section:first-child > h2,
 main.quarto-banner-title-block > section:first-child > h3,
