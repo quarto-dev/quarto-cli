@@ -5,6 +5,8 @@ related-formats-title: "Kiti formatai"
 related-notebooks-title: "Užrašų knygutės"
 source-notebooks-prefix: "Pirminis dokumentas"
 other-links-title: "Kiti nuorodos"
+code-links-title: "Kodo nuorodos"
+launch-dev-container-title: "Paleisti Dev Container"
 
 article-notebook-label: "Straipsnio užrašų knygelė"
 notebook-preview-download: "Atsisiųsti užrašų knygelę"

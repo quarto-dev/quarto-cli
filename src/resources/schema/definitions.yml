@@ -1012,6 +1012,12 @@
         tags:
           formats: [$html-doc]
         description: "A list of other links to appear below the TOC."
+      code-links:
+        schema:
+          ref: other-links
+        tags:
+          formats: [$html-doc]
+        description: "A list of codes links to appear with this document."
 
 - id: book-schema
   schema:

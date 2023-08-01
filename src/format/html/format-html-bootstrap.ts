@@ -5,21 +5,22 @@
  */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { findParent } from "../../core/html.ts";
 
 import {
+  kCodeLinks,
+  kCodeLinksTitle,
   kContentMode,
   kDisableArticleLayout,
-  kDisplayName,
-  kExtensionName,
   kFormatLinks,
   kGrid,
   kHtmlMathMethod,
   kIncludeInHeader,
+  kLaunchDevContainerTitle,
   kLinkCitations,
   kNotebookLinks,
   kOtherLinks,
@@ -27,7 +28,6 @@ import {
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kSectionDivs,
-  kTargetFormat,
   kTocDepth,
   kTocExpand,
   kTocLocation,
@@ -35,7 +35,6 @@ import {
 import {
   Format,
   FormatExtras,
-  FormatLink,
   kBodyEnvelope,
   kDependencies,
   kHtmlFinalizers,
@@ -78,19 +77,9 @@ import {
   processDocumentTitle,
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
-import {
-  isDocxOutput,
-  isHtmlOutput,
-  isIpynbOutput,
-  isJatsOutput,
-  isMarkdownOutput,
-  isPdfOutput,
-  isPresentationOutput,
-} from "../../config/format.ts";
-import { basename } from "path/mod.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { extname } from "path/mod.ts";
 import { AlternateLink, otherFormatLinks } from "./format-html-links.ts";
 
 export function bootstrapFormatDependency() {
@@ -385,9 +374,8 @@ function bootstrapHtmlPostprocessor(
       }
     }
 
-    if (format.metadata[kOtherLinks]) {
-      processOtherLinks(doc, format);
-    }
+    // Process additional links for this document
+    processOtherLinks(doc, format);
 
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
@@ -505,60 +493,79 @@ function processOtherLinks(
   doc: Document,
   format: Format,
 ) {
-  const otherLinks = format.metadata[kOtherLinks] as FormatLink[];
-  const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherLinks);
-  if (otherLinks && otherLinks.length > 0 && dlLinkTarget) {
-    const containerEl = doc.createElement("div");
-    containerEl.classList.add("quarto-other-links");
+  const processLinks = (
+    otherLinks: OtherLink[],
+    clz: string,
+    title: string,
+  ) => {
+    console.log({ otherLinks });
+    const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherLinks);
+    if (otherLinks.length > 0 && dlLinkTarget) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add(clz);
 
-    const heading = dlLinkTarget.makeHeadingEl(
-      format.language[kOtherLinksTitle],
-    );
-    containerEl.appendChild(heading);
-
-    const getAttrs = (otherLink: OtherLink) => {
-      if (otherLink.rel || otherLink.target) {
-        const attrs: Record<string, string> = {};
-        if (otherLink.rel) {
-          attrs.rel = otherLink.rel;
-        }
-        if (otherLink.target) {
-          attrs.target = otherLink.target;
-        }
-        return attrs;
-      } else {
-        return undefined;
-      }
-    };
-
-    const linkList = dlLinkTarget.makeContainerEl();
-    let order = 0;
-    for (let i = 0; i < otherLinks.length; i++) {
-      const otherLink = otherLinks[i];
-      const alternateLink: AlternateLink = {
-        icon: otherLink.icon || "link-45deg",
-        href: otherLink.href,
-        title: otherLink.text,
-        order: ++order,
-        attr: getAttrs(otherLink),
-      };
-      const li = dlLinkTarget.makeItemEl(
-        createLinkChild(alternateLink, doc),
-        i,
-        otherLinks.length,
+      const heading = dlLinkTarget.makeHeadingEl(
+        title,
       );
-      if (linkList) {
-        linkList.appendChild(li);
-      } else {
-        containerEl.appendChild(li);
-      }
-    }
-    if (linkList) {
-      containerEl.appendChild(linkList);
-    }
+      containerEl.appendChild(heading);
 
-    dlLinkTarget.targetEl.appendChild(containerEl);
-  }
+      const getAttrs = (otherLink: OtherLink) => {
+        if (otherLink.rel || otherLink.target) {
+          const attrs: Record<string, string> = {};
+          if (otherLink.rel) {
+            attrs.rel = otherLink.rel;
+          }
+          if (otherLink.target) {
+            attrs.target = otherLink.target;
+          }
+          return attrs;
+        } else {
+          return undefined;
+        }
+      };
+
+      const linkList = dlLinkTarget.makeContainerEl();
+      let order = 0;
+      for (let i = 0; i < otherLinks.length; i++) {
+        const otherLink = otherLinks[i];
+        const alternateLink: AlternateLink = {
+          icon: otherLink.icon || "link-45deg",
+          href: otherLink.href,
+          title: otherLink.text,
+          order: ++order,
+          attr: getAttrs(otherLink),
+        };
+        const li = dlLinkTarget.makeItemEl(
+          createLinkChild(alternateLink, doc),
+          i,
+          otherLinks.length,
+        );
+        if (linkList) {
+          linkList.appendChild(li);
+        } else {
+          containerEl.appendChild(li);
+        }
+      }
+      if (linkList) {
+        containerEl.appendChild(linkList);
+      }
+
+      dlLinkTarget.targetEl.appendChild(containerEl);
+    }
+  };
+
+  const otherLinkOptions = [{
+    links: (format.metadata[kOtherLinks] || []) as OtherLink[],
+    clz: "quarto-other-links",
+    title: format.language[kOtherLinksTitle] || "Other Links",
+  }, {
+    links: (format.metadata[kCodeLinks] || []) as OtherLink[],
+    clz: "quarto-code-links",
+    title: format.language[kCodeLinksTitle] || "Code Links",
+  }];
+  otherLinkOptions.forEach((linkDesc) => {
+    processLinks(linkDesc.links, linkDesc.clz, linkDesc.title);
+  });
 }
 
 type selector = string;

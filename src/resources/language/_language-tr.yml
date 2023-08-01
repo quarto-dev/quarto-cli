@@ -5,6 +5,8 @@ related-formats-title: "Diğer Formatlar"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Kaynak"
 other-links-title: "Diğer Bağlantılar"
+code-links-title: "Kod Bağlantıları"
+launch-dev-container-title: "Dev Container Başlat"
 
 article-notebook-label: "Makale Defteri"
 notebook-preview-download: "Defteri İndir"

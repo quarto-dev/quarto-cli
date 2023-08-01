@@ -5,6 +5,8 @@ related-formats-title: "Andre format"
 related-notebooks-title: "Notatbøker"
 source-notebooks-prefix: "Kjelde"
 other-links-title: "Andre lenker"
+code-links-title: "Kodelenker"
+launch-dev-container-title: "Start Dev Container"
 
 article-notebook-label: "Artikkelnotatbok"
 notebook-preview-download: "Last ned notatbok"

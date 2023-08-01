@@ -25,6 +25,7 @@ import {
   kCodeLineNumbers,
   kCodeLines,
   kCodeLink,
+  kCodeLinksTitle,
   kCodeOverflow,
   kCodeSummary,
   kCodeTools,
@@ -110,6 +111,7 @@ import {
   kLatexOutputDir,
   kLatexTinyTex,
   kLatexTlmgrOpts,
+  kLaunchDevContainerTitle,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
@@ -569,6 +571,8 @@ export interface FormatLanguage {
   [kTocTitleWebsite]?: string;
   [kRelatedFormatsTitle]?: string;
   [kOtherLinksTitle]?: string;
+  [kCodeLinksTitle]?: string;
+  [kLaunchDevContainerTitle]?: string;
   [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;

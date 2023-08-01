@@ -5,6 +5,8 @@ related-formats-title: "Andra Format"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Källa"
 other-links-title: "Övriga länkar"
+code-links-title: "Kodlänkar"
+launch-dev-container-title: "Starta Dev Container"
 
 article-notebook-label: "Artikelanteckningsbok"
 notebook-preview-download: "Ladda ner anteckningsbok"

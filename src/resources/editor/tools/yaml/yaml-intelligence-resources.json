@@ -2627,6 +2627,17 @@
               ]
             },
             "description": "A list of other links to appear below the TOC."
+          },
+          "code-links": {
+            "schema": {
+              "ref": "other-links"
+            },
+            "tags": {
+              "formats": [
+                "$html-doc"
+              ]
+            },
+            "description": "A list of codes links to appear with this document."
           }
         }
       }
@@ -14710,12 +14721,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 161289,
+    "_internalId": 161294,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 161281,
+        "_internalId": 161286,
         "type": "enum",
         "enum": [
           "png",
@@ -14731,7 +14742,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 161288,
+        "_internalId": 161293,
         "type": "anyOf",
         "anyOf": [
           {

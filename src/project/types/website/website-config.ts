@@ -7,6 +7,7 @@
 import * as ld from "../../../core/lodash.ts";
 
 import {
+  kCodeLinks,
   kDescription,
   kMetadataFormat,
   kOtherLinks,
@@ -69,6 +70,7 @@ type WebsiteConfigKey =
   | "search"
   | "comments"
   | "other-links"
+  | "code-links"
   | "reader-mode";
 
 export function websiteConfigBoolean(
@@ -400,6 +402,11 @@ export function websiteProjectConfig(
     (config[kOtherLinks] === undefined)
   ) {
     config[kOtherLinks] = websiteConfigArray(kOtherLinks, config);
+  }
+
+  // move `code links` too
+  if (websiteConfigArray(kCodeLinks, config) && (config[kCodeLinks])) {
+    config[kCodeLinks] = websiteConfigArray(kCodeLinks, config);
   }
 
   return Promise.resolve(config);

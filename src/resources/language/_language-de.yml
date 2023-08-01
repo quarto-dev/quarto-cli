@@ -5,6 +5,8 @@ related-formats-title: "Andere Formate"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Quelle"
 other-links-title: "Weitere Links"
+code-links-title: "Code-Links"
+launch-dev-container-title: "Dev Container starten"
 
 article-notebook-label: "Artikel-Notizbuch"
 notebook-preview-download: "Notizbuch herunterladen"

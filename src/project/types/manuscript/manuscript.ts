@@ -24,12 +24,14 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kArticleNotebookLabel,
   kClearHiddenClasses,
+  kCodeLinks,
   kEcho,
   kExtensionName,
   kFormatLinks,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
   kLanguageDefaults,
+  kLaunchDevContainerTitle,
   kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreserveCells,
@@ -96,6 +98,7 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
+import { hasDevContainer } from "../../../core/devcontainer.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -489,7 +492,29 @@ export const manuscriptProjectType: ProjectType = {
             text: "GitHub Repo",
             href: repoUrl,
           };
-          extras.metadata[kOtherLinks] = [repoLink];
+          const codeLinks = [repoLink];
+
+          // See if there is a devcontainer defined
+          //
+          if (hasDevContainer(context.dir)) {
+            // https://github.com/Notebooks-Now/submission-quarto-full/
+            // transforms to:
+            // https://github.com/codespaces/new/Notebooks-Now/submission-quarto-full
+
+            const containerUrl = repoUrl.replace(
+              /(https?\:\/\/github.com)\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\//,
+              "$1/codespaces/new/$2/$3",
+            );
+
+            const containerLink: OtherLink = {
+              icon: "github",
+              text: format.language[kLaunchDevContainerTitle] ||
+                "Launch Dev Container",
+              href: containerUrl,
+            };
+            codeLinks.push(containerLink);
+          }
+          extras.metadata[kCodeLinks] = codeLinks;
         }
       }
 

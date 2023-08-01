@@ -5,6 +5,8 @@ related-formats-title: "Andre formater"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Kilde"
 other-links-title: "Andre lenker"
+code-links-title: "Kodelenker"
+launch-dev-container-title: "Start Dev Container"
 
 article-notebook-label: "Artikkelskrivebok"
 notebook-preview-download: "Last ned skrivebok"

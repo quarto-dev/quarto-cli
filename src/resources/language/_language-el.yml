@@ -5,6 +5,8 @@ related-formats-title: "Άλλες μορφές"
 related-notebooks-title: "Σημειωματάρια"
 source-notebooks-prefix: "Πηγή"
 other-links-title: "Άλλοι Σύνδεσμοι"
+code-links-title: "Σύνδεσμοι κώδικα"
+launch-dev-container-title: "Εκκίνηση Dev Container"
 
 article-notebook-label: "Σημειωματάριο Άρθρου"
 notebook-preview-download: "Λήψη Σημειωματαρίου"

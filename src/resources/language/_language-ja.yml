@@ -5,6 +5,8 @@ related-formats-title: "その他のフォーマット"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "ソース"
 other-links-title: "その他のリンク"
+code-links-title: "コードリンクス"
+launch-dev-container-title: "Devコンテナを起動する"
 
 article-notebook-label: "記事ノート"
 notebook-preview-download: "ノートブックをダウンロード"

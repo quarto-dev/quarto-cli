@@ -5,6 +5,8 @@ related-formats-title: "Format Lain"
 related-notebooks-title: "Notes"
 source-notebooks-prefix: "Sumber"
 other-links-title: "Tautan Lain"
+code-links-title: "Tautan Kode"
+launch-dev-container-title: "Mulai Dev Container"
 
 article-notebook-label: "Buku Catatan Artikel"
 notebook-preview-download: "Unduh Buku Catatan"

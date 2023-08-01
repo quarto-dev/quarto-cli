@@ -9656,6 +9656,17 @@ try {
                     ]
                   },
                   description: "A list of other links to appear below the TOC."
+                },
+                "code-links": {
+                  schema: {
+                    ref: "other-links"
+                  },
+                  tags: {
+                    formats: [
+                      "$html-doc"
+                    ]
+                  },
+                  description: "A list of codes links to appear with this document."
                 }
               }
             }
@@ -21739,12 +21750,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 161289,
+          _internalId: 161294,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 161281,
+              _internalId: 161286,
               type: "enum",
               enum: [
                 "png",
@@ -21760,7 +21771,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 161288,
+              _internalId: 161293,
               type: "anyOf",
               anyOf: [
                 {
@@ -31009,10 +31020,10 @@ ${tidyverseInfo(
     };
     const yamlRegEx = /^---\s*$/;
     const startCodeCellRegEx = new RegExp(
-      "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+      "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
     );
     const startCodeRegEx = /^```/;
-    const endCodeRegEx = /^\s*```+\s*$/;
+    const endCodeRegEx = /^\s*(```+)\s*$/;
     let language = "";
     let directiveParams = void 0;
     let cellStartLine = 0;
@@ -31122,11 +31133,12 @@ ${tidyverseInfo(
         await flushLineBuffer("directive", i);
       } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
         const m = line.substring.match(startCodeCellRegEx);
-        language = m[1];
+        language = m[2];
         await flushLineBuffer("markdown", i);
         inCodeCell = true;
+        inCode = m[1].length;
         codeStartRange = line;
-      } else if (endCodeRegEx.test(line.substring) && (inCodeCell || inCode && tickCount(line.substring) === inCode)) {
+      } else if (endCodeRegEx.test(line.substring) && (inCode && line.substring.match(endCodeRegEx)[1].length === inCode)) {
         if (inCodeCell) {
           codeEndRange = line;
           inCodeCell = false;
