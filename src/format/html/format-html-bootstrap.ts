@@ -498,7 +498,6 @@ function processOtherLinks(
     clz: string,
     title: string,
   ) => {
-    console.log({ otherLinks });
     const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherLinks);
     if (otherLinks.length > 0 && dlLinkTarget) {
       const containerEl = doc.createElement("div");

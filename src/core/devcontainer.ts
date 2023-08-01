@@ -43,13 +43,4 @@ export function hasDevContainer(dir: string) {
   }
 
   return false;
-
-  for (
-    const _walk of walkSync(dir, {
-      match: kDevContainerGlobs.map((glob) => globToRegExp(glob)),
-    })
-  ) {
-    return true;
-  }
-  return false;
 }
