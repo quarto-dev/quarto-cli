@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./news/changelog-${{steps.config.outputs.version}}.md
+          path: ./News/changelog.md
 
   make-source-tarball:
     runs-on: ubuntu-latest
@@ -499,7 +499,7 @@ jobs:
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
             ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-            ./News/changelog-${{needs.configure.outputs.version_base}}.md
+            ./News/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
 
   docker-push:
