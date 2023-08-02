@@ -56,6 +56,7 @@ import {
   kFieldSubtitle,
   kFieldTitle,
   kFieldTypes,
+  kFieldWordCount,
   kFilterUi,
   kGridColumns,
   kImageAlign,
@@ -94,6 +95,7 @@ import {
   kListingPageFieldReadingTime,
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
+  kListingPageFieldWordCount,
 } from "../../../../config/constants.ts";
 import { isAbsoluteRef } from "../../../../core/http.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
@@ -149,6 +151,7 @@ const defaultFieldDisplayNames = (format: Format) => {
     [kFieldFileModified]: format.language[kListingPageFieldFileModified] || "",
     [kFieldSubtitle]: format.language[kListingPageFieldSubtitle] || "",
     [kFieldReadingTime]: format.language[kListingPageFieldReadingTime] || "",
+    [kFieldWordCount]: format.language[kListingPageFieldWordCount] || "",
     [kFieldCategories]: format.language[kListingPageFieldCategories] || "",
   };
 };
@@ -158,6 +161,7 @@ const kDefaultFieldTypes: Record<string, ColumnType> = {
   [kFieldFileModified]: "date",
   [kFieldDateModified]: "date",
   [kFieldReadingTime]: "minutes",
+  [kFieldWordCount]: "number",
 };
 const kDefaultFieldLinks = [kFieldTitle, kFieldFileName];
 
@@ -1059,9 +1063,15 @@ async function listItemFromFile(
       )
       : [];
 
-    const readingtime = target?.markdown
+    const readingContext = target?.markdown
       ? estimateReadingTimeMinutes(target.markdown.markdown)
       : undefined;
+    let readingtime = undefined;
+    let wordcount = undefined;
+    if (readingContext) {
+      readingtime = readingContext.readingTime;
+      wordcount = readingContext.wordCount;
+    }
 
     const categories = documentMeta?.categories
       ? Array.isArray(documentMeta?.categories)
@@ -1084,6 +1094,7 @@ async function listItemFromFile(
       [kFieldFileName]: filename,
       [kFieldFileModified]: filemodified,
       [kFieldReadingTime]: readingtime,
+      [kFieldWordCount]: wordcount,
     };
     return {
       item,

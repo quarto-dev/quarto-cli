@@ -125,6 +125,7 @@ import {
   kListingPageFieldReadingTime,
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
+  kListingPageFieldWordCount,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -133,6 +134,7 @@ import {
   kListingPageOrderByDefault,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
   kListings,
   kManuscriptMecaBundle,
   kMarkdownHeadings,
@@ -656,8 +658,10 @@ export interface FormatLanguage {
   [kListingPageFieldFileModified]?: string;
   [kListingPageFieldSubtitle]?: string;
   [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldWordCount]?: string;
   [kListingPageFieldCategories]?: string;
   [kListingPageMinutesCompact]?: string;
+  [kListingPageWords]?: string;
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
   [kNotebookPreviewDownload]?: string;

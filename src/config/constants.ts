@@ -318,8 +318,10 @@ export const kListingPageFieldFileName = "listing-page-field-filename";
 export const kListingPageFieldFileModified = "listing-page-field-filemodified";
 export const kListingPageFieldSubtitle = "listing-page-field-subtitle";
 export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
+export const kListingPageFieldWordCount = "listing-page-field-wordcount";
 export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
+export const kListingPageWords = "listing-page-words";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
@@ -430,8 +432,10 @@ export const kLanguageDefaultsKeys = [
   kListingPageFieldFileModified,
   kListingPageFieldSubtitle,
   kListingPageFieldReadingTime,
+  kListingPageFieldWordCount,
   kListingPageFieldCategories,
   kListingPageMinutesCompact,
+  kListingPageWords,
   kListingPageCategoryAll,
   kListingPageNoMatches,
   kTitleBlockAuthorSingle,
