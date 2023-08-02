@@ -78,13 +78,23 @@
         child.style.marginTop = "1em";
       }
 
-      // Hide the back button if there is no history. This isn't perfect
-      // but is better than frequently showing the back to article link
-      // when the back call is simply not going to work
-      if (history.length < 2) {
-        const backEl = window.document.querySelector(".quarto-back-link");
-        backEl.innerHTML = "";
-        backEl.setAttribute("onclick", "return false;");
+      // Use the article root if the `back` call doesn't work. This isn't perfect
+      // but should typically work
+      window.quartoBackToArticle = () => {
+        var currentUrl = window.location.href;
+        window.history.back();
+        setTimeout(() => {
+            // if location was not changed in 100 ms, then there is no history back
+            if(currentUrl === window.location.href){              
+$if(nbMeta.backHref)$
+                // redirect to site root
+                window.location.href = "$nbMeta.backHref$";
+$else$
+                // redirect to site root
+                window.location.href = '/';
+$endif$
+            }
+        }, 100);
       }
 
       const headroom = new window.Headroom(header, {
@@ -107,7 +117,8 @@
 
   <body>
     <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
-      $if(nbMeta.backHref)$<a href="$nbMeta.backHref$" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>$endif$
+      
+      <a onclick="window.quartoBackToArticle(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>
       <h6><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
 
       $if(nbMeta.downloadHref)$
