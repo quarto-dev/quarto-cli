@@ -43,6 +43,11 @@ import { withSpinner } from "../../../core/console.ts";
         }
         */
 
+// Welcome to codespaces message is control vai text file
+// echo "Copy first-run-notice.txt to Codespace"
+// sudo cp --force .devcontainer/first-run-notice.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt
+// https://github.com/orgs/community/discussions/9644
+
 const kDefaultContainerTitle = "Default Container";
 
 interface DevContainer {
@@ -190,6 +195,11 @@ export const useDevContainerCommand = new Command()
       const postStartCommand = await postStart(containerCtx);
       if (postStartCommand) {
         devcontainer.postStartCommand = postStartCommand;
+      }
+
+      const customizations = resolveCustomizations(containerCtx);
+      if (customizations) {
+        devcontainer.customizations = customizations;
       }
 
       const portInfo = await portAttributes(containerCtx);
@@ -350,8 +360,8 @@ const resolveFeatures = (ctx: ContainerContext) => {
     features["ghcr.io/rocker-org/devcontainer-features/r-rig:1"] = {
       vscodeRSupport: ctx.codeEnvironment === "vscode",
       installJupyterlab: ctx.engines.includes("jupyter"),
-      installREnv: true,
-      installRMarkdown: true,
+      installREnv: false,
+      installRMarkdown: false,
     };
   } else if (ctx.engines.includes("jupyter")) {
     features["ghcr.io/devcontainers/features/python:1"] = {
@@ -506,6 +516,16 @@ const postStart = async (_ctx: ContainerContext) => {
   return undefined;
 };
 
+const resolveCustomizations = (ctx: ContainerContext) => {
+  if (ctx.engines.includes("knitr")) {
+    return {
+      vscode: {
+        extensions: ["REditorSupport.r", "sumneko.lua"],
+      },
+    };
+  }
+};
+
 const portAttributes = async (ctx: ContainerContext) => {
   return kPortAttr[ctx.codeEnvironment];
 };
@@ -517,7 +537,11 @@ interface EnvironmentOptions {
 
 const environmentCommands: Record<string, EnvironmentOptions> = {
   // TODO: this needs to happen in correct directory post setup
-  "renv.lock": { restore: `Rscript -e "renv::restore();"` },
+  // options(repos = c(REPO_NAME = "https://packagemanager.posit.co/cran/__linux__/jammy/latest"))
+  "renv.lock": {
+    restore:
+      `Rscript -e 'install.packages("languageserver");' -e '.libPaths(c("/home/rstudio/R/x86_64-pc-linux-gnu-library/4.3")); install.packages("renv"); renv::restore();'`,
+  },
   "requirements.txt": {
     restore: `python3 -m pip3 install -r requirements.txt`,
   },
