@@ -432,6 +432,10 @@ jobs:
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
+        
+      - name: Rename news
+        run: |
+          mv ./News/changelog-${{needs.configure.outputs.version}}.md ./News/changelog.md
 
       - name: Generate Checksums
         id: generate_checksum
