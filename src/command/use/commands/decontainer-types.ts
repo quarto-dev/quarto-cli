@@ -11,6 +11,9 @@ export interface DevContainer {
     vscode?: {
       extensions?: string[];
     };
+    codespaces?: {
+      openFiles?: string[];
+    };
   };
   features?: Record<string, Record<string, unknown>>;
   postCreateCommand?: string;

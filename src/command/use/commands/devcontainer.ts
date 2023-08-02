@@ -253,7 +253,8 @@ const toDevContainer = async (
   }
 
   if (containerCtx.openFiles.length > 0) {
-    devcontainer.codespaces = {
+    devcontainer.customizations = devcontainer.customizations || {};
+    devcontainer.customizations.codespaces = {
       openFiles: containerCtx.openFiles,
     };
   }
@@ -431,7 +432,7 @@ const resolveCustomizations = (ctx: ContainerContext) => {
   if (ctx.engines.includes("knitr")) {
     return {
       vscode: {
-        extensions: ["REditorSupport.r", "sumneko.lua"],
+        extensions: ["sumneko.lua"],
       },
     };
   }
