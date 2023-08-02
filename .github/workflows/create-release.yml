@@ -436,7 +436,7 @@ jobs:
       - name: Rename news
         run: |
           ls -la ./News
-          mv ./News/changelog-${{needs.configure.outputs.version}}.md ./News/changelog.md
+          mv ./News/changelog-${{needs.configure.outputs.version_base}}.md ./News/changelog.md
 
       - name: Generate Checksums
         id: generate_checksum
