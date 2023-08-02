@@ -68,6 +68,7 @@ export interface NotebookMetadata {
   title: string;
   filename: string;
   downloadHref?: string;
+  backHref?: string;
   downloadFile?: string;
 }
 

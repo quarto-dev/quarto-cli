@@ -161,6 +161,10 @@ export const notebookPreviewer = (
 
           // Render the HTML preview, if needed
           if (!notebook || !notebook[kHtmlPreview]) {
+            const backHref = nbOptions && nbOptions.back && output
+              ? relative(dirname(nbAbsPath), output)
+              : undefined;
+
             let downloadHref = basename(nbAbsPath);
             let downloadFileName = basename(nbAbsPath);
             // If this is an ipynb and there is a rendered version of it
@@ -184,6 +188,7 @@ export const notebookPreviewer = (
               {
                 title: resolvedTitle,
                 filename: basename(nbAbsPath),
+                backHref,
                 downloadHref,
                 downloadFile: downloadFileName,
               },
