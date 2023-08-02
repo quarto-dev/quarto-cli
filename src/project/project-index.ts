@@ -19,6 +19,7 @@ import {
   normalizePath,
   pathWithForwardSlashes,
   removeIfExists,
+  safeExistsSync,
 } from "../core/path.ts";
 import { kTitle } from "../config/constants.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
@@ -50,7 +51,7 @@ export async function inputTargetIndex(
   const inputFile = join(project.dir, input);
 
   // return undefined if the file doesn't exist
-  if (!existsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
+  if (!safeExistsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
     return Promise.resolve(undefined);
   }
 
