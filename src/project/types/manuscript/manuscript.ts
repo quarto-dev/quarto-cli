@@ -503,7 +503,7 @@ export const manuscriptProjectType: ProjectType = {
 
             const containerUrl = repoUrl.replace(
               /(https?\:\/\/github.com)\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\//,
-              "$1/codespaces/new/$2/$3",
+              "$1/codespaces/new/$2/$3?resume=1",
             );
 
             const containerLink: OtherLink = {
