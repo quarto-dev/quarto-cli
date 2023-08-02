@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./news/changelog.md
+          path: ./news/changelog-${{steps.config.outputs.version}}.md
 
   make-source-tarball:
     runs-on: ubuntu-latest
