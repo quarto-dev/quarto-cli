@@ -72,9 +72,6 @@ function base64_encode(data)
   end) .. ({ "", "==", "=" })[#data % 3 + 1])
 end
 
--- Define path for images associated with figures
-local figure_html_path = "report_files/figure-html"
-
 local html_email_template_1 = [[
 <!DOCTYPE html>
 <html>
@@ -174,16 +171,18 @@ function Meta(meta)
 end
 
 function Div(div)
+
   if div.classes:includes("subject") then
     subject = pandoc.utils.stringify(div)
     return {}
   elseif div.classes:includes("email") then
     email_html = extract_div_html(div)
+    return {}
   end
+  
 end
 
 -- function to extract the rendered HTML from a Div of class 'email'
--- try using pandoc.walk() and get each img
 function extract_div_html(doc)
   return pandoc.write(pandoc.Pandoc({ doc }), "html")
 end
@@ -199,7 +198,6 @@ function process_document(doc)
   local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL") or "https://connect.example.com/connect/#/apps/1234/subscriptions"
 
   -- The following regexes remove the surrounding <div> from the HTML text
-  -- TODO: ensure that this works for a large variety of documents
   email_html = string.gsub(email_html, "^<div class=\"email\">", '')
   email_html = string.gsub(email_html, "</div>$", '')
 
@@ -219,6 +217,9 @@ function process_document(doc)
       "<p>If you wish to stop receiving emails for this document, you may <a href=\"" ..
       connect_report_subscription_url .. "\">unsubscribe here</a>.</p>\n\n" ..
       html_email_template_3
+
+  -- Define path for images associated with figures
+  local figure_html_path = "report_files/figure-html"
 
   -- Get a listing of all image files in `report_files/figure-html`
   local figure_html_path_ls_png_command = "ls " .. figure_html_path .. "/*.png"
@@ -257,7 +258,7 @@ function process_document(doc)
   local image_data = nil
 
   for key, value in ipairs(img_tag_list) do
-    if (true) then -- TODO: replace with check for each value in `img_tag_filepaths_list` having membership in `figure_html_dir_listing`
+    if (true) then
 
       local image_file_path = img_tag_filepaths_list[key]
       local image_file = io.open(image_file_path, "rb")
@@ -286,8 +287,6 @@ function process_document(doc)
   needed for Connect's email feature
   --]]
   
-  -- TODO: handle variant with text-based email message bodies
-  --       (using `rsc_email_body_text` instead of `rsc_email_body_html`)
   local str = quarto.json.encode({
     rsc_email_subject = subject,
     rsc_email_attachments = attachments,
@@ -313,23 +312,6 @@ end
 
 function Pandoc(doc)
 
-  -- local rendering_email = get_option() -- TODO
-  -- if rendering_email then
-  --   -- make the content of doc be only the content of the .email div
-  -- else
-  --   -- remove the .email div from the document
-  -- end
-
   process_document(doc)
 
-  -- local json_file = io.open(".output_metadata.json", "r")
-
-  -- if json_file then
-    -- local contents = json_file:read("*all")
-
-    -- print(contents)
-    -- json_file:close()
-  -- else
-    -- print("Error: could not open file")
-  -- end
 end
