@@ -146,19 +146,15 @@ export const useDevContainerCommand = new Command()
       // Where to write the dev conatiner json
       const outputPath = devcontainerPath();
 
-      // Print a summary of devconatiner
-      const proceed = await confirmChanges(devcontainer);
-      if (proceed) {
-        // Validate that the path doesn't exist
-        if (!existsSync(outputPath) || await confirmOverwrite(outputPath)) {
-          ensureDirSync(dirname(outputPath));
+      // Validate that the path doesn't exist
+      if (!existsSync(outputPath) || await confirmOverwrite(outputPath)) {
+        ensureDirSync(dirname(outputPath));
 
-          // Write the devcontainer JSON
-          const devcontainerJson = JSON.stringify(devcontainer, undefined, 2);
-          Deno.writeTextFileSync(outputPath, devcontainerJson);
+        // Write the devcontainer JSON
+        const devcontainerJson = JSON.stringify(devcontainer, undefined, 2);
+        Deno.writeTextFileSync(outputPath, devcontainerJson);
 
-          info("\nDevelopment container successfully created.");
-        }
+        info("\nDevelopment container successfully created.");
       }
     } finally {
       temp.cleanup();
@@ -339,27 +335,6 @@ const validateContext = (ctx: ContainerContext) => {
   }
 };
 
-const confirmChanges = async (_devContainer: DevContainer) => {
-  return true;
-
-  /*
-  const rows: string[][] = [];
-  const indent = "  ";
-  rows.push([indent, "Name:", devContainer.name]);
-  rows.push([indent, "Docker Image:", devContainer.image]);
-  if (devContainer.postCreateCommand) {
-    rows.push([indent, "Dependencies:", devContainer.postCreateCommand]);
-  }
-
-  const table = new Table(...rows);
-  info(
-    `\nA development container with the following options will be created:\n\n${table.toString()}\n`,
-  );
-  const question = "Would you like to continue";
-  return await Confirm.prompt({ message: question, default: true });
-  */
-};
-
 const confirmOverwrite = async (path: string) => {
   info(
     `\nA development container at ${path} already exists.`,
@@ -429,13 +404,11 @@ const postStart = async (_ctx: ContainerContext) => {
 };
 
 const resolveCustomizations = (ctx: ContainerContext) => {
-  if (ctx.engines.includes("knitr")) {
-    return {
-      vscode: {
-        extensions: ["sumneko.lua"],
-      },
-    };
-  }
+  return {
+    vscode: {
+      extensions: ["sumneko.lua"],
+    },
+  };
 };
 
 const portAttributes = async (ctx: ContainerContext) => {
