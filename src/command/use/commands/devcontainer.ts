@@ -404,9 +404,23 @@ const postStart = async (_ctx: ContainerContext) => {
 };
 
 const resolveCustomizations = (ctx: ContainerContext) => {
+  // Install the LUA extension
+  const extensions = ["sumneko.lua"];
+
+  if (ctx.engines.includes("jupyter")) {
+    // Install vscode jupyterlab extensions
+    extensions.push("ms-toolsai.jupyter");
+    extensions.push("ms-python.vscode-pylance");
+    extensions.push("ms-python.python");
+    extensions.push("ms-toolsai.vscode-jupyter-cell-tags");
+    extensions.push("ms-toolsai.jupyter-keymap");
+    extensions.push("ms-toolsai.jupyter-renderers");
+    extensions.push("ms-toolsai.vscode-jupyter-slideshow");
+  }
+
   return {
     vscode: {
-      extensions: ["sumneko.lua"],
+      extensions,
     },
   };
 };
