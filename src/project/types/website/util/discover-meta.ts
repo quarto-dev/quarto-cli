@@ -106,7 +106,6 @@ export function estimateReadingTimeMinutes(
 ): { wordCount: number; readingTime: number } | undefined {
   if (markdown) {
     const wordCount = markdown.split(" ").length;
-    console.log({ markdown, wordCount });
     return { wordCount, readingTime: Math.ceil(wordCount / kWpm) };
   }
   return undefined;
