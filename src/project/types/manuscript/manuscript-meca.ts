@@ -23,7 +23,7 @@ import {
   relative,
   SEP,
 } from "path/mod.ts";
-import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, moveSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
@@ -243,7 +243,7 @@ export const createMecaBundle = async (
       const targetDir = dirname(target);
       ensureDirSync(targetDir);
       if (move) {
-        Deno.renameSync(input, target);
+        moveSync(input, target);
       } else {
         copySync(input, target, { overwrite: true });
       }
