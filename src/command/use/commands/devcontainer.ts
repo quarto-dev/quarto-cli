@@ -441,7 +441,7 @@ const environmentCommands: Record<string, EnvironmentOptions> = {
     restore: `Rscript -e 'renv::restore();'`,
   },
   "requirements.txt": {
-    restore: `python3 -m pip3 install -r requirements.txt`,
+    restore: `python3 -m pip install -r requirements.txt`,
   },
   "environment.yml": {
     restore: "conda env create -f environment.yml",
