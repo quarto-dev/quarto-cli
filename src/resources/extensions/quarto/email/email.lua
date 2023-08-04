@@ -18,43 +18,11 @@ Extension for generating email components needed for Posit Connect
 local lpeg = require("lpeg")
 
 -- Define lpeg-based function to effectively replace string.gsub()
+-- NOTE: This is no longer being used
 function gsub_lpeg(string, pattern, replacement)
   pattern = lpeg.P(pattern)
   pattern = lpeg.Cs((pattern / replacement + 1) ^ 0)
   return lpeg.match(pattern, string)
-end
-
--- Define function to nicely print a table
-function tbl_print(tbl, indent)
-  if not indent then indent = 0 end
-  local to_print = string.rep(" ", indent) .. "{\r\n"
-  indent = indent + 2
-  for k, v in pairs(tbl) do
-    to_print = to_print .. string.rep(" ", indent)
-    if (type(k) == "number") then
-      to_print = to_print .. "[" .. k .. "] = "
-    elseif (type(k) == "string") then
-      to_print = to_print .. k .. "= "
-    end
-    if (type(v) == "number") then
-      to_print = to_print .. v .. ",\r\n"
-    elseif (type(v) == "string") then
-      to_print = to_print .. "\"" .. v .. "\",\r\n"
-    elseif (type(v) == "table") then
-      to_print = to_print .. tbl_print(v, indent + 2) .. ",\r\n"
-    else
-      to_print = to_print .. "\"" .. tostring(v) .. "\",\r\n"
-    end
-  end
-  to_print = to_print .. string.rep(" ", indent - 2) .. "}"
-  return to_print
-end
-
--- Define function to print a short version of a string
-function print_short_str(string)
-  local short_str_1 = string.sub(string, 1, 100)
-  local short_str_2 = string.sub(string, -99)
-  print(short_str_1 .. " ... " .. short_str_2)
 end
 
 -- Define function for Base64-encoding of an image file
@@ -153,8 +121,10 @@ local subject = nil
 local attachments = nil
 local email_html = nil
 local email_images = {}
+local image_tbl = {}
 
 function Meta(meta)
+
   attachments = {}
 
   local meta_attachments = meta.attachments
@@ -164,10 +134,6 @@ function Meta(meta)
       table.insert(attachments, pandoc.utils.stringify(v))
     end
   end
-
-  print(#attachments)
-
-  meta["rsc-report-rendering-url"] = "..."
 end
 
 function Div(div)
@@ -176,10 +142,27 @@ function Div(div)
     subject = pandoc.utils.stringify(div)
     return {}
   elseif div.classes:includes("email") then
-    email_html = extract_div_html(div)
+
+    local count = 1
+
+    local renderDiv = quarto._quarto.ast.walk(div, {Image = function(imgEl) 
+
+      local cid = "img" .. tostring(count) .. ".png"
+
+      image_tbl[cid] = imgEl.src
+
+      imgEl.src = "cid:" .. cid
+
+      count = count + 1
+
+      return imgEl
+    end})
+
+    email_html = extract_div_html(renderDiv)
+
     return {}
   end
-  
+
 end
 
 -- function to extract the rendered HTML from a Div of class 'email'
@@ -193,6 +176,7 @@ function process_document(doc)
   local connect_date_time = os.date("%Y-%m-%d %H:%M:%S")
 
   -- Use Connect environment variables to get URLs for the email footer section
+  -- TODO: these don't work for some reason (we always get the fallback value)
   local connect_report_rendering_url = os.getenv("RSC_REPORT_RENDERING_URL") or "https://connect.example.com/content/1234/_rev5678"
   local connect_report_url = os.getenv("RSC_REPORT_URL") or "https://connect.example.com/content/1234/"
   local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL") or "https://connect.example.com/connect/#/apps/1234/subscriptions"
@@ -218,31 +202,6 @@ function process_document(doc)
       connect_report_subscription_url .. "\">unsubscribe here</a>.</p>\n\n" ..
       html_email_template_3
 
-  -- Define path for images associated with figures
-  local figure_html_path = "report_files/figure-html"
-
-  -- Get a listing of all image files in `report_files/figure-html`
-  local figure_html_path_ls_png_command = "ls " .. figure_html_path .. "/*.png"
-  local figure_html_path_handle = io.popen(figure_html_path_ls_png_command)
-  local figure_html_dir_listing = nil
-
-  if type(figure_html_path_handle) == "userdata" then
-    figure_html_dir_listing = figure_html_path_handle:read("*a")
-    figure_html_path_handle:close()
-  end
-
-  -- Create a table that contains all found image tags in the `html_email_body` HTML string
-  local img_tag_list = {}
-  for img_tag in html_email_body:gmatch("%<img src=.->") do
-    table.insert(img_tag_list, img_tag)
-  end
-
-  -- Create a new table that finds paths to image resources on disk
-  local img_tag_filepaths_list = {}
-  for key, _ in ipairs(img_tag_list) do
-    img_tag_filepaths_list[key] = img_tag_list[key]:match('src="(.-)"')
-  end
-
   --[[
   For each of the <img> tags we need to do a few things in the order they were found:
     1. determine if the path resolved in `img_tag_filepaths_list` matches an actual
@@ -257,11 +216,10 @@ function process_document(doc)
 
   local image_data = nil
 
-  for key, value in ipairs(img_tag_list) do
+  for cid, img in pairs(image_tbl) do
     if (true) then
 
-      local image_file_path = img_tag_filepaths_list[key]
-      local image_file = io.open(image_file_path, "rb")
+      local image_file = io.open(img, "rb")
 
       if type(image_file) == "userdata" then
         image_data = image_file:read("*all")
@@ -270,15 +228,9 @@ function process_document(doc)
 
       local encoded_data = base64_encode(image_data)
       
-      -- Prepare identifier for image and create an image tag replacement for within `html_email_body`
-      local tbl_named_key_image_data = "img" .. key .. ".png"
-      local cid_img_tag_replacement = "<img src=\"cid:" .. tbl_named_key_image_data ..  "\"/>"
-
       -- Insert `encoded_data` into `email_images` table with prepared key
-      email_images[tbl_named_key_image_data] = encoded_data
+      email_images[cid] = encoded_data
 
-      -- Replace tag with cid replacement version
-      html_email_body = gsub_lpeg(html_email_body, value, cid_img_tag_replacement)
     end
   end
 
