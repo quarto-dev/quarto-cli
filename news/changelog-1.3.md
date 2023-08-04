@@ -1,12 +1,13 @@
 ## Fixed In This Release
 
+- Fix incorrect preview behavior when reloading edited pages from listings (e.g. blog posts). Fixes ([#6026](https://github.com/quarto-dev/quarto-cli/issues/6026)) 
+
+## Fixed In Previous Releases
+
 - Fix issue that prevented Quarto from properly reporting crossreferenceable figures to IDEs (note that Quarto 1.3.427 contained an attempted fix for this issue which did not work properly. This release contains a functional fix.)
 - Fix incorrect behavior when previewing `--to all`
 - Fix missing handling of `rel="..."` values in the navbar's tools template ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756))
 - Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port. ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882))
-
-## Fixed In Previous Releases
-
 - Fix error when publishing a document in a subfolder ([quarto-dev/quarto#183](https://github.com/quarto-dev/quarto/issues/183)).
 - Fix error when publishing a document in a subfolder ([#5330](https://github.com/quarto-dev/quarto-cli/issues/5330)).
 - Fix duplicate bibliography when users enable `citeproc` directly. ([#5588](https://github.com/quarto-dev/quarto-cli/issues/5588)).
