@@ -7,6 +7,7 @@ source-notebooks-prefix: "Lähde"
 other-links-title: "Muut linkit"
 code-links-title: "Koodilinkit"
 launch-dev-container-title: "Käynnistä Dev Container"
+launch-binder-title: "Käynnistä Binder"
 
 article-notebook-label: "Artikkelin muistiinpanovihko"
 notebook-preview-download: "Lataa muistiinpanovihko"

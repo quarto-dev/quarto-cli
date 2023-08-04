@@ -7,6 +7,7 @@ source-notebooks-prefix: "Kaynak"
 other-links-title: "Diğer Bağlantılar"
 code-links-title: "Kod Bağlantıları"
 launch-dev-container-title: "Dev Container Başlat"
+launch-binder-title: "Binder Başlat"
 
 article-notebook-label: "Makale Defteri"
 notebook-preview-download: "Defteri İndir"

@@ -31,13 +31,13 @@ import {
   kIpynbProduceSourceNotebook,
   kKeepHidden,
   kLanguageDefaults,
+  kLaunchBinderTitle,
   kLaunchDevContainerTitle,
   kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreserveCells,
   kNotebookPreviewOptions,
   kNotebooks,
-  kOtherLinks,
   kOutputFile,
   kQuartoInternal,
   kRemoveHidden,
@@ -98,7 +98,12 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import { hasDevContainer } from "../../../core/container.ts";
+import {
+  binderUrl,
+  codeSpacesUrl,
+  hasBinderCompatibleEnvironment,
+  hasDevContainer,
+} from "../../../core/container.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -496,25 +501,31 @@ export const manuscriptProjectType: ProjectType = {
 
           // See if there is a devcontainer defined
           //
-          if (hasDevContainer(context.dir)) {
-            // https://github.com/Notebooks-Now/submission-quarto-full/
-            // transforms to:
-            // https://github.com/codespaces/new/Notebooks-Now/submission-quarto-full
-
-            const containerUrl = repoUrl.replace(
-              /(https?\:\/\/github.com)\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\//,
-              "$1/codespaces/new/$2/$3?resume=1",
-            );
-
-            const containerLink: OtherLink = {
-              icon: "github",
-              text: format.language[kLaunchDevContainerTitle] ||
-                "Launch Dev Container",
-              href: containerUrl,
-            };
-            codeLinks.push(containerLink);
+          if (ghContext.organization && ghContext.repository) {
+            if (hasDevContainer(context.dir)) {
+              const containerUrl = codeSpacesUrl(repoUrl);
+              const containerLink: OtherLink = {
+                icon: "github",
+                text: format.language[kLaunchDevContainerTitle] ||
+                  "Launch Dev Container",
+                href: containerUrl,
+              };
+              codeLinks.push(containerLink);
+            } else if (hasBinderCompatibleEnvironment(context.dir)) {
+              const containerUrl = binderUrl(
+                ghContext.organization,
+                ghContext.repository,
+              );
+              const containerLink: OtherLink = {
+                icon: "journals",
+                text: format.language[kLaunchBinderTitle] ||
+                  "Launch Binder",
+                href: containerUrl,
+              };
+              codeLinks.push(containerLink);
+            }
+            extras.metadata[kCodeLinks] = codeLinks;
           }
-          extras.metadata[kCodeLinks] = codeLinks;
         }
       }
 

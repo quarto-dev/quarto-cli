@@ -7,6 +7,7 @@ source-notebooks-prefix: "Font"
 other-links-title: "Altres enllaços"
 code-links-title: "Enllaços de codi"
 launch-dev-container-title: "Llança Dev Container"
+launch-binder-title: "Llança Binder"
 
 article-notebook-label: "Bloc de notes de l'article"
 notebook-preview-download: "Descarrega el bloc de notes"

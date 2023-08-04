@@ -7,6 +7,7 @@ source-notebooks-prefix: "Källa"
 other-links-title: "Övriga länkar"
 code-links-title: "Kodlänkar"
 launch-dev-container-title: "Starta Dev Container"
+launch-binder-title: "Starta Binder"
 
 article-notebook-label: "Artikelanteckningsbok"
 notebook-preview-download: "Ladda ner anteckningsbok"

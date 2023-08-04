@@ -7,6 +7,7 @@ source-notebooks-prefix: "Fonte"
 other-links-title: "Altri Link"
 code-links-title: "Collegamenti al Codice"
 launch-dev-container-title: "Avvia Dev Container"
+launch-binder-title: "Avvia Binder"
 
 article-notebook-label: "Quaderno dell'Articolo"
 notebook-preview-download: "Scarica il Quaderno"

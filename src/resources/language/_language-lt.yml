@@ -7,6 +7,7 @@ source-notebooks-prefix: "Pirminis dokumentas"
 other-links-title: "Kiti nuorodos"
 code-links-title: "Kodo nuorodos"
 launch-dev-container-title: "Paleisti Dev Container"
+launch-binder-title: "Paleisti Binder"
 
 article-notebook-label: "Straipsnio užrašų knygelė"
 notebook-preview-download: "Atsisiųsti užrašų knygelę"

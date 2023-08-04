@@ -7,6 +7,7 @@ source-notebooks-prefix: "Kilde"
 other-links-title: "Andre links"
 code-links-title: "Kodelinks"
 launch-dev-container-title: "Start Dev Container"
+launch-binder-title: "Start Binder"
 
 article-notebook-label: "Artikel Notebook"
 notebook-preview-download: "Download Notebook"

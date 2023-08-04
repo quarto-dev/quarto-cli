@@ -111,6 +111,7 @@ import {
   kLatexOutputDir,
   kLatexTinyTex,
   kLatexTlmgrOpts,
+  kLaunchBinderTitle,
   kLaunchDevContainerTitle,
   kLinkExternalFilter,
   kLinkExternalIcon,
@@ -575,6 +576,7 @@ export interface FormatLanguage {
   [kOtherLinksTitle]?: string;
   [kCodeLinksTitle]?: string;
   [kLaunchDevContainerTitle]?: string;
+  [kLaunchBinderTitle]?: string;
   [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;

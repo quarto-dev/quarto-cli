@@ -34,6 +34,36 @@ export function isReesEnvronmentFile(path: string) {
   return kExecutionFiles.includes(basename(path));
 }
 
+export function codeSpacesUrl(repoUrl: string) {
+  // https://github.com/Notebooks-Now/submission-quarto-full/
+  // transforms to:
+  // https://github.com/codespaces/new/Notebooks-Now/submission-quarto-full
+
+  const containerUrl = repoUrl.replace(
+    /(https?\:\/\/github.com)\/([a-zA-Z0-9-_\.]+?)\/([a-zA-Z0-9-_\.]+?)\//,
+    "$1/codespaces/new/$2/$3?resume=1",
+  );
+  return containerUrl;
+}
+
+export interface BinderOptions {
+  openFile?: string;
+}
+
+export function binderUrl(
+  organization: string,
+  repository: string,
+  binderOptions?: BinderOptions,
+) {
+  // https://github.com/Notebooks-Now/submission-quarto-lite
+  // https://mybinder.org/v2/gh/Notebooks-Now/submission-quarto-lite/HEAD?labpath=article.ipynb
+  const url = [`https://mybinder.org/v2/gh/${organization}/${repository}/HEAD`];
+  if (binderOptions && binderOptions.openFile) {
+    url.push(`?labpath=${binderOptions.openFile}`);
+  }
+  return url.join("");
+}
+
 export function isDevContainerFile(relPath: string) {
   if (relPath === join(".devcontainer", "devcontainer.json")) {
     return true;

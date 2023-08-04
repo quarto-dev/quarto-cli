@@ -7,6 +7,7 @@ source-notebooks-prefix: "원천"
 other-links-title: "기타 링크"
 code-links-title: "코드 링크"
 launch-dev-container-title: "Dev 컨테이너 실행"
+launch-binder-title: "랜치 Binder"
 
 article-notebook-label: "기사 노트북"
 notebook-preview-download: "노트북 다운로드"

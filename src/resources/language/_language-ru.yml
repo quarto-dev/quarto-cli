@@ -7,6 +7,7 @@ source-notebooks-prefix: "Источник"
 other-links-title: "Другие ссылки"
 code-links-title: "Ссылки на код"
 launch-dev-container-title: "Запустить Dev Container"
+launch-binder-title: "Запустить Binder"
 
 article-notebook-label: "Блокнот статьи"
 notebook-preview-download: "Скачать блокнот"

@@ -7,6 +7,7 @@ source-notebooks-prefix: "资源"
 other-links-title: "其他链接"
 code-links-title: "代码链接"
 launch-dev-container-title: "启动 Dev Container"
+launch-binder-title: "启动 Binder"
 
 article-notebook-label: "文章笔记本"
 notebook-preview-download: "下载笔记本"

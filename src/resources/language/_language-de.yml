@@ -7,6 +7,7 @@ source-notebooks-prefix: "Quelle"
 other-links-title: "Weitere Links"
 code-links-title: "Code-Links"
 launch-dev-container-title: "Dev Container starten"
+launch-binder-title: "Binder starten"
 
 article-notebook-label: "Artikel-Notizbuch"
 notebook-preview-download: "Notizbuch herunterladen"

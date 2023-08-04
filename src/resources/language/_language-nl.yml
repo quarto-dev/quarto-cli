@@ -7,6 +7,7 @@ source-notebooks-prefix: "Bron"
 other-links-title: "Andere Links"
 code-links-title: "Code Links"
 launch-dev-container-title: "Dev Container starten"
+launch-binder-title: "Binder starten"
 
 article-notebook-label: "Artikel Notebook"
 notebook-preview-download: "Download Notebook"

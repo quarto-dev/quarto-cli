@@ -7,6 +7,7 @@ source-notebooks-prefix: "Πηγή"
 other-links-title: "Άλλοι Σύνδεσμοι"
 code-links-title: "Σύνδεσμοι κώδικα"
 launch-dev-container-title: "Εκκίνηση Dev Container"
+launch-binder-title: "Εκκίνηση Binder"
 
 article-notebook-label: "Σημειωματάριο Άρθρου"
 notebook-preview-download: "Λήψη Σημειωματαρίου"

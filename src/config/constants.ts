@@ -217,6 +217,7 @@ export const kRelatedNotebooksTitle = "related-notebooks-title";
 export const kOtherLinksTitle = "other-links-title";
 export const kCodeLinksTitle = "code-links-title";
 export const kLaunchDevContainerTitle = "launch-dev-container-title";
+export const kLaunchBinderTitle = "launch-binder-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-title";
 export const kCalloutNoteCaption = "callout-note-title";
@@ -337,6 +338,7 @@ export const kLanguageDefaultsKeys = [
   kOtherLinksTitle,
   kCodeLinksTitle,
   kLaunchDevContainerTitle,
+  kLaunchBinderTitle,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
   kCalloutTipCaption,
