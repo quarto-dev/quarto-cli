@@ -7,7 +7,7 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { basename, join, relative } from "path/mod.ts";
+import { basename, extname, join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
@@ -48,7 +48,7 @@ import {
   kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput } from "../../../config/format.ts";
+import { isHtmlOutput, isIpynbOutput } from "../../../config/format.ts";
 import {
   PandocInputTraits,
   PandocOptions,
@@ -104,6 +104,7 @@ import {
   hasBinderCompatibleEnvironment,
   hasDevContainer,
 } from "../../../core/container.ts";
+import { computeProjectEnvironment } from "../../project-environment.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -512,9 +513,16 @@ export const manuscriptProjectType: ProjectType = {
               };
               codeLinks.push(containerLink);
             } else if (hasBinderCompatibleEnvironment(context.dir)) {
+              // Compute the project environment and use that to customize the binder options
+              const projEnv = await computeProjectEnvironment(context);
+
               const containerUrl = binderUrl(
                 ghContext.organization,
                 ghContext.repository,
+                {
+                  openFile: extname(source) === ".ipynb" ? source : undefined,
+                  rstudio: projEnv.codeEnvironment === "rstudio",
+                },
               );
               const containerLink: OtherLink = {
                 icon: "journals",

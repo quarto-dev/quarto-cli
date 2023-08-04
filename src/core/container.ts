@@ -48,6 +48,7 @@ export function codeSpacesUrl(repoUrl: string) {
 
 export interface BinderOptions {
   openFile?: string;
+  rstudio?: boolean;
 }
 
 export function binderUrl(
@@ -58,9 +59,20 @@ export function binderUrl(
   // https://github.com/Notebooks-Now/submission-quarto-lite
   // https://mybinder.org/v2/gh/Notebooks-Now/submission-quarto-lite/HEAD?labpath=article.ipynb
   const url = [`https://mybinder.org/v2/gh/${organization}/${repository}/HEAD`];
+  const params = [];
   if (binderOptions && binderOptions.openFile) {
-    url.push(`?labpath=${binderOptions.openFile}`);
+    params.push(`labpath=${binderOptions.openFile}`);
   }
+  if (binderOptions && binderOptions.rstudio) {
+    params.push(`urlpath=rstudio`);
+  }
+
+  // Add any parameters
+  if (params.length > 0) {
+    url.push("?");
+    url.push(params.join("&"));
+  }
+
   return url.join("");
 }
 
