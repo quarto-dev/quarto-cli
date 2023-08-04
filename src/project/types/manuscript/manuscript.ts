@@ -98,7 +98,7 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import { hasDevContainer } from "../../../core/devcontainer.ts";
+import { hasDevContainer } from "../../../core/container.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";

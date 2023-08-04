@@ -41,6 +41,10 @@ import { projectType } from "../project-types.ts";
 import { engineIgnoreDirs } from "../../../execute/engine.ts";
 import { lsFiles } from "../../../core/git.ts";
 import { info } from "log/mod.ts";
+import {
+  isDevContainerFile,
+  isReesEnvronmentFile,
+} from "../../../core/container.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
@@ -51,27 +55,6 @@ const kManuscript = "manuscript";
 const kManuscriptSupportingFile = "manuscript-supporting-file";
 
 const kSrcDirName = "source";
-
-// REES Compatible execution files
-// from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
-const kExecutionFiles = [
-  "environment.yml",
-  "requirements.txt",
-  "renv.lock", // not supported by repo2docker
-  "Pipfile",
-  "Pipfile.lock",
-  "setup.py",
-  "Project.toml",
-  "REQUIRE",
-  "install.R",
-  "apt.txt",
-  "DESCRIPTION",
-  "postBuild",
-  "start",
-  "runtime.txt",
-  "default.nix",
-  "Dockerfile",
-];
 
 const kMecaSuffix = "-meca.zip";
 
@@ -143,7 +126,7 @@ export const createMecaBundle = async (
 
   const srcType = (path: string) => {
     return !hasExplicitEnvironment &&
-        kExecutionFiles.includes(basename(path))
+          isReesEnvronmentFile(path) || isDevContainerFile(path)
       ? kArticleSourceEnvironment
       : kArticleSource;
   };
