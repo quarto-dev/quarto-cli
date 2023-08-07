@@ -61,6 +61,7 @@
 - ([#6407](https://github.com/quarto-dev/quarto-cli/pull/6407)): Add supporting for the field `word-count` for listing items. It is not displayed by default.
 - ([#6408](https://github.com/quarto-dev/quarto-cli/pull/6408)): Fix error on Windows when using yaml to create a listing with an external (e.g. `path: https://www.quarto.org`)
 - ([#6447](https://github.com/quarto-dev/quarto-cli/pull/6447)): Fix image placholder for pages with more than one listing (or a single listing passed as an array item in yaml)
+- ([#5742](https://github.com/quarto-dev/quarto-cli/pull/5742)): Use any element to compute a description for the listing, even when there are no paragraphs.
 
 ## Websites
 
