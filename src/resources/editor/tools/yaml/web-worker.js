@@ -11280,16 +11280,12 @@ try {
                   },
                   "code-links": {
                     anyOf: [
-                      "string",
                       "boolean",
                       {
-                        maybeArrayOf: null,
-                        schema: {
+                        maybeArrayOf: {
                           anyOf: [
-                            "string",
-                            {
-                              ref: "other-links"
-                            }
+                            "object",
+                            "string"
                           ]
                         }
                       }
@@ -14623,7 +14619,11 @@ try {
             },
             schema: {
               anyOf: [
-                "boolean",
+                {
+                  enum: [
+                    false
+                  ]
+                },
                 {
                   ref: "other-links"
                 }
@@ -14640,7 +14640,11 @@ try {
             },
             schema: {
               anyOf: [
-                "boolean",
+                {
+                  enum: [
+                    false
+                  ]
+                },
                 {
                   ref: "other-links"
                 }
@@ -20513,6 +20517,7 @@ try {
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
           "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
+          "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section.",
           {
             short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
@@ -21574,8 +21579,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21799,12 +21803,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 161330,
+          _internalId: 162244,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 161322,
+              _internalId: 162236,
               type: "enum",
               enum: [
                 "png",
@@ -21820,7 +21824,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 161329,
+              _internalId: 162243,
               type: "anyOf",
               anyOf: [
                 {

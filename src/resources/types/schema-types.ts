@@ -1165,7 +1165,7 @@ export type NotebookViewSchema = {
 };
 
 export type ManuscriptSchema = {
-  "code-links"?: string | boolean | (string | OtherLinks);
+  "code-links"?: boolean | MaybeArrayOf<(SchemaObject | string)>;
   "manuscript-url"?: string /* The deployed url for this manuscript */;
   "meca-bundle"?:
     | boolean

@@ -58,7 +58,7 @@ import {
   RenderResultFile,
   RenderServices,
 } from "../../../command/render/types.ts";
-import { gitHubContext } from "../../../core/github.ts";
+import { GitHubContext, gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
@@ -487,54 +487,16 @@ export const manuscriptProjectType: ProjectType = {
       context,
       manuscriptConfig,
     );
-    if (isArticle) {
-      // Add the github repo as a metadata link
-      const ghContext = await gitHubContext(context.dir);
-      if (ghContext) {
-        const repoUrl = ghContext.repoUrl;
-        if (repoUrl) {
-          const repoLink: OtherLink = {
-            icon: "github",
-            text: "GitHub Repo",
-            href: repoUrl,
-          };
-          const codeLinks = [repoLink];
-
-          // See if there is a devcontainer defined
-          //
-          if (ghContext.organization && ghContext.repository) {
-            if (hasDevContainer(context.dir)) {
-              const containerUrl = codeSpacesUrl(repoUrl);
-              const containerLink: OtherLink = {
-                icon: "github",
-                text: format.language[kLaunchDevContainerTitle] ||
-                  "Launch Dev Container",
-                href: containerUrl,
-              };
-              codeLinks.push(containerLink);
-            } else if (hasBinderCompatibleEnvironment(context.dir)) {
-              // Compute the project environment and use that to customize the binder options
-              const projEnv = await computeProjectEnvironment(context);
-
-              const containerUrl = binderUrl(
-                ghContext.organization,
-                ghContext.repository,
-                {
-                  openFile: extname(source) === ".ipynb" ? source : undefined,
-                  rstudio: projEnv.codeEnvironment === "rstudio",
-                },
-              );
-              const containerLink: OtherLink = {
-                icon: "journals",
-                text: format.language[kLaunchBinderTitle] ||
-                  "Launch Binder",
-                href: containerUrl,
-              };
-              codeLinks.push(containerLink);
-            }
-            extras.metadata[kCodeLinks] = codeLinks;
-          }
-        }
+    if (isArticle && isHtmlOutput(format.pandoc)) {
+      // Inject code links
+      const outputCodeLinks = await computeCodeLinks(
+        source,
+        format,
+        manuscriptConfig,
+        context,
+      );
+      if (outputCodeLinks.length > 0) {
+        extras.metadata[kCodeLinks] = outputCodeLinks;
       }
 
       // If the user isn't explicitly providing a notebook list
@@ -707,4 +669,111 @@ const resolveNotebookDescriptors = (
     resolvedNbs.push(resolveNotebookDescriptor(nb));
   }
   return resolvedNbs;
+};
+
+const kCodeLinkTypes = ["repo", "binder", "devcontainer"];
+const kNoCodelinks: string[] = [];
+
+const computeCodeLinks = async (
+  source: string,
+  format: Format,
+  manuscriptConfig: ResolvedManuscriptConfig,
+  context: ProjectContext,
+) => {
+  if (format.metadata[kCodeLinks] === false) {
+    return [];
+  }
+
+  // Resolve the other links
+  const codeLinks = resolveCodeLinks(manuscriptConfig);
+
+  let cachedContext: GitHubContext | undefined = undefined;
+  const getGhContext = async () => {
+    if (cachedContext === undefined) {
+      cachedContext = await gitHubContext(context.dir);
+    }
+    return cachedContext;
+  };
+
+  const outputCodeLinks: OtherLink[] = [];
+  for (const codeLink of codeLinks) {
+    if (typeof (codeLink) === "string") {
+      if (kCodeLinkTypes.includes(codeLink)) {
+        const ghContext = await getGhContext();
+        if (ghContext) {
+          const repoUrl = ghContext.repoUrl;
+          if (codeLink === "repo" && repoUrl) {
+            const repoLink: OtherLink = {
+              icon: "github",
+              text: "GitHub Repo",
+              href: repoUrl,
+            };
+            outputCodeLinks.push(repoLink);
+          } else if (codeLink === "devcontainer" && repoUrl) {
+            if (
+              ghContext.organization && ghContext.repository &&
+              hasDevContainer(context.dir)
+            ) {
+              const containerUrl = codeSpacesUrl(repoUrl);
+              const containerLink: OtherLink = {
+                icon: "github",
+                text: format.language[kLaunchDevContainerTitle] ||
+                  "Launch Dev Container",
+                href: containerUrl,
+              };
+              outputCodeLinks.push(containerLink);
+            }
+          } else if (
+            codeLink === "binder" &&
+            ghContext.organization && ghContext.repository &&
+            hasBinderCompatibleEnvironment(context.dir)
+          ) {
+            // Compute the project environment and use that to customize the binder options
+            const projEnv = await computeProjectEnvironment(context);
+
+            const containerUrl = binderUrl(
+              ghContext.organization,
+              ghContext.repository,
+              {
+                openFile: extname(source) === ".ipynb" ? source : undefined,
+                rstudio: projEnv.codeEnvironment === "rstudio",
+              },
+            );
+            const containerLink: OtherLink = {
+              icon: "journals",
+              text: format.language[kLaunchBinderTitle] ||
+                "Launch Binder",
+              href: containerUrl,
+            };
+            outputCodeLinks.push(containerLink);
+          }
+        }
+      } else {
+        throw new Error(
+          `Unknown value '${codeLink}' for code-links. Allowed values include ${
+            kCodeLinkTypes.join(", ")
+          }`,
+        );
+      }
+    } else {
+      outputCodeLinks.push(codeLink);
+    }
+  }
+  return outputCodeLinks;
+};
+
+const resolveCodeLinks = (
+  config: ResolvedManuscriptConfig,
+): Array<string | OtherLink> => {
+  const codeLinks = config[kCodeLinks];
+  if (codeLinks !== undefined) {
+    if (typeof (codeLinks) === "boolean") {
+      return codeLinks ? kCodeLinkTypes : kNoCodelinks;
+    } else if (typeof (codeLinks) === "string") {
+      return [codeLinks];
+    } else {
+      return codeLinks;
+    }
+  }
+  return kCodeLinkTypes;
 };

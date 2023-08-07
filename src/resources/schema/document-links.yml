@@ -71,7 +71,7 @@
     formats: [$html-doc]
   schema:
     anyOf:
-      - boolean
+      - enum: [false]
       - ref: other-links
   description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
 
@@ -80,7 +80,7 @@
     formats: [$html-doc]
   schema:
     anyOf:
-      - boolean
+      - enum: [false]
       - ref: other-links
   description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
 

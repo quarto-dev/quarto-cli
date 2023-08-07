@@ -2231,13 +2231,11 @@
             description: "The input document that will serve as the root document for this manuscript"
         "code-links":
           anyOf:
-            - string
             - boolean
             - maybeArrayOf:
-              schema:
                 anyOf:
+                  - object
                   - string
-                  - ref: other-links
         "manuscript-url":
           string:
             description: "The deployed url for this manuscript"
