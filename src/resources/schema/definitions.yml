@@ -1014,7 +1014,9 @@
         description: "A list of other links to appear below the TOC."
       code-links:
         schema:
-          ref: other-links
+          anyOf:
+            - boolean
+            - ref: other-links
         tags:
           formats: [$html-doc]
         description: "A list of codes links to appear with this document."
@@ -2227,6 +2229,15 @@
         "article":
           path:
             description: "The input document that will serve as the root document for this manuscript"
+        "code-links":
+          anyOf:
+            - string
+            - boolean
+            - maybeArrayOf:
+              schema:
+                anyOf:
+                  - string
+                  - ref: other-links
         "manuscript-url":
           string:
             description: "The deployed url for this manuscript"

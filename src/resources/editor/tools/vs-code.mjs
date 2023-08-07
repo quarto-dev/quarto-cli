@@ -9658,7 +9658,12 @@ var require_yaml_intelligence_resources = __commonJS({
               },
               "code-links": {
                 schema: {
-                  ref: "other-links"
+                  anyOf: [
+                    "boolean",
+                    {
+                      ref: "other-links"
+                    }
+                  ]
                 },
                 tags: {
                   formats: [
@@ -11271,6 +11276,23 @@ var require_yaml_intelligence_resources = __commonJS({
                   path: {
                     description: "The input document that will serve as the root document for this manuscript"
                   }
+                },
+                "code-links": {
+                  anyOf: [
+                    "string",
+                    "boolean",
+                    {
+                      maybeArrayOf: null,
+                      schema: {
+                        anyOf: [
+                          "string",
+                          {
+                            ref: "other-links"
+                          }
+                        ]
+                      }
+                    }
+                  ]
                 },
                 "manuscript-url": {
                   string: {
@@ -14599,9 +14621,31 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "other-links"
+            anyOf: [
+              "boolean",
+              {
+                ref: "other-links"
+              }
+            ]
           },
           description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
+        },
+        {
+          name: "code-links",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                ref: "other-links"
+              }
+            ]
+          },
+          description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
         },
         {
           name: "notebook-subarticles",
@@ -18910,6 +18954,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book title",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
@@ -19039,6 +19084,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -21048,6 +21094,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -21360,6 +21407,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -21525,7 +21573,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section."
       ],
       "schema/external-schemas.yml": [
         {
@@ -21749,12 +21798,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 161294,
+        _internalId: 161330,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 161286,
+            _internalId: 161322,
             type: "enum",
             enum: [
               "png",
@@ -21770,7 +21819,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 161293,
+            _internalId: 161329,
             type: "anyOf",
             anyOf: [
               {
