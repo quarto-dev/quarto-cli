@@ -116,15 +116,16 @@ export async function accountPrompt(
       value: account.token,
     }));
   const kAuthorize = "authorize";
+  const accountDescriptor = _provider.accountDescriptor || "account";
   options.push({
-    name: "Use another account...",
+    name: `Use another ${accountDescriptor}...`,
     value: kAuthorize,
   });
 
   const result = await prompt([{
     indent: "",
     name: "token",
-    message: `Publish with account:`,
+    message: `Publish with ${accountDescriptor}:`,
     options,
     type: Select,
   }]);
