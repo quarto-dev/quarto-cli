@@ -15346,7 +15346,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           tags: {
             formats: [
-              "beamer"
+              "$pdf-all"
             ]
           },
           description: "Whether to produce a Beamer article from this presentation."
@@ -21802,12 +21802,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 162244,
+        _internalId: 162380,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 162236,
+            _internalId: 162372,
             type: "enum",
             enum: [
               "png",
@@ -21823,7 +21823,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 162243,
+            _internalId: 162379,
             type: "anyOf",
             anyOf: [
               {

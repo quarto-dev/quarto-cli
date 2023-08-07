@@ -172,7 +172,7 @@
 - name: beamerarticle
   schema: boolean
   tags:
-    formats: [beamer]
+    formats: [$pdf-all]
   description: Whether to produce a Beamer article from this presentation.
 
 - name: beameroption
