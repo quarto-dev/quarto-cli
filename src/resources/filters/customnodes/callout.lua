@@ -263,7 +263,7 @@ function calloutDiv(node)
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
   -- show a titled callout
-  if title ~= nil and next(title) ~= nil then
+  if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
 
     -- mark the callout as being titleed
     calloutDiv.attr.classes:insert("callout-titled")
