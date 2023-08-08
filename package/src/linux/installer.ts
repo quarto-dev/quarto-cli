@@ -70,14 +70,14 @@ export async function makeInstallerDeb(
     return accum + target;
   });
   const url = "https://github.com/quarto-dev/quarto-cli";
-  const depends = ["unzip"];
+  const recommends = ["unzip"];
 
   // Make the control file
   info("Creating control file");
   let control = "";
   control = control + val("Package", configuration.productName);
-  if (depends.length) {
-    control = control + val("Depends", depends.join(","));
+  if (recommends.length) {
+    control = control + val("Recommends", recommends.join(","));
   }
   control = control + val("Version", configuration.version);
   control = control + val("Architecture", architecture);
