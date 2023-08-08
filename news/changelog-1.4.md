@@ -124,6 +124,11 @@
 - ([#6215](https://github.com/quarto-dev/quarto-cli/issues/6215)): Add `quarto.utils.string_to_inlines` and `quarto.utils.string_to_blocks` to Lua API to convert a string to a list of inlines or blocks taking into account quarto's AST structure.
 - ([#6289](https://github.com/quarto-dev/quarto-cli/issues/6289)): allow `markdownToInlines` to take empty string.
 
+## Debian Installer
+
+- ([#3785](https://github.com/quarto-dev/quarto-cli/issues/3785)): Recommend installation of `unzip`, which is used when installed extensions.
+- ([#5167](https://github.com/quarto-dev/quarto-cli/issues/5167)): Don't fail installation if symlink cannot be created in path.
+
 ## Other Fixes and Improvements
 
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
@@ -139,3 +144,4 @@
 - ([#6013](https://github.com/quarto-dev/quarto-cli/issues/6013)): Don't error if citation is passed as a boolean value in metadata via flags
 - ([#6207](https://github.com/quarto-dev/quarto-cli/issues/6207)): When QUARTO_R is set to a non-existing path, a warning is now thrown like with QUARTO_PYTHON. Quarto still fallback to search a working R version.
 - ([#6244](https://github.com/quarto-dev/quarto-cli/issues/6244)): Code annotation now works for executable code cells using `echo: fenced`. Also it now supports HTML and Markdown code cells.
+- ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
