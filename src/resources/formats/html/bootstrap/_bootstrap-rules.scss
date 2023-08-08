@@ -1077,6 +1077,13 @@ figure .quarto-notebook-link {
   font-size: $toc-tools-font-size;
 }
 
+.quarto-other-links-text-target {
+  .quarto-code-links i.bi,
+  .quarto-other-links i.bi {
+    margin-right: 0.2em;
+  }
+}
+
 .quarto-other-formats-text-target .quarto-alternate-formats i.bi {
   margin-right: 0.1em;
 }
