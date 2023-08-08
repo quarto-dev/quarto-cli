@@ -19,7 +19,7 @@ export TYPST=0.7.0
 # (use commit hash from bslib repo)
 export BOOTSTRAP=ff3e498179a066043ceb8f2cb3188f10d0d6ebc4
 export BOOTSTRAP_FONT=1.10.5
-export BOOTSWATCH=5.2.3
+export BOOTSWATCH=5.3.1
 
 # javascript HTML dependencies
 export ANCHOR_JS=5.0.0
