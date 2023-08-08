@@ -9,7 +9,7 @@
 ## Dependencies
 
 - Update to Pandoc 3.1.5
-- Update to Typst 0.6.0
+- Update to Typst 0.7.0
 
 ## HTML Format
 
