@@ -707,6 +707,7 @@ const computeCodeLinks = async (
               icon: "github",
               text: "GitHub Repo",
               href: repoUrl,
+              target: "_blank",
             };
             outputCodeLinks.push(repoLink);
           } else if (codeLink === "devcontainer" && repoUrl) {
@@ -720,6 +721,7 @@ const computeCodeLinks = async (
                 text: format.language[kLaunchDevContainerTitle] ||
                   "Launch Dev Container",
                 href: containerUrl,
+                target: "_blank",
               };
               outputCodeLinks.push(containerLink);
             }
@@ -744,6 +746,7 @@ const computeCodeLinks = async (
               text: format.language[kLaunchBinderTitle] ||
                 "Launch Binder",
               href: containerUrl,
+              target: "_blank",
             };
             outputCodeLinks.push(containerLink);
           }
