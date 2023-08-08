@@ -176,11 +176,15 @@ $border-radius-lg-sketchy: 55px 225px 15px 25px / 25px 25px 35px 355px;
 $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 // style-enable scss/dollar-variable-default
 
+:root {
+  color-scheme: light;
+}
+
 // Navbar
 
 .navbar {
-  border-width: 2px;
   border-style: solid;
+  border-width: 2px;
   border-radius: 25px 25px 55px 5px/5px 55px 25px 25px;
 
   &.bg-light {
@@ -188,13 +192,13 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
   }
 
   &.fixed-top {
-    border-radius: 0 25px 225px 0/25px 0 25px 255px;
     border-width: 0 0 2px;
+    border-radius: 0 25px 225px 0/25px 0 25px 255px;
   }
 
   &.fixed-bottom {
-    border-radius: 255px 25px 0 25px/25px 225px 25px 0;
     border-width: 2px 0 0;
+    border-radius: 255px 25px 0 25px/25px 225px 25px 0;
   }
 
   &-brand {
@@ -207,8 +211,8 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 // Buttons
 
 .btn {
-  border-radius: $border-radius-sketchy;
   text-decoration: none;
+  border-radius: $border-radius-sketchy;
 
   &-lg {
     border-radius: $border-radius-lg-sketchy;
@@ -220,7 +224,8 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 }
 
 .btn-check {
-  display: none;
+  display: inline-block;
+  opacity: 0;
 }
 
 // Typography
@@ -231,6 +236,11 @@ optgroup,
 select,
 textarea {
   font-family: $font-family-sans-serif;
+}
+
+b,
+strong {
+  font-family: $headings-font-family;
 }
 
 blockquote {
@@ -247,11 +257,11 @@ table {
 }
 
 .table-bordered {
-  background-color: $gray-800;
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 5px 25px 5px 25px/25px 5px 25px 5px;
   overflow: hidden;
+  border-spacing: 0;
+  border-collapse: separate;
+  background-color: $gray-800;
+  border-radius: 5px 25px 5px 25px/25px 5px 25px 5px;
 
   th,
   td {
@@ -262,8 +272,8 @@ table {
   .table-success:hover {
     td,
     th {
-      background-color: $success;
       color: $white;
+      background-color: $success;
     }
   }
 
@@ -271,8 +281,8 @@ table {
   .table-info:hover {
     td,
     th {
-      background-color: $info;
       color: $white;
+      background-color: $info;
     }
   }
 
@@ -280,8 +290,8 @@ table {
   .table-warning:hover {
     td,
     th {
-      background-color: $warning;
       color: $white;
+      background-color: $warning;
     }
   }
 
@@ -289,8 +299,8 @@ table {
   .table-danger:hover {
     td,
     th {
-      background-color: $danger;
       color: $white;
+      background-color: $danger;
     }
   }
 }
@@ -320,38 +330,42 @@ select.form-control {
   border-radius: $border-radius-lg-sketchy !important;
 }
 
-#{$shiny-check} input, #{$shiny-check-inline} input, [type="checkbox"] {
+[type="checkbox"], #{$shiny-check} input, #{$shiny-check-inline} input {
   position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+  border: none;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
-  width: 0;
-  height: 0;
-  border: none;
-  cursor: pointer;
 
   &::before {
-    content: "";
     position: absolute;
-    left: 0;
     top: -.1em;
+    left: 0;
     display: inline-block;
     width: 15px;
     height: 16px;
+    content: "";
     border: 2px solid $gray-800;
     border-radius: 2px 8px 2px 4px / 5px 3px 5px 3px;
   }
 
+  &:focus::before {
+    box-shadow: 0 0 0 .25rem rgb(51, 51, 51 / 25%);
+  }
+
   &:checked::after {
-    content: "x";
     position: absolute;
-    left: .1em;
     top: 0;
+    left: .1em;
     font-size: 1.5rem;
     line-height: .5;
     color: $gray-800;
+    content: "x";
   }
 
   &:disabled {
@@ -361,28 +375,32 @@ select.form-control {
   }
 }
 
-#{$shiny-radio} input, #{$shiny-radio-inline} input, [type="radio"] {
+[type="radio"], #{$shiny-radio} input, #{$shiny-radio-inline} input {
   position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+  border: none;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
-  width: 0;
-  height: 0;
-  border: none;
-  cursor: pointer;
 
   &::before {
-    content: "";
     position: absolute;
-    left: 0;
     top: -.1em;
+    left: 0;
     display: inline-block;
     width: 16px;
     height: 16px;
+    content: "";
     border: 2px solid $gray-800;
     border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
+  }
+
+  &:focus::before {
+    box-shadow: 0 0 0 .25rem rgb(51, 51, 51 / 25%);
   }
 
   &:checked::before {
@@ -397,7 +415,9 @@ select.form-control {
 }
 
 #{$shiny-check}, #{$shiny-check-inline}, #{$shiny-radio}, #{$shiny-radio-inline} {
-  span { padding-left: 1rem; }
+  span {
+    padding-left: 1rem;
+  }
 }
 
 #{$form-check-input-selector} {
@@ -419,13 +439,13 @@ select.form-control {
     }
 
     &::after {
-      content: "";
-      display: inline-block;
-      width: 12px;
-      height: 12px;
       position: absolute;
       top: 0;
       left: 0;
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      content: "";
       background-color: $white;
       border: 2px solid #333;
       border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
@@ -447,8 +467,8 @@ select.form-control {
 // Navs
 
 .dropdown-menu {
-  border-radius: 555px 25px 25px 25px/25px 25px 25px 555px;
   overflow: hidden;
+  border-radius: 555px 25px 25px 25px/25px 25px 25px 555px;
 }
 
 .dropdown-divider {
@@ -456,15 +476,15 @@ select.form-control {
 }
 
 .list-group {
+  overflow: hidden;
   background-color: $gray-800;
   border: 2px solid $gray-800;
   border-radius: 45px 15px 35px 5px/15px 5px 15px 65px;
-  overflow: hidden;
 
   &-item {
-    border-left: none;
-    border-right: none;
     border-top: 2px solid $gray-800;
+    border-right: none;
+    border-left: none;
     border-radius: 255px 5px 225px 5px/25px 225px 25px 255px;
 
     &:first-child {
@@ -552,8 +572,8 @@ select.form-control {
   }
 
   &-header {
-    border-bottom-width: 2px;
     border-color: inherit;
+    border-bottom-width: 2px;
 
     &:first-child {
       border-radius: 3px 3px 0 0/23px 23px 0 0;
@@ -623,10 +643,10 @@ pre {
   background-image: none;
 
   &::before {
-    content: "X";
     position: absolute;
-    right: 1rem;
     top: .8rem;
+    right: 1rem;
+    content: "X";
   }
 }
 
