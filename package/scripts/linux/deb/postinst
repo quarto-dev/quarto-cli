@@ -11,7 +11,15 @@ if [[ $EUID -eq 0 ]]; then
   else
     echo "Quarto symlink not created, please be sure that you add Quarto to your path."
   fi
-  ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/man1/quarto.1
+  
+  if [ -d "/usr/local/man/man1" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/man1/quarto.1
+  elif [ -d "/usr/local/man" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/quarto.1
+  fi
+  
 else
   if [ -d "~/bin/quarto" ] 
   then
@@ -19,7 +27,15 @@ else
   else
     echo "Quarto symlink not created, please be sure that you add Quarto to your path."
   fi
-  ln -fs /opt/quarto/share/man/quarto.man ~/man/man1/quarto.1
+
+  if [ -d "~/man/man1" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man ~/man/man1/quarto.1
+  elif [ -d "~/man" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man ~/man/quarto.1
+  fi
+  
 fi
 
 # Figure architecture
