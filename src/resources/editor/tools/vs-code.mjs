@@ -10204,8 +10204,13 @@ var require_yaml_intelligence_resources = __commonJS({
                         categories: {
                           maybeArrayOf: {
                             string: {
-                              description: "A list of categories for which to create separate RSS feeds containing only posts with that category."
+                              description: "A list of categories for which to create separate RSS feeds containing only posts with that category"
                             }
+                          }
+                        },
+                        "xml-stylesheet": {
+                          path: {
+                            description: "The path to an XML stylesheet (XSL file) used to style the RSS feed."
                           }
                         }
                       }
@@ -20974,6 +20979,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
         "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
         "URLs that alias this document, when included in a website.",
         {
           short: "The path to a preview image for this document.",
@@ -21831,12 +21844,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 162532,
+        _internalId: 163214,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 162524,
+            _internalId: 163206,
             type: "enum",
             enum: [
               "png",
@@ -21852,7 +21865,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 162531,
+            _internalId: 163213,
             type: "anyOf",
             anyOf: [
               {

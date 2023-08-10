@@ -1423,7 +1423,10 @@
                 categories:
                   maybeArrayOf:
                     string:
-                      description: A list of categories for which to create separate RSS feeds containing only posts with that category.
+                      description: A list of categories for which to create separate RSS feeds containing only posts with that category
+                xml-stylesheet:
+                  path:
+                    description: The path to an XML stylesheet (XSL file) used to style the RSS feed.
         description: Enables an RSS feed for the listing.
       date-format:
         string:

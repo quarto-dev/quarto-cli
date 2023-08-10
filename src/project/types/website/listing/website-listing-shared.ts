@@ -120,6 +120,7 @@ export const kItems = "items";
 export const kType = "type";
 export const kLanguage = "language";
 export const kDescription = "description";
+export const kXmlStyleSheet = "xml-stylesheet";
 
 export interface ListingDescriptor {
   listing: Listing;
@@ -145,6 +146,7 @@ export interface ListingFeedOptions {
   [kFieldCategories]?: string | string[];
   [kImage]?: string;
   [kLanguage]?: string;
+  [kXmlStyleSheet]?: string;
 }
 
 export interface ListingSharedOptions {

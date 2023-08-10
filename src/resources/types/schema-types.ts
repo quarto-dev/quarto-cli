@@ -802,8 +802,10 @@ is missing a required field, an error will occur and the render will. */;
     SchemaObject
   > /* Items with matching field values will be excluded from the listing. */;
   feed?: boolean | {
+    "xml-stylesheet"?:
+      string /* The path to an XML stylesheet (XSL file) used to style the RSS feed. */;
     categories?: MaybeArrayOf<
-      string /* A list of categories for which to create separate RSS feeds containing only posts with that category. */
+      string /* A list of categories for which to create separate RSS feeds containing only posts with that category */
     >;
     description?:
       string /* The description of this feed. If not specified, the description for the page the
