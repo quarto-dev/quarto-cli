@@ -596,6 +596,7 @@ export async function renderProject(
           : join(projDir, result.file);
         return {
           file,
+          input: join(projDir, result.input),
           format: result.format,
           resources: result.resourceFiles,
           supporting: result.supporting,
