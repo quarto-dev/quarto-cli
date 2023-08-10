@@ -47,6 +47,7 @@ import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
 import { warnOnce } from "../../../../core/log.ts";
 import { existsSync } from "../../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
+import { isAbsolute } from "../../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 export const kDefaultItems = 20;
 
@@ -143,6 +144,10 @@ export async function createFeed(
   // Find the most recent item (if any)
   const mostRecent = mostRecentItem(filteredItems);
 
+  const xmlSheetHref = options[kXmlStyleSheet]
+    ? absoluteUrl(siteUrl, options[kXmlStyleSheet])
+    : undefined;
+
   // Create feed metadata
   const feed: FeedMetadata = {
     title: feedTitle,
@@ -154,7 +159,7 @@ export async function createFeed(
       ? new Date(mostRecent.date).toUTCString()
       : new Date().toUTCString(),
     language: options.language,
-    [kXmlStyleSheet]: options[kXmlStyleSheet],
+    [kXmlStyleSheet]: xmlSheetHref,
   };
 
   // Add any image metadata
