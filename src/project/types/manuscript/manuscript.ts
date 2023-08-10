@@ -23,13 +23,17 @@ import {
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kArticleNotebookLabel,
+  kBibliography,
   kClearHiddenClasses,
   kCodeLinks,
+  kDocumentClass,
   kEcho,
   kExtensionName,
   kFormatLinks,
+  kFormatResources,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
+  kKeepTex,
   kLanguageDefaults,
   kLaunchBinderTitle,
   kLaunchDevContainerTitle,
@@ -48,7 +52,11 @@ import {
   kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput, isIpynbOutput } from "../../../config/format.ts";
+import {
+  isHtmlOutput,
+  isIpynbOutput,
+  isLatexOutput,
+} from "../../../config/format.ts";
 import {
   PandocInputTraits,
   PandocOptions,
@@ -75,7 +83,10 @@ import {
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
-import { isOutputFile } from "../../../command/render/output.ts";
+import {
+  isOutputFile,
+  normalizeOutputPath,
+} from "../../../command/render/output.ts";
 import {
   computeProjectArticleFile,
   isArticle,
@@ -105,6 +116,20 @@ import {
   hasDevContainer,
 } from "../../../core/container.ts";
 import { computeProjectEnvironment } from "../../project-environment.ts";
+import {
+  ensureDir,
+  ensureDirSync,
+} from "../../../vendor/deno.land/std@0.185.0/fs/ensure_dir.ts";
+import { copySync } from "../../../vendor/deno.land/std@0.185.0/fs/copy.ts";
+import {
+  dirname,
+  isAbsolute,
+} from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
+import {
+  exists,
+  existsSync,
+} from "../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
+import { safeExistsSync } from "../../../core/path.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -278,6 +303,9 @@ export const manuscriptProjectType: ProjectType = {
 
     // Default to cosmo theme
     config[kTheme] = "cosmo";
+
+    // By default, keep tex and clean things up ourselves
+    config[kKeepTex] = true;
 
     return config;
   },
@@ -599,6 +627,13 @@ export const manuscriptProjectType: ProjectType = {
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => {
+    for (const outputFile of outputFiles) {
+      const format = outputFile.format;
+      if (isLatexOutput(format.pandoc) && format.render[kKeepTex]) {
+        createTexOutputBundle(outputFile, context);
+      }
+    }
+
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
     if (
@@ -779,4 +814,100 @@ const resolveCodeLinks = (
     }
   }
   return kCodeLinkTypes;
+};
+
+const kTexOutDir = "_tex";
+const createTexOutputBundle = (
+  outputFile: ProjectOutputFile,
+  context: ProjectContext,
+) => {
+  const format = outputFile.format;
+  const outDir = projectOutputDir(context);
+
+  // Find a unique output directory
+  const texDirAbs = join(outDir, `${kTexOutDir}`);
+  ensureDirSync(texDirAbs);
+
+  if (format.pandoc["output-file"]) {
+    // Compute the tex file path
+    const baseDir = dirname(outputFile.input);
+    const texInputFile = join(baseDir, format.pandoc["output-file"]);
+    const texInputDir = dirname(texInputFile);
+
+    const texOutputFile = join(texDirAbs, format.pandoc["output-file"]);
+    const textOutputDir = dirname(texOutputFile);
+
+    // move the root output file
+    Deno.copyFileSync(
+      texInputFile,
+      texOutputFile,
+    );
+    Deno.removeSync(texInputFile);
+
+    // move the supporting files and resources
+    if (outputFile.supporting) {
+      for (const file of outputFile.supporting) {
+        const supportingAbs = isAbsolute(file) ? file : join(texInputDir, file);
+        const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
+        ensureDirSync(dirname(outPath));
+        console.log({
+          supportingAbs,
+          outPath,
+        });
+        copySync(supportingAbs, outPath);
+        Deno.removeSync(supportingAbs, { recursive: true });
+      }
+    }
+
+    // move the supporting files and resources
+    if (outputFile.resources) {
+      for (const file of outputFile.resources) {
+        const outPath = join(texDirAbs, relative(context.dir, file));
+        ensureDirSync(dirname(outPath));
+        copySync(file, outPath);
+      }
+    }
+
+    // Deal with document class
+    const docClass = format.metadata[kDocumentClass];
+    const classFile = `${docClass}.cls`;
+    const classFilePath = join(texInputDir, classFile);
+    if (existsSync(classFilePath)) {
+      copySync(classFilePath, join(textOutputDir, classFile));
+    }
+
+    // Deal with bibliographies
+    if (format.metadata[kBibliography]) {
+      const bibliographies = Array.isArray(format.metadata[kBibliography])
+        ? format.metadata[kBibliography] as string[]
+        : [format.metadata[kBibliography] as string];
+      for (const bibligography of bibliographies) {
+        const bibPath = join(context.dir, bibligography);
+        const bibOutPath = join(textOutputDir, bibligography);
+        ensureDirSync(dirname(bibOutPath));
+        copySync(bibPath, bibOutPath);
+      }
+    }
+
+    // Deal with format resources
+    const formatResources = format.render[kFormatResources];
+    if (formatResources) {
+      for (const formatResource of formatResources) {
+        const resourcePath = join(context.dir, formatResource);
+        const resourceOutPath = join(
+          textOutputDir,
+          basename(formatResource),
+        );
+        // Format resources could have been discovered some other way (e.g. document class)
+        // So don't error if they're already in place
+        if (!safeExistsSync(resourceOutPath)) {
+          copySync(resourcePath, resourceOutPath);
+        }
+      }
+    }
+  } else {
+    throw new InternalError(
+      "Was expecting there to a Pandoc output file since we're rendering LaTeX",
+    );
+  }
 };
