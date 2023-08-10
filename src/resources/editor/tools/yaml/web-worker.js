@@ -17531,7 +17531,25 @@ try {
           },
           {
             name: "repo-actions",
-            schema: "boolean",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  maybeArrayOf: {
+                    enum: [
+                      "none",
+                      "edit",
+                      "source",
+                      "issue"
+                    ],
+                    description: {
+                      short: "Links to source repository actions",
+                      long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+                    }
+                  }
+                }
+              ]
+            },
             tags: {
               formats: [
                 "$html-doc"
@@ -20956,6 +20974,7 @@ try {
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
           "Setting this to false prevents this document from being included in\nsearches.",
+          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
           "URLs that alias this document, when included in a website.",
           {
             short: "The path to a preview image for this document.",
@@ -21589,8 +21608,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -21814,12 +21832,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 162382,
+          _internalId: 162532,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 162374,
+              _internalId: 162524,
               type: "enum",
               enum: [
                 "png",
@@ -21835,7 +21853,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 162381,
+              _internalId: 162531,
               type: "anyOf",
               anyOf: [
                 {
