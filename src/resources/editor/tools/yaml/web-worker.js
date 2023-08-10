@@ -17530,6 +17530,16 @@ try {
             description: "Setting this to false prevents this document from being included in searches."
           },
           {
+            name: "repo-actions",
+            schema: "boolean",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          },
+          {
             name: "aliases",
             schema: {
               arrayOf: "string"
@@ -21579,7 +21589,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page."
         ],
         "schema/external-schemas.yml": [
           {
@@ -21803,12 +21814,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 162244,
+          _internalId: 162382,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 162236,
+              _internalId: 162374,
               type: "enum",
               enum: [
                 "png",
@@ -21824,7 +21835,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 162243,
+              _internalId: 162381,
               type: "anyOf",
               anyOf: [
                 {

@@ -5,6 +5,12 @@
   default: true
   description: Setting this to false prevents this document from being included in searches.
 
+- name: repo-actions
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Setting this to false prevents the `repo-actions` from appearing on this page.
+
 - name: aliases
   schema:
     arrayOf: string
