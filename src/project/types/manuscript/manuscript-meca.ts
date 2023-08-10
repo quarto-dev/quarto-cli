@@ -284,7 +284,6 @@ export const createMecaBundle = async (
         );
         const isDir = Deno.statSync(otherSupporting).isDirectory;
 
-        console.log({ workingDir, relativePath, isDir });
         const otherItems = mecaItemsForPath(
           workingDir,
           relativePath,
