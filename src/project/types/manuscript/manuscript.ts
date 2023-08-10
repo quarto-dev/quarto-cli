@@ -83,10 +83,7 @@ import {
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
-import {
-  isOutputFile,
-  normalizeOutputPath,
-} from "../../../command/render/output.ts";
+import { isOutputFile } from "../../../command/render/output.ts";
 import {
   computeProjectArticleFile,
   isArticle,
@@ -627,10 +624,11 @@ export const manuscriptProjectType: ProjectType = {
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => {
+    let outBundle;
     for (const outputFile of outputFiles) {
       const format = outputFile.format;
       if (isLatexOutput(format.pandoc) && format.render[kKeepTex]) {
-        createTexOutputBundle(outputFile, context);
+        outBundle = createTexOutputBundle(outputFile, context);
       }
     }
 
@@ -652,6 +650,7 @@ export const manuscriptProjectType: ProjectType = {
         projectOutputDir(context),
         outputFiles,
         manuscriptConfig,
+        outBundle,
       );
       if (mecaBundle) {
         const target = projectOutputDir(context);
@@ -844,18 +843,21 @@ const createTexOutputBundle = (
     );
     Deno.removeSync(texInputFile);
 
+    // Create the resulting bundle descriptor
+    const texBundle: { manuscript: string; supporting: string[] } = {
+      manuscript: texOutputFile,
+      supporting: [],
+    };
+
     // move the supporting files and resources
     if (outputFile.supporting) {
       for (const file of outputFile.supporting) {
         const supportingAbs = isAbsolute(file) ? file : join(texInputDir, file);
         const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
         ensureDirSync(dirname(outPath));
-        console.log({
-          supportingAbs,
-          outPath,
-        });
         copySync(supportingAbs, outPath);
         Deno.removeSync(supportingAbs, { recursive: true });
+        texBundle.supporting.push(outPath);
       }
     }
 
@@ -865,6 +867,7 @@ const createTexOutputBundle = (
         const outPath = join(texDirAbs, relative(context.dir, file));
         ensureDirSync(dirname(outPath));
         copySync(file, outPath);
+        texBundle.supporting.push(outPath);
       }
     }
 
@@ -873,7 +876,9 @@ const createTexOutputBundle = (
     const classFile = `${docClass}.cls`;
     const classFilePath = join(texInputDir, classFile);
     if (existsSync(classFilePath)) {
-      copySync(classFilePath, join(textOutputDir, classFile));
+      const outClassPath = join(textOutputDir, classFile);
+      copySync(classFilePath, outClassPath);
+      texBundle.supporting.push(outClassPath);
     }
 
     // Deal with bibliographies
@@ -886,6 +891,7 @@ const createTexOutputBundle = (
         const bibOutPath = join(textOutputDir, bibligography);
         ensureDirSync(dirname(bibOutPath));
         copySync(bibPath, bibOutPath);
+        texBundle.supporting.push(bibOutPath);
       }
     }
 
@@ -902,9 +908,11 @@ const createTexOutputBundle = (
         // So don't error if they're already in place
         if (!safeExistsSync(resourceOutPath)) {
           copySync(resourcePath, resourceOutPath);
+          texBundle.supporting.push(resourceOutPath);
         }
       }
     }
+    return texBundle;
   } else {
     throw new InternalError(
       "Was expecting there to a Pandoc output file since we're rendering LaTeX",

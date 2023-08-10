@@ -97,6 +97,7 @@ export const createMecaBundle = async (
   outputDir: string,
   outputFiles: ProjectOutputFile[],
   manuscriptConfig: ResolvedManuscriptConfig,
+  otherOutputBundle?: { manuscript: string; supporting: string[] },
 ) => {
   const workingDir = globalTempContext().createDir();
 
@@ -261,6 +262,40 @@ export const createMecaBundle = async (
         // Note to include in zip
         manuscriptZipFiles.push(workingPath);
       });
+    }
+
+    // Deal with 'other manuscript'
+    if (otherOutputBundle) {
+      if (otherOutputBundle.manuscript) {
+        const relativePath = toWorkingDir(
+          otherOutputBundle.manuscript,
+          relative(outputDir, otherOutputBundle.manuscript),
+          false,
+        );
+        articleRenderingPaths.push(relativePath);
+      }
+
+      // Deal with 'other supporting'
+      for (const otherSupporting of otherOutputBundle.supporting) {
+        const relativePath = toWorkingDir(
+          otherSupporting,
+          relative(outputDir, otherSupporting),
+          false,
+        );
+        const isDir = Deno.statSync(otherSupporting).isDirectory;
+
+        console.log({ workingDir, relativePath, isDir });
+        const otherItems = mecaItemsForPath(
+          workingDir,
+          relativePath,
+          "manuscript",
+          isDir,
+        );
+        manuscriptResources.push(...otherItems);
+
+        // Note to include in zip
+        manuscriptZipFiles.push(relativePath);
+      }
     }
 
     const msg = (count: number, nameSing: string, namePlur: string) => {
