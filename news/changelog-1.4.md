@@ -116,6 +116,13 @@
 - Upgrade to 10.2.0-rc.2
 - ([#5426](https://github.com/quarto-dev/quarto-cli/issues/5426)): Don't escape mermaid output in markdown formats (author: @rcannood).
 
+## Author and Affiliations
+
+- ([#6138](https://github.com/quarto-dev/quarto-cli/issues/6138)): Add support for `degrees` to specify academic titles or professional certifications displayed following a personal name (for example, "MD", "PhD").
+- Add support for specifying author `roles`, with optional support for degree of contribution and automatic normalization of CreDiT roles, when applicable.
+- Improved support for affiliation metadata, including `ringgold`, `isni`, `ror`
+- Add support for `funding`, including support for simple strings or funding including `source`, `recipient`, and `investigator`. `source` and `recipient` may be one or more simple strings, `ref`s to an author or affiliation id, or an object following the `institution` schema.
+
 ## Lua filters
 
 - ([#5466](https://github.com/quarto-dev/quarto-cli/issues/5466)): Provide global environment `_G` to user filters.
