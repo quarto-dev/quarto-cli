@@ -110,6 +110,9 @@ local kDroppingParticle = 'dropping-particle'
 local kNonDroppingParticle = 'non-dropping-particle'
 local kNameFields = { kGivenName, kFamilyName, kLiteralName}
 
+-- Academic titles or professional certifications displayed following a personal name (for example, “MD”, “PhD”).
+local kDegrees = 'degrees'
+
 -- the roles that an author may place
 local kRoles = 'roles'
 local kRole = "role"
@@ -679,6 +682,13 @@ local function parseRole(role)
   end
 end
 
+local function setDegree(author, degree)
+  if not author[kDegrees] then
+    author[kDegrees] = {}
+  end
+  author[kDegrees][#author[kDegrees] + 1] = degree
+end
+
 -- Processes author roles, which can be specified either using `role:` or `roles:`
 -- and can either be a single string:
 -- role: researcher
@@ -700,6 +710,16 @@ local function processAuthorRoles(author, roles)
   else
     local role, contribution = parseRole(roles)
     setRole(author, { [kRole] = role, [kDegreeContribution] = contribution })
+  end
+end
+
+local function processAuthorDegrees(author, degrees) 
+  if tisarray(degrees) then
+    for _i,v in ipairs(degrees) do
+      setDegree(author, v)
+    end
+  else
+    setDegree(author, degrees)
   end
 end
 
@@ -910,6 +930,8 @@ local function processAuthor(value)
         affiliationUrl = authorValue
       elseif tcontains(kAuthorRoleFields, authorKey) then
         processAuthorRoles(author, authorValue)
+      elseif authorKey == kDegrees then
+        processAuthorDegrees(author, authorValue)
       else
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 

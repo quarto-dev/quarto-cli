@@ -5,6 +5,20 @@
   default: true
   description: Setting this to false prevents this document from being included in searches.
 
+- name: repo-actions
+  schema:
+    anyOf:
+      - boolean
+      - maybeArrayOf:
+          enum: [none, edit, source, issue]
+          description:
+            short: "Links to source repository actions"
+            long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+
+  tags:
+    formats: [$html-doc]
+  description: Setting this to false prevents the `repo-actions` from appearing on this page.
+
 - name: aliases
   schema:
     arrayOf: string

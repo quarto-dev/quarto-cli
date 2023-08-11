@@ -13,6 +13,7 @@ import {
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
 } from "../../../../config/constants.ts";
 import { Format } from "../../../../config/types.ts";
 
@@ -27,7 +28,6 @@ import {
   kFieldSort,
   kFieldTypes,
   kImageHeight,
-  kImagePlaceholder,
   kMaxDescLength,
   kMaxItems,
   kPageSize,
@@ -83,6 +83,10 @@ export function templateMarkdownHandler(
       const dateFormat = listing[kDateFormat] as string ||
         format.metadata[kDateFormat] as string;
 
+      const fieldLabelLangKeys: Record<string, string> = {
+        "word-count": kListingPageWords,
+      };
+
       const fieldTypes = listing[kFieldTypes];
       for (const field of Object.keys(fieldTypes)) {
         if (fieldTypes[field] === kFieldDate) {
@@ -110,6 +114,14 @@ export function templateMarkdownHandler(
           const val = item[field] as number;
           record[field] = localizedString(format, kListingPageMinutesCompact, [
             Math.floor(val).toString(),
+          ]);
+        } else if (
+          fieldTypes[field] === "number" && item[field] !== undefined &&
+          fieldLabelLangKeys[field] !== undefined
+        ) {
+          const val = item[field] as number;
+          record[field] = localizedString(format, fieldLabelLangKeys[field], [
+            Math.floor(val).toLocaleString(),
           ]);
         }
       }

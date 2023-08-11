@@ -585,6 +585,13 @@ function handleRepoLinks(
   language: FormatLanguage,
   config?: ProjectConfig,
 ) {
+  // Don't process repo-actions if document disables it
+  if (format.metadata[kSiteRepoActions] === false) {
+    return;
+  }
+
+  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
+
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
     kWebsite,
@@ -594,8 +601,6 @@ function handleRepoLinks(
   if (issueUrl && !repoActions.includes("issue")) {
     repoActions.push("issue");
   }
-
-  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
     "[" + kDataQuartoSourceUrl + '="repo"]',

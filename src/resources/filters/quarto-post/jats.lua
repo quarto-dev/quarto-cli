@@ -84,7 +84,9 @@ function jats()
       Div = function(div)
         if isTableDiv(div) then
           local tbl = div.content[1]
-          tbl.identifier = div.identifier
+          if tbl.t == "Table" then
+            tbl.identifier = div.identifier
+          end
           return tbl
         else
           -- otherwise, if this is a div, we can unroll its contents

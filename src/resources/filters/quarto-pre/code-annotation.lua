@@ -55,8 +55,8 @@ local function annoteProvider(lang)
       stripAnnotation = function(line, annoteId) 
         return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, "")
       end,
-      replaceAnnotation = function(line, annoteId, replacement)
-        return line:gsub(patternEscape(expression.strip.prefix .. annoteId .. expression.strip.suffix), replacement)
+      replaceAnnotation = function(line, annoteId, replacement) 
+        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, replacement)
       end,
       createComment = function(value) 
         if #commentChars == 0 then
@@ -216,13 +216,13 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
   -- which will replace any of these tokens as appropriate.   
   local hasHighlighting = param('text-highlighting', false)
   if param(constants.kCodeAnnotationsParam) == constants.kCodeAnnotationStyleNone then
-    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, '') 
+    local replaced = annotationProvider.stripAnnotation(line, annoteNumber) 
     return replaced
   else
     if hasHighlighting then
       -- highlighting is enabled, allow the comment through
       local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
-      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, percentEscape(placeholderComment)) 
       return replaced
     else
       -- no highlighting enabled, ensure we use a standard comment character
@@ -253,7 +253,7 @@ end
 function code_meta()
   return {
     Meta = function(meta)
-      if _quarto.format.isLatexOutput() and hasAnnotations then
+      if _quarto.format.isLatexOutput() and hasAnnotations and param(constants.kCodeAnnotationsParam) ~= constants.kCodeAnnotationStyleNone then
         -- ensure we have tikx for making the circles
         quarto.doc.use_latex_package("tikz");
         quarto.doc.include_text('in-header', [[

@@ -28,7 +28,11 @@ function ipynbCode()
             Image = function(imgEl)
               imgEl.attr = pandoc.Attr()
               return imgEl
-            end
+            end,
+            Table = function(tbl)
+              local rendered = pandoc.write(pandoc.Pandoc(tbl), "markdown")
+              return pandoc.RawBlock("markdown", rendered)      
+            end,      
           })
         end
 
@@ -120,7 +124,6 @@ function ipynb()
           return el
         end        
       end,
-
 
       -- note that this also catches raw blocks inside display_data 
       -- but pandoc seems to ignore the .cell .raw envelope in this

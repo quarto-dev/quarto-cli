@@ -1928,9 +1928,9 @@ quarto = {
          htmlDependency.scripts == nil and 
          htmlDependency.stylesheets == nil and 
          htmlDependency.resources == nil and
-         htmlDependency.seviceworkers == nil and
+         htmlDependency.serviceworkers == nil and
          htmlDependency.head == nil then
-         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, seviceworkers, or resources. All appear empty.")
+         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, serviceworkers, or resources. All appear empty.")
       end
 
       -- validate that the meta is as expected

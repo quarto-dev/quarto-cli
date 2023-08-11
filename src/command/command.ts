@@ -24,7 +24,7 @@ import { updateCommand } from "./update/cmd.ts";
 import { publishCommand } from "./publish/cmd.ts";
 import { removeCommand } from "./remove/cmd.ts";
 import { listCommand } from "./list/cmd.ts";
-import { useCommand } from "./use/cmd.ts";
+import { makeUseCommand } from "./use/cmd.ts";
 import { addCommand } from "./add/cmd.ts";
 import { uninstallCommand } from "./uninstall/cmd.ts";
 import { createCommand } from "./create/cmd.ts";
@@ -49,7 +49,7 @@ export function commands(): Command<any>[] {
     updateCommand,
     removeCommand,
     listCommand,
-    useCommand,
+    makeUseCommand(),
     publishCommand,
     capabilitiesCommand,
     inspectCommand,

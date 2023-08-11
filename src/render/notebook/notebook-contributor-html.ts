@@ -130,7 +130,7 @@ function resolveHtmlNotebook(
 
   // Configure the appearance
   resolved.recipe.format.pandoc[kToc] = true;
-  resolved.recipe.format.metadata[kTocLocation] = "right";
+  resolved.recipe.format.metadata[kTocLocation] = "left";
   resolved.recipe.format.metadata[kAppendixStyle] = "none";
   resolved.recipe.format.render[kFormatLinks] = false;
 
@@ -176,7 +176,7 @@ async function renderHtmlNotebook(
             backLabel: format.language[kNotebookPreviewBack],
           } as NotebookTemplateMetadata,
           [kToc]: true,
-          [kTocLocation]: "right",
+          [kTocLocation]: "left",
           [kDisableArticleLayout]: true,
         },
         quiet: false,

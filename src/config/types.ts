@@ -25,6 +25,7 @@ import {
   kCodeLineNumbers,
   kCodeLines,
   kCodeLink,
+  kCodeLinksTitle,
   kCodeOverflow,
   kCodeSummary,
   kCodeTools,
@@ -110,6 +111,8 @@ import {
   kLatexOutputDir,
   kLatexTinyTex,
   kLatexTlmgrOpts,
+  kLaunchBinderTitle,
+  kLaunchDevContainerTitle,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
@@ -123,6 +126,7 @@ import {
   kListingPageFieldReadingTime,
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
+  kListingPageFieldWordCount,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -131,6 +135,7 @@ import {
   kListingPageOrderByDefault,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
   kListings,
   kManuscriptMecaBundle,
   kMarkdownHeadings,
@@ -569,6 +574,9 @@ export interface FormatLanguage {
   [kTocTitleWebsite]?: string;
   [kRelatedFormatsTitle]?: string;
   [kOtherLinksTitle]?: string;
+  [kCodeLinksTitle]?: string;
+  [kLaunchDevContainerTitle]?: string;
+  [kLaunchBinderTitle]?: string;
   [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;
@@ -652,8 +660,10 @@ export interface FormatLanguage {
   [kListingPageFieldFileModified]?: string;
   [kListingPageFieldSubtitle]?: string;
   [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldWordCount]?: string;
   [kListingPageFieldCategories]?: string;
   [kListingPageMinutesCompact]?: string;
+  [kListingPageWords]?: string;
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
   [kNotebookPreviewDownload]?: string;

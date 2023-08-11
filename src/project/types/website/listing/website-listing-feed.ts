@@ -32,6 +32,7 @@ import {
   kItems,
   kListing,
   kUrlsToAbsolute,
+  kXmlStyleSheet,
   ListingDescriptor,
   ListingFeedOptions,
   ListingItem,
@@ -45,6 +46,8 @@ import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
 import { warnOnce } from "../../../../core/log.ts";
+import { existsSync } from "../../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
+import { isAbsolute } from "../../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 export const kDefaultItems = 20;
 
@@ -64,6 +67,7 @@ interface FeedMetadata {
   description: string;
   image?: FeedImage;
   language?: string;
+  [kXmlStyleSheet]?: string;
 
   generator: string;
   lastBuildDate: string;
@@ -140,6 +144,10 @@ export async function createFeed(
   // Find the most recent item (if any)
   const mostRecent = mostRecentItem(filteredItems);
 
+  const xmlSheetHref = options[kXmlStyleSheet]
+    ? absoluteUrl(siteUrl, options[kXmlStyleSheet])
+    : undefined;
+
   // Create feed metadata
   const feed: FeedMetadata = {
     title: feedTitle,
@@ -151,6 +159,7 @@ export async function createFeed(
       ? new Date(mostRecent.date).toUTCString()
       : new Date().toUTCString(),
     language: options.language,
+    [kXmlStyleSheet]: xmlSheetHref,
   };
 
   // Add any image metadata
@@ -176,6 +185,11 @@ export async function createFeed(
   const stagedPath = feedPath(dir, stem, options.type === "full");
 
   const feedFiles: string[] = [];
+
+  // Push any stylesheet
+  if (options[kXmlStyleSheet]) {
+    feedFiles.push(options[kXmlStyleSheet]);
+  }
 
   // Render the main feed
   const rendered = await renderFeed(

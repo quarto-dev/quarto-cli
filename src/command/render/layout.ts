@@ -1,14 +1,13 @@
 /*
-* layout.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * layout.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../core/deno-dom.ts";
 
 import { kPageWidth } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
+import { Format, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 
 import { HtmlPostProcessResult } from "./types.ts";
@@ -21,19 +20,23 @@ import { kHtmlEmptyPostProcessResult } from "./constants.ts";
 const kAdaptiveTextHighlighting = "adaptive-text-highlighting";
 const kTextHighlighting = "text-highlighting";
 
-export function layoutFilterParams(format: Format) {
+export function layoutFilterParams(
+  format: Format,
+  defaults: FormatPandoc | undefined,
+) {
   const params: Metadata = {};
   const pageWidth = format.render[kPageWidth];
   if (pageWidth) {
     params[kPageWidth] = pageWidth;
   }
+  if (defaults) {
+    if (hasAdaptiveTheme(defaults)) {
+      params[kAdaptiveTextHighlighting] = true;
+    }
 
-  if (hasAdaptiveTheme(format.pandoc)) {
-    params[kAdaptiveTextHighlighting] = true;
-  }
-
-  if (hasTextHighlighting(format.pandoc)) {
-    params[kTextHighlighting] = true;
+    if (hasTextHighlighting(defaults)) {
+      params[kTextHighlighting] = true;
+    }
   }
 
   return params;

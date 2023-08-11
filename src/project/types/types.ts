@@ -103,6 +103,7 @@ export interface ProjectType {
 
 export interface ProjectOutputFile {
   file: string;
+  input: string;
   format: Format;
   resources: string[];
   supporting?: string[];

@@ -103,12 +103,12 @@ export function findPreviewImgEl(
 const kWpm = 200;
 export function estimateReadingTimeMinutes(
   markdown?: string,
-): number | undefined {
+): { wordCount: number; readingTime: number } | undefined {
   if (markdown) {
     const wordCount = markdown.split(" ").length;
-    return Math.ceil(wordCount / kWpm);
+    return { wordCount, readingTime: Math.ceil(wordCount / kWpm) };
   }
-  return 0;
+  return undefined;
 }
 
 export function findPreviewImgMd(markdown?: string): string | undefined {
