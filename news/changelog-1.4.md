@@ -6,6 +6,7 @@
 - Add Greek translation (author: @cultab)
 - Add Norwegian translation (author: @lektorodd)
 - Add Lithuanian translation (author: @GegznaV)
+- Add Traditional Chinese (Taiwan) translation (author: @bobby1030)
 
 ## Dependencies
 
