@@ -851,7 +851,8 @@ const createTexOutputBundle = (
 
     // move the supporting files and resources
     if (outputFile.supporting) {
-      for (const file of outputFile.supporting) {
+      const uniqSupporting = ld.uniq(outputFile.supporting);
+      for (const file of uniqSupporting) {
         const supportingAbs = isAbsolute(file) ? file : join(texInputDir, file);
         const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
         ensureDirSync(dirname(outPath));
@@ -863,7 +864,8 @@ const createTexOutputBundle = (
 
     // move the supporting files and resources
     if (outputFile.resources) {
-      for (const file of outputFile.resources) {
+      const uniqResources = ld.uniq(outputFile.resources);
+      for (const file of uniqResources) {
         const outPath = join(texDirAbs, relative(context.dir, file));
         ensureDirSync(dirname(outPath));
         copySync(file, outPath);
