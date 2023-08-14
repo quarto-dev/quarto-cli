@@ -148,7 +148,7 @@ function formatNumberOption(type, order, default)
       end
       num = sectionIndex .. "." .. num
     end
-    return { pandoc.Str(num) }
+    return pandoc.Inlines({ pandoc.Str(num) })
   end
   
   -- Compute option name and default value
@@ -198,7 +198,7 @@ function formatNumberOption(type, order, default)
     if section then
       tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
-    return { option }
+    return pandoc.Inlines({ option })
   end
 
 end

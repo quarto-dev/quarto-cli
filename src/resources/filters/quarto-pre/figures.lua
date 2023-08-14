@@ -7,6 +7,7 @@ function quarto_pre_figures()
   return {
    
     Div = function(el)
+      -- FIXME Should this even be here anymore?
       
       -- propagate fig-cap on figure div to figure caption 
       if hasFigureRef(el) then
@@ -21,51 +22,38 @@ function quarto_pre_figures()
       
     end,
     
-    -- -- create figure divs from linked figures
-    -- Para = function(el)
-      
-    --   -- create figure div if there is a tikz image
-    --   local fig = discoverFigure(el)
-    --   if fig and latexIsTikzImage(fig) then
-    --     return createFigureDiv(el, fig)
-    --   end
-      
-    --   -- create figure divs from linked figures
-    --   local linkedFig = discoverLinkedFigure(el)
-    --   if linkedFig then
-    --     return createFigureDiv(el, linkedFig)
-    --   end
+    FloatCrossref = function(float)
+      local kind = refType(float.identifier)
+      if kind ~= "fig" then
+        return
+      end
 
-    -- end,
-
-    Image = function(image)
       -- propagate fig-alt
       if _quarto.format.isHtmlOutput() then
         -- read the fig-alt text and set the image alt
-        local altText = attribute(image, kFigAlt, nil);
+        local altText = attribute(float, kFigAlt, nil)
         if altText ~= nil then
-          image.attr.attributes["alt"] = altText
-          image.attr.attributes[kFigAlt] = nil
-          return image
+          float.attributes["alt"] = altText
+          float.attributes[kFigAlt] = nil
+          return float
         end
       -- provide default fig-pos or fig-env if specified
       elseif _quarto.format.isLatexOutput() then
         local figPos = param(kFigPos)
-        if figPos and not image.attr.attributes[kFigPos] then
-          image.attr.attributes[kFigPos] = figPos
+        if figPos and not float.attributes[kFigPos] then
+          float.attributes[kFigPos] = figPos
         end
         -- remove fig-pos if it is false, since it
         -- signals "don't use any value"
-        if image.attr.attributes[kFigPos] == "FALSE" then
-          image.attr.attributes[kFigPos] = nil
+        if float.attributes[kFigPos] == "FALSE" then
+          float.attributes[kFigPos] = nil
         end
         local figEnv = param(kFigEnv)
         
-        if figEnv and not image.attr.attributes[kFigEnv] then
-          image.attr.attributes[kFigEnv] = figEnv
+        if figEnv and not float.attributes[kFigEnv] then
+          float.attributes[kFigEnv] = figEnv
         end
-      else 
-        return image
+        return float
       end
     end
   }
