@@ -48,6 +48,17 @@ function run_emulated_filter(doc, filter)
     end
   end
 
+  local function checked_walk(node, filter_param)
+    if node.walk == nil then
+      if #node == 0 then -- empty node
+        return node
+      else
+        internal_error()
+      end
+    end
+    return node:walk(filter_param)
+  end
+
   -- performance: if filter is empty, do nothing
   if sz == 0 then
     return doc
@@ -76,9 +87,10 @@ function run_emulated_filter(doc, filter)
     return result
   end
 
+
   ::regular::
 
-  -- if user passed the table corresponding to the a custom node instead 
+  -- if user passed a table corresponding to the custom node instead 
   -- of the custom node, then first we will get the actual node
   if doc.__quarto_custom_node ~= nil then
     doc = doc.__quarto_custom_node
@@ -87,7 +99,14 @@ function run_emulated_filter(doc, filter)
 
   local is_custom = is_custom_node(doc)
   if not needs_custom or (not is_custom and filter._is_wrapped) then
-    local result, recurse = doc:walk(filter)
+    if doc.walk == nil then
+      if #doc == 0 then -- empty doc
+        return doc
+      else
+        internal_error()
+      end
+    end
+    local result, recurse = checked_walk(doc, filter)
     if in_filter then
       profiler.category = ""
     end
@@ -173,7 +192,7 @@ function run_emulated_filter(doc, filter)
       return doc, recurse
     end
   end
-  return doc:walk(wrapped_filter)
+  return checked_walk(doc, wrapped_filter)
 end
 
 function create_custom_node_scaffold(t, context)

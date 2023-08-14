@@ -61,7 +61,7 @@ function render_extended_nodes()
       end
       fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
     elseif handler.render ~= nil then
-      return scaffold(postprocess_render(scaffold(renderer.render(node))))
+      return scaffold(postprocess_render(scaffold(handler.render(node))))
     else
       fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function or renderers table")
     end
