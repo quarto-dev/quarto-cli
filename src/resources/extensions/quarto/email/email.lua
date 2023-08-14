@@ -15,16 +15,6 @@ Extension for generating email components needed for Posit Connect
    Connect is expecting for its own email generation code
 --]]
 
-local lpeg = require("lpeg")
-
--- Define lpeg-based function to effectively replace string.gsub()
--- NOTE: This is no longer being used
-function gsub_lpeg(string, pattern, replacement)
-  pattern = lpeg.P(pattern)
-  pattern = lpeg.Cs((pattern / replacement + 1) ^ 0)
-  return lpeg.match(pattern, string)
-end
-
 -- Define function for Base64-encoding of an image file
 function base64_encode(data)
   local b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -38,6 +28,12 @@ function base64_encode(data)
     for i = 1, 6 do c = c + (x:sub(i, i) == "1" and 2 ^ (6 - i) or 0) end
     return b:sub(c + 1, c + 1)
   end) .. ({ "", "==", "=" })[#data % 3 + 1])
+end
+
+function get_file_extension(file_path)
+  local pattern = "%.([^%.]+)$"
+  local ext = file_path:match(pattern)
+  return ext
 end
 
 local html_email_template_1 = [[
@@ -104,10 +100,13 @@ margin-bottom: 24px;
 local html_email_template_2 = [[
 </tr>
 </table>
-<div class="footer" style="font-family:Helvetica, sans-serif;color:#999999;font-size:12px;font-weight:normal;margin:24px 0 0 0;">
 ]]
 
 local html_email_template_3 = [[
+<div class="footer" style="font-family:Helvetica, sans-serif;color:#999999;font-size:12px;font-weight:normal;margin:24px 0 0 0;">
+]]
+
+local html_email_template_4 = [[
 <p>If HTML documents are attached, they may not render correctly when viewed in some email clients. For a better experience, download HTML documents to disk before opening in a web browser.</p>
 </div>
 </td>
@@ -130,24 +129,40 @@ function Meta(meta)
   local meta_attachments = meta.attachments
 
   if meta_attachments ~= nil then
+
     for _, v in pairs(meta_attachments) do
       table.insert(attachments, pandoc.utils.stringify(v))
     end
   end
+
+  meta["resources"] = attachments
+
+  return meta
 end
 
 function Div(div)
 
   if div.classes:includes("subject") then
+
     subject = pandoc.utils.stringify(div)
     return {}
+  
   elseif div.classes:includes("email") then
+
+    --[[
+    For each of the <img> tags found we need to modify the tag so that it contains a
+    reference to the Base64 string; this reference is that of the Content-ID (or CID) tag;
+    the basic form is `<img src="cid:image-id"/>` (the `image-id` will be written as
+    `img<n>.<file_extension>`, incrementing <n> from 1)
+    ]]
 
     local count = 1
 
-    local renderDiv = quarto._quarto.ast.walk(div, {Image = function(imgEl) 
+    local renderDiv = quarto._quarto.ast.walk(div, {Image = function(imgEl)
 
-      local cid = "img" .. tostring(count) .. ".png"
+      local file_extension = get_file_extension(imgEl.src)
+
+      local cid = "img" .. tostring(count) .. "." .. file_extension
 
       image_tbl[cid] = imgEl.src
 
@@ -162,7 +177,6 @@ function Div(div)
 
     return {}
   end
-
 end
 
 -- function to extract the rendered HTML from a Div of class 'email'
@@ -176,10 +190,10 @@ function process_document(doc)
   local connect_date_time = os.date("%Y-%m-%d %H:%M:%S")
 
   -- Use Connect environment variables to get URLs for the email footer section
-  -- TODO: these don't work for some reason (we always get the fallback value)
-  local connect_report_rendering_url = os.getenv("RSC_REPORT_RENDERING_URL") or "https://connect.example.com/content/1234/_rev5678"
-  local connect_report_url = os.getenv("RSC_REPORT_URL") or "https://connect.example.com/content/1234/"
-  local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL") or "https://connect.example.com/connect/#/apps/1234/subscriptions"
+  -- If any of these are nil, a portion of the email footer won't be rendered
+  local connect_report_rendering_url = os.getenv("RSC_REPORT_RENDERING_URL") -- "https://connect.example.com/content/1234/_rev5678"
+  local connect_report_url = os.getenv("RSC_REPORT_URL") -- "https://connect.example.com/content/1234/"
+  local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL") -- "https://connect.example.com/connect/#/apps/1234/subscriptions"
 
   -- The following regexes remove the surrounding <div> from the HTML text
   email_html = string.gsub(email_html, "^<div class=\"email\">", '')
@@ -189,29 +203,37 @@ function process_document(doc)
   Use the Connect email template components along with the `email_html`
   fragment to generate the email message body as HTML
   --]]
-  local html_email_body =
+
+  if connect_report_rendering_url == nil or 
+     connect_report_url == nil or
+     connect_report_subscription_url == nil then
+
+    html_email_body =
       html_email_template_1 ..
       "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
       html_email_template_2 ..
+      html_email_template_3 ..
       "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
-      "<p>This Version: <a href=\"" .. connect_report_rendering_url .. 
-      "\">" .. connect_report_rendering_url .. "</a><br/>" ..
-      "Latest Version: <a href=\"" .. connect_report_url ..
-      "\">" .. connect_report_url .. "</a></p>\n\n" ..
-      "<p>If you wish to stop receiving emails for this document, you may <a href=\"" ..
-      connect_report_subscription_url .. "\">unsubscribe here</a>.</p>\n\n" ..
-      html_email_template_3
+      html_email_template_4
+
+      else
+
+    html_email_body =
+      html_email_template_1 ..
+      "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
+      html_email_template_2 ..
+      html_email_template_3 ..
+      "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
+      "<p>This Version: <a href=\"" .. connect_report_rendering_url .. "\">" .. connect_report_rendering_url .. "</a>\n\n" .. 
+      "Latest Version: <a href=\"" .. connect_report_url .. "\">" .. connect_report_url .. "</a></p>\n\n" ..
+      "<p>If you wish to stop receiving emails for this document, you may <a href=\"" .. connect_report_subscription_url .. "\">unsubscribe here</a>.</p>" .. 
+      "<br/>" ..
+      html_email_template_4
+  end
 
   --[[
-  For each of the <img> tags we need to do a few things in the order they were found:
-    1. determine if the path resolved in `img_tag_filepaths_list` matches an actual
-       path in `figure_html_dir_listing` (if there isn't a match, skip to the next iteration)
-    2. assuming a match, create a Base64-encoded representation of the image and place that
-       into the table `email_images` (it'll be needed for the JSON output file); also,
-    3. modify the <img> tag so that it contains a reference to the Base64 string; this
-       is essentially the creation of Content-ID (or CID) tag, where the basic form of it
-       is `<img src="cid:image-id"/>` (the `image-id` will be written as `img<n>.png`,
-       incrementing from `1`)
+  For each of the <img> tags we need to create a Base64-encoded representation of the image and
+  place that into the table `email_images` (keyed by `cid`)
   ]]
 
   local image_data = nil
@@ -230,7 +252,6 @@ function process_document(doc)
       
       -- Insert `encoded_data` into `email_images` table with prepared key
       email_images[cid] = encoded_data
-
     end
   end
 
