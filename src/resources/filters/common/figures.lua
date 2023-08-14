@@ -35,7 +35,7 @@ end
 -- is this a Div containing a figure
 function isFigureDiv(el)
   if el.t == "Div" and hasFigureRef(el) then
-    return refCaptionFromDiv(el) ~= nil
+    return el.attributes[kFigCap] ~= nil or refCaptionFromDiv(el) ~= nil
   else
     return discoverLinkedFigureDiv(el) ~= nil
   end
