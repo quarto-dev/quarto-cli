@@ -116,7 +116,7 @@ async function renderOutputNotebook(
   _subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFile(
     { path: nbPath, formats: ["ipynb"] },
@@ -137,7 +137,7 @@ async function renderOutputNotebook(
       quietPandoc: true,
     },
     services,
-    project,
+    //project,
   );
 
   // An error occurred rendering this subarticle
