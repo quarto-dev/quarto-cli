@@ -772,7 +772,7 @@ const computeCodeLinks = async (
               ghContext.repository,
               {
                 openFile: extname(source) === ".ipynb" ? source : undefined,
-                rstudio: projEnv.codeEnvironment === "rstudio",
+                editor: projEnv.codeEnvironment,
               },
             );
             const containerLink: OtherLink = {

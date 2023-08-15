@@ -48,7 +48,7 @@ export function codeSpacesUrl(repoUrl: string) {
 
 export interface BinderOptions {
   openFile?: string;
-  rstudio?: boolean;
+  editor?: "vscode" | "rstudio" | "jupyterlab";
 }
 
 export function binderUrl(
@@ -63,8 +63,19 @@ export function binderUrl(
   if (binderOptions && binderOptions.openFile) {
     params.push(`labpath=${binderOptions.openFile}`);
   }
-  if (binderOptions && binderOptions.rstudio) {
-    params.push(`urlpath=rstudio`);
+
+  if (binderOptions?.editor) {
+    switch (binderOptions.editor) {
+      case "rstudio":
+        params.push(`urlpath=rstudio`);
+        break;
+      case "vscode":
+        params.push(`urlpath=vscode`);
+        break;
+      case "jupyterlab":
+      default:
+        break;
+    }
   }
 
   // Add any parameters
