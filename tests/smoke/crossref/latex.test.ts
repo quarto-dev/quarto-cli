@@ -1,9 +1,8 @@
 /*
-* latex.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * latex.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureFileRegexMatches } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
@@ -22,7 +21,7 @@ const subFigRegexes = [
 ];
 
 const simpleTableRegexes = [
-  /\\begin{longtable}[^]*?\\caption{\\label{tbl-letters}[^]*?\\end{longtable}/,
+  /\\begin{table}[^]*?\\caption{\\label{tbl-letters}[^]*?\\begin{longtable}[^]*?\\end{longtable}/,
   /Table~\\ref{tbl-letters}/,
 ];
 const subTableRegexes = [

@@ -47,7 +47,7 @@ function cites_preprocess()
 
       -- table caption cites fixups
       -- FIXME check parenthesization
-      if refType(float.identifier) == 'tbl' and _quarto.format.isLatexOutput() and hasMarginColumn(div) or marginCitations() then
+      if refType(float.identifier) == 'tbl' and _quarto.format.isLatexOutput() and hasMarginColumn(float) or marginCitations() then
         local ref_table
         _quarto.ast.walk(float.content, {
           Table = function(t)

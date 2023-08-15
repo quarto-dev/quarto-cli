@@ -1,9 +1,8 @@
 /*
-* tables.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * tables.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureFileRegexMatches, ensureHtmlElements } from "../../verify.ts";
 import { renderVerifyLatexOutput, testRender } from "../render/render.ts";
@@ -52,9 +51,8 @@ testRender(knitrTablesQmd.input, "html", false, [
 
 /* caption is inserted in the right place in table environment*/
 renderVerifyLatexOutput(docs("crossrefs/knitr-tables-latex.qmd"), [
-  /\\begin{longtable}\[.*\]{.*}.*\n\\caption{\\label{tbl-1}.*}\\tabularnewline/,
-  /\\begin{table}\n\\caption{\\label{tbl-2}.*}.*\n+\\centering\n\\begin{tabular}{.*}/,
-  /\\begin{longtable}{.*}.*\n\\caption{\\label{tbl-3}.*}\\tabularnewline/,
-  /\\begin{table}\n\\caption{\\label{tbl-4}.*}.*\n+\\centering\n\\begin{tabular}\[c\]{.*}/,
-  /\\begin{table}\n\\caption{\\label{tbl-4}.*}.*\n+\\centering\n\\begin{tabular}\[c\]{.*}/,
+  /\\begin{table}.*\\caption{\\label{tbl-1}.*}.*\\begin{longtable}\[.*\]{.*}.*\\end{longtable}/s,
+  /\\begin{table}.*\\caption{\\label{tbl-2}.*}.*\\centering.*\\begin{tabular}{.*}/s,
+  /\\begin{table}.*\\caption{\\label{tbl-3}.*}.*\\centering.*\\begin{longtable\*}{.*}/s,
+  /\\begin{table}.*\\caption{\\label{tbl-4}.*}.*\\centering\n\\begin{tabular}\[c\]{.*}/s,
 ]);
