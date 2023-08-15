@@ -6,6 +6,7 @@
 - Add Greek translation (author: @cultab)
 - Add Norwegian translation (author: @lektorodd)
 - Add Lithuanian translation (author: @GegznaV)
+- Update Catalan translation (author: @jmaspons)
 
 ## Dependencies
 
