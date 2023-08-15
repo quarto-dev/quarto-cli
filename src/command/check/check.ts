@@ -147,7 +147,8 @@ async function checkInstall(services: RenderServices) {
     const tools = await allTools();
 
     for (const tool of tools.installed) {
-      toolsOutput.push(`      ${tool.name}: ${await tool.installedVersion()}`);
+      const version = await tool.installedVersion() || "(external install)";
+      toolsOutput.push(`      ${tool.name}: ${version}`);
     }
     for (const tool of tools.notInstalled) {
       toolsOutput.push(`      ${tool.name}: (not installed)`);
