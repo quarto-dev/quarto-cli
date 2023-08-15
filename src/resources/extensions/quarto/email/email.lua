@@ -127,17 +127,12 @@ function Meta(meta)
   attachments = {}
 
   local meta_attachments = meta.attachments
-
+  
   if meta_attachments ~= nil then
-
     for _, v in pairs(meta_attachments) do
       table.insert(attachments, pandoc.utils.stringify(v))
     end
   end
-
-  meta["resources"] = attachments
-
-  return meta
 end
 
 function Div(div)
@@ -199,11 +194,8 @@ function process_document(doc)
   email_html = string.gsub(email_html, "^<div class=\"email\">", '')
   email_html = string.gsub(email_html, "</div>$", '')
 
-  --[[
-  Use the Connect email template components along with the `email_html`
-  fragment to generate the email message body as HTML
-  --]]
-
+  -- Use the Connect email template components along with the `email_html`
+  -- fragment to generate the email message body as HTML
   if connect_report_rendering_url == nil or 
      connect_report_url == nil or
      connect_report_subscription_url == nil then
@@ -231,11 +223,8 @@ function process_document(doc)
       html_email_template_4
   end
 
-  --[[
-  For each of the <img> tags we need to create a Base64-encoded representation of the image and
-  place that into the table `email_images` (keyed by `cid`)
-  ]]
-
+  -- For each of the <img> tags we need to create a Base64-encoded representation
+  -- of the image and place that into the table `email_images` (keyed by `cid`)
   local image_data = nil
 
   for cid, img in pairs(image_tbl) do
@@ -255,12 +244,9 @@ function process_document(doc)
     end
   end
 
-  --[[
-  Encode all of the strings and tables of strings into a JSON file that's
-  needed for Connect's email feature
-  --]]
-  
-  local str = quarto.json.encode({
+  -- Encode all of the strings and tables of strings into a JSON file that's
+  -- needed for Connect's email feature
+  local metadata_str = quarto.json.encode({
     rsc_email_subject = subject,
     rsc_email_attachments = attachments,
     rsc_email_body_html = html_email_body,
@@ -269,6 +255,8 @@ function process_document(doc)
     rsc_email_suppress_scheduled = false
   })
 
+  -- Determine the location of the Quarto project directory; if not defined
+  -- by the user then set to the location of the input file
   local project_output_directory = quarto.project.output_directory
 
   if (project_output_directory ~= nil) then
@@ -277,10 +265,19 @@ function process_document(doc)
     local file = quarto.doc.input_file
     dir = pandoc.path.directory(file)
   end
+
+  -- For all file attachments declared by the user, ensure they copied over
+  -- to the project directory (`dir`) 
+  for _, v in pairs(attachments) do
+    local source_attachment_file = pandoc.utils.stringify(v)
+    local dest_attachment_path_file = pandoc.path.join({dir, pandoc.utils.stringify(v)})
+    local attachment_text = io.open(source_attachment_file):read("*a")
+    io.open(dest_attachment_path_file, "w"):write(attachment_text):close()
+  end
   
+  -- Write the `.output_metadata.json` file to the project directory
   local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
-  
-  io.open(metadata_path_file, "w"):write(str):close()
+  io.open(metadata_path_file, "w"):write(metadata_str):close()
 end
 
 function Pandoc(doc)
