@@ -79,7 +79,6 @@ import {
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
-import { isOutputFile } from "../../../command/render/output.ts";
 import {
   computeProjectArticleFile,
   isArticle,
@@ -196,7 +195,16 @@ export const manuscriptProjectType: ProjectType = {
         }
 
         // Filter output notebooks
-        if (isOutputFile(file, "ipynb")) {
+        const excludeSuffixes = [".out.ipynb", ".embed.ipynb"];
+        if (
+          excludeSuffixes.some((suffix) => {
+            return file.endsWith(suffix);
+          })
+        ) {
+          return false;
+        }
+
+        if (file.match(/\.embed\./)) {
           return false;
         }
         return true;
