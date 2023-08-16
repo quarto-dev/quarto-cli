@@ -852,7 +852,7 @@ const createTexOutputBundle = (
         const supportingAbs = isAbsolute(file) ? file : join(texInputDir, file);
         const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
         ensureDirSync(dirname(outPath));
-        copySync(supportingAbs, outPath);
+        copySync(supportingAbs, outPath, { overwrite: true });
         Deno.removeSync(supportingAbs, { recursive: true });
         texBundle.supporting.push(outPath);
       }
@@ -864,7 +864,7 @@ const createTexOutputBundle = (
       for (const file of uniqResources) {
         const outPath = join(texDirAbs, relative(context.dir, file));
         ensureDirSync(dirname(outPath));
-        copySync(file, outPath);
+        copySync(file, outPath, { overwrite: true });
         texBundle.supporting.push(outPath);
       }
     }
@@ -875,7 +875,7 @@ const createTexOutputBundle = (
     const classFilePath = join(texInputDir, classFile);
     if (existsSync(classFilePath)) {
       const outClassPath = join(textOutputDir, classFile);
-      copySync(classFilePath, outClassPath);
+      copySync(classFilePath, outClassPath, { overwrite: true });
       texBundle.supporting.push(outClassPath);
     }
 
@@ -888,7 +888,7 @@ const createTexOutputBundle = (
         const bibPath = join(context.dir, bibligography);
         const bibOutPath = join(textOutputDir, bibligography);
         ensureDirSync(dirname(bibOutPath));
-        copySync(bibPath, bibOutPath);
+        copySync(bibPath, bibOutPath, { overwrite: true });
         texBundle.supporting.push(bibOutPath);
       }
     }
@@ -905,7 +905,7 @@ const createTexOutputBundle = (
         // Format resources could have been discovered some other way (e.g. document class)
         // So don't error if they're already in place
         if (!safeExistsSync(resourceOutPath)) {
-          copySync(resourcePath, resourceOutPath);
+          copySync(resourcePath, resourceOutPath, { overwrite: true });
           texBundle.supporting.push(resourceOutPath);
         }
       }
