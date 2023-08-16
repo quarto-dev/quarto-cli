@@ -7,7 +7,7 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { basename, join, relative } from "path/mod.ts";
+import { basename, extname, join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
@@ -23,29 +23,40 @@ import {
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kArticleNotebookLabel,
+  kBibliography,
   kClearHiddenClasses,
+  kCodeLinks,
+  kDocumentClass,
   kEcho,
   kExtensionName,
   kFormatLinks,
+  kFormatResources,
   kIpynbProduceSourceNotebook,
   kKeepHidden,
+  kKeepTex,
   kLanguageDefaults,
+  kLaunchBinderTitle,
+  kLaunchDevContainerTitle,
   kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreserveCells,
   kNotebookPreviewOptions,
   kNotebooks,
-  kOtherLinks,
   kOutputFile,
   kQuartoInternal,
   kRemoveHidden,
   kResources,
+  kTheme,
   kToc,
   kUnrollMarkdownCells,
   kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import { isHtmlOutput } from "../../../config/format.ts";
+import {
+  isHtmlOutput,
+  isIpynbOutput,
+  isLatexOutput,
+} from "../../../config/format.ts";
 import {
   PandocInputTraits,
   PandocOptions,
@@ -55,7 +66,7 @@ import {
   RenderResultFile,
   RenderServices,
 } from "../../../command/render/types.ts";
-import { gitHubContext } from "../../../core/github.ts";
+import { GitHubContext, gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
@@ -95,6 +106,23 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
+import {
+  binderUrl,
+  codeSpacesUrl,
+  hasBinderCompatibleEnvironment,
+  hasDevContainer,
+} from "../../../core/container.ts";
+import { computeProjectEnvironment } from "../../project-environment.ts";
+import {
+  ensureDirSync,
+} from "../../../vendor/deno.land/std@0.185.0/fs/ensure_dir.ts";
+import { copySync } from "../../../vendor/deno.land/std@0.185.0/fs/copy.ts";
+import {
+  dirname,
+  isAbsolute,
+} from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
+import { existsSync } from "../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
+import { safeExistsSync } from "../../../core/path.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -265,6 +293,12 @@ export const manuscriptProjectType: ProjectType = {
     // By default, notebook previews enable the back button
     const previewOptions = { back: true };
     config[kNotebookPreviewOptions] = previewOptions;
+
+    // Default to cosmo theme
+    config[kTheme] = "cosmo";
+
+    // By default, keep tex and clean things up ourselves
+    config[kKeepTex] = true;
 
     return config;
   },
@@ -474,19 +508,16 @@ export const manuscriptProjectType: ProjectType = {
       context,
       manuscriptConfig,
     );
-    if (isArticle) {
-      // Add the github repo as a metadata link
-      const ghContext = await gitHubContext(context.dir);
-      if (ghContext) {
-        const repoUrl = ghContext.repoUrl;
-        if (repoUrl) {
-          const repoLink: OtherLink = {
-            icon: "github",
-            text: "GitHub Repo",
-            href: repoUrl,
-          };
-          extras.metadata[kOtherLinks] = [repoLink];
-        }
+    if (isArticle && isHtmlOutput(format.pandoc)) {
+      // Inject code links
+      const outputCodeLinks = await computeCodeLinks(
+        source,
+        format,
+        manuscriptConfig,
+        context,
+      );
+      if (outputCodeLinks.length > 0) {
+        extras.metadata[kCodeLinks] = outputCodeLinks;
       }
 
       // If the user isn't explicitly providing a notebook list
@@ -589,6 +620,14 @@ export const manuscriptProjectType: ProjectType = {
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => {
+    let outBundle;
+    for (const outputFile of outputFiles) {
+      const format = outputFile.format;
+      if (isLatexOutput(format.pandoc) && format.render[kKeepTex]) {
+        outBundle = createTexOutputBundle(outputFile, context);
+      }
+    }
+
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
     if (
@@ -607,6 +646,7 @@ export const manuscriptProjectType: ProjectType = {
         projectOutputDir(context),
         outputFiles,
         manuscriptConfig,
+        outBundle,
       );
       if (mecaBundle) {
         const target = projectOutputDir(context);
@@ -659,4 +699,221 @@ const resolveNotebookDescriptors = (
     resolvedNbs.push(resolveNotebookDescriptor(nb));
   }
   return resolvedNbs;
+};
+
+const kCodeLinkTypes = ["repo", "binder", "devcontainer"];
+const kNoCodelinks: string[] = [];
+
+const computeCodeLinks = async (
+  source: string,
+  format: Format,
+  manuscriptConfig: ResolvedManuscriptConfig,
+  context: ProjectContext,
+) => {
+  if (format.metadata[kCodeLinks] === false) {
+    return [];
+  }
+
+  // Resolve the other links
+  const codeLinks = resolveCodeLinks(manuscriptConfig);
+
+  let cachedContext: GitHubContext | undefined = undefined;
+  const getGhContext = async () => {
+    if (cachedContext === undefined) {
+      cachedContext = await gitHubContext(context.dir);
+    }
+    return cachedContext;
+  };
+
+  const outputCodeLinks: OtherLink[] = [];
+  for (const codeLink of codeLinks) {
+    if (typeof (codeLink) === "string") {
+      if (kCodeLinkTypes.includes(codeLink)) {
+        const ghContext = await getGhContext();
+        if (ghContext) {
+          const repoUrl = ghContext.repoUrl;
+          if (codeLink === "repo" && repoUrl) {
+            const repoLink: OtherLink = {
+              icon: "github",
+              text: "GitHub Repo",
+              href: repoUrl,
+              target: "_blank",
+            };
+            outputCodeLinks.push(repoLink);
+          } else if (codeLink === "devcontainer" && repoUrl) {
+            if (
+              ghContext.organization && ghContext.repository &&
+              hasDevContainer(context.dir)
+            ) {
+              const containerUrl = codeSpacesUrl(repoUrl);
+              const containerLink: OtherLink = {
+                icon: "github",
+                text: format.language[kLaunchDevContainerTitle] ||
+                  "Launch Dev Container",
+                href: containerUrl,
+                target: "_blank",
+              };
+              outputCodeLinks.push(containerLink);
+            }
+          } else if (
+            codeLink === "binder" &&
+            ghContext.organization && ghContext.repository &&
+            hasBinderCompatibleEnvironment(context.dir)
+          ) {
+            // Compute the project environment and use that to customize the binder options
+            const projEnv = await computeProjectEnvironment(context);
+
+            const containerUrl = binderUrl(
+              ghContext.organization,
+              ghContext.repository,
+              {
+                openFile: extname(source) === ".ipynb" ? source : undefined,
+                editor: projEnv.codeEnvironment,
+              },
+            );
+            const containerLink: OtherLink = {
+              icon: "journals",
+              text: format.language[kLaunchBinderTitle] ||
+                "Launch Binder",
+              href: containerUrl,
+              target: "_blank",
+            };
+            outputCodeLinks.push(containerLink);
+          }
+        }
+      } else {
+        throw new Error(
+          `Unknown value '${codeLink}' for code-links. Allowed values include ${
+            kCodeLinkTypes.join(", ")
+          }`,
+        );
+      }
+    } else {
+      outputCodeLinks.push(codeLink);
+    }
+  }
+  return outputCodeLinks;
+};
+
+const resolveCodeLinks = (
+  config: ResolvedManuscriptConfig,
+): Array<string | OtherLink> => {
+  const codeLinks = config[kCodeLinks];
+  if (codeLinks !== undefined) {
+    if (typeof (codeLinks) === "boolean") {
+      return codeLinks ? kCodeLinkTypes : kNoCodelinks;
+    } else if (typeof (codeLinks) === "string") {
+      return [codeLinks];
+    } else {
+      return codeLinks;
+    }
+  }
+  return kCodeLinkTypes;
+};
+
+const kTexOutDir = "_tex";
+const createTexOutputBundle = (
+  outputFile: ProjectOutputFile,
+  context: ProjectContext,
+) => {
+  const format = outputFile.format;
+  const outDir = projectOutputDir(context);
+
+  // Find a unique output directory
+  const texDirAbs = join(outDir, `${kTexOutDir}`);
+  ensureDirSync(texDirAbs);
+
+  if (format.pandoc["output-file"]) {
+    // Compute the tex file path
+    const baseDir = dirname(outputFile.input);
+    const texInputFile = join(baseDir, format.pandoc["output-file"]);
+    const texInputDir = dirname(texInputFile);
+
+    const texOutputFile = join(texDirAbs, format.pandoc["output-file"]);
+    const textOutputDir = dirname(texOutputFile);
+
+    // move the root output file
+    Deno.copyFileSync(
+      texInputFile,
+      texOutputFile,
+    );
+    Deno.removeSync(texInputFile);
+
+    // Create the resulting bundle descriptor
+    const texBundle: { manuscript: string; supporting: string[] } = {
+      manuscript: texOutputFile,
+      supporting: [],
+    };
+
+    // move the supporting files and resources
+    if (outputFile.supporting) {
+      const uniqSupporting = ld.uniq(outputFile.supporting);
+      for (const file of uniqSupporting) {
+        const supportingAbs = isAbsolute(file) ? file : join(texInputDir, file);
+        const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
+        ensureDirSync(dirname(outPath));
+        copySync(supportingAbs, outPath);
+        Deno.removeSync(supportingAbs, { recursive: true });
+        texBundle.supporting.push(outPath);
+      }
+    }
+
+    // move the supporting files and resources
+    if (outputFile.resources) {
+      const uniqResources = ld.uniq(outputFile.resources);
+      for (const file of uniqResources) {
+        const outPath = join(texDirAbs, relative(context.dir, file));
+        ensureDirSync(dirname(outPath));
+        copySync(file, outPath);
+        texBundle.supporting.push(outPath);
+      }
+    }
+
+    // Deal with document class
+    const docClass = format.metadata[kDocumentClass];
+    const classFile = `${docClass}.cls`;
+    const classFilePath = join(texInputDir, classFile);
+    if (existsSync(classFilePath)) {
+      const outClassPath = join(textOutputDir, classFile);
+      copySync(classFilePath, outClassPath);
+      texBundle.supporting.push(outClassPath);
+    }
+
+    // Deal with bibliographies
+    if (format.metadata[kBibliography]) {
+      const bibliographies = Array.isArray(format.metadata[kBibliography])
+        ? format.metadata[kBibliography] as string[]
+        : [format.metadata[kBibliography] as string];
+      for (const bibligography of bibliographies) {
+        const bibPath = join(context.dir, bibligography);
+        const bibOutPath = join(textOutputDir, bibligography);
+        ensureDirSync(dirname(bibOutPath));
+        copySync(bibPath, bibOutPath);
+        texBundle.supporting.push(bibOutPath);
+      }
+    }
+
+    // Deal with format resources
+    const formatResources = format.render[kFormatResources];
+    if (formatResources) {
+      for (const formatResource of formatResources) {
+        const resourcePath = join(context.dir, formatResource);
+        const resourceOutPath = join(
+          textOutputDir,
+          basename(formatResource),
+        );
+        // Format resources could have been discovered some other way (e.g. document class)
+        // So don't error if they're already in place
+        if (!safeExistsSync(resourceOutPath)) {
+          copySync(resourcePath, resourceOutPath);
+          texBundle.supporting.push(resourceOutPath);
+        }
+      }
+    }
+    return texBundle;
+  } else {
+    throw new InternalError(
+      "Was expecting there to a Pandoc output file since we're rendering LaTeX",
+    );
+  }
 };

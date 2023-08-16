@@ -21,6 +21,7 @@ import {
   kRemoveHidden,
   kTemplate,
   kTo,
+  kVariant,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -56,6 +57,11 @@ function resolveJats(
   _notebookMetadata?: NotebookMetadata,
 ) {
   const resolved = ld.cloneDeep(executedFile);
+  const to =
+    resolved.recipe.format.render[kVariant]?.includes("+element_citations")
+      ? "jats+element_citations"
+      : "jats";
+
   resolved.recipe.format.metadata[kLintXml] = false;
   resolved.recipe.format.metadata[kJatsSubarticle] = true;
   resolved.recipe.format.metadata[kJatsSubarticleId] = token;
@@ -63,7 +69,7 @@ function resolveJats(
     nbAbsPath,
   );
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
-  resolved.recipe.format.pandoc.to = "jats";
+  resolved.recipe.format.pandoc.to = to;
   resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
 
   // Configure echo for this rendering
@@ -83,19 +89,23 @@ function resolveJats(
 }
 async function renderJats(
   nbPath: string,
-  _format: Format,
+  format: Format,
   subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
+  const to = format.render[kVariant]?.includes("+element_citations")
+    ? "jats+element_citations"
+    : "jats";
+
   const rendered = await renderFile(
     { path: nbPath, formats: ["jats"] },
     {
       services,
       flags: {
         metadata: {
-          [kTo]: "jats",
+          [kTo]: to,
           [kLintXml]: false,
           [kJatsSubarticle]: true,
           [kJatsSubarticleId]: subArticleToken,

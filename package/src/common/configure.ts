@@ -163,11 +163,13 @@ export function copyPandocScript(config: Configuration, targetDir: string) {
     Deno.removeSync(pandocFile);
   }
 
-  info("> creating pandoc symlink");
-  Deno.run({
-    cwd: targetDir,
-    cmd: ["ln", "-s", linkTarget, "pandoc"]
-  });
+  if (Deno.build.os !== "windows") {
+    info("> creating pandoc symlink");
+    Deno.run({
+      cwd: targetDir,
+      cmd: ["ln", "-s", linkTarget, "pandoc"]
+    });  
+  }
 }
 
 export function copyPandocAliasScript(config: Configuration, toolsDir: string) {

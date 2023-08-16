@@ -13,6 +13,8 @@ export type GitHubContext = {
   ghPages?: boolean;
   siteUrl?: string;
   browse?: boolean;
+  organization?: string;
+  repository?: string;
 };
 
 export async function gitHubContext(dir: string) {
@@ -65,7 +67,12 @@ export async function gitHubContext(dir: string) {
           context.originUrl!,
         );
 
-        context.repoUrl = repoUrl(context.originUrl!);
+        const repo = repoInfo(context.originUrl!);
+        if (repo) {
+          context.repoUrl = repo.repoUrl;
+          context.organization = repo.organization;
+          context.repository = repo.repository;
+        }
       }
     }
   }
@@ -79,12 +86,16 @@ const kGithubIo = "github.io";
 const kGithubGitPattern = /^git@([^:]+):([^\/]+)\/(.+?)(?:\.git)?$/;
 const kGithubHttpsPattern = /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/;
 
-function repoUrl(originUrl: string) {
+function repoInfo(originUrl: string) {
   // pick apart origin url for github.com
   const match = originUrl?.match(kGithubGitPattern) ||
     originUrl?.match(kGithubHttpsPattern);
   if (match && match.includes(kGithubCom)) {
-    return `https://${match[1]}/${match[2]}/${match[3]}/`;
+    return {
+      repoUrl: `https://${match[1]}/${match[2]}/${match[3]}/`,
+      organization: match[2],
+      repository: match[3],
+    };
   }
 }
 

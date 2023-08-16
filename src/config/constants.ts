@@ -45,6 +45,7 @@ export const kEnableCrossRef = "enable-crossref";
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
 export const kOtherLinks = "other-links";
+export const kCodeLinks = "code-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
@@ -214,6 +215,9 @@ export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
 export const kOtherLinksTitle = "other-links-title";
+export const kCodeLinksTitle = "code-links-title";
+export const kLaunchDevContainerTitle = "launch-dev-container-title";
+export const kLaunchBinderTitle = "launch-binder-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-title";
 export const kCalloutNoteCaption = "callout-note-title";
@@ -315,8 +319,10 @@ export const kListingPageFieldFileName = "listing-page-field-filename";
 export const kListingPageFieldFileModified = "listing-page-field-filemodified";
 export const kListingPageFieldSubtitle = "listing-page-field-subtitle";
 export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
+export const kListingPageFieldWordCount = "listing-page-field-wordcount";
 export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
+export const kListingPageWords = "listing-page-words";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
@@ -330,6 +336,9 @@ export const kLanguageDefaultsKeys = [
   kTocTitleWebsite,
   kRelatedFormatsTitle,
   kOtherLinksTitle,
+  kCodeLinksTitle,
+  kLaunchDevContainerTitle,
+  kLaunchBinderTitle,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
   kCalloutTipCaption,
@@ -425,8 +434,10 @@ export const kLanguageDefaultsKeys = [
   kListingPageFieldFileModified,
   kListingPageFieldSubtitle,
   kListingPageFieldReadingTime,
+  kListingPageFieldWordCount,
   kListingPageFieldCategories,
   kListingPageMinutesCompact,
+  kListingPageWords,
   kListingPageCategoryAll,
   kListingPageNoMatches,
   kTitleBlockAuthorSingle,

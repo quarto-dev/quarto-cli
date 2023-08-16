@@ -142,9 +142,15 @@ export function parseNotebookAddress(
 }
 
 function unsupportedEmbed(path: string) {
-  throw new Error(
-    `Unable to embed content from ${path}. Embedding currently only supports content from Juptyer Notebooks.`,
-  );
+  if (extname(path) === "") {
+    throw new Error(
+      `Unable to embed content from ${path} - there is no extension on the file path.`,
+    );
+  } else {
+    throw new Error(
+      `Unable to embed content from ${path} - embedding content is not supported for this file type.`,
+    );
+  }
 }
 
 export async function ensureNotebookContext(

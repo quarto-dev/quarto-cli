@@ -9655,6 +9655,22 @@ var require_yaml_intelligence_resources = __commonJS({
                   ]
                 },
                 description: "A list of other links to appear below the TOC."
+              },
+              "code-links": {
+                schema: {
+                  anyOf: [
+                    "boolean",
+                    {
+                      ref: "other-links"
+                    }
+                  ]
+                },
+                tags: {
+                  formats: [
+                    "$html-doc"
+                  ]
+                },
+                description: "A list of codes links to appear with this document."
               }
             }
           }
@@ -10188,8 +10204,13 @@ var require_yaml_intelligence_resources = __commonJS({
                         categories: {
                           maybeArrayOf: {
                             string: {
-                              description: "A list of categories for which to create separate RSS feeds containing only posts with that category."
+                              description: "A list of categories for which to create separate RSS feeds containing only posts with that category"
                             }
+                          }
+                        },
+                        "xml-stylesheet": {
+                          path: {
+                            description: "The path to an XML stylesheet (XSL file) used to style the RSS feed."
                           }
                         }
                       }
@@ -11260,6 +11281,19 @@ var require_yaml_intelligence_resources = __commonJS({
                   path: {
                     description: "The input document that will serve as the root document for this manuscript"
                   }
+                },
+                "code-links": {
+                  anyOf: [
+                    "boolean",
+                    {
+                      maybeArrayOf: {
+                        anyOf: [
+                          "object",
+                          "string"
+                        ]
+                      }
+                    }
+                  ]
                 },
                 "manuscript-url": {
                   string: {
@@ -14588,9 +14622,39 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            ref: "other-links"
+            anyOf: [
+              {
+                enum: [
+                  false
+                ]
+              },
+              {
+                ref: "other-links"
+              }
+            ]
           },
           description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
+        },
+        {
+          name: "code-links",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              {
+                enum: [
+                  false
+                ]
+              },
+              {
+                ref: "other-links"
+              }
+            ]
+          },
+          description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
         },
         {
           name: "notebook-subarticles",
@@ -17470,6 +17534,34 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Setting this to false prevents this document from being included in searches."
         },
         {
+          name: "repo-actions",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: {
+                  enum: [
+                    "none",
+                    "edit",
+                    "source",
+                    "issue"
+                  ],
+                  description: {
+                    short: "Links to source repository actions",
+                    long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+                  }
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+        },
+        {
           name: "aliases",
           schema: {
             arrayOf: "string"
@@ -18899,6 +18991,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book title",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
@@ -19028,6 +19121,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -20455,6 +20549,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
         },
         "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
+        "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section.",
         {
           short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
@@ -20883,6 +20978,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "Print a list of figures in the document.",
         "Print a list of tables in the document.",
         "Setting this to false prevents this document from being included in\nsearches.",
+        "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
+        {
+          short: "Links to source repository actions",
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+        },
         "URLs that alias this document, when included in a website.",
         {
           short: "The path to a preview image for this document.",
@@ -21037,6 +21141,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -21349,6 +21454,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish open graph metadata",
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
+        "A list of codes links to appear with this document.",
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -21738,12 +21844,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 161289,
+        _internalId: 163214,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 161281,
+            _internalId: 163206,
             type: "enum",
             enum: [
               "png",
@@ -21759,7 +21865,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 161288,
+            _internalId: 163213,
             type: "anyOf",
             anyOf: [
               {
@@ -30995,10 +31101,10 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   };
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
   );
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^\s*```+\s*$/;
+  const endCodeRegEx = /^\s*(```+)\s*$/;
   let language = "";
   let directiveParams = void 0;
   let cellStartLine = 0;
@@ -31108,11 +31214,12 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
       await flushLineBuffer("directive", i);
     } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);
-      language = m[1];
+      language = m[2];
       await flushLineBuffer("markdown", i);
       inCodeCell = true;
+      inCode = m[1].length;
       codeStartRange = line;
-    } else if (endCodeRegEx.test(line.substring) && (inCodeCell || inCode && tickCount(line.substring) === inCode)) {
+    } else if (endCodeRegEx.test(line.substring) && (inCode && line.substring.match(endCodeRegEx)[1].length === inCode)) {
       if (inCodeCell) {
         codeEndRange = line;
         inCodeCell = false;

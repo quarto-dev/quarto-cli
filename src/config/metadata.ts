@@ -15,6 +15,7 @@ import { mergeArrayCustomizer } from "../core/config.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
+  kCodeLinks,
   kExecuteDefaults,
   kExecuteDefaultsKeys,
   kExecuteEnabled,
@@ -33,6 +34,7 @@ import {
   kMetadataFile,
   kMetadataFiles,
   kMetadataFormat,
+  kOtherLinks,
   kPandocDefaults,
   kPandocDefaultsKeys,
   kPandocMetadata,
@@ -261,12 +263,17 @@ export function mergeFormatMetadata<T>(
   // that should not be combined with other types)
   const kUnmergeableKeys = [kTblColwidths];
 
+  // These boolean keys will disable array values
+  const kBooleanDisableArrays = [kCodeLinks, kOtherLinks];
+
   return mergeConfigsCustomized<T>(
     (objValue: unknown, srcValue: unknown, key: string) => {
       if (kUnmergeableKeys.includes(key)) {
         return srcValue;
       } else if (key === kVariant) {
         return mergePandocVariant(objValue, srcValue);
+      } else if (kBooleanDisableArrays.includes(key)) {
+        return mergeDisablableArray(objValue, srcValue);
       } else {
         return undefined;
       }
@@ -324,6 +331,23 @@ export function mergeConfigsCustomized<T>(
       }
     },
   );
+}
+
+export function mergeDisablableArray(objValue: unknown, srcValue: unknown) {
+  if (Array.isArray(objValue) && Array.isArray(srcValue)) {
+    return [
+      ...objValue,
+      ...srcValue,
+    ];
+  } else if (Array.isArray(objValue)) {
+    if (srcValue === false) {
+      return [];
+    } else {
+      return objValue;
+    }
+  } else {
+    return srcValue;
+  }
 }
 
 export function mergePandocVariant(objValue: unknown, srcValue: unknown) {

@@ -419,6 +419,7 @@ async function renderForPreview(
     flags,
     pandocArgs: pandocArgs,
     previewServer: true,
+    setProjectDir: project !== undefined,
   });
   if (renderResult.error) {
     throw renderResult.error;

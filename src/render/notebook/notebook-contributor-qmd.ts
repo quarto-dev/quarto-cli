@@ -104,6 +104,7 @@ function resolveOutputNotebook(
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
   resolved.recipe.format.render[kIpynbProduceSourceNotebook] = true;
+  resolved.recipe.format.pandoc.citeproc = false;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -115,7 +116,7 @@ async function renderOutputNotebook(
   _subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFile(
     { path: nbPath, formats: ["ipynb"] },
@@ -127,6 +128,7 @@ async function renderOutputNotebook(
           [kOutputFile]: ipynbOutputFile(nbPath),
           [kNotebookPreserveCells]: true,
           [kIpynbProduceSourceNotebook]: true,
+          citeproc: false,
         },
         quiet: false,
       },
@@ -135,7 +137,7 @@ async function renderOutputNotebook(
       quietPandoc: true,
     },
     services,
-    project,
+    //project,
   );
 
   // An error occurred rendering this subarticle

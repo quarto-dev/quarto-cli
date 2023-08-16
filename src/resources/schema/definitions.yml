@@ -1012,6 +1012,14 @@
         tags:
           formats: [$html-doc]
         description: "A list of other links to appear below the TOC."
+      code-links:
+        schema:
+          anyOf:
+            - boolean
+            - ref: other-links
+        tags:
+          formats: [$html-doc]
+        description: "A list of codes links to appear with this document."
 
 - id: book-schema
   schema:
@@ -1415,7 +1423,10 @@
                 categories:
                   maybeArrayOf:
                     string:
-                      description: A list of categories for which to create separate RSS feeds containing only posts with that category.
+                      description: A list of categories for which to create separate RSS feeds containing only posts with that category
+                xml-stylesheet:
+                  path:
+                    description: The path to an XML stylesheet (XSL file) used to style the RSS feed.
         description: Enables an RSS feed for the listing.
       date-format:
         string:
@@ -2221,6 +2232,13 @@
         "article":
           path:
             description: "The input document that will serve as the root document for this manuscript"
+        "code-links":
+          anyOf:
+            - boolean
+            - maybeArrayOf:
+                anyOf:
+                  - object
+                  - string
         "manuscript-url":
           string:
             description: "The deployed url for this manuscript"
