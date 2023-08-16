@@ -42,7 +42,6 @@ export const positCloudProvider: PublishProvider = {
   description: kPositCloudDescription,
   requiresServer: true,
   listOriginOnly: true,
-  hidden: true,
   accountTokens,
   authorizeToken,
   removeToken,
