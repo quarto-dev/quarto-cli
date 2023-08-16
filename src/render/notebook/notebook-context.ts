@@ -148,7 +148,9 @@ export function notebookContext(): NotebookContext {
     renderType: RenderType,
     context?: ProjectContext,
   ) {
-    debug(`[NotebookContext]: Reviving Rendering (${renderType}):${nbAbsPath}`);
+    debug(
+      `[NotebookContext]: Attempting to Revive Rendering (${renderType}):${nbAbsPath}`,
+    );
     const contrib = contributor(renderType);
 
     if (contrib.cachedPath) {
