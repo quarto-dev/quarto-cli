@@ -43,6 +43,7 @@ export const positCloudProvider: PublishProvider = {
   requiresServer: true,
   listOriginOnly: true,
   hidden: true,
+  accountDescriptor: "credential",
   accountTokens,
   authorizeToken,
   removeToken,

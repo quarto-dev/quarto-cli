@@ -15,10 +15,22 @@ const kMinPort = 3000;
 const kMaxPort = 8000;
 
 function isPortSafe(port: number): boolean {
+  // cf https://superuser.com/a/188070
   // excludes port numbers that chrome considers unsafe
-  return ![3659, 4045, 5000, 6000, 6665, 6666, 6667, 6668, 6669, 6697].includes(
-    port,
-  );
+  return ![
+    3659, // apple-sasl / PasswordServer
+    4045, // lockd
+    5060, // sip
+    5061, // sips
+    6000, // X11
+    6566, // sane-port
+    6665, // Alternate IRC [Apple addition]
+    6666, // Alternate IRC [Apple addition]
+    6667, // Standard IRC [Apple addition]
+    6668, // Alternate IRC [Apple addition]
+    6669, // Alternate IRC [Apple addition]
+    6697, // IRC + TLS
+  ].includes(port);
 }
 
 function randomSafePort(): number {
