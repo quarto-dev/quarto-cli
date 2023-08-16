@@ -114,7 +114,6 @@ import {
 } from "../../../core/container.ts";
 import { computeProjectEnvironment } from "../../project-environment.ts";
 import {
-  ensureDir,
   ensureDirSync,
 } from "../../../vendor/deno.land/std@0.185.0/fs/ensure_dir.ts";
 import { copySync } from "../../../vendor/deno.land/std@0.185.0/fs/copy.ts";
@@ -122,10 +121,7 @@ import {
   dirname,
   isAbsolute,
 } from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
-import {
-  exists,
-  existsSync,
-} from "../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
+import { existsSync } from "../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
 const kMecaIcon = "archive";
@@ -772,7 +768,7 @@ const computeCodeLinks = async (
               ghContext.repository,
               {
                 openFile: extname(source) === ".ipynb" ? source : undefined,
-                rstudio: projEnv.codeEnvironment === "rstudio",
+                editor: projEnv.codeEnvironment,
               },
             );
             const containerLink: OtherLink = {
@@ -851,7 +847,8 @@ const createTexOutputBundle = (
 
     // move the supporting files and resources
     if (outputFile.supporting) {
-      for (const file of outputFile.supporting) {
+      const uniqSupporting = ld.uniq(outputFile.supporting);
+      for (const file of uniqSupporting) {
         const supportingAbs = isAbsolute(file) ? file : join(texInputDir, file);
         const outPath = join(texDirAbs, relative(context.dir, supportingAbs));
         ensureDirSync(dirname(outPath));
@@ -863,7 +860,8 @@ const createTexOutputBundle = (
 
     // move the supporting files and resources
     if (outputFile.resources) {
-      for (const file of outputFile.resources) {
+      const uniqResources = ld.uniq(outputFile.resources);
+      for (const file of uniqResources) {
         const outPath = join(texDirAbs, relative(context.dir, file));
         ensureDirSync(dirname(outPath));
         copySync(file, outPath);

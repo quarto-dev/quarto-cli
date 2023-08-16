@@ -11,7 +11,7 @@
     </a>
     <ul class="dropdown-menu" aria-labelledby="<%- item.id %>">    
       <% for(const menuItem of item.menu) { %>
-        <% partial('navitem-menu.ejs', { item: menuItem }) %>
+        <% partial('navitem-dropdown.ejs', { item: menuItem }) %>
       <% } %>
     </ul>
   </li>
