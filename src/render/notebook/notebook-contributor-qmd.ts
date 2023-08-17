@@ -158,5 +158,5 @@ async function renderOutputNotebook(
 
 function ipynbOutputFile(nbAbsPath: string) {
   const [_dir, stem] = dirAndStem(nbAbsPath);
-  return `${stem}.ipynb`;
+  return `${stem}.embed.ipynb`;
 }

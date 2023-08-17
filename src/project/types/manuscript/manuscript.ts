@@ -52,11 +52,7 @@ import {
   kWarning,
 } from "../../../config/constants.ts";
 import { projectOutputDir } from "../../project-shared.ts";
-import {
-  isHtmlOutput,
-  isIpynbOutput,
-  isLatexOutput,
-} from "../../../config/format.ts";
+import { isHtmlOutput, isLatexOutput } from "../../../config/format.ts";
 import {
   PandocInputTraits,
   PandocOptions,
@@ -83,7 +79,6 @@ import {
   shouldMakeMecaBundle,
 } from "./manuscript-meca.ts";
 import { readLines } from "io/mod.ts";
-import { isOutputFile } from "../../../command/render/output.ts";
 import {
   computeProjectArticleFile,
   isArticle,
@@ -200,7 +195,16 @@ export const manuscriptProjectType: ProjectType = {
         }
 
         // Filter output notebooks
-        if (isOutputFile(file, "ipynb")) {
+        const excludeSuffixes = [".out.ipynb", ".embed.ipynb"];
+        if (
+          excludeSuffixes.some((suffix) => {
+            return file.endsWith(suffix);
+          })
+        ) {
+          return false;
+        }
+
+        if (file.match(/\.embed\./)) {
           return false;
         }
         return true;
@@ -296,9 +300,6 @@ export const manuscriptProjectType: ProjectType = {
 
     // Default to cosmo theme
     config[kTheme] = "cosmo";
-
-    // By default, keep tex and clean things up ourselves
-    config[kKeepTex] = true;
 
     return config;
   },
@@ -545,6 +546,11 @@ export const manuscriptProjectType: ProjectType = {
         };
       }
       extras[kNotebooks] = Object.values(outputNbs);
+    } else if (isArticle && isLatexOutput(format.pandoc)) {
+      if (isLatexOutput(format.pandoc)) {
+        // By default, keep tex and clean things up ourselves
+        format.render[kKeepTex] = true;
+      }
     }
 
     // Resolve input links
