@@ -21,7 +21,7 @@ const subFigRegexes = [
 ];
 
 const simpleTableRegexes = [
-  /\\begin{table}[^]*?\\caption{\\label{tbl-letters}[^]*?\\begin{longtable}[^]*?\\end{longtable}/,
+  /\\begin{longtable}[^]*?\\caption{.*}\\label{tbl-letters}[^]*?\\end{longtable}/,
   /Table~\\ref{tbl-letters}/,
 ];
 const subTableRegexes = [
