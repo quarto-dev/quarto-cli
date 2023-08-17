@@ -3,7 +3,7 @@
 
 function columns_preprocess() 
   return {
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       local location = cap_location(float)
       if location == 'margin' then
         float.classes:insert('margin-caption')

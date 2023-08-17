@@ -54,7 +54,7 @@ function forward_widths_to_subfloats(layout)
       if cell.t == "Div" and width then
         local data = _quarto.ast.resolve_custom_data(cell)
         _quarto.ast.walk(cell, {
-          FloatCrossref = function(float)
+          FloatRefTarget = function(float)
             local id = float.identifier
             width_table[id] = parse_width(width)
           end
@@ -64,7 +64,7 @@ function forward_widths_to_subfloats(layout)
   end
   
   _quarto.ast.walk(layout.float, {
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       local id = float.identifier
       if width_table[id] then
         float.width = width_table[id]
@@ -133,7 +133,7 @@ _quarto.ast.add_handler({
             -- if it has a ref parent then give it another class
             -- (used to provide subcaption styling)
             local new_div = _quarto.ast.walk(div, {
-              FloatCrossref = function(float)
+              FloatRefTarget = function(float)
                 if float.parent_id then
                   div.attr.classes:insert("quarto-layout-cell-subref")
                   div.attr.attributes["ref-parent"] = float.parent_id

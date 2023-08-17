@@ -7,7 +7,7 @@ _quarto.ast.add_handler({
   class_name = {},
 
   -- the name of the ast node, used as a key in extended ast filter tables
-  ast_name = "FloatCrossref",
+  ast_name = "FloatRefTarget",
 
   -- generic names this custom AST node responds to
   -- this is still unimplemented
@@ -17,7 +17,7 @@ _quarto.ast.add_handler({
   kind = "Block",
 
   parse = function(div)
-    fail("FloatCrossref nodes should not be parsed")
+    fail("FloatRefTarget nodes should not be parsed")
   end,
 
   slots = { "content", "caption_long", "caption_short" },
@@ -74,10 +74,10 @@ local function get_node_from_float_and_type(float, type)
 end
 
 -- default renderer first
-_quarto.ast.add_renderer("FloatCrossref", function(_)
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
   return true
 end, function(float)
-  warn("This is a placeholder FloatCrossref; this output format does not currently support FloatCrossref nodes.")
+  warn("This is a placeholder FloatRefTarget; this output format does not currently support FloatRefTarget nodes.")
   return scaffold(float.content)
 end)
 
@@ -126,7 +126,7 @@ local function get_figure_attributes(el)
   }
 end
 
-_quarto.ast.add_renderer("FloatCrossref", function(_)
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isLatexOutput()
 end, function(float)
   local figEnv = latexFigureEnv(float)
@@ -247,7 +247,7 @@ end, function(float)
   end
 end)
 
-_quarto.ast.add_renderer("FloatCrossref", function(_)
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isHtmlOutput()
 end, function(float)
   prepare_caption(float)
@@ -267,7 +267,7 @@ end, function(float)
   return float_crossref_render_html_figure(float)
 end)
 
-_quarto.ast.add_renderer("FloatCrossref", function(_)
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
 end, function(float)
   -- docx format requires us to annotate the caption prefix explicitly

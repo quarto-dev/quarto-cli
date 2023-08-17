@@ -20,7 +20,7 @@ function cites_preprocess()
       end
     end,
 
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       local inlines_filter
       local has_margin_column = hasMarginColumn(float)
 

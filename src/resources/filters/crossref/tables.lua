@@ -9,7 +9,7 @@ local patterns = require("modules/patterns")
 
 -- function crossref_tables()
 --   return {
---     FloatCrossref = function(float)
+--     FloatRefTarget = function(float)
 --       local kind = refType(float.identifier)
 --       if kind == "tbl" then
 --         return process(float)

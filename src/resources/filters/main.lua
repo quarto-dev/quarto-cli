@@ -190,7 +190,7 @@ local quarto_init_filters = {
 -- notably, user filters will run on the normalized document and
 -- see a "Quarto AST". For example, Figure nodes are no longer
 -- going to be present, and will instead be represented by
--- our custom AST infrastructure (FloatCrossref specifically).
+-- our custom AST infrastructure (FloatRefTarget specifically).
 
 local quarto_normalize_filters = {
   { name = "normalize", filter = filterIf(function()

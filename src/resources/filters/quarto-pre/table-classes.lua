@@ -36,7 +36,7 @@ function table_classes()
     end
   end
 
-  -- the treatment of Table and FloatCrossref is
+  -- the treatment of Table and FloatRefTarget is
   -- slightly non-uniform because captions are stored slightly differently
   -- in either case. Cursed code follows...
   return {
@@ -58,7 +58,7 @@ function table_classes()
       tbl.caption.long[#tbl.caption.long] = pandoc.Plain(createTableCaption(caption_parsed, attr))
       return tbl
     end,
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       local kind = refType(float.identifier)
       if kind ~= "tbl" then
         return nil
@@ -76,7 +76,7 @@ function table_classes()
         float.content = process_table(float.content, normalized_classes)
       else
         float.content = _quarto.ast.walk(float.content, {
-          FloatCrossref = function()
+          FloatRefTarget = function()
             return nil, false -- do not descend into subfloats
           end,
           Table = function(tbl)

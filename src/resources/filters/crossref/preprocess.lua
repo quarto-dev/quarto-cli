@@ -8,9 +8,9 @@ function crossref_mark_subfloats()
 
   return {
     traverse = "topdown",
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       float.content = _quarto.ast.walk(float.content, {
-        FloatCrossref = function(subfloat)
+        FloatRefTarget = function(subfloat)
           subfloat.parent_id = float.identifier
           subfloat.content = _quarto.ast.walk(subfloat.content, {
             Image = function(image)

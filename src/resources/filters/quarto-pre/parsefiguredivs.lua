@@ -82,7 +82,7 @@ function parse_floats()
         })  
       end
     end
-    return quarto.FloatCrossref({
+    return quarto.FloatRefTarget({
       attr = attr,
       type = category.name,
       content = content,
@@ -121,7 +121,7 @@ function parse_floats()
         end
       }) or fig.content[1] -- this shouldn't be needed but the lua analyzer doesn't know it
 
-      return quarto.FloatCrossref({
+      return quarto.FloatRefTarget({
         attr = fig_attr,
         type = category.name,
         content = new_content.content,
@@ -131,7 +131,7 @@ function parse_floats()
     end,
 
     -- if we see a table with a caption that includes a tbl- label, then
-    -- we normalize that to a FloatCrossref
+    -- we normalize that to a FloatRefTarget
     Table = function(el)
       if el.caption.long == nil then
         return nil
@@ -158,7 +158,7 @@ function parse_floats()
 
       local combined = merge_attrs(el.attr, attr)
 
-      return quarto.FloatCrossref({
+      return quarto.FloatRefTarget({
         identifier = label,
         classes = combined.classes,
         attributes = as_plain_table(combined.attributes),
@@ -207,7 +207,7 @@ function parse_floats()
           return
         end
         local combined = merge_attrs(img.attr, link.attr)
-        return quarto.FloatCrossref({
+        return quarto.FloatRefTarget({
           identifier = identifier,
           classes = combined.classes,
           attributes = as_plain_table(combined.attributes),
@@ -232,7 +232,7 @@ function parse_floats()
       
       local attr = code.attr
       -- code.attr = pandoc.Attr("", {}, {})
-      return quarto.FloatCrossref({
+      return quarto.FloatRefTarget({
         attr = attr,
         type = "Listing",
         content = { decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
@@ -261,7 +261,7 @@ function parse_floats()
       
       local attr = code.attr
       code.attr = pandoc.Attr("", {}, {})
-      return quarto.FloatCrossref({
+      return quarto.FloatRefTarget({
         attr = attr,
         type = "Listing",
         content = { content },

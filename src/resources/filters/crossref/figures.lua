@@ -39,7 +39,7 @@ function crossref_figures()
     -- in 1.4, we won't re-write its caption here, but instead we'll
     -- do it at the render filter.
 
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       -- get label and base caption
       -- local label = el.attr.identifier
       local kind = refType(float.identifier)

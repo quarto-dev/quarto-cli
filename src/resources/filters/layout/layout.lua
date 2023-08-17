@@ -24,7 +24,7 @@ function layout_panels()
         layout = layout,
       })
     end,
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       local attr = pandoc.Attr(float.identifier, float.classes, float.attributes)
       if not attr_requires_panel_layout(attr) then
         return nil
@@ -162,7 +162,7 @@ function partition_cells(float)
       -- then unroll multiple blocks
       local is_subfloat
       _quarto.ast.walk(cellDiv, {
-        FloatCrossref = function(float)
+        FloatRefTarget = function(float)
           is_subfloat = true
           return nil
         end

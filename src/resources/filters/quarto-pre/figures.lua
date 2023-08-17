@@ -22,7 +22,7 @@ function quarto_pre_figures()
       
     end,
     
-    FloatCrossref = function(float)
+    FloatRefTarget = function(float)
       local kind = refType(float.identifier)
       if kind ~= "fig" then
         return

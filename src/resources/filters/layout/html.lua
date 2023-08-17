@@ -35,7 +35,7 @@ end, function(panel_layout)
       -- (th) to be centered. set them to left is they are default
       -- print(cell_div)
       cell_div = _quarto.ast.walk(cell_div, {
-        FloatCrossref = function(float)
+        FloatRefTarget = function(float)
           parent_id = float.parent_id
           return nil
         end,
@@ -69,7 +69,7 @@ end, function(panel_layout)
 
   if panel_layout.is_float_crossref then
     rendered_panel = float_crossref_render_html_figure(
-      prepare_caption(quarto.FloatCrossref({
+      prepare_caption(quarto.FloatRefTarget({
         identifier = panel_layout.identifier,
         classes = panel_layout.classes,
         attributes = panel_layout.attributes,
