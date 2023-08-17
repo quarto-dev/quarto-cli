@@ -126,7 +126,20 @@ function resolveRefs()
   }
 end
 
-function autoRefLabel(parentId)
+function autoRefLabel(refType)
+  local index = 1
+  while true do
+    local label = refType .. "-" .. "__quarto_auto_label-" .. tostring(index)
+    if not crossref.autolabels:includes(label) then
+      crossref.autolabels:insert(label)
+      return label
+    else
+      index = index + 1
+    end
+  end
+end
+
+function autoSubrefLabel(parentId)
   local index = 1
   while true do
     local label = parentId .. "-" .. tostring(index)

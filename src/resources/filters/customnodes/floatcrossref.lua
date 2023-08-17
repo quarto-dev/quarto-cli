@@ -88,19 +88,26 @@ local function ensure_custom(node)
   return node
 end
 
+local function is_unlabeled_float(float)
+  return float.identifier:match("^%a+__quarto_auto_label%-")
+end
+
 function prepare_caption(float)
   float = ensure_custom(float)
-  -- this should never happen, but it appeases the Lua analyzer
+  -- nil should never happen here, but the Lua analyzer doesn't know it
   if float == nil then
-    return
+    internal_error()
   end
   local caption_content = float.caption_long.content or float.caption_long
 
   if float.parent_id then
     prependSubrefNumber(caption_content, float.order)
   else
-    local title_prefix = float_title_prefix(float)
-    tprepend(caption_content, title_prefix)
+    -- in HTML, unlabeled floats do not get a title prefix
+    if not is_unlabeled_float(float) then
+      local title_prefix = float_title_prefix(float)
+      tprepend(caption_content, title_prefix)
+    end
   end
   return float
 end

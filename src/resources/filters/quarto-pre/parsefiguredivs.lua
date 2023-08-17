@@ -95,8 +95,24 @@ function parse_floats()
     Figure = function(fig)
       local key_prefix = refType(fig.identifier)
       if key_prefix == nil then
-        warn("Figure without crossref identifier - will simply use its content\n" .. tostring(fig))
-        return fig.content
+        -- Figure without crossref identifier, must attempt to guess content
+        local is_image
+        _quarto.ast.walk(fig.content, {
+          Image = function(image)
+            if image.caption ~= nil then
+              is_image = true
+            end
+          end
+        })
+        if is_image then
+          fig.identifier = autoRefLabel("fig")
+          key_prefix = refType(fig.identifier)
+        else
+          warn("Quarto could not guess the crossref type for the following figure:")
+          warn(tostring(fig))
+          warn("Quarto will simply use the figure content. Please add an explicit label to the figure")
+          return fig.content
+        end
       end
       local category = crossref.categories.by_ref_type[key_prefix]
       if category == nil then

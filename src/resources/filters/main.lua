@@ -73,6 +73,7 @@ import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
 import("./quarto-post/code.lua")
+import("./quarto-post/html.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -349,6 +350,10 @@ local quarto_post_filters = {
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
+
+  -- format fixups post rendering
+  { name = "post-render-html-fixups", filter = render_html_fixups() },
+  { name = "post-render-latex-fixups", filter = render_latex_fixups() },
 
   -- { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },

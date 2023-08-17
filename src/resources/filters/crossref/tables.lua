@@ -76,7 +76,7 @@ function preprocessRawTableBlock(rawEl, parentId)
         -- remove label from caption
         rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption:gsub("%%", "%%%%") .. "%3", 1)
       elseif parentId then
-        label = autoRefLabel(parentId)
+        label = autoSubrefLabel(parentId)
       end
         
       if label then
@@ -96,7 +96,7 @@ function preprocessRawTableBlock(rawEl, parentId)
       -- remove label from caption
       rawEl.text = rawEl.text:gsub(captionPattern, "%1%2%4", 1)
     elseif parentId then
-      label = autoRefLabel(parentId)
+      label = autoSubrefLabel(parentId)
     end
       
     if label then
@@ -135,7 +135,7 @@ function preprocessTable(el, parentId)
         
       -- if there is a parent then auto-assign a label if there is none 
       elseif parentId then
-        label = autoRefLabel(parentId)
+        label = autoSubrefLabel(parentId)
       end
      
       if label then
