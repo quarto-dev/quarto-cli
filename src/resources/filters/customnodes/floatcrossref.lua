@@ -143,6 +143,14 @@ end, function(float)
       return {}
     end
     caption_cmd_name = "subcaption"
+  elseif float.content.t == "Table" and float_type == "tbl" then -- float.parent_id is nil here
+    -- special-case the situation where the figure is Table and the content is Table
+    --
+    -- just return the table itself with the caption inside the table
+    caption_cmd_name = "caption"
+    float.content.caption.long = float.caption_long
+    float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+    return float.content
   end
   -- FIXME the old code had this bit about kSideCaptionEnv that
   -- we need to handle still
