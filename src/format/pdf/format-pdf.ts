@@ -873,7 +873,10 @@ const longtableBottomCaptionProcessor = () => {
         capturing = !line.match(/\\tabularnewline$/);
         return undefined;
       } else {
-        if (line.match(/^\\caption.*?\\tabularnewline$/)) {
+        if (
+          line.match(/^\\caption.*?\\tabularnewline$/) ||
+          line.match(/^\\caption{.*}\\\\$/)
+        ) {
           caption = line;
           return undefined;
         } else if (line.match(/^\\caption.*?/)) {
