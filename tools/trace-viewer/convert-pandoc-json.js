@@ -118,6 +118,7 @@ const convert = (data) => {
         "Strikeout",
         "Quoted",
         "SingleQuote",
+        "Note",
       ].includes(data.t)
     ) {
       return {
