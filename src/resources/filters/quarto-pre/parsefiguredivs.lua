@@ -176,7 +176,7 @@ function parse_floats()
         -- avoid a regression, in the absence of an associated regression test.
         --
         -- pandoc sometimes ends up with a fig prefixed title
-        -- (no idea way right now!)
+        -- (no idea why right now!)
         div = _quarto.ast.walk(div, {
           Image = function(image)
             if image.title == "fig:" or image.title == "fig-" then
