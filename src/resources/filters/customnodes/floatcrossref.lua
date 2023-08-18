@@ -91,7 +91,8 @@ local function ensure_custom(node)
 end
 
 local function is_unlabeled_float(float)
-  return float.identifier:match("^%a+%-__quarto_auto_label%-")
+  -- from src/resources/filters/common/refs.lua
+  return float.identifier:match("^%a+%-539a35d47e664c97a50115a146a7f1bd%-")
 end
 
 function prepare_caption(float)

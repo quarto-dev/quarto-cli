@@ -126,10 +126,15 @@ function resolveRefs()
   }
 end
 
+
+-- we're removing the dashes from this uuid because
+-- it makes it easier to handling it in lua patterns
+
+local quarto_auto_label_safe_latex_uuid = "539a35d47e664c97a50115a146a7f1bd"
 function autoRefLabel(refType)
   local index = 1
   while true do
-    local label = refType .. "-" .. "__quarto_auto_label-" .. tostring(index)
+    local label = refType .. "-" .. quarto_auto_label_safe_latex_uuid .. "-" ..tostring(index)
     if not crossref.autolabels:includes(label) then
       crossref.autolabels:insert(label)
       return label
