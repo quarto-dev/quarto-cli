@@ -91,10 +91,6 @@ local filterList = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-table-colwidth-cell", 
-    filter = table_colwidth_cell(),
-    flags = { "has_tbl_colwidths" } },
-
   { name = "pre-hidden", 
     filter = hidden(), 
     flags = { "has_hidden" } },

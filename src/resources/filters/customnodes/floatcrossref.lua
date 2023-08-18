@@ -29,6 +29,8 @@ _quarto.ast.add_handler({
       tbl.attributes = as_plain_table(tbl.attr.attributes)
       tbl.attr = nil
     end
+
+    table_colwidth_cell(tbl) -- table colwidth forwarding
     return tbl
   end
 })
@@ -89,7 +91,7 @@ local function ensure_custom(node)
 end
 
 local function is_unlabeled_float(float)
-  return float.identifier:match("^%a+__quarto_auto_label%-")
+  return float.identifier:match("^%a+%-__quarto_auto_label%-")
 end
 
 function prepare_caption(float)
@@ -104,7 +106,7 @@ function prepare_caption(float)
     prependSubrefNumber(caption_content, float.order)
   else
     -- in HTML, unlabeled floats do not get a title prefix
-    if not is_unlabeled_float(float) then
+    if (not is_unlabeled_float(float)) and (caption_content ~= nil) and (#caption_content > 0) then
       local title_prefix = float_title_prefix(float)
       tprepend(caption_content, title_prefix)
     end
@@ -180,7 +182,7 @@ end, function(float)
 
   local latex_caption
 
-  if float.caption_long then
+  if float.caption_long and #float.caption_long.content > 0 then
     local label_cmd = quarto.LatexInlineCommand({
       name = "label",
       arg = pandoc.Str(float.identifier)
@@ -352,6 +354,9 @@ end)
 local figcaption_uuid = "0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"
 
 local function create_figcaption(float)
+  if float.caption_long == nil or pandoc.utils.stringify(float.caption_long) == "" then
+    return nil
+  end
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
@@ -371,7 +376,7 @@ end
 function float_crossref_render_html_figure(float)
   float = ensure_custom(float)
   if float == nil then
-    fail("Should never happen")
+    internal_error()
     return pandoc.Div({})
   end
 
@@ -385,7 +390,9 @@ function float_crossref_render_html_figure(float)
       return image
     end
   }) or pandoc.Div({})) -- this should never happen but the lua analyzer doesn't know it
-  float_content.attributes["aria-describedby"] = caption_id
+  if caption_id ~= nil then
+    float_content.attributes["aria-describedby"] = caption_id
+  end
 
   -- otherwise, we render the float as a div with the caption
   local div = pandoc.Div({})

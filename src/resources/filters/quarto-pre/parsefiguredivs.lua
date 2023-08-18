@@ -208,6 +208,27 @@ function parse_floats()
     end,
 
     Para = function(para)
+      local img = discoverFigure(para, false)
+      if img ~= nil then
+        if img.identifier == "" then
+          img.identifier = autoRefLabel("fig")
+        end
+        local identifier = img.identifier
+        local type = refType(identifier)
+        local category = crossref.categories.by_ref_type[type]
+        if category == nil then
+          fail("Figure with invalid crossref category? " .. identifier)
+          return
+        end
+        return quarto.FloatRefTarget({
+          identifier = identifier,
+          classes = img.classes,
+          attributes = as_plain_table(img.attributes),
+          type = category.name,
+          content = img,
+          caption_long = img.caption,
+        })
+      end
       if discoverLinkedFigure(para) ~= nil then
         local link = para.content[1]
         local img = link.content[1]

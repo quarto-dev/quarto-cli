@@ -82,23 +82,28 @@ local function tblColwidthValues(tbl, tblColwidths)
 end
 
 -- propagate cell level tbl-colwidths to tables
-function table_colwidth_cell()
-  return {
-    Div = function(el)
-      if tcontains(el.attr.classes, "cell") then
-        local tblColwidths = el.attr.attributes[kTblColwidths]
-        el.attr.attributes[kTblColwidths] = nil
-        if tblColwidths ~= nil then
-          return _quarto.ast.walk(el, {
-            Table = function(tbl)
-              tbl.attr.attributes[kTblColwidths] = tblColwidths
-              return tbl
-            end
-          })
-        end
+function table_colwidth_cell(float)
+  if refType(float.identifier) ~= "tbl" then
+    return
+  end
+      
+  if tcontains(float.classes, "cell") then
+    local tblColwidths = float.attributes[kTblColwidths]
+    float.attributes[kTblColwidths] = nil
+    local function process_table(tbl)
+      tbl.attributes[kTblColwidths] = tblColwidths
+      return tbl
+    end
+    if tblColwidths ~= nil then
+      if float.content.t == "Table" then
+        float.content = process_table(float.content)
+      else            
+        float.content = _quarto.ast.walk(float.content, {
+          Table = process_table
+        })
       end
-    end,
-  }
+    end
+  end
 end
 
 -- handle tbl-colwidth
