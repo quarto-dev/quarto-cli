@@ -73,7 +73,7 @@ function render_asciidoc()
     end,
     Inlines = function(el)
       -- Walk inlines and see if there is an inline code followed directly by a note. 
-      -- If there is, place a space there (because otherwise asciidoc may be very confused)
+      -- If there is, place a space there (because otherwise asciidoctor may be very confused)
       for i, v in ipairs(el) do
 
         if v.t == "Code" then
