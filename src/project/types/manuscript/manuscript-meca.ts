@@ -15,7 +15,6 @@ import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import {
-  basename,
   dirname,
   globToRegExp,
   isAbsolute,
@@ -30,6 +29,7 @@ import {
   kEnvironmentFiles,
   kMecaBundle,
   ManuscriptConfig,
+  ManuscriptOutputBundle,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
@@ -49,7 +49,6 @@ import {
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
 const kArticleSource = "article-source";
-const kArticleSourceDirectory = "article-source-directory";
 const kArticleSourceEnvironment = "article-source-environment";
 const kManuscript = "manuscript";
 const kManuscriptSupportingFile = "manuscript-supporting-file";
@@ -97,7 +96,7 @@ export const createMecaBundle = async (
   outputDir: string,
   outputFiles: ProjectOutputFile[],
   manuscriptConfig: ResolvedManuscriptConfig,
-  otherOutputBundle?: { manuscript: string; supporting: string[] },
+  otherOutputBundle?: ManuscriptOutputBundle,
 ) => {
   const workingDir = globalTempContext().createDir();
 

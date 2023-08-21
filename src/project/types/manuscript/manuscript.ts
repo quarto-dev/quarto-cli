@@ -71,6 +71,7 @@ import {
   kManuscriptType,
   kManuscriptUrl,
   ManuscriptConfig,
+  ManuscriptOutputBundle,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import {
@@ -121,6 +122,7 @@ import { safeExistsSync } from "../../../core/path.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
+const kTexOutputBundle = "tex-bundle";
 
 // Manscript projects are a multi file project that is composed into:
 // - a root article file
@@ -621,19 +623,29 @@ export const manuscriptProjectType: ProjectType = {
       return undefined;
     }
   },
+  beforeMoveOutput: async (
+    context: ProjectContext,
+    renderedFiles: RenderResultFile[],
+  ) => {
+    let outBundle;
+    for (const renderedFile of renderedFiles) {
+      const format = renderedFile.format;
+      if (isLatexOutput(format.pandoc) && format.render[kKeepTex]) {
+        outBundle = createTexOutputBundle(renderedFile, context);
+      }
+    }
+    if (outBundle) {
+      return {
+        [kTexOutputBundle]: outBundle,
+      };
+    }
+  },
   postRender: async (
     context: ProjectContext,
     _incremental: boolean,
     outputFiles: ProjectOutputFile[],
+    moveOutputResult?: Record<string, unknown>,
   ) => {
-    let outBundle;
-    for (const outputFile of outputFiles) {
-      const format = outputFile.format;
-      if (isLatexOutput(format.pandoc) && format.render[kKeepTex]) {
-        outBundle = createTexOutputBundle(outputFile, context);
-      }
-    }
-
     const manuscriptConfig = context.config
       ?.[kManuscriptType] as ResolvedManuscriptConfig;
     if (
@@ -642,6 +654,12 @@ export const manuscriptProjectType: ProjectType = {
         manuscriptConfig,
       ) && outputFiles.length > 0
     ) {
+      let outBundle: ManuscriptOutputBundle | undefined;
+      if (moveOutputResult) {
+        outBundle =
+          moveOutputResult[kTexOutputBundle] as ManuscriptOutputBundle;
+      }
+
       const language = outputFiles[0].format.language;
 
       logProgress(`Creating ${language[kManuscriptMecaBundle]}`);
@@ -819,9 +837,9 @@ const resolveCodeLinks = (
 
 const kTexOutDir = "_tex";
 const createTexOutputBundle = (
-  outputFile: ProjectOutputFile,
+  outputFile: RenderResultFile,
   context: ProjectContext,
-) => {
+): ManuscriptOutputBundle | undefined => {
   const format = outputFile.format;
   const outDir = projectOutputDir(context);
 
@@ -831,7 +849,7 @@ const createTexOutputBundle = (
 
   if (format.pandoc["output-file"]) {
     // Compute the tex file path
-    const baseDir = dirname(outputFile.input);
+    const baseDir = join(context.dir, dirname(outputFile.input));
     const texInputFile = join(baseDir, format.pandoc["output-file"]);
     const texInputDir = dirname(texInputFile);
 
@@ -865,8 +883,8 @@ const createTexOutputBundle = (
     }
 
     // move the supporting files and resources
-    if (outputFile.resources) {
-      const uniqResources = ld.uniq(outputFile.resources);
+    if (outputFile.resourceFiles) {
+      const uniqResources = ld.uniq(outputFile.resourceFiles);
       for (const file of uniqResources) {
         const outPath = join(texDirAbs, relative(context.dir, file));
         ensureDirSync(dirname(outPath));
