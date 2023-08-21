@@ -299,6 +299,7 @@ export async function renderProject(
     };
   };
 
+  let moveOutputResult: Record<string, unknown> | undefined;
   if (outputDirAbsolute) {
     // track whether we need to keep the lib dir around
     let keepLibsDir = false;
@@ -419,6 +420,14 @@ export async function renderProject(
         }
       }
     });
+
+    // Before file move
+    if (projType.beforeMoveOutput) {
+      moveOutputResult = await projType.beforeMoveOutput(
+        context,
+        projResults.files,
+      );
+    }
 
     sortedOperations.forEach((op) => {
       op.performOperation();
@@ -608,6 +617,7 @@ export async function renderProject(
         context,
         incremental,
         outputFiles,
+        moveOutputResult,
       );
     }
 

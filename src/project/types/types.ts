@@ -90,10 +90,15 @@ export interface ProjectType {
       incremental: boolean,
     ) => Promise<void>;
   };
+  beforeMoveOutput?: (
+    context: ProjectContext,
+    renderedFiles: RenderResultFile[],
+  ) => Promise<Record<string, unknown> | undefined>;
   postRender?: (
     context: ProjectContext,
     incremental: boolean,
     outputFiles: ProjectOutputFile[],
+    moveOutputResult?: Record<string, unknown>,
   ) => Promise<void>;
   formatOutputDirectory?: (
     format: Format,
