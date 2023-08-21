@@ -276,7 +276,7 @@ $if(babel-lang)$
 $if(mainfont)$
 \ifPDFTeX
 \else
-\babelfont{rm}[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
+\babelfont[$babel-lang$]{rm}[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
 \fi
 $endif$
 $endif$
