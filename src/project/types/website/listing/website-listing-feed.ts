@@ -46,8 +46,6 @@ import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
 import { warnOnce } from "../../../../core/log.ts";
-import { existsSync } from "../../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
-import { isAbsolute } from "../../../../vendor/deno.land/std@0.185.0/path/win32.ts";
 
 export const kDefaultItems = 20;
 
