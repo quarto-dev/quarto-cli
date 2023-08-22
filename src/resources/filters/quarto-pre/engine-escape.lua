@@ -28,6 +28,10 @@ function engine_escape()
     end,
 
     Code = function(el)
+      -- don't accidentally process escaped shortcodes
+      if el.text:match("^" .. patterns.shortcode) then
+        return el
+      end
       -- handle `{{python}} code`
       el.text = el.text:gsub("^" .. patterns.engine_escape, "%1")
       -- handles `` `{{python}} code` ``
