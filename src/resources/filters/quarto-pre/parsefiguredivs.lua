@@ -87,11 +87,11 @@ function parse_floats()
       type = category.name,
       content = content,
       caption_long = {pandoc.Plain(caption.content)},
-    })
+    }), false
   end
 
   return {
-
+    traverse = "topdown",
     Figure = function(fig)
       local key_prefix = refType(fig.identifier)
       if key_prefix == nil then
@@ -143,7 +143,7 @@ function parse_floats()
         content = new_content.content,
         caption_long = fig.caption.long,
         caption_short = fig.caption.short,
-      })
+      }), false
     end,
 
     -- if we see a table with a caption that includes a tbl- label, then
@@ -181,7 +181,7 @@ function parse_floats()
         type = "Table",
         content = { el },
         caption_long = caption,
-      })
+      }), false
     end,
 
     Div = function(div)
@@ -227,7 +227,7 @@ function parse_floats()
           type = category.name,
           content = img,
           caption_long = img.caption,
-        })
+        }), false
       end
       if discoverLinkedFigure(para) ~= nil then
         local link = para.content[1]
@@ -251,7 +251,7 @@ function parse_floats()
           type = category.name,
           content = link,
           caption_long = img.caption,
-        })
+        }), false
       end
     end,
 
@@ -274,7 +274,7 @@ function parse_floats()
         type = "Listing",
         content = { decorated_code.__quarto_custom_node }, -- this custom AST impedance mismatch here is unfortunate
         caption_long = caption,
-      })
+      }), false
     end,
 
     CodeBlock = function(code)
@@ -303,7 +303,7 @@ function parse_floats()
         type = "Listing",
         content = { content },
         caption_long = caption_inlines,
-      })
+      }), false
     end
   }
 end

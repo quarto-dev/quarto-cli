@@ -458,3 +458,24 @@ function float_crossref_render_html_figure(float)
   div.content:insert(figure_div)
   return div
 end
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.isAsciiDocOutput()
+end, function(float)
+  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+    return pandoc.Figure(
+      {float.content},
+      {float.caption_long},
+      float.identifier)
+  end
+
+  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", ". "))
+  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
+  return pandoc.Div({
+    float.caption_long,
+    -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
+    float.content,
+    pandoc.RawBlock("asciidoc", "====\n\n")
+  })
+
+end)

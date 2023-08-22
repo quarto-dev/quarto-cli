@@ -31,7 +31,7 @@ function asciidocFigure(image)
   -- the figure itself
   figure:extend({"image::" .. image.src .. "[\"" .. altText .. "\"]"})
 
-  return pandoc.RawBlock("asciidoc", table.concat(figure, ""))
+  return pandoc.RawBlock("asciidoc", table.concat(figure, "") .. "\n\n")
 end
 
 function asciidocDivFigure(el) 
