@@ -39,3 +39,8 @@ export type Task = {
   state: string;
   error?: string;
 };
+
+export type ErrorBody = {
+  error?: string;
+  error_type?: string;
+};
