@@ -2,11 +2,11 @@
 
 <% if (item.href) { %>
   <li>
-    <a class="dropdown-item" href="<%- item.href %>"<%- item.rel ? ` rel="${item.rel}"` : "" %><%- item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="dropdown-text"><%- item.text %></span></a>
+    <a class="dropdown-item" href="<%- item.href %>"<%= item.rel ? ` rel="${item.rel}"` : "" %><%= item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="dropdown-text"><%- item.text %></span></a>
   </li>  
 <% } else if (item.menu) { %>
   <li class="dropdown">
-    <a class="dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false"<%- item.rel ? ` rel="${item.rel}"` : "" %><%- item.target ? ` target="${item.target}"` : "" %>>
+    <a class="dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false"<%= item.rel ? ` rel="${item.rel}"` : "" %><%= item.target ? ` target="${item.target}"` : "" %>>
       <% partial('navicon.ejs', { item }) %> <%- item.text %>
     </a>
     <ul class="dropdown-menu" aria-labelledby="<%- item.id %>">    

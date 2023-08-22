@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { kCodeLinks, kOtherLinks } from "../../../config/constants.ts";
+import { kCodeLinks } from "../../../config/constants.ts";
 import { NotebookPreviewDescriptor, OtherLink } from "../../../config/types.ts";
 
 export const kManuscriptType = "manuscript";
@@ -27,4 +27,9 @@ export interface ResolvedManuscriptConfig extends ManuscriptConfig {
   [kCodeLinks]?: boolean | string | string[] | OtherLink[];
   mecaFile: string;
   [kEnvironmentFiles]?: string[];
+}
+
+export interface ManuscriptOutputBundle {
+  manuscript: string;
+  supporting: string[];
 }

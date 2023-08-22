@@ -9,7 +9,7 @@ _quarto:
     typst:
       ensureFileRegexMatches:
       - ['\#set bibliography\(style\: [^)]*\)', '\#bibliography\([^)]*\)', '\#cite\([^)]*\)']
-      - ['<refs>', '<ref-Cronbach_1951>']
+      - ['\#label\("refs"\)']
 ---
 
 Hello [@Cronbach_1951]

@@ -1617,6 +1617,7 @@ function isDiscadableTextExecuteResult(output: JupyterOutput) {
       if (textPlain && textPlain.length) {
         return [
           "[<matplotlib",
+          "<matplotlib",
           "<seaborn.",
           "<ggplot:",
         ].some((startsWith) => textPlain[0].startsWith(startsWith));

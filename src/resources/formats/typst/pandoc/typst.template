@@ -82,16 +82,24 @@ $endif$
 
 $body$
 
-$if(citations)$
+$if(notes)$
+#v(1em)
+#block[
+#horizontalrule
+#set text(size: .88em)
+#v(3pt) // otherwise first note marker is swallowed, bug?
+
+$notes$
+]
+$endif$
 $if(bibliographystyle)$
 
 #set bibliography(style: "$bibliographystyle$")
 $endif$
-$if(bibliography)$
+$for(bibliography)$
 
-#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$)
-$endif$
-$endif$
+#bibliography("$bibliography$")
+$endfor$
 $for(include-after)$
 
 $include-after$

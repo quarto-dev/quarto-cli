@@ -68,6 +68,7 @@ import("./quarto-post/ojs.lua")
 import("./quarto-post/jats.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
+import("./quarto-post/typst.lua")
 import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
@@ -343,6 +344,7 @@ local quarto_post_filters = {
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
+  { name = "post-render-typst", filter = render_typst() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },

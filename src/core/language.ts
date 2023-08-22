@@ -48,6 +48,11 @@ const translationCache = cacheMap(
   },
 );
 
+// https://stackoverflow.com/a/6969486
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
 export async function readLanguageTranslations(
   translationFile: string,
   lang?: string,
@@ -66,7 +71,8 @@ export async function readLanguageTranslations(
 
   // determine additional variations to read
   const ext = extname(translationFile);
-  const [dir, stem] = dirAndStem(translationFile);
+  let [dir, stem] = dirAndStem(translationFile);
+  stem = escapeRegExp(stem);
   const variations: string[] = [];
   if (lang) {
     // enumerate variations dictated by this lang

@@ -8,7 +8,7 @@ _quarto:
   tests: 
     typst:
       ensureFileRegexMatches:
-      - ['<refs>', '<ref-Cronbach_1951>']
+      - ['\#label\("refs"\)']
       - ['\#bibliography\([^)]*\)']
 ---
 
