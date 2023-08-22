@@ -14,6 +14,7 @@ local html_table_caption = tag("[Cc][Aa][Pp][Tt][Ii][Oo][Nn]")
 local html_paged_table = "<script data[-]pagedtable[-]source type=\"application/json\">"
 local html_gt_table = "<table class=\"gt_table\">"
 local engine_escape = "{({+([^}]+)}+)}"
+local shortcode = "{{+<[^>]+>}+}"
 
 return {
   engine_escape = engine_escape,
@@ -22,5 +23,6 @@ return {
   html_table_caption = html_table_caption,
   html_table_tag_name = html_table_tag_name,
   html_table = html_table,
+  shortcode = shortcode,
   tag = tag,
 }
