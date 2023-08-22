@@ -15,6 +15,7 @@ import {
 } from "./types.ts";
 
 import { md5Hash } from "../../../core/hash.ts";
+import { quartoConfig } from "../../../core/quarto.ts";
 
 import { crypto } from "https://deno.land/std@0.185.0/crypto/mod.ts";
 
@@ -139,6 +140,7 @@ export class PositCloudClient {
 
     const headers = {
       Accept: "application/json",
+      "User-Agent": `quarto-cli/${quartoConfig.version()}`,
       ...authHeaders,
       ...contentTypeHeader,
     };
