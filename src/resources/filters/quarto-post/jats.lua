@@ -90,7 +90,7 @@ function jats()
           return tbl
         else
           -- otherwise, if this is a div, we can unroll its contents
-          return unrollDiv(div)
+          return unrollDiv(div, is_custom_node)
         end
       end,
 
@@ -156,7 +156,7 @@ function jatsSubarticle()
     return {
       Meta = jatsMeta,
       Div = function(div)
-        
+
         -- this is a notebook cell, handle it
         if isCell(div) then
           if isCodeCell(div) then

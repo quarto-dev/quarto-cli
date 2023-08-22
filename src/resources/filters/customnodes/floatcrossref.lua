@@ -479,3 +479,14 @@ end, function(float)
   })
 
 end)
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.isJatsOutput()
+end, function(float)
+  prepare_caption(float)
+  return pandoc.Figure(
+    {float.content},
+    {float.caption_long},
+    float.identifier
+  )
+end)

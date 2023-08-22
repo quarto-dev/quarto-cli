@@ -1,0 +1,19 @@
+---
+title: Crossref Test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"fig-elephant\"]//caption"
+          - "//fig[@id=\"fig-elephant\"]//graphic[@xlink:href=\"img/thinker.jpg\"]"
+        - 
+          - "//xref[@rid=\"fig-elephant1\"]"
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](img/thinker.jpg){#fig-elephant}
+
+See @fig-elephant1 for examples. 

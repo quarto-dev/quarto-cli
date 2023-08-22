@@ -248,6 +248,19 @@ export const verifyOdtDocument = (
   });
 };
 
+export const verifyJatsDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Jats",
+    verify: async (_output: ExecuteOutput[]) => {
+      const xml = await Deno.readTextFile(file);
+      await callback(xml);
+    },
+  });
+};
+
 export const verifyDocXDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -300,6 +313,17 @@ const xmlChecker = (
     }
     return Promise.resolve();
   };
+};
+
+export const ensureJatsXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyJatsDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Jats for XPath selectors",
+  )(file);
 };
 
 export const ensureOdtXpath = (

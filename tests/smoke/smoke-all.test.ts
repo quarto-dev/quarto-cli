@@ -20,6 +20,7 @@ import {
   ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
   fileExists,
@@ -92,6 +93,7 @@ function resolveTestSpecs(
     ensureDocxRegexMatches,
     ensureDocxXpath,
     ensureOdtXpath,
+    ensureJatsXpath,
     ensurePptxRegexMatches,
   };
 
