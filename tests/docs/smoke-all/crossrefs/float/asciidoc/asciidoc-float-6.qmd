@@ -1,0 +1,18 @@
+---
+title: test simple figure crossref
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "image::img/surus.jpg"
+          - "\\[#fig-simple\\]"
+          - "<<fig-simple>>"
+        - []
+---
+
+![A simple figure](img/surus.jpg){#fig-simple}
+
+See @fig-simple.
+
