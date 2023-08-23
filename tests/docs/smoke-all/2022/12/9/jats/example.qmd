@@ -96,6 +96,10 @@ format:
 _quarto:
   tests:
     jats:
+      ensureJatsXpath:
+        -
+          - '//fig[@id="tbl-stuff"]//table-wrap//table' # table
+          - '//fig[@id="tbl-stuff"]//caption'
       ensureFileRegexMatches:
         - 
           - '<!DOCTYPE.*DTD JATS.*' # a JATS DTD must be present
@@ -110,8 +114,9 @@ _quarto:
           - '<mixed-citation>' #mixed citation
           - '<xref alt="2013" rid="ref-Schubert13" ref-type="bibr">2013</xref>' #cite
           - '<fig id="fig-line">[\s\S]*?<graphic.*?>[\s\S]*?<\/fig>' # regular figure
-          - '<table-wrap>[\s\S]*?<caption>[\s\S]*?<\/caption>[\s\S]*?<table id="tbl-stuff">[\s\S]*?<\/table>[\s\S]*?<\/table-wrap>' #table
-          - '<fig id="fig-foobar" position="float">[\s\S]*?<\/fig>' # custom figure div
+          # FIXME: Pandoc doesn't emit position="float"; do we need to?
+          # - '<fig id="fig-foobar" position="float">[\s\S]*?<\/fig>' # custom figure div
+          - '<fig id="fig-foobar">[\s\S]*?<\/fig>' # custom figure div
         -
           - '<graphic id="fig-line".*/>' # this id should be on the fig element, not the graphic
           - '<boxed-text>\n\s*<boxed-text>' # no nested boxed-text

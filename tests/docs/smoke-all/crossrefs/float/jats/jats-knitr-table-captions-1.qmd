@@ -3,14 +3,14 @@ title: Knitr Table Test
 format: jats
 _quarto:
   tests:
-    html:
-      ensureHtmlElements:
+    jats:
+      ensureJatsXpath:
         - 
-          - "figure.quarto-float-tbl div#tbl-cars figure.quarto-float-tbl table.table"
-          - "figure.quarto-float-tbl div#tbl-cars figure.quarto-float-tbl figcaption.quarto-subfloat-caption"
-          - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-float-tbl table.table"
-          - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-float-tbl figcaption.quarto-subfloat-caption"
-          - "div#tbl-tables > figure.quarto-float-tbl > figcaption.quarto-float-caption"
+          - '//fig//fig[@id="tbl-cars"]//table'
+          - '//fig//fig[@id="tbl-cars"]//caption'
+          - '//fig//fig[@id="tbl-pressure"]//table'
+          - '//fig//fig[@id="tbl-pressure"]//caption'
+          - '//fig[@id="tbl-tables"]/caption'
         - []
 ---
 

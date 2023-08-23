@@ -1,17 +1,18 @@
 ---
 title: Crossref Test
+format: jats
 _quarto:
   tests:
-    html:
+    jats:
       ensureFileRegexMatches:
         -
           - "\\(a\\) Surus"
           - "\\(b\\) Abbas"
-      ensureHtmlElements:
+      ensureJatsXpath:
         - 
-          - "div#fig-elephants figure > figcaption.quarto-float-caption"
-          - "div#fig-surus figure.quarto-float-fig figcaption.quarto-subfloat-caption"
-          - "div#fig-abbas figure.quarto-float-fig figcaption.quarto-subfloat-caption"
+          - '//fig[@id="fig-elephants"]/caption'
+          - '//fig//fig[@id="fig-surus"]/caption'
+          - '//fig//fig[@id="fig-abbas"]/caption'
         - []
 ---
 
