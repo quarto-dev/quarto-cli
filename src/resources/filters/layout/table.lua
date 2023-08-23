@@ -8,7 +8,7 @@ function tablePanel(divEl, layout, caption, options)
     options = {}
   end
   -- outer panel to contain css and figure panel
-  local divId = divEl.attr.identifier
+  local divId = divEl.identifier
   if divId == nil then
     divId = ''
   end

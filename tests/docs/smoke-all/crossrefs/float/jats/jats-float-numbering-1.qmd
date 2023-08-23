@@ -7,12 +7,19 @@ crossref:
 format: jats
 _quarto:
   tests:
-    html:
+    jats:
+      ensureJatsXpath:
+        -
+          - '//fig[@id="fig-elephant"]//caption'
+          - '//fig[@id="tbl-letters"]//caption'
+          - '//fig[@id="fig-elephants"]//caption'
+          - '//fig[@id="fig-surus"]//caption'
+          - '//fig[@id="fig-abbas"]//caption'
       ensureFileRegexMatches:
         - 
-          - "Figure&nbsp;x: Elephant"
-          - "Table&nbsp;A: My Caption"
-          - "Figure&nbsp;y: Famous Elephants"
+          - "Figure x: Elephant"
+          - "Table A: My Caption"
+          - "Figure y: Famous Elephants"
           - "\\(i\\) Surus"
           - "\\(ii\\) Abbas"
 ---
