@@ -1,16 +1,18 @@
 ---
 title: Python Subfig Test
+format: asciidoc
 _quarto:
   tests:
-    html:
+    asciidoc:
       ensureFileRegexMatches:
-        - []
-        - []
-      ensureHtmlElements:
         - 
-          - "div#fig-plots figure.quarto-float-fig > figcaption.quarto-float-caption"
-          - "div#fig-plots-1 figure.quarto-float-fig figcaption.quarto-subfloat-caption"
-          - "div#fig-plots-2 figure.quarto-float-fig figcaption.quarto-subfloat-caption"
+          - "import matplotlib.pyplot as plt" # this checks if the panel preamble has been emitted
+          - "\\[#fig-plots\\]"
+          - "\\[#fig-plots-1\\]"
+          - "\\[#fig-plots-2\\]"
+          - "\\. Plots"
+          - "\\.Plot 1"
+          - "\\.Plot 2"
         - []
 ---
 

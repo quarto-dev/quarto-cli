@@ -1,7 +1,8 @@
 ---
 title: "My Document"
 format: asciidoc
-# None of this is supported by asciidoc output afaict, so no testing necessary here
+# None of this is supported by asciidoc output afaict, so no testing necessary here,
+# we just make sure it doesn't crash.
 #
 # crossref:
 #   fig-labels: alpha x # (default is arabic)
