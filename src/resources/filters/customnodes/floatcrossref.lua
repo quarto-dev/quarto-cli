@@ -79,7 +79,7 @@ end
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return true
 end, function(float)
-  warn("This is a placeholder FloatRefTarget; this output format does not currently support FloatRefTarget nodes.")
+  warn("\nEmitting a placeholder FloatRefTarget\nOutput format " .. FORMAT .. " does not currently support FloatRefTarget nodes.")
   return scaffold(float.content)
 end)
 

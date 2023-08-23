@@ -116,8 +116,9 @@ function parse_floats()
       end
       local category = crossref.categories.by_ref_type[key_prefix]
       if category == nil then
-        fail("Figure with invalid crossref category? " .. fig.identifier)
-        return
+        warn("Pandoc Figure with invalid crossref category - " .. fig.identifier)
+        warn("Won't be able to cross-reference this figure.")
+        return nil
       end
 
       if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
@@ -217,8 +218,8 @@ function parse_floats()
         local type = refType(identifier)
         local category = crossref.categories.by_ref_type[type]
         if category == nil then
-          fail("Figure with invalid crossref category? " .. identifier)
-          return
+          warn("Figure with invalid crossref category: " .. identifier .. "\nWon't be able to cross-reference this figure.")
+          return nil
         end
         return quarto.FloatRefTarget({
           identifier = identifier,
