@@ -14470,7 +14470,7 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "schema/document-library.yml": [
         {
-          name: "reveal-js-url",
+          name: "revealjs-url",
           schema: "path",
           tags: {
             formats: [
@@ -18631,7 +18631,6 @@ var require_yaml_intelligence_resources = __commonJS({
       ],
       "pandoc/formats.yml": [
         "asciidoc",
-        "asciidoc_legacy",
         "asciidoctor",
         "beamer",
         "biblatex",
@@ -19228,8 +19227,9 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The language of the feed.",
           long: 'The language of the feed. Omitted if not specified. See <a href="https://www.rssboard.org/rss-language-codes">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes.'
         },
-        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
-        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+        "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+        "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
           short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
           long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
@@ -21620,7 +21620,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Directory containing reveal.js files."
       ],
       "schema/external-schemas.yml": [
         {
@@ -21844,12 +21845,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 163214,
+        _internalId: 163216,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 163206,
+            _internalId: 163208,
             type: "enum",
             enum: [
               "png",
@@ -21865,7 +21866,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 163213,
+            _internalId: 163215,
             type: "anyOf",
             anyOf: [
               {
