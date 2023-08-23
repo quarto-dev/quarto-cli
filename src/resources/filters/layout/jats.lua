@@ -101,6 +101,11 @@ end, function(layout)
     panel_content:insert(pandoc.utils.from_simple_table(panelTable))
   end
   prepare_caption(layout.float)
-  -- return panel
-  return pandoc.Figure(panel_content, {layout.float.caption_long}, attr)
+  local result = pandoc.Figure(panel_content, {layout.float.caption_long}, attr)
+
+  if layout.preamble then
+    return pandoc.Blocks({ layout.preamble, result })
+  else
+    return result
+  end
 end)
