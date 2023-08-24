@@ -166,3 +166,4 @@
 - ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
 - ([#5748](https://github.com/quarto-dev/quarto-cli/issues/5748)): Don't cleanup shared lib_dir files when using `embed-resources` within a project
 - ([#6487](https://github.com/quarto-dev/quarto-cli/discussions/6487)): Fix `serviceworkers` check in `htmlDependency` to look at the correct key.
+- ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): when `QUARTO_LOG_LEVEL=DEBUG`, informations about search for a R binary will be shown.
