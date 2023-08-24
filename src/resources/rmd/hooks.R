@@ -1,6 +1,12 @@
 # hooks.R
 # Copyright (C) 2020-2022 Posit Software, PBC
 
+# inline knitr:::merge_list()
+merge_list <- function(x, y) {
+    x[names(y)] <- y
+    x
+}
+
 knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   knit_hooks <- list()
@@ -639,7 +645,7 @@ knitr_options_hook <- function(options) {
         options[["message"]] = results$yaml[["warning"]]
       }
       # merge with other options
-      options <- knitr:::merge_list(options, results$yaml)
+      options <- merge_list(options, results$yaml)
       # set code
       options$code <- results$code
     } 
