@@ -161,6 +161,8 @@ import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
 import("./customnodes/floatcrossref.lua")
 
+import("./layout/confluence.lua")
+
 import("./quarto-init/metainit.lua")
 
 -- [/import]

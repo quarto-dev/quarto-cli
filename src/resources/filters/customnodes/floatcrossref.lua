@@ -95,7 +95,7 @@ local function is_unlabeled_float(float)
   return float.identifier:match("^%a+%-539a35d47e664c97a50115a146a7f1bd%-")
 end
 
-function prepare_caption(float)
+function decorate_caption_with_crossref(float)
   float = ensure_custom(float)
   -- nil should never happen here, but the Lua analyzer doesn't know it
   if float == nil then
@@ -268,7 +268,7 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isHtmlOutput()
 end, function(float)
-  prepare_caption(float)
+  decorate_caption_with_crossref(float)
 
   ------------------------------------------------------------------------------------
   -- Special handling for listings
@@ -289,7 +289,7 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
 end, function(float)
   -- docx format requires us to annotate the caption prefix explicitly
-  prepare_caption(float)
+  decorate_caption_with_crossref(float)
 
   -- options
   local options = {
@@ -483,17 +483,10 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isJatsOutput()
 end, function(float)
-  prepare_caption(float)
+  decorate_caption_with_crossref(float)
   return pandoc.Figure(
     {float.content},
-    {float.caption_long},
+    {pandoc.Para(float.caption_long)},
     float.identifier
   )
-end)
-
-_quarto.ast.add_renderer("FloatRefTarget", function(_)
-  return _quarto.format.isConfluenceOutput()
-end, function(float)
-  local content = pandoc.Blocks({})
-  return pandoc.Div(content, pandoc.Attr(float.identifier or "", float.classes or {}, float.attributes or {}))
 end)

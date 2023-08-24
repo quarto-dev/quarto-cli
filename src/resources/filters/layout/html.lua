@@ -69,7 +69,7 @@ end, function(panel_layout)
 
   if panel_layout.is_float_reftarget then
     rendered_panel = float_reftarget_render_html_figure(
-      prepare_caption(quarto.FloatRefTarget({
+      decorate_caption_with_crossref(quarto.FloatRefTarget({
         identifier = panel_layout.identifier,
         classes = panel_layout.classes,
         attributes = panel_layout.attributes,

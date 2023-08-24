@@ -100,7 +100,7 @@ end, function(layout)
     -- add it to the panel
     panel_content:insert(pandoc.utils.from_simple_table(panelTable))
   end
-  prepare_caption(layout.float)
+  decorate_caption_with_crossref(layout.float)
   local result = pandoc.Figure(panel_content, {layout.float.caption_long}, attr)
 
   if layout.preamble then

@@ -33,7 +33,7 @@ end
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
 end, function(layout)
-  prepare_caption(layout.float)
+  decorate_caption_with_crossref(layout.float)
 
   local div = pandoc.Div({})
 
