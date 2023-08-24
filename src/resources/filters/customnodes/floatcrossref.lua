@@ -511,7 +511,18 @@ end)
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isIpynbOutput() and not param("enable-crossref", true)
 end, function(float)
+  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+    -- replicate pre-reftarget behavior because it'll be used in embedding
+    -- and needs precisely the same AST output
+    float.content.content[1].caption = quarto.utils.as_inlines(float.caption_long)
+    return pandoc.Div({
+      pandoc.Para({
+        float.content.content[1]
+      })
+    })
+  end
+
   quarto.utils.dump { float = float }
-  fail("Don't know how to handle embeds")
+  fail("Don't know how to handle embeds for this float content")
   return pandoc.Div({})
 end)

@@ -162,6 +162,7 @@ import("./customnodes/panel-tabset.lua")
 import("./customnodes/floatcrossref.lua")
 
 import("./layout/confluence.lua")
+import("./layout/ipynb.lua")
 
 import("./quarto-init/metainit.lua")
 
