@@ -421,6 +421,9 @@ _quarto.ast = {
       if handler == nil then
         fatal("Internal Error: handler not found for custom node " .. node.t)
       end
+      if handler.render == nil then
+        fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function")
+      end
       return handler.render(node)
     end
 
