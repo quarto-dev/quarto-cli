@@ -19,11 +19,13 @@ import {
   kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
+  kClearCellOptions,
   kCodeFold,
   kCodeLine,
   kCodeLineNumbers,
   kCodeLines,
   kCodeLink,
+  kCodeLinksTitle,
   kCodeOverflow,
   kCodeSummary,
   kCodeTools,
@@ -109,6 +111,8 @@ import {
   kLatexOutputDir,
   kLatexTinyTex,
   kLatexTlmgrOpts,
+  kLaunchBinderTitle,
+  kLaunchDevContainerTitle,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
@@ -122,6 +126,7 @@ import {
   kListingPageFieldReadingTime,
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
+  kListingPageFieldWordCount,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -130,6 +135,7 @@ import {
   kListingPageOrderByDefault,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
   kListings,
   kManuscriptMecaBundle,
   kMarkdownHeadings,
@@ -200,6 +206,7 @@ import {
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
   kTitleBlockAuthorSingle,
+  kTitleBlockKeywords,
   kTitleBlockModified,
   kTitleBlockPublished,
   kTitlePrefix,
@@ -449,6 +456,7 @@ export interface FormatRender {
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
   [kNotebookPreserveCells]?: boolean;
+  [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
 }
 
@@ -566,6 +574,9 @@ export interface FormatLanguage {
   [kTocTitleWebsite]?: string;
   [kRelatedFormatsTitle]?: string;
   [kOtherLinksTitle]?: string;
+  [kCodeLinksTitle]?: string;
+  [kLaunchDevContainerTitle]?: string;
+  [kLaunchBinderTitle]?: string;
   [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;
@@ -583,6 +594,7 @@ export interface FormatLanguage {
   [kTitleBlockAuthorPlural]?: string;
   [kTitleBlockPublished]?: string;
   [kTitleBlockModified]?: string;
+  [kTitleBlockKeywords]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
@@ -648,8 +660,10 @@ export interface FormatLanguage {
   [kListingPageFieldFileModified]?: string;
   [kListingPageFieldSubtitle]?: string;
   [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldWordCount]?: string;
   [kListingPageFieldCategories]?: string;
   [kListingPageMinutesCompact]?: string;
+  [kListingPageWords]?: string;
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
   [kNotebookPreviewDownload]?: string;
@@ -669,8 +683,16 @@ export interface FormatTemplateContext {
 
 export interface FormatLink {
   icon?: string;
-  title: string;
+  text: string;
   href: string;
   order?: number;
   attr?: Record<string, string>;
+}
+
+export interface OtherLink {
+  icon?: string;
+  text: string;
+  href: string;
+  rel?: string;
+  target?: string;
 }

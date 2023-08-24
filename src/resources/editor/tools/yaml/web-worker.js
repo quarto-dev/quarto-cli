@@ -7009,6 +7009,10 @@ try {
     return to;
   };
   var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
     isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
     mod
   ));
@@ -9641,6 +9645,33 @@ try {
                     }
                   ],
                   description: "Publish twitter card metadata"
+                },
+                "other-links": {
+                  schema: {
+                    ref: "other-links"
+                  },
+                  tags: {
+                    formats: [
+                      "$html-doc"
+                    ]
+                  },
+                  description: "A list of other links to appear below the TOC."
+                },
+                "code-links": {
+                  schema: {
+                    anyOf: [
+                      "boolean",
+                      {
+                        ref: "other-links"
+                      }
+                    ]
+                  },
+                  tags: {
+                    formats: [
+                      "$html-doc"
+                    ]
+                  },
+                  description: "A list of codes links to appear with this document."
                 }
               }
             }
@@ -9801,6 +9832,44 @@ try {
             id: "chapter-list",
             arrayOf: {
               ref: "chapter-item"
+            }
+          },
+          {
+            id: "other-links",
+            arrayOf: {
+              object: {
+                properties: {
+                  text: {
+                    string: {
+                      description: "The text for the link."
+                    }
+                  },
+                  href: {
+                    string: {
+                      description: "The href for the link."
+                    }
+                  },
+                  icon: {
+                    string: {
+                      description: "The bootstrap icon name for the link."
+                    }
+                  },
+                  rel: {
+                    string: {
+                      description: "The rel attribute value for the link."
+                    }
+                  },
+                  target: {
+                    string: {
+                      description: "The target attribute value for the link."
+                    }
+                  }
+                },
+                required: [
+                  "text",
+                  "href"
+                ]
+              }
             }
           },
           {
@@ -10136,8 +10205,13 @@ try {
                           categories: {
                             maybeArrayOf: {
                               string: {
-                                description: "A list of categories for which to create separate RSS feeds containing only posts with that category."
+                                description: "A list of categories for which to create separate RSS feeds containing only posts with that category"
                               }
+                            }
+                          },
+                          "xml-stylesheet": {
+                            path: {
+                              description: "The path to an XML stylesheet (XSL file) used to style the RSS feed."
                             }
                           }
                         }
@@ -11208,6 +11282,19 @@ try {
                     path: {
                       description: "The input document that will serve as the root document for this manuscript"
                     }
+                  },
+                  "code-links": {
+                    anyOf: [
+                      "boolean",
+                      {
+                        maybeArrayOf: {
+                          anyOf: [
+                            "object",
+                            "string"
+                          ]
+                        }
+                      }
+                    ]
                   },
                   "manuscript-url": {
                     string: {
@@ -14187,6 +14274,7 @@ try {
                   enum: [
                     "default",
                     "plain",
+                    "manuscript",
                     "none"
                   ]
                 }
@@ -14383,7 +14471,7 @@ try {
         ],
         "schema/document-library.yml": [
           {
-            name: "reveal-js-url",
+            name: "revealjs-url",
             schema: "path",
             tags: {
               formats: [
@@ -14477,7 +14565,7 @@ try {
                       {
                         object: {
                           properties: {
-                            title: {
+                            text: {
                               string: {
                                 description: "The title for this alternative link."
                               }
@@ -14526,6 +14614,48 @@ try {
               short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
               long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
             }
+          },
+          {
+            name: "other-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                {
+                  enum: [
+                    false
+                  ]
+                },
+                {
+                  ref: "other-links"
+                }
+              ]
+            },
+            description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
+          },
+          {
+            name: "code-links",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                {
+                  enum: [
+                    false
+                  ]
+                },
+                {
+                  ref: "other-links"
+                }
+              ]
+            },
+            description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
           },
           {
             name: "notebook-subarticles",
@@ -17309,7 +17439,8 @@ try {
               formats: [
                 "!man",
                 "!$docbook-all",
-                "!$jats-all"
+                "!$jats-all",
+                "!beamer"
               ]
             },
             schema: "number",
@@ -17402,6 +17533,34 @@ try {
             },
             default: true,
             description: "Setting this to false prevents this document from being included in searches."
+          },
+          {
+            name: "repo-actions",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  maybeArrayOf: {
+                    enum: [
+                      "none",
+                      "edit",
+                      "source",
+                      "issue"
+                    ],
+                    description: {
+                      short: "Links to source repository actions",
+                      long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+                    }
+                  }
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Setting this to false prevents the `repo-actions` from appearing on this page."
           },
           {
             name: "aliases",
@@ -18831,6 +18990,8 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
+          "A list of codes links to appear with this document.",
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -18959,6 +19120,8 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
+          "A list of codes links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -18979,6 +19142,11 @@ try {
           "The Digital Object Identifier for this book.",
           "Part title or path to input file",
           "Path to chapter input file",
+          "The text for the link.",
+          "The href for the link.",
+          "The bootstrap icon name for the link.",
+          "The rel attribute value for the link.",
+          "The target attribute value for the link.",
           {
             short: "The role of this creator or contributor.",
             long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
@@ -19060,8 +19228,9 @@ try {
             short: "The language of the feed.",
             long: 'The language of the feed. Omitted if not specified. See <a href="https://www.rssboard.org/rss-language-codes">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes.'
           },
-          "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
-          "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+          "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+          "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+          "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
           {
             short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
             long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
@@ -20380,6 +20549,8 @@ try {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
           },
+          "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
+          "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section.",
           {
             short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
@@ -20680,6 +20851,10 @@ try {
           "Monitor the hash and change slides accordingly",
           "Include the current fragment in the URL",
           "Play a subtle sound when changing slides",
+          {
+            short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+          },
           "Prints each fragment on a separate slide",
           {
             short: "Offset used to reduce the height of content within exported PDF\npages.",
@@ -20804,6 +20979,15 @@ try {
           "Print a list of figures in the document.",
           "Print a list of tables in the document.",
           "Setting this to false prevents this document from being included in\nsearches.",
+          "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+          {
+            short: "Links to source repository actions",
+            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          },
+          {
+            short: "Links to source repository actions",
+            long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          },
           "URLs that alias this document, when included in a website.",
           {
             short: "The path to a preview image for this document.",
@@ -20957,6 +21141,8 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
+          "A list of codes links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -21268,6 +21454,8 @@ try {
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
+          "A list of other links to appear below the TOC.",
+          "A list of codes links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -21434,10 +21622,7 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          {
-            short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
-          }
+          "Directory containing reveal.js files."
         ],
         "schema/external-schemas.yml": [
           {
@@ -21661,12 +21846,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 158643,
+          _internalId: 163216,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 158635,
+              _internalId: 163208,
               type: "enum",
               enum: [
                 "png",
@@ -21682,7 +21867,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 158642,
+              _internalId: 163215,
               type: "anyOf",
               anyOf: [
                 {
@@ -22241,6 +22426,8 @@ ${heading}`;
       this.printName = printName;
       this.printStack = printStack;
     }
+    printName;
+    printStack;
   };
   var UnreachableError = class extends InternalError {
     constructor() {
@@ -22291,6 +22478,7 @@ ${heading}`;
   function* attemptParsesAtLine(context, parser) {
     const {
       position
+      // row/column of cursor (0-based)
     } = context;
     const code2 = asMappedString(context.code);
     try {
@@ -22401,8 +22589,11 @@ ${heading}`;
   function locateFromIndentation(context) {
     const {
       line,
+      // editing line up to the cursor
       code: mappedCode,
+      // full contents of the buffer
       position
+      // row/column of cursor (0-based)
     } = context;
     const code2 = asMappedString(mappedCode).value;
     const { predecessor, indentation } = getYamlIndentTree(code2);
@@ -25244,6 +25435,7 @@ ${heading}`;
     explicit: [
       new Type("!expr", {
         kind: "scalar",
+        // deno-lint-ignore no-explicit-any
         construct(data) {
           const result = data !== null ? data : "";
           return {
@@ -27237,6 +27429,7 @@ ${heading}`;
           subSchema,
           key,
           allowPartialMatches !== void 0 && allowPartialMatches && index === path.length - 1
+          // allow prefix matches only if it's the last entry
         );
         if (patternPropMatch) {
           return inner(patternPropMatch, index + 1);
@@ -27366,6 +27559,7 @@ ${heading}`;
       schema2,
       (_schema) => {
       },
+      // visit
       (schema3) => {
         return schema3.tags !== void 0 && schema3.tags["complete-from"] !== void 0;
       },
@@ -27493,6 +27687,7 @@ ${heading}`;
           completions2.push({
             type: "key",
             display: "",
+            // attempt to not show completion title.
             value: `${k}: `,
             description,
             suggest_on_accept: true
@@ -27532,6 +27727,7 @@ ${heading}`;
         results.push(...s["enum"].map(String));
         return true;
       },
+      // don't recurse into anything that introduces instancePath values
       "array": (_s) => true,
       "object": (_s) => true
     });
@@ -28221,6 +28417,7 @@ ${reindented}
           start: violatingObject.start,
           end: violatingObject.end
         })
+        // location!),
       }
     };
   }
@@ -28290,7 +28487,7 @@ ${tidyverseInfo(
     function listener(what, state) {
       const { result, position, kind } = state;
       if (what === "close") {
-        const { position: openPosition } = stack.pop();
+        const { position: openPosition, kind: openKind } = stack.pop();
         if (results.length > 0) {
           const last = results[results.length - 1];
           if (last.start === openPosition && last.end === position) {
@@ -28307,9 +28504,10 @@ ${tidyverseInfo(
         }
         components.reverse();
         const rawRange = yml.substring(openPosition, position);
-        const leftTrim = rawRange.length - rawRange.trimLeft().length;
-        const rightTrim = rawRange.length - rawRange.trimRight().length;
-        if (rawRange.trim().length === 0) {
+        const leftTrim = rawRange.length - rawRange.trimStart().length;
+        const rightTrim = rawRange.length - rawRange.trimEnd().length;
+        if (openKind === null && kind === null) {
+        } else if (rawRange.trim().length === 0) {
           results.push({
             start: position - rightTrim,
             end: position - rightTrim,
@@ -28329,7 +28527,7 @@ ${tidyverseInfo(
           });
         }
       } else {
-        stack.push({ position });
+        stack.push({ position, kind });
       }
     }
     load(yml, { listener, schema: QuartoJSONSchema });
@@ -28396,6 +28594,9 @@ ${tidyverseInfo(
         end: node.endIndex,
         result: result2,
         kind: node.type,
+        // NB this doesn't match js-yaml, so you need
+        // to make sure your annotated walkers know
+        // about tree-sitter and js-yaml both.
         components,
         source: mappedSource2
       };
@@ -28638,6 +28839,9 @@ ${tidyverseInfo(
 
   // ../semaphore.ts
   var Semaphore = class {
+    value;
+    // deno-lint-ignore no-explicit-any
+    tasks;
     constructor(value) {
       this.value = value;
       this.tasks = [];
@@ -28720,6 +28924,10 @@ ${tidyverseInfo(
 
   // ../yaml-validation/validator.ts
   var ValidationContext = class {
+    instancePath;
+    root;
+    nodeStack;
+    currentNode;
     constructor() {
       this.instancePath = [];
       this.currentNode = { edge: "#", errors: [], children: [] };
@@ -28769,6 +28977,16 @@ ${tidyverseInfo(
       }
       return this.collectErrors(schema2, source, value, pruneErrors);
     }
+    // if pruneErrors is false, we return all errors. This is typically
+    // hard to interpret directly because of anyOf errors.
+    //
+    // it's possible that the best API is for LocalizedErrors to explicitly nest
+    // so that anyOf errors are reported in their natural structure.
+    //
+    // if pruneErrors is true, then we only report one of the anyOf
+    // errors, avoiding most issues. (`patternProperties` can still
+    // cause error overlap and potential confusion, and we need those
+    // because of pandoc properties..)
     collectErrors(_schema, source, _value, pruneErrors = true) {
       const inner = (node) => {
         const result2 = [];
@@ -29204,6 +29422,10 @@ ${tidyverseInfo(
 
   // ../yaml-validation/yaml-schema.ts
   var YAMLSchema = class {
+    schema;
+    // These are schema-specific error transformers to yield custom
+    // error messages.
+    errorHandlers;
     constructor(schema2) {
       this.errorHandlers = [];
       this.schema = schema2;
@@ -29223,6 +29445,7 @@ ${tidyverseInfo(
         return error;
       }).filter((error) => error !== null);
     }
+    // deno-lint-ignore require-await
     async validateParse(src, annotation, pruneErrors = true) {
       const validationErrors = validate(
         annotation,
@@ -29246,6 +29469,9 @@ ${tidyverseInfo(
         };
       }
     }
+    // NB this needs explicit params for "error" and "log" because it might
+    // get called from the IDE, where we lack quarto's "error" and "log"
+    // infra
     reportErrorsInSource(result, _src, message, error, log) {
       if (result.errors.length) {
         if (message.length) {
@@ -29257,6 +29483,9 @@ ${tidyverseInfo(
       }
       return result;
     }
+    // NB this needs explicit params for "error" and "log" because it might
+    // get called from the IDE, where we lack quarto's "error" and "log"
+    // infra
     async validateParseWithErrors(src, annotation, message, error, log) {
       const result = await this.validateParse(src, annotation);
       this.reportErrorsInSource(result, src, message, error, log);
@@ -29664,6 +29893,7 @@ ${tidyverseInfo(
       ...internalId(),
       "type": "enum",
       "enum": [val],
+      // enum takes non-strings too (!)
       "description": description || `be ${JSON.stringify(val)}`
     };
   }
@@ -29937,14 +30167,15 @@ ${tidyverseInfo(
   }
 
   // ../yaml-schema/validated-yaml.ts
-  var ValidationError2 = class extends Error {
+  var ValidationError2 = class _ValidationError extends Error {
+    validationErrors;
     constructor(msg, validationErrors) {
       super(
         [msg, ...validationErrors.map((e) => tidyverseFormatError(e.niceError))].join(
           "\n\n"
         )
       );
-      Object.setPrototypeOf(this, ValidationError2.prototype);
+      Object.setPrototypeOf(this, _ValidationError.prototype);
       this.validationErrors = validationErrors;
     }
   };
@@ -30082,6 +30313,7 @@ ${tidyverseInfo(
       anyOfSchema(inner, arraySchema(inner)),
       {
         "complete-from": ["anyOf", 0]
+        // complete from `schema` completions, ignoring arrayOf
       }
     );
     return setBaseSchemaProperties(yaml, schema2);
@@ -30297,6 +30529,7 @@ ${tidyverseInfo(
     const literalValues = [
       { val: "object", schema: objectSchema() },
       { val: "path", schema: stringSchema },
+      // FIXME we should treat this one differently to record the autocompletion difference
       { val: "string", schema: stringSchema },
       { val: "number", schema: numberSchema },
       { val: "boolean", schema: booleanSchema },
@@ -30570,6 +30803,7 @@ ${tidyverseInfo(
     `engine-${engine}`
   );
   var markdownEngineSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: makeEngineSchema("markdown"),
@@ -30586,6 +30820,7 @@ ${tidyverseInfo(
     "engine-knitr"
   );
   var jupyterEngineSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: makeEngineSchema("jupyter"),
@@ -30701,12 +30936,15 @@ ${tidyverseInfo(
     }
     const mappedYaml = yamlLines.length ? mappedSource(source, yamlLines) : void 0;
     return {
+      // yaml: yaml as Record<string, unknown> | undefined,
+      // yamlValidationErrors,
       yaml: mappedYaml,
       optionsSource,
       source: mappedString(source, [{
         start: endOfYaml,
         end: source.value.length
       }]),
+      // .slice(yamlLines.length),
       sourceStartLine: yamlLines.length
     };
   }
@@ -30717,7 +30955,8 @@ ${tidyverseInfo(
       source,
       sourceStartLine
     } = partitionCellOptionsText(language, outerSource);
-    if (language !== "r" || guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
+    if (language !== "r" || // only skip validation when language === 'r' and guessChunkOptionsFormat == "knitr"
+    guessChunkOptionsFormat((mappedYaml || asMappedString("")).value) === "yaml") {
       const yaml = await parseAndValidateCellOptions(
         mappedYaml || asMappedString(""),
         language,
@@ -30877,10 +31116,10 @@ ${tidyverseInfo(
     };
     const yamlRegEx = /^---\s*$/;
     const startCodeCellRegEx = new RegExp(
-      "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
+      "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$"
     );
     const startCodeRegEx = /^```/;
-    const endCodeRegEx = /^\s*```+\s*$/;
+    const endCodeRegEx = /^\s*(```+)\s*$/;
     let language = "";
     let directiveParams = void 0;
     let cellStartLine = 0;
@@ -30908,6 +31147,7 @@ ${tidyverseInfo(
           }
         };
         const cell = {
+          // deno-lint-ignore camelcase
           cell_type: makeCellType(),
           source,
           sourceOffset: 0,
@@ -30989,11 +31229,12 @@ ${tidyverseInfo(
         await flushLineBuffer("directive", i);
       } else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
         const m = line.substring.match(startCodeCellRegEx);
-        language = m[1];
+        language = m[2];
         await flushLineBuffer("markdown", i);
         inCodeCell = true;
+        inCode = m[1].length;
         codeStartRange = line;
-      } else if (endCodeRegEx.test(line.substring) && (inCodeCell || inCode && tickCount(line.substring) === inCode)) {
+      } else if (endCodeRegEx.test(line.substring) && (inCode && line.substring.match(endCodeRegEx)[1].length === inCode)) {
         if (inCodeCell) {
           codeEndRange = line;
           inCodeCell = false;
@@ -31098,7 +31339,9 @@ ${tidyverseInfo(
     };
     const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
       "md",
+      // alias for 'commonmark'
       "hugo"
+      // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
     ).map(
       (format) => {
         const {
@@ -31107,6 +31350,12 @@ ${tidyverseInfo(
         } = hideFormat(format);
         return {
           regex: `^(.+-)?${name}([-+].+)?$`,
+          // NOTE: the following regex supports format:foo and format[foo]. It currently breaks
+          // our autocompletion because it uses non-capturing groups. Since we haven't decided
+          // on it, we're reverting for now.
+          //
+          // regex:
+          //   `^${name}(?:(?:[[][^\\]\\ s]+[\\]])|(?:[:][^:+\\s]+))?(?:[+].+)?$`,
           schema: getFormatSchema(name),
           name,
           hidden
@@ -31204,6 +31453,7 @@ ${tidyverseInfo(
 
   // ../yaml-schema/project-config.ts
   var getProjectConfigFieldsSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: objectSchemaFromFieldsObject(
@@ -31215,6 +31465,7 @@ ${tidyverseInfo(
     "project-config-fields"
   );
   var getExtensionConfigFieldsSchema = defineCached(
+    // deno-lint-ignore require-await
     async () => {
       return {
         schema: objectSchemaFromFieldsObject(
@@ -31424,8 +31675,11 @@ ${tidyverseInfo(
   async function completionsFromGoodParseYAML(context) {
     const {
       line,
+      // editing line up to the cursor
       position,
+      // row/column of cursor (0-based)
       schema: schema2
+      // schema of yaml object
     } = context;
     const positionKind = context.positionKind || "metadata";
     const commentPrefix = context.commentPrefix || "";
@@ -31527,6 +31781,18 @@ ${tidyverseInfo(
           indent,
           commentPrefix,
           context,
+          // filter raw completions depending on cursor context. We use "_" to denote
+          // the cursor position. We need to handle:
+          //
+          // 1. "     _": empty line
+          // 2. "     foo: _": completion on value position of object
+          // 3. "     - _": completion on array sequence
+          // 4. "     - foo: ": completion on value position of object inside array sequence
+          // 5. "     foo_": completion on key position in partially-completed word
+          //
+          // case 1 was handled upstream of this, so we don't need to handle it here
+          // cases 2 and 4 take only value completions
+          // case 3 takes all completions, so no work is needed
           completionPosition: completionOnValuePosition ? "value" : completionOnArraySequence ? "key" : void 0,
           positionKind
         });
@@ -31633,6 +31899,7 @@ ${tidyverseInfo(
     const formats = [
       ...Array.from(context.formats),
       ...Array.from(context.project_formats)
+      // keep only pandoc valid formats here
     ].filter((x) => aliases["pandoc-all"].indexOf(x) !== -1);
     let completions2 = matchingSchemas.map((schema3) => {
       const result = schemaCompletions(schema3);
@@ -31785,8 +32052,12 @@ ${tidyverseInfo(
     }
     completions2 = uniqBy(completions2, (completion) => completion.value);
     return {
+      // token to replace
       token: word,
+      // array of completions
       completions: completions2,
+      // is this cacheable for subsequent results that add to the token
+      // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
       cacheable: true
     };
   }
@@ -31870,6 +32141,7 @@ ${tidyverseInfo(
               schemaName: "front-matter",
               line,
               position,
+              // we don't need to adjust position because front matter only shows up at start of file.
               positionKind: "metadata"
             })
           );
@@ -31952,8 +32224,13 @@ ${tidyverseInfo(
       line: context.line.slice(commentPrefix.length),
       code: yaml,
       commentPrefix,
+      // NB we get lucky here that the "inverse mapping" of the cursor
+      // position is easy enough to compute explicitly. This might not
+      // hold in the future...
       position: {
+        // -1 subtract the "{language}" line if necessary
         row: context.position.row - codeStartLine,
+        // subtract the "#| " entry
         column: context.position.column - commentPrefix.length
       },
       schema: schema2,
@@ -32106,5 +32383,5 @@ initialization does not contain language extensions`);
     getLint
   });
 })();
-/*! @author Toru Nagashima <https://github.com/mysticatea> */
 /*! js-yaml 4.1.0 https://github.com/nodeca/js-yaml @license MIT */
+/*! @author Toru Nagashima <https://github.com/mysticatea> */

@@ -9,12 +9,14 @@ import {
   Application,
   Bundle,
   Content,
+  ErrorBody,
   OutputRevision,
   Task,
   User,
 } from "./types.ts";
 
 import { md5Hash } from "../../../core/hash.ts";
+import { quartoConfig } from "../../../core/quarto.ts";
 
 import { crypto } from "https://deno.land/std@0.185.0/crypto/mod.ts";
 
@@ -139,6 +141,7 @@ export class PositCloudClient {
 
     const headers = {
       Accept: "application/json",
+      "User-Agent": `quarto-cli/${quartoConfig.version()}`,
       ...authHeaders,
       ...contentTypeHeader,
     };
@@ -168,7 +171,19 @@ export class PositCloudClient {
         return await response.text() as unknown as T;
       }
     } else if (response.status >= 400) {
-      throw new ApiError(response.status, response.statusText);
+      const json = await response.json() as unknown as ErrorBody;
+      let errorDescription = undefined;
+      if (json.error) {
+        errorDescription = json.error;
+        if (json.error_type) {
+          errorDescription = `${errorDescription}, code=${json.error_type}`;
+        }
+      }
+      throw new ApiError(
+        response.status,
+        response.statusText,
+        errorDescription,
+      );
     } else {
       throw new Error(`${response.status} - ${response.statusText}`);
     }

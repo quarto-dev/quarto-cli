@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { warning } from "log/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
@@ -27,6 +28,12 @@ export function resourcePath(resource?: string): string {
 
 export function formatResourcePath(format: string, resource: string) {
   return join(resourcePath("formats"), format, resource);
+}
+
+export function architectureToolsPath(path: string) {
+  const arch = Deno.build.arch;
+  const archDir = join(arch, path);
+  return toolsPath(archDir);
 }
 
 export function toolsPath(binary: string): string {
@@ -71,7 +78,9 @@ export function toolsPath(binary: string): string {
 }
 
 export function pandocBinaryPath(): string {
-  return toolsPath("pandoc");
+  return Deno.build.os === "windows"
+    ? toolsPath("pandoc")
+    : architectureToolsPath("pandoc");
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {
@@ -79,12 +88,16 @@ export async function rBinaryPath(binary: string): Promise<string> {
   // if there is a QUARTO_R environment variable then respect that
   const quartoR = Deno.env.get("QUARTO_R");
   debug(`Looking for '${binary}' in QUARTO_R: ${quartoR}`);
-  if (quartoR && existsSync(quartoR)) {
-    const rBinDir = Deno.statSync(quartoR).isDirectory
-      ? quartoR
-      : dirname(quartoR);
-    debug(`Found in ${rBinDir}`);
-    return join(rBinDir, binary);
+  if (quartoR) {
+    if (existsSync(quartoR)) {
+      const rBinDir = Deno.statSync(quartoR).isDirectory
+        ? quartoR
+        : dirname(quartoR);
+      debug(`Found in ${rBinDir}`);
+      return join(rBinDir, binary);
+    } else {
+      warning(`Specified QUARTO_R '${quartoR}' does not exist.`);
+    }
   }
 
   // if there is an R_HOME then respect that

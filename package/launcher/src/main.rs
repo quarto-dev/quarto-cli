@@ -54,6 +54,7 @@ fn main() {
         if env::consts::OS == "windows" {
             deno_file = bin_dir
                 .join("tools")
+                .join("x86_64")
                 .join("deno");
         } else {
             deno_file = bin_dir
@@ -64,7 +65,7 @@ fn main() {
     }
     let mut deno_dom_file: PathBuf = path_from_env("QUARTO_DENO_DOM");
     if deno_dom_file.as_os_str().is_empty() {
-        deno_dom_file = bin_dir.join("tools").join("deno_dom").join(DENO_DOM_LIB);
+        deno_dom_file = bin_dir.join("tools").join("x86_64").join("deno_dom").join(DENO_DOM_LIB);
     }
 
     // set environment variables requried by quarto.js
@@ -165,11 +166,12 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
 fn deno_dir() -> String {
     let arch = arch_string();
     if arch.starts_with("Darwin arm64") {
-        return String::from_str("deno-aarch64-apple-darwin").unwrap();
+        return String::from_str("aarch64").unwrap();
     } else if arch.starts_with("Darwin x86_64") {
-        return String::from_str("deno-x86_64-apple-darwin").unwrap();
+        return String::from_str("x86_64").unwrap();
     } else {
-        return String::from_str("deno-x86_64-unknown-linux-gnu").unwrap();
+        // TODO: Properly deal with multi-architecture on linux
+        return String::from_str("x86_64").unwrap();
     }
 }
 

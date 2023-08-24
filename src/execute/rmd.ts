@@ -38,6 +38,7 @@ import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 import { mappedStringFromFile } from "../core/mapped-text.ts";
 import { mappedIndexToLineCol, MappedString } from "../core/lib/mapped-text.ts";
 import { lineColToIndex } from "../core/lib/text.ts";
+import { executeInlineCodeHandler } from "../core/execute-inline.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -98,7 +99,7 @@ export const knitrEngine: ExecutionEngine = {
         ...options,
         target: undefined,
         input: options.target.input,
-        markdown: options.target.markdown.value,
+        markdown: resolveInlineExecute(options.target.markdown.value),
       },
       options.tempDir,
       options.projectDir,
@@ -317,4 +318,11 @@ function filterAlwaysAllowHtml(s: string): string {
       .replace("always_allow_html: true", "prefer-html: true");
   }
   return s;
+}
+
+function resolveInlineExecute(code: string) {
+  return executeInlineCodeHandler(
+    "r",
+    (expr) => `${"`"}r .QuartoInlineRender(${expr})${"`"}`,
+  )(code);
 }

@@ -1,6 +1,10 @@
 # execute.R
 # Copyright (C) 2020-2022 Posit Software, PBC
 
+# quarto_process_inline_uuid: uuid_5b6f6da5_61c6_4cec_a0e0_0cdeaa1cb2b8
+# we replace - with _ so that it's a valid R identifier without
+# requiring backticks (because we'll use it in inline code that is itself wrapped in backticks)
+
 # execute rmarkdown::render
 execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir, handledLanguages, markdown) {
 
@@ -130,13 +134,27 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     ), name = "tools:quarto")
     source(file.path(resourceDir, "rmd", "ojs_static.R"))
   }
+
+  env <- globalenv()
+  env$.QuartoInlineRender <- function(v) {
+    if (is.null(v)) {
+      "NULL"
+    } else if (inherits(v, "AsIs")) {
+      v
+    } else if (is.character(v)) {
+      gsub(pattern="(\\[|\\]|[`*_{}()>#+-.!])", x=v, replacement="\\\\\\1")
+    } else {
+      v
+    }
+  }
+
   render_output <- rmarkdown::render(
     input = input,
     output_format = output_format,
     knit_root_dir = knit_root_dir,
     params = params,
     run_pandoc = FALSE,
-    envir = globalenv()
+    envir = env
   )
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")

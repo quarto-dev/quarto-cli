@@ -612,6 +612,27 @@ async function updateBootstrapFromBslib(
       info("done.");
       info("");
 
+
+      // Rewrite the use of css `var()` style values to base SCSS values
+      info(
+        "Rewriting _variables.scss file.",
+      );
+      const bootstrapVariablesFile = join(to, "_variables.scss");
+      const varContents = lines(
+        Deno.readTextFileSync(bootstrapVariablesFile),
+      );
+      const outLines: string[] = [];
+      for (let line of varContents) {
+        line = line.replace("var(--#{$prefix}font-sans-serif)", "$font-family-sans-serif");
+        line = line.replace("var(--#{$prefix}font-monospace)", "$font-family-monospace");
+        line = line.replace(/var\(--#\{\$prefix\}(.*)\)/, "$$$1");
+        outLines.push(line);
+      }
+      Deno.writeTextFileSync(bootstrapVariablesFile, outLines.join("\n"));
+      info("done.");
+      info("");
+
+
       // Copy utils
       info("Copying scss files");
       const utilsFrom = join(repo.dir, "inst", "sass-utils");
@@ -947,10 +968,10 @@ const themePatches: Record<string, ThemePatch[]> = {
       ".navbar {\n  @include shadow();\n  border-color: shade-color($navbar-bg, 10%);",
   }],
   "simplex": [{
-    from: ".navbar {\n  border-width: 1px;\n  border-style: solid;",
+    from: ".navbar {\n  border-style: solid;\n  border-width: 1px;",
     to:
       ".navbar {\n  border-width: 1px;\n  border-style: solid;\n  border-color: shade-color($navbar-bg, 13%);",
-  }],
+  }],  
   "solar": [{
     from: "$body-color:                $gray-600 !default;",
     to: "$body-color:                $gray-500 !default;",

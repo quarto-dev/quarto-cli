@@ -630,6 +630,10 @@ h1.title {
   margin-top: 0;
 }
 
+main.content > section:first-of-type > h2:first-child {
+  margin-top: 0;
+}
+
 h2 {
   border-bottom: 1px solid $table-border-color;
   padding-bottom: 0.5rem;
@@ -1023,13 +1027,6 @@ td code:not(.sourceCode) {
   padding-top: 1em;
 }
 
-.sidebar.toc-left,
-.sidebar.margin-sidebar {
-  & > * {
-    padding-top: 0.5em;
-  }
-}
-
 .sidebar.quarto-banner-title-block-sidebar {
   & > * {
     padding-top: 1.65em;
@@ -1071,10 +1068,32 @@ figure .quarto-notebook-link {
   background-size: 0.75rem 0.75rem;
 }
 
+.toc-actions i.bi,
+.quarto-code-links i.bi,
 .quarto-other-links i.bi,
 .quarto-alternate-notebooks i.bi,
 .quarto-alternate-formats i.bi {
   margin-right: 0.4em;
+  font-size: $toc-tools-font-size;
+}
+
+.quarto-other-links-text-target {
+  .quarto-code-links i.bi,
+  .quarto-other-links i.bi {
+    margin-right: 0.2em;
+  }
+}
+
+.quarto-other-formats-text-target .quarto-alternate-formats i.bi {
+  margin-right: 0.1em;
+}
+
+.toc-actions i.bi.empty,
+.quarto-code-links i.bi.empty,
+.quarto-other-links i.bi.empty,
+.quarto-alternate-notebooks i.bi.empty,
+.quarto-alternate-formats i.bi.empty {
+  padding-left: 1em;
 }
 
 .quarto-notebook .cell-container {
@@ -1099,25 +1118,38 @@ figure .quarto-notebook-link {
   border-bottom: none;
 }
 
+.toc-actions,
+.quarto-alternate-formats,
+.quarto-other-links,
+.quarto-code-links,
+.quarto-alternate-notebooks {
+  padding-left: 0em;
+}
+.sidebar .toc-actions a,
 .sidebar .quarto-alternate-formats a,
 .sidebar .quarto-other-links a,
-.sidebar .quarto-alternate-notebooks a {
+.sidebar .quarto-code-links a,
+.sidebar .quarto-alternate-notebooks a,
+.sidebar nav[role="doc-toc"] a {
   text-decoration: none;
 }
 
+.sidebar .toc-actions a:hover,
 .sidebar .quarto-other-links a:hover,
+.sidebar .quarto-code-links a:hover,
 .sidebar .quarto-alternate-formats a:hover,
 .sidebar .quarto-alternate-notebooks a:hover {
   color: $link-color;
 }
 
+.sidebar .toc-actions h2,
+.sidebar .quarto-code-links h2,
 .sidebar .quarto-other-links h2,
 .sidebar .quarto-alternate-notebooks h2,
 .sidebar .quarto-alternate-formats h2,
 .sidebar nav[role="doc-toc"] > h2 {
-  font-size: $toc-font-size;
-  font-weight: 400;
-  margin-bottom: 0.5rem;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
   margin-top: 0.3rem;
   font-family: inherit;
   border-bottom: 0;
@@ -1125,10 +1157,16 @@ figure .quarto-notebook-link {
   padding-top: 0px;
 }
 
-.sidebar .quarto-other-links h2,
-.sidebar .quarto-alternate-notebooks h2,
-.sidebar .quarto-alternate-formats h2 {
-  margin-top: 1rem;
+.sidebar .toc-actions > h2,
+.sidebar .quarto-code-links > h2,
+.sidebar .quarto-other-links > h2,
+.sidebar .quarto-alternate-notebooks > h2,
+.sidebar .quarto-alternate-formats > h2 {
+  font-size: $toc-tools-font-size;
+}
+
+.sidebar nav[role="doc-toc"] > h2 {
+  font-size: $toc-font-size;
 }
 
 .sidebar nav[role="doc-toc"] > ul a {
@@ -1136,6 +1174,8 @@ figure .quarto-notebook-link {
   padding-left: 0.6rem;
 }
 
+.sidebar .toc-actions h2 > ul a,
+.sidebar .quarto-code-links h2 > ul a,
 .sidebar .quarto-other-links h2 > ul a,
 .sidebar .quarto-alternate-notebooks h2 > ul a,
 .sidebar .quarto-alternate-formats h2 > ul a {
@@ -1143,6 +1183,8 @@ figure .quarto-notebook-link {
   padding-left: 0.6rem;
 }
 
+.sidebar .toc-actions ul a:empty,
+.sidebar .quarto-code-links ul a:empty,
 .sidebar .quarto-other-links ul a:empty,
 .sidebar .quarto-alternate-notebooks ul a:empty,
 .sidebar .quarto-alternate-formats ul a:empty,
@@ -1150,15 +1192,43 @@ figure .quarto-notebook-link {
   display: none;
 }
 
+.sidebar .toc-actions ul,
+.sidebar .quarto-code-links ul,
 .sidebar .quarto-other-links ul,
 .sidebar .quarto-alternate-notebooks ul,
-.sidebar .quarto-alternate-formats ul,
-.sidebar nav[role="doc-toc"] ul {
+.sidebar .quarto-alternate-formats ul {
   padding-left: 0;
   list-style: none;
+}
+
+.sidebar nav[role="doc-toc"] ul {
+  list-style: none;
+  padding-left: 0;
+  list-style: none;
+}
+
+.sidebar nav[role="doc-toc"] > ul {
+  margin-left: 0.45em;
+}
+
+.quarto-margin-sidebar nav[role="doc-toc"] {
+  padding-left: 0.5em;
+}
+
+.sidebar .toc-actions > ul,
+.sidebar .quarto-code-links > ul,
+.sidebar .quarto-other-links > ul,
+.sidebar .quarto-alternate-notebooks > ul,
+.sidebar .quarto-alternate-formats > ul {
+  font-size: $toc-tools-font-size;
+}
+
+.sidebar nav[role="doc-toc"] > ul {
   font-size: $toc-font-size;
 }
 
+.sidebar .toc-actions ul li a,
+.sidebar .quarto-code-links ul li a,
 .sidebar .quarto-other-links ul li a,
 .sidebar .quarto-alternate-notebooks ul li a,
 .sidebar .quarto-alternate-formats ul li a,
@@ -1201,7 +1271,11 @@ kbd,
 }
 
 // tweak pandoc default hanging indent
-div.hanging-indent {
+.quarto-appendix-contents div.hanging-indent {
+  margin-left: 0em;
+}
+
+.quarto-appendix-contents div.hanging-indent div.csl-entry {
   margin-left: 1em;
   text-indent: -1em;
 }

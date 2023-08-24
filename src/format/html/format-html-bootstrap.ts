@@ -5,16 +5,17 @@
  */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { findParent } from "../../core/html.ts";
 
 import {
+  kCodeLinks,
+  kCodeLinksTitle,
   kContentMode,
-  kDisplayName,
-  kExtensionName,
+  kDisableArticleLayout,
   kFormatLinks,
   kGrid,
   kHtmlMathMethod,
@@ -26,7 +27,6 @@ import {
   kQuartoTemplateParams,
   kRelatedFormatsTitle,
   kSectionDivs,
-  kTargetFormat,
   kTocDepth,
   kTocExpand,
   kTocLocation,
@@ -34,13 +34,13 @@ import {
 import {
   Format,
   FormatExtras,
-  FormatLink,
   kBodyEnvelope,
   kDependencies,
   kHtmlFinalizers,
   kHtmlPostprocessors,
   kSassBundles,
   Metadata,
+  OtherLink,
   SassLayer,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
@@ -76,19 +76,10 @@ import {
   processDocumentTitle,
 } from "./format-html-title.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
-import {
-  isDocxOutput,
-  isHtmlOutput,
-  isIpynbOutput,
-  isJatsOutput,
-  isMarkdownOutput,
-  isPdfOutput,
-  isPresentationOutput,
-} from "../../config/format.ts";
-import { basename } from "path/mod.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { extname } from "path/mod.ts";
+import { AlternateLink, otherFormatLinks } from "./format-html-links.ts";
 
 export function bootstrapFormatDependency() {
   const boostrapResource = (resource: string) =>
@@ -284,7 +275,7 @@ function bootstrapHtmlPostprocessor(
     }
 
     // move the toc if there is a sidebar
-    let toc = doc.querySelector('nav[role="doc-toc"]');
+    const toc = doc.querySelector('nav[role="doc-toc"]');
 
     const tocTarget = doc.getElementById("quarto-toc-target");
 
@@ -293,9 +284,16 @@ function bootstrapHtmlPostprocessor(
 
     if (toc && tocTarget) {
       if (useDoubleToc) {
-        const clonedToc = toc.cloneNode(true);
-        toc.id = "TOC-body";
-        toc = clonedToc as Element;
+        // Clone the TOC
+        // Leave it where it is in the document, and just mutate it
+        const clonedToc = toc.cloneNode(true) as Element;
+        clonedToc.id = "TOC-body";
+        const tocActionsEl = clonedToc.querySelector(".toc-actions");
+        if (tocActionsEl) {
+          tocActionsEl.remove();
+        }
+
+        toc.parentElement?.insertBefore(clonedToc, toc);
       }
 
       // activate selection behavior for this
@@ -375,9 +373,8 @@ function bootstrapHtmlPostprocessor(
       }
     }
 
-    if (format.metadata[kOtherLinks]) {
-      processOtherLinks(doc, format);
-    }
+    // Process additional links for this document
+    processOtherLinks(doc, format);
 
     // default treatment for computational tables
     const addTableClasses = (table: Element, computational = false) => {
@@ -468,57 +465,7 @@ function bootstrapHtmlPostprocessor(
   };
 }
 
-// Provides a download name for a format/path
-const fileDownloadAttr = (format: Format, path: string) => {
-  if (isIpynbOutput(format.pandoc)) {
-    return basename(path);
-  } else if (isJatsOutput(format.pandoc)) {
-    return basename(path);
-  } else {
-    return undefined;
-  }
-};
-
-// Provides an icon for a format
-const fileBsIconName = (format: Format) => {
-  if (isDocxOutput(format.pandoc)) {
-    return "file-word";
-  } else if (isPdfOutput(format.pandoc)) {
-    return "file-pdf";
-  } else if (isIpynbOutput(format.pandoc)) {
-    return "journal-code";
-  } else if (isMarkdownOutput(format)) {
-    return "file-code";
-  } else if (isPresentationOutput(format.pandoc)) {
-    return "file-slides";
-  } else if (isJatsOutput(format.pandoc)) {
-    return "filetype-xml";
-  } else {
-    return "file";
-  }
-};
-
-const fileBsIconForExt = (path: string) => {
-  const ext = extname(path);
-  switch (ext.toLowerCase()) {
-    case ".docx":
-      return "file-word";
-    case ".pdf":
-      return "file-pdf";
-    case ".ipynb":
-      return "journal-code";
-    case ".md":
-      return "file-code";
-    case ".xml":
-      return "filetype-xml";
-    default:
-      return "file";
-  }
-};
-
-function createLinkLi(formatLink: AlternateLink, doc: Document) {
-  const li = doc.createElement("li");
-
+function createLinkChild(formatLink: AlternateLink, doc: Document) {
   const link = doc.createElement("a");
   link.setAttribute("href", formatLink.href);
   if (formatLink.attr) {
@@ -538,50 +485,204 @@ function createLinkLi(formatLink: AlternateLink, doc: Document) {
   link.appendChild(icon);
   link.appendChild(doc.createTextNode(formatLink.title));
 
-  li.appendChild(link);
-  return li;
+  return link;
 }
 
 function processOtherLinks(
   doc: Document,
   format: Format,
 ) {
-  const otherLinks = format.metadata[kOtherLinks] as FormatLink[];
-  const dlLinkTarget = getLinkTarget(doc);
-  if (otherLinks && otherLinks.length > 0 && dlLinkTarget) {
-    const containerEl = doc.createElement("div");
-    containerEl.classList.add("quarto-other-links");
+  const processLinks = (
+    otherLinks: OtherLink[],
+    clz: string,
+    title: string,
+  ) => {
+    const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherLinks);
+    if (otherLinks.length > 0 && dlLinkTarget) {
+      const containerEl = doc.createElement("div");
+      containerEl.classList.add(clz);
 
-    const heading = doc.createElement("h2");
-    if (format.language[kOtherLinksTitle]) {
-      heading.innerText = format.language[kOtherLinksTitle];
-    }
-    containerEl.appendChild(heading);
+      const heading = dlLinkTarget.makeHeadingEl(
+        title,
+      );
+      containerEl.appendChild(heading);
 
-    const linkList = doc.createElement("ul");
-    let order = 0;
-    for (const otherLink of otherLinks) {
-      const alternateLink: AlternateLink = {
-        icon: otherLink.icon || "link-45deg",
-        href: otherLink.href,
-        title: otherLink.title,
-        order: ++order,
+      const getAttrs = (otherLink: OtherLink) => {
+        if (otherLink.rel || otherLink.target) {
+          const attrs: Record<string, string> = {};
+          if (otherLink.rel) {
+            attrs.rel = otherLink.rel;
+          }
+          if (otherLink.target) {
+            attrs.target = otherLink.target;
+          }
+          return attrs;
+        } else {
+          return undefined;
+        }
       };
-      const li = createLinkLi(alternateLink, doc);
-      linkList.appendChild(li);
+
+      const linkList = dlLinkTarget.makeContainerEl();
+      let order = 0;
+      for (let i = 0; i < otherLinks.length; i++) {
+        const otherLink = otherLinks[i];
+        const alternateLink: AlternateLink = {
+          icon: otherLink.icon || "link-45deg",
+          href: otherLink.href,
+          title: otherLink.text,
+          order: ++order,
+          attr: getAttrs(otherLink),
+        };
+        const li = dlLinkTarget.makeItemEl(
+          createLinkChild(alternateLink, doc),
+          i,
+          otherLinks.length,
+        );
+        if (linkList) {
+          linkList.appendChild(li);
+        } else {
+          containerEl.appendChild(li);
+        }
+      }
+      if (linkList) {
+        containerEl.appendChild(linkList);
+      }
+
+      dlLinkTarget.targetEl.appendChild(containerEl);
     }
-    containerEl.appendChild(linkList);
-    dlLinkTarget.appendChild(containerEl);
-  }
+  };
+
+  const otherLinkOptions = [{
+    links: (format.metadata[kOtherLinks] || []) as OtherLink[],
+    clz: "quarto-other-links",
+    title: format.language[kOtherLinksTitle] || "Other Links",
+  }, {
+    links: (format.metadata[kCodeLinks] || []) as OtherLink[],
+    clz: "quarto-code-links",
+    title: format.language[kCodeLinksTitle] || "Code Links",
+  }];
+  otherLinkOptions.forEach((linkDesc) => {
+    processLinks(linkDesc.links, linkDesc.clz, linkDesc.title);
+  });
 }
 
-function getLinkTarget(doc: Document) {
+type selector = string;
+interface LinkProvider {
+  makeHeadingEl: (doc: Document, text?: string) => Element;
+  makeContainerEl: (_doc: Document) => Element | undefined;
+  makeItemEl: (doc: Document, el: Element, idx: number, len: number) => Element;
+}
+
+const bannerHeadingLinkProvider = {
+  makeHeadingEl: (doc: Document, text?: string) => {
+    const headingEl = doc.createElement("div");
+    headingEl.classList.add("quarto-title-meta-heading");
+    if (text) {
+      headingEl.innerText = text;
+    }
+    return headingEl;
+  },
+  makeContainerEl: (_doc: Document) => {
+    return undefined;
+  },
+  makeItemEl: (doc: Document, el: Element) => {
+    const itemEl = doc.createElement("div");
+    itemEl.classList.add("quarto-title-meta-contents");
+
+    const pEl = doc.createElement("p");
+    pEl.appendChild(el);
+    itemEl.appendChild(pEl);
+    return itemEl;
+  },
+};
+
+const bannerTextLinkProvider = {
+  makeHeadingEl: (doc: Document, text?: string) => {
+    const headingEl = doc.createElement("div");
+    headingEl.classList.add("quarto-title-meta-heading");
+    if (text) {
+      headingEl.innerText = text;
+    }
+    return headingEl;
+  },
+  makeContainerEl: (doc: Document) => {
+    const headingEl = doc.createElement("div");
+    headingEl.classList.add("quarto-title-meta-contents");
+    return headingEl;
+  },
+  makeItemEl: (doc: Document, el: Element, idx: number, len: number) => {
+    const itemEl = doc.createElement("span");
+
+    itemEl.appendChild(el);
+    if (idx < len - 1) {
+      itemEl.append(doc.createTextNode(","));
+      itemEl.setAttribute("style", "padding-right: 0.5em;");
+    }
+
+    return itemEl;
+  },
+};
+
+const kLinkProvidersOtherLinks: Record<selector, LinkProvider> = {
+  "quarto-other-links-target": bannerHeadingLinkProvider,
+  "quarto-other-links-text-target": bannerTextLinkProvider,
+};
+
+const kLinkProvidersOtherFormats: Record<selector, LinkProvider> = {
+  "quarto-other-formats-target": bannerHeadingLinkProvider,
+  "quarto-other-formats-text-target": bannerTextLinkProvider,
+};
+
+function getLinkTarget(
+  doc: Document,
+  linkProviders?: Record<selector, LinkProvider>,
+) {
+  // Look for an explicit target
+  if (linkProviders) {
+    for (const sel of Object.keys(linkProviders)) {
+      const explicitTarget = doc.querySelector(`.${sel}`);
+      if (explicitTarget !== null) {
+        const linkProvider = linkProviders[sel];
+        return {
+          targetEl: explicitTarget,
+          makeHeadingEl: (text?: string) => {
+            return linkProvider.makeHeadingEl(doc, text);
+          },
+          makeContainerEl: () => {
+            return linkProvider.makeContainerEl(doc);
+          },
+          makeItemEl: (el: Element, idx: number, len: number) => {
+            return linkProvider.makeItemEl(doc, el, idx, len);
+          },
+        };
+      }
+    }
+  }
+
+  // Now search for a place to put the links
   let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
   if (dlLinkTarget === null) {
     dlLinkTarget = doc.getElementById(kMarginSidebarId);
   }
   if (dlLinkTarget !== null) {
-    return dlLinkTarget;
+    return {
+      targetEl: dlLinkTarget,
+      makeHeadingEl: (text?: string) => {
+        const headingEl = doc.createElement("h2");
+        if (text) {
+          headingEl.innerText = text;
+        }
+        return headingEl;
+      },
+      makeContainerEl: () => {
+        return doc.createElement("ul");
+      },
+      makeItemEl: (el: Element) => {
+        const liEl = doc.createElement("li");
+        liEl.appendChild(el);
+        return liEl;
+      },
+    };
   }
 }
 
@@ -597,53 +698,28 @@ function processAlternateFormatLinks(
   resources: string[],
 ) {
   if (options.renderedFormats.length > 1) {
-    const dlLinkTarget = getLinkTarget(doc);
+    const dlLinkTarget = getLinkTarget(doc, kLinkProvidersOtherFormats);
     if (dlLinkTarget) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-formats");
 
-      const heading = doc.createElement("h2");
-      if (format.language[kRelatedFormatsTitle]) {
-        heading.innerText = format.language[kRelatedFormatsTitle];
-      }
+      const heading = dlLinkTarget.makeHeadingEl(
+        format.language[kRelatedFormatsTitle],
+      );
       containerEl.appendChild(heading);
 
-      const formatList = doc.createElement("ul");
-      const normalizedFormatLinks = (
-        unnormalizedLinks: unknown,
-      ): Array<string | FormatLink> | undefined => {
-        if (typeof (unnormalizedLinks) === "boolean") {
-          return undefined;
-        } else if (unnormalizedLinks !== undefined) {
-          const linksArr: unknown[] = Array.isArray(unnormalizedLinks)
-            ? unnormalizedLinks
-            : [unnormalizedLinks];
-          return linksArr as Array<string | FormatLink>;
-        } else {
-          return undefined;
-        }
-      };
-      const userLinks = normalizedFormatLinks(format.render[kFormatLinks]);
-
-      // Don't include HTML output
-      const renderedFormats = options.renderedFormats.filter(
-        (renderedFormat) => {
-          return !isHtmlOutput(renderedFormat.format.pandoc, true);
-        },
-      );
-
-      const altLinks = alternateLinks(
+      const otherLinks = otherFormatLinks(
         input,
-        renderedFormats,
-        userLinks,
+        format,
+        options.renderedFormats,
       );
-      for (
-        const alternateLink of altLinks.sort(({ order: a }, { order: b }) =>
-          a - b
-        )
-      ) {
-        const li = doc.createElement("li");
 
+      const formatList = dlLinkTarget.makeContainerEl();
+      const sortedLinks = otherLinks.sort(({ order: a }, { order: b }) =>
+        a - b
+      );
+      for (let i = 0; i < sortedLinks.length; i++) {
+        const alternateLink = sortedLinks[i];
         const link = doc.createElement("a");
         link.setAttribute("href", alternateLink.href);
         if (alternateLink.dlAttrValue) {
@@ -662,105 +738,25 @@ function processAlternateFormatLinks(
         link.appendChild(icon);
         link.appendChild(doc.createTextNode(alternateLink.title));
 
-        li.appendChild(link);
-        formatList.appendChild(li);
+        const li = dlLinkTarget.makeItemEl(link, i, sortedLinks.length);
+        if (formatList) {
+          formatList.appendChild(li);
+        } else {
+          containerEl.appendChild(li);
+        }
 
         resources.push(alternateLink.href);
       }
 
-      if (altLinks.length > 0) {
-        containerEl.appendChild(formatList);
-        dlLinkTarget.appendChild(containerEl);
+      if (otherLinks.length > 0) {
+        if (formatList) {
+          containerEl.appendChild(formatList);
+        }
+        dlLinkTarget.targetEl.appendChild(containerEl);
       }
     }
   }
 }
-
-interface AlternateLink {
-  title: string;
-  href: string;
-  icon: string;
-  order: number;
-  dlAttrValue?: string;
-  attr?: Record<string, string>;
-}
-
-function alternateLinks(
-  input: string,
-  formats: RenderedFormat[],
-  userLinks?: Array<string | FormatLink>,
-): AlternateLink[] {
-  const alternateLinks: AlternateLink[] = [];
-
-  const alternateLinkForFormat = (
-    renderedFormat: RenderedFormat,
-    order: number,
-  ) => {
-    const relPath = isAbsolute(renderedFormat.path)
-      ? relative(dirname(input), renderedFormat.path)
-      : renderedFormat.path;
-    return {
-      title: `${
-        renderedFormat.format.identifier[kDisplayName] ||
-        renderedFormat.format.pandoc.to
-      }${
-        renderedFormat.format.identifier[kExtensionName]
-          ? ` (${renderedFormat.format.identifier[kExtensionName]})`
-          : ""
-      }`,
-      href: relPath,
-      icon: fileBsIconName(renderedFormat.format),
-      order,
-      dlAttrValue: fileDownloadAttr(
-        renderedFormat.format,
-        renderedFormat.path,
-      ),
-    };
-  };
-
-  let count = 1;
-  for (const userLink of userLinks || []) {
-    if (typeof (userLink) === "string") {
-      // We need to filter formats, otherwise, we'll deal
-      // with them below
-      const renderedFormat = formats.find((f) =>
-        f.format.identifier[kTargetFormat] === userLink
-      );
-      if (renderedFormat) {
-        // Just push through
-        alternateLinks.push(alternateLinkForFormat(renderedFormat, count));
-      }
-    } else {
-      // This an explicit link
-      const alternate = {
-        title: userLink.title,
-        href: userLink.href,
-        icon: userLink.icon || fileBsIconForExt(userLink.href),
-        dlAttrValue: "",
-        order: userLink.order || count,
-        attr: userLink.attr,
-      };
-      alternateLinks.push(alternate);
-    }
-    count++;
-  }
-
-  const userLinksHasFormat = userLinks &&
-    userLinks.some((link) => typeof (link) === "string");
-  if (!userLinksHasFormat) {
-    formats.forEach((renderedFormat) => {
-      const baseFormat = renderedFormat.format.identifier["base-format"];
-      if (!kExcludeFormatUnlessExplicit.includes(baseFormat || "html")) {
-        alternateLinks.push(alternateLinkForFormat(renderedFormat, count));
-      }
-      count++;
-    });
-  }
-
-  return alternateLinks;
-}
-
-const kExcludeFormatUnlessExplicit = ["jats"];
 
 function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
   return (doc: Document): Promise<void> => {
@@ -769,6 +765,30 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
       format,
       flags,
     );
+
+    if (format.metadata[kDisableArticleLayout]) {
+      const stripColumnClasses = (el: Element) => {
+        const stripClz: string[] = [];
+        el.classList.forEach((clz) => {
+          if (
+            clz === "margin-caption" || clz === "margin-ref" ||
+            clz.startsWith("column-") || clz === "page-columns" ||
+            clz === "page-full"
+          ) {
+            stripClz.push(clz);
+          }
+        });
+        el.classList.remove(...stripClz);
+        for (const childEl of el.children) {
+          stripColumnClasses(childEl);
+        }
+      };
+
+      const mainEl = doc.body.querySelector("main");
+      if (mainEl) {
+        stripColumnClasses(mainEl);
+      }
+    }
 
     // provide heading for footnotes (but only if there is one section, there could
     // be multiple if they used reference-location: block/section)
@@ -885,6 +905,11 @@ function processColumnElements(
 
   // Process margin elements that may appear in tabsets
   processMarginElsInTabsets(doc);
+
+  // Process non-margin figures - forward the column class
+  // down into the figure so that the caption remains in the document
+  // flow and the figure itself takes the column sizing
+  processFigureOutputs(doc);
 
   // Group margin elements by their parents and wrap them in a container
   // Be sure to ignore containers which are already processed
@@ -1171,6 +1196,43 @@ const processMarginElsInCallouts = (doc: Document) => {
       });
     }
   });
+};
+
+const processFigureOutputs = (doc: Document) => {
+  // For any non-margin figures, we want to actually place the figure itself
+  // into the column, and leave the caption as is, if possible
+  const columnEls = doc.querySelectorAll(
+    '[class^="column-"]:not(.column-margin), [class*=" column-"]:not(.column-margin)',
+  );
+
+  const moveColumnClasses = (fromEl: Element, toEl: Element) => {
+    const clzList: string[] = [];
+    for (const clz of fromEl.classList) {
+      if (clz.startsWith("column-")) {
+        clzList.push(clz);
+      }
+    }
+    fromEl.classList.remove(...clzList);
+    toEl.classList.add(...clzList);
+  };
+
+  for (const columnNode of columnEls) {
+    // See if this is a code cell with a single figure output
+    const columnEl = columnNode as Element;
+
+    // If there is a single figure, then forward the column class onto that
+    const figures = columnEl.querySelectorAll("figure img.figure-img");
+    if (figures && figures.length === 1) {
+      moveColumnClasses(columnEl, figures[0] as Element);
+    } else {
+      const layoutFigures = columnEl.querySelectorAll(
+        ".quarto-layout-panel > figure.figure .quarto-layout-row",
+      );
+      if (layoutFigures && layoutFigures.length === 1) {
+        moveColumnClasses(columnEl, layoutFigures[0] as Element);
+      }
+    }
+  }
 };
 
 const processMarginElsInTabsets = (doc: Document) => {

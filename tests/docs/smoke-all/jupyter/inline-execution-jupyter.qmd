@@ -1,0 +1,24 @@
+---
+engine: jupyter
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["span#ojs-element-id-1"]
+      ensureFileRegexMatches:
+        - ["246", "\\{python\\} x \\+ x","\\{ojs\\} y\\+y"]
+        - []
+---
+
+```{python}
+x = 123
+```
+
+```{ojs}
+y = 10
+```
+
+Then, the value of $x + x$ will be `{python} x + x` and $y + y$ will be `{ojs} y+y`.
+
+For the above we used the new syntax `` `{{python}} x + x` `` and `` `{{ojs}} y+y` ``
+

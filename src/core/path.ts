@@ -150,6 +150,7 @@ export function filterPaths(
 
 export interface GlobOptions {
   mode: "strict" | "auto" | "always";
+  explicitSubfolderSearch?: boolean; // set this to true to never prepend `**/` to globs to create nested directory searching
 }
 
 export function resolvePathGlobs(
@@ -251,7 +252,7 @@ export function resolveGlobs(
     }
 
     if (!glob.startsWith("/")) {
-      if (smartGlob) {
+      if (smartGlob && (!options || !options.explicitSubfolderSearch)) {
         return "**/" + glob;
       } else {
         return glob;

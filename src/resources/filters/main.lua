@@ -66,10 +66,12 @@ import("./quarto-post/ojs.lua")
 import("./quarto-post/jats.lua")
 import("./quarto-post/responsive.lua")
 import("./quarto-post/reveal.lua")
+import("./quarto-post/typst.lua")
 import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
+import("./quarto-post/code.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -312,10 +314,15 @@ local quartoPost = {
     return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
   end, jatsSubarticle()) },
 
+  { name = "post-code-options", filter = filterIf(function() 
+    return param("clear-cell-options", false) == true
+  end, removeCodeOptions()) },
+
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
+  { name = "post-render-typst", filter = render_typst() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },

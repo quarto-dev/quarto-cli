@@ -1,12 +1,11 @@
 /*
-* dart-sass.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * dart-sass.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { join } from "path/mod.ts";
 
-import { toolsPath } from "./resources.ts";
+import { architectureToolsPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
@@ -15,7 +14,7 @@ import { existsSync } from "fs/mod.ts";
 import { warnOnce } from "./log.ts";
 
 export function dartSassInstallDir() {
-  return toolsPath("dart-sass");
+  return architectureToolsPath("dart-sass");
 }
 
 export async function dartSassVersion() {
@@ -67,7 +66,7 @@ export async function dartCommand(args: string[]) {
     }
 
     const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
-    return toolsPath(join("dart-sass", command));
+    return architectureToolsPath(join("dart-sass", command));
   };
   const sass = resolvePath();
 

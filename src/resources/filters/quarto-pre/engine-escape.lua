@@ -25,6 +25,18 @@ function engine_escape()
         return "```" .. engine 
       end)
       return el
+    end,
+
+    Code = function(el)
+      -- don't accidentally process escaped shortcodes
+      if el.text:match("^" .. patterns.shortcode) then
+        return el
+      end
+      -- handle `{{python}} code`
+      el.text = el.text:gsub("^" .. patterns.engine_escape, "%1")
+      -- handles `` `{{python}} code` ``
+      el.text = el.text:gsub("^(`+)" .. patterns.engine_escape, "%1%2")
+      return el
     end
   }
 end

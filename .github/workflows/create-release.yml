@@ -171,7 +171,7 @@ jobs:
           curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-he8a937b_0.conda --output deno.conda
           unzip deno.conda
           tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-he8a937b_0.tar.zst
-          cp bin/deno package/pkg-working/bin/tools/deno-x86_64-unknown-linux-gnu/deno
+          cp bin/deno package/pkg-working/bin/tools/x86_64/deno
 
       - name: Make Tarball
         run: |
@@ -432,6 +432,11 @@ jobs:
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
+        
+      - name: Rename news
+        run: |
+          ls -la ./News
+          mv ./News/changelog-${{needs.configure.outputs.version_base}}.md ./News/changelog.md
 
       - name: Generate Checksums
         id: generate_checksum
@@ -499,7 +504,7 @@ jobs:
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
             ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-            ./News/changelog-${{needs.configure.outputs.version_base}}.md
+            ./News/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
 
   docker-push:

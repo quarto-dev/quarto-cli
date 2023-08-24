@@ -129,7 +129,7 @@ async function writeVariants(
   const extended = ld.uniq(extArr);
   info(`  ${extended.length} extensions (after adding extended).`);
 
-  const extArrExpanded = extended.toSorted().flatMap((ext: string) => {
+  const extArrExpanded = extended.toSorted().flatMap((ext) => {
     return [`"+${ext}"`, `"-${ext}"`];
   });
 
@@ -199,7 +199,6 @@ async function writePandocTemplates(
   const latexOutdir = join(formatSrcDir, "pdf", "pandoc");
   const revealOutdir = join(formatSrcDir, "revealjs", "pandoc");
   const asciidocOutdir = join(formatSrcDir, "asciidoc", "pandoc");
-  const typstOutdir = join(formatSrcDir, "typst", "pandoc");
 
   const templateDirFiles: Record<string, Array<{ from: string; to?: string }>> =
     {
@@ -221,13 +220,8 @@ async function writePandocTemplates(
         { from: "default.latex", to: "latex.template" },
       ],
       [asciidocOutdir]: [
-        { from: "default.asciidoc", to: "asciidoc.template" },
+        { from: "default.asciidoctor", to: "asciidoc.template" },
       ],
-      [typstOutdir]: [
-        { from: "default.typst", to: "typst.template" },
-        { from: "definitions.typst" },
-        { from: "template.typst" }
-      ]
     };
 
   // Move templates

@@ -4,14 +4,16 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFile, renderFiles } from "../../command/render/render-files.ts";
+import { renderFile } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kClearCellOptions,
   kClearHiddenClasses,
+  kIpynbProduceSourceNotebook,
   kIPynbTitleBlockTemplate,
   kKeepHidden,
   kOutputFile,
@@ -29,17 +31,34 @@ import * as ld from "../../core/lodash.ts";
 import { error } from "log/mod.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { existsSync } from "fs/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
   render: renderOutputNotebook,
   outputFile,
+  cachedPath,
 };
 
-function outputFile(
+export function outputFile(
   nbAbsPath: string,
 ): string {
   return ipynbOutputFile(nbAbsPath);
+}
+
+function cachedPath(nbAbsPath: string, project?: ProjectContext) {
+  if (project) {
+    const nbRelative = relative(project.dir, dirname(nbAbsPath));
+    const nbOutputDir = join(projectOutputDir(project), nbRelative);
+
+    const outFile = outputFile(nbAbsPath);
+    const outPath = join(nbOutputDir, outFile);
+    if (existsSync(outPath)) {
+      return outPath;
+    }
+  }
 }
 
 function resolveOutputNotebook(
@@ -49,7 +68,7 @@ function resolveOutputNotebook(
   _notebookMetadata?: NotebookMetadata,
 ) {
   const resolved = ld.cloneDeep(executedFile);
-  resolved.recipe.format.pandoc[kOutputFile] = ipynbOutputFile(nbAbsPath);
+  resolved.recipe.format.pandoc[kOutputFile] = outputFile(nbAbsPath);
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   resolved.recipe.format.pandoc.to = "ipynb";
@@ -64,6 +83,12 @@ function resolveOutputNotebook(
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
+
+  // If this recipe is using a a source notebook, clear the cell options
+  // from the output when rendering
+  if (resolved.recipe.format.render[kIpynbProduceSourceNotebook]) {
+    resolved.recipe.format.render[kClearCellOptions] = true;
+  }
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -84,7 +109,7 @@ async function renderOutputNotebook(
       flags: {
         metadata: {
           [kTo]: "ipynb",
-          [kOutputFile]: ipynbOutputFile(nbPath),
+          [kOutputFile]: outputFile(nbPath),
         },
         quiet: false,
       },

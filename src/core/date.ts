@@ -1,9 +1,8 @@
 /*
-* date.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * date.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import momentGuess from "moment-guess";
 
 import { parse } from "datetime/mod.ts";
@@ -22,7 +21,6 @@ import { resourcePath } from "./resources.ts";
 // Special date constants
 export const kLastModified = "last-modified";
 export const kToday = "today";
-export const rSysDate = "`r Sys.time()`";
 export const kNow = "now";
 
 export type DateFormat = "full" | "long" | "medium" | "short" | "iso" | string;
@@ -102,7 +100,7 @@ export function parseSpecialDate(
   input: string | string[],
   val: unknown,
 ): string {
-  if (val === kLastModified || val === rSysDate) {
+  if (val === kLastModified) {
     if (!Array.isArray(input)) {
       input = [input];
     }

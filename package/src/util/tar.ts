@@ -39,7 +39,7 @@ export async function makeTarball(
   }
 }
 
-export async function unTar(input: string) {
+export async function unTar(input: string, directory?: string) {
   info("Untar");
   info(`Input: ${input}`);
 
@@ -59,6 +59,10 @@ export async function unTar(input: string) {
   tarCmd.push("tar");
   tarCmd.push(`-xv${compressFlag}f`);
   tarCmd.push(input);
+  if (directory) {
+    tarCmd.push("--directory");
+    tarCmd.push(directory);
+  }
 
   const p = Deno.run({
     cmd: tarCmd,

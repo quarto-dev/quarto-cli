@@ -8,7 +8,7 @@ import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "yaml/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";

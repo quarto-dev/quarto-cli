@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -11,14 +10,15 @@ import { esbuildCompile } from "../../core/esbuild.ts";
 import { buildIntelligenceResources } from "../../core/schema/build-schema-file.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { simple } from "acorn/walk";
-import { parse as parseES6 } from "acorn/acorn";
+import { Parser } from "acorn/acorn";
+import classFields from "acorn-class-fields";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 
 // initialize language handlers
 import "../../core/handlers/handlers.ts";
 
 function ensureAllowableIDESyntax(src: string, filename: string) {
-  const ast = parseES6(src, {
+  const ast = Parser.extend(classFields).parse(src, {
     ecmaVersion: "2020",
     sourceType: "module",
   });

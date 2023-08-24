@@ -1,0 +1,15 @@
+---
+filters:
+  - test.lua
+test_key: _test_value_
+_quarto:
+  _tests:
+    html:
+      ensureHtmlElements:
+        - ["span#test_span em"] # checks for emph to ensure shortcode was executed.
+        - []
+---
+
+## A header
+
+Some content.

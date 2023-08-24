@@ -28,5 +28,14 @@ ln -fs $2/share/man/quarto.man /usr/local/man/quarto.1
 
 fi
 
+## Detect the current architecture and create symlink
+FULLARCH="$(sysctl machdep.cpu.brand_string)"
+  if [[ $FULLARCH == *"Intel"* ]]; then
+  ARCH_DIR=x86_64
+else
+  ARCH_DIR=aarch64
+fi
+ln -fs $2/bin/tools/${ARCH_DIR}/pandoc $2/bin/tools/pandoc
+
 exit 0
 

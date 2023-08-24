@@ -45,10 +45,12 @@ export const kEnableCrossRef = "enable-crossref";
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
 export const kOtherLinks = "other-links";
+export const kCodeLinks = "code-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 export const kNotebookPreserveCells = "notebook-preserve-cells";
+export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 
 export const kNotebookPreviewOptions = "notebook-preview-options";
@@ -204,6 +206,7 @@ export const kRenderDefaultsKeys = [
   kNotebookView,
   kNotebookViewStyle,
   kNotebookPreserveCells,
+  kClearCellOptions,
 ];
 
 // language fields
@@ -212,6 +215,9 @@ export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
 export const kOtherLinksTitle = "other-links-title";
+export const kCodeLinksTitle = "code-links-title";
+export const kLaunchDevContainerTitle = "launch-dev-container-title";
+export const kLaunchBinderTitle = "launch-binder-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-title";
 export const kCalloutNoteCaption = "callout-note-title";
@@ -233,6 +239,7 @@ export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
 export const kTitleBlockAffiliationPlural = "title-block-affiliation-plural";
 export const kTitleBlockPublished = "title-block-published";
 export const kTitleBlockModified = "title-block-modified";
+export const kTitleBlockKeywords = "title-block-keywords";
 export const kCodeSummary = "code-summary";
 export const kCodeLine = "code-line";
 export const kCodeLines = "code-lines";
@@ -312,8 +319,10 @@ export const kListingPageFieldFileName = "listing-page-field-filename";
 export const kListingPageFieldFileModified = "listing-page-field-filemodified";
 export const kListingPageFieldSubtitle = "listing-page-field-subtitle";
 export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
+export const kListingPageFieldWordCount = "listing-page-field-wordcount";
 export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
+export const kListingPageWords = "listing-page-words";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
@@ -327,6 +336,9 @@ export const kLanguageDefaultsKeys = [
   kTocTitleWebsite,
   kRelatedFormatsTitle,
   kOtherLinksTitle,
+  kCodeLinksTitle,
+  kLaunchDevContainerTitle,
+  kLaunchBinderTitle,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
   kCalloutTipCaption,
@@ -346,6 +358,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kTitleBlockKeywords,
   kCodeSummary,
   kCodeLine,
   kCodeLines,
@@ -421,8 +434,10 @@ export const kLanguageDefaultsKeys = [
   kListingPageFieldFileModified,
   kListingPageFieldSubtitle,
   kListingPageFieldReadingTime,
+  kListingPageFieldWordCount,
   kListingPageFieldCategories,
   kListingPageMinutesCompact,
+  kListingPageWords,
   kListingPageCategoryAll,
   kListingPageNoMatches,
   kTitleBlockAuthorSingle,
@@ -431,6 +446,7 @@ export const kLanguageDefaultsKeys = [
   kTitleBlockAffiliationPlural,
   kTitleBlockPublished,
   kTitleBlockModified,
+  kTitleBlockKeywords,
   kNotebookPreviewDownload,
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
@@ -521,6 +537,7 @@ export const kTocLocation = "toc-location";
 export const kTocExpand = "toc-expand";
 export const kLang = "lang";
 export const kOrder = "order";
+export const kDisableArticleLayout = "disable-article-layout";
 
 // The authors user input
 export const KAuthor = "author";
@@ -677,6 +694,7 @@ export const kCellLanguage = "language";
 export const kCellSlideshow = "slideshow";
 export const kCellSlideshowSlideType = "slide_type";
 export const kCellRawMimeType = "raw_mimetype";
+export const kCellUserExpressions = "user_expressions";
 
 export const kCellId = "id";
 export const kCellLabel = "label";

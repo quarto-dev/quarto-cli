@@ -20,7 +20,7 @@
 
 - name: toc-depth
   tags:
-    formats: ["!man", "!$docbook-all", "!$jats-all"]
+    formats: ["!man", "!$docbook-all", "!$jats-all", "!beamer"]
   schema: number
   description: |
     Specify the number of section levels to include in the table of contents.

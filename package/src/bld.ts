@@ -1,9 +1,8 @@
 /*
-* package.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * package.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
@@ -23,7 +22,10 @@ import {
   cycleDependenciesCommand,
   parseSwcLogCommand,
 } from "./common/cyclic-dependencies.ts";
-import { archiveBinaryDependencies } from "./common/archive-binary-dependencies.ts";
+import {
+  archiveBinaryDependencies,
+  checkBinaryDependencies,
+} from "./common/archive-binary-dependencies.ts";
 import { updatePandoc } from "./common/update-pandoc.ts";
 
 // Core command dispatch
@@ -74,6 +76,11 @@ function getCommands() {
     packageCommand(archiveBinaryDependencies)
       .name("archive-bin-deps")
       .description("Downloads and archives our binary dependencies."),
+  );
+  commands.push(
+    packageCommand(checkBinaryDependencies)
+      .name("check-bin-deps")
+      .description("Checks the paths and URLs of our binary dependencies."),
   );
   commands.push(
     packageCommand(prepareDist)

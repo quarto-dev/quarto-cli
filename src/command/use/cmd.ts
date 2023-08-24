@@ -1,29 +1,40 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 import { Command, ValidationError } from "cliffy/command/mod.ts";
 
 import { useTemplateCommand } from "./commands/template.ts";
 
-export const useCommand = new Command()
-  .hidden()
-  .name("use")
-  .arguments("<type:string> [target:string]")
-  .option(
-    "--no-prompt",
-    "Do not prompt to confirm actions",
-  )
-  .description(
-    "Automate document or project setup tasks.",
-  )
-  .action((_options, type, _target) => {
-    if (type !== useTemplateCommand.getName()) {
-      throw new ValidationError(
-        `Unknown type '${type}'- did you mean 'template'?`,
-      );
-    }
-  })
-  .command(useTemplateCommand.getName(), useTemplateCommand);
+const kUseCommands = [useTemplateCommand];
+
+export const makeUseCommand = () => {
+  const theCommand = new Command()
+    .hidden()
+    .name("use")
+    .arguments("<type:string> [target:string]")
+    .option(
+      "--no-prompt",
+      "Do not prompt to confirm actions",
+    )
+    .description(
+      "Automate document or project setup tasks.",
+    )
+    .action((_options, type, _target) => {
+      const useCommand = kUseCommands.find((command) => {
+        return command.getName() === type;
+      });
+
+      if (!useCommand) {
+        throw new ValidationError(
+          `Unknown type '${type}'- did you mean 'template'?`,
+        );
+      }
+    });
+
+  kUseCommands.forEach((command) => {
+    theCommand.command(command.getName(), command);
+  });
+  return theCommand;
+};

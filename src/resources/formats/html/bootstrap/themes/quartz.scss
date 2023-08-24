@@ -188,7 +188,7 @@ $tooltip-opacity:                   .7 !default;
 $popover-header-bg:                 $card-cap-bg !default;
 
 $popover-body-color:                $card-color !default;
-$popover-body-padding-y:            $spacer / 2 !default;
+$popover-body-padding-y:            $spacer * .5 !default;
 
 $popover-arrow-color:               $border-color !default;
 
@@ -237,6 +237,12 @@ $btn-close-color:            $white !default;
 $body-bg-image: linear-gradient(90deg, shade-color($cyan, 10%), shade-color($purple, 10%), shade-color($pink, 5%)) !default;
 $frosted-opacity: .3 !default;
 
+:root {
+  color-scheme: light;
+}
+
+// Mixins
+
 @mixin glass($opacity: $frosted-opacity, $bg: $white) {
   border: none;
   box-shadow: inset 1px 1px $border-color, inset -1px -1px rgba($white, .1), $box-shadow;
@@ -277,8 +283,8 @@ body {
 
 .btn {
   &-secondary {
-    border: none;
     color: $white;
+    border: none;
 
     &:hover,
     &:focus {
@@ -308,7 +314,7 @@ body {
 // Forms
 
 .input-group-text,
-.form-control::-webkit-file-upload-button {
+.form-control::file-selector-button {
   background-color: transparent;
   background-image: linear-gradient(125deg, rgba($white, .3), rgba($white, .2) 70%);
   border: none;
@@ -342,8 +348,8 @@ body {
 }
 
 .bg-light .form-control {
-  border-color: rgba($black, .2);
   color: $gray-800;
+  border-color: rgba($black, .2);
 
   &::placeholder {
     color: rgba($black, .2);
@@ -425,12 +431,12 @@ body {
   @each $color, $value in $theme-colors {
     $opacity: .7;
     &-#{$color}::after {
-      content: "";
       position: absolute;
-      left: 0;
       top: 0;
+      left: 0;
       width: .5rem;
       height: 100%;
+      content: "";
       background-color: $value;
     }
   }
@@ -527,5 +533,8 @@ body {
   @include glass();
 }
 
+.offcanvas {
+  @include glass();
+}
 
 

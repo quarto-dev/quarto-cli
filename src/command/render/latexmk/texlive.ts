@@ -3,7 +3,6 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { info } from "log/mod.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { execProcess } from "../../../core/process.ts";
