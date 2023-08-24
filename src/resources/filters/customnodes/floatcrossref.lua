@@ -490,3 +490,28 @@ end, function(float)
     float.identifier
   )
 end)
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
+end, function(float)
+  decorate_caption_with_crossref(float)
+  if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
+    return pandoc.Figure(
+      {float.content},
+      {float.caption_long},
+      float.identifier)
+  end
+
+  quarto.utils.dump { float = float }
+  fail("FloatRefTarget nodes should not be rendered to ipynb")
+  return pandoc.Div({})
+end)
+
+-- this should really be "_quarto.format.isEmbedIpynb()" or something like that..
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.isIpynbOutput() and not param("enable-crossref", true)
+end, function(float)
+  quarto.utils.dump { float = float }
+  fail("Don't know how to handle embeds")
+  return pandoc.Div({})
+end)

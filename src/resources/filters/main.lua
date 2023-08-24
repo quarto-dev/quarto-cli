@@ -315,7 +315,7 @@ local quarto_post_filters = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
-  { name = "post-ipynb", filter = ipynbCode()},
+  { name = "post-ipynb-code", filter = ipynbCode()},
   { name = "post-ipynb", filter = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
