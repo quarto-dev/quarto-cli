@@ -651,16 +651,17 @@ knitr_options_hook <- function(options) {
     } 
     options[["yaml.code"]] <- results$yamlSource
     
-    # some aliases
-    if (!is.null(options[["fig.format"]])) {
-      options[["dev"]] <- options[["fig.format"]]
-    }
-    if (!is.null(options[["fig.dpi"]])) {
-      options[["dpi"]] <- options[["fig.dpi"]]
-    }
   } else {
     # convert any option with fig- into fig. and out- to out.
     options <- normalize_options(options)
+  }
+
+  # some aliases not normalized
+  if (!is.null(options[["fig-format"]])) {
+    options[["dev"]] <- options[["fig-format"]]
+  }
+  if (!is.null(options[["fig-dpi"]])) {
+    options[["dpi"]] <- options[["fig-dpi"]]
   }
   
   # if there are line annotations in the code then we need to 
