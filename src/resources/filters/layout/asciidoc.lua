@@ -57,13 +57,12 @@ function asciidocDivFigure(el)
   return figure
 end
 
--- FIXME this is the same code as jats.lua except for prepare_caption()
 _quarto.ast.add_renderer("PanelLayout", function(layout)
   return _quarto.format.isAsciiDocOutput()
 end, function(layout)
 
   if layout.float == nil then
-    fail("don't know how to render a layout without a float")
+    fail("asciidoc format doesn't currently support layouts outside of floats\nPlease consider requesting support for your use case at https://github.com/quarto-dev/quarto-cli/")
     return nil
   end
 
@@ -110,15 +109,6 @@ end, function(layout)
     -- add it to the panel
     panel_content:insert(pandoc.utils.from_simple_table(panelTable))
   end
-
-  -- return pandoc.Figure(panel_content, {layout.float.caption_long}, attr)
-  -- we'd like to use pandoc.Figure(panel_content, {layout.float.caption_long}, attr)
-  -- as the output here, but that doesn't work because
-  -- the AsciiDoc Writer for pandoc.Figure doesn't emit caption or identifiers
-  -- if the figure content is not exactly one image.
-  -- So we have to emit those ourselves.
-
-  
 
   -- this is exceedingly hacky, but it works.
   local caption_str = pandoc.write(pandoc.Pandoc({layout.float.caption_long}), "asciidoc")

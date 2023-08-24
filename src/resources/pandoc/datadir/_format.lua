@@ -108,6 +108,10 @@ local function is_docusaurus_output()
   return string.match(param("custom-writer", ""), "docusaurus_writer.lua$")
 end
 
+local function is_confluence_output()
+  return param("quarto-custom-format", "") == "confluence"
+end
+
 -- check for markdown output
 local function isMarkdownOutput()
   local formats = {
@@ -263,5 +267,6 @@ return {
   isAstOutput = isAstOutput,
   isJatsOutput = isJatsOutput,
   isTypstOutput = isTypstOutput,
+  isConfluenceOutput = is_confluence_output,
   parse_format = parse_format
 }

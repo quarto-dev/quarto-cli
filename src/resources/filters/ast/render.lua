@@ -16,10 +16,6 @@ function render_raw(raw)
 end
 
 function render_extended_nodes()
-  if string.find(FORMAT, ".lua$") then
-    return {} -- don't render in custom writers, so we can handle them in the custom writer code.
-  end
-
   local function has_custom_nodes(node)
     local has_custom_nodes = false
     _quarto.ast.walk(node, {

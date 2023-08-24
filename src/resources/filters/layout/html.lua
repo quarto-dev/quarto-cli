@@ -67,8 +67,8 @@ end, function(panel_layout)
 
   local rendered_panel
 
-  if panel_layout.is_float_crossref then
-    rendered_panel = float_crossref_render_html_figure(
+  if panel_layout.is_float_reftarget then
+    rendered_panel = float_reftarget_render_html_figure(
       prepare_caption(quarto.FloatRefTarget({
         identifier = panel_layout.identifier,
         classes = panel_layout.classes,

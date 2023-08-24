@@ -1,4 +1,4 @@
--- crossreffloat.lua
+-- floatreftarget.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
 _quarto.ast.add_handler({
@@ -13,7 +13,7 @@ _quarto.ast.add_handler({
   -- this is still unimplemented
   interfaces = {"Crossref"},
 
-  -- float crossrefs are always blocks
+  -- float reftargets are always blocks
   kind = "Block",
 
   parse = function(div)
@@ -282,7 +282,7 @@ end, function(float)
 
   ------------------------------------------------------------------------------------
   
-  return float_crossref_render_html_figure(float)
+  return float_reftarget_render_html_figure(float)
 end)
 
 _quarto.ast.add_renderer("FloatRefTarget", function(_)
@@ -374,7 +374,7 @@ local function create_figcaption(float)
   }), caption_id
 end
 
-function float_crossref_render_html_figure(float)
+function float_reftarget_render_html_figure(float)
   float = ensure_custom(float)
   if float == nil then
     internal_error()
@@ -489,4 +489,11 @@ end, function(float)
     {float.caption_long},
     float.identifier
   )
+end)
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.isConfluenceOutput()
+end, function(float)
+  local content = pandoc.Blocks({})
+  return pandoc.Div(content, pandoc.Attr(float.identifier or "", float.classes or {}, float.attributes or {}))
 end)

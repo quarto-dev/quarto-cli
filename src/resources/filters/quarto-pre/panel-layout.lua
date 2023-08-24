@@ -93,7 +93,7 @@ _quarto.ast.add_handler({
   -- NB this constructor mutates the .attributes field!
   constructor = function(tbl)
     if tbl.float then
-      tbl.is_float_crossref = true
+      tbl.is_float_reftarget = true
       tbl.classes = tbl.float.classes
       tbl.identifier = tbl.float.identifier
       tbl.attributes = tbl.float.attributes
@@ -102,7 +102,7 @@ _quarto.ast.add_handler({
       tbl.order = tbl.float.order
       tbl.type = tbl.float.type
     else
-      tbl.is_float_crossref = false
+      tbl.is_float_reftarget = false
       if tbl.attr then
         tbl.identifier = tbl.attr.identifier
         tbl.classes = tbl.attr.classes
@@ -125,7 +125,7 @@ _quarto.ast.add_handler({
     local rows_div = pandoc.Div({})
     for i, row in ipairs(tbl.layout) do
       local row_div = pandoc.Div(row)
-      if tbl.is_float_crossref then
+      if tbl.is_float_reftarget then
         row_div = _quarto.ast.walk(row_div, {
           traverse = "topdown",
           Div = function(div)

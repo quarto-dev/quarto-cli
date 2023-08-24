@@ -97,6 +97,8 @@ const kQuartoVersion = "quarto-version";
 
 const kQuartoSource = "quarto-source";
 
+const kQuartoCustomFormat = "quarto-custom-format";
+
 export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
@@ -127,6 +129,10 @@ export async function filterParamsJson(
     defaults,
   );
 
+  const customFormatParams = extractCustomFormatParams(
+    options.format.metadata,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -141,6 +147,7 @@ export async function filterParamsJson(
     ...jatsFilterParams(options),
     ...notebookContextFilterParams(options),
     ...filterParams,
+    ...customFormatParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
@@ -159,6 +166,21 @@ export function removeFilterParams(metadata: Metadata) {
 
 export function quartoMainFilter() {
   return resourcePath("filters/main.lua");
+}
+
+function extractCustomFormatParams(
+  metadata: Metadata,
+) {
+  // pull out custom format spec if provided
+  const customFormatParams = metadata[kQuartoCustomFormat];
+  if (customFormatParams) {
+    delete metadata[kQuartoCustomFormat];
+    return {
+      [kQuartoCustomFormat]: customFormatParams,
+    };
+  } else {
+    return {};
+  }
 }
 
 function extractFilterSpecParams(
