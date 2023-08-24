@@ -63,7 +63,7 @@ end, function(layout)
 
   if layout.float == nil then
     fail("asciidoc format doesn't currently support layouts outside of floats\nPlease consider requesting support for your use case at https://github.com/quarto-dev/quarto-cli/")
-    return nil
+    return pandoc.Div({})
   end
 
   -- empty options by default
@@ -93,7 +93,6 @@ end, function(layout)
 
     local cells = pandoc.List()
     for _, cell in ipairs(row) do
-      local align = cell.attributes[kLayoutAlign]
       cells:insert(cell)
     end
     
