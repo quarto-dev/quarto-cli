@@ -696,85 +696,87 @@ knitr_options_hook <- function(options) {
 # as support all documented knitr chunk options without the user
 # needing to replace . with -
 normalize_options <- function(options) {
-  names(options) <- sapply(names(options), function(name) {
-    if (name %in% c(
-                    # Text output 
-                    "strip-white",
-                    "class-output",
-                    "class-message",
-                    "class-warning",
-                    "class-error",
-                    "attr-output",
-                    "attr-message",
-                    "attr-warning",
-                    "attr-error",
-                    # Paged tables
-                    "max-print",
-                    "sql-max-print",
-                    "paged-print",
-                    "rows-print",
-                    "cols-print",
-                    "cols-min-print",
-                    "pages-print",
-                    "paged-print",
-                    "rownames-print",
-                    # Code decoration
-                    "tidy-opts",
-                    "class-source",
-                    "attr-source",
-                    # Cache
-                    "cache-path",
-                    "cache-vars",
-                    "cache-globals",
-                    "cache-lazy",
-                    "cache-comments",
-                    "cache-rebuild",
-                    # Plots
-                    "fig-path",
-                    "fig-keep",
-                    "fig-show",
-                    "dev-args",
-                    "fig-ext",
-                    "fig-width",
-                    "fig-height",
-                    "fig-asp",
-                    "fig-dim",
-                    "out-width",
-                    "out-height",
-                    "out-extra",
-                    "fig-retina",
-                    "resize-width",
-                    "resize-height",
-                    "fig-align",
-                    "fig-link",
-                    "fig-env",
-                    "fig-cap",
-                    "fig-alt",
-                    "fig-scap",
-                    "fig-lp",
-                    "fig-pos",
-                    "fig-subcap",
-                    "fig-ncol",
-                    "fig-sep",
-                    "fig-process",
-                    "fig-showtext",
-                    # Animation
-                    "animation-hook",
-                    "ffmpeg-bitrate",
-                    "ffmpeg-format",
-                    # Code chunk
-                    "ref-label",
-                    # Language engines
-                    "engine-path",
-                    "engine-opts",
-                    "opts-label",
-                    # Other chunk options
-                    "R-options")) {
-      sub("-", ".", name)
-    } else {
-      name
+  knitr_options_dashed <- c(
+    # Text output 
+    "strip-white",
+    "class-output",
+    "class-message",
+    "class-warning",
+    "class-error",
+    "attr-output",
+    "attr-message",
+    "attr-warning",
+    "attr-error",
+    # Paged tables
+    "max-print",
+    "sql-max-print",
+    "paged-print",
+    "rows-print",
+    "cols-print",
+    "cols-min-print",
+    "pages-print",
+    "paged-print",
+    "rownames-print",
+    # Code decoration
+    "tidy-opts",
+    "class-source",
+    "attr-source",
+    # Cache
+    "cache-path",
+    "cache-vars",
+    "cache-globals",
+    "cache-lazy",
+    "cache-comments",
+    "cache-rebuild",
+    # Plots
+    "fig-path",
+    "fig-keep",
+    "fig-show",
+    "dev-args",
+    "fig-ext",
+    "fig-width",
+    "fig-height",
+    "fig-asp",
+    "fig-dim",
+    "out-width",
+    "out-height",
+    "out-extra",
+    "fig-retina",
+    "resize-width",
+    "resize-height",
+    "fig-align",
+    "fig-link",
+    "fig-env",
+    "fig-cap",
+    "fig-alt",
+    "fig-scap",
+    "fig-lp",
+    "fig-pos",
+    "fig-subcap",
+    "fig-ncol",
+    "fig-sep",
+    "fig-process",
+    "fig-showtext",
+    # Animation
+    "animation-hook",
+    "ffmpeg-bitrate",
+    "ffmpeg-format",
+    # Code chunk
+    "ref-label",
+    # Language engines
+    "engine-path",
+    "engine-opts",
+    "opts-label",
+    # Other chunk options
+    "R-options"
+  )
+  # Un-normalized knitr options, and replace any existing options
+  for (name in knitr_options_dashed) {
+    if (name %in% names(options)) {
+      options[[sub("-", ".", name)]] <- options[[name]]
+      options[[name]] <- NULL
     }
-  }, USE.NAMES = FALSE)
+  }
   options
 }
 
