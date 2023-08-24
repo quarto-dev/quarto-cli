@@ -486,7 +486,7 @@ end, function(float)
   decorate_caption_with_crossref(float)
   return pandoc.Figure(
     {float.content},
-    {pandoc.Para(float.caption_long)},
+    {float.caption_long},
     float.identifier
   )
 end)
