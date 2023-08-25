@@ -90,7 +90,7 @@ local function ensure_custom(node)
   return node
 end
 
-local function is_unlabeled_float(float)
+function is_unlabeled_float(float)
   -- from src/resources/filters/common/refs.lua
   return float.identifier:match("^%a+%-539a35d47e664c97a50115a146a7f1bd%-")
 end
@@ -502,9 +502,10 @@ end, function(float)
       float.identifier)
   end
 
-  quarto.utils.dump { float = float }
-  fail("FloatRefTarget nodes should not be rendered to ipynb")
-  return pandoc.Div({})
+  return pandoc.Div({
+    float.content,
+    pandoc.Para(quarto.utils.as_inlines(float.caption_long) or {}),
+  });
 end)
 
 -- this should really be "_quarto.format.isEmbedIpynb()" or something like that..

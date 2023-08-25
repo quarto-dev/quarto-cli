@@ -40,6 +40,11 @@ function crossref_figures()
     -- do it at the render filter.
 
     FloatRefTarget = function(float)
+      -- if figure is unlabeled, do not process
+      if is_unlabeled_float(float) then
+        return nil
+      end
+
       -- get label and base caption
       -- local label = el.attr.identifier
       local kind = refType(float.identifier)
