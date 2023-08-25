@@ -119,13 +119,6 @@ end
 
 -- format-specific fixups after custom rendering is done
 function render_latex_fixups()
-  -- if not _quarto.format.isLatexOutput() then
-  --   return {}
-  -- end
-  -- return {
-  --   Image = function()
-  --   end
-  -- }
   return {}
 end
 
