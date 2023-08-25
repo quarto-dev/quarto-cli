@@ -545,7 +545,7 @@ export const ensureXmlValidatesWithXsd = (
         const result = await execProcess(runOptions);
         assert(
           result.success,
-          `Failed XSD Validation\n${result.stderr}`,
+          `Failed XSD Validation for file ${file}\n${result.stderr}`,
         );
       }
     },
