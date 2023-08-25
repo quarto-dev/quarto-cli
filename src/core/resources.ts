@@ -15,6 +15,7 @@ import {
   kHKeyLocalMachine,
   registryReadString,
 } from "./registry.ts";
+import { debug } from "log/mod.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -83,13 +84,16 @@ export function pandocBinaryPath(): string {
 }
 
 export async function rBinaryPath(binary: string): Promise<string> {
+  debug(`-- Searching for R binary --`);
   // if there is a QUARTO_R environment variable then respect that
   const quartoR = Deno.env.get("QUARTO_R");
+  debug(`Looking for '${binary}' in QUARTO_R: ${quartoR}`);
   if (quartoR) {
     if (existsSync(quartoR)) {
       const rBinDir = Deno.statSync(quartoR).isDirectory
         ? quartoR
         : dirname(quartoR);
+      debug(`Found in ${rBinDir}`);
       return join(rBinDir, binary);
     } else {
       warning(`Specified QUARTO_R '${quartoR}' does not exist.`);
@@ -98,25 +102,35 @@ export async function rBinaryPath(binary: string): Promise<string> {
 
   // if there is an R_HOME then respect that
   const rHome = Deno.env.get("R_HOME");
+  debug(`Looking for '${binary}' in R_HOME: ${rHome}`);
   if (rHome) {
     let rHomeBin = join(rHome, "bin", binary);
-    if (safeExistsSync(rHomeBin)) return rHomeBin;
+    if (safeExistsSync(rHomeBin)) {
+      debug(`Found in ${rHomeBin}`);
+      return rHomeBin;
+    }
     if (Deno.build.os === "windows") {
       // Some installation have binaries in the sub folder only
       rHomeBin = join(rHome, "bin", "x64", binary);
-      if (safeExistsSync(rHomeBin)) return rHomeBin;
+      if (safeExistsSync(rHomeBin)) {
+        debug(`Found in ${rHomeBin}`);
+        return rHomeBin;
+      }
     }
   }
 
   // then check the path
+  debug(`Looking for '${binary}' in PATH.`);
   const path = await which(binary);
   if (path) {
+    debug(`Found in PATH at ${path}`);
     return path;
   }
 
   // on windows check the registry for a current version
   if (Deno.build.os === "windows") {
     // determine current version
+    debug(`Looking for '${binary}' in Windows Registry.`);
     const version = await registryReadString(
       [kHKeyCurrentUser, kHKeyLocalMachine],
       "Software\\R-core\\R",
@@ -130,10 +144,12 @@ export async function rBinaryPath(binary: string): Promise<string> {
         "InstallPath",
       );
       if (installPath) {
+        debug(`Found in PATH at ${join(installPath, "bin")}`);
         return join(installPath, "bin", binary);
       }
     }
     // last ditch, try to find R in program files
+    debug(`Looking for '${binary}' in Windows PROGRAMFILES.`);
     const progFiles = Deno.env.get("programfiles");
     if (progFiles) {
       // Search program files for the binary
@@ -142,6 +158,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
           // found the R directory, now walk to find bin directory
           for (const walk of walkSync(join(progFiles, "R"))) {
             if (walk.isDirectory && walk.name === "bin") {
+              debug(`Found ${walk.path}`);
               return join(walk.path, binary);
             }
           }
@@ -151,6 +168,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
   }
 
   // We couldn't find R, just pass the binary itself and hope it works out!
+  debug(`Quarto did no found ${binary} and will try to use it directly.`);
   return binary;
 }
 

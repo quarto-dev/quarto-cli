@@ -50,9 +50,13 @@
 
 ## Beamer Format
 
-- [#5536](https://github.com/quarto-dev/quarto-cli/issues/5536): Correctly support Code Filename feature for Beamer output by fixing issue with float environment.
-- [#6041](https://github.com/quarto-dev/quarto-cli/issues/6041): Correctly support code block appearance options (`code-block-bg` and `code-block-border-left`).
+- ([#5536](https://github.com/quarto-dev/quarto-cli/issues/5536)): Correctly support Code Filename feature for Beamer output by fixing issue with float environment.
+- ([#6041](https://github.com/quarto-dev/quarto-cli/issues/6041)): Correctly support code block appearance options (`code-block-bg` and `code-block-border-left`).
 - ([#6226](https://github.com/quarto-dev/quarto-cli/issues/6226)): Correctly detect the need for an additional compilation for TOC layout when using `lualatex`
+
+## Asciidoc Format
+
+- ([#6589](https://github.com/quarto-dev/quarto-cli/issues/6589)): Don't crash when `format: asciidoc` with a missing title.
 
 ## Website Listings
 
@@ -162,3 +166,4 @@
 - ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
 - ([#5748](https://github.com/quarto-dev/quarto-cli/issues/5748)): Don't cleanup shared lib_dir files when using `embed-resources` within a project
 - ([#6487](https://github.com/quarto-dev/quarto-cli/discussions/6487)): Fix `serviceworkers` check in `htmlDependency` to look at the correct key.
+- ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): when `QUARTO_LOG_LEVEL=DEBUG`, informations about search for a R binary will be shown.
