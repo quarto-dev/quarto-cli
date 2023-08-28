@@ -1,0 +1,27 @@
+---
+title: Python Crossref Test
+format: typst
+# _quarto:
+#   tests:
+#     html:
+#       ensureFileRegexMatches:
+#         - []
+#         - []
+#       ensureHtmlElements:
+#         - 
+#           - "div#fig-plot figure.quarto-float-fig figcaption.quarto-float-caption"
+#         - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+For example, see @fig-plot.

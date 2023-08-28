@@ -1,0 +1,19 @@
+---
+title: test simple figure crossref
+keep-typ: true
+format: typst
+# _quarto:
+#   tests:
+#     html:
+#       ensureHtmlElements:
+#         - 
+#           - "div#fig-simple figure.quarto-float-fig img"
+#           - "figcaption.figure"
+#           - "a[href='#fig-simple'].quarto-xref"
+#         - []
+---
+
+![A simple figure](img/surus.jpg){#fig-simple}
+
+See @fig-simple.
+

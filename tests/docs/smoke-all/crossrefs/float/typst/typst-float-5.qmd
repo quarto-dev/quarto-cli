@@ -1,0 +1,18 @@
+---
+title: Crossref Test
+format: typst
+# _quarto:
+#   tests:
+#     html:
+#       ensureHtmlElements:
+#         - 
+#           - "div#fig-elephant figure.quarto-float-fig figcaption.figure"
+#         - 
+#           - "a[href='#fig-elephant1'].quarto-xref"
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](img/thinker.jpg){#fig-elephant}
+
+See @fig-elephant1 for examples. 

@@ -555,3 +555,25 @@ end, function(float)
     return result
   end
 end)
+
+_quarto.ast.add_renderer("FloatRefTarget", function(_)
+  return _quarto.format.isTypstOutput()
+end, function(float)
+  local ref = refType(float.identifier)
+  local info = crossref.categories.by_ref_type[ref]
+  if info == nil then
+    warning("Unknown float type: " .. ref .. "\n Will emit without crossref information.")
+    return float.content
+  end
+
+  return pandoc.Blocks({
+    pandoc.RawInline("typst", "#figure(["),
+    float.content,
+    pandoc.RawInline("typst", "], caption: ["),
+    float.caption_long,
+    -- apparently typst doesn't allow separate prefix and name
+    pandoc.RawInline("typst", "], kind: \"quarto-" .. ref .. "\", supplement: \"" .. info.prefix .. "\""),
+
+    pandoc.RawInline("typst", ")<" .. float.identifier .. ">\n\n")
+  })
+end)
