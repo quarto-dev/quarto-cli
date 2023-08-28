@@ -1,12 +1,15 @@
 ---
 title: Knitr Crossref Test
+keep-typ: true
 format: typst
-# _quarto:
-#   tests:
-#     html:
-#       ensureHtmlElements:
-#         - 
-#           - "figure.quarto-float-fig figcaption.quarto-float-caption"
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "Plot"
+          - "<fig-plot>"
+          - "@fig-plot"
 ---
 
 ## Knitr Crossref Figure

@@ -2,15 +2,16 @@
 title: test simple figure crossref
 keep-typ: true
 format: typst
-# _quarto:
-#   tests:
-#     html:
-#       ensureHtmlElements:
-#         - 
-#           - "div#fig-simple figure.quarto-float-fig img"
-#           - "figcaption.figure"
-#           - "a[href='#fig-simple'].quarto-xref"
-#         - []
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<fig-simple>"
+          - "@fig-simple"
+          - "A simple figure"
+          - "#image\\(\"img/surus.jpg\"\\)"
+        - []
 ---
 
 ![A simple figure](img/surus.jpg){#fig-simple}

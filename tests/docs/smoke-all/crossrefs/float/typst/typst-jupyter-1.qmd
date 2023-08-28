@@ -1,16 +1,17 @@
 ---
 title: Python Crossref Test
 format: typst
-# _quarto:
-#   tests:
-#     html:
-#       ensureFileRegexMatches:
-#         - []
-#         - []
-#       ensureHtmlElements:
-#         - 
-#           - "div#fig-plot figure.quarto-float-fig figcaption.quarto-float-caption"
-#         - []
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "<fig-plot>"
+          - "@fig-plot"
+          - "Plot"
+          - "#image\\(\"typst-jupyter-1_files/figure-typst/fig-plot-output-1.svg\"\\)"
+        - []
 ---
 
 ## Python Crossref Figure

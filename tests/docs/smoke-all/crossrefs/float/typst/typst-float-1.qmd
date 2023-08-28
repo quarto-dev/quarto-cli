@@ -1,18 +1,17 @@
 ---
 title: float crossref test
 format: typst
-# _quarto:
-#   tests:
-#     html:
-#       ensureHtmlElements:
-#         - 
-#           - "div.figure-content"
-#           - "div.table-content"
-#           - "figcaption.figure"
-#           - "figcaption.table"
-#           - "a[href='#fig-1'].quarto-xref"
-#           - "a[href='#tbl-1'].quarto-xref"
-#         - []
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<tbl-1>"
+          - "<fig-1>"
+          - "@fig-1"
+          - "@tbl-1"
+        - []
 ---
 
 This tests:

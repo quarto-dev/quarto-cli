@@ -21,3 +21,42 @@
     .join()
 }
 
+// some quarto-specific definitions
+
+// subfloat support based on https://github.com/typst/typst/issues/246#issuecomment-1485042544
+// FIXME check and fix numbering support
+#let subfloat(subfloatdata) = {
+  let body = subfloatdata.at("body")
+  let ref = subfloatdata.at("ref")
+  let caption = subfloatdata.at("caption")
+  let numbering = subfloatdata.at("numbering") or "(a)"
+
+  let figurecount = counter("quarto-" + ref) // Main float counter
+  let subfigurecount = counter("quarto-sub-" + ref) // Counter linked to main counter with additional sublevel
+  let subfigurecounterdisplay = counter("quarto-subcounter-" + ref) // Counter with only the last level of the previous counter, to allow for nice formatting
+
+  let number = locate(loc => {
+    let fc = figurecount.at(loc)
+    let sc = subfigurecount.at(loc)
+
+    if fc == sc.slice(0,-1) {
+      subfigurecount.update(
+        fc + (sc.last()+1,)
+      ) // if the first levels match the main figure count, update by 1
+      subfigurecounterdisplay.update((sc.last()+1,)) // Set the display counter correctly
+    } else {
+      subfigurecount.update( fc + (1,)) // if the first levels _don't_ match the main figure count, set to this and start at 1
+      subfigurecounterdisplay.update((1,)) // Set the display counter correctly
+    }
+    subfigurecounterdisplay.display(numbering) // display the counter with the first figure level chopped off
+  })
+  
+  // fixme use caption location information
+
+  body // put in the body
+  v(-.65em) // remove some whitespace that appears (inelegant I think)
+
+  if not caption == none {
+    align(center)[#number #caption] // place the caption in below the content
+  }
+}

@@ -1,12 +1,14 @@
 ---
 title: caption-formatting-test
 format: typst
-# _quarto:
-#   tests:
-#     html:
-#       ensureHtmlElements:
-#         - 
-#           - "div#lst-customers figcaption em"
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "Customers #emph\\[query\\]"
+
 ---
 
 ```{#lst-customers .sql lst-cap="Customers _query_"}

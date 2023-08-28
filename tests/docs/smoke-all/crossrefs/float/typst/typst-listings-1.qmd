@@ -1,14 +1,16 @@
 ---
 title: Listings Test
 format: typst
-# _quarto:
-#   tests:
-#     html:
-#       ensureHtmlElements:
-#         - 
-#           - "div#lst-customers figure.quarto-float-lst figcaption.listing"
-#           - "a[href='#lst-customers'].quarto-xref"
-#         - []
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<lst-customers>"
+          - "@lst-customers"
+          - "Customers Query"
+        - []
 ---
 
 ```{#lst-customers .sql lst-cap="Customers Query"}

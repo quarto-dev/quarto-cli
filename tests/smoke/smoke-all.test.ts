@@ -23,6 +23,7 @@ import {
   ensureJatsXpath,
   ensureOdtXpath,
   ensurePptxRegexMatches,
+  ensureTypstFileRegexMatches,
   fileExists,
   noErrors,
   noErrorsOrWarnings,
@@ -90,6 +91,7 @@ function resolveTestSpecs(
   const verifyMap: Record<string, any> = {
     ensureHtmlElements,
     ensureFileRegexMatches,
+    ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
     ensureDocxXpath,
     ensureOdtXpath,

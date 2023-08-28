@@ -566,6 +566,11 @@ end, function(float)
     return float.content
   end
 
+  -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
+  -- FIXME: custom numbering doesn't work yet
+  -- FIXME: Subfloats don't work yet
+  -- FIXME: float options (like caption positioning) don't work yet
+
   return pandoc.Blocks({
     pandoc.RawInline("typst", "#figure(["),
     float.content,

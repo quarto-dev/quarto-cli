@@ -156,6 +156,51 @@ export const directoryEmptyButFor = (
   };
 };
 
+// FIXME: do this properly without resorting on file having keep-typ
+export const ensureTypstFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const asRegexp = (m: string | RegExp) => {
+    if (typeof m === "string") {
+      return new RegExp(m);
+    } else {
+      return m;
+    }
+  };
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
+  return {
+    name: `Inspecting ${file} for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const keptTyp = file.replace(".pdf", ".typ");
+      const tex = await Deno.readTextFile(keptTyp);
+
+      try {
+        // Move the docx to a temp dir and unzip it
+        matches.forEach((regex) => {
+          assert(
+            regex.test(tex),
+            `Required match ${String(regex)} is missing from file ${file}.`,
+          );
+        });
+
+        if (noMatches) {
+          noMatches.forEach((regex) => {
+            assert(
+              !regex.test(tex),
+              `Illegal match ${String(regex)} was found in file ${file}.`,
+            );
+          });
+        }
+      } finally {
+        await Deno.remove(keptTyp);
+      }
+    },
+  };
+};
+
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
