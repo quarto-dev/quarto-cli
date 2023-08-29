@@ -60,7 +60,7 @@ function parse_html_tables()
           _quarto.ast.walk(tableDoc, {
             Table = function(table)
               found = true
-              if table.attributes[constants.kDisableProcessing] ~= nil then
+              if table.attributes[constants.kDisableProcessing] == "true" then
                 skip = true
               end
             end,
