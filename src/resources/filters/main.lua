@@ -52,6 +52,7 @@ import("./common/wrapped-filter.lua")
 import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
+import("./quarto-init/typst.lua")
 
 import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
@@ -187,6 +188,8 @@ local quarto_init_filters = {
     file_metadata(),
     resourceRefs()
   })},
+
+  { name = "init-typst-state", filter = init_typst_state() }
 }
 
 -- v1.4 change: quartoNormalize is responsible for producing a

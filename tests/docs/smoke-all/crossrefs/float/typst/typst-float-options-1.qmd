@@ -1,7 +1,6 @@
 ---
 title: "My Document"
 format: typst
-# FIXME: typst format doesn't seem to distinguish between fig-title and fig-prefix
 crossref:
   fig-prefix: F.   # (default is "fig.")
   tbl-prefix: T.    # (default is "tbl.")

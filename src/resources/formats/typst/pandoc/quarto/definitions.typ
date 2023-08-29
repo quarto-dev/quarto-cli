@@ -25,7 +25,7 @@
 
 // subfloat support based on https://github.com/typst/typst/issues/246#issuecomment-1485042544
 // FIXME check and fix numbering support
-#let subfloat(subfloatdata) = {
+#let quarto_subfloat(subfloatdata) = {
   let body = subfloatdata.at("body")
   let ref = subfloatdata.at("ref")
   let caption = subfloatdata.at("caption")
@@ -59,4 +59,25 @@
   if not caption == none {
     align(center)[#number #caption] // place the caption in below the content
   }
+}
+
+#let quarto_crossrefstate = (:)
+#let quarto_metadata = (:)
+
+#let quarto_addcrossrefinfo = (ref, key, value) => {
+  if (not ref in quarto_crossrefstate) {
+    quarto_crossrefstate.insert(ref, (:))
+  }
+  quarto_crossrefstate.at(ref).insert(key, value)
+}
+
+#show ref: it => {
+  let el = it.element
+  if el == none {
+    return it
+  }
+  
+  link(el.location(), [
+    This is a custom reference.
+  ])      
 }
