@@ -1,22 +1,6 @@
 -- figures.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
--- FIXME currently unused and will be sent to post-processing where
--- we will actually render all of this stuff.
-local float_default_names = {
-  fig = "Figure",
-  tbl = "Table"
-}
-
-local function floatTitlePrefix(order, kind)
-  local name = float_default_names[kind]
-  local param_key = "crossref-" .. kind .. "-title"
-  if name == nil then
-    error("Unknown float kind: " .. kind)
-  end
-  return titlePrefix(kind, param(param_key, name), order)
-end
-
 -- process all figures
 function crossref_figures()
   return {
@@ -48,25 +32,18 @@ function crossref_figures()
       -- get label and base caption
       -- local label = el.attr.identifier
       local kind = refType(float.identifier)
+      if kind == nil then
+        warn("Could not determine float type for " .. float.identifier)
+        return nil
+      end
     
       -- determine order, parent, and displayed caption
       local order
       local parent = float.parent_id
       if (parent) then
         order = nextSubrefOrder()
-        -- prependSubrefNumber(captionContent, order)
       else
         order = indexNextOrder(kind)
-        -- if _quarto.format.isLatexOutput() then
-        --   tprepend(captionContent, {
-        --     pandoc.RawInline('latex', '\\label{' .. label .. '}')
-        --   })
-        -- elseif _quarto.format.isAsciiDocOutput() or _quarto.format.isTypstOutput() then
-        --   local _noop
-        --   -- el.attr.identifier = label
-        -- else
-        --   tprepend(captionContent, floatTitlePrefix(order, kind))
-        -- end
       end
     
       float.order = order

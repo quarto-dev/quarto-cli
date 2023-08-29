@@ -227,14 +227,6 @@ _quarto.ast = {
   custom_node_data = custom_node_data,
   create_custom_node_scaffold = create_custom_node_scaffold,
 
-  -- FIXME WE NEED TO REDO THIS WITH PROXY OBJECTS
-  -- 
-  -- -- this is used in non-lua filters to handle custom nodes
-  -- reset_custom_tbl = function(tbl)
-  --   custom_node_data = tbl
-  --   n_custom_nodes = #tbl
-  -- end,
-
   grow_scaffold = function(node, size)
     local n = #node.content
     local ctor = pandoc[node.t or pandoc.utils.type(node)]
