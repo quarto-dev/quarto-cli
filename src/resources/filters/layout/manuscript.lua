@@ -146,44 +146,51 @@ function manuscript()
           local did_resolve = false
 
           -- Attempt to forward the link into element captions, when possible
-          -- FIXME handle FloatRefTargets
           local resolvedEl = _quarto.ast.walk(divEl, {
-            Div = function(el)
-
-              -- Forward to figure div
-              if isFigureDiv(el) then
-                local last = el.content[#el.content]
-                if last and last.t == "Para" and #el.content > 1 then
-                  did_resolve = true
-                  labelInlines:insert(1, pandoc.Space())
-                  tappend(last.content, labelInlines)  
-                else
-                  return nil
-                end
-                return el
+            FloatRefTarget = function(float)
+              if float.caption then
+                did_resolve = true
+                labelInlines:insert(1, pandoc.Space())
+                tappend(float.caption, labelInlines)
+                return float
               end
             end,
+
+            -- Div = function(el)
+            --   -- Forward to figure div
+            --   if isFigureDiv(el) then
+            --     local last = el.content[#el.content]
+            --     if last and last.t == "Para" and #el.content > 1 then
+            --       did_resolve = true
+            --       labelInlines:insert(1, pandoc.Space())
+            --       tappend(last.content, labelInlines)  
+            --     else
+            --       return nil
+            --     end
+            --     return el
+            --   end
+            -- end,
         
-            -- Forward to figure image
-            Para = function(el)
-              local image = discoverFigure(el)
-              if image and isFigureImage(image) then
-                did_resolve = true
-                labelInlines:insert(1, pandoc.Space())
-                tappend(image.caption, labelInlines)
-                return el
-              end
-            end,
+            -- -- Forward to figure image
+            -- Para = function(el)
+            --   local image = discoverFigure(el)
+            --   if image and isFigureImage(image) then
+            --     did_resolve = true
+            --     labelInlines:insert(1, pandoc.Space())
+            --     tappend(image.caption, labelInlines)
+            --     return el
+            --   end
+            -- end,
 
-            -- Forward to tables
-            Table = function(el)
-              if el.caption then
-                did_resolve = true
-                labelInlines:insert(1, pandoc.Space())
-                tappend(el.caption, labelInlines)
-                return el
-              end
-            end
+            -- -- Forward to tables
+            -- Table = function(el)
+            --   if el.caption then
+            --     did_resolve = true
+            --     labelInlines:insert(1, pandoc.Space())
+            --     tappend(el.caption, labelInlines)
+            --     return el
+            --   end
+            -- end
           })
                     
           if did_resolve then
