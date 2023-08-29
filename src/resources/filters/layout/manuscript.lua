@@ -146,6 +146,7 @@ function manuscript()
           local did_resolve = false
 
           -- Attempt to forward the link into element captions, when possible
+          -- FIXME handle FloatRefTargets
           local resolvedEl = _quarto.ast.walk(divEl, {
             Div = function(el)
 
