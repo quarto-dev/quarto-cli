@@ -143,6 +143,7 @@ function manuscript()
           end
 
           local labelInlines = pandoc.List({ pandoc.Str(notebookPrefix), pandoc.Str(':'), pandoc.Space(), pandoc.Link(nbTitle, notebookUrl)})
+          local did_resolve = false
 
           -- Attempt to forward the link into element captions, when possible
           local resolvedEl = _quarto.ast.walk(divEl, {
@@ -152,6 +153,7 @@ function manuscript()
               if isFigureDiv(el) then
                 local last = el.content[#el.content]
                 if last and last.t == "Para" and #el.content > 1 then
+                  did_resolve = true
                   labelInlines:insert(1, pandoc.Space())
                   tappend(last.content, labelInlines)  
                 else
@@ -165,6 +167,7 @@ function manuscript()
             Para = function(el)
               local image = discoverFigure(el)
               if image and isFigureImage(image) then
+                did_resolve = true
                 labelInlines:insert(1, pandoc.Space())
                 tappend(image.caption, labelInlines)
                 return el
@@ -174,6 +177,7 @@ function manuscript()
             -- Forward to tables
             Table = function(el)
               if el.caption then
+                did_resolve = true
                 labelInlines:insert(1, pandoc.Space())
                 tappend(el.caption, labelInlines)
                 return el
@@ -181,11 +185,9 @@ function manuscript()
             end
           })
                     
-          if resolvedEl then
+          if did_resolve then
             return resolvedEl
-          else
-            -- FIXME This is unreachable code, walk always returns a new element
-            
+          else            
             -- We couldn't forward to caption, just place inline
             divEl.content:insert(pandoc.Subscript(labelInlines))
             return divEl
