@@ -151,14 +151,17 @@ async function mdFromCodeCell(
   const { yaml, source } = await partitionCellOptions(language, cell.source);
   const options = yaml ? yaml as JupyterCellOptions : {};
 
-  // handle id
-  if (cell.id) {
-    if (!includeIds) {
-      cell.id = undefined;
-    } else if (options[kCellLabel]) {
-      const label = String(options[kCellLabel]);
-      if (jupyterAutoIdentifier(label) === cell.id) {
-        cell.id = undefined;
+  if (!includeIds) {
+    delete cell.id;
+    delete cell.metadata["id"];
+    delete cell.metadata["outputId"];
+  } else {
+    if (cell.id) {
+      if (options[kCellLabel]) {
+        const label = String(options[kCellLabel]);
+        if (jupyterAutoIdentifier(label) === cell.id) {
+          cell.id = undefined;
+        }
       }
     }
   }

@@ -114,6 +114,7 @@
 - ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - Improved detection/exclusion of spurious matplotlib plain text output
+- Correctly exclude `id` fields when converting Colab notebooks to qmd.
 
 ## OJS engine
 
