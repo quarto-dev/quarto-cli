@@ -9,13 +9,7 @@ end
 
 -- read attribute w/ default
 function attribute(el, name, default)
-  -- FIXME: Doesn't attributes respond to __index?
-  for k,v in pairs(el.attributes) do
-    if k == name then
-      return v
-    end
-  end
-  return default
+  return el.attributes[name] or default
 end
 
 function removeClass(classes, remove)
