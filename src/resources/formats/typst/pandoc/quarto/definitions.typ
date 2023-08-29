@@ -61,16 +61,6 @@
   }
 }
 
-#let quarto_crossrefstate = (:)
-#let quarto_metadata = (:)
-
-#let quarto_addcrossrefinfo = (ref, key, value) => {
-  if (not ref in quarto_crossrefstate) {
-    quarto_crossrefstate.insert(ref, (:))
-  }
-  quarto_crossrefstate.at(ref).insert(key, value)
-}
-
 #show ref: it => {
   let el = it.element
   if el == none {

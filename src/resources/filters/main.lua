@@ -52,7 +52,6 @@ import("./common/wrapped-filter.lua")
 import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
-import("./quarto-init/typst.lua")
 
 import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
@@ -82,6 +81,7 @@ import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
 import("./quarto-finalize/coalesceraw.lua")
 import("./quarto-finalize/descaffold.lua")
+import("./quarto-finalize/typst.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
@@ -188,8 +188,6 @@ local quarto_init_filters = {
     file_metadata(),
     resourceRefs()
   })},
-
-  { name = "init-typst-state", filter = init_typst_state() }
 }
 
 -- v1.4 change: quartoNormalize is responsible for producing a
@@ -376,6 +374,7 @@ local quarto_finalize_filters = {
   { name = "finalize-coalesce-raw", filters = coalesce_raw() },
   { name = "finalize-descaffold", filter = descaffold() },
   { name = "finalize-wrapped-writer", filter = wrapped_writer() },
+  { name = "finalize-typst-state", filter = setup_typst_state() }
 }
 
 local quarto_layout_filters = {
