@@ -4,24 +4,7 @@
 
 function quarto_pre_figures() 
   
-  return {
-   
-    Div = function(el)
-      -- FIXME Should this even be here anymore?
-      
-      -- propagate fig-cap on figure div to figure caption 
-      if hasFigureRef(el) then
-        local figCap = attribute(el, kFigCap, nil)
-        if figCap ~= nil then
-          local caption = pandoc.Para(markdownToInlines(figCap))
-          el.content:insert(caption)
-          el.attr.attributes[kFigCap] = nil
-        end
-      end
-      return el
-      
-    end,
-    
+  return {    
     FloatRefTarget = function(float)
       local kind = refType(float.identifier)
       if kind ~= "fig" then
