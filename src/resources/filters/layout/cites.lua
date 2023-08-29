@@ -3,8 +3,7 @@
   
 
 function cites_preprocess()
-  -- FIXME do we need parentheses here?
-  if not _quarto.format.isLatexOutput() and marginCitations() then
+  if (not _quarto.format.isLatexOutput()) and marginCitations() then
     return { }
   end
 
@@ -25,8 +24,7 @@ function cites_preprocess()
       local has_margin_column = hasMarginColumn(float)
 
       -- general figure caption cites fixups
-      -- FIXME check parenthesization
-      if _quarto.format.isLatexOutput() and has_margin_column or hasMarginCaption(float) then
+      if (_quarto.format.isLatexOutput() and has_margin_column) or hasMarginCaption(float) then
         -- This is a figure in the margin itself, we need to append citations at the end of the caption
         -- without any floating
         inlines_filter = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
@@ -46,8 +44,7 @@ function cites_preprocess()
       end
 
       -- table caption cites fixups
-      -- FIXME check parenthesization
-      if refType(float.identifier) == 'tbl' and _quarto.format.isLatexOutput() and hasMarginColumn(float) or marginCitations() then
+      if (refType(float.identifier) == 'tbl' and _quarto.format.isLatexOutput() and hasMarginColumn(float)) or marginCitations() then
         local ref_table
         _quarto.ast.walk(float.content, {
           Table = function(t)
@@ -77,8 +74,7 @@ function cites_preprocess()
     end,
 
     Div = function(div)
-      -- FIXME check parenthesization
-      if _quarto.format.isLatexOutput() and hasMarginColumn(div) or marginCitations() then
+      if (_quarto.format.isLatexOutput() and hasMarginColumn(div)) or marginCitations() then
         if hasTableRef(div) then 
           -- inspect the table caption for refs and just mark them as resolved
           local table = discoverTable(div)
