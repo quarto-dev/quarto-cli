@@ -70,7 +70,7 @@ function flatten(targetPath)
   local pathParts = pandoc.path.split(targetPath)
   local resolvedPath = pandoc.List()
 
-  -- FIXME are we not handling "."?
+  -- FIXME are we not handling "."? Check with @dragonstyle
   for _, part in ipairs(pathParts) do 
     if part == '..' then
       table.remove(resolvedPath)

@@ -1,11 +1,12 @@
 -- pandoc.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+local readqmd = require("readqmd")
+
 function hasBootstrap() 
   local hasBootstrap = param("has-bootstrap", false)
   return hasBootstrap
 end
-
 
 -- read attribute w/ default
 function attribute(el, name, default)
@@ -67,7 +68,7 @@ end
 function inlinesToString(inlines)
   local pt = pandoc.utils.type(inlines)
   if pt ~= "Inlines" then
-    fail("inlinesToString: expected Inlines, got " .. pt)
+    fail_and_ask_for_bug_report("inlinesToString: expected Inlines, got " .. pt)
     return ""
   end
   return pandoc.utils.stringify(pandoc.Span(inlines))
@@ -173,7 +174,6 @@ function compileTemplate(template, meta)
   end
 end
 
-local md_shortcode = require("lpegshortcode")
 
 function merge_attrs(attr, ...)
   local result = pandoc.Attr(attr.identifier, attr.classes, attr.attributes)
@@ -199,14 +199,17 @@ function as_plain_table(value)
   return result
 end
 
--- FIXME pick a better name for this.
-function string_to_quarto_ast_blocks(text)
-  local after_shortcodes = md_shortcode.md_shortcode:match(text) or ""
-  local after_reading = pandoc.read(after_shortcodes, "markdown")
+function string_to_quarto_ast_blocks(text, opts)
+  local doc = readqmd.readqmd(text, opts or quarto_global_state.reader_options)
   
-  -- FIXME we should run the whole normalization pipeline here
-  local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
-  return after_parsing.blocks
+  -- run the whole normalization pipeline here to get extended AST nodes, etc.
+  for _, filter in ipairs(quarto_ast_pipeline()) do
+    doc = doc:walk(filter.filter)
+  end
+
+  -- compute flags so we don't skip filters that depend on them
+  doc:walk(compute_flags())
+  return doc.blocks
 end
 
 function string_to_quarto_ast_inlines(text, sep)

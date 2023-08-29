@@ -1,3 +1,6 @@
+-- extractquartodom.lua
+-- Copyright (C) 2023 Posit Software, PBC
+
 local function process_quarto_markdown_input_element(el)
   if el.attributes.qmd == nil and el.attributes["qmd-base64"] == nil then
     error("process_quarto_markdown_input_element called with element that does not have qmd or qmd-base64 attribute")

@@ -14,7 +14,8 @@ quarto_global_state = {
   file = nil,
   appendix = false,
   fileSectionIds = {},
-  emulatedNodeHandlers = {}
+  emulatedNodeHandlers = {},
+  reader_options = {}
 }
 
 crossref = {

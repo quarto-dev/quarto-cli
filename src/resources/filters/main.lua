@@ -87,6 +87,8 @@ import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
 import("./normalize/extractquartodom.lua")
+import("./normalize/astpipeline.lua")
+import("./normalize/capturereaderstate.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
@@ -205,32 +207,10 @@ local quarto_normalize_filters = {
     return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
-  { name = "pre-table-merge-raw-html", 
-    filter = table_merge_raw_html()
-  },
-
-  -- { name = "pre-content-hidden-meta",
-  --   filter = content_hidden_meta() },
-
-  -- 2023-04-11: We want to combine combine-1 and combine-2, but parse_md_in_html_rawblocks
-  -- can't be combined with parse_html_tables. combineFilters
-  -- doesn't inspect the contents of the results in the inner loop in case
-  -- the result is "spread" into a Blocks or Inlines.
-  
-  { name = "normalize-combined-1", filter = combineFilters({
-      parse_html_tables(),
-      parse_extended_nodes(),
-      code_filename(),
-    })
-  },
-  { 
-    name = "normalize-combine-2", 
-    filter = combineFilters({
-      parse_md_in_html_rawblocks(),
-      parse_floats(),
-    }),
-  },
+  { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() }
 }
+
+tappend(quarto_normalize_filters, quarto_ast_pipeline())
 
 local quarto_pre_filters = {
   -- quarto-pre
