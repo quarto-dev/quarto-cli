@@ -46,7 +46,7 @@ export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 export async function check(target: Target): Promise<void> {
   const services = renderServices();
   try {
-    info("");
+    info(`Quarto ${quartoConfig.version()}`);
     if (target === "versions" || target === "all") {
       await checkVersions(services);
     }

@@ -114,6 +114,7 @@
 - ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - Improved detection/exclusion of spurious matplotlib plain text output
+- Correctly exclude `id` fields when converting Colab notebooks to qmd.
 
 ## OJS engine
 
@@ -166,4 +167,5 @@
 - ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
 - ([#5748](https://github.com/quarto-dev/quarto-cli/issues/5748)): Don't cleanup shared lib_dir files when using `embed-resources` within a project
 - ([#6487](https://github.com/quarto-dev/quarto-cli/discussions/6487)): Fix `serviceworkers` check in `htmlDependency` to look at the correct key.
-- ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): when `QUARTO_LOG_LEVEL=DEBUG`, informations about search for a R binary will be shown.
+- ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): When `QUARTO_LOG_LEVEL=DEBUG`, information about search for a R binary will be shown.
+- ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
