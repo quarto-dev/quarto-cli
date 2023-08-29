@@ -774,7 +774,7 @@ normalize_options <- function(options) {
   # Un-normalized knitr options, and replace any existing options
   for (name in knitr_options_dashed) {
     if (name %in% names(options)) {
-      options[[sub("-", ".", name)]] <- options[[name]]
+      options[[gsub("-", ".", name)]] <- options[[name]]
       options[[name]] <- NULL
     }
   }
