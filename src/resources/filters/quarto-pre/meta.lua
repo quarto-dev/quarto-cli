@@ -40,9 +40,7 @@ function quarto_pre_meta_inject()
 
       if quarto_global_state.usingBookmark then
         metaInjectLatex(meta, function(inject)
-          inject(
-            usePackage("bookmark")
-          )    
+          inject(usePackage("bookmark"))    
         end)
       end
 
