@@ -33,8 +33,8 @@ function quarto_pre_meta_inject()
       end
 
       if quarto_global_state.usingTikz then
-          metaInjectLatex(meta, function(inject)
-            inject(usePackage("tikz"))
+        metaInjectLatex(meta, function(inject)
+          inject(usePackage("tikz"))
         end)
       end
 
