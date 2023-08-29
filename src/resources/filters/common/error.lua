@@ -1,6 +1,10 @@
 -- debug.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+function fail_and_ask_for_bug_report(message)
+  fail(message .. "\nThis is a quarto bug. Please consider filing a bug report at https://github.com/quarto-dev/quarto-cli/issues", 5)
+end
+
 function fail(message, level)
   local file = currentFile()
   if file then

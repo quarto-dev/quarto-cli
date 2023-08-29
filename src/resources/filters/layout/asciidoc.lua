@@ -62,7 +62,7 @@ _quarto.ast.add_renderer("PanelLayout", function(layout)
 end, function(layout)
 
   if layout.float == nil then
-    fail("asciidoc format doesn't currently support layouts outside of floats\nPlease consider requesting support for your use case at https://github.com/quarto-dev/quarto-cli/")
+    fail_and_ask_for_bug_report("asciidoc format doesn't currently support layouts without floats.")
     return pandoc.Div({})
   end
 

@@ -53,7 +53,7 @@ _quarto.ast.add_renderer("PanelLayout", function(layout)
 end, function(layout)
 
   if layout.float == nil then
-    fail("don't know how to render a layout without a float")
+    fail_and_ask_for_bug_report("JATS format can't render layouts without floats")
     return nil
   end
 

@@ -5,7 +5,7 @@ _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
 end, function(layout)
   if layout.float == nil then
-    fail("ipynb format doesn't currently support layouts outside of floats\nPlease consider requesting support for your use case at https://github.com/quarto-dev/quarto-cli/")
+    fail_and_ask_for_bug_report("Ipynb format can't render layouts without floats")
     return pandoc.Div({})
   end
   decorate_caption_with_crossref(layout.float)

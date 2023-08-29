@@ -123,7 +123,7 @@ function parse_floats()
 
       if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
         print(fig)
-        fail("Don't know how to parse this pandoc 3 figure")
+        fail_and_ask_for_bug_report("Quarto doesn't know how to parse this pandoc 3 figure")
         return nil
       end
 

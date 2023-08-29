@@ -13,7 +13,7 @@ _quarto.ast.add_handler({
   kind = "Block",
 
   parse = function(div)
-    fail("HtmlTag nodes should not be parsed")
+    internal_error()
   end,
 
   slots = { "content" },

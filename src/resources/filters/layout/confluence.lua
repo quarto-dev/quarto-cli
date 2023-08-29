@@ -60,7 +60,7 @@ end, function(layout)
   decorate_caption_with_crossref(layout.float)
 
   if layout.float == nil then
-    fail("don't know how to render a layout without a float")
+    fail_and_ask_for_bug_report("Confluence format can't render layouts without floats")
     return nil
   end
 

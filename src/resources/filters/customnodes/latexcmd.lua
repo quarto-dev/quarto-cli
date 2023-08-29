@@ -5,7 +5,7 @@ _quarto.ast.add_handler({
   class_name = {},
   ast_name = "LatexInlineCommand",
   kind = "Inline",
-  parse = function() fail("LatexInlineCommand nodes should not be parsed") end,
+  parse = function() internal_error() end,
   slots = { "arg", "opt_arg" },
   constructor = function(tbl) return tbl end
 })
@@ -14,7 +14,7 @@ _quarto.ast.add_handler({
   class_name = {},
   ast_name = "LatexBlockCommand",
   kind = "Block",
-  parse = function() fail("LatexBlockCommand nodes should not be parsed") end,
+  parse = function() internal_error() end,
   slots = { "arg", "opt_arg" },
   constructor = function(tbl) return tbl end
 })
@@ -76,7 +76,7 @@ function(cmd)
         result:insert(arg)
       end
     else
-      fail("Unexpected type for LatexBlockCommand arg: " .. pt)
+      fail_and_ask_for_bug_report("Unexpected type for LatexBlockCommand arg: " .. pt)
       return nil
     end
   end

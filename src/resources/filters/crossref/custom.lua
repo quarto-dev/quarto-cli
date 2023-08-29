@@ -8,7 +8,7 @@ function initialize_custom_crossref_categories(meta)
     return nil
   end
   if type(meta["crossref-custom"]) ~= "table" then
-    fail("crossref-custom must be a table")
+    fail_and_ask_for_bug_report("crossref-custom must be a table")
     return nil
   end
   local keys = {

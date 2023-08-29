@@ -17,7 +17,7 @@ _quarto.ast.add_handler({
   kind = "Block",
 
   parse = function(div)
-    fail("FloatRefTarget nodes should not be parsed")
+    internal_error()
   end,
 
   slots = { "content", "caption_long", "caption_short" },
@@ -153,7 +153,7 @@ end, function(float)
 
   if float.parent_id then
     if caption_cmd_name == kSideCaptionEnv then
-      fail("Don't know how to make subcaptions for side captions yet")
+      fail_and_ask_for_bugreport("Subcaptions for side captions are unimplemented.")
       return {}
     end
     caption_cmd_name = "subcaption"
@@ -222,7 +222,7 @@ end, function(float)
   elseif pt == "Blocks" then
     figure_content = float.content
   else
-    fail("Unexpected type for float content: " .. pt)
+    fail_and_ask_for_bug_report("Unexpected type for float content: " .. pt)
     return {}
   end
 

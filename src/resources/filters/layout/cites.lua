@@ -66,30 +66,15 @@ function cites_preprocess()
       return float
     end,
 
-    Para = function(para)
-      local figure = discoverFigure(para, true)
-      if figure and _quarto.format.isLatexOutput() and hasFigureRef(figure) then
-        fail("Should not have arrived here given new float crossref")
-      end
-    end,
-
     Div = function(div)
       if (_quarto.format.isLatexOutput() and hasMarginColumn(div)) or marginCitations() then
-        if hasTableRef(div) then 
-          -- inspect the table caption for refs and just mark them as resolved
-          local table = discoverTable(div)
-          if table ~= nil and table.caption ~= nil and table.caption.long ~= nil then
-            fail("Should not have arrived here given new float crossref")
-          end  
-        else
-          return _quarto.ast.walk(div, {
-            Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
-              if hasMarginColumn(div) then
-                appendAtEnd(citePlaceholderInline(citation))
-              end
-            end)
-          })
-        end 
+        return _quarto.ast.walk(div, {
+          Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
+            if hasMarginColumn(div) then
+              appendAtEnd(citePlaceholderInline(citation))
+            end
+          end)
+        })
       end
     end
     

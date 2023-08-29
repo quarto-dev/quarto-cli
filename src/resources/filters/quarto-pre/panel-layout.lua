@@ -85,7 +85,7 @@ _quarto.ast.add_handler({
   kind = "Block",
 
   parse = function(div)
-    fail("PanelLayout nodes should not be parsed")
+    internal_error()
   end,
 
   slots = { "preamble", "rows", "caption_long", "caption_short" },

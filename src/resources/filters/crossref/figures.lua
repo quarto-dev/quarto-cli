@@ -4,19 +4,6 @@
 -- process all figures
 function crossref_figures()
   return {
-    Div = function(el)
-      if isFigureDiv(el) and isReferenceableFig(el) then
-        fail("Should not have arrived here given new float crossref")
-      end
-    end,
-
-    Para = function(el)
-      local image = discoverFigure(el)
-      if image and isFigureImage(image) then
-        fail("Should not have arrived here given new float crossref")
-      end
-    end,
-
     -- process a float
     -- adding it to the global index of floats (figures, tables, etc)
     --
