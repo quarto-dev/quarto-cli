@@ -8049,7 +8049,7 @@ try {
             },
             description: {
               short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
             }
           },
           {
@@ -16083,7 +16083,7 @@ try {
             },
             description: {
               short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+              long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
             }
           }
         ],
@@ -18632,6 +18632,7 @@ try {
         ],
         "pandoc/formats.yml": [
           "asciidoc",
+          "asciidoc_legacy",
           "asciidoctor",
           "beamer",
           "biblatex",
@@ -21621,8 +21622,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "Directory containing reveal.js files."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
