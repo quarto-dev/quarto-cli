@@ -1,0 +1,12 @@
+---
+title: "Latex Header include"
+format: latex
+header-includes:
+  - |
+    ```{=latex}
+    \let\oldsection\section
+    \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
+    ```
+---
+
+Hello.

@@ -24,19 +24,55 @@ import {
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
+import {
+  NotebookContributor,
+  NotebookMetadata,
+  NotebookOutput,
+} from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
 import { error } from "log/mod.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
+import { projectScratchPath } from "../../project/project-scratch.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 export const qmdNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
   render: renderOutputNotebook,
   outputFile,
+  cache,
+  cachedPath,
 };
+
+function cache(output: NotebookOutput, project?: ProjectContext) {
+  if (project) {
+    // copy the embed into the scratch directory
+    const path = cachePath(output.path, project);
+    ensureDirSync(dirname(path));
+    Deno.copyFileSync(output.path, path);
+  }
+}
+
+function cachedPath(nbAbsPath: string, project?: ProjectContext) {
+  if (project) {
+    // see if the embed exists in the scratch directory
+    const output = outputFile(nbAbsPath);
+    const outputPath = join(dirname(nbAbsPath), output);
+    const path = cachePath(outputPath, project);
+    if (existsSync(path)) {
+      return path;
+    }
+  }
+}
+
+function cachePath(nbAbsPath: string, project: ProjectContext) {
+  const basePath = projectScratchPath(project.dir, "embed");
+  const outputRel = relative(project.dir, nbAbsPath);
+  return join(basePath, outputRel);
+}
 
 function outputFile(
   nbAbsPath: string,
@@ -63,11 +99,12 @@ function resolveOutputNotebook(
   resolved.recipe.format.execute.echo = false;
   resolved.recipe.format.execute.warning = false;
   resolved.recipe.format.render[kKeepHidden] = true;
-  resolved.recipe.format.remder[kNotebookPreserveCells] = true;
+  resolved.recipe.format.render[kNotebookPreserveCells] = true;
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
   resolved.recipe.format.render[kIpynbProduceSourceNotebook] = true;
+  resolved.recipe.format.pandoc.citeproc = false;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -79,7 +116,7 @@ async function renderOutputNotebook(
   _subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _project?: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFile(
     { path: nbPath, formats: ["ipynb"] },
@@ -91,6 +128,7 @@ async function renderOutputNotebook(
           [kOutputFile]: ipynbOutputFile(nbPath),
           [kNotebookPreserveCells]: true,
           [kIpynbProduceSourceNotebook]: true,
+          citeproc: false,
         },
         quiet: false,
       },
@@ -99,7 +137,7 @@ async function renderOutputNotebook(
       quietPandoc: true,
     },
     services,
-    project,
+    //project,
   );
 
   // An error occurred rendering this subarticle
@@ -120,5 +158,5 @@ async function renderOutputNotebook(
 
 function ipynbOutputFile(nbAbsPath: string) {
   const [_dir, stem] = dirAndStem(nbAbsPath);
-  return `${stem}.qmd.ipynb`;
+  return `${stem}.embed.ipynb`;
 }

@@ -49,7 +49,7 @@
       - `default`: Normal flow of the slide after the code
       - `fragment`: In a fragment (not visible until you advance)
       - `slide`: On a new slide after the curent one
-      - 'column': In an adjacent column 
+      - `column`: In an adjacent column 
       - `column-fragment`:   In an adjacent column (not visible until you advance)
 
       Note that this option is supported only for the `revealjs` format.

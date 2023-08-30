@@ -3,61 +3,6 @@
 
 local constants = require("modules/constants")
 
--- for a given language, the comment character(s)
-local kLangCommentChars = {
-  r = {"#"},
-  python = {"#"},
-  julia = {"#"},
-  scala = {"//"},
-  matlab = {"%"},
-  csharp = {"//"},
-  fsharp = {"//"},
-  c = {"/*", "*/"},
-  css = {"/*", "*/"},
-  sas = {"*", ";"},
-  powershell = {"#"},
-  bash = {"#"},
-  sql = {"--"},
-  mysql = {"--"},
-  psql = {"--"},
-  lua = {"--"},
-  cpp = {"//"},
-  cc = {"//"},
-  stan = {"#"},
-  octave = {"#"},
-  fortran = {"!"},
-  fortran95 = {"!"},
-  awk = {"#"},
-  gawk = {"#"},
-  stata = {"*"},
-  java = {"//"},
-  groovy = {"//"},
-  sed = {"#"},
-  perl = {"#"},
-  ruby = {"#"},
-  tikz = {"%"},
-  js = {"//"},
-  d3 = {"//"},
-  node = {"//"},
-  sass = {"//"},
-  scss = {"//"},
-  coffee = {"#"},
-  go = {"//"},
-  asy = {"//"},
-  haskell = {"--"},
-  dot = {"//"},
-  mermaid = {"%%"},
-  apl = {"⍝"},
-  yaml = {"#"},
-  json = {"//"},
-  latex = {"%"},
-  typescript = {"//"},
-  swift = { "//" },
-  javascript = { "//"},
-  elm = { "#" },
-  vhdl = { "--"}
-
-}
 
 local hasAnnotations = false
 
@@ -75,7 +20,7 @@ end
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
 local function annoteProvider(lang) 
-  local commentChars = kLangCommentChars[lang]
+  local commentChars = constants.kLangCommentChars[lang]
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])
@@ -110,8 +55,8 @@ local function annoteProvider(lang)
       stripAnnotation = function(line, annoteId) 
         return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, "")
       end,
-      replaceAnnotation = function(line, annoteId, replacement)
-        return line:gsub(patternEscape(expression.strip.prefix .. annoteId .. expression.strip.suffix), replacement)
+      replaceAnnotation = function(line, annoteId, replacement) 
+        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, replacement)
       end,
       createComment = function(value) 
         if #commentChars == 0 then
@@ -150,7 +95,12 @@ end
 local function resolveCellAnnotes(codeBlockEl, processAnnotation) 
 
   -- collect any annotations on this code cell
-  local lang = codeBlockEl.attr.classes[1]  
+  local lang = codeBlockEl.attr.classes[1] 
+  -- handle fenced-echo block which will have no language
+  if lang == "cell-code" then 
+    _, _, matchedLang = string.find(codeBlockEl.text, "^`+%{%{([^%}]*)%}%}")
+    lang = matchedLang or lang
+  end
   local annotationProvider = annoteProvider(lang)
   if annotationProvider ~= nil then
     local annotations = {}
@@ -162,7 +112,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
-      
+
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -171,7 +121,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
           lineNumbers = pandoc.List({})
         end
         lineNumbers:insert(i)
-        annotations[annoteId] = lineNumbers      
+        annotations[annoteId] = lineNumbers
         outputs:insert(processAnnotation(line, annoteNumber, annotationProvider))
       else
         outputs:insert(line)
@@ -266,13 +216,13 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
   -- which will replace any of these tokens as appropriate.   
   local hasHighlighting = param('text-highlighting', false)
   if param(constants.kCodeAnnotationsParam) == constants.kCodeAnnotationStyleNone then
-    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, '') 
+    local replaced = annotationProvider.stripAnnotation(line, annoteNumber) 
     return replaced
   else
     if hasHighlighting then
       -- highlighting is enabled, allow the comment through
       local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
-      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, percentEscape(placeholderComment)) 
       return replaced
     else
       -- no highlighting enabled, ensure we use a standard comment character
@@ -303,7 +253,7 @@ end
 function code_meta()
   return {
     Meta = function(meta)
-      if _quarto.format.isLatexOutput() and hasAnnotations then
+      if _quarto.format.isLatexOutput() and hasAnnotations and param(constants.kCodeAnnotationsParam) ~= constants.kCodeAnnotationStyleNone then
         -- ensure we have tikx for making the circles
         quarto.doc.use_latex_package("tikz");
         quarto.doc.include_text('in-header', [[
@@ -350,17 +300,21 @@ function code_annotations()
           pendingCellId = nil
           pendingCodeCell = nil
         end
-
-        local outputBlockClearPending = function(block)
-          if pendingCodeCell then
-            outputs:insert(pendingCodeCell)
-          end
-          outputs:insert(block)
-          clearPending()
-        end
-
+   
         local outputBlock = function(block)
           outputs:insert(block)
+        end
+        
+        local flushPending = function()
+          if pendingCodeCell then
+            outputBlock(pendingCodeCell)
+            clearPending()
+          end
+        end
+
+        local outputBlockClearPending = function(block)
+          flushPending()
+          outputBlock(block)
         end
 
         local allOutputs = function()
@@ -414,7 +368,7 @@ function code_annotations()
             local resolvedBlock = _quarto.ast.walk(block, {
               CodeBlock = function(el)
                 if el.attr.classes:find('cell-code') then
-                  
+
                   local cellId = resolveCellId(el.attr.identifier)
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then
@@ -441,10 +395,7 @@ function code_annotations()
 
               -- If there is a pending code cell and we get here, just
               -- output the pending code cell and continue
-              if pendingCodeCell then
-                outputBlock(pendingCodeCell)
-                clearPending()
-              end
+              flushPending()
 
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
@@ -538,21 +489,21 @@ function code_annotations()
                 -- wrap the definition list in a cell
                 local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass}))
                 pendingCodeCell.content:insert(2, dlDiv)
-                outputBlock(pendingCodeCell)
-                clearPending()
+                flushPending()
               else
                 outputBlockClearPending(dl)
               end
             else
-              if pendingCodeCell then
-                outputBlock(pendingCodeCell)
-              end
-              clearPending()
+              flushPending()
             end
           else
             outputBlockClearPending(block)
           end
         end
+
+        -- Be sure to flush any pending Code Cell (usually when only annotated cell without annotation and no other following blocks)
+        flushPending()
+
         return allOutputs()
       end
     end

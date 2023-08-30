@@ -36,11 +36,13 @@ const kQuartoCellDecoratorClass = "cell-decorator";
 export function notebookViewPostProcessor() {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     doc.body.classList.add(kQuartoNbClass);
-    const cells = doc.querySelectorAll("div.cell[data-execution_count]");
+    const cells = doc.querySelectorAll("div.cell");
+    let cellCount = 0;
     for (const cell of cells) {
       const cellEl = cell as Element;
-      const count = cellEl.getAttribute("data-execution_count");
-      if (count) {
+      const count = cellEl.getAttribute("data-execution_count") || ++cellCount;
+      const isMarkdown = cellEl.classList.contains("markdown");
+      if (!isMarkdown) {
         const containerNode = doc.createElement("div");
         containerNode.classList.add(kQuartoCellContainerClass);
         containerNode.classList.add("column-page-left");

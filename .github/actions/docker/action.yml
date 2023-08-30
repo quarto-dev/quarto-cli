@@ -28,16 +28,9 @@ runs:
   using: "composite"
   steps:
     - shell: bash
-      run: echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
-
-    - name: Create DockerFile
-      shell: bash
       run: |
-        cat << 'EOF' >> Dockerfile
-        FROM ubuntu:22.04
-        COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
-        RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
-        EOF
+        echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
+        echo "FULL_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}-full" >> $GITHUB_ENV
 
     - if: ${{ inputs.daily == 'false' }}
       shell: bash
@@ -47,9 +40,38 @@ runs:
       shell: bash
       run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
 
-    - name: Push image
+    - name: Create Base DockerFile
+      shell: bash
+      run: |
+        cat << 'EOF' >> Dockerfile
+        FROM ubuntu:22.04
+        COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
+        RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
+        EOF
+
+    - name: Push Base Image
       shell: bash
       run: |
         echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
         docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
         docker push ${{ env.BASE_NM }} --all-tags
+
+    - name: Create Full DockerFile
+      shell: bash
+      run: |
+        rm -rf Dockerfile
+        cat << 'EOF' >> Dockerfile
+        FROM rstudio/r-base:4.3-focal
+        ENV DEBIAN_FRONTEND=noninteractive
+        COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
+        RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
+        RUN quarto install tinytex --no-prompt
+        EOF
+    
+    - name: Push Full Image
+      shell: bash
+      run: |
+        echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
+        docker build -t ${{ env.FULL_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
+        docker push ${{ env.FULL_NM }} --all-tags
+        

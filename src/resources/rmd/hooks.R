@@ -173,10 +173,17 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # read some options
+    
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
     cell.cap <- NULL
     fig.subcap = options[["fig.subcap"]]
+
+    # If we're preserving cells, we need provide a cell id
+    cellId <- NULL
+    if (isTRUE(format$render$`notebook-preserve-cells`) && !is.null(label)) {
+      cellId <- paste0("cell-", label)
+    }
     
     # fixup duplicate figure labels
     placeholder <- output_label_placeholder(options)
@@ -322,6 +329,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
     } 
+
+    if (is.null(label) && !is.null(cellId)) {
+      label <- cellId
+    }
+
     if (!is.null(label)) {
       label <- paste0(label, " ")
     }
@@ -414,7 +426,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       )
 
       # If requested, preserve the code yaml and emit it into the code blocks
-      if (is_ipynb_output(format$pandoc$to) && isTRUE(format$render$`produce-source-notebook`)) {
+      if (isTRUE(format$render$`produce-source-notebook`)) {
         yamlCode <- lastYamlCode
         if (!is.null(yamlCode)) {
           yamlCode <- paste(yamlCode, collapse = "\n")
@@ -886,7 +898,7 @@ output_div <- function(x, label, classes, attr = NULL) {
     paste(paste0(".", classes), collapse = " ") ,
     ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",
-    trimws(x),
+    x,
     "\n:::\n\n"
   )
 }
@@ -903,9 +915,9 @@ figure_cap <- function(options) {
   if (is.null(output_label) || is_figure_label(output_label)) {
     fig.cap <- options[["fig.cap"]]
     fig.subcap <- options[["fig.subcap"]]
-    if (!is.null(fig.subcap))
+    if (length(fig.subcap) != 0)
       fig.subcap
-    else if (!is.null(fig.cap))
+    else if (length(fig.cap) != 0)
       fig.cap
     else
       ""

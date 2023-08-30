@@ -50,7 +50,10 @@ export async function resolveFileResources(
       ...excludeDirs,
     );
 
-  const resources = resolvePathGlobs(fileDir, globs, ignore);
+  const resources = resolvePathGlobs(fileDir, globs, ignore, {
+    mode: "always",
+    explicitSubfolderSearch: true,
+  });
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(

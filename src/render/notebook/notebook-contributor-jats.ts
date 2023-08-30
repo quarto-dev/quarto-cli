@@ -11,7 +11,9 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kClearCellOptions,
   kClearHiddenClasses,
+  kIpynbProduceSourceNotebook,
   kJatsSubarticleId,
   kKeepHidden,
   kNotebookPreserveCells,
@@ -19,6 +21,7 @@ import {
   kRemoveHidden,
   kTemplate,
   kTo,
+  kVariant,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -54,14 +57,19 @@ function resolveJats(
   _notebookMetadata?: NotebookMetadata,
 ) {
   const resolved = ld.cloneDeep(executedFile);
+  const to =
+    resolved.recipe.format.render[kVariant]?.includes("+element_citations")
+      ? "jats+element_citations"
+      : "jats";
+
   resolved.recipe.format.metadata[kLintXml] = false;
   resolved.recipe.format.metadata[kJatsSubarticle] = true;
   resolved.recipe.format.metadata[kJatsSubarticleId] = token;
-  resolved.recipe.format.pandoc[kOutputFile] = jatsOutputFile(
+  resolved.recipe.format.pandoc[kOutputFile] = outputFile(
     nbAbsPath,
   );
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
-  resolved.recipe.format.pandoc.to = "jats";
+  resolved.recipe.format.pandoc.to = to;
   resolved.recipe.format.pandoc[kTemplate] = subarticleTemplatePath;
 
   // Configure echo for this rendering
@@ -71,27 +79,37 @@ function resolveJats(
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
 
+  // If this recipe is using a a source notebook, clear the cell options
+  // from the output when rendering
+  if (resolved.recipe.format.render[kIpynbProduceSourceNotebook]) {
+    resolved.recipe.format.render[kClearCellOptions] = true;
+  }
+
   return resolved;
 }
 async function renderJats(
   nbPath: string,
-  _format: Format,
+  format: Format,
   subArticleToken: string,
   services: RenderServices,
   _notebookMetadata?: NotebookMetadata,
   project?: ProjectContext,
 ): Promise<RenderedFile> {
+  const to = format.render[kVariant]?.includes("+element_citations")
+    ? "jats+element_citations"
+    : "jats";
+
   const rendered = await renderFile(
     { path: nbPath, formats: ["jats"] },
     {
       services,
       flags: {
         metadata: {
-          [kTo]: "jats",
+          [kTo]: to,
           [kLintXml]: false,
           [kJatsSubarticle]: true,
           [kJatsSubarticleId]: subArticleToken,
-          [kOutputFile]: jatsOutputFile(nbPath),
+          [kOutputFile]: outputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,

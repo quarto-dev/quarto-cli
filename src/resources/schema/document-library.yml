@@ -1,4 +1,4 @@
-- name: reveal-js-url
+- name: revealjs-url
   schema: path
   tags:
     formats: [revealjs]

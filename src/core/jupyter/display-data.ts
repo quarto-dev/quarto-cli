@@ -1,9 +1,8 @@
 /*
-* display-data.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * display-data.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../../core/lodash.ts";
 
@@ -22,6 +21,7 @@ import {
 } from "../mime.ts";
 import {
   JupyterCell,
+  JupyterCellOutputData,
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
@@ -43,7 +43,7 @@ export function isCaptionableData(output: JupyterOutput) {
 }
 
 export function displayDataMimeType(
-  output: JupyterOutputDisplayData,
+  output: JupyterCellOutputData,
   options: JupyterToMarkdownOptions,
 ) {
   const displayPriority = [
@@ -131,8 +131,14 @@ export function displayDataWithMarkdownMath(output: JupyterOutputDisplayData) {
   return output;
 }
 
-export function displayDataHasHtmlTable(output: JupyterOutputDisplayData) {
-  const html = output.data[kTextHtml] as string[] || undefined;
+export function displayDataHasHtmlTable(
+  output: JupyterCellOutputData,
+) {
+  const html = Array.isArray(output.data[kTextHtml])
+    ? output.data[kTextHtml] as string[]
+    : typeof (output.data[kTextHtml]) === "string"
+    ? [output.data[kTextHtml]] as string[]
+    : undefined;
   if (html) {
     const htmlLower = html.map((line) => line.toLowerCase());
     return htmlLower.some((line) => !!line.match(/<[Tt][Aa][Bb][Ll][Ee]/)) &&

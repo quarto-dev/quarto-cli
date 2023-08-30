@@ -1020,7 +1020,7 @@
       },
       "description": {
         "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
       }
     },
     {
@@ -2616,6 +2616,33 @@
               }
             ],
             "description": "Publish twitter card metadata"
+          },
+          "other-links": {
+            "schema": {
+              "ref": "other-links"
+            },
+            "tags": {
+              "formats": [
+                "$html-doc"
+              ]
+            },
+            "description": "A list of other links to appear below the TOC."
+          },
+          "code-links": {
+            "schema": {
+              "anyOf": [
+                "boolean",
+                {
+                  "ref": "other-links"
+                }
+              ]
+            },
+            "tags": {
+              "formats": [
+                "$html-doc"
+              ]
+            },
+            "description": "A list of codes links to appear with this document."
           }
         }
       }
@@ -2776,6 +2803,44 @@
       "id": "chapter-list",
       "arrayOf": {
         "ref": "chapter-item"
+      }
+    },
+    {
+      "id": "other-links",
+      "arrayOf": {
+        "object": {
+          "properties": {
+            "text": {
+              "string": {
+                "description": "The text for the link."
+              }
+            },
+            "href": {
+              "string": {
+                "description": "The href for the link."
+              }
+            },
+            "icon": {
+              "string": {
+                "description": "The bootstrap icon name for the link."
+              }
+            },
+            "rel": {
+              "string": {
+                "description": "The rel attribute value for the link."
+              }
+            },
+            "target": {
+              "string": {
+                "description": "The target attribute value for the link."
+              }
+            }
+          },
+          "required": [
+            "text",
+            "href"
+          ]
+        }
       }
     },
     {
@@ -3111,8 +3176,13 @@
                     "categories": {
                       "maybeArrayOf": {
                         "string": {
-                          "description": "A list of categories for which to create separate RSS feeds containing only posts with that category."
+                          "description": "A list of categories for which to create separate RSS feeds containing only posts with that category"
                         }
+                      }
+                    },
+                    "xml-stylesheet": {
+                      "path": {
+                        "description": "The path to an XML stylesheet (XSL file) used to style the RSS feed."
                       }
                     }
                   }
@@ -4183,6 +4253,19 @@
               "path": {
                 "description": "The input document that will serve as the root document for this manuscript"
               }
+            },
+            "code-links": {
+              "anyOf": [
+                "boolean",
+                {
+                  "maybeArrayOf": {
+                    "anyOf": [
+                      "object",
+                      "string"
+                    ]
+                  }
+                }
+              ]
             },
             "manuscript-url": {
               "string": {
@@ -7162,6 +7245,7 @@
             "enum": [
               "default",
               "plain",
+              "manuscript",
               "none"
             ]
           }
@@ -7358,7 +7442,7 @@
   ],
   "schema/document-library.yml": [
     {
-      "name": "reveal-js-url",
+      "name": "revealjs-url",
       "schema": "path",
       "tags": {
         "formats": [
@@ -7452,7 +7536,7 @@
                 {
                   "object": {
                     "properties": {
-                      "title": {
+                      "text": {
                         "string": {
                           "description": "The title for this alternative link."
                         }
@@ -7501,6 +7585,48 @@
         "short": "Controls the display of links to notebooks that provided embedded content or are created from documents.",
         "long": "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
       }
+    },
+    {
+      "name": "other-links",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          {
+            "enum": [
+              false
+            ]
+          },
+          {
+            "ref": "other-links"
+          }
+        ]
+      },
+      "description": "A list of links that should be displayed below the table of contents in an `Other Links` section."
+    },
+    {
+      "name": "code-links",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          {
+            "enum": [
+              false
+            ]
+          },
+          {
+            "ref": "other-links"
+          }
+        ]
+      },
+      "description": "A list of links that should be displayed below the table of contents in an `Code Links` section."
     },
     {
       "name": "notebook-subarticles",
@@ -8928,7 +9054,7 @@
       },
       "description": {
         "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
       }
     }
   ],
@@ -10284,7 +10410,8 @@
         "formats": [
           "!man",
           "!$docbook-all",
-          "!$jats-all"
+          "!$jats-all",
+          "!beamer"
         ]
       },
       "schema": "number",
@@ -10377,6 +10504,34 @@
       },
       "default": true,
       "description": "Setting this to false prevents this document from being included in searches."
+    },
+    {
+      "name": "repo-actions",
+      "schema": {
+        "anyOf": [
+          "boolean",
+          {
+            "maybeArrayOf": {
+              "enum": [
+                "none",
+                "edit",
+                "source",
+                "issue"
+              ],
+              "description": {
+                "short": "Links to source repository actions",
+                "long": "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+              }
+            }
+          }
+        ]
+      },
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": "Setting this to false prevents the `repo-actions` from appearing on this page."
     },
     {
       "name": "aliases",
@@ -11448,6 +11603,7 @@
   ],
   "pandoc/formats.yml": [
     "asciidoc",
+    "asciidoc_legacy",
     "asciidoctor",
     "beamer",
     "biblatex",
@@ -11806,6 +11962,8 @@
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book title",
     "Description metadata for HTML version of book",
     "The path to the favicon for this website",
@@ -11934,6 +12092,8 @@
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -11954,6 +12114,11 @@
     "The Digital Object Identifier for this book.",
     "Part title or path to input file",
     "Path to chapter input file",
+    "The text for the link.",
+    "The href for the link.",
+    "The bootstrap icon name for the link.",
+    "The rel attribute value for the link.",
+    "The target attribute value for the link.",
     {
       "short": "The role of this creator or contributor.",
       "long": "The role of this creator or contributor using <a href=\"https://loc.gov/marc/relators/relaterm.html\">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;‘author’,\n‘editor’) will attempt to be automatically translated."
@@ -12035,8 +12200,9 @@
       "short": "The language of the feed.",
       "long": "The language of the feed. Omitted if not specified. See <a href=\"https://www.rssboard.org/rss-language-codes\">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes."
     },
-    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
-    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+    "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
     {
       "short": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
       "long": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href=\"https://deno.land/std@0.125.0/datetime\">here</a>."
@@ -13355,6 +13521,8 @@
       "short": "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
       "long": "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
     },
+    "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
+    "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section.",
     {
       "short": "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
       "long": "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
@@ -13655,6 +13823,10 @@
     "Monitor the hash and change slides accordingly",
     "Include the current fragment in the URL",
     "Play a subtle sound when changing slides",
+    {
+      "short": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+      "long": "“Slides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option”"
+    },
     "Prints each fragment on a separate slide",
     {
       "short": "Offset used to reduce the height of content within exported PDF\npages.",
@@ -13779,6 +13951,15 @@
     "Print a list of figures in the document.",
     "Print a list of tables in the document.",
     "Setting this to false prevents this document from being included in\nsearches.",
+    "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+    {
+      "short": "Links to source repository actions",
+      "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+    },
+    {
+      "short": "Links to source repository actions",
+      "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+    },
     "URLs that alias this document, when included in a website.",
     {
       "short": "The path to a preview image for this document.",
@@ -13932,6 +14113,8 @@
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -14243,6 +14426,8 @@
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -14408,11 +14593,7 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack",
-    {
-      "short": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-      "long": "“Slides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option”"
-    }
+    "internal-schema-hack"
   ],
   "schema/external-schemas.yml": [
     {
@@ -14636,12 +14817,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 158643,
+    "_internalId": 163216,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 158635,
+        "_internalId": 163208,
         "type": "enum",
         "enum": [
           "png",
@@ -14657,7 +14838,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 158642,
+        "_internalId": 163215,
         "type": "anyOf",
         "anyOf": [
           {

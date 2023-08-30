@@ -1,0 +1,29 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.sourceCode[id^="annotated-cell-1"]', 'div.sourceCode[id^="annotated-cell-2"]']
+        - ['ol[type="1"]']
+---
+
+```{r}
+#| label: test-code-annotation
+#| echo: fenced
+1 + 1 # <1>
+2 + 2 # <2>
+```
+
+1.  Simple 
+2.  Very simple
+
+```{bash}
+#| eval: false
+#| echo: fenced
+echo 2 # <1>
+echo 3 # <2>
+```
+
+1.  Simple 
+2.  Very simple

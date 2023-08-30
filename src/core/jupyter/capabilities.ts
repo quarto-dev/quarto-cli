@@ -77,9 +77,16 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 const S_IXUSR = 0o100;
 
 async function getVerifiedJuliaCondaJupyterCapabilities() {
-  const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
-  if (home) {
-    const juliaCondaPath = join(home, ".julia", "conda", "3");
+  let juliaHome = Deno.env.get("JULIA_HOME");
+  if (!juliaHome) {
+    const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
+    if (home) {
+      juliaHome = join(home, ".julia");
+    }
+  }
+
+  if (juliaHome) {
+    const juliaCondaPath = join(juliaHome, "conda", "3");
     const bin = isWindows()
       ? ["python3.exe", "python.exe"]
       : [join("bin", "python3"), join("bin", "python")];

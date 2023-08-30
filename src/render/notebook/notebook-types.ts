@@ -6,7 +6,6 @@
 
 import {
   ExecutedFile,
-  RenderedFile,
   RenderResourceFiles,
   RenderServices,
 } from "../../command/render/types.ts";
@@ -41,9 +40,21 @@ export interface Notebook {
 }
 
 export interface NotebookOutput {
+  // The literal path to the notebook output
+  // This could be a file in the output directory, in a cache, or from anywhere really.
   path: string;
+  // The original input like path to the notebook output
+  // which should be used when forming input or project relative paths to be used
+  // for things like making links, or computing resources/supporting files
+  hrefPath: string;
+
+  // The list of supporting files and resources
   supporting: string[];
   resourceFiles: RenderResourceFiles;
+
+  // A flag indicating whether this output was provided by a cache
+  // (in which case, it will not be cleaned up, for example)
+  cached?: boolean;
 }
 
 export interface NotebookRenderResult {
@@ -79,13 +90,13 @@ export interface NotebookContext {
     renderType: RenderType,
     executedFile: ExecutedFile,
     notebookMetadata?: NotebookMetadata,
-    outputFile?: string,
   ) => ExecutedFile;
   // Provide a preview to the notebook context (for example, if you rendered it yourself)
   addRendering: (
     nbPath: string,
     renderType: RenderType,
     result: NotebookRenderResult,
+    project?: ProjectContext,
   ) => void;
   removeRendering: (
     nbAbsPath: string,
@@ -124,4 +135,9 @@ export interface NotebookContributor {
     notebookMetadata?: NotebookMetadata,
     project?: ProjectContext,
   ): Promise<NotebookRenderResult>;
+  cache?: (output: NotebookOutput, project?: ProjectContext) => void;
+  cachedPath?: (
+    nbAbsPath: string,
+    project?: ProjectContext,
+  ) => string | undefined;
 }

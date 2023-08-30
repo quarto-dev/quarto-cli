@@ -205,11 +205,6 @@ export function outputRecipe(
   }
 }
 
-const kOutExt = "out";
-export function isOutputFile(path: string, ext: string) {
-  return path.endsWith(`.${kOutExt}.${ext}`);
-}
-
 export function normalizeOutputPath(input: string, output: string) {
   if (isAbsolute(output)) {
     return output;
@@ -220,3 +215,5 @@ export function normalizeOutputPath(input: string, output: string) {
     );
   }
 }
+
+const kOutExt = "out";

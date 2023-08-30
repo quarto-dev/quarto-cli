@@ -193,42 +193,43 @@ export const websiteProjectType: ProjectType = {
 
       // listings extras
       const hasBootstrap = formatHasBootstrap(format);
-      if (hasBootstrap) {
-        const htmlListingDependencies = await listingHtmlDependencies(
-          source,
-          project,
-          format,
-          services.temp,
-          extras,
-        );
-        if (htmlListingDependencies) {
-          const listingPostProcessor =
-            htmlListingDependencies[kHtmlPostprocessors];
-          if (listingPostProcessor) {
-            // Process listings early so if we inject content div, navigation and other
-            // elements will wrap around
-            extras.html[kHtmlPostprocessors]?.unshift(listingPostProcessor);
-          }
 
-          const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
-          if (listingAfterBody) {
-            extras.html[kMarkdownAfterBody]?.push(listingAfterBody);
-          }
-          extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
-          extras[kIncludeInHeader]!.push(
-            ...htmlListingDependencies[kIncludeInHeader],
-          );
-          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-          extras.html[kSassBundles]!.push(
-            ...htmlListingDependencies[kSassBundles],
-          );
-
-          extras.html[kDependencies] = extras.html[kDependencies] || [];
-          extras.html[kDependencies]?.push(
-            ...htmlListingDependencies[kDependencies],
-          );
+      const htmlListingDependencies = await listingHtmlDependencies(
+        source,
+        project,
+        format,
+        services.temp,
+        extras,
+      );
+      if (htmlListingDependencies) {
+        const listingPostProcessor =
+          htmlListingDependencies[kHtmlPostprocessors];
+        if (listingPostProcessor) {
+          // Process listings early so if we inject content div, navigation and other
+          // elements will wrap around
+          extras.html[kHtmlPostprocessors]?.unshift(listingPostProcessor);
         }
 
+        const listingAfterBody = htmlListingDependencies[kMarkdownAfterBody];
+        if (listingAfterBody) {
+          extras.html[kMarkdownAfterBody]?.push(listingAfterBody);
+        }
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]!.push(
+          ...htmlListingDependencies[kIncludeInHeader],
+        );
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+        extras.html[kSassBundles]!.push(
+          ...htmlListingDependencies[kSassBundles],
+        );
+
+        extras.html[kDependencies] = extras.html[kDependencies] || [];
+        extras.html[kDependencies]?.push(
+          ...htmlListingDependencies[kDependencies],
+        );
+      }
+
+      if (hasBootstrap) {
         // about extras
         const aboutDependencies = await aboutHtmlDependencies(
           source,

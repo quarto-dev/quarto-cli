@@ -51,6 +51,7 @@ import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
+import { kCodeAnnotations } from "../html/format-html-shared.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -363,10 +364,16 @@ function pdfLatexPostProcessor(
       // Replace notes with side notes
       lineProcessors.push(sideNoteLineProcessor());
     }
-
     lineProcessors.push(captionFootnoteLineProcessor());
-    lineProcessors.push(codeAnnotationPostProcessor());
-    lineProcessors.push(codeListAnnotationPostProcessor());
+
+    if (
+      format.metadata[kCodeAnnotations] as boolean !== false &&
+      format.metadata[kCodeAnnotations] as string !== "none"
+    ) {
+      lineProcessors.push(codeAnnotationPostProcessor());
+      lineProcessors.push(codeListAnnotationPostProcessor());
+    }
+
     lineProcessors.push(longTableSidenoteProcessor());
 
     await processLines(output, lineProcessors, temp);

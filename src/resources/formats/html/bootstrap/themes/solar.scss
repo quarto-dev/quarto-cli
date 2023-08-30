@@ -199,6 +199,10 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@4
   @import url($web-font-path);
 }
 
+:root {
+  color-scheme: dark;
+}
+
 // Buttons
 
 .btn {
@@ -216,8 +220,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@4
 // Indicators
 
 .alert {
-  border: none;
   color: $white;
+  border: none;
 
   a,
   .alert-link {

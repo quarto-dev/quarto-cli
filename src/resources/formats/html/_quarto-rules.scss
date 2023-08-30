@@ -633,7 +633,12 @@ $primary: #468 !default;
 $secondary: #999 !default;
 $font-family-sans-serif: sans-serif !default;
 
-/* SCSS variables */
+/* SCSS variables
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these.
+*/
 $mermaid-bg-color: $body-bg !default;
 $mermaid-edge-color: $secondary !default;
 $mermaid-node-fg-color: $body-color !default;

@@ -4,15 +4,18 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { renderFile, renderFiles } from "../../command/render/render-files.ts";
+import { renderFile } from "../../command/render/render-files.ts";
 import {
   ExecutedFile,
   RenderedFile,
   RenderServices,
 } from "../../command/render/types.ts";
 import {
+  kClearCellOptions,
   kClearHiddenClasses,
+  kDisableArticleLayout,
   kFormatLinks,
+  kIpynbProduceSourceNotebook,
   kKeepHidden,
   kNotebookPreserveCells,
   kNotebookPreviewBack,
@@ -25,6 +28,7 @@ import {
   kTheme,
   kTo,
   kToc,
+  kTocLocation,
   kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
@@ -41,20 +45,38 @@ import { error } from "log/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
 import { isQmdFile } from "../../execute/qmd.ts";
+import { dirAndStem } from "../../core/path.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { existsSync } from "fs/mod.ts";
 
 export const htmlNotebookContributor: NotebookContributor = {
   resolve: resolveHtmlNotebook,
   render: renderHtmlNotebook,
   outputFile,
+  cachedPath,
 };
 
 export function outputFile(
   nbAbsPath: string,
 ): string {
-  return `${basename(nbAbsPath)}.html`;
+  const [_dir, stem] = dirAndStem(basename(nbAbsPath));
+  return `${stem}-preview.html`;
+}
+
+function cachedPath(nbAbsPath: string, project?: ProjectContext) {
+  if (project) {
+    const nbRelative = relative(project.dir, dirname(nbAbsPath));
+    const nbOutputDir = join(projectOutputDir(project), nbRelative);
+
+    const outFile = outputFile(nbAbsPath);
+    const outPath = join(nbOutputDir, outFile);
+    if (existsSync(outPath)) {
+      return outPath;
+    }
+  }
 }
 
 function resolveHtmlNotebook(
@@ -66,7 +88,7 @@ function resolveHtmlNotebook(
   const resolved = ld.cloneDeep(executedFile) as ExecutedFile;
 
   // Set the output file
-  resolved.recipe.format.pandoc[kOutputFile] = `${basename(nbAbsPath)}.html`;
+  resolved.recipe.format.pandoc[kOutputFile] = `${outputFile(nbAbsPath)}`;
   resolved.recipe.output = resolved.recipe.format.pandoc[kOutputFile];
 
   // Configure echo for this rendering to ensure there is output
@@ -76,6 +98,12 @@ function resolveHtmlNotebook(
   resolved.recipe.format.render[kKeepHidden] = true;
   resolved.recipe.format.metadata[kClearHiddenClasses] = "all";
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
+
+  // If this recipe is using a a source notebook, clear the cell options
+  // from the output when rendering
+  if (resolved.recipe.format.render[kIpynbProduceSourceNotebook]) {
+    resolved.recipe.format.render[kClearCellOptions] = true;
+  }
 
   // Use the special `embed/notebook` template for this render
   const template = formatResourcePath(
@@ -101,9 +129,12 @@ function resolveHtmlNotebook(
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
 
   // Configure the appearance
-  resolved.recipe.format.pandoc[kToc] = false;
+  resolved.recipe.format.pandoc[kToc] = true;
+  resolved.recipe.format.metadata[kTocLocation] = "left";
   resolved.recipe.format.metadata[kAppendixStyle] = "none";
   resolved.recipe.format.render[kFormatLinks] = false;
+
+  resolved.recipe.format.metadata[kDisableArticleLayout] = true;
 
   return resolved;
 }
@@ -131,7 +162,7 @@ async function renderHtmlNotebook(
         metadata: {
           [kTo]: "html",
           [kTheme]: format.metadata[kTheme],
-          [kOutputFile]: `${basename(nbPath)}.html`,
+          [kOutputFile]: `${outputFile(nbPath)}`,
           [kTemplate]: template,
           [kNotebookViewStyle]: kNotebookViewStyleNotebook,
           [kAppendixStyle]: "none",
@@ -144,6 +175,9 @@ async function renderHtmlNotebook(
             ),
             backLabel: format.language[kNotebookPreviewBack],
           } as NotebookTemplateMetadata,
+          [kToc]: true,
+          [kTocLocation]: "left",
+          [kDisableArticleLayout]: true,
         },
         quiet: false,
       },

@@ -69,13 +69,6 @@ export async function configureDependency(
   info(`Preparing ${dependency.name} (${config.os} - ${config.arch})`);
   let archDep = dependency.architectureDependencies[config.arch];
 
-  // If we're missing some arm64, try the intel versions and rely on rosetta.
-  if (config.arch === "aarch64") {
-    if (!archDep || !archDep[config.os]) {
-      warning("Missing configuration for architecture " + config.arch);
-      archDep = dependency.architectureDependencies["x86_64"];
-    }
-  }
   if (archDep) {
     const platformDep = archDep[config.os];
     const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");

@@ -1,13 +1,17 @@
 /*
-* website-config.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-config.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../../../core/lodash.ts";
 
-import { kDescription, kMetadataFormat } from "../../../config/constants.ts";
+import {
+  kCodeLinks,
+  kDescription,
+  kMetadataFormat,
+  kOtherLinks,
+} from "../../../config/constants.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 import {
   formatFromMetadata,
@@ -65,6 +69,8 @@ type WebsiteConfigKey =
   | "body-footer"
   | "search"
   | "comments"
+  | "other-links"
+  | "code-links"
   | "reader-mode";
 
 export function websiteConfigBoolean(
@@ -388,6 +394,19 @@ export function websiteProjectConfig(
     (config[kComments] === undefined)
   ) {
     config[kComments] = websiteConfigMetadata(kComments, config);
+  }
+
+  // move any `other links` into the main config so it is merged
+  if (
+    websiteConfigArray(kOtherLinks, config) &&
+    (config[kOtherLinks] === undefined)
+  ) {
+    config[kOtherLinks] = websiteConfigArray(kOtherLinks, config);
+  }
+
+  // move `code links` too
+  if (websiteConfigArray(kCodeLinks, config) && (config[kCodeLinks])) {
+    config[kCodeLinks] = websiteConfigArray(kCodeLinks, config);
   }
 
   return Promise.resolve(config);
