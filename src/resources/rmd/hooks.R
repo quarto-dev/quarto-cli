@@ -915,9 +915,9 @@ figure_cap <- function(options) {
   if (is.null(output_label) || is_figure_label(output_label)) {
     fig.cap <- options[["fig.cap"]]
     fig.subcap <- options[["fig.subcap"]]
-    if (!is.null(fig.subcap))
+    if (length(fig.subcap) != 0)
       fig.subcap
-    else if (!is.null(fig.cap))
+    else if (length(fig.cap) != 0)
       fig.cap
     else
       ""
