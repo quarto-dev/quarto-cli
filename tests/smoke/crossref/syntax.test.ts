@@ -1,9 +1,8 @@
 /*
-* syntax.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * syntax.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureFileRegexMatches } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
@@ -67,7 +66,7 @@ const context: TestContext = {
     return Promise.resolve();
   },
 };
-const testDesc: TestDescriptor = {
+const testDesc: TestDescriptor = { // FIXME: why is this test flaky now? Ask @dragonstyle
   name: "test html produced by different figure syntax",
   context,
   execute: async () => {

@@ -108,7 +108,11 @@ function decorate_caption_with_crossref(float)
   local caption_content = float.caption_long.content or float.caption_long
 
   if float.parent_id then
-    prependSubrefNumber(caption_content, float.order)
+    if float.order == nil then
+      warn("Subfloat without crossref information")
+    else
+      prependSubrefNumber(caption_content, float.order)
+    end
   else
     -- in HTML, unlabeled floats do not get a title prefix
     if (not is_unlabeled_float(float)) and (caption_content ~= nil) and (#caption_content > 0) then
