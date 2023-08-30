@@ -169,3 +169,4 @@
 - ([#6487](https://github.com/quarto-dev/quarto-cli/discussions/6487)): Fix `serviceworkers` check in `htmlDependency` to look at the correct key.
 - ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): When `QUARTO_LOG_LEVEL=DEBUG`, information about search for a R binary will be shown.
 - ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
+- ([#6620](https://github.com/quarto-dev/quarto-cli/pull/6620)): Rewrite Crossreferenceable figure support. See the [prerelease documentation](https://quarto.org/docs/prerelease/1.4/) for more information.
