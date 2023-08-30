@@ -117,8 +117,6 @@ local html_email_template_4 = [[
 ]]
 
 local subject = nil
-local attachments = nil
-local email_html = nil
 local email_images = {}
 local image_tbl = {}
 
