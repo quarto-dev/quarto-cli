@@ -147,7 +147,7 @@ function partition_cells(float)
       --   -- transfer width to cell
       --   transferImageWidthToCell(fig, cellDiv)
       -- end
-      if subfloat ~= nil and subfloat.t == "FloatCrossRef" then
+      if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
         transfer_float_image_width_to_cell(subfloat, cellDiv)
       end
       

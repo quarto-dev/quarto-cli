@@ -161,7 +161,7 @@ import("./customnodes/content-hidden.lua")
 import("./customnodes/decoratedcodeblock.lua")
 import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
-import("./customnodes/floatcrossref.lua")
+import("./customnodes/floatreftarget.lua")
 
 import("./layout/confluence.lua")
 import("./layout/ipynb.lua")
