@@ -22,8 +22,8 @@ testRender(tablesQmd.input, "html", false, [
     // table captions in figure elements (with and without subfloats)
     "section#simple-crossref-table > div#tbl-letters > figure.quarto-float-tbl > figcaption.table.quarto-float-caption",
     "section#sub-tables div#tbl-panel.quarto-layout-panel > figure.quarto-float-tbl > figcaption.table.quarto-float-caption",
-    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-first  > figure.quarto-float-tbl > figcaption.table.quarto-subfloat-caption",
-    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-second > figure.quarto-float-tbl > figcaption.table.quarto-subfloat-caption",
+    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-first  > figure.quarto-subfloat-tbl > figcaption.table.quarto-subfloat-caption",
+    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-second > figure.quarto-subfloat-tbl > figcaption.table.quarto-subfloat-caption",
   ]),
   ensureFileRegexMatches(tablesQmd.output.outputPath, [
     /Table&nbsp;1: My Caption/,
@@ -41,8 +41,8 @@ testRender(tablesQmd.input, "html", false, [
 const knitrTablesQmd = crossref("knitr-tables.qmd", "html");
 testRender(knitrTablesQmd.input, "html", false, [
   ensureHtmlElements(knitrTablesQmd.output.outputPath, [
-    "div.quarto-layout-panel div.quarto-layout-row div#tbl-cars > figure.quarto-float-tbl >figcaption.table.quarto-subfloat-caption",
-    "div.quarto-layout-panel div.quarto-layout-row div#tbl-pressure > figure.quarto-float-tbl > figcaption.table.quarto-subfloat-caption",
+    "div.quarto-layout-panel div.quarto-layout-row div#tbl-cars > figure.quarto-subfloat-tbl >figcaption.table.quarto-subfloat-caption",
+    "div.quarto-layout-panel div.quarto-layout-row div#tbl-pressure > figure.quarto-subfloat-tbl > figcaption.table.quarto-subfloat-caption",
   ]),
   ensureFileRegexMatches(knitrTablesQmd.output.outputPath, [
     /Table&nbsp;1: Tables/,
