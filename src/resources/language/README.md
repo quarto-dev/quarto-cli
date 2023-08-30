@@ -15,6 +15,7 @@ This directory includes a set of built-in translations, including:
 | `_language-fr.yml`    | French                       |
 | `_language-de.yml`    | German                       |
 | `_language-it.yml`    | Italian                      |
+| `_language-he.yml`    | Hebrew                       |
 | `_language-ja.yml`    | Japanese                     |
 | `_language-kr.yml`    | Korean                       |
 | `_language-pl.yml`    | Polish                       |
