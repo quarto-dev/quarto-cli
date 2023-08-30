@@ -9,9 +9,9 @@ _quarto:
           - "\\(b\\) Abbas"
       ensureHtmlElements:
         - 
-          - "div#fig-elephants figure > figcaption.quarto-float-caption"
-          - "div#fig-surus figure.quarto-float-fig figcaption.quarto-subfloat-caption"
-          - "div#fig-abbas figure.quarto-float-fig figcaption.quarto-subfloat-caption"
+          - "div#fig-elephants figure.quarto-float-fig > figcaption.quarto-float-caption"
+          - "div#fig-surus figure.quarto-subfloat-fig figcaption.quarto-subfloat-caption"
+          - "div#fig-abbas figure.quarto-subfloat-fig figcaption.quarto-subfloat-caption"
         - []
 ---
 

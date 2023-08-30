@@ -6,9 +6,9 @@ _quarto:
       ensureHtmlElements:
         - 
           - "figure.quarto-float-tbl div#tbl-cars figure.quarto-float-tbl table.table"
-          - "figure.quarto-float-tbl div#tbl-cars figure.quarto-float-tbl figcaption.quarto-subfloat-caption"
+          - "figure.quarto-float-tbl div#tbl-cars figure.quarto-subfloat-tbl figcaption.quarto-subfloat-caption"
           - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-float-tbl table.table"
-          - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-float-tbl figcaption.quarto-subfloat-caption"
+          - "figure.quarto-float-tbl div#tbl-pressure figure.quarto-subfloat-tbl figcaption.quarto-subfloat-caption"
           - "div#tbl-tables > figure.quarto-float-tbl > figcaption.quarto-float-caption"
         - []
 ---

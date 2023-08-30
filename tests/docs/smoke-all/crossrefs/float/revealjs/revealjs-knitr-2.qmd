@@ -1,14 +1,15 @@
 ---
 title: Knitr Crossref Test
-format: html
+format: revealjs
 _quarto:
   tests:
     revealjs:
       ensureHtmlElements:
-        - 
-          - "figcaption em" # markdown test
-          - "figcaption span.math" # math processing test
-          - "div#fig-plot figure.quarto-float-fig img.figure-img" # image
+        - # note these are missing the figure element because this is in autostretch and we need to butcher the DOM for it
+          - "em" # markdown test
+          - "span.math" # math processing test
+          - "img" # image
+
 ---
 
 

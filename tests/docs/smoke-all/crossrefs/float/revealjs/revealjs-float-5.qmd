@@ -5,10 +5,11 @@ _quarto:
   tests:
     revealjs:
       ensureHtmlElements:
-        - 
-          - "div#fig-elephant figure.quarto-float-fig figcaption.figure"
+        - []
+#          - "img[src='img/thinker.jpg']" # This appears to not work in deno-dom?!
         - 
           - "a[href='#/fig-elephant1'].quarto-xref"
+          - "div#fig-elephant figure.quarto-float-fig figcaption.figure" # because of autostretch, we lose figure elements
 ---
 
 ## Unresolved Crossref Figure
