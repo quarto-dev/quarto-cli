@@ -362,14 +362,17 @@ local function create_figcaption(float)
   if float.caption_long == nil or pandoc.utils.stringify(float.caption_long) == "" then
     return nil
   end
+  local ref_type = refType(float.identifier)
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
   local classes = { float.type:lower() }
   if float.parent_id then
     table.insert(classes, "quarto-subfloat-caption")
+    table.insert(classes, "quarto-subfloat-" .. ref_type)
   else
     table.insert(classes, "quarto-float-caption")
+    table.insert(classes, "quarto-float-" .. ref_type)
   end
   return quarto.HtmlTag({
     name = "figcaption",
@@ -428,7 +431,12 @@ function float_reftarget_render_html_figure(float)
   end
 
   local ref = refType(float.identifier)
-  local figure_class = "quarto-float-" .. ref
+  local figure_class
+  if float.parent_id then
+    figure_class = "quarto-subfloat-" .. ref
+  else
+    figure_class = "quarto-float-" .. ref
+  end
 
   -- Notice that we need to insert the figure_div value
   -- into the div, but we need to use figure_tbl
@@ -448,7 +456,7 @@ function float_reftarget_render_html_figure(float)
   -- function to convert that to a pandoc AST node.
   local figure_div, figure_tbl = quarto.HtmlTag({
     name = "figure",
-    attr = pandoc.Attr("", {figure_class}, {}),
+    attr = pandoc.Attr("", {"quarto-float", figure_class}, {}),
   })
   
   figure_tbl.content.content:insert(float_content)
