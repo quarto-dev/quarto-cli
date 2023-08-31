@@ -165,24 +165,14 @@ end, function(float)
     -- special-case the situation where the figure is Table and the content is Table
     --
     -- just return the table itself with the caption inside the table
+
+    -- FIXME how about tables in margin figures?
+
     caption_cmd_name = "caption"
     float.content.caption.long = float.caption_long
     float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
     return float.content
   end
-  -- FIXME the old code had this bit about kSideCaptionEnv that
-  -- we need to handle still
-  -- 
-  -- markupLatexCaption(divEl, captionInlines, captionEnv)
-  -- if captionEnv == kSideCaptionEnv then
-  --   if #content > 1 then
-  --     content:insert(2, pandoc.Para(captionInlines))
-  --   else
-  --     content:insert(#content, pandoc.Para(captionInlines))
-  --   end
-  -- else 
-  --   content:insert(pandoc.Para(captionInlines))
-  -- end
 
   local fig_scap = attribute(float, kFigScap, nil)
   if fig_scap then
@@ -248,9 +238,14 @@ end, function(float)
   -- figure_content:insert(1, pandoc.RawInline("latex", latexBeginAlign(align)))
   -- figure_content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
 
-  -- insert caption
   if latex_caption then
-    if capLoc == "top" then
+    if caption_cmd_name == kSideCaptionEnv then
+        if #figure_content > 1 then
+          figure_content:insert(2, latex_caption) -- FIXME why is this 2 and not 1?
+        else
+          figure_content:insert(latex_caption)
+        end
+    elseif capLoc == "top" then
       figure_content:insert(1, latex_caption)
     else
       figure_content:insert(latex_caption)
@@ -415,15 +410,12 @@ function float_reftarget_render_html_figure(float)
   div.attr = merge_attrs(
     pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {}),
     pandoc.Attr("", {}, figure_attrs.figureAttr))
-  -- FIXME consider making the CSS classes uniform
   if float.type == "Listing" then
     div.attr.classes:insert("listing")
   elseif float.type == "Figure" then
     -- apply standalone figure css
     div.attr.classes:insert("quarto-figure")
     div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
-  else
-    -- FIXME work more generally here.
   end
 
   -- also forward any column or caption classes
