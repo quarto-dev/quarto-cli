@@ -296,7 +296,6 @@ local quarto_post_filters = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
-  { name = "post-ipynb-code", filter = ipynbCode()},
   { name = "post-ipynb", filter = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
@@ -335,7 +334,6 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-latex-fixups", filter = render_latex_fixups() },
 
-  -- { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
 
