@@ -101,97 +101,6 @@ function latexJoinParas(content)
   return blocks
 end
 
-function latexImageFigure(image)
-
-  return renderLatexFigure(image, function(figure)
-    
-    -- make a copy of the caption and clear it
-    local caption = image.caption:clone()
-    tclear(image.caption)
-    
-    -- get align
-    local align = figAlignAttribute(image)
-   
-    -- insert the figure without the caption
-    local figureContent = { pandoc.Para({
-      pandoc.RawInline("latex", latexBeginAlign(align)),
-      image,
-      pandoc.RawInline("latex", latexEndAlign(align)),
-      pandoc.RawInline("latex", "\n")
-    }) }
-    
-    -- return the figure and caption
-    return figureContent, caption
-    
-  end)
-end
-
-function latexDivFigure(divEl)
-  
-  return renderLatexFigure(divEl, function(figure)
-    
-     -- get align
-    local align = figAlignAttribute(divEl)
-
-    -- append everything before the caption
-    local blocks = tslice(divEl.content, 1, #divEl.content - 1)
-    local figureContent = pandoc.List()
-    if align == "center" then
-      figureContent:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-    end
-    tappend(figureContent, blocks)
-    if align == "center" then
-      figureContent:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-    end
-    
-    -- return the figure and caption
-    local caption = refCaptionFromDiv(divEl)
-    if not caption then
-      caption = pandoc.Inlines()
-    end
-    return figureContent, caption.content
-   
-  end)
-  
-end
-
-function renderLatexFigure(el, render)
-  
-  -- create container
-  local figure = pandoc.Div({})
-
-  -- begin the figure
-  local figEnv = latexFigureEnv(el)
-  local figPos = latexFigurePosition(el, figEnv)
-
-  figure.content:insert(latexBeginEnv(figEnv, figPos))
-  
-  -- get the figure content and caption inlines
-  local figureContent, captionInlines = render(figure)  
-
-  local capLoc = capLocation("fig", "bottom")  
-
-  -- surround caption w/ appropriate latex (and end the figure)
-  if captionInlines and inlinesToString(captionInlines) ~= "" then
-    if capLoc == "top" then
-      insertLatexCaption(el, figure.content, captionInlines)
-      tappend(figure.content, figureContent)
-    else
-      tappend(figure.content, figureContent)
-      insertLatexCaption(el, figure.content, captionInlines)
-    end
-  else
-    tappend(figure.content, figureContent)
-  end
-  
-  -- end figure
-  figure.content:insert(latexEndEnv(figEnv))
-  
-  -- return the figure
-  return figure
-  
-end
-
 function latexCaptionEnv(el) 
   if el.classes:includes(kSideCaptionClass) then
     return kSideCaptionEnv
@@ -221,20 +130,6 @@ function create_latex_caption(layout)
     caption.opt_arg = quarto.utils.as_inlines(layout.caption_short)
   end
   return caption_node
-end
-
-function insertLatexCaption(divEl, content, captionInlines) 
-  local captionEnv = latexCaptionEnv(divEl)
-  markupLatexCaption(divEl, captionInlines, captionEnv)
-  if captionEnv == kSideCaptionEnv then
-    if #content > 1 then
-      content:insert(2, pandoc.Para(captionInlines))
-    else
-      content:insert(#content, pandoc.Para(captionInlines))
-    end
-  else 
-    content:insert(pandoc.Para(captionInlines))
-  end
 end
 
 function latexWrapSignalPostProcessor(el, token) 
