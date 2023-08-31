@@ -117,11 +117,6 @@ function latexCalloutBoxSimple(title, type, icon)
   }
 end
 
--- format-specific fixups after custom rendering is done
-function render_latex_fixups()
-  return {}
-end
-
 function render_latex()
   if not _quarto.format.isLatexOutput() then
     return {}

@@ -332,7 +332,6 @@ local quarto_post_filters = {
 
   -- format fixups post rendering
   { name = "post-render-html-fixups", filter = render_html_fixups() },
-  { name = "post-render-latex-fixups", filter = render_latex_fixups() },
 
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
