@@ -1,6 +1,70 @@
 -- parsefiguredivs.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
+local patterns = require("modules/patterns")
+
+local function kable_raw_latex_fixups(content, identifier)
+  local matches = 0
+
+  content = _quarto.ast.walk(content, {
+    RawBlock = function(raw)
+      if not _quarto.format.isRawLatex(raw) then
+        return nil
+      end
+      if raw.text:match(patterns.latex_long_table) == nil then
+        return nil
+      end
+      local b, e, match1, label_identifier = raw.text:find(patterns.latex_label)
+      if b ~= nil then
+        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+      end
+      local b, e, match2, caption_content = raw.text:find(patterns.latex_caption)
+      if b ~= nil then
+        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+      end
+
+
+      if match1 == nil and match2 == nil then
+        return nil
+      end
+      -- it's a longtable, we'll put it inside a Table FloatRefTarget
+      -- if it has either a label or a caption.
+
+      -- HACK: kable appears to emit a label that starts with "tab:"
+      -- we strip this and hope for the best
+      if label_identifier ~= nil then
+        label_identifier = label_identifier:gsub("^tab:", "")
+      end
+
+      -- we found a table, a label, and a caption. This is a FloatRefTarget.
+      matches = matches + 1
+      return quarto.FloatRefTarget({
+        identifier = label_identifier,
+        type = "Table",
+        content = pandoc.Blocks({ raw }),
+        caption_long = pandoc.Blocks({pandoc.Plain(string_to_quarto_ast_inlines(caption_content))}),
+      })
+    end
+  })
+
+  if matches > 1 then
+    -- we found more than one table, so these will become subfloats and
+    -- we might need auto-identifiers (since)
+    local counter = 0
+    content = _quarto.ast.walk(content, {
+      FloatRefTarget = function(target)
+        counter = counter + 1
+        if target.identifier == identifier then
+          target.identifier = identifier .. "-" .. tostring(counter) 
+        end
+        return target
+      end
+    })
+  end
+
+  return matches, content
+end
+
 function parse_floats()
 
   local function parse_float_div(div)
@@ -49,6 +113,12 @@ function parse_floats()
       end
     end
 
+    if caption == nil then
+      -- this should never happen but the Lua analyzer doesn't seem
+      -- to realize it
+      internal_error()
+      return nil
+    end
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
@@ -61,9 +131,17 @@ function parse_floats()
       attr.identifier = div.identifier -- never override the identifier
     end
 
+    local skip_outer_reftarget = false
+    if ref == "tbl" then
+      -- knitr/kable/etc fixups
+
+      -- attempt to find table and caption
+      local matches
+      matches, content = kable_raw_latex_fixups(content, identifier)
+      skip_outer_reftarget = matches == 1
+    end
 
     if div.classes:includes("cell") then
-      
       local layout_classes = attr.classes:filter(
         function(c) return c:match("^column-") end
       )
@@ -82,6 +160,13 @@ function parse_floats()
         })  
       end
     end
+
+    -- respect single table in latex longtable fixups above
+    if skip_outer_reftarget then
+      div.content = content
+      return div
+    end
+
     return quarto.FloatRefTarget({
       attr = attr,
       type = category.name,
