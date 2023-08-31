@@ -652,11 +652,18 @@ knitr_options_hook <- function(options) {
     options[["yaml.code"]] <- results$yamlSource
     
   } else {
-    # convert any option with fig- into fig. and out- to out.
+    # from knitr 1.44 onwards the normalization is done at parsing time by knitr
+    # for all known options c(names(opts_chunk_attr), names(opts_chunk$get()))
+    # so normalization here should not be necessary anymore at some point
+    # TODO: remove normalization here in a few years 
+    #       when 1.44 is widely used version
     options <- normalize_options(options)
   }
 
   # some aliases not normalized
+  # from knitr 1.44, `fig.format` and `fig.dpi` are now alias 
+  # to `dev` and `dpi`
+  # TODO: remove below in a few years when 1.44 is widely used version
   if (!is.null(options[["fig-format"]])) {
     options[["dev"]] <- options[["fig-format"]]
   }
@@ -696,7 +703,14 @@ knitr_options_hook <- function(options) {
 # however we want to support all existing knitr code as well
 # as support all documented knitr chunk options without the user
 # needing to replace . with -
+# from knitr 1.44 onwards the normalization is done at parsing time by knitr
+# for all known options c(names(opts_chunk_attr), names(opts_chunk$get()))
+# so normalization here should not be necessary anymore at some point
+# TODO: remove normalization here in a few years 
+#       when 1.44 is widely used version
 normalize_options <- function(options) {
+  # TODO: knitr 1.44 store all known options as it does the normalization
+  #       they are in `c(names(opts_chunk_attr), names(opts_chunk$get()))`
   knitr_options_dashed <- c(
     # Text output 
     "strip-white",
@@ -771,7 +785,7 @@ normalize_options <- function(options) {
     # Other chunk options
     "R-options"
   )
-  # Un-normalized knitr options, and replace any existing options
+  # Un-normalize knitr options, and replace any existing options (e.g default one)
   for (name in knitr_options_dashed) {
     if (name %in% names(options)) {
       options[[gsub("-", ".", name)]] <- options[[name]]
