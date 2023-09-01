@@ -19,7 +19,7 @@ _quarto.ast.add_handler({
   -- and returns the custom node
   parse = function(div)
     -- luacov: disable
-    fatal("internal error, DecoratedCodeBlock has no native parser")
+    internal_error()
     -- luacov: enable
   end,
 

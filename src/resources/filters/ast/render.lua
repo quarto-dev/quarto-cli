@@ -3,18 +3,6 @@
 --
 -- Copyright (C) 2022 by RStudio, PBC
 
-function render_raw(raw)
-  local parts = split(raw.text)
-  local t = parts[1]
-  local n = tonumber(parts[2])
-  local handler = _quarto.ast.resolve_handler(t)
-  if handler == nil then
-    fatal("Internal Error: handler not found for custom node " .. t)
-  end
-  local customNode = _quarto.ast.custom_node_data[n]
-  return handler.render(customNode)
-end
-
 function render_extended_nodes()
   local function has_custom_nodes(node)
     local has_custom_nodes = false
@@ -47,7 +35,9 @@ function render_extended_nodes()
 
     local handler = _quarto.ast.resolve_handler(node.t)
     if handler == nil then
+      -- luacov: disable
       fatal("Internal Error: handler not found for custom node " .. node.t)
+      -- luacov: enable
     end
     if handler.renderers then
       for _, renderer in ipairs(handler.renderers) do
@@ -55,11 +45,15 @@ function render_extended_nodes()
           return scaffold(postprocess_render(scaffold(renderer.render(node))))
         end
       end
+      -- luacov: disable
       fatal("Internal Error: renderers table was exhausted without a match for custom node " .. node.t)
+      -- luacov: enable
     elseif handler.render ~= nil then
       return scaffold(postprocess_render(scaffold(handler.render(node))))
     else
+      -- luacov: disable
       fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function or renderers table")
+      -- luacov: enable
     end
   end
 

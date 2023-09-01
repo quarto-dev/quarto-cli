@@ -32,13 +32,6 @@ function hasFigureOrTableRef(el)
   return hasFigureRef(el) or hasTableRef(el)
 end
 
-
-function isRefParent(el)
-  return el.t == "Div" and 
-         (hasFigureRef(el) or hasTableRef(el)) and
-         refCaptionFromDiv(el) ~= nil
-end
-
 function hasRefParent(el)
   return el.attributes[kRefParent] ~= nil
 end
@@ -68,30 +61,3 @@ end
 function emptyCaption()
   return pandoc.Str("")
 end
-
-function hasSubRefs(divEl, type)
-  if hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
-    -- children w/ parent id
-    local found = false
-    local function checkForParent(el)
-      if not found then
-        if hasRefParent(el) then
-          if not type or (refType(el.identifier) == type) then
-            found = true
-          end
-        end
-
-      end
-    end
-    _quarto.ast.walk(divEl, {
-      Div = checkForParent,
-      Image = checkForParent
-    })
-    return found
-  else
-    return false
-  end
-end
-   
-
-

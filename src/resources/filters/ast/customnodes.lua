@@ -53,7 +53,9 @@ function run_emulated_filter(doc, filter)
       if #node == 0 then -- empty node
         return node
       else
+        -- luacov: disable
         internal_error()
+        -- luacov: enable
       end
     end
     return node:walk(filter_param)
@@ -103,7 +105,9 @@ function run_emulated_filter(doc, filter)
       if #doc == 0 then -- empty doc
         return doc
       else
+        -- luacov: disable
         internal_error()
+        -- luacov: enable
       end
     end
     local result, recurse = checked_walk(doc, filter)
@@ -167,8 +171,10 @@ function run_emulated_filter(doc, filter)
       if kind == "Inline" then
         return process_custom_preamble(custom_data, t, kind, node)
       end
+      -- luacov: disable
       fatal("Custom node of type " .. t .. " is not an inline, but found in an inline context")
       return nil
+      -- luacov: enable
     end
     if node.attributes.__quarto_custom_scaffold == "true" then
       return nil
@@ -202,7 +208,9 @@ function create_custom_node_scaffold(t, context)
   elseif context == "Inline" then
     result = pandoc.Span({})
   else
+    -- luacov: disable
     fatal("Invalid context for custom node: " .. context)
+    -- luacov: enable
   end
   n_custom_nodes = n_custom_nodes + 1
   local id = tostring(n_custom_nodes)
@@ -282,6 +290,7 @@ _quarto.ast = {
         end
         local node = node_accessor(table)
         local t = pandoc.utils.type(value)
+        -- FIXME this is broken; that can only be "Block", "Inline", etc
         if t == "Div" or t == "Span" then
           local custom_data, t, kind = _quarto.ast.resolve_custom_data(value)
           if custom_data ~= nil then
@@ -330,9 +339,11 @@ _quarto.ast = {
     local n = div_or_span.attributes.__quarto_custom_id
     local kind = div_or_span.attributes.__quarto_custom_context
     local handler = _quarto.ast.resolve_handler(t)
+    -- luacov: disable
     if handler == nil then
       fatal("Internal Error: handler not found for custom node " .. t)
     end
+    -- luacov: enable
     local custom_data = _quarto.ast.custom_node_data[n]
     custom_data["__quarto_custom_node"] = div_or_span
 
@@ -342,11 +353,15 @@ _quarto.ast = {
   add_handler = function(handler)
     local state = quarto_global_state.extended_ast_handlers
     if type(handler.constructor) == "nil" then
+      -- luacov: disable
       quarto.utils.dump(handler)
       fatal("Internal Error: extended ast handler must have a constructor")
+      -- luacov: enable
     elseif type(handler.class_name) == "nil" then
+      -- luacov: disable
       quarto.utils.dump(handler)
       fatal("handler must define class_name")
+      -- luacov: enable
     elseif type(handler.class_name) == "string" then
       state.namedHandlers[handler.class_name] = handler
     elseif type(handler.class_name) == "table" then
@@ -354,8 +369,10 @@ _quarto.ast = {
         state.namedHandlers[name] = handler
       end
     else
+      -- luacov: disable
       quarto.utils.dump(handler)
       fatal("ERROR: class_name must be a string or an array of strings")
+      -- luacov: enable
     end
 
     local forwarder = { }
@@ -386,7 +403,9 @@ _quarto.ast = {
   add_renderer = function(name, condition, renderer)
     local handler = _quarto.ast.resolve_handler(name)
     if handler == nil then
+      -- luacov: disable
       fatal("Internal Error in add_renderer: handler not found for custom node " .. name)
+      -- luacov: enable
     end
     if handler.renderers == nil then
       handler.renderers = { }
@@ -401,7 +420,11 @@ _quarto.ast = {
     if state.namedHandlers ~= nil then
       return state.namedHandlers[name]
     end
+    -- TODO: should we just fail here? We seem to be failing downstream of every nil
+    -- result anyway.
+    -- luacov: disable
     return nil
+    -- luacov: enable
   end,
 
   walk = run_emulated_filter,
@@ -411,10 +434,14 @@ _quarto.ast = {
     local function custom_walk(node)
       local handler = quarto._quarto.ast.resolve_handler(node.t)
       if handler == nil then
+        -- luacov: disable
         fatal("Internal Error: handler not found for custom node " .. node.t)
+        -- luacov: enable
       end
       if handler.render == nil then
+        -- luacov: disable
         fatal("Internal Error: handler for custom node " .. node.t .. " does not have a render function")
+        -- luacov: enable
       end
       return handler.render(node)
     end
@@ -440,9 +467,13 @@ function construct_extended_ast_handler_state()
     quarto_global_state.extended_ast_handlers = state
   end
 
+  -- we currently don't have any handlers at startup,
+  -- so we disable coverage for this block
+  -- luacov: disable
   for _, handler in ipairs(handlers) do
     _quarto.ast.add_handler(handler)
   end
+  -- luacov: enable
 end
 
 construct_extended_ast_handler_state()

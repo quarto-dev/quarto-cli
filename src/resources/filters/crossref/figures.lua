@@ -20,8 +20,10 @@ function crossref_figures()
       -- local label = el.attr.identifier
       local kind = refType(float.identifier)
       if kind == nil then
+        -- luacov: disable
         warn("Could not determine float type for " .. float.identifier)
         return nil
+        -- luacov: enable
       end
     
       -- determine order, parent, and displayed caption

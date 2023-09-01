@@ -81,9 +81,11 @@ local function escape_invalid_tags(str)
       attempts = attempts + 1
     until str:find(replacement, 1, true) == nil or attempts == 100
     if attempts == 100 then
+      -- luacov: disable
       print("Internal error, could not find safe replacement for "..k.." after 100 tries")
       print("Please file a bug at https://github.com/quarto-dev/quarto-cli")
       os.exit(1)
+      -- luacov: enable
     end
     -- replace all lua special pattern characters with their
     -- escaped versions

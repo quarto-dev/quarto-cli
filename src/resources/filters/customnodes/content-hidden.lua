@@ -18,8 +18,10 @@ function is_visible(node)
   elseif node.behavior == constants.kContentHidden then
     return not match
   else
+    -- luacov: disable
     fatal("Internal Error: invalid behavior for conditional block: " .. node.behavior)
     return false
+    -- luacov: enable
   end
 end
 

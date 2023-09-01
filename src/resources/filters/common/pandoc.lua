@@ -68,8 +68,10 @@ end
 function inlinesToString(inlines)
   local pt = pandoc.utils.type(inlines)
   if pt ~= "Inlines" then
-    fail_and_ask_for_bug_report("inlinesToString: expected Inlines, got " .. pt)
+    -- luacov: disable
+    fail("inlinesToString: expected Inlines, got " .. pt)
     return ""
+    -- luacov: enable
   end
   return pandoc.utils.stringify(pandoc.Span(inlines))
 end
@@ -83,6 +85,7 @@ function stringToInlines(str)
   end
 end
 
+-- FIXME we should no longer be using this.
 -- lua string with markdown to pandoc inlines
 function markdownToInlines(str)
   if str then
@@ -170,7 +173,9 @@ function compileTemplate(template, meta)
 
     return renderedDoc.blocks
   else
+    -- luacov: disable
     fail('Error compiling template: ' .. template)
+    -- luacov: enable
   end
 end
 

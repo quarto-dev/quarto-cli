@@ -27,11 +27,6 @@ function figAlignAttribute(el)
   return validatedAlign(align)
 end
 
--- is this an image containing a figure
-function isFigureImage(el)
-  return hasFigureRef(el) and #el.caption > 0
-end
-
 -- is this a Div containing a figure
 function isFigureDiv(el)
   if el.t == "Div" and hasFigureRef(el) then

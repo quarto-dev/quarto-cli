@@ -102,10 +102,13 @@ function parse_floats()
           end
         end
       })
+
+      -- luacov: disable
       if content == nil then
         internal_error()
         return nil
       end
+      -- luacov: enable
       
       -- TODO are there other cases where we should look for captions?
       if not found_caption then
@@ -113,12 +116,12 @@ function parse_floats()
       end
     end
 
+    -- luacov: disable
     if caption == nil then
-      -- this should never happen but the Lua analyzer doesn't seem
-      -- to realize it
       internal_error()
       return nil
     end
+    -- luacov: enable
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)

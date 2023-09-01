@@ -7,52 +7,6 @@
 
 local patterns = require("modules/patterns")
 
--- function crossref_tables()
---   return {
---     FloatRefTarget = function(float)
---       local kind = refType(float.identifier)
---       if kind == "tbl" then
---         return process(float)
---         -- local processors = { processMarkdownTable, processRawTable }
---         -- for _, process in ipairs(processors) do
---         --   local new_float = process(float)
---         --   if new_float then
---         --     return new_float
---         --   end
---         -- end
---       end
-      
---       -- if isTableDiv(el) and isReferenceableTbl(el) then
---       --   -- are we a parent of subrefs? If so then process the caption
---       --   -- at the bottom of the div
---       --   if hasSubRefs(el, "tbl") then
---       --     local caption = refCaptionFromDiv(el)
---       --     if not caption then
---       --       caption = pandoc.Para(noCaption())
---       --       el.content:insert(caption)
---       --     end
---       --     local captionClone = caption:clone().content
---       --     local label = el.attr.identifier
---       --     local order = indexNextOrder("tbl")
---       --     prependTitlePrefix(caption, label, order)
---       --     indexAddEntry(label, nil, order, captionClone)
---       --   else
---       --     -- look for various ways of expressing tables in a div
---       --     local processors = { processMarkdownTable, processRawTable }
---       --     for _, process in ipairs(processors) do
---       --       local tblDiv = process(el)
---       --       if tblDiv then
---       --         return tblDiv
---       --       end
---       --     end
---       --   end
---       -- end
---       -- default to just reflecting the div back
---       -- return el
---     end
---   }
--- end
-
 function preprocessRawTableBlock(rawEl, parentId)
   
   local function divWrap(el, label, caption)

@@ -5,7 +5,9 @@ _quarto.ast.add_handler({
   class_name = {},
   ast_name = "LatexInlineCommand",
   kind = "Inline",
+  -- luacov: disable
   parse = function() internal_error() end,
+  -- luacov: enable
   slots = { "arg", "opt_arg" },
   constructor = function(tbl) return tbl end
 })
@@ -14,7 +16,9 @@ _quarto.ast.add_handler({
   class_name = {},
   ast_name = "LatexBlockCommand",
   kind = "Block",
+  -- luacov: disable
   parse = function() internal_error() end,
+  -- luacov: enable
   slots = { "arg", "opt_arg" },
   constructor = function(tbl) return tbl end
 })

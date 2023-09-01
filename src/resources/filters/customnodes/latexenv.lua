@@ -12,7 +12,9 @@ _quarto.ast.add_handler({
   kind = "Block",
 
   parse = function(div)
+    -- luacov: disable
     internal_error()
+    -- luacov: enable
   end,
 
   slots = { "content" },

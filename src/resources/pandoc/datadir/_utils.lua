@@ -268,8 +268,10 @@ local function as_inlines(v)
     return pandoc.utils.blocks_to_inlines(v)
   end
 
+  -- luacov: disable
   fatal("as_inlines: invalid type " .. t)
   return nil
+  -- luacov: enable
 end
 
 local function as_blocks(v)
@@ -291,8 +293,10 @@ local function as_blocks(v)
     return pandoc.Blocks(v)
   end
 
+  -- luacov: disable
   fatal("as_blocks: invalid type " .. t)
   return nil
+  -- luacov: enable
 end
 
 return {
