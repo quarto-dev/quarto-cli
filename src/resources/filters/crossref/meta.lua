@@ -19,7 +19,7 @@ function crossrefMetaInject()
           "}\n"
         )
       
-        if latexListings() then
+        if param("listings", false) then
           inject(
             "\\newcommand*\\listoflistings\\lstlistoflistings\n" ..
             "\\AtBeginDocument{%\n" ..
