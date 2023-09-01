@@ -171,8 +171,7 @@ local function make_shortcode_parser(evaluator_table)
     KeyShortcodeValue = (sc_string_skipping(lpeg.S(":/?="), id) * Space * lpeg.P("=") * Space * lpeg.V("Shortcode")) / keyvalue_handler,
     Shortcode = escaped_sc1 + 
       escaped_sc2 +
-      ((
-        lpeg.C(lpeg.P("{{<")) * 
+      ((lpeg.C(lpeg.P("{{<")) * 
         lpeg.C(Space) * 
         into_list(
           (lpeg.V("Shortcode") + 

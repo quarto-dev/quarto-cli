@@ -63,7 +63,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     end
   end)
 
--- latex renderer
+  -- latex renderer
 _quarto.ast.add_renderer("DecoratedCodeBlock",
   function(_)
     return _quarto.format.isLatexOutput()    
@@ -75,7 +75,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
 
     -- if we are use the listings package we don't need to do anything
     -- further, otherwise generate the listing div and return it
-    if not latexListings() then
+    if not param("listings", false) then
       local listingDiv = pandoc.Div({})
       local position = ""
       if _quarto.format.isBeamerOutput() then
