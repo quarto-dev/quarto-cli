@@ -18,7 +18,6 @@ end
 function internal_error()
   fail("This is an internal error. Please file a bug report at https://github.com/quarto-dev/quarto-cli/", 5)
 end
--- luacov: enable
 
 function currentFile() 
   -- if we're in a multifile contatenated render, return which file we're rendering
@@ -33,3 +32,4 @@ function currentFile()
     return nil
   end
 end
+-- luacov: enable

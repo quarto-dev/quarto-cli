@@ -80,8 +80,10 @@ function(cmd)
         result:insert(arg)
       end
     else
+      -- luacov: disable
       fail_and_ask_for_bug_report("Unexpected type for LatexBlockCommand arg: " .. pt)
       return nil
+      -- luacov: enable
     end
   end
   postamble:insert(pandoc.RawInline("latex", "}"))

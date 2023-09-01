@@ -198,7 +198,6 @@ local quarto_crossref_filters = {
     sections(),
     crossref_figures(),
     equations(),
-    -- listings(),
     crossref_theorems(),
   })},
 

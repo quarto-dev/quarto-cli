@@ -110,7 +110,6 @@ import("./crossref/sections.lua")
 import("./crossref/figures.lua")
 import("./crossref/tables.lua")
 import("./crossref/equations.lua")
-import("./crossref/listings.lua")
 import("./crossref/theorems.lua")
 import("./crossref/qmd.lua")
 import("./crossref/refs.lua")
@@ -380,7 +379,6 @@ local quarto_crossref_filters = {
     sections(),
     crossref_figures(),
     equations(),
-    -- listings(),
     crossref_theorems(),
   })},
 

@@ -75,7 +75,9 @@ _quarto.ast.add_handler({
     };
     for i, v in ipairs(tbl.condition or {}) do
       if kConditions:find(v[1]) == nil then
+        -- luacov: disable
         error("Ignoring invalid condition in conditional block: " .. v[1])
+        -- luacov: enable
       else
         result.condition[v[1]] = v[2]
       end

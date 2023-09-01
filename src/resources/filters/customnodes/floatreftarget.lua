@@ -52,10 +52,12 @@ function cap_location(float)
     crossref.categories.by_ref_type[ref].default_caption_location)
 
   if result ~= "margin" and result ~= "top" and result ~= "bottom" then
+    -- luacov: disable
     error("Invalid caption location for float: " .. float.identifier .. 
       " requested " .. result .. 
       ".\nOnly 'top', 'bottom', and 'margin' are supported. Assuming 'bottom'.")
     result = "bottom"
+    -- luacov: enable
   end
     
   return result
@@ -108,7 +110,9 @@ function decorate_caption_with_crossref(float)
   float = ensure_custom(float)
   -- nil should never happen here, but the Lua analyzer doesn't know it
   if float == nil then
+    -- luacov: disable
     internal_error()
+    -- luacov: enable
   end
   local caption_content = float.caption_long.content or float.caption_long
 
@@ -221,8 +225,10 @@ end, function(float)
   elseif pt == "Blocks" then
     figure_content = float.content
   else
+    -- luacov: disable
     fail_and_ask_for_bug_report("Unexpected type for float content: " .. pt)
     return {}
+    -- luacov: enable
   end
 
   -- align the figure
@@ -311,8 +317,10 @@ end, function(float)
   elseif _quarto.format.isOdtOutput() then
     divCaption = odtDivCaption
   else
+    -- luacov: disable
     internal_error()
     return
+    -- luacov: enable
   end
 
   options.divCaption = function(el, align) return divCaption(el, "left") end
@@ -388,8 +396,10 @@ end
 function float_reftarget_render_html_figure(float)
   float = ensure_custom(float)
   if float == nil then
+    -- luacov: disable
     internal_error()
     return pandoc.Div({})
+    -- luacov: enable
   end
 
   local caption_content, caption_id = create_figcaption(float)
@@ -571,8 +581,10 @@ end, function(float)
   local ref = refType(float.identifier)
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
+    -- luacov: disable
     warning("Unknown float type: " .. ref .. "\n Will emit without crossref information.")
     return float.content
+    -- luacov: enable
   end
 
   -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.

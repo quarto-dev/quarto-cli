@@ -53,7 +53,11 @@ return {
   -- Nothing will be excluded if nothing is listed.
   -- Do not include the '.lua' extension. Path separator is always '/'.
   -- Overrules `include`.
-  exclude = {},
+  exclude = {
+    "common/base64",
+    "common/colors",
+    "common/log"
+  },
 
   --- Table mapping names of modules to be included to their filenames.
   -- Has no effect if empty.
