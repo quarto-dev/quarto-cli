@@ -4,8 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import * as ld from "../core/lodash.ts";
 

@@ -57,7 +57,7 @@ export const knitrEngine: ExecutionEngine = {
 
   validExtensions: () => kRmdExtensions.concat(kRmdExtensions),
 
-  claimsExtension: (ext: string) => {
+  claimsFile: (_file: string, ext: string) => {
     return kRmdExtensions.includes(ext.toLowerCase());
   },
 
