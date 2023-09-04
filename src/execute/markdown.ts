@@ -1,9 +1,8 @@
 /*
-* markdown.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * markdown.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname } from "path/mod.ts";
 
@@ -36,7 +35,7 @@ export const markdownEngine: ExecutionEngine = {
 
   validExtensions: () => kQmdExtensions.concat(kMdExtensions),
 
-  claimsExtension: (ext: string) => {
+  claimsFile: (_file: string, ext: string) => {
     return kMdExtensions.includes(ext.toLowerCase());
   },
   claimsLanguage: (_language: string) => {

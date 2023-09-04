@@ -89,6 +89,11 @@ import { MappedString, mappedStringFromFile } from "../../core/mapped-text.ts";
 import { breakQuartoMd } from "../../core/lib/break-quarto-md.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { isQmdFile } from "../qmd.ts";
+import {
+  isJupyterPercentScript,
+  kJupyterPercentScriptExtensions,
+  markdownFromJupyterPercentScript,
+} from "./percent.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -117,10 +122,15 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  validExtensions: () => kJupyterNotebookExtensions.concat(kQmdExtensions),
+  validExtensions: () => [
+    ...kJupyterNotebookExtensions,
+    ...kJupyterPercentScriptExtensions,
+    ...kQmdExtensions,
+  ],
 
-  claimsExtension: (ext: string) => {
-    return kJupyterNotebookExtensions.includes(ext.toLowerCase());
+  claimsFile: (file: string, ext: string) => {
+    return kJupyterNotebookExtensions.includes(ext.toLowerCase()) ||
+      isJupyterPercentScript(file);
   },
 
   claimsLanguage: (_language: string) => {
@@ -136,11 +146,16 @@ export const jupyterEngine: ExecutionEngine = {
     // at some point we'll resolve a full notebook/kernelspec
     let nb: JupyterNotebook | undefined;
 
+    // cache check for percent script
+    const isPercentScript = isJupyterPercentScript(file);
+
     if (markdown === undefined) {
       if (isJupyterNotebook(file)) {
         const nbJSON = Deno.readTextFileSync(file);
         nb = JSON.parse(nbJSON) as JupyterNotebook;
         markdown = asMappedString(markdownFromNotebookJSON(nb));
+      } else if (isPercentScript) {
+        markdown = asMappedString(markdownFromJupyterPercentScript(file));
       } else {
         markdown = asMappedString(mappedStringFromFile(file));
       }
@@ -150,7 +165,7 @@ export const jupyterEngine: ExecutionEngine = {
     const metadata = readYamlFromMarkdown(markdown.value);
 
     // if this is a text markdown file then create a notebook for use as the execution target
-    if (isQmdFile(file)) {
+    if (isQmdFile(file) || isPercentScript) {
       // write a transient notebook
       const [fileDir, fileStem] = dirAndStem(file);
       const notebook = join(fileDir, fileStem + ".ipynb");
@@ -163,7 +178,6 @@ export const jupyterEngine: ExecutionEngine = {
       };
       nb = await createNotebookforTarget(target, project);
       target.data.kernelspec = nb.metadata.kernelspec;
-
       return target;
     } else if (isJupyterNotebook(file)) {
       return {
@@ -181,6 +195,8 @@ export const jupyterEngine: ExecutionEngine = {
   partitionedMarkdown: async (file: string, format?: Format) => {
     if (isJupyterNotebook(file)) {
       return partitionMarkdown(await markdownFromNotebookFile(file, format));
+    } else if (isJupyterPercentScript(file)) {
+      return partitionMarkdown(markdownFromJupyterPercentScript(file));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
     }
@@ -234,7 +250,11 @@ export const jupyterEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // create the target input if we need to (could have been removed
     // by the cleanup step of another render in this invocation)
-    if (isQmdFile(options.target.source) && !existsSync(options.target.input)) {
+    if (
+      (isQmdFile(options.target.source) ||
+        isJupyterPercentScript(options.target.source)) &&
+      !existsSync(options.target.input)
+    ) {
       await createNotebookforTarget(options.target);
     }
 
@@ -418,7 +438,10 @@ export const jupyterEngine: ExecutionEngine = {
     if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
       files.push(join(fileDir, fileStem + ".ipynb"));
     } else if (
-      isJupyterNotebook(input) && existsSync(join(fileDir, fileStem + ".qmd"))
+      isJupyterNotebook(input) &&
+      [...kQmdExtensions, ...kJupyterPercentScriptExtensions].some((ext) => {
+        return existsSync(join(fileDir, fileStem + ext));
+      })
     ) {
       files.push(input);
     }
