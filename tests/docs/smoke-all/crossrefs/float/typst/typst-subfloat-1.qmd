@@ -1,5 +1,6 @@
 ---
 title: Crossref Test
+keep-typ: true
 format: typst
 # _quarto:
 #   tests:
@@ -27,4 +28,16 @@ format: typst
 Famous Elephants
 :::
 
+::: {#tbl-elephants layout-ncol=2}
+
+![Surus as a table](img/surus.jpg){#tbl-surus}
+
+![Abbas as a table](img/abbas.jpg){#tbl-abbas}
+
+Famous Elephants as tables
+:::
+
+
 See @fig-elephants for examples. In particular, @fig-abbas and @fig-surus. 
+
+And then, see @tbl-elephants for examples. In particular, @tbl-abbas and @tbl-surus. 

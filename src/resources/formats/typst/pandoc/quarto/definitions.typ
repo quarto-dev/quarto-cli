@@ -58,13 +58,12 @@
   }
 }
 
-// #show ref: it => {
-//   let el = it.element
-//   if el == none {
-//     return it
-//   }
-  
-//   link(el.location(), [
-//     This is a custom reference.
-//   ])      
-// }
+#show ref: it => {
+  let el = it.element
+  if el == none {
+    return it
+  }
+  link(el.location(), [
+    This is a custom reference. #it.citation.supplement
+  ])      
+}

@@ -19,8 +19,12 @@ end, function(layout)
     -- luacov: enable
   end
 
+  -- typst output currently only supports a single grid
+  -- as output, so no rows of varying columns, etc.
+  local n_cols = layout.attributes[kLayoutNcol] or "1"
+
   local typst_figure_content = pandoc.Div({})
-  typst_figure_content.content:insert(pandoc.RawInline("typst", "#grid(columns: 3, gutter: 2em,\n"))
+  typst_figure_content.content:insert(pandoc.RawInline("typst", "#grid(columns: " .. n_cols .. ", gutter: 2em,\n"))
   local is_first = true
   _quarto.ast.walk(layout.float.content, {
     FloatRefTarget = function(_, float_obj)
@@ -40,6 +44,7 @@ end, function(layout)
   if layout.preamble then
     result:insert(layout.preamble)
   end
+  local caption_location = cap_location(layout.float)
   result:extend({
     pandoc.RawInline("typst", "\n\n#figure(["),
     typst_figure_content,
@@ -47,7 +52,7 @@ end, function(layout)
     layout.float.caption_long,
     -- apparently typst doesn't allow separate prefix and name
     pandoc.RawInline("typst", "], kind: \"quarto-" .. ref .. "\", supplement: \"" .. info.prefix .. "\""),
-
+    pandoc.RawInline("typst", ", caption-pos: " .. caption_location),
     pandoc.RawInline("typst", ")<" .. layout.float.identifier .. ">\n\n")
   })
   return result

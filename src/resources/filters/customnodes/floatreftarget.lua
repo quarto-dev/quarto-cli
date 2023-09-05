@@ -586,6 +586,17 @@ end, function(float)
     return float.content
     -- luacov: enable
   end
+  local kind
+  local supplement = ""
+
+  if float.parent_id then
+    kind = "quarto-subfloat-" .. ref
+  else
+    kind = "quarto-" .. ref
+    supplement = info.prefix
+  end
+
+  local caption_location = cap_location(float)
 
   -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
   -- FIXME: custom numbering doesn't work yet
@@ -598,7 +609,10 @@ end, function(float)
     pandoc.RawInline("typst", "], caption: ["),
     float.caption_long,
     -- apparently typst doesn't allow separate prefix and name
-    pandoc.RawInline("typst", "], kind: \"quarto-" .. ref .. "\", supplement: \"" .. info.prefix .. "\""),
+    pandoc.RawInline("typst", "]"),
+    pandoc.RawInline("typst", ", kind: \"" .. kind .. "\""),
+    pandoc.RawInline("typst", ", supplement: \"" .. supplement .. "\""),
+    pandoc.RawInline("typst", ", caption-pos: " .. caption_location), -- no quotes here!
 
     pandoc.RawInline("typst", ")<" .. float.identifier .. ">\n\n")
   })
