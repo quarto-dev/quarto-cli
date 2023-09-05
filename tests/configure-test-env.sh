@@ -67,7 +67,7 @@ fi
 # Get npm in place
 echo ">>>> Configuring npm for MECA testing environment"
 npm_exists=$(command -v npm)
-if [-z $npm_exists]
+if [ -z $npm_exists ]
 then
   echo "No npm found - will skip any tests that require npm (e.g. JATS / MECA validation)"
 else
