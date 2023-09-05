@@ -16,6 +16,7 @@ import {
   compileQuartoLatexmkCommand,
 } from "./common/compile-quarto-latexmk.ts";
 import { makeInstallerWindows } from "./windows/installer.ts";
+import { makeInstallerExternal } from "./external/installer.ts";
 
 import { appendLogOptions } from "../../src/core/log.ts";
 import {
@@ -101,6 +102,11 @@ function getCommands() {
     packageCommand(makeInstallerWindows)
       .name("make-installer-win")
       .description("Builds Windows installer"),
+  );
+  commands.push(
+    packageCommand(makeInstallerExternal)
+      .name("install-external")
+      .description("Installs Quarto-only files (no dependencies) to specified location"),
   );
   commands.push(
     compileQuartoLatexmkCommand(),
