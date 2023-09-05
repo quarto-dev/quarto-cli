@@ -105,7 +105,7 @@ function getCommands() {
   );
   commands.push(
     packageCommand(makeInstallerExternal)
-      .name("install-external")
+      .name("prepare-external")
       .description("Installs Quarto-only files (no dependencies) to specified location"),
   );
   commands.push(
