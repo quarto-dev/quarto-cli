@@ -25,11 +25,8 @@
 
 // subfloat support based on https://github.com/typst/typst/issues/246#issuecomment-1485042544
 // FIXME check and fix numbering support
-#let quarto_subfloat(subfloatdata) = {
-  let body = subfloatdata.at("body")
-  let ref = subfloatdata.at("ref")
-  let caption = subfloatdata.at("caption")
-  let numbering = subfloatdata.at("numbering") or "(a)"
+#let quarto_subfloat(body, caption, ref) = {
+  let numbering = "(a)" // FIXME
 
   let figurecount = counter("quarto-" + ref) // Main float counter
   let subfigurecount = counter("quarto-sub-" + ref) // Counter linked to main counter with additional sublevel
@@ -61,13 +58,13 @@
   }
 }
 
-#show ref: it => {
-  let el = it.element
-  if el == none {
-    return it
-  }
+// #show ref: it => {
+//   let el = it.element
+//   if el == none {
+//     return it
+//   }
   
-  link(el.location(), [
-    This is a custom reference.
-  ])      
-}
+//   link(el.location(), [
+//     This is a custom reference.
+//   ])      
+// }

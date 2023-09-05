@@ -164,6 +164,7 @@ import("./customnodes/floatreftarget.lua")
 
 import("./layout/confluence.lua")
 import("./layout/ipynb.lua")
+import("./layout/typst.lua")
 
 import("./quarto-init/metainit.lua")
 
