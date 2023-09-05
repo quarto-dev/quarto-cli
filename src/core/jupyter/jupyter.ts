@@ -141,7 +141,7 @@ import {
   JupyterToMarkdownResult,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
-import { lines } from "../text.ts";
+import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import {
@@ -347,7 +347,7 @@ export async function quartoMdToJupyter(
           delete yaml.jupyter;
           // write the cell only if there is metadata to write
           if (Object.keys(yaml).length > 0) {
-            const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
+            const yamlFrontMatter = trimEmptyLines(lines(stringify(yaml, {
               indent: 2,
               lineWidth: -1,
               sortKeys: false,
@@ -405,7 +405,7 @@ export async function quartoMdToJupyter(
       }
 
       // if the source is empty then don't add it
-      cell.source = mdTrimEmptyLines(cell.source);
+      cell.source = trimEmptyLines(cell.source);
       if (cell.source.length > 0) {
         nb.cells.push(cell);
       }
@@ -898,7 +898,7 @@ export function jupyterCellOptionsAsComment(
       ...stringifyOptions,
     });
     const commentChars = langCommentChars(language);
-    const yamlOutput = mdTrimEmptyLines(lines(cellYaml)).map((line) => {
+    const yamlOutput = trimEmptyLines(lines(cellYaml)).map((line) => {
       line = optionCommentPrefix(commentChars[0]) + line +
         optionCommentSuffix(commentChars[1]);
       return line + "\n";
@@ -965,6 +965,26 @@ export function mdFromContentCell(
   return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
 }
 
+export function mdFormatOutput(format: string, source: string[]) {
+  const ticks = ticksForCode(source);
+  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
+}
+
+export function mdRawOutput(mimeType: string, source: string[]) {
+  switch (mimeType) {
+    case kTextHtml:
+      return mdHtmlOutput(source);
+    case kTextLatex:
+      return mdLatexOutput(source);
+    case kRestructuredText:
+      return mdFormatOutput("rst", source);
+    case kApplicationRtf:
+      return mdFormatOutput("rtf", source);
+    case kApplicationJavascript:
+      return mdScriptOutput(mimeType, source);
+  }
+}
+
 export function mdFromRawCell(
   cell: JupyterCellWithOptions,
   options?: JupyterToMarkdownOptions,
@@ -973,17 +993,9 @@ export function mdFromRawCell(
 
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
-    switch (mimeType) {
-      case kTextHtml:
-        return rawCellEnvelope(cell.id, mdHtmlOutput(cell.source));
-      case kTextLatex:
-        return rawCellEnvelope(cell.id, mdLatexOutput(cell.source));
-      case kRestructuredText:
-        return rawCellEnvelope(cell.id, mdFormatOutput("rst", cell.source));
-      case kApplicationRtf:
-        return rawCellEnvelope(cell.id, mdFormatOutput("rtf", cell.source));
-      case kApplicationJavascript:
-        return rawCellEnvelope(cell.id, mdScriptOutput(mimeType, cell.source));
+    const rawOutput = mdRawOutput(mimeType, cell.source);
+    if (rawOutput) {
+      return rawCellEnvelope(cell.id, rawOutput);
     }
   }
 
@@ -1386,15 +1398,15 @@ async function mdFromCodeCell(
         line.search(/echo:\s+fenced/) === -1
       );
       if (optionsSource.length > 0) {
-        source = mdTrimEmptyLines(source, "trailing");
+        source = trimEmptyLines(source, "trailing");
       } else {
-        source = mdTrimEmptyLines(source, "all");
+        source = trimEmptyLines(source, "all");
       }
       source.unshift(...optionsSource);
       source.unshift("```{{" + options.language + "}}\n");
       source.push("\n```\n");
     } else if (cell.optionsSource.length > 0) {
-      source = mdTrimEmptyLines(source, "leading");
+      source = trimEmptyLines(source, "leading");
     }
     if (options.preserveCodeCellYaml) {
       md.push(...cell.optionsSource);
@@ -1868,11 +1880,6 @@ function mdMarkdownOutput(md: string[]) {
   return md.join("") + "\n";
 }
 
-function mdFormatOutput(format: string, source: string[]) {
-  const ticks = ticksForCode(source);
-  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
-}
-
 function mdLatexOutput(latex: string[]) {
   return mdFormatOutput("tex", latex);
 }
@@ -1900,36 +1907,6 @@ function mdScriptOutput(mimeType: string, script: string[]) {
     "\n</script>",
   ];
   return mdHtmlOutput(scriptTag);
-}
-
-function mdTrimEmptyLines(
-  lines: string[],
-  trim: "leading" | "trailing" | "all" = "all",
-) {
-  // trim leading lines
-  if (trim === "all" || trim === "leading") {
-    const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines = lines.slice(firstNonEmpty);
-  }
-
-  // trim trailing lines
-  if (trim === "all" || trim === "trailing") {
-    let lastNonEmpty = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines = lines.slice(0, lastNonEmpty + 1);
-    }
-  }
-
-  return lines;
 }
 
 function mdCodeOutput(code: string[], clz?: string) {

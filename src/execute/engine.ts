@@ -1,9 +1,8 @@
 /*
-* engine.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * engine.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extname, join } from "path/mod.ts";
 
@@ -20,8 +19,8 @@ import { kEngine } from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
-import { markdownEngine } from "./markdown.ts";
-import { ExecutionEngine } from "./types.ts";
+import { kMdExtensions, markdownEngine } from "./markdown.ts";
+import { ExecutionEngine, kQmdExtensions } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { MappedString } from "../core/lib/text-types.ts";
@@ -82,10 +81,7 @@ export function engineValidExtensions(): string[] {
   return ld.uniq(kEngines.flatMap((engine) => engine.validExtensions()));
 }
 
-export function markdownExecutionEngine(
-  markdown: string,
-  flags?: RenderFlags,
-) {
+export function markdownExecutionEngine(markdown: string, flags?: RenderFlags) {
   // read yaml and see if the engine is declared in yaml
   // (note that if the file were a non text-file like ipynb
   //  it would have already been claimed via extension)
@@ -100,9 +96,7 @@ export function markdownExecutionEngine(
           return engine;
         }
         const format = metadataAsFormat(yaml);
-        if (
-          format.execute?.[kEngine] === engine.name
-        ) {
+        if (format.execute?.[kEngine] === engine.name) {
           return engine;
         }
       }
@@ -142,9 +136,7 @@ export function markdownExecutionEngine(
  * @param file filename
  * @returns the reason
  */
-export function fileEngineClaimReason(
-  file: string,
-) {
+export function fileEngineClaimReason(file: string) {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
   if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
@@ -153,7 +145,7 @@ export function fileEngineClaimReason(
 
   // try to find an engine that claims this extension outright
   for (const engine of kEngines) {
-    if (engine.claimsExtension(ext)) {
+    if (engine.claimsFile(file, ext)) {
       return "extension";
     }
   }
@@ -174,17 +166,21 @@ export function fileExecutionEngine(
 
   // try to find an engine that claims this extension outright
   for (const engine of kEngines) {
-    if (engine.claimsExtension(ext)) {
+    if (engine.claimsFile(file, ext)) {
       return engine;
     }
   }
 
   // if we were passed a transformed markdown, use that for the text instead
   // of the contents of the file.
-  return markdownExecutionEngine(
-    markdown ? markdown.value : Deno.readTextFileSync(file),
-    flags,
-  );
+  if (kMdExtensions.includes(ext) || kQmdExtensions.includes(ext)) {
+    return markdownExecutionEngine(
+      markdown ? markdown.value : Deno.readTextFileSync(file),
+      flags,
+    );
+  } else {
+    return undefined;
+  }
 }
 
 export async function fileExecutionEngineAndTarget(
