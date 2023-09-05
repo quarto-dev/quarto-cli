@@ -56,7 +56,7 @@ bibliography: mybibfile.bib
 format:
   pdf:
     keep-tex: false
-    citation-package: natbib
+    cite-method: natbib
     template-partials: [before-body.tex, doc-class.tex, title.tex]
     classoption: preprint, 3p, authoryear
     number-sections: true
