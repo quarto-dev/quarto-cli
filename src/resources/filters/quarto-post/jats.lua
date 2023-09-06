@@ -91,8 +91,7 @@ function jats()
         else
           -- otherwise, if this is a div, we can unroll its contents
 
-          -- can we replace this by a single return div.content?
-          -- FIXME ask @dragonstyle on review
+          -- TODO can we replace this by a single return div.content?
           return unrollDiv(div, is_custom_node)
         end
       end,

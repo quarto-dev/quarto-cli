@@ -69,7 +69,6 @@ function ipynb()
         if (el.attr.classes:includes('cell-code')) then
           el.attr.classes = removeClass(el.attr.classes, 'cell-code')
         end
-        -- FIXME confirm with @dragonstyle that this was a bug
         return el
       end,
 
