@@ -47,6 +47,15 @@ export function resolveUserExpressions(
   const executeInlineCode = executeInlineCodeHandler(
     options.language,
     (expr: string) => {
+      // error if we are running from cache
+      if (
+        options.execute.cache === true || options.execute.cache === "refresh"
+      ) {
+        throw new Error(
+          `Inline expression encountered (${expr}). Inline expressions cannot be used with Jupyter Cache.`,
+        );
+      }
+
       const result = userExpressions.get(expr);
       if (result) {
         const mimeType = displayDataMimeType(result, options);

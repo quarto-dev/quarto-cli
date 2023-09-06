@@ -116,6 +116,10 @@
 - Improved detection/exclusion of spurious matplotlib plain text output
 - Correctly exclude `id` fields when converting Colab notebooks to qmd.
 
+## Knitr
+
+- ([#4735](https://github.com/quarto-dev/quarto-cli/pull/4735)): Special `verbatim` and `embed` language engine for knitr's chunk are now better supported, including with special quarto cell option like `echo: fenced`.
+
 ## OJS engine
 
 - Update observablehq's runtime to version 5.6.0.

@@ -46,7 +46,13 @@ function process_equations(blockEl)
         if _quarto.format.isLatexOutput() then
           targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
           targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
-          targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
+
+          -- Pandoc 3.1.7 started outputting a shadow section with a label as a link target
+          -- which would result in two identical labels being emitted.
+          -- https://github.com/jgm/pandoc/issues/9045
+          -- https://github.com/lierdakil/pandoc-crossref/issues/402
+          targetInlines:insert(pandoc.RawInline("latex", "\\end{equation}"))
+          
         elseif _quarto.format.isTypstOutput() then
           targetInlines:insert(pandoc.RawInline("typst", 
             "#set math.equation(numbering: \"(" .. inlinesToString(numberOption("eq", order)) .. ")\"); " ..
