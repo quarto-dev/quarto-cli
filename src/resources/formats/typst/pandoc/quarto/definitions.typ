@@ -42,10 +42,8 @@
       target.at("numbering"),
       ..target.at("counter").at(target.location()))
     
-    // let tn = numbering(parent_figure.at("numbering"), 
-   
-    // repr(parent_figure.at("supplement"))
-    link(target.location(), [#parent_figure.at("supplement") #counters #subcounter])
+    // NOTE there's a nonbreaking space in the block below
+    link(target.location(), [#parent_figure.at("supplement") #counters#subcounter])
   } else {
     it
   }
