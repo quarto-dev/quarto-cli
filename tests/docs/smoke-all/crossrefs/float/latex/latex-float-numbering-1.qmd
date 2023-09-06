@@ -15,7 +15,7 @@ _quarto:
 
 # Introduction
 
-![Elephant](img/painter.jpg){#fig-elephant}
+![Elephant](../img/surus.jpg){#fig-elephant}
 
 See @fig-elephant for an illustration.
 
@@ -32,9 +32,9 @@ See @tbl-letters.
 ## Simple Sub Figure
 
 ::: {#fig-elephants layout-ncol="2"}
-![Surus](img/surus.jpg){#fig-surus}
+![Surus](../img/surus.jpg){#fig-surus}
 
-![Abbas](img/abbas.jpg){#fig-abbas}
+![Abbas](../img/surus.jpg){#fig-abbas}
 
 Famous Elephants
 :::

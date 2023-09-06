@@ -1,7 +1,7 @@
 ---
 title: Proposed syntax for custom crossrefs
 format: pdf
-keep-tex: true
+# keep-tex: true
 crossref-custom: # probably should be a key inside `crossref`
   - kind: float
     prefix: Diagram
