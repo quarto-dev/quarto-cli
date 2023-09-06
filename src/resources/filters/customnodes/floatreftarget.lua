@@ -588,12 +588,14 @@ end, function(float)
   end
   local kind
   local supplement = ""
+  local numbering = ""
 
   if float.parent_id then
     kind = "quarto-subfloat-" .. ref
+    numbering = "(a)"
   else
-    kind = "quarto-" .. ref
-    supplement = info.prefix
+    kind = "quarto-float-" .. ref
+    numbering = "1"
   end
 
   local caption_location = cap_location(float)
@@ -612,6 +614,7 @@ end, function(float)
     pandoc.RawInline("typst", "]"),
     pandoc.RawInline("typst", ", kind: \"" .. kind .. "\""),
     pandoc.RawInline("typst", ", supplement: \"" .. supplement .. "\""),
+    pandoc.RawInline("typst", ", numbering: \"" .. numbering .. "\""),
     pandoc.RawInline("typst", ", caption-pos: " .. caption_location), -- no quotes here!
 
     pandoc.RawInline("typst", ")<" .. float.identifier .. ">\n\n")

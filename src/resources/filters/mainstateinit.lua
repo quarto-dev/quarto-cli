@@ -25,6 +25,9 @@ crossref = {
   -- initialize autolabels table
   autolabels = pandoc.List(),
 
+  -- store a subfloat index to be able to lookup by id later.
+  subfloats = {},
+
   -- kinds are "float", "block", "inline", "anchor"
   categories = {
     all = {

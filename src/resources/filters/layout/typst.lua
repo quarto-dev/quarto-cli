@@ -11,6 +11,7 @@ end, function(layout)
   end
 
   local ref = refType(layout.float.identifier)
+  local kind = "quarto-float-" .. ref
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
     -- luacov: disable
@@ -51,7 +52,7 @@ end, function(layout)
     pandoc.RawInline("typst", "], caption: ["),
     layout.float.caption_long,
     -- apparently typst doesn't allow separate prefix and name
-    pandoc.RawInline("typst", "], kind: \"quarto-" .. ref .. "\", supplement: \"" .. info.prefix .. "\""),
+    pandoc.RawInline("typst", "], kind: \"" .. kind .. "\", supplement: \"" .. info.prefix .. "\""),
     pandoc.RawInline("typst", ", caption-pos: " .. caption_location),
     pandoc.RawInline("typst", ")<" .. layout.float.identifier .. ">\n\n")
   })

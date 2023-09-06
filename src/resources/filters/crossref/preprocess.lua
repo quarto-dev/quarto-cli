@@ -9,6 +9,9 @@ function crossref_mark_subfloats()
     FloatRefTarget = function(float)
       float.content = _quarto.ast.walk(float.content, {
         FloatRefTarget = function(subfloat)
+          crossref.subfloats[subfloat.identifier] = {
+            parent_id = float.identifier
+          }
           subfloat.parent_id = float.identifier
           subfloat.content = _quarto.ast.walk(subfloat.content, {
             Image = function(image)
