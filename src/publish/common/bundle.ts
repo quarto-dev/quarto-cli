@@ -14,6 +14,29 @@ import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 
+interface ManifestMetadata {
+  appmode: string;
+  primary_rmd: string | null;
+  primary_html: string;
+  content_category: string | null;
+  has_parameters: boolean;
+}
+
+interface Manifest {
+  version: number;
+  locale: string;
+  platform: string;
+  metadata: ManifestMetadata;
+  packages: null;
+  files: Record<string, { checksum: string }>;
+  users: null;
+}
+
+export interface BundleData {
+  bundlePath: string;
+  manifest: Manifest;
+}
+
 /** Creates a compressed bundle file in the format required by Posit Connect and Cloud.
  * @param type Whether this is a site or document.
  * @param files Information on what should be included in the bundle.
@@ -24,7 +47,7 @@ export async function createBundle(
   type: "site" | "document",
   files: PublishFiles,
   tempContext: TempContext,
-): Promise<string> {
+): Promise<BundleData> {
   // create file md5 checksums
   const manifestFiles: Record<string, { checksum: string }> = {};
   for (const file of files.files) {
@@ -95,5 +118,8 @@ export async function createBundle(
     .pipeTo(dest.writable);
 
   // return tar.gz
-  return targzFile;
+  return {
+    bundlePath: targzFile,
+    manifest,
+  };
 }
