@@ -1,6 +1,12 @@
 # hooks.R
 # Copyright (C) 2020-2022 Posit Software, PBC
 
+# inline knitr:::merge_list()
+merge_list <- function(x, y) {
+    x[names(y)] <- y
+    x
+}
+
 knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   knit_hooks <- list()
@@ -173,10 +179,17 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # read some options
+    
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
     cell.cap <- NULL
     fig.subcap = options[["fig.subcap"]]
+
+    # If we're preserving cells, we need provide a cell id
+    cellId <- NULL
+    if (isTRUE(format$render$`notebook-preserve-cells`) && !is.null(label)) {
+      cellId <- paste0("cell-", label)
+    }
     
     # fixup duplicate figure labels
     placeholder <- output_label_placeholder(options)
@@ -261,7 +274,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # forward any other unknown attributes
-    knitr_default_opts <- names(knitr::opts_chunk$get())
+    knitr_default_opts <- unique(c(names(knitr:::opts_chunk_attr), names(knitr::opts_chunk$get())))
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
                      "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", 
@@ -321,7 +334,12 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     # allow table lable through
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
+    } 
+
+    if (is.null(label) && !is.null(cellId)) {
+      label <- cellId
     }
+
     if (!is.null(label)) {
       label <- paste0(label, " ")
     }
@@ -412,10 +430,22 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         class = trimws(class),
         attr = attr
       )
+
+      # If requested, preserve the code yaml and emit it into the code blocks
+      if (isTRUE(format$render$`produce-source-notebook`)) {
+        yamlCode <- lastYamlCode
+        if (!is.null(yamlCode)) {
+          yamlCode <- paste(yamlCode, collapse = "\n")
+          if (!nzchar(yamlCode)) {
+            x <- trimws(x, "left")
+          }
+          x <- paste0("\n", yamlCode, x)
+        }
+      }
       ticks <- "```"
     }
-    paste0('\n\n', ticks, attrs, x, '\n', ticks, '\n\n')
-   
+    
+    paste0('\n\n', ticks, attrs, x, '\n', ticks, '\n\n')   
   }
   knit_hooks$output <- delegating_output_hook("output", c("stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stderr"))
@@ -615,22 +645,30 @@ knitr_options_hook <- function(options) {
         options[["message"]] = results$yaml[["warning"]]
       }
       # merge with other options
-      options <- knitr:::merge_list(options, results$yaml)
+      options <- merge_list(options, results$yaml)
       # set code
       options$code <- results$code
     } 
     options[["yaml.code"]] <- results$yamlSource
     
-    # some aliases
-    if (!is.null(options[["fig.format"]])) {
-      options[["dev"]] <- options[["fig.format"]]
-    }
-    if (!is.null(options[["fig.dpi"]])) {
-      options[["dpi"]] <- options[["fig.dpi"]]
-    }
   } else {
-    # convert any option with fig- into fig. and out- to out.
+    # from knitr 1.44 onwards the normalization is done at parsing time by knitr
+    # for all known options c(names(opts_chunk_attr), names(opts_chunk$get()))
+    # so normalization here should not be necessary anymore at some point
+    # TODO: remove normalization here in a few years 
+    #       when 1.44 is widely used version
     options <- normalize_options(options)
+  }
+
+  # some aliases not normalized
+  # from knitr 1.44, `fig.format` and `fig.dpi` are now alias 
+  # to `dev` and `dpi`
+  # TODO: remove below in a few years when 1.44 is widely used version
+  if (!is.null(options[["fig-format"]])) {
+    options[["dev"]] <- options[["fig-format"]]
+  }
+  if (!is.null(options[["fig-dpi"]])) {
+    options[["dpi"]] <- options[["fig-dpi"]]
   }
   
   # if there are line annotations in the code then we need to 
@@ -665,86 +703,95 @@ knitr_options_hook <- function(options) {
 # however we want to support all existing knitr code as well
 # as support all documented knitr chunk options without the user
 # needing to replace . with -
+# from knitr 1.44 onwards the normalization is done at parsing time by knitr
+# for all known options c(names(opts_chunk_attr), names(opts_chunk$get()))
+# so normalization here should not be necessary anymore at some point
+# TODO: remove normalization here in a few years 
+#       when 1.44 is widely used version
 normalize_options <- function(options) {
-  names(options) <- sapply(names(options), function(name) {
-    if (name %in% c(
-                    # Text output 
-                    "strip-white",
-                    "class-output",
-                    "class-message",
-                    "class-warning",
-                    "class-error",
-                    "attr-output",
-                    "attr-message",
-                    "attr-warning",
-                    "attr-error",
-                    # Paged tables
-                    "max-print",
-                    "sql-max-print",
-                    "paged-print",
-                    "rows-print",
-                    "cols-print",
-                    "cols-min-print",
-                    "pages-print",
-                    "paged-print",
-                    "rownames-print",
-                    # Code decoration
-                    "tidy-opts",
-                    "class-source",
-                    "attr-source",
-                    # Cache
-                    "cache-path",
-                    "cache-vars",
-                    "cache-globals",
-                    "cache-lazy",
-                    "cache-comments",
-                    "cache-rebuild",
-                    # Plots
-                    "fig-path",
-                    "fig-keep",
-                    "fig-show",
-                    "dev-args",
-                    "fig-ext",
-                    "fig-width",
-                    "fig-height",
-                    "fig-asp",
-                    "fig-dim",
-                    "out-width",
-                    "out-height",
-                    "out-extra",
-                    "fig-retina",
-                    "resize-width",
-                    "resize-height",
-                    "fig-align",
-                    "fig-link",
-                    "fig-env",
-                    "fig-cap",
-                    "fig-alt",
-                    "fig-scap",
-                    "fig-lp",
-                    "fig-pos",
-                    "fig-subcap",
-                    "fig-ncol",
-                    "fig-sep",
-                    "fig-process",
-                    "fig-showtext",
-                    # Animation
-                    "animation-hook",
-                    "ffmpeg-bitrate",
-                    "ffmpeg-format",
-                    # Code chunk
-                    "ref-label",
-                    # Language engines
-                    "engine-path",
-                    "engine-opts",
-                    "opts-label",
-                    # Other chunk options
-                    "R-options")) {
-      sub("-", ".", name)
-    } else {
-      name
+  # TODO: knitr 1.44 store all known options as it does the normalization
+  #       they are in `c(names(opts_chunk_attr), names(opts_chunk$get()))`
+  knitr_options_dashed <- c(
+    # Text output 
+    "strip-white",
+    "class-output",
+    "class-message",
+    "class-warning",
+    "class-error",
+    "attr-output",
+    "attr-message",
+    "attr-warning",
+    "attr-error",
+    # Paged tables
+    "max-print",
+    "sql-max-print",
+    "paged-print",
+    "rows-print",
+    "cols-print",
+    "cols-min-print",
+    "pages-print",
+    "paged-print",
+    "rownames-print",
+    # Code decoration
+    "tidy-opts",
+    "class-source",
+    "attr-source",
+    # Cache
+    "cache-path",
+    "cache-vars",
+    "cache-globals",
+    "cache-lazy",
+    "cache-comments",
+    "cache-rebuild",
+    # Plots
+    "fig-path",
+    "fig-keep",
+    "fig-show",
+    "dev-args",
+    "fig-ext",
+    "fig-width",
+    "fig-height",
+    "fig-asp",
+    "fig-dim",
+    "out-width",
+    "out-height",
+    "out-extra",
+    "fig-retina",
+    "resize-width",
+    "resize-height",
+    "fig-align",
+    "fig-link",
+    "fig-env",
+    "fig-cap",
+    "fig-alt",
+    "fig-scap",
+    "fig-lp",
+    "fig-pos",
+    "fig-subcap",
+    "fig-ncol",
+    "fig-sep",
+    "fig-process",
+    "fig-showtext",
+    # Animation
+    "animation-hook",
+    "ffmpeg-bitrate",
+    "ffmpeg-format",
+    # Code chunk
+    "ref-label",
+    # Language engines
+    "engine-path",
+    "engine-opts",
+    "opts-label",
+    # Other chunk options
+    "R-options"
+  )
+  # Un-normalize knitr options, and replace any existing options (e.g default one)
+  for (name in knitr_options_dashed) {
+    if (name %in% names(options)) {
+      options[[gsub("-", ".", name)]] <- options[[name]]
+      options[[name]] <- NULL
     }
-  }, USE.NAMES = FALSE)
+  }
   options
 }
 
@@ -874,7 +921,7 @@ output_div <- function(x, label, classes, attr = NULL) {
     paste(paste0(".", classes), collapse = " ") ,
     ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",
-    trimws(x),
+    x,
     "\n:::\n\n"
   )
 }
@@ -891,9 +938,9 @@ figure_cap <- function(options) {
   if (is.null(output_label) || is_figure_label(output_label)) {
     fig.cap <- options[["fig.cap"]]
     fig.subcap <- options[["fig.subcap"]]
-    if (!is.null(fig.subcap))
+    if (length(fig.subcap) != 0)
       fig.subcap
-    else if (!is.null(fig.cap))
+    else if (length(fig.cap) != 0)
       fig.cap
     else
       ""
@@ -1002,4 +1049,6 @@ is_latex_output <- function(to) {
   knitr:::is_latex_output() || identical(to, "pdf")
 }
 
-
+is_ipynb_output <- function(to) {
+  identical(to, "ipynb")
+}

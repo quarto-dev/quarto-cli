@@ -1,9 +1,8 @@
 /*
-* path.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * path.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   basename,
@@ -151,6 +150,7 @@ export function filterPaths(
 
 export interface GlobOptions {
   mode: "strict" | "auto" | "always";
+  explicitSubfolderSearch?: boolean; // set this to true to never prepend `**/` to globs to create nested directory searching
 }
 
 export function resolvePathGlobs(
@@ -230,8 +230,12 @@ export function resolveGlobs(
     if (glob.startsWith("\\!")) {
       glob = glob.slice(1);
     }
+
     // ending w/ a slash means everything in the dir
     if (smartGlob) {
+      // beginning with a '.' is redundant, remove
+      glob = glob.replace(/^\.([\/\\])+/, "$1");
+
       if (glob.endsWith("/")) {
         glob = glob + "**/*";
       } else {
@@ -248,7 +252,7 @@ export function resolveGlobs(
     }
 
     if (!glob.startsWith("/")) {
-      if (smartGlob) {
+      if (smartGlob && (!options || !options.explicitSubfolderSearch)) {
         return "**/" + glob;
       } else {
         return glob;

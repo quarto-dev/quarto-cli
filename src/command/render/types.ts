@@ -17,13 +17,12 @@ import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { ExtensionContext } from "../../extension/types.ts";
 import { kPositionedRefs } from "../../config/constants.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { Lifetime } from "../../core/lifetimes.ts";
 
 // options for render
 export interface RenderOptions {
-  services: {
-    temp: TempContext;
-    extension: ExtensionContext;
-  };
+  services: RenderServices;
   flags?: RenderFlags;
   pandocArgs?: string[];
   progress?: boolean;
@@ -33,11 +32,18 @@ export interface RenderOptions {
   setProjectDir?: boolean;
   echo?: boolean;
   warning?: boolean;
+  quietPandoc?: boolean;
 }
 
 export interface RenderServices {
   temp: TempContext;
   extension: ExtensionContext;
+  notebook: NotebookContext;
+}
+
+export interface RenderServiceWithLifetime extends RenderServices {
+  cleanup: () => void;
+  lifetime?: Lifetime;
 }
 
 // context for render
@@ -56,7 +62,9 @@ export interface RunPandocResult {
   inputTraits: PandocInputTraits;
   resources: string[];
   postprocessors?: Array<
-    (output: string) => Promise<{ supporting: string[] } | void>
+    (
+      output: string,
+    ) => Promise<{ supporting?: string[]; resources?: string[] } | void>
   >;
   htmlPostprocessors: Array<HtmlPostProcessor>;
   htmlFinalizers?: Array<(doc: Document) => Promise<void>>;
@@ -72,6 +80,7 @@ export type HtmlPostProcessor = (
     inputMetadata: Metadata;
     inputTraits: PandocInputTraits;
     renderedFormats: RenderedFormat[];
+    quiet?: boolean;
   },
 ) => Promise<HtmlPostProcessResult>;
 
@@ -129,6 +138,12 @@ export interface ExecutedFile {
 }
 
 export interface PandocRenderer {
+  onFilterContexts: (
+    file: string,
+    contexts: Record<string, RenderContext>,
+    files: RenderFile[],
+    options: RenderOptions,
+  ) => Record<string, RenderContext>;
   onBeforeExecute: (format: Format) => RenderExecuteOptions;
   onRender: (
     format: string,
@@ -137,6 +152,7 @@ export interface PandocRenderer {
   ) => Promise<void>;
   onPostProcess: (
     renderedFormats: RenderedFormat[],
+    project?: ProjectContext,
   ) => Promise<void>;
   onComplete: (error?: boolean, quiet?: boolean) => Promise<RenderFilesResult>;
 }
@@ -256,5 +272,6 @@ export type QuartoFilterSpec = {
 export interface PandocRenderCompletion {
   complete: (
     outputs: RenderedFormat[],
+    cleanup?: boolean,
   ) => Promise<RenderedFile>;
 }

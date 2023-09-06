@@ -153,14 +153,18 @@ function Reader (inputs, opts)
   -- so we need to undo that damage here
 
   local unshortcode_text = function (c)
-    c.text = md_shortcode.unshortcode:match(c.text)
+    if c.text:match("data%-is%-shortcode%=%\"1%\"") then
+      c.text = md_shortcode.unshortcode:match(c.text)
+    end
     return c
   end
 
   local doc = pandoc.read(txt, flavor, opts):walk {
     CodeBlock = function (cb)
       cb.classes = cb.classes:map(restore_invalid_tags)
-      cb.text = md_shortcode.unshortcode:match(cb.text)
+      if cb.text:match("data%-is%-shortcode%=%\"1%\"") then
+        cb.text = md_shortcode.unshortcode:match(cb.text)
+      end
       cb.text = unescape_invalid_tags(cb.text, tags)
       return cb
     end,
@@ -168,13 +172,16 @@ function Reader (inputs, opts)
     RawInline = unshortcode_text,
     RawBlock = unshortcode_text,
     Link = function (l)
-      local result = md_shortcode.unshortcode:match(urldecode(l.target))
-      l.target = result
-      return l
+      if l.target:match("data%-is%-shortcode%=%%221%%22") then
+        l.target = md_shortcode.unshortcode:match(urldecode(l.target))
+        return l
+      end
     end,
     Image = function (i)
-      i.src = md_shortcode.unshortcode:match(urldecode(i.src))
-      return i
+      if i.src:match("data%-is%-shortcode%=%%221%%22") then
+        i.src = md_shortcode.unshortcode:match(urldecode(i.src))
+        return i
+      end
     end,
   }
   return doc

@@ -1,9 +1,8 @@
 /*
-* metadata.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * metadata.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { Metadata } from "../../config/types.ts";
 import { camelToKebab, kebabToCamel } from "../../core/config.ts";
@@ -99,6 +98,7 @@ const kRevealOptions = [
   "minScale",
   "maxScale",
   "mathjax",
+  "pdfMaxPagesPerSlide",
   "pdfSeparateFragments",
   "pdfPageHeightOffset",
 ];

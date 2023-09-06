@@ -110,6 +110,9 @@ local kDroppingParticle = 'dropping-particle'
 local kNonDroppingParticle = 'non-dropping-particle'
 local kNameFields = { kGivenName, kFamilyName, kLiteralName}
 
+-- Academic titles or professional certifications displayed following a personal name (for example, “MD”, “PhD”).
+local kDegrees = 'degrees'
+
 -- the roles that an author may place
 local kRoles = 'roles'
 local kRole = "role"
@@ -189,6 +192,8 @@ local kModifiedLbl = 'modified'
 local kDoiLbl = 'doi'
 local kDescriptionLbl = 'description'
 local kAbstractLbl = 'abstract'
+local kKeywordsLbl = 'keywords'
+local kRelatedFormats = 'related_formats'
 
 -- affiliation fields that might be parsed into other fields
 -- (e.g. if we see affiliation-url with author, we make that affiliation/url)
@@ -677,6 +682,13 @@ local function parseRole(role)
   end
 end
 
+local function setDegree(author, degree)
+  if not author[kDegrees] then
+    author[kDegrees] = {}
+  end
+  author[kDegrees][#author[kDegrees] + 1] = degree
+end
+
 -- Processes author roles, which can be specified either using `role:` or `roles:`
 -- and can either be a single string:
 -- role: researcher
@@ -698,6 +710,16 @@ local function processAuthorRoles(author, roles)
   else
     local role, contribution = parseRole(roles)
     setRole(author, { [kRole] = role, [kDegreeContribution] = contribution })
+  end
+end
+
+local function processAuthorDegrees(author, degrees) 
+  if tisarray(degrees) then
+    for _i,v in ipairs(degrees) do
+      setDegree(author, v)
+    end
+  else
+    setDegree(author, degrees)
   end
 end
 
@@ -810,6 +832,16 @@ local function computeLabels(authors, affiliations, meta)
     if meta[kDescriptionTitle] then
       meta[kLabels][kDescriptionLbl] = meta[kDescriptionTitle]
     end
+
+    meta[kLabels][kKeywordsLbl] = {pandoc.Str(language["title-block-keywords"])}
+    if meta[kKeywordsTitle] then
+      meta[kLabels][kKeywordsLbl] = meta[kKeywordsTitle]
+    end
+    
+    meta[kLabels][kRelatedFormats] = {pandoc.Str(language["related-formats-title"])}
+    if meta["related-formats-title"] then
+      meta[kLabels][kRelatedFormats] = meta["related-formats-title"]
+    end
   end
 
   return meta
@@ -898,6 +930,8 @@ local function processAuthor(value)
         affiliationUrl = authorValue
       elseif tcontains(kAuthorRoleFields, authorKey) then
         processAuthorRoles(author, authorValue)
+      elseif authorKey == kDegrees then
+        processAuthorDegrees(author, authorValue)
       else
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 

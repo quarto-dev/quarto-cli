@@ -43,19 +43,73 @@ then
   quarto_venv_activated="true"
 fi
 
-if [ "$QUARTO_TEST_TIMING" != "" ]; then
+SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
+
+# RUN FOR TIMING TESTS ONLY 
+if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
+  if [ "$QUARTO_TEST_TIMING" == "true" ]; then
+    QUARTO_TEST_TIMING="timing.txt"
+  fi
+  echo "> Running tests with timing and writing to ${QUARTO_TEST_TIMING}"
   QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
-  rm -f timing.txt
+  rm -f $QUARTO_TEST_TIMING
   FILES=$@
   if [ "$FILES" == "" ]; then
-    FILES=`find . | grep \.test\.ts$`
+    FILES=`find . | grep \.test\.ts$ | sort`
   fi
   for i in $FILES; do
-    echo $i >> timing.txt
-    /usr/bin/time -a -o timing.txt "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
+    if [ "$i" == "./test.ts" ]; then
+     # ignoring this file as this is not a test file to time
+     continue
+    fi
+    # For smoke-all.test.ts, each smoke-all document test needs to be timed.
+    if [ "$i" == "$SMOKE_ALL_TEST_FILE" ]; then
+      echo "> Timing smoke-all tests"
+      SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -name "*.qmd" -o -name "*.ipynb"`
+      for j in $SMOKE_ALL_FILES; do
+        echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
+        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+      done
+      continue
+    fi
+    # Otherwise we time the individual test.ts test
+    echo $i >> "$QUARTO_TEST_TIMING"
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
   done
 else
-  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $@
+  # RUN WHEN NO TIMING (GENERIC CASE)
+
+  ## Short version syntax to run smoke-all.test.ts
+  ## Only use if different than ./run-test.sh ./smoke/smoke-all.test.ts
+  if [[ "$1" =~ smoke-all\.test\.ts ]]; then
+    TESTS_TO_RUN=$@
+  else
+    # Check file argument
+    SMOKE_ALL_FILES=""
+    TESTS_TO_RUN=""
+    for file in $*; do
+      if [[ "$file" == *.qmd ]] || [[ "$file" == *.ipynb ]]; then
+        SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
+      elif [[ "$file" == *.ts ]]; then
+        TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
+      else
+        echo "#### WARNING"
+        echo "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+        echo "####"
+        exit 1
+      fi
+    done
+    if [ "$SMOKE_ALL_FILES" != "" ]; then
+      if [ "$TESTS_TO_RUN" != "" ]; then
+        echo "#### WARNING"
+        echo "When passing .qmd and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
+        echo "Ignoring ${TESTS_TO_RUN}."
+        echo "####"
+      fi
+      TESTS_TO_RUN="${SMOKE_ALL_TEST_FILE} -- ${SMOKE_ALL_FILES}"
+    fi
+  fi
+  "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $TESTS_TO_RUN
 fi
 
 SUCCESS=$?

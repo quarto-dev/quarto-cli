@@ -10,6 +10,7 @@ export DENO_DOM=${DENO_DOM_VERSION=$DENO_DOM}
 export PANDOC=${PANDOC_VERSION=$PANDOC}
 export DARTSASS=${DART_SASS_VERSION=$DARTSASS}
 export ESBUILD=${ESBUILD_VERSION=$ESBUILD}
+export TYPST=${TYPST_VERSION=$TYPST}
 
 source package/scripts/common/utils.sh
 source package/src/set_package_paths.sh
@@ -46,14 +47,9 @@ if [[ "${QUARTO_VENDOR_BINARIES}" = "true" ]]; then
     for DENOFILE in $DENOFILES; do
       download "$DENOURL/$DENO/$DENOFILE" "$DENOFILE"
       unzip -o $DENOFILE
-      DENO_ARCH_DIR=$(basename $DENOFILE .zip)
       
-      if [[ "${DENO_ARCH_DIR}" = "deno-linux-arm64" ]]; then
-        DENO_ARCH_DIR="deno-aarch64-unknown-linux-gnu"
-      fi
-      
-      mkdir $DENO_ARCH_DIR
-      mv deno $DENO_ARCH_DIR
+      mkdir -p $DENO_DIR
+      mv deno $DENO_DIR
       rm $DENOFILE
     done
 

@@ -42,3 +42,9 @@ end
 function patternEscape(str) 
   return str:gsub("([^%w])", "%%%1")
 end
+
+-- Escape '%' in string by replacing by '%%'
+-- This is especially useful in Lua patterns to escape a '%'
+function percentEscape(str)
+  return str:gsub("%%", "%%%%")
+end

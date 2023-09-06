@@ -50,6 +50,7 @@ export interface PublishProvider {
   hidden?: boolean;
   listOriginOnly?: boolean;
   requiresRender?: boolean;
+  accountDescriptor?: string;
   publishRecord?: (
     input: string | ProjectContext,
   ) => Promise<PublishRecord | undefined>;

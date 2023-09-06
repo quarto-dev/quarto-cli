@@ -13,6 +13,7 @@ import {
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
 } from "../../../../config/constants.ts";
 import { Format } from "../../../../config/types.ts";
 
@@ -27,7 +28,6 @@ import {
   kFieldSort,
   kFieldTypes,
   kImageHeight,
-  kImagePlaceholder,
   kMaxDescLength,
   kMaxItems,
   kPageSize,
@@ -83,6 +83,10 @@ export function templateMarkdownHandler(
       const dateFormat = listing[kDateFormat] as string ||
         format.metadata[kDateFormat] as string;
 
+      const fieldLabelLangKeys: Record<string, string> = {
+        "word-count": kListingPageWords,
+      };
+
       const fieldTypes = listing[kFieldTypes];
       for (const field of Object.keys(fieldTypes)) {
         if (fieldTypes[field] === kFieldDate) {
@@ -111,6 +115,14 @@ export function templateMarkdownHandler(
           record[field] = localizedString(format, kListingPageMinutesCompact, [
             Math.floor(val).toString(),
           ]);
+        } else if (
+          fieldTypes[field] === "number" && item[field] !== undefined &&
+          fieldLabelLangKeys[field] !== undefined
+        ) {
+          const val = item[field] as number;
+          record[field] = localizedString(format, fieldLabelLangKeys[field], [
+            Math.floor(val).toLocaleString(),
+          ]);
         }
       }
 
@@ -125,10 +137,6 @@ export function templateMarkdownHandler(
           );
         }
       }
-
-      // If there is no image and there is a placeholder, use that
-      record.image = record.image || listing[kImagePlaceholder];
-
       return record;
     },
   );
@@ -159,7 +167,7 @@ export function templateMarkdownHandler(
   const filterRendered = renderEjs(
     resourcePath("projects/website/listing/_filter.ejs.md"),
     {
-      items: reshapedItems,
+      items: tempateItems,
       listing: reshapedListing,
     },
   );
@@ -176,7 +184,7 @@ export function templateMarkdownHandler(
   const paginationRendered = renderEjs(
     resourcePath("projects/website/listing/_pagination.ejs.md"),
     {
-      items: reshapedItems,
+      items: tempateItems,
       listing: reshapedListing,
     },
   );
@@ -376,7 +384,7 @@ export function reshapeListing(
     clz?: string,
   ) => {
     const fieldLinks = reshaped[kFieldLinks];
-    const value = val || item[field];
+    const value = val || item[field] || "&nbsp;";
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
       return `<a href="${path}" class="${field}${
@@ -455,7 +463,7 @@ export function reshapeListing(
     return attrs.join(" ");
   };
   utilities.localizedString = (str: string) => {
-    const localizedStrings = (format.language as Record<string, string>);
+    const localizedStrings = format.language as Record<string, string>;
     return localizedStrings[str];
   };
   reshaped.utilities = utilities;

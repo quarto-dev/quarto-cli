@@ -34,6 +34,7 @@ import { kProjectRender, ProjectConfig } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,
+  kBreadCrumbNavigation,
   kContents,
   kImage,
   kMarginFooter,
@@ -87,7 +88,9 @@ import {
   kBook,
 } from "./book-shared.ts";
 import {
+  kCodeLinks,
   kLanguageDefaults,
+  kOtherLinks,
   kOutputExt,
   kSectionTitleAppendices,
 } from "../../../config/constants.ts";
@@ -142,6 +145,9 @@ export async function bookProjectConfig(
     site[kGoogleAnalytics] = book[kGoogleAnalytics];
     site[kCookieConsent] = book[kCookieConsent];
     site[kComments] = book[kComments];
+    site[kBreadCrumbNavigation] = book[kBreadCrumbNavigation];
+    site[kOtherLinks] = book[kOtherLinks];
+    site[kCodeLinks] = book[kCodeLinks];
 
     // If there is an explicitly set footer use that
     if (book[kPageFooter]) {
@@ -182,11 +188,6 @@ export async function bookProjectConfig(
           chapters: bookAppendix as BookChapterItem[],
         }),
       ]);
-  }
-
-  // if search for book isn't false then enable search
-  if (book?.[kBookSearch] !== false && siteSidebar[kBookSearch] !== false) {
-    siteSidebar[kBookSearch] = true;
   }
 
   // set the sidebar to "floating" if it isn't already set

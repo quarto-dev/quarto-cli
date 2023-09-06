@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 import * as ld from "../../../core/lodash.ts";
 
@@ -14,7 +14,7 @@ import { pathWithForwardSlashes, safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
-import { asHtmlId, getDecodedAttribute } from "../../../core/html.ts";
+import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
 import { removeChapterNumber } from "./website-utils.ts";
 
@@ -54,7 +54,7 @@ import {
   ProjectConfig,
   ProjectContext,
 } from "../../types.ts";
-import { projectOffset, projectOutputDir } from "../../project-shared.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
   kCollapseBelow,
@@ -83,8 +83,10 @@ import {
 
 import {
   kBackToTopNavigation,
+  kBreadCrumbNavigation,
   kSiteIssueUrl,
   kSiteNavbar,
+  kSitePageNavigation,
   kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoUrl,
@@ -125,12 +127,12 @@ import {
   createMarkdownPipeline,
   MarkdownPipeline,
 } from "./website-pipeline-md.ts";
-import { engineValidExtensions } from "../../../execute/engine.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
+import { resolveProjectInputLinks } from "../project-utilities.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -250,11 +252,21 @@ export async function websiteNavigationExtras(
     sidebarStyle: sidebarStyle(),
     footer: navigation.footer,
     language: format.language,
+    showBreadCrumbs: websiteConfigBoolean(
+      kBreadCrumbNavigation,
+      true,
+      project.config,
+    ),
   };
 
   // Determine the previous and next page
+  const formatPageNav = format.metadata[kSitePageNavigation];
   const pageNavigation = nextAndPrevious(href, sidebar);
-  if (navigation.pageNavigation && !usesCustomLayout) {
+  if (
+    formatPageNav !== false &&
+    (navigation.pageNavigation || formatPageNav === true) &&
+    !usesCustomLayout
+  ) {
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
 
@@ -387,8 +399,13 @@ function navigationHtmlPostprocessor(
   language: FormatLanguage,
 ) {
   const sourceRelative = relative(project.dir, source);
-  const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
+
+  const showBreadCrumbs = websiteConfigBoolean(
+    kBreadCrumbNavigation,
+    true,
+    project.config,
+  );
 
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process the breadcrumbs and collapsed title
@@ -396,14 +413,26 @@ function navigationHtmlPostprocessor(
     const secondaryNavTitleEl = doc.querySelector(
       ".quarto-secondary-nav .quarto-secondary-nav-title",
     );
-
     if (secondaryNavTitleEl) {
-      const navEl = makeBreadCrumbs(doc);
-      if (secondaryNavTitleEl.parentElement) {
-        secondaryNavTitleEl.parentElement.replaceChild(
-          navEl,
-          secondaryNavTitleEl,
-        );
+      if (showBreadCrumbs) {
+        const navEl = makeBreadCrumbs(doc);
+        if (secondaryNavTitleEl.parentElement) {
+          secondaryNavTitleEl.parentElement.replaceChild(
+            navEl,
+            secondaryNavTitleEl,
+          );
+        }
+      } else {
+        // Process the title into the secondary nav bar
+        const titleEl = doc.querySelector("h1.title");
+        if (titleEl) {
+          for (const child of titleEl.childNodes) {
+            secondaryNavTitleEl.append(child.cloneNode(true));
+          }
+          // Decorate the title so we know to hide it
+          titleEl.classList.add("d-none");
+          titleEl.classList.add("d-lg-block");
+        }
       }
 
       // hide the entire title block (encompassing code button) if we have it
@@ -412,6 +441,17 @@ function navigationHtmlPostprocessor(
         // hide below lg
         titleBlock.classList.add("d-none");
         titleBlock.classList.add("d-lg-block");
+      }
+    }
+
+    const titleBlockEl = doc.querySelector(".quarto-title-block");
+    if (showBreadCrumbs && titleBlockEl) {
+      if (navigation.breadCrumbs && navigation.breadCrumbs.length > 1) {
+        const titleBreadCrumbEl = makeBreadCrumbs(
+          doc,
+          ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
+        );
+        titleBlockEl.prepend(titleBreadCrumbEl);
       }
     }
 
@@ -467,47 +507,8 @@ function navigationHtmlPostprocessor(
       }
     }
 
-    // resolve links to input (src) files
-    const links = doc.querySelectorAll("a[href]");
-    for (let i = 0; i < links.length; i++) {
-      const link = links[i] as Element;
-      const resolveInput = link.getAttribute("data-noresolveinput") === null;
-      if (!resolveInput) {
-        link.removeAttribute("data-noresolveinput");
-      }
-      const linkHref = getDecodedAttribute(link, "href");
-      if (linkHref && !isExternalPath(linkHref)) {
-        let projRelativeHref = linkHref.startsWith("/")
-          ? linkHref.slice(1)
-          : join(dirname(sourceRelative), linkHref);
-        const hashLoc = projRelativeHref.indexOf("#");
-        const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
-        if (hash) {
-          projRelativeHref = projRelativeHref.slice(0, hashLoc);
-        }
-        const resolved = resolveInput
-          ? await resolveInputTarget(project, projRelativeHref)
-          : { outputHref: pathWithForwardSlashes(join("/", projRelativeHref)) };
-
-        if (resolved) {
-          link.setAttribute("href", offset + resolved.outputHref + hash);
-        } else {
-          // if this is a unresolvable markdown/ipynb link then print a warning
-          if (!safeExistsSync(join(project.dir, projRelativeHref))) {
-            const targetFile = join(
-              projectOutputDir(project),
-              projRelativeHref,
-            );
-            if (
-              engineValidExtensions().includes(extname(targetFile)) &&
-              !safeExistsSync(join(projectOutputDir(project), projRelativeHref))
-            ) {
-              warning("Unable to resolve link target: " + projRelativeHref);
-            }
-          }
-        }
-      }
-    }
+    // Resolve any links to project inputs
+    await resolveProjectInputLinks(source, project, doc);
 
     // handle repo links
     handleRepoLinks(
@@ -541,9 +542,11 @@ function navigationHtmlPostprocessor(
         ".breadcrumb-item a",
       ];
       for (const sel of sels) {
-        const el = doc.querySelector(sel);
-        if (el) {
-          removeChapterNumber(el);
+        const nodes = doc.querySelectorAll(sel);
+        if (nodes !== null) {
+          for (const node of nodes) {
+            removeChapterNumber(node as Element);
+          }
         }
       }
     }
@@ -582,6 +585,13 @@ function handleRepoLinks(
   language: FormatLanguage,
   config?: ProjectConfig,
 ) {
+  // Don't process repo-actions if document disables it
+  if (format.metadata[kSiteRepoActions] === false) {
+    return;
+  }
+
+  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
+
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
     kWebsite,
@@ -591,8 +601,6 @@ function handleRepoLinks(
   if (issueUrl && !repoActions.includes("issue")) {
     repoActions.push("issue");
   }
-
-  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
 
   const elRepoSource = doc.querySelector(
     "[" + kDataQuartoSourceUrl + '="repo"]',
@@ -667,31 +675,34 @@ function handleRepoLinks(
             : [{
               text: language[kRepoActionLinksIssue]!,
               url: issueUrl!,
+              icon: "chat-right",
             }];
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
-          if (repoInfo) {
-            const iconDiv = doc.createElement("div");
-            const iconEl = doc.createElement("i");
-            iconEl.classList.add("bi");
 
-            iconEl.classList.add("bi-" + repoUrlIcon(repoInfo.baseUrl));
-
-            iconDiv.appendChild(iconEl);
-            actionsDiv.appendChild(iconDiv);
-          }
-          const linksDiv = doc.createElement("div");
-          linksDiv.classList.add("action-links");
+          const ulEl = doc.createElement("ul");
           links.forEach((link) => {
             const a = doc.createElement("a");
             a.setAttribute("href", link.url);
             a.classList.add("toc-action");
             a.innerHTML = link.text;
-            const p = doc.createElement("p");
-            p.appendChild(a);
-            linksDiv.appendChild(p);
+
+            const i = doc.createElement("i");
+            i.classList.add("bi");
+            if (link.icon) {
+              i.classList.add(`bi-${link.icon}`);
+            } else {
+              i.classList.add(`empty`);
+            }
+
+            a.prepend(i);
+
+            const liEl = doc.createElement("li");
+            liEl.appendChild(a);
+
+            ulEl.appendChild(liEl);
           });
-          actionsDiv.appendChild(linksDiv);
+          actionsDiv.appendChild(ulEl);
           repoTarget.appendChild(actionsDiv);
         }
       }
@@ -718,14 +729,16 @@ function repoActionLinks(
   source: string,
   language: FormatLanguage,
   issueUrl?: string,
-): Array<{ text: string; url: string }> {
-  return actions.map((action) => {
+): Array<{ text: string; url: string; icon?: string }> {
+  const firstIcon = repoUrlIcon(repoInfo.baseUrl);
+  return actions.map((action, i) => {
     switch (action) {
       case "edit":
         if (!isJupyterNotebook(source)) {
           return {
             text: language[kRepoActionLinksEdit],
             url: `${repoInfo.baseUrl}edit/${branch}/${repoInfo.path}${source}`,
+            icon: i === 0 ? firstIcon : undefined,
           };
         } else if (repoInfo.baseUrl.indexOf("github.com") !== -1) {
           return {
@@ -733,6 +746,7 @@ function repoActionLinks(
             url: `${
               repoInfo.baseUrl.replace("github.com", "github.dev")
             }blob/${branch}/${repoInfo.path}${source}`,
+            icon: i === 0 ? firstIcon : undefined,
           };
         } else {
           return null;
@@ -741,11 +755,13 @@ function repoActionLinks(
         return {
           text: language[kRepoActionLinksSource],
           url: `${repoInfo.baseUrl}blob/${branch}/${repoInfo.path}${source}`,
+          icon: i === 0 ? firstIcon : undefined,
         };
       case "issue":
         return {
           text: language[kRepoActionLinksIssue],
           url: issueUrl || `${repoInfo.baseUrl}issues/new`,
+          icon: i === 0 ? firstIcon : undefined,
         };
 
       default: {
@@ -754,7 +770,7 @@ function repoActionLinks(
       }
     }
   }).filter((action) => action !== null) as Array<
-    { text: string; url: string }
+    { text: string; url: string; icon: string }
   >;
 }
 
@@ -786,10 +802,15 @@ async function resolveFooter(
   return footer;
 }
 
-function makeBreadCrumbs(doc: Document) {
+function makeBreadCrumbs(doc: Document, clz?: string[]) {
   // Make bootstrap breadcrumbs
   const navEl = doc.createElement("nav");
   navEl.classList.add("quarto-page-breadcrumbs");
+  if (clz && clz.length) {
+    clz.forEach((cls) => {
+      navEl.classList.add(cls);
+    });
+  }
   navEl.setAttribute("aria-label", "breadcrumb");
 
   const olEl = doc.createElement("ol");

@@ -4,23 +4,26 @@ In some circumstances Quarto, Pandoc, and LaTeX will generate textual output tha
 
 This directory includes a set of built-in translations, including:
 
-| File               | Language          |
-| ------------------ | ----------------- |
-| `_language.yml`    | English (default) |
-| `_language-zh.yml` | Chinese           |
-| `_language-es.yml` | Spanish           |
-| `_language-fi.yml` | Finnish           |
-| `_language-fr.yml` | French            |
-| `_language-ja.yml` | Japanese          |
-| `_language-de.yml` | German            |
-| `_language-pt.yml` | Portuguese        |
-| `_language-ru.yml` | Russian           |
-| `_language-tr.yml` | Turkish           |
-| `_language-cs.yml` | Czech             |
-| `_language-nl.yml` | Dutch             |
-| `_language-pl.yml` | Polish            |
-| `_language-it.yml` | Italian           |
-| `_language-kr.yml` | Korean            |
+| File                  | Language                     |
+| --------------------- | ---------------------------- |
+| `_language.yml`       | English (default)            |
+| `_language-ca.yml`    | Catalan                      |
+| `_language-zh.yml`    | Chinese                      |
+| `_language-cs.yml`    | Czech                        |
+| `_language-nl.yml`    | Dutch                        |
+| `_language-fi.yml`    | Finnish                      |
+| `_language-fr.yml`    | French                       |
+| `_language-de.yml`    | German                       |
+| `_language-it.yml`    | Italian                      |
+| `_language-he.yml`    | Hebrew                       |
+| `_language-ja.yml`    | Japanese                     |
+| `_language-kr.yml`    | Korean                       |
+| `_language-pl.yml`    | Polish                       |
+| `_language-pt.yml`    | Portuguese                   |
+| `_language-ru.yml`    | Russian                      |
+| `_language-es.yml`    | Spanish                      |
+| `_language-tr.yml`    | Turkish                      |
+| `_language-zh-TW.yml` | Traditional Chinese (Taiwan) |
 
 The use of these translations is triggered by the [`lang`](https://pandoc.org/MANUAL.html#language-variables) Pandoc metadata variable, which identifies the main language of the document using IETF language tags (following the [BCP 47](https://tools.ietf.org/html/bcp47) standard), such as `en` or `en-GB`. The [Language subtag lookup](https://r12a.github.io/app-subtags/) tool can look up or verify these tags.
 

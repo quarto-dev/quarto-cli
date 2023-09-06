@@ -14,6 +14,7 @@ import { deno_dom } from "./deno_dom.ts";
 import { esBuild } from "./esbuild.ts";
 import { pandoc } from "./pandoc.ts";
 import { archiveUrl } from "../archive-binary-dependencies.ts";
+import { typst } from "./typst.ts";
 
 // The list of binary dependencies for Quarto
 export const kDependencies = [
@@ -21,6 +22,7 @@ export const kDependencies = [
   pandoc(version("PANDOC")),
   dartSass(version("DARTSASS")),
   esBuild(version("ESBUILD")),
+  typst(version("TYPST"))
 ];
 
 // Defines a binary dependency for Quarto
@@ -67,13 +69,6 @@ export async function configureDependency(
   info(`Preparing ${dependency.name} (${config.os} - ${config.arch})`);
   let archDep = dependency.architectureDependencies[config.arch];
 
-  // If we're missing some arm64, try the intel versions and rely on rosetta.
-  if (config.arch === "aarch64") {
-    if (!archDep || !archDep[config.os]) {
-      warning("Missing configuration for architecture " + config.arch);
-      archDep = dependency.architectureDependencies["x86_64"];
-    }
-  }
   if (archDep) {
     const platformDep = archDep[config.os];
     const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");

@@ -36,6 +36,7 @@ $title-banner-image: null !default;
 
 /*-- scss:rules --*/
 
+/* Title Banner */
 .quarto-title-banner {
   margin-bottom: 1em;
 
@@ -44,6 +45,14 @@ $title-banner-image: null !default;
   @if $title-banner-image {
     background-image: $title-banner-image;
     background-size: cover;
+  }
+  a {
+    color: bannerColor();
+  }
+
+  h1,
+  h2 {
+    color: bannerColor();
   }
 
   .code-tools-button {
@@ -79,6 +88,13 @@ $title-banner-image: null !default;
     padding-bottom: 1em;
   }
 }
+@include media-breakpoint-down(md) {
+  body.hypothesis-enabled {
+    #title-block-header > * {
+      padding-right: 20px;
+    }
+  }
+}
 
 main.quarto-banner-title-block > section:first-child > h2,
 main.quarto-banner-title-block > section:first-child > h3,
@@ -110,10 +126,28 @@ main.quarto-banner-title-block > section:first-child > h4 {
   }
 }
 
+/* Manuscript customization */
+.quarto-title-meta-container {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+.quarto-title-meta-column-end {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1em;
+}
+
+.quarto-title-meta-column-end a .bi {
+  margin-right: 0.3em;
+}
+
+/* Title Default */
 #title-block-header.quarto-title-block.default {
   .quarto-title-meta {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: minmax(max-content, 1fr) 1fr;
+    grid-column-gap: 1em;
   }
 
   .quarto-title {
@@ -128,6 +162,10 @@ main.quarto-banner-title-block > section:first-child > h4 {
       height: 0.8em;
       width: 0.8em;
     }
+  }
+
+  .quarto-title-author-email {
+    opacity: 0.7;
   }
 
   .quarto-description {
@@ -152,10 +190,6 @@ main.quarto-banner-title-block > section:first-child > h4 {
 
   .quarto-title-meta-contents {
     font-size: 0.9em;
-    a {
-      color: $body-color;
-    }
-
     p.affiliation:last-of-type {
       margin-bottom: 0.1em;
     }
@@ -165,6 +199,7 @@ main.quarto-banner-title-block > section:first-child > h4 {
     margin-bottom: 0.1em;
   }
 
+  .keywords,
   .description,
   .abstract {
     margin-top: 0;
@@ -176,7 +211,7 @@ main.quarto-banner-title-block > section:first-child > h4 {
       margin-bottom: 0;
     }
 
-    .abstract-title {
+    .block-title {
       margin-top: 1em;
       text-transform: uppercase;
       font-size: 0.8em;
@@ -187,7 +222,8 @@ main.quarto-banner-title-block > section:first-child > h4 {
 
   .quarto-title-meta-author {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(max-content, 1fr) 1fr;
+    grid-column-gap: 1em;
   }
 }
 

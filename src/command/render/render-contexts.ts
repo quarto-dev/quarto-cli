@@ -445,12 +445,6 @@ async function resolveFormats(
     formats = projFormatKeys;
   }
 
-  // All the project type to manipulate the format list on a per
-  // file bases
-  if (projType.formatsForFile) {
-    formats = projType.formatsForFile(formats, file, project);
-  }
-
   // If the file itself has specified permissible
   // formats, filter the list of formats to only
   // include those formats

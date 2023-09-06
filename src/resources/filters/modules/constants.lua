@@ -49,6 +49,8 @@ local kWhenFormat = "when-format"
 local kUnlessFormat = "unless-format"
 local kWhenProfile = "when-profile"
 local kUnlessProfile = "unless-profile"
+local kWhenMeta = "when-meta"
+local kUnlessMeta = "unless-meta"
 local kMermaidClz = 'mermaid'
 local kPositionedRefs = 'positioned-refs'
 local kTblColWidths = "tbl-colwidths"
@@ -63,6 +65,63 @@ local kIncludeInHeader = "include-in-header"
 
 local kCopyright = "copyright"
 local kLicense = "license"
+
+-- for a given language, the comment character(s)
+local kLangCommentChars = {
+  r = {"#"},
+  python = {"#"},
+  julia = {"#"},
+  scala = {"//"},
+  matlab = {"%"},
+  csharp = {"//"},
+  fsharp = {"//"},
+  c = {"/*", "*/"},
+  css = {"/*", "*/"},
+  sas = {"*", ";"},
+  powershell = {"#"},
+  bash = {"#"},
+  sql = {"--"},
+  mysql = {"--"},
+  psql = {"--"},
+  lua = {"--"},
+  cpp = {"//"},
+  cc = {"//"},
+  stan = {"#"},
+  octave = {"#"},
+  fortran = {"!"},
+  fortran95 = {"!"},
+  awk = {"#"},
+  gawk = {"#"},
+  stata = {"*"},
+  java = {"//"},
+  groovy = {"//"},
+  sed = {"#"},
+  perl = {"#"},
+  ruby = {"#"},
+  tikz = {"%"},
+  js = {"//"},
+  d3 = {"//"},
+  node = {"//"},
+  sass = {"//"},
+  scss = {"//"},
+  coffee = {"#"},
+  go = {"//"},
+  asy = {"//"},
+  haskell = {"--"},
+  dot = {"//"},
+  mermaid = {"%%"},
+  apl = {"⍝"},
+  yaml = {"#"},
+  json = {"//"},
+  latex = {"%"},
+  typescript = {"//"},
+  swift = { "//" },
+  javascript = { "//"},
+  elm = { "#" },
+  vhdl = { "--"},
+  html = { "<!--", "-->"},
+  markdown = {"<!--", "-->"}
+}
 
 return {
   kCitation = kCitation,
@@ -109,6 +168,8 @@ return {
   kContentHidden = kContentHidden,
   kWhenFormat = kWhenFormat,
   kUnlessFormat = kUnlessFormat,
+  kWhenMeta = kWhenMeta,
+  kUnlessMeta = kUnlessMeta,
   kWhenProfile = kWhenProfile,
   kUnlessProfile = kUnlessProfile,
   kMermaidClz = kMermaidClz,
@@ -125,4 +186,6 @@ return {
 
   kCopyright = kCopyright,
   kLicense = kLicense,
+
+  kLangCommentChars = kLangCommentChars
 }

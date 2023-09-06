@@ -58,6 +58,7 @@ import {
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
 import {
+  kProjectType,
   kProjectWatchInputs,
   ProjectContext,
   ProjectPreview,
@@ -95,6 +96,7 @@ import { findOpenPort, waitForPort } from "../../core/port.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -368,6 +370,7 @@ export function setPreviewFormat(
 export function handleRenderResult(
   file: string,
   renderResult: RenderResult,
+  project?: ProjectContext,
 ) {
   // print output created
   const finalOutput = renderResultFinalOutput(
@@ -377,7 +380,21 @@ export function handleRenderResult(
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
   }
-  info("Output created: " + finalOutput + "\n");
+  const projType = project
+    ? projectType(
+      project.config?.project?.[kProjectType],
+    )
+    : undefined;
+
+  if (projType && projType.filterOutputFile) {
+    info(
+      "Output created: " + projType.filterOutputFile(finalOutput) +
+        "\n",
+    );
+  } else {
+    info("Output created: " + finalOutput + "\n");
+  }
+
   return finalOutput;
 }
 
@@ -402,20 +419,21 @@ async function renderForPreview(
     flags,
     pandocArgs: pandocArgs,
     previewServer: true,
+    setProjectDir: project !== undefined,
   });
   if (renderResult.error) {
     throw renderResult.error;
   }
 
   // print output created
-  const finalOutput = handleRenderResult(file, renderResult);
+  const finalOutput = handleRenderResult(file, renderResult, project);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();
 
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references
-  // in css files, then fitler out the _files dir
+  // in css files, then filter out the _files dir
   file = normalizePath(file);
   const filesDir = join(dirname(file), inputFilesDir(file));
   const resourceFiles = renderResult.files.reduce(
@@ -761,6 +779,16 @@ function htmlFileRequestHandlerOptions(
             await renderHandler(renderFormat.identifier[kTargetFormat]);
           }
         }
+      }
+
+      // https://github.com/quarto-dev/quarto-cli/issues/5215
+      // return CORS requests as plain text so that OJS requests do
+      // not have formatting
+      if (
+        req.headers.get("sec-fetch-dest") === "empty" &&
+        req.headers.get("sec-fetch-mode") === "cors"
+      ) {
+        return;
       }
 
       if (isHtmlContent(file)) {

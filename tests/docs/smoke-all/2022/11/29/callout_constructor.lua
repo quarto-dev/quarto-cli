@@ -4,7 +4,6 @@ function Pandoc(doc)
     content = { pandoc.Div(pandoc.Plain("This is a note")) },
     title = "Note title"
   })
-  print(c)
   doc.blocks:insert(c)
   return doc
 end

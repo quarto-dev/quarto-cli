@@ -13,6 +13,7 @@ import { baseHandler, install } from "./base.ts";
 import { formatResourcePath } from "../resources.ts";
 import { join } from "path/mod.ts";
 import {
+  isIpynbOutput,
   isJavascriptCompatible,
   isLatexOutput,
   isMarkdownOutput,
@@ -418,7 +419,9 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
     };
 
     const makeDefault = async () => {
-      if (isJavascriptCompatible(handlerContext.options.format)) {
+      if (isIpynbOutput(handlerContext.options.format.pandoc)) {
+        return await makePng();
+      } else if (isJavascriptCompatible(handlerContext.options.format)) {
         return await makeJs();
       } else if (
         isMarkdownOutput(handlerContext.options.format, ["gfm"])

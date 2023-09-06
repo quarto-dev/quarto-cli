@@ -1,5 +1,5 @@
 <%
-const navbarToolsClass = (nav.navbar && nav.navbar.right) ? 'quarto-navbar-tools' : 'quarto-navbar-tools ms-auto';
+const navbarToolsClass = 'quarto-navbar-tools';
 const navbarTocLeft = nav['toc-location'] === "left" || nav['toc-location'] === "left-body";
 const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] === "right-body";
 %>
@@ -28,8 +28,8 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
           <% partial('navcollapse.ejs') %>
             <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
             <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-            <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
           </div> <!-- /navcollapse -->
+          <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
         <% } else { %>
           <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
           <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
@@ -58,11 +58,19 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
       onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <h1 class="quarto-secondary-nav-title"></h1>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
-      aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
-      onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+      <% if (nav.showBreadCrumbs) { %>
+        <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+        aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
+        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <% } else { %>
+        <a class="flex-grow-1 no-decor" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+        aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
+        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title"></h1>
+        </a>     
+      <% }  %>
       <% if (nav.sidebar && nav.sidebar.search) { %>
       <button type="button" class="btn quarto-search-button" aria-label="<%- nav.language['search'] %>" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>

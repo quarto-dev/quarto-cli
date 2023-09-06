@@ -8,6 +8,7 @@ import { netlifyProvider } from "./netlify/netlify.ts";
 import { ghpagesProvider } from "./gh-pages/gh-pages.ts";
 import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
+import { positCloudProvider } from "./posit-cloud/posit-cloud.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
 import { PublishProvider } from "./provider-types.ts";
 import { AccountToken, AccountTokenType } from "./provider-types.ts";
@@ -29,6 +30,7 @@ const kPublishProviders = [
   quartoPubProvider,
   ghpagesProvider,
   rsconnectProvider,
+  positCloudProvider,
   netlifyProvider,
   confluenceProvider,
 ];
@@ -38,6 +40,7 @@ export function publishProviders() {
   providers.push(quartoPubProvider);
   providers.push(ghpagesProvider);
   providers.push(rsconnectProvider);
+  providers.push(positCloudProvider);
   providers.push(netlifyProvider);
   providers.push(confluenceProvider);
   return providers;

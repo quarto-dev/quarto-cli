@@ -149,6 +149,8 @@ export class LogEventsHandler extends StdErrOutputHandler {
     });
   }
   handle(logRecord: LogRecord) {
+    if (this.level > logRecord.level) return;
+
     LogEventsHandler.handlers_.forEach((handler) =>
       handler(logRecord, super.format(logRecord, false))
     );

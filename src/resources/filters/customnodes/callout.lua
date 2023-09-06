@@ -234,7 +234,7 @@ function calloutDiv(node)
   local icon = node.icon
   local collapse = node.collapse
 
-  if calloutAppearance == constants.kCalloutAppearanceDefault and title == nil then
+  if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == "" then
     title = displayName(type)
   end
 
@@ -263,7 +263,7 @@ function calloutDiv(node)
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
   -- show a titled callout
-  if title ~= nil then
+  if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
 
     -- mark the callout as being titleed
     calloutDiv.attr.classes:insert("callout-titled")
@@ -339,7 +339,7 @@ function epubCallout(node)
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
 
-  if calloutAppearance == constants.kCalloutAppearanceDefault and title == nil then
+  if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == nil then
     title = displayName(type)
   end
   
@@ -398,7 +398,7 @@ function resolveCalloutContents(node, require_title)
     
   -- Add the titles and contents
   -- class_name 
-  if title == nil and require_title then 
+  if pandoc.utils.stringify(title) == "" and require_title then 
     ---@diagnostic disable-next-line: need-check-nil
     title = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end

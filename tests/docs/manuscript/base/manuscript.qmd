@@ -1,6 +1,0 @@
----
-title: My Manscript
----
-
-## Section 1
-This is a section of my manuscript what up.

@@ -79,6 +79,7 @@ import {
 } from "../../core/lib/mapped-text.ts";
 import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -661,11 +662,21 @@ export async function ojsCompile(
     };
 
     if (
-      cell.cell_type === "raw" ||
-      cell.cell_type === "markdown"
+      cell.cell_type === "raw"
     ) {
       // The lua filter is in charge of this, we're a NOP.
       ls.push(cell.sourceVerbatim);
+    } else if (cell.cell_type === "markdown") {
+      // Convert to native OJS inline expression syntax then delegate to lua filter
+      // TODO: for now we just do this to detect use of `{ojs} x` syntax and then
+      // throw an error indicating its unsupported. This code needs to be updated
+      // to handle mapped strings correctly.
+      const markdown = executeInlineCodeHandlerMapped(
+        "ojs",
+        (exec) => "${" + exec + "}",
+      )(cell.sourceVerbatim);
+
+      ls.push(markdown);
     } else if (cell.cell_type?.language === "ojs") {
       await handleOJSCell(cell);
     } else {

@@ -8,6 +8,7 @@ import { Document } from "../core/deno-dom.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kArticleNotebookLabel,
   kBackToTop,
   kBaseFormat,
   kCache,
@@ -18,11 +19,13 @@ import {
   kCalloutWarningCaption,
   kCiteMethod,
   kCiteproc,
+  kClearCellOptions,
   kCodeFold,
   kCodeLine,
   kCodeLineNumbers,
   kCodeLines,
   kCodeLink,
+  kCodeLinksTitle,
   kCodeOverflow,
   kCodeSummary,
   kCodeTools,
@@ -89,6 +92,7 @@ import {
   kIncludeInHeader,
   kInlineIncludes,
   kIpynbFilters,
+  kIpynbProduceSourceNotebook,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -107,6 +111,8 @@ import {
   kLatexOutputDir,
   kLatexTinyTex,
   kLatexTlmgrOpts,
+  kLaunchBinderTitle,
+  kLaunchDevContainerTitle,
   kLinkExternalFilter,
   kLinkExternalIcon,
   kLinkExternalNewwindow,
@@ -120,6 +126,7 @@ import {
   kListingPageFieldReadingTime,
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
+  kListingPageFieldWordCount,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -128,19 +135,26 @@ import {
   kListingPageOrderByDefault,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
   kListings,
+  kManuscriptMecaBundle,
   kMarkdownHeadings,
   kMathjax,
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
   kNotebookLinks,
+  kNotebookPreserveCells,
+  kNotebookPreviewBack,
+  kNotebookPreviewDownload,
+  kNotebookPreviewDownloadSrc,
   kNotebooks,
   kNotebookSubarticles,
   kNotebookView,
   kNotebookViewStyle,
   kNumberOffset,
   kNumberSections,
+  kOtherLinksTitle,
   kOutput,
   kOutputDivs,
   kOutputExt,
@@ -159,11 +173,11 @@ import {
   kRepoActionLinksIssue,
   kRepoActionLinksSource,
   kResourcePath,
-  kSearch,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
   kSearchHideMatchesText,
+  kSearchLabel,
   kSearchMatchingDocumentsText,
   kSearchMoreMatchText,
   kSearchNoResultsText,
@@ -192,6 +206,7 @@ import {
   kTitleBlockAffiliationSingle,
   kTitleBlockAuthorPlural,
   kTitleBlockAuthorSingle,
+  kTitleBlockKeywords,
   kTitleBlockModified,
   kTitleBlockPublished,
   kTitlePrefix,
@@ -324,7 +339,9 @@ export interface FormatExtras {
   [kFilterParams]?: Record<string, unknown>;
   [kNotebooks]?: NotebookPreviewDescriptor[];
   postprocessors?: Array<
-    (output: string) => Promise<{ supporting: string[] } | void>
+    (
+      output: string,
+    ) => Promise<{ supporting?: string[]; resources?: string[] } | void>
   >;
   templateContext?: FormatTemplateContext;
   html?: {
@@ -378,6 +395,7 @@ export interface Format {
     services: RenderServices,
     offset?: string,
     project?: ProjectContext,
+    quiet?: boolean,
   ) => Promise<FormatExtras>;
   formatPreviewFile?: (
     file: string,
@@ -437,6 +455,9 @@ export interface FormatRender {
     | boolean
     | NotebookPreviewDescriptor
     | NotebookPreviewDescriptor[];
+  [kNotebookPreserveCells]?: boolean;
+  [kClearCellOptions]?: boolean;
+  [kIpynbProduceSourceNotebook]?: boolean;
 }
 
 export interface FormatExecute {
@@ -552,6 +573,10 @@ export interface FormatLanguage {
   [kTocTitleDocument]?: string;
   [kTocTitleWebsite]?: string;
   [kRelatedFormatsTitle]?: string;
+  [kOtherLinksTitle]?: string;
+  [kCodeLinksTitle]?: string;
+  [kLaunchDevContainerTitle]?: string;
+  [kLaunchBinderTitle]?: string;
   [kSourceNotebookPrefix]?: string;
   [kRelatedNotebooksTitle]?: string;
   [kCalloutTipCaption]?: string;
@@ -569,6 +594,7 @@ export interface FormatLanguage {
   [kTitleBlockAuthorPlural]?: string;
   [kTitleBlockPublished]?: string;
   [kTitleBlockModified]?: string;
+  [kTitleBlockKeywords]?: string;
   [kSectionTitleFootnotes]?: string;
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
@@ -585,7 +611,7 @@ export interface FormatLanguage {
   [kRepoActionLinksEdit]?: string;
   [kRepoActionLinksSource]?: string;
   [kRepoActionLinksIssue]?: string;
-  [kSearch]?: string;
+  [kSearchLabel]?: string;
   [kSearchNoResultsText]?: string;
   [kCopyButtonTooltip]?: string;
   [kCopyButtonTooltipSuccess]?: string;
@@ -634,10 +660,17 @@ export interface FormatLanguage {
   [kListingPageFieldFileModified]?: string;
   [kListingPageFieldSubtitle]?: string;
   [kListingPageFieldReadingTime]?: string;
+  [kListingPageFieldWordCount]?: string;
   [kListingPageFieldCategories]?: string;
   [kListingPageMinutesCompact]?: string;
+  [kListingPageWords]?: string;
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
+  [kNotebookPreviewDownload]?: string;
+  [kNotebookPreviewDownloadSrc]?: string;
+  [kNotebookPreviewBack]?: string;
+  [kArticleNotebookLabel]?: string;
+  [kManuscriptMecaBundle]?: string;
 
   // langauge variations e.g. eg, fr, etc.
   [key: string]: unknown;
@@ -650,8 +683,16 @@ export interface FormatTemplateContext {
 
 export interface FormatLink {
   icon?: string;
-  title: string;
+  text: string;
   href: string;
   order?: number;
   attr?: Record<string, string>;
+}
+
+export interface OtherLink {
+  icon?: string;
+  text: string;
+  href: string;
+  rel?: string;
+  target?: string;
 }

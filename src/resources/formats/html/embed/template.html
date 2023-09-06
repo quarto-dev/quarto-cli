@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  lang="$lang$"
+  xml:lang="$lang$"
+  $if(dir)$
+  dir="$dir$"
+  $endif$
+>
+  <head>
+    $metadata.html()$
+
+    <style>
+      $styles.html()$
+    </style>
+
+    <style>
+      body.hypothesis-enabled #quarto-embed-header {
+        padding-right: 36px;
+      }
+
+      #quarto-embed-header {
+        height: 3em;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: solid 1px;
+      }
+
+      #quarto-embed-header h6 {
+        font-size: 1.1em;
+        padding-top: 0.6em;
+        margin-left: 1em;
+        margin-right: 1em;
+        font-weight: 400;
+      }
+
+      #quarto-embed-header a.quarto-back-link,
+      #quarto-embed-header a.quarto-download-embed {
+        font-size: 0.8em;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 1em;
+        margin-right: 1em;
+      }
+
+      .quarto-back-container {
+        padding-left: 0.5em;
+        display: flex;
+      }
+
+      .headroom {
+          will-change: transform;
+          transition: transform 200ms linear;
+      }
+
+      .headroom--pinned {
+          transform: translateY(0%);
+      }
+
+      .headroom--unpinned {
+          transform: translateY(-100%);
+      }      
+    </style>
+
+    <script>
+    window.document.addEventListener("DOMContentLoaded", function () {
+
+      var header = window.document.querySelector("#quarto-embed-header");
+      const titleBannerEl = window.document.querySelector("body > #title-block-header");
+      if (titleBannerEl) {
+        titleBannerEl.style.paddingTop = header.clientHeight + "px";
+      }
+      const contentEl = window.document.getElementById('quarto-content');
+      for (const child of contentEl.children) {
+        child.style.paddingTop = header.clientHeight + "px";
+        child.style.marginTop = "1em";
+      }
+
+      // Use the article root if the `back` call doesn't work. This isn't perfect
+      // but should typically work
+      window.quartoBackToArticle = () => {
+        var currentUrl = window.location.href;
+        window.history.back();
+        setTimeout(() => {
+            // if location was not changed in 100 ms, then there is no history back
+            if(currentUrl === window.location.href){              
+$if(nbMeta.backHref)$
+                // redirect to site root
+                window.location.href = "$nbMeta.backHref$";
+$else$
+                // redirect to site root
+                window.location.href = '/';
+$endif$
+            }
+        }, 100);
+      }
+
+      const headroom = new window.Headroom(header, {
+        tolerance: 5,
+        onPin: function () {
+        },
+        onUnpin: function () {
+        },
+      });
+      headroom.init();
+    });
+    </script>
+
+    <!-- htmldependencies:E3FAD763 -->
+    $for(header-includes)$ $header-includes$ $endfor$ $if(math)$ $math$ $endif$
+    $for(css)$
+    <link rel="stylesheet" href="$css$" />
+    $endfor$
+  </head>
+
+  <body>
+    <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
+      
+      <a onclick="window.quartoBackToArticle(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>
+      <h6><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>
+
+      $if(nbMeta.downloadHref)$
+      <a
+        href="$nbMeta.downloadHref$"
+        class="btn btn-primary quarto-download-embed"
+        data-noresolveinput="true"
+        $if(nbMeta.downloadFile)$download="$nbMeta.downloadFile$"$endif$
+        >$nbMeta.downloadLabel$</a
+      >
+      $endif$
+    </div>
+
+    $for(include-before)$ $include-before$ $endfor$ $if(title)$
+    $title-block.html()$ $endif$ $if(toc)$ $toc.html()$ $endif$ $body$
+    $for(include-after)$ $include-after$ $endfor$
+  </body>
+</html>

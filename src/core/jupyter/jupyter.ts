@@ -141,8 +141,8 @@ import {
   JupyterToMarkdownResult,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
-import { lines } from "../text.ts";
-import { readYamlFromMarkdown } from "../yaml.ts";
+import { lines, trimEmptyLines } from "../lib/text.ts";
+import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import {
   normalizePath,
@@ -159,6 +159,10 @@ import {
   isJatsOutput,
 } from "../../config/format.ts";
 import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import {
+  resolveUserExpressions,
+  userExpressionsFromCell,
+} from "./jupyter-inline.ts";
 
 export const kQuartoMimeType = "quarto_mimetype";
 export const kQuartoOutputOrder = "quarto_order";
@@ -254,7 +258,7 @@ const countTicks = (code: string[]) => {
   // FIXME do we need trim() here?
   const countLeadingTicks = (s: string) => {
     // count leading ticks using regexps
-    const m = s.match(/^`+/);
+    const m = s.match(/^\s*`+/);
     if (m) {
       return m[0].length;
     } else {
@@ -294,12 +298,12 @@ export async function quartoMdToJupyter(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^(\\s*)```+\\s*\\{" + kernelspec.language.toLowerCase() +
+    "^(\\s*)(```+)\\s*\\{" + kernelspec.language.toLowerCase() +
       "( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^(\s*)```/;
-  const endCodeRegEx = (indent = "") => {
-    return new RegExp("^" + indent + "```\\s*$");
+  const endCodeRegEx = (indent = "", backtickCount = 0) => {
+    return new RegExp("^" + indent + "`".repeat(backtickCount) + "\\s*$");
   };
 
   // read the file into lines
@@ -343,7 +347,7 @@ export async function quartoMdToJupyter(
           delete yaml.jupyter;
           // write the cell only if there is metadata to write
           if (Object.keys(yaml).length > 0) {
-            const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
+            const yamlFrontMatter = trimEmptyLines(lines(stringify(yaml, {
               indent: 2,
               lineWidth: -1,
               sortKeys: false,
@@ -364,7 +368,7 @@ export async function quartoMdToJupyter(
           kernelspec.language.toLowerCase(),
           cell.source,
         );
-        if (yaml) {
+        if (yaml && !Array.isArray(yaml) && typeof yaml === "object") {
           // use label as id if necessary
           if (includeIds && yaml[kCellLabel] && !yaml[kCellId]) {
             yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
@@ -401,7 +405,7 @@ export async function quartoMdToJupyter(
       }
 
       // if the source is empty then don't add it
-      cell.source = mdTrimEmptyLines(cell.source);
+      cell.source = trimEmptyLines(cell.source);
       if (cell.source.length > 0) {
         nb.cells.push(cell);
       }
@@ -414,7 +418,8 @@ export async function quartoMdToJupyter(
   let parsedFrontMatter = false,
     inYaml = false,
     inCodeCell = false,
-    inCode = false;
+    inCode = false,
+    backtickCount = 0;
   for (const line of lines(inputContent)) {
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
@@ -429,13 +434,16 @@ export async function quartoMdToJupyter(
         inYaml = true;
       }
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line)) {
+    else if (!inCodeCell && startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
       codeIndent = line.match(startCodeCellRegEx)![1];
+      backtickCount = line.match(startCodeCellRegEx)![2].length;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx(codeIndent).test(line)) {
+    } else if (
+      inCodeCell && endCodeRegEx(codeIndent, backtickCount).test(line)
+    ) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
@@ -450,7 +458,7 @@ export async function quartoMdToJupyter(
       }
 
       // begin code block: ^```
-    } else if (startCodeRegEx.test(line)) {
+    } else if (!inCodeCell && startCodeRegEx.test(line)) {
       codeIndent = line.match(startCodeRegEx)![1];
       inCode = true;
       lineBuffer.push(line);
@@ -461,7 +469,6 @@ export async function quartoMdToJupyter(
 
   // if there is still a line buffer then make it a markdown cell
   flushLineBuffer("markdown");
-
   return nb;
 }
 
@@ -488,9 +495,16 @@ export async function jupyterKernelspecFromMarkdown(
         }
       }
     }
-  }
-
-  if (typeof (yamlJupyter) === "string") {
+    return Promise.reject(
+      new Error(
+        `No kernel found for any language checked (${
+          Array.from(languages).join(", ")
+        }) in any of the kernelspecs checked (${
+          Array.from(kernelspecs.values()).map((k) => k.name).join(", ")
+        }).`,
+      ),
+    );
+  } else if (typeof (yamlJupyter) === "string") {
     const kernel = yamlJupyter;
     const kernelspec = await jupyterKernelspec(kernel);
     if (kernelspec) {
@@ -663,7 +677,7 @@ export async function jupyterToMarkdown(
     ? bookFixups
     : undefined;
 
-  nb = fixupJupyterNotebook(nb, fixups);
+  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb
@@ -681,6 +695,8 @@ export async function jupyterToMarkdown(
 
   // track current code cell index (for progress)
   let codeCellIndex = 0;
+
+  let frontMatter = undefined;
 
   for (let i = 0; i < nb.cells.length; i++) {
     // Collection the markdown for this cell
@@ -720,7 +736,21 @@ export async function jupyterToMarkdown(
     // markdown from cell
     switch (cell.cell_type) {
       case "markdown":
-        md.push(...mdFromContentCell(cell, options));
+        {
+          const markdownOptions = {
+            ...options,
+          };
+
+          // If this is the front matter cell, don't wrap it in
+          // a cell envelope, as it need to be remain discoverable
+          if (frontMatter === undefined) {
+            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            if (frontMatter) {
+              markdownOptions.preserveCellMetadata = false;
+            }
+          }
+          md.push(...mdFromContentCell(cell, markdownOptions));
+        }
         break;
       case "raw":
         md.push(...mdFromRawCell(cell, options));
@@ -868,7 +898,7 @@ export function jupyterCellOptionsAsComment(
       ...stringifyOptions,
     });
     const commentChars = langCommentChars(language);
-    const yamlOutput = mdTrimEmptyLines(lines(cellYaml)).map((line) => {
+    const yamlOutput = trimEmptyLines(lines(cellYaml)).map((line) => {
       line = optionCommentPrefix(commentChars[0]) + line +
         optionCommentSuffix(commentChars[1]);
       return line + "\n";
@@ -885,12 +915,18 @@ export function mdFromContentCell(
 ) {
   const contentCellEnvelope = createCellEnvelope(["cell", "markdown"], options);
 
-  // process each file attachment
+  // clone source for manipulation
+  const source = ld.cloneDeep(cell.source) as string[];
+
+  // handle user expressions (if any)
+  if (options && source) {
+    const userExpressions = userExpressionsFromCell(cell);
+    resolveUserExpressions(source, userExpressions, options);
+  }
 
   // if we have attachments then extract them and markup the source
-  if (options && cell.attachments && cell.source) {
+  if (options && cell.attachments && source) {
     // close source so we can modify it
-    const source = ld.cloneDeep(cell.source) as string[];
     Object.keys(cell.attachments).forEach((file, index) => {
       const attachment = cell.attachments![file];
       for (const mimeType of Object.keys(attachment)) {
@@ -924,10 +960,28 @@ export function mdFromContentCell(
         }
       }
     });
+  }
 
-    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
-  } else {
-    return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(cell.source));
+  return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
+}
+
+export function mdFormatOutput(format: string, source: string[]) {
+  const ticks = ticksForCode(source);
+  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
+}
+
+export function mdRawOutput(mimeType: string, source: string[]) {
+  switch (mimeType) {
+    case kTextHtml:
+      return mdHtmlOutput(source);
+    case kTextLatex:
+      return mdLatexOutput(source);
+    case kRestructuredText:
+      return mdFormatOutput("rst", source);
+    case kApplicationRtf:
+      return mdFormatOutput("rtf", source);
+    case kApplicationJavascript:
+      return mdScriptOutput(mimeType, source);
   }
 }
 
@@ -939,21 +993,21 @@ export function mdFromRawCell(
 
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
-    switch (mimeType) {
-      case kTextHtml:
-        return rawCellEnvelope(cell.id, mdHtmlOutput(cell.source));
-      case kTextLatex:
-        return rawCellEnvelope(cell.id, mdLatexOutput(cell.source));
-      case kRestructuredText:
-        return rawCellEnvelope(cell.id, mdFormatOutput("rst", cell.source));
-      case kApplicationRtf:
-        return rawCellEnvelope(cell.id, mdFormatOutput("rtf", cell.source));
-      case kApplicationJavascript:
-        return rawCellEnvelope(cell.id, mdScriptOutput(mimeType, cell.source));
+    const rawOutput = mdRawOutput(mimeType, cell.source);
+    if (rawOutput) {
+      return rawCellEnvelope(cell.id, rawOutput);
     }
   }
 
-  return mdFromContentCell(cell, options);
+  return mdFromContentCell(
+    cell,
+    options
+      ? {
+        ...options,
+        preserveCellMetadata: false,
+      }
+      : undefined,
+  );
 }
 
 export function mdEnsureTrailingNewline(source: string[]) {
@@ -1194,18 +1248,6 @@ async function mdFromCodeCell(
   // write div enclosure
   const divMd: string[] = [`::: {`];
 
-  // If we're targeting ipynb output, include the id in the
-  // markdown. This will cause the id to be included in the
-  // rendered notebook. Note that elsewhere we forard the
-  // label to the id, so that can appear as the cell id.
-  if (
-    (isIpynbOutput(options.executeOptions.format.pandoc) ||
-      isJatsOutput(options.executeOptions.format.pandoc) ||
-      isHtmlOutput(options.executeOptions.format.pandoc)) && cell.id
-  ) {
-    divMd.push(`#${cell.id} `);
-  }
-
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
     kJupyterCellStandardMetadataKeys,
@@ -1219,6 +1261,16 @@ async function mdFromCodeCell(
   const labelCellContainer = shouldLabelCellContainer(cell, outputs, options);
   if (label && labelCellContainer) {
     divMd.push(`${label} `);
+  } else if (
+    (isIpynbOutput(options.executeOptions.format.pandoc) ||
+      isJatsOutput(options.executeOptions.format.pandoc) ||
+      isHtmlOutput(options.executeOptions.format.pandoc)) && cell.id
+  ) {
+    // If we're targeting ipynb output, include the id in the
+    // markdown. This will cause the id to be included in the
+    // rendered notebook. Note that elsewhere we forard the
+    // label to the id, so that can appear as the cell id.
+    divMd.push(`#${cell.id} `);
   }
 
   // resolve caption (main vs. sub)
@@ -1304,38 +1356,40 @@ async function mdFromCodeCell(
     );
 
     md.push(ticks + " {");
-    if (typeof cell.options[kCellLstLabel] === "string") {
-      let label = cell.options[kCellLstLabel]!;
-      if (!label.startsWith("#")) {
-        label = "#" + label;
+    if (!options.preserveCodeCellYaml) {
+      if (typeof cell.options[kCellLstLabel] === "string") {
+        let label = cell.options[kCellLstLabel]!;
+        if (!label.startsWith("#")) {
+          label = "#" + label;
+        }
+        md.push(label + " ");
       }
-      md.push(label + " ");
-    }
-    if (!fenced) {
-      md.push("." + (cellOptions.language || options.language));
-    }
-    md.push(" .cell-code");
-    if (hideCode(cell, options)) {
-      md.push(" .hidden");
-    }
+      if (!fenced) {
+        md.push("." + (cellOptions.language || options.language));
+      }
+      md.push(" .cell-code");
+      if (hideCode(cell, options)) {
+        md.push(" .hidden");
+      }
 
-    if (cell.options[kCodeOverflow] === "wrap") {
-      md.push(" .code-overflow-wrap");
-    } else if (cell.options[kCodeOverflow] === "scroll") {
-      md.push(" .code-overflow-scroll");
-    }
+      if (cell.options[kCodeOverflow] === "wrap") {
+        md.push(" .code-overflow-wrap");
+      } else if (cell.options[kCodeOverflow] === "scroll") {
+        md.push(" .code-overflow-scroll");
+      }
 
-    if (typeof cell.options[kCellLstCap] === "string") {
-      md.push(` lst-cap=\"${cell.options[kCellLstCap]}\"`);
-    }
-    if (typeof cell.options[kCodeFold] !== "undefined") {
-      md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
-    }
-    if (typeof cell.options[kCodeSummary] !== "undefined") {
-      md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
-    }
-    if (typeof cell.options[kCodeLineNumbers] !== "undefined") {
-      md.push(` code-line-numbers=\"${cell.options[kCodeLineNumbers]}\"`);
+      if (typeof cell.options[kCellLstCap] === "string") {
+        md.push(` lst-cap=\"${cell.options[kCellLstCap]}\"`);
+      }
+      if (typeof cell.options[kCodeFold] !== "undefined") {
+        md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
+      }
+      if (typeof cell.options[kCodeSummary] !== "undefined") {
+        md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
+      }
+      if (typeof cell.options[kCodeLineNumbers] !== "undefined") {
+        md.push(` code-line-numbers=\"${cell.options[kCodeLineNumbers]}\"`);
+      }
     }
     md.push("}\n");
     let source = ld.cloneDeep(cell.source);
@@ -1344,15 +1398,18 @@ async function mdFromCodeCell(
         line.search(/echo:\s+fenced/) === -1
       );
       if (optionsSource.length > 0) {
-        source = mdTrimEmptyLines(source, "trailing");
+        source = trimEmptyLines(source, "trailing");
       } else {
-        source = mdTrimEmptyLines(source, "all");
+        source = trimEmptyLines(source, "all");
       }
       source.unshift(...optionsSource);
       source.unshift("```{{" + options.language + "}}\n");
       source.push("\n```\n");
     } else if (cell.optionsSource.length > 0) {
-      source = mdTrimEmptyLines(source, "leading");
+      source = trimEmptyLines(source, "leading");
+    }
+    if (options.preserveCodeCellYaml) {
+      md.push(...cell.optionsSource);
     }
     md.push(...source, "\n");
     md.push(ticks + "\n");
@@ -1566,14 +1623,17 @@ async function mdFromCodeCell(
 
 function isDiscadableTextExecuteResult(output: JupyterOutput) {
   if (output.output_type === "execute_result") {
-    const textPlain = (output as JupyterOutputDisplayData).data
-      ?.[kTextPlain] as string[] | undefined;
-    if (textPlain && textPlain.length) {
-      return [
-        "[<matplotlib",
-        "<seaborn.",
-        "<ggplot:",
-      ].some((startsWith) => textPlain[0].startsWith(startsWith));
+    const data = (output as JupyterOutputDisplayData).data;
+    if (Object.keys(data).length === 1) {
+      const textPlain = data?.[kTextPlain] as string[] | undefined;
+      if (textPlain && textPlain.length) {
+        return [
+          "[<matplotlib",
+          "<matplotlib",
+          "<seaborn.",
+          "<ggplot:",
+        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+      }
     }
   }
   return false;
@@ -1820,11 +1880,6 @@ function mdMarkdownOutput(md: string[]) {
   return md.join("") + "\n";
 }
 
-function mdFormatOutput(format: string, source: string[]) {
-  const ticks = ticksForCode(source);
-  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
-}
-
 function mdLatexOutput(latex: string[]) {
   return mdFormatOutput("tex", latex);
 }
@@ -1852,36 +1907,6 @@ function mdScriptOutput(mimeType: string, script: string[]) {
     "\n</script>",
   ];
   return mdHtmlOutput(scriptTag);
-}
-
-function mdTrimEmptyLines(
-  lines: string[],
-  trim: "leading" | "trailing" | "all" = "all",
-) {
-  // trim leading lines
-  if (trim === "all" || trim === "leading") {
-    const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines = lines.slice(firstNonEmpty);
-  }
-
-  // trim trailing lines
-  if (trim === "all" || trim === "trailing") {
-    let lastNonEmpty = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines = lines.slice(0, lastNonEmpty + 1);
-    }
-  }
-
-  return lines;
 }
 
 function mdCodeOutput(code: string[], clz?: string) {

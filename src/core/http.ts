@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, extname, join, posix } from "path/mod.ts";
+import { basename, extname, join, normalize, posix } from "path/mod.ts";
 import { error, info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
@@ -150,6 +150,11 @@ export function httpFileRequestHandler(
         }
       }
     } catch (e) {
+      // it's possible for an exception to occur before we've normalized the path
+      // so we need to renormalize it here
+      if (fsPath) {
+        fsPath = normalize(fsPath);
+      }
       response = await serveFallback(
         req,
         e,
@@ -235,6 +240,7 @@ export function maybeDisplaySocketError(e: unknown) {
 
 export function serveRedirect(url: string): Response {
   const headers = new Headers();
+  headers.set("Cache-Control", "no-store, max-age=0");
   headers.set("Location", url);
   return new Response(null, {
     status: 301,

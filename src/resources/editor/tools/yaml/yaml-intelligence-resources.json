@@ -1020,7 +1020,7 @@
       },
       "description": {
         "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
       }
     },
     {
@@ -2243,6 +2243,13 @@
                       "schema": "boolean",
                       "description": "Provide button for copying search link"
                     },
+                    "keyboard-shortcut": {
+                      "maybeArrayOf": {
+                        "string": {
+                          "description": "One or more keys that will act as a shortcut to launch search (single characters)"
+                        }
+                      }
+                    },
                     "algolia": {
                       "object": {
                         "properties": {
@@ -2568,6 +2575,11 @@
               "description": "Provide a 'back to top' navigation button"
             }
           },
+          "bread-crumbs": {
+            "boolean": {
+              "description": "Whether to show navigation breadcrumbs for pages more than 1 level deep"
+            }
+          },
           "page-footer": {
             "anyOf": [
               "string",
@@ -2604,6 +2616,33 @@
               }
             ],
             "description": "Publish twitter card metadata"
+          },
+          "other-links": {
+            "schema": {
+              "ref": "other-links"
+            },
+            "tags": {
+              "formats": [
+                "$html-doc"
+              ]
+            },
+            "description": "A list of other links to appear below the TOC."
+          },
+          "code-links": {
+            "schema": {
+              "anyOf": [
+                "boolean",
+                {
+                  "ref": "other-links"
+                }
+              ]
+            },
+            "tags": {
+              "formats": [
+                "$html-doc"
+              ]
+            },
+            "description": "A list of codes links to appear with this document."
           }
         }
       }
@@ -2764,6 +2803,44 @@
       "id": "chapter-list",
       "arrayOf": {
         "ref": "chapter-item"
+      }
+    },
+    {
+      "id": "other-links",
+      "arrayOf": {
+        "object": {
+          "properties": {
+            "text": {
+              "string": {
+                "description": "The text for the link."
+              }
+            },
+            "href": {
+              "string": {
+                "description": "The href for the link."
+              }
+            },
+            "icon": {
+              "string": {
+                "description": "The bootstrap icon name for the link."
+              }
+            },
+            "rel": {
+              "string": {
+                "description": "The rel attribute value for the link."
+              }
+            },
+            "target": {
+              "string": {
+                "description": "The target attribute value for the link."
+              }
+            }
+          },
+          "required": [
+            "text",
+            "href"
+          ]
+        }
       }
     },
     {
@@ -3099,8 +3176,13 @@
                     "categories": {
                       "maybeArrayOf": {
                         "string": {
-                          "description": "A list of categories for which to create separate RSS feeds containing only posts with that category."
+                          "description": "A list of categories for which to create separate RSS feeds containing only posts with that category"
                         }
+                      }
+                    },
+                    "xml-stylesheet": {
+                      "path": {
+                        "description": "The path to an XML stylesheet (XSL file) used to style the RSS feed."
                       }
                     }
                   }
@@ -4172,12 +4254,25 @@
                 "description": "The input document that will serve as the root document for this manuscript"
               }
             },
+            "code-links": {
+              "anyOf": [
+                "boolean",
+                {
+                  "maybeArrayOf": {
+                    "anyOf": [
+                      "object",
+                      "string"
+                    ]
+                  }
+                }
+              ]
+            },
             "manuscript-url": {
               "string": {
                 "description": "The deployed url for this manuscript"
               }
             },
-            "meca-archive": {
+            "meca-bundle": {
               "anyOf": [
                 "boolean",
                 "string"
@@ -4498,7 +4593,7 @@
       "default": false,
       "description": {
         "short": "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
-        "long": "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package).\n"
+        "long": "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true`.\n"
       }
     },
     {
@@ -4571,7 +4666,7 @@
       },
       "description": {
         "short": "Show a thick left border on code blocks.",
-        "long": "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.=\n"
+        "long": "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.\n"
       }
     },
     {
@@ -7150,6 +7245,7 @@
             "enum": [
               "default",
               "plain",
+              "manuscript",
               "none"
             ]
           }
@@ -7346,7 +7442,7 @@
   ],
   "schema/document-library.yml": [
     {
-      "name": "reveal-js-url",
+      "name": "revealjs-url",
       "schema": "path",
       "tags": {
         "formats": [
@@ -7440,7 +7536,7 @@
                 {
                   "object": {
                     "properties": {
-                      "title": {
+                      "text": {
                         "string": {
                           "description": "The title for this alternative link."
                         }
@@ -7489,6 +7585,48 @@
         "short": "Controls the display of links to notebooks that provided embedded content or are created from documents.",
         "long": "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
       }
+    },
+    {
+      "name": "other-links",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          {
+            "enum": [
+              false
+            ]
+          },
+          {
+            "ref": "other-links"
+          }
+        ]
+      },
+      "description": "A list of links that should be displayed below the table of contents in an `Other Links` section."
+    },
+    {
+      "name": "code-links",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "schema": {
+        "anyOf": [
+          {
+            "enum": [
+              false
+            ]
+          },
+          {
+            "ref": "other-links"
+          }
+        ]
+      },
+      "description": "A list of links that should be displayed below the table of contents in an `Code Links` section."
     },
     {
       "name": "notebook-subarticles",
@@ -7542,6 +7680,26 @@
       },
       "hidden": true,
       "description": "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
+    },
+    {
+      "name": "notebook-preview-options",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "schema": {
+        "object": {
+          "properties": {
+            "back": {
+              "boolean": {
+                "description": "Whether to show a back button in the notebook preview."
+              }
+            }
+          }
+        }
+      },
+      "description": "Options for controlling the display and behavior of Notebook previews."
     }
   ],
   "schema/document-listing.yml": [
@@ -8061,7 +8219,7 @@
       "name": "section-divs",
       "tags": {
         "formats": [
-          "$html-files"
+          "$html-doc"
         ]
       },
       "schema": "boolean",
@@ -8896,7 +9054,7 @@
       },
       "description": {
         "short": "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- 'column': In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
+        "long": "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
       }
     }
   ],
@@ -9534,6 +9692,19 @@
     }
   ],
   "schema/document-reveal-print.yml": [
+    {
+      "name": "pdf-max-pages-per-slide",
+      "tags": {
+        "formats": [
+          "revealjs"
+        ]
+      },
+      "schema": "number",
+      "description": {
+        "short": "Slides that are too tall to fit within a single page will expand onto multiple pages",
+        "long": "\"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option\"\n"
+      }
+    },
     {
       "name": "pdf-separate-fragments",
       "tags": {
@@ -10239,7 +10410,8 @@
         "formats": [
           "!man",
           "!$docbook-all",
-          "!$jats-all"
+          "!$jats-all",
+          "!beamer"
         ]
       },
       "schema": "number",
@@ -10264,7 +10436,7 @@
       },
       "description": {
         "short": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-        "long": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`left` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+        "long": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
       }
     },
     {
@@ -10332,6 +10504,34 @@
       },
       "default": true,
       "description": "Setting this to false prevents this document from being included in searches."
+    },
+    {
+      "name": "repo-actions",
+      "schema": {
+        "anyOf": [
+          "boolean",
+          {
+            "maybeArrayOf": {
+              "enum": [
+                "none",
+                "edit",
+                "source",
+                "issue"
+              ],
+              "description": {
+                "short": "Links to source repository actions",
+                "long": "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
+              }
+            }
+          }
+        ]
+      },
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "description": "Setting this to false prevents the `repo-actions` from appearing on this page."
     },
     {
       "name": "aliases",
@@ -10735,7 +10935,8 @@
                 "completions": [
                   "default",
                   "website",
-                  "book. manuscript"
+                  "book",
+                  "manuscript"
                 ],
                 "description": "Project type (`default`, `website`, `book`, or `manuscript`)"
               }
@@ -11377,6 +11578,7 @@
           "tags": "object",
           "errorMessage": "string"
         },
+        "namingConvention": "ignore",
         "required": [
           "name",
           "schema",
@@ -11401,6 +11603,7 @@
   ],
   "pandoc/formats.yml": [
     "asciidoc",
+    "asciidoc_legacy",
     "asciidoctor",
     "beamer",
     "biblatex",
@@ -11678,6 +11881,10 @@
     "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
     "The url to the website’s cookie or privacy policy.",
     {
+      "short": "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+      "long": "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+    },
+    {
       "short": "The text to display for the cookie preferences link in the website\nfooter.",
       "long": ""
     },
@@ -11687,6 +11894,8 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Use external Algolia search index",
     "The name of the index to use when performing a search",
     "The unique ID used by Algolia to identify your application",
@@ -11748,10 +11957,13 @@
     "Markdown to place below margin content (text or file path)",
     "Provide next and previous article links in footer",
     "Provide a ‘back to top’ navigation button",
+    "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book title",
     "Description metadata for HTML version of book",
     "The path to the favicon for this website",
@@ -11799,6 +12011,10 @@
     "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
     "The url to the website’s cookie or privacy policy.",
     {
+      "short": "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+      "long": "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+    },
+    {
       "short": "The text to display for the cookie preferences link in the website\nfooter.",
       "long": ""
     },
@@ -11808,6 +12024,8 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Use external Algolia search index",
     "The name of the index to use when performing a search",
     "The unique ID used by Algolia to identify your application",
@@ -11869,10 +12087,13 @@
     "Markdown to place below margin content (text or file path)",
     "Provide next and previous article links in footer",
     "Provide a ‘back to top’ navigation button",
+    "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -11893,6 +12114,11 @@
     "The Digital Object Identifier for this book.",
     "Part title or path to input file",
     "Path to chapter input file",
+    "The text for the link.",
+    "The href for the link.",
+    "The bootstrap icon name for the link.",
+    "The rel attribute value for the link.",
+    "The target attribute value for the link.",
     {
       "short": "The role of this creator or contributor.",
       "long": "The role of this creator or contributor using <a href=\"https://loc.gov/marc/relators/relaterm.html\">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;‘author’,\n‘editor’) will attempt to be automatically translated."
@@ -11974,8 +12200,9 @@
       "short": "The language of the feed.",
       "long": "The language of the feed. Omitted if not specified. See <a href=\"https://www.rssboard.org/rss-language-codes\">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes."
     },
-    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
-    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category.",
+    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+    "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
+    "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
     {
       "short": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
       "long": "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href=\"https://deno.land/std@0.125.0/datetime\">here</a>."
@@ -12526,6 +12753,7 @@
     "The path to the locally referenced notebook.",
     "The title of the notebook when viewed.",
     "The url to use when viewing this notebook.",
+    "The url to use when downloading the notebook from the preview",
     "The input document that will serve as the root document for this\nmanuscript",
     "The deployed url for this manuscript",
     "Whether to generate a MECA bundle for this manuscript",
@@ -12750,7 +12978,7 @@
     },
     {
       "short": "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
-      "long": "Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href=\"https://downlit.r-lib.org/\">downlit</a> package)."
+      "long": "Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href=\"https://downlit.r-lib.org/\">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>."
     },
     {
       "short": "The style to use when displaying code annotations",
@@ -12762,7 +12990,7 @@
     },
     {
       "short": "Show a thick left border on code blocks.",
-      "long": "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder.="
+      "long": "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder."
     },
     {
       "short": "Show a background color for code blocks.",
@@ -13293,12 +13521,16 @@
       "short": "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
       "long": "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
     },
+    "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
+    "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section.",
     {
       "short": "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
       "long": "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
     },
     "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
     "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
+    "Options for controlling the display and behavior of Notebook\npreviews.",
+    "Whether to show a back button in the notebook preview.",
     "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
     "Mermaid diagram options",
     "The mermaid built-in theme to use.",
@@ -13591,6 +13823,10 @@
     "Monitor the hash and change slides accordingly",
     "Include the current fragment in the URL",
     "Play a subtle sound when changing slides",
+    {
+      "short": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+      "long": "“Slides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option”"
+    },
     "Prints each fragment on a separate slide",
     {
       "short": "Offset used to reduce the height of content within exported PDF\npages.",
@@ -13708,13 +13944,22 @@
     "Specify the number of section levels to include in the table of\ncontents. The default is 3",
     {
       "short": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), ‘left-body’, ‘right-body’).",
-      "long": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), ‘left-body’, ‘right-body’).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>left</code> - Show the Table of Contents in right\nmargin of the document. <code>left-body</code> - Show two Tables of\nContents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+      "long": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), ‘left-body’, ‘right-body’).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
     },
     "The title used for the table of contents.",
     "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
     "Print a list of figures in the document.",
     "Print a list of tables in the document.",
     "Setting this to false prevents this document from being included in\nsearches.",
+    "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
+    {
+      "short": "Links to source repository actions",
+      "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+    },
+    {
+      "short": "Links to source repository actions",
+      "long": "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+    },
     "URLs that alias this document, when included in a website.",
     {
       "short": "The path to a preview image for this document.",
@@ -13787,6 +14032,10 @@
     "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
     "The url to the website’s cookie or privacy policy.",
     {
+      "short": "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+      "long": "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+    },
+    {
       "short": "The text to display for the cookie preferences link in the website\nfooter.",
       "long": ""
     },
@@ -13796,6 +14045,8 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Use external Algolia search index",
     "The name of the index to use when performing a search",
     "The unique ID used by Algolia to identify your application",
@@ -13857,10 +14108,13 @@
     "Markdown to place below margin content (text or file path)",
     "Provide next and previous article links in footer",
     "Provide a ‘back to top’ navigation button",
+    "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -14091,6 +14345,10 @@
     "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
     "The url to the website’s cookie or privacy policy.",
     {
+      "short": "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+      "long": "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+    },
+    {
       "short": "The text to display for the cookie preferences link in the website\nfooter.",
       "long": ""
     },
@@ -14100,6 +14358,8 @@
     "Number of matches to display (defaults to 20)",
     "Matches after which to collapse additional results",
     "Provide button for copying search link",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+    "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
     "Use external Algolia search index",
     "The name of the index to use when performing a search",
     "The unique ID used by Algolia to identify your application",
@@ -14161,10 +14421,13 @@
     "Markdown to place below margin content (text or file path)",
     "Provide next and previous article links in footer",
     "Provide a ‘back to top’ navigation button",
+    "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
+    "A list of other links to appear below the TOC.",
+    "A list of codes links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -14554,12 +14817,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 158280,
+    "_internalId": 163216,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 158272,
+        "_internalId": 163208,
         "type": "enum",
         "enum": [
           "png",
@@ -14575,7 +14838,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 158279,
+        "_internalId": 163215,
         "type": "anyOf",
         "anyOf": [
           {

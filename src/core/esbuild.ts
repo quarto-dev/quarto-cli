@@ -1,12 +1,11 @@
 /*
-* esbuild.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * esbuild.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { execProcess } from "./process.ts";
-import { toolsPath } from "./resources.ts";
+import { architectureToolsPath } from "./resources.ts";
 
 export async function esbuildCompile(
   input: string,
@@ -20,7 +19,7 @@ export async function esbuildCompile(
     `--format=${format}`,
     ...(args || []),
   ];
-  
+
   return await esbuildCommand(fullArgs, input, workingDir);
 }
 
@@ -30,7 +29,7 @@ export async function esbuildCommand(
   workingDir: string,
 ) {
   const cmd = [
-    Deno.env.get("QUARTO_ESBUILD") || toolsPath("esbuild"),
+    Deno.env.get("QUARTO_ESBUILD") || architectureToolsPath("esbuild"),
     ...args,
   ];
 

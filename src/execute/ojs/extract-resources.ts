@@ -327,7 +327,7 @@ async function resolveImport(
 
   projectRoot = projectRoot ?? dirname(referent);
 
-  const deno = Deno.env.get("_")!;
+  const deno = Deno.execPath();
   const p = Deno.run({
     cmd: [
       deno,
@@ -440,7 +440,10 @@ quarto will only generate javascript files in ${
 
   let fixedSource = jsSource;
 
-  const ast = parseES6(jsSource, { sourceType: "module" });
+  const ast = parseES6(jsSource, {
+    ecmaVersion: "2020",
+    sourceType: "module",
+  });
   const recursionList: string[] = [];
   // deno-lint-ignore no-explicit-any
   const patchDeclaration = (node: any) => {

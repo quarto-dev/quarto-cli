@@ -41,7 +41,7 @@ const isWide = toolCount > 2; %>
       </ul>
     </div>
   <% } else { %>
-    <a href="<%- tool.href %>" title="<%- tool.text %>" class="quarto-navigation-tool px-1" aria-label="<%- tool['aria-label'] || tool.text %>"><i class="bi bi-<%- tool.icon %>"></i></a>
+    <a href="<%- tool.href %>" <%- tool.rel ? `rel="${tool.rel}"` : "" %> title="<%- tool.text %>" class="quarto-navigation-tool px-1" aria-label="<%- tool['aria-label'] || tool.text %>"><i class="bi bi-<%- tool.icon %>"></i></a>
   <% } %>
 <% }) %>
 

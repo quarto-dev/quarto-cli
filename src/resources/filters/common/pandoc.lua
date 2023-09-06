@@ -10,7 +10,7 @@ end
 -- read attribute w/ default
 function attribute(el, name, default)
   -- FIXME: Doesn't attributes respond to __index?
-  for k,v in pairs(el.attr.attributes) do
+  for k,v in pairs(el.attributes) do
     if k == name then
       return v
     end
@@ -87,7 +87,11 @@ end
 function markdownToInlines(str)
   if str then
     local doc = pandoc.read(str)
-    return doc.blocks[1].content
+    if #doc.blocks == 0 then
+      return pandoc.List({})
+    else
+      return doc.blocks[1].content
+    end
   else
     return pandoc.List()
   end
@@ -170,3 +174,18 @@ function compileTemplate(template, meta)
   end
 end
 
+local md_shortcode = require("lpegshortcode")
+
+-- FIXME pick a better name for this.
+function string_to_quarto_ast_blocks(text)
+  local after_shortcodes = md_shortcode.md_shortcode:match(text) or ""
+  local after_reading = pandoc.read(after_shortcodes, "markdown")
+  
+  -- FIXME we should run the whole normalization pipeline here
+  local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
+  return after_parsing.blocks
+end
+
+function string_to_quarto_ast_inlines(text, sep)
+  return pandoc.utils.blocks_to_inlines(string_to_quarto_ast_blocks(text), sep)
+end

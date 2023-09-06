@@ -398,11 +398,15 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     boolean /* Provide next and previous article links in footer */;
   "back-to-top-navigation"?:
     boolean /* Provide a 'back to top' navigation button */;
+  "bread-crumbs"?:
+    boolean /* Whether to show navigation breadcrumbs for pages more than 1 level deep */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
     | boolean
     | TwitterCardConfig /* Publish twitter card metadata */;
+  "other-links"?: OtherLinks;
+  "code-links"?: boolean | OtherLinks;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;
@@ -458,6 +462,9 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   search?: boolean | {
     "collapse-after"?: number;
     "copy-button"?: boolean;
+    "keyboard-shortcut"?: MaybeArrayOf<
+      string /* One or more keys that will act as a shortcut to launch search (single characters) */
+    >;
     algolia?: {
       "index-name"?: string;
       "application-id"?: string;
@@ -590,6 +597,14 @@ export type ChapterItem = NavigationItem | {
 };
 
 export type ChapterList = (ChapterItem)[];
+
+export type OtherLinks = ({
+  href: string /* The href for the link. */;
+  icon?: string /* The bootstrap icon name for the link. */;
+  rel?: string /* The rel attribute value for the link. */;
+  text: string /* The text for the link. */;
+  target?: string; /* The target attribute value for the link. */
+})[];
 
 export type CrossrefLabelsSchema = string;
 
@@ -787,8 +802,10 @@ is missing a required field, an error will occur and the render will. */;
     SchemaObject
   > /* Items with matching field values will be excluded from the listing. */;
   feed?: boolean | {
+    "xml-stylesheet"?:
+      string /* The path to an XML stylesheet (XSL file) used to style the RSS feed. */;
     categories?: MaybeArrayOf<
-      string /* A list of categories for which to create separate RSS feeds containing only posts with that category. */
+      string /* A list of categories for which to create separate RSS feeds containing only posts with that category */
     >;
     description?:
       string /* The description of this feed. If not specified, the description for the page the
@@ -1150,8 +1167,9 @@ export type NotebookViewSchema = {
 };
 
 export type ManuscriptSchema = {
+  "code-links"?: boolean | MaybeArrayOf<(SchemaObject | string)>;
   "manuscript-url"?: string /* The deployed url for this manuscript */;
-  "meca-archive"?:
+  "meca-bundle"?:
     | boolean
     | string /* Whether to generate a MECA bundle for this manuscript */;
   article?:

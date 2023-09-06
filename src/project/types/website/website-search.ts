@@ -71,6 +71,9 @@ const kCollapseAfter = "collapse-after";
 // Where to place the search results
 const kPanelPlacement = "panel-placement";
 
+// Keyboard shortcut(s) to use to launch search
+const kKbShortcutSearch = "keyboard-shortcut";
+
 // The number of results to return
 const kLimit = "limit";
 
@@ -86,6 +89,7 @@ interface SearchOptions {
   [kLimit]?: number;
   [kAlgolia]?: SearchOptionsAlgolia;
   [kLanguageDefaults]?: FormatLanguage;
+  [kKbShortcutSearch]?: string[];
 }
 
 const kSearchOnlyApiKey = "search-only-api-key";
@@ -378,6 +382,7 @@ export function searchOptions(
       [kType]: searchType(searchMetadata[kType], location),
       [kLimit]: searchInputLimit(searchMetadata),
       [kAlgolia]: algoliaOptions(searchMetadata, project),
+      [kKbShortcutSearch]: searchKbdShortcut(searchMetadata),
     };
   } else {
     const searchRaw = websiteConfig(kSearch, project.config);
@@ -390,6 +395,7 @@ export function searchOptions(
         [kPanelPlacement]: location === "navbar" ? "end" : "start",
         [kType]: searchType(undefined, location),
         [kLimit]: searchInputLimit(undefined),
+        [kKbShortcutSearch]: searchKbdShortcut(undefined),
       };
     }
   }
@@ -405,6 +411,20 @@ function searchInputLimit(
     }
   }
   return 20;
+}
+
+function searchKbdShortcut(
+  searchConfig: string | Record<string, unknown> | undefined,
+) {
+  if (searchConfig && typeof (searchConfig) === "object") {
+    const kbd = searchConfig[kKbShortcutSearch];
+    if (Array.isArray(kbd)) {
+      return kbd;
+    } else {
+      return [kbd];
+    }
+  }
+  return ["f", "/", "s"];
 }
 
 function searchType(

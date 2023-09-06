@@ -149,26 +149,44 @@ def notebook_execute(options, status):
    # complete progress if necessary
    if (not quiet) and created:
       status("Done\n")
-      
-   # compute total code cells (for progress)
-   current_code_cell = 1
-   total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
+   current_code_cell = 1
+   total_code_cells = 0
+   cell_labels = []
+   max_label_len = 0
+
+   for cell in client.nb.cells:
+      # compute total code cells (for progress)
+      if cell.cell_type == 'code':
+         total_code_cells += 1
+      # map cells to their labels
+      label = nb_cell_yaml_options(client.nb.metadata.kernelspec.language, cell).get('label', '')
+      cell_labels.append(label)
+      # find max label length
+      max_label_len = max(max_label_len, len(label))
+   
    # execute the cells
    for index, cell in enumerate(client.nb.cells):
+      cell_label = cell_labels[index]
+      padding = "." * (max_label_len - len(cell_label))
+
       # progress
       progress = (not quiet) and cell.cell_type == 'code' and index > 0
       if progress:
-         status("  Cell {0}/{1}...".format(
-            current_code_cell- 1, total_code_cells - 1
+         status("  Cell {0}/{1}: '{2}'{3}...".format(
+            current_code_cell - 1,
+            total_code_cells - 1,
+            cell_label,
+            padding
          ))
          
       # clear cell output
       cell = cell_clear_output(cell)
 
       # execute cell
+      trace("Executing cell {0}".format(index))
+      
       if cell.cell_type == 'code':
-         trace("Executing cell {0}".format(index))
          cell = cell_execute(
             client, 
             cell, 
@@ -178,8 +196,11 @@ def notebook_execute(options, status):
             index > 0 # add_to_history
          )
          cell.execution_count = current_code_cell
-         trace("Executed cell {0}".format(index))
+      elif cell.cell_type == 'markdown':
+         cell = cell_execute_inline(client, cell)
 
+      trace("Executed cell {0}".format(index))
+        
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
          kernel_deps = nb_kernel_depenencies(cell)
@@ -390,6 +411,66 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
    # return cell
    return cell
    
+def cell_execute_inline(client, cell):
+   
+   # helper to raise an error from a result
+   def raise_error(result):
+      ename = result.get('ename')
+      evalue = result.get('evalue')
+      raise Exception(f'{ename}: {evalue}')
+
+   # helper to clear existing user_expressions if they exist
+   def clear_user_expressions():
+      if "metadata" in cell:
+         metadata = cell.get("metadata")
+         if "user_expressions" in metadata:
+            del metadata["user_expressions"]
+   
+   # find expressions in source
+   language = client.nb.metadata.kernelspec.language
+   source = ''.join(cell.source)
+   expressions = re.findall(
+      fr'(?:^|[^`])`{{{language}}}[ \t]([^`]+)`',
+      source, 
+      re.MULTILINE
+   )
+   if len(expressions):
+      # send and wait for 'execute' kernel message w/ user_expressions
+      kc = client.kc
+      user_expressions = dict()
+      for idx, expr in enumerate(expressions):
+         user_expressions[str(idx).strip()] = expr 
+      msg_id = kc.execute('', user_expressions = user_expressions)
+      reply = client.wait_for_reply(msg_id)
+
+      # process reply
+      content = reply.get('content')
+      if content.get('status') == 'ok': 
+         # build results (check for error on each one)
+         results = []
+         for key in user_expressions:
+            result = content.get('user_expressions').get(key)
+            if result.get('status') == 'ok':
+               results.append({
+                  'expression' : user_expressions.get(key),
+                  'result': result
+               }) 
+            elif result.get('status') == 'error':
+               raise_error(result)  
+
+         # set results into metadata
+         if not "metadata" in cell:
+            cell["metadata"] = {}
+         cell["metadata"]["user_expressions"] = results
+         
+      elif content.get('status') == 'error':
+         raise_error(content)
+   else:
+      clear_user_expressions()
+
+   # return cell
+   return cell
+
 
 def cell_clear_output(cell):
    remove_metadata = ['collapsed', 'scrolled']

@@ -36,7 +36,7 @@
             - string
             - object:
                 properties:
-                  title:
+                  text:
                     string:
                       description: "The title for this alternative link."
                   href:
@@ -65,6 +65,24 @@
 
       Specify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. 
       Specify `global` to show a set of global links to source notebooks.
+
+- name: other-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - enum: [false]
+      - ref: other-links
+  description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
+
+- name: code-links
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - enum: [false]
+      - ref: other-links
+  description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
 
 - name: notebook-subarticles
   tags:
@@ -96,3 +114,14 @@
     enum: [document, notebook]
   hidden: true
   description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
+
+- name: notebook-preview-options
+  tags:
+    formats: [$html-doc]
+  schema:
+    object:
+      properties:
+        back:
+          boolean:
+            description: "Whether to show a back button in the notebook preview."
+  description: "Options for controlling the display and behavior of Notebook previews."

@@ -9,9 +9,12 @@ export type GitHubContext = {
   git: boolean;
   repo: boolean;
   originUrl?: string;
+  repoUrl?: string;
   ghPages?: boolean;
   siteUrl?: string;
   browse?: boolean;
+  organization?: string;
+  repository?: string;
 };
 
 export async function gitHubContext(dir: string) {
@@ -63,11 +66,37 @@ export async function gitHubContext(dir: string) {
           dir,
           context.originUrl!,
         );
+
+        const repo = repoInfo(context.originUrl!);
+        if (repo) {
+          context.repoUrl = repo.repoUrl;
+          context.organization = repo.organization;
+          context.repository = repo.repository;
+        }
       }
     }
   }
 
   return context;
+}
+
+const kGithubCom = "github.com";
+const kGithubIo = "github.io";
+
+const kGithubGitPattern = /^git@([^:]+):([^\/]+)\/(.+?)(?:\.git)?$/;
+const kGithubHttpsPattern = /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)(?:\.git)?$/;
+
+function repoInfo(originUrl: string) {
+  // pick apart origin url for github.com
+  const match = originUrl?.match(kGithubGitPattern) ||
+    originUrl?.match(kGithubHttpsPattern);
+  if (match && match.includes(kGithubCom)) {
+    return {
+      repoUrl: `https://${match[1]}/${match[2]}/${match[3]}/`,
+      organization: match[2],
+      repository: match[3],
+    };
+  }
 }
 
 function siteUrl(
@@ -85,14 +114,9 @@ function siteUrl(
     }
   } else {
     // pick apart origin url for github.com
-    const match = originUrl?.match(
-      /^git@([^:]+):([^\/]+)\/(.+?)\.git$/,
-    ) || originUrl?.match(
-      /^https:\/\/([^\/]+)\/([^\/]+)\/(.+?)\.git$/,
-    );
+    const match = originUrl?.match(kGithubGitPattern) ||
+      originUrl?.match(kGithubHttpsPattern);
 
-    const kGithubCom = "github.com";
-    const kGithubIo = "github.io";
     if (match && match.includes(kGithubCom)) {
       const server = match[1].replace(kGithubCom, kGithubIo);
       const domain = `${match[2]}.${server}`;

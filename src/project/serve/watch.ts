@@ -4,16 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { globToRegExp, join, relative, SEP } from "path/mod.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { join, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import {
-  kSkipHidden,
-  normalizePath,
-  pathWithForwardSlashes,
-} from "../../core/path.ts";
+import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
 import { md5Hash } from "../../core/hash.ts";
 
 import { logError } from "../../core/log.ts";
@@ -36,7 +32,6 @@ import { renderServices } from "../../command/render/render-services.ts";
 
 import { isRStudio } from "../../core/platform.ts";
 import { inputTargetIndexForOutputFile } from "../../project/project-index.ts";
-import { engineIgnoreDirs } from "../../execute/engine.ts";
 import { isPdfContent } from "../../core/mime.ts";
 import { ServeRenderManager } from "./render.ts";
 import { existsSync1 } from "../../core/file.ts";
@@ -178,13 +173,25 @@ export function watchProject(
                   resourceFiles,
                   project!,
                 );
+
+                // Filter out supplmental files (e.g. files that were injected as supplements)
+                // to the render. Instead, we should return the first non-supplemental file.
+                // Example of supplemental file is a user rendering a post that appears in a listing
+                // - the listing will be added as a supplement since changes in the post may change the
+                // listing itself
+                const nonSupplementalFiles = result.files.filter(
+                  (renderResultFile) => {
+                    return !renderResultFile.supplemental;
+                  },
+                );
+
                 return {
                   config: false,
                   output: true,
-                  reloadTarget:
-                    (result.files.length && !isPdfContent(result.files[0].file))
-                      ? join(outputDir, result.files[0].file)
-                      : undefined,
+                  reloadTarget: (nonSupplementalFiles.length &&
+                      !isPdfContent(nonSupplementalFiles[0].file))
+                    ? join(outputDir, nonSupplementalFiles[0].file)
+                    : undefined,
                 };
               }
             } finally {
@@ -200,7 +207,8 @@ export function watchProject(
           !existsSync(file)
         );
         const configResourceFile = paths.some((path) =>
-          (project.files.configResources || []).includes(path)
+          (project.files.configResources || []).includes(path) &&
+          !project.files.input.includes(path)
         );
         const resourceFile = paths.some(isResourceFile);
         const extensionFile = paths.some(isExtensionFile);
@@ -239,7 +247,7 @@ export function watchProject(
   const reloadClients = ld.debounce(async (changes: WatchChanges) => {
     const services = renderServices();
     try {
-      // fully render project if we aren't aleady rendering on reload (e.g. for pdf)
+      // fully render project if we aren't already rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
         await refreshProjectConfig();
         const result = await renderManager.submitRender(() =>
@@ -362,50 +370,6 @@ export function watchProject(
 interface WatcherOptions {
   paths: string | string[];
   options?: { recursive: boolean };
-}
-
-function computeWatchers(project: ProjectContext): Array<WatcherOptions> {
-  // enumerate top-level directories that aren't automatically ignored
-  const projectDirs: string[] = [];
-  for (
-    const walk of walkSync(
-      project.dir,
-      {
-        includeDirs: true,
-        includeFiles: false,
-        maxDepth: 1,
-        followSymlinks: false,
-        skip: [kSkipHidden].concat(
-          engineIgnoreDirs().map((ignore: string) =>
-            globToRegExp(join(project.dir, ignore) + SEP)
-          ),
-        ),
-      },
-    )
-  ) {
-    if (walk.path !== project.dir) {
-      projectDirs.push(walk.path);
-    }
-  }
-
-  // how many are there? if there are < 30 then we'll watch each one (thus sparing
-  // the system from having to recursively watch a bunch of hidden or venv
-  // directories). if there are > 30 we could run afowl of system file watch
-  // limits so we use just one watch at the root level
-  if (projectDirs.length <= 30) {
-    return [{
-      paths: project.dir,
-      options: { recursive: false },
-    }, {
-      paths: projectDirs,
-      options: { recursive: true },
-    }];
-  } else {
-    return [{
-      paths: project.dir,
-      options: { recursive: true },
-    }];
-  }
 }
 
 async function preventReload(

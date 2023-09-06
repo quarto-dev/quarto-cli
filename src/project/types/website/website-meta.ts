@@ -1,9 +1,8 @@
 /*
-* website-meta.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-meta.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 import { dirname, join, relative } from "path/mod.ts";
@@ -106,6 +105,9 @@ export function metadataHtmlPostProcessor(
         if ([kImageHeight, kImageWidth, kImageAlt].includes(key)) {
           return key.replace("-", ":");
         }
+        if (key === kSiteName) {
+          return "site_name";
+        }
         return key;
       },
       resolveValue: (key: string, value: string) => {
@@ -178,7 +180,8 @@ export function metadataHtmlPostProcessor(
 
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined) {
-        metadata[kImage] = findPreviewImg(doc) || websiteImage(project.config);
+        metadata[kImage] = findPreviewImg(doc, true) ||
+          websiteImage(project.config);
       }
 
       // cook up a description if one is not provided
@@ -337,6 +340,10 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
+  if (typeof (siteMetadata) === "object" && format.metadata[kImage]) {
+    const siteMeta = siteMetadata as Metadata;
+    siteMeta[kImage] = format.metadata[kImage];
+  }
   if (
     typeof (siteMetadata) === "object" &&
     typeof (docMetadata) === "object"
@@ -479,7 +486,7 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
       if (renderedEl) {
         // Update the document title
         const el = doc.querySelector(
-          `meta[name="og:site-name"]`,
+          `meta[name="og:site_name"]`,
         );
         if (el) {
           el.setAttribute("content", renderedEl.innerText);
@@ -494,8 +501,10 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
 
       // read document level metadata
       const pageMeta = pageMetadata(format, extras);
-      const description = pageMeta.description as string;
-
+      const siteMeta = format.metadata[kWebsite] as Metadata;
+      const pageDesc = pageMeta.description as string | undefined;
+      const siteDesc = siteMeta.description as string | undefined;
+      const description = pageDesc || siteDesc;
       // Twitter
       const twitterMeta = twitterMetadata(format);
       inlines[kTwitterDesc] = twitterMeta.description as string ||

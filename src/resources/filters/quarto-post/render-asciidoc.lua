@@ -22,7 +22,7 @@ function render_asciidoc()
       -- We construct the title with cross ref information into the metadata
       -- if we see such a title, we need to move the identifier up outside the title
       local titleInlines = meta['title']
-      if #titleInlines == 1 and titleInlines[1].t == 'Span' then ---@diagnostic disable-line
+      if titleInlines ~= nil and #titleInlines == 1 and titleInlines[1].t == 'Span' then ---@diagnostic disable-line
         
         ---@type pandoc.Span
         local span = titleInlines[1]
@@ -73,7 +73,7 @@ function render_asciidoc()
     end,
     Inlines = function(el)
       -- Walk inlines and see if there is an inline code followed directly by a note. 
-      -- If there is, place a space there (because otherwise asciidoctor may be very confused)
+      -- If there is, place a space there (because otherwise asciidoc may be very confused)
       for i, v in ipairs(el) do
 
         if v.t == "Code" then

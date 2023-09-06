@@ -1,9 +1,8 @@
 /*
-* install.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * install.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info, warning } from "log/mod.ts";
 import { withSpinner } from "../core/console.ts";
@@ -162,7 +161,7 @@ export async function installTool(name: string, updatePath?: boolean) {
       `Could not install '${name}'- try again with one of the following:`,
     );
     installableTools().forEach((name) =>
-      info("quarto install tool " + name, { indent: 2 })
+      info("quarto install " + name, { indent: 2 })
     );
   }
 }
@@ -189,7 +188,7 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
       }
     } else {
       info(
-        `${name} is not installed use 'quarto install tool ${name} to install it.`,
+        `${name} is not installed use 'quarto install ${name} to install it.`,
       );
     }
   }

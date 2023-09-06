@@ -1,0 +1,71 @@
+---
+title: "conditional content on meta"
+check_true: true
+check_false: false
+condition:
+  path:
+    to:
+      condition_true: true
+      condition_false: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#MustBeHere", "#MustBeHereToo", "#MustBeHereFalse", "#MustBeHereTooFalse"]
+        - ["#CannotBeHere", "#CannotBeHereEither", "#CannotBeHereFalse"]
+---
+
+## True checks
+
+::: {.content-hidden unless-meta="check_true"}
+
+[stuff]{#MustBeHere}
+
+:::
+
+::: {.content-visible when-meta="condition.path.to.condition_true"}
+
+[other stuff]{#MustBeHereToo}
+
+:::
+
+
+
+::: {.content-hidden when-meta="condition.path.to.condition_true"}
+
+[other stuff]{#CannotBeHereEither}
+
+:::
+
+
+
+## False checks
+
+::: {.content-hidden when-meta="check_false"}
+
+[stuff]{#MustBeHereFalse}
+
+:::
+
+::: {.content-visible unless-meta="condition.path.to.condition_false"}
+
+[other stuff]{#MustBeHereTooFalse}
+
+:::
+
+
+
+::: {.content-hidden unless-meta="condition.path.to.condition_false"}
+
+[other stuff]{#CannotBeHereEitherFalse}
+
+:::
+
+
+## Nonexisting checks
+
+::: {.content-visible when-meta="nonexisting.path"}
+
+[other stuff]{#CannotBeHere}
+
+:::

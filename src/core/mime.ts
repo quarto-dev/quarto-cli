@@ -82,6 +82,7 @@ const MEDIA_TYPES: Record<string, string> = {
   ".html": kTextHtml,
   ".htm": kTextHtml,
   ".json": "application/json",
+  ".ipynb": "application/x-ipynb+json",
   ".map": "application/json",
   ".txt": kTextPlain,
   ".tex": kTextPlain,

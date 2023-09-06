@@ -106,6 +106,12 @@ figure .quarto-layout-row figure figcaption {
 .quarto-figure-right > figure > div /* for mermaid and dot diagrams */ {
   text-align: right;
 }
+
+.quarto-figure > figure > div.cell-annotation,
+.quarto-figure > figure > div code {
+  text-align: left; /* override align center for code blocks */
+}
+
 figure > p:empty {
   display: none;
 }
@@ -385,6 +391,11 @@ div.sourceCode > iframe {
   }
 }
 
+// link styling
+a {
+  text-underline-offset: 3px;
+}
+
 // ansi escaping
 div.ansi-escaped-output {
   font-family: monospace;
@@ -622,7 +633,12 @@ $primary: #468 !default;
 $secondary: #999 !default;
 $font-family-sans-serif: sans-serif !default;
 
-/* SCSS variables */
+/* SCSS variables
+
+   These are documented in quarto-cli/quarto-web:docs/authoring/_mermaid-theming.qmd
+
+   Make sure to update the docs if you change these.
+*/
 $mermaid-bg-color: $body-bg !default;
 $mermaid-edge-color: $secondary !default;
 $mermaid-node-fg-color: $body-color !default;

@@ -4,12 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, relative } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import * as ld from "../core/lodash.ts";
 
-import { ProjectContext } from "./types.ts";
+import { kProjectType, ProjectContext } from "./types.ts";
 import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
@@ -19,6 +18,7 @@ import {
   normalizePath,
   pathWithForwardSlashes,
   removeIfExists,
+  safeExistsSync,
 } from "../core/path.ts";
 import { kTitle } from "../config/constants.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
@@ -34,6 +34,7 @@ import {
 } from "./types/website/website-config.ts";
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { formatOutputFile } from "../core/render.ts";
+import { projectType } from "./types/project-types.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -49,18 +50,12 @@ export async function inputTargetIndex(
   const inputFile = join(project.dir, input);
 
   // return undefined if the file doesn't exist
-  if (!existsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
+  if (!safeExistsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
     return Promise.resolve(undefined);
   }
 
   // filter it out if its not in the list of input files
   if (!project.files.input.includes(normalizePath(inputFile))) {
-    return Promise.resolve(undefined);
-  }
-
-  // check if this can be handled by one of our engines
-  const engine = fileExecutionEngine(inputFile);
-  if (engine === undefined) {
     return Promise.resolve(undefined);
   }
 
@@ -71,8 +66,28 @@ export async function inputTargetIndex(
     input,
   );
 
+  // There is already a targetIndex entry, just use that
   if (targetIndex) {
     return targetIndex;
+  }
+
+  // Create an index entry for the input
+  const index = await readBaseInputIndex(inputFile, project);
+  if (index) {
+    const indexFile = inputTargetIndexFile(project.dir, input);
+    Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+  }
+  return index;
+}
+
+export async function readBaseInputIndex(
+  inputFile: string,
+  project: ProjectContext,
+) {
+  // check if this can be handled by one of our engines
+  const engine = fileExecutionEngine(inputFile);
+  if (engine === undefined) {
+    return Promise.resolve(undefined);
   }
 
   // otherwise read the metadata and index it
@@ -97,11 +112,10 @@ export async function inputTargetIndex(
     index.title = index.markdown.headingText;
   }
 
-  const indexFile = inputTargetIndexFile(project.dir, input);
   if (project.config) {
     index.projectFormats = formatKeys(project.config);
   }
-  Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+
   return index;
 }
 
@@ -234,8 +248,16 @@ export async function resolveInputTarget(
   if (index) {
     const formats = formatsPreferHtml(index.formats) as Record<string, Format>;
     const format = Object.values(formats)[0];
+
+    // lookup the project type
+    const projType = projectType(project.config?.project?.[kProjectType]);
+    const projOutputFile = projType.outputFile
+      ? projType.outputFile(href, format, project)
+      : undefined;
+
     const [hrefDir, hrefStem] = dirAndStem(href);
-    const outputFile = formatOutputFile(format) || `${hrefStem}.html`;
+    const outputFile = projOutputFile || formatOutputFile(format) ||
+      `${hrefStem}.html`;
     const outputHref = pathWithForwardSlashes(
       (absolute ? "/" : "") + join(hrefDir, outputFile),
     );
@@ -253,7 +275,7 @@ export async function inputFileForOutputFile(
   const outputDir = projectOutputDir(project);
 
   // full path to output (it's relative to output dir)
-  output = join(outputDir, output);
+  output = isAbsolute(output) ? output : join(outputDir, output);
 
   if (project.outputNameIndex !== undefined) {
     return project.outputNameIndex.get(output);

@@ -8,7 +8,7 @@ import { stringify } from "yaml/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { kTitle } from "../../config/constants.ts";
-import { Metadata } from "../../publish/netlify/api/index.ts";
+import { Metadata } from "../../config/types.ts";
 import { lines } from "../lib/text.ts";
 import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
@@ -135,17 +135,17 @@ export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
   return nb;
 }
 
-export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
-  // helper to generate yaml
-  const asYamlText = (yaml: Metadata) => {
-    return stringify(yaml, {
-      indent: 2,
-      lineWidth: -1,
-      sortKeys: false,
-      skipInvalid: true,
-    });
-  };
+// helper to generate yaml
+export function asYamlText(yaml: Metadata) {
+  return stringify(yaml, {
+    indent: 2,
+    lineWidth: -1,
+    sortKeys: false,
+    skipInvalid: true,
+  });
+}
 
+export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   // helper to create nb lines (w/ newline after)
   const nbLines = (lns: string[]) => {
     return lns.map((line) => line.endsWith("\n") ? line : `${line}\n`);
@@ -227,6 +227,13 @@ const defaultFixups: ((
   fixupStreams,
 ];
 
+const minimalFixups: ((
+  nb: JupyterNotebook,
+) => JupyterNotebook)[] = [
+  fixupBokehCells,
+  fixupStreams,
+];
+
 // books can't have the front matter fixup
 export const bookFixups: JupyterFixup[] = [
   fixupBokehCells,
@@ -234,9 +241,12 @@ export const bookFixups: JupyterFixup[] = [
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
+  nbFixups: "minimal" | "default",
   explicitFixups?: JupyterFixup[],
 ): JupyterNotebook {
-  const fixups = explicitFixups || defaultFixups;
+  const fixups = explicitFixups || nbFixups === "minimal"
+    ? minimalFixups
+    : defaultFixups;
   for (const fixup of fixups) {
     nb = fixup(nb);
   }

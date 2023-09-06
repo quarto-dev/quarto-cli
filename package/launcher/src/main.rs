@@ -54,6 +54,7 @@ fn main() {
         if env::consts::OS == "windows" {
             deno_file = bin_dir
                 .join("tools")
+                .join("x86_64")
                 .join("deno");
         } else {
             deno_file = bin_dir
@@ -64,7 +65,7 @@ fn main() {
     }
     let mut deno_dom_file: PathBuf = path_from_env("QUARTO_DENO_DOM");
     if deno_dom_file.as_os_str().is_empty() {
-        deno_dom_file = bin_dir.join("tools").join("deno_dom").join(DENO_DOM_LIB);
+        deno_dom_file = bin_dir.join("tools").join("x86_64").join("deno_dom").join(DENO_DOM_LIB);
     }
 
     // set environment variables requried by quarto.js
@@ -72,23 +73,35 @@ fn main() {
     std::env::set_var("QUARTO_BIN_PATH", &bin_dir);
     std::env::set_var("QUARTO_SHARE_PATH", &share_dir);
     std::env::set_var("DENO_DOM_PLUGIN", &deno_dom_file);
+    std::env::set_var("DENO_NO_UPDATE_CHECK", "1");
+    std::env::set_var("DENO_TLS_CA_STORE","system,mozilla");
 
     // windows-specific env vars
     #[cfg(target_os = "windows")]
     std::env::set_var("NO_COLOR", std::ffi::OsStr::new("TRUE"));
 
+    // Define the base deno options
+    let mut deno_options: Vec<String> = vec![
+        String::from("--unstable"),
+        String::from("--no-config"),
+        String::from("--cached-only"),
+        String::from("--allow-read"),
+        String::from("--allow-write"),
+        String::from("--allow-run"),
+        String::from("--allow-env"),
+        String::from("--allow-net"),
+        String::from("--allow-ffi"),      
+    ];
+
+    // If there are extra args, include those
+    if let Ok(extra_options) = env::var("QUARTO_DENO_EXTRA_OPTIONS") {
+        deno_options.push(extra_options);
+    };
+
     // run deno
     let mut child = Command::new(&deno_file)
         .arg("run")
-        .arg("--unstable")
-        .arg("--no-config")
-        .arg("--cached-only")
-        .arg("--allow-read")
-        .arg("--allow-write")
-        .arg("--allow-run")
-        .arg("--allow-env")
-        .arg("--allow-net")
-        .arg("--allow-ffi")
+        .args(deno_options)
         .arg("--importmap")
         .arg(importmap_file)
         .arg(js_file)
@@ -153,11 +166,12 @@ fn share_dir_from_bin_dir(bin_dir: &PathBuf) -> PathBuf {
 fn deno_dir() -> String {
     let arch = arch_string();
     if arch.starts_with("Darwin arm64") {
-        return String::from_str("deno-aarch64-apple-darwin").unwrap();
+        return String::from_str("aarch64").unwrap();
     } else if arch.starts_with("Darwin x86_64") {
-        return String::from_str("deno-x86_64-apple-darwin").unwrap();
+        return String::from_str("x86_64").unwrap();
     } else {
-        return String::from_str("deno-x86_64-unknown-linux-gnu").unwrap();
+        // TODO: Properly deal with multi-architecture on linux
+        return String::from_str("x86_64").unwrap();
     }
 }
 

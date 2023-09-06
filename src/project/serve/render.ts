@@ -8,7 +8,7 @@ import { logError } from "../../core/log.ts";
 import { isHtmlContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { extensionFilesFromDirs } from "../../extension/extension.ts";
-import { projectFormatOutputDir, projectOutputDir } from "../project-shared.ts";
+import { projectFormatOutputDir } from "../project-shared.ts";
 import { kProjectType, ProjectContext } from "../types.ts";
 import { projectType } from "../types/project-types.ts";
 

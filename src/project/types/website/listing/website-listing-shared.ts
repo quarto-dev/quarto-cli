@@ -103,6 +103,7 @@ export const kFieldImage = "image";
 export const kFieldImageAlt = "image-alt";
 export const kFieldDescription = "description";
 export const kFieldReadingTime = "reading-time";
+export const kFieldWordCount = "word-count";
 export const kFieldCategories = "categories";
 export const kFieldOrder = "order";
 
@@ -119,6 +120,7 @@ export const kItems = "items";
 export const kType = "type";
 export const kLanguage = "language";
 export const kDescription = "description";
+export const kXmlStyleSheet = "xml-stylesheet";
 
 export interface ListingDescriptor {
   listing: Listing;
@@ -144,6 +146,7 @@ export interface ListingFeedOptions {
   [kFieldCategories]?: string | string[];
   [kImage]?: string;
   [kLanguage]?: string;
+  [kXmlStyleSheet]?: string;
 }
 
 export interface ListingSharedOptions {
@@ -511,12 +514,32 @@ export function readRenderedContents(
         }
       }
     }
+
+    // We couldn't find any paragraphs. Instead just grab the first non-empty element
+    // and use that instead
+    const anyNodes = mainEl?.childNodes;
+    if (anyNodes) {
+      for (const anyNode of anyNodes) {
+        if (anyNode.nodeType === 1) { // element node
+          const el = anyNode as Element;
+          const headings = el.querySelectorAll("h1, h2, h3, h4, h5, h6");
+          headings.forEach((heading) => (heading as Element).remove());
+
+          const truncatedNode = truncateNode(anyNode, options["max-length"]);
+          const contents = cleanMath((truncatedNode as Element).innerHTML);
+          if (contents) {
+            return contents;
+          }
+        }
+      }
+    }
+
     return undefined;
   };
 
   // Find a preview image, if present
   const computePreviewImage = (): PreviewImage | undefined => {
-    const previewImageEl = findPreviewImgEl(doc);
+    const previewImageEl = findPreviewImgEl(doc, false);
     if (previewImageEl) {
       const previewImageSrc = getDecodedAttribute(previewImageEl, "src");
       if (previewImageSrc !== null) {

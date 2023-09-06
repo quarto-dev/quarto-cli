@@ -4,12 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import {
-  Format,
-  FormatExtras,
-  NotebookPreviewDescriptor,
-  PandocFlags,
-} from "../../config/types.ts";
+import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import {
   PandocRenderer,
@@ -36,6 +31,12 @@ export interface ProjectType {
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
+  outputFile?: (
+    input: string,
+    format: Format,
+    project: ProjectContext,
+  ) => string | undefined;
+  filterOutputFile?: (file: string) => string;
   cleanOutputDir?: boolean;
   formatLibDirs?: () => string[];
   filterFormat?: (
@@ -43,11 +44,6 @@ export interface ProjectType {
     format: Format,
     project?: ProjectContext,
   ) => Format;
-  formatsForFile?: (
-    formats: string[],
-    file: RenderFile,
-    project?: ProjectContext,
-  ) => string[];
   formatExtras?: (
     context: ProjectContext,
     input: string,
@@ -94,10 +90,15 @@ export interface ProjectType {
       incremental: boolean,
     ) => Promise<void>;
   };
+  beforeMoveOutput?: (
+    context: ProjectContext,
+    renderedFiles: RenderResultFile[],
+  ) => Promise<Record<string, unknown> | undefined>;
   postRender?: (
     context: ProjectContext,
     incremental: boolean,
     outputFiles: ProjectOutputFile[],
+    moveOutputResult?: Record<string, unknown>,
   ) => Promise<void>;
   formatOutputDirectory?: (
     format: Format,
@@ -107,6 +108,7 @@ export interface ProjectType {
 
 export interface ProjectOutputFile {
   file: string;
+  input: string;
   format: Format;
   resources: string[];
   supporting?: string[];

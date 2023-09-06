@@ -45,7 +45,6 @@
 -- The conversion from UTF-8 to "Windows ANSI codepage" is implemented according to mapping tables published at unicode.org.
 -- Mapping tables are stored in human-unreadable compressed form to significantly reduce module size.
 
-
 local test_data_integrity = false  -- set to true if you are unsure about correctness of human-unreadable parts of this file
 
 local function modify_lua_functions(all_compressed_mappings)
@@ -1294,7 +1293,6 @@ local json = require '_json'
 local utils = require '_utils'
 local logging = require 'logging'
 
-
 -- determines whether a path is a relative path
 local function isRelativeRef(ref)
   return ref:find("^/") == nil and 
@@ -1310,6 +1308,9 @@ end
 local scriptFile = {}
 
 local function scriptDirs()
+   if PANDOC_SCRIPT_FILE == nil then
+      return {}
+   end
    local dirs = { pandoc.path.directory(PANDOC_SCRIPT_FILE) }
    for i = 1, #scriptFile do
       dirs[#dirs+1] = pandoc.path.directory(scriptFile[i])
@@ -1392,6 +1393,10 @@ local function resolve_relative_path(path)
    return table.concat(resolved, pandoc.path.separator)
 end
 
+-- Add modules base path to package.path so we can require('modules/...') from
+-- any path
+package.path = package.path .. ';' .. pandoc.path.normalize(PANDOC_STATE.user_data_dir .. '/../../filters/?.lua')
+
 -- patch require to look in current scriptDirs as well as supporting
 -- relative requires
 local orig_require = require
@@ -1439,6 +1444,9 @@ function require(modname)
    return mod
 end
 
+if os.getenv("QUARTO_LUACOV") ~= nil then
+   require("luacov")
+end
 
 -- resolves a path, providing either the original path
 -- or if relative, a path that is based upon the 
@@ -1888,7 +1896,19 @@ _quarto = {
       exists = file_exists,
       remove = remove_file
    }
- } 
+}
+
+-- this injection here is ugly but gets around
+-- a hairy order-of-import issue that would otherwise happen
+-- because string_to_inlines requires some filter code that is only
+-- later imported
+
+_quarto.utils.string_to_inlines = function(s)
+   return string_to_quarto_ast_inlines(s)
+end 
+_quarto.utils.string_to_blocks = function(s)
+   return string_to_quarto_ast_blocks(s)
+end 
 
 -- The main exports of the quarto module
 quarto = {
@@ -1905,9 +1925,9 @@ quarto = {
          htmlDependency.scripts == nil and 
          htmlDependency.stylesheets == nil and 
          htmlDependency.resources == nil and
-         htmlDependency.seviceworkers == nil and
+         htmlDependency.serviceworkers == nil and
          htmlDependency.head == nil then
-         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, seviceworkers, or resources. All appear empty.")
+         error("HTML dependencies must include at least one of meta, links, scripts, stylesheets, serviceworkers, or resources. All appear empty.")
       end
 
       -- validate that the meta is as expected
@@ -1999,6 +2019,14 @@ quarto = {
       writeToDependencyFile(dependency("format-resources", { file = resolvePathExt(path)}))
     end,
 
+    add_resource = function(path)
+      writeToDependencyFile(dependency("resources", { file = resolvePathExt(path)}))
+    end,
+
+    add_supporting = function(path)
+      writeToDependencyFile(dependency("supporting", { file = resolvePathExt(path)}))
+    end,
+
     include_text = function(location, text)
       writeToDependencyFile(dependency("text", { text = text, location = resolveLocation(location)}))
     end,
@@ -2041,7 +2069,9 @@ quarto = {
    resolve_path = resolvePathExt,
    resolve_path_relative_to_document = resolvePath,
    as_inlines = utils.as_inlines,
-   as_blocks = utils.as_blocks
+   as_blocks = utils.as_blocks,
+   string_to_blocks = utils.string_to_blocks,
+   string_to_inlines = utils.string_to_inlines,
   },
   json = json,
   base64 = base64,

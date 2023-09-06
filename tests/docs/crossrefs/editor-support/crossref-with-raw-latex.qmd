@@ -1,0 +1,12 @@
+---
+format: latex
+---
+
+```{=latex}
+\textbf{foo}
+```
+
+![1907 Franklin Model D roadster. Photograph by Harris \& Ewing, Inc. [Public domain], via Wikimedia Commons. (<https://goo.gl/VLCRBB>).](sample-franklin.png){#fig-dresses fig-alt="A woman and a girl in white dresses sit in an open car."}
+
+Your figures should contain a caption which describes the figure to
+the reader, like @fig-dresses.

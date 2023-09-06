@@ -19,4 +19,5 @@ _quarto:
 
 It is important that the path end with `.jpeg`, otherwise the default extension will be appended to the path _before_ it is downloaded and used post download. In the case of PDFs, the default extension is `pdf`.
 
-![Great Pyramid](https://sat02pap004files.storage.live.com/y4m52ot143vPFNPo0C4wwvFwbWGJz9PYvIxAv3aPcZV9KHpimnZ2ErrEafT22gFuFM3lP-nJYiGpwzfq1wJ2X-kPIroYIPqhzYm01Hx6B4x40cPkesS9FVXJvFfkj9mtdBGFOhl1WVJd0xushOybTa9GTYsn-tKZCn7T0IAHSplCK-VBGhncjA-D09aJ-fJ8Ldq?width=256&height=192&cropmode=none&foobar=.jpeg)
+
+![Great Pyramid](https://raw.githubusercontent.com/dragonstyle/y4m52ot143vPFNPo0C4wwvFwbWGJz9PYvIxAv3aPcZV9KHpimnZ2ErrEafT22gFuFM3lP-nJYiGpwzfq1wJ2X-kPIroYIP./main/aubrey-odom-k4RpPboGGCQ-unsplash.jpg)

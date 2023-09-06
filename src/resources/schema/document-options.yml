@@ -84,7 +84,7 @@
 
 - name: section-divs
   tags:
-    formats: [$html-files]
+    formats: [$html-doc]
   schema: boolean
   default: true
   description: |

@@ -8,7 +8,7 @@ import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
-import { existsSync, expandGlobSync, moveSync } from "fs/mod.ts";
+import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { stringify } from "yaml/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
@@ -191,7 +191,10 @@ import {
 import { kRevealJSPlugins } from "../../extension/constants.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
-import { quartoConfig } from "../../core/quarto.ts";
+
+// in case we are running multiple pandoc processes
+// we need to make sure we capture all of the trace files
+let traceCount = 0;
 
 export async function runPandoc(
   options: PandocOptions,
@@ -317,7 +320,9 @@ export async function runPandoc(
 
   // see if there are extras
   const postprocessors: Array<
-    (output: string) => Promise<{ supporting: string[] } | void>
+    (
+      output: string,
+    ) => Promise<{ supporting?: string[]; resources?: string[] } | void>
   > = [];
   const htmlPostprocessors: Array<HtmlPostProcessor> = [];
   const htmlFinalizers: Array<(doc: Document) => Promise<void>> = [];
@@ -348,6 +353,7 @@ export async function runPandoc(
         options.services,
         options.offset,
         options.project,
+        options.quiet,
       ))
       : {};
 
@@ -1054,24 +1060,23 @@ export async function runPandoc(
 
   pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
 
-  if (pandocMetadata?.["_quarto"]?.["trace-filters"]) {
-    // const metadata = pandocMetadata?.["_quarto"]?.["trace-filters"];
+  const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
+    Deno.env.get("QUARTO_TRACE_FILTERS");
+
+  if (traceFilters) {
     beforePandocHooks.push(() => {
-      pandocEnv["QUARTO_TRACE_FILTERS"] = "true";
-    });
-    afterPandocHooks.push(() => {
-      const dest = join(
-        quartoConfig.sharePath(),
-        "../../package/src/common/trace-viewer",
-        pandocMetadata?.["_quarto"]?.["trace-filters"],
-      );
-      const source = join(cwd, "quarto-filter-trace.json");
-      if (source !== dest) {
-        try {
-          Deno.removeSync(dest);
-        } catch { // pass
-        }
-        moveSync(join(cwd, "quarto-filter-trace.json"), dest);
+      // in case we are running multiple pandoc processes
+      // we need to make sure we capture all of the trace files
+      let traceCountSuffix = "";
+      if (traceCount > 0) {
+        traceCountSuffix = `-${traceCount}`;
+      }
+      ++traceCount;
+      if (traceFilters === true) {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = "quarto-filter-trace.json" +
+          traceCountSuffix;
+      } else {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = traceFilters + traceCountSuffix;
       }
     });
   }
@@ -1251,7 +1256,7 @@ async function resolveExtras(
 
   // Process format resources
   const resourceDependenciesPostProcessor = async (_output: string) => {
-    await processFormatResources(inputDir, dependenciesFile);
+    return await processFormatResources(inputDir, dependenciesFile);
   };
   extras.postprocessors = extras.postprocessors || [];
   extras.postprocessors.push(resourceDependenciesPostProcessor);

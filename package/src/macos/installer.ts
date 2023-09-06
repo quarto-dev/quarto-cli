@@ -35,7 +35,6 @@ export async function makeInstallerMac(config: Configuration) {
     corePackageName,
   );
   const packageIdentifier = "org.rstudio.quarto";
-  const bundleIdentifier = "org.rstudio.quarto.cli";
 
   // Product package
   const packageName = `quarto-${config.version}-macos.pkg`;
@@ -75,45 +74,52 @@ export async function makeInstallerMac(config: Configuration) {
       "entitlements.plist",
     );
 
-    // Sign these executable / binary files
-    // and include our entitlements declaration
-    const signWithEntitlements: string[] = [
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno-x86_64-apple-darwin",
-        "deno",
-      ),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno-aarch64-apple-darwin",
-        "deno",
-      ),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "deno_dom",
-        "libplugin.dylib",
-      ),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "esbuild"),
-      join(
-        config.directoryInfo.pkgWorking.bin,
-        "tools",
-        "dart-sass",
-        "src",
-        "dart",
-      ),
-      join(config.directoryInfo.pkgWorking.bin, "tools", "pandoc"),
-    ];
-
     // Sign these non-binary files and don't include
     // the entitlements declaration
     const signWithoutEntitlements: string[] = [
-      join(config.directoryInfo.pkgWorking.bin, "tools", "dart-sass", "sass"),
       join(config.directoryInfo.pkgWorking.bin, "quarto.js"),
       join(config.directoryInfo.pkgWorking.bin, "quarto"),
     ];
+
+
+    // Sign these executable / binary files
+    // and include our entitlements declaration
+    const signWithEntitlements: string[] = [];
+    ["aarch64", "x86_64"].forEach((arch) => {
+      signWithEntitlements.push(join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        arch,
+        "deno",
+      ));
+
+      signWithEntitlements.push(join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        arch,
+        "dart-sass",
+        "src",
+        "dart",
+      ));
+      signWithoutEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "dart-sass", "sass"));
+
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "esbuild"));
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "pandoc"));
+      signWithEntitlements.push(join(config.directoryInfo.pkgWorking.bin, "tools", arch, "typst"));
+
+      const denoDomPath = join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        "x86_64",
+        "deno_dom",
+        "libplugin.dylib",
+      );
+      if (existsSync(denoDomPath)) {
+        signWithEntitlements.push(denoDomPath);
+      }
+    });
+
+
 
     for (const fileToSign of signWithEntitlements) {
       info(fileToSign);
@@ -224,23 +230,19 @@ export async function makeInstallerMac(config: Configuration) {
     // Submit package for notary
     const username = getEnv("QUARTO_APPLE_CONNECT_UN", "");
     const password = getEnv("QUARTO_APPLE_CONNECT_PW", "");
+    const teamId = getEnv("QUARTO_APPLE_CONNECT_TEAMID", "");
     if (username.length > 0 && password.length > 0) {
-      const requestId = await submitNotary(
+      const requestId = await notarizeAndWait(
         packagePath,
-        bundleIdentifier,
         username,
         password,
+        teamId
       );
 
-      // Add a delay to allow the Apple servers to propagate the
-      // request Id that they've just provided
-      sleepSync(10000);
-
-      // This will succeed or throw
-      await waitForNotaryStatus(requestId, username, password);
 
       // Staple the notary to the package
       await stapleNotary(packagePath);
+
     } else {
       warning("Missing Connect credentials, not notarizing");
     }
@@ -299,33 +301,38 @@ async function signCode(
   return result;
 }
 
-async function submitNotary(
+async function notarizeAndWait(
   input: string,
-  bundleId: string,
   username: string,
   password: string,
+  teamId: string
 ) {
   const result = await runCmd(
     "xcrun",
     [
-      "altool",
-      "--notarize-app",
-      "--primary-bundle-id",
-      bundleId,
-      "--username",
+      "notarytool",
+      "submit",
+      "--apple-id",
       username,
       "--password",
       password,
-      "--file",
+      "--team-id",
+      teamId,
       input,
+      "--wait"
     ],
   );
-  const match = result.stdout.match(/RequestUUID = (.*)/);
-  if (match) {
-    const requestId = match[1];
-    return requestId;
+
+  if (result.status.success) {
+    const match = result.stdout.match(/id: (.*)/);
+    if (match) {
+      const id = match[1];
+      return id;
+    } else {
+      throw new Error("Notarization Failed to return an Id:\n" + result.stdout);
+    }
   } else {
-    throw new Error("Unable to start notarization " + result.stdout);
+    throw new Error("Notarization Failed\n" + result.stderr);
   }
 }
 

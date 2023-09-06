@@ -1,0 +1,63 @@
+# Tests a broad set of Quarto functionality that users are likely to encounter.
+# A failure indicates some signficant portion of functionality is likely to be broken.
+name: Parallel Smokes Tests
+on:
+  workflow_dispatch:
+    inputs:
+      nBuckets:
+        description: "Number of buckets to split tests into"
+        required: true
+        default: 10
+        type: number
+  pull_request:
+    branches: [main]
+  push:
+    # only trigger on branches, not on tags
+    branches: [main]
+
+jobs:
+  jobs-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      BUCKETS: ${{ steps.tests-buckets.outputs.BUCKETS }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: pre-release
+
+      - name: Create Job for tests
+        id: tests-buckets
+        run: |
+          echo "BUCKETS=$(./run-parallel-tests.sh -n=${{ inputs.nBuckets || 20 }} --json-for-ci --timing-file=timing-for-ci.txt | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
+        working-directory: tests
+      - name: Read buckets
+        run: |
+          echo ${{ steps.tests-buckets.outputs.BUCKETS }}
+
+  check-matrix:
+    runs-on: ubuntu-latest
+    needs: jobs-matrix
+    steps:
+      - name: Install json2yaml
+        run: |
+          sudo npm install -g json2yaml
+
+      - name: Check matrix definition
+        run: |
+          matrix='${{ needs.jobs-matrix.outputs.BUCKETS }}'
+          echo $matrix
+          echo $matrix | jq .
+          echo $matrix | json2yaml
+  run-smoke-tests:
+    needs: jobs-matrix
+    name: Running Tests buckets ${{ matrix.buckets.num }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.jobs-matrix.outputs.BUCKETS) }}
+    uses: ./.github/workflows/test-smokes.yml
+    with:
+      buckets: ${{ matrix.buckets.files }}

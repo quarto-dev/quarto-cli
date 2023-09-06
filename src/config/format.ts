@@ -117,7 +117,7 @@ export function isJatsOutput(format?: string | FormatPandoc) {
     "jats_publishing",
   ].find((formatStr) => {
     return (format as string).startsWith(formatStr);
-  });
+  }) !== undefined;
 }
 
 export function isPresentationOutput(format: FormatPandoc) {

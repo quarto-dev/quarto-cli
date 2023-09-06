@@ -2,29 +2,51 @@
 # A failure indicates some signficant portion of functionality is likely to be broken.
 name: Smoke Tests
 on:
+  workflow_call:
+    inputs:
+      buckets:
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
+        required: true
+        type: string
+      time-test:
+        description: "Should we run tests to produce test file"
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-  push:
-    # only trigger on branches, not on tags
-    branches: [main]
+    inputs:
+      buckets:
+        description: "JSON string for buckets of tests to run in loop. Array of grouped tests."
+        required: false
+        type: string
+        default: ""
+      time-test:
+        description: "Should we run tests to produce test file"
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "0 6 * * *"
 
 jobs:
   run-smokes:
+    name: Run smoke (${{ matrix.os }})${{ matrix.time-test && ' with timed file' || ''}}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        time-test:
+          - ${{ inputs.time-test }}
+        exclude:
+          # only run timed tests on Linux
+          - os: windows-latest
+            time-test: true
     runs-on: ${{ matrix.os }}
-
+    env:
+      QUARTO_TESTS_FORCE_NO_PIPENV: true
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-        with:
-          # checkout full tree
-          fetch-depth: 0
 
       - name: Fix temp dir to use runner one (windows)
         if: runner.os == 'Windows'
@@ -39,8 +61,7 @@ jobs:
         with:
           r-version: "4.2.2"
 
-      - name: Install node (for Playwright)
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+      - name: Install node (for Playwright, MECA)
         uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -55,6 +76,10 @@ jobs:
         if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
         run: npx playwright install --with-deps
         working-directory: ./tests/integration/playwright
+
+      - name: Install MECA validator
+        if: ${{ runner.os != 'Windows' }}
+        run: npm install -g meca
 
       - name: Set RENV_PATHS_ROOT
         shell: bash
@@ -72,7 +97,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
             ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
 
@@ -86,9 +111,14 @@ jobs:
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
+          # Install dev versions for our testing 
+          # Use r-universe to avoid github api calls
+          try(renv::install('knitr', repos = c('https://yihui.r-universe.dev')))
+          try(renv::install('rmarkdown', repos = c('https://rstudio.r-universe.dev')))
         shell: Rscript {0}
         env:
           RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -128,40 +158,95 @@ jobs:
         run: |
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
 
-      - name: Smoke Test Commits
-        if: github.event.before != ''
-        env:
-          # Useful as TinyTeX latest release is checked in run-test.sh
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup timing file for timed test
+        if: ${{ matrix.time-test == true }}
         run: |
-          git checkout ${{ github.sha}}
-          pushd tests
-          case $RUNNER_OS in
-            "Windows")
-              pwsh -F ./run-tests.ps1
-              ;;
-            *)
-              ./run-tests.sh
-              ;;
-          esac
-          popd
-        shell: bash
+          echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
 
-      - name: Smoke Test Head
+      - name: Run all Smoke Tests Windows
+        if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.event.before == ''
-        run: |
-          case $RUNNER_OS in
-            "Windows")
-              ../package/dist/bin/quarto.cmd render docs/test.qmd --to pdf
-              pwsh -F ./run-tests.ps1
-              ;;
-            *)
-              quarto render docs/test.qmd --to pdf
-              ./run-tests.sh
-              ;;
-          esac
+        run: ./run-tests.ps1
+        working-directory: tests
+        shell: pwsh
+
+      - name: Run all Smoke Tests Linux
+        if: ${{ runner.os != 'Windows' && format('{0}', inputs.buckets) == '' }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./run-tests.sh
         working-directory: tests
         shell: bash
+
+      - name: Run Smoke Tests as a bucket on Linux
+        if: ${{ runner.os != 'Windows' && format('{0}', inputs.buckets) != '' }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          haserror=0
+          readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
+          for file in "${my_array[@]}"; do 
+            echo ">>> ./run-tests.sh ${file}"
+            ./run-tests.sh $file
+            status=$?
+            [ $status -eq 0 ] && echo ">>> No error in this test file" || haserror=1
+          done
+          [ $haserror -eq 0 ] && echo ">>> All tests passed" || exit 1
+        working-directory: tests
+        shell: bash
+
+      - name: Run Smoke Tests as a bucket on Windows
+        if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) != '' }}
+        env:
+          # Useful as TinyTeX latest release is checked in run-test.sh
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $haserror=$false
+          foreach ($file in ('${{ inputs.buckets }}' | ConvertFrom-Json)) {
+            Write-Host ">>> ./run-tests.ps1 ${file}"
+            ./run-tests.ps1 $file
+            $status=$LASTEXITCODE
+            if ($status -eq 1) {
+              Write-Host ">>> Error found in test file"
+              $haserror=$true
+            } else {
+              Write-Host ">>> No error in this test file"
+            }
+          }
+          if ($haserror) {
+            Exit 1
+          } else {
+            Write-Host ">>> All tests have passed"
+          }
+        working-directory: tests
+        shell: pwsh
+
+      - name: Create Pull Request for new tests timing
+        if: matrix.time-test
+        id: cpr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: tests/timing-for-ci.txt
+          commit-message: |
+            timing for new tests [auto PR]
+          branch: updates/timing-for-ci
+          delete-branch: true
+          assignees: cderv
+          reviewers: cderv
+          title: |
+            [CI] Update timing file
+          body: |
+            This PR was created automatically with new timing test file for our parallel smoke tests. 
+            Please review and merge to trigger a new build of the website.
+
+      - name: Check auto PR outputs
+        if: steps.cpr.outcome == 'success'
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+          echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"

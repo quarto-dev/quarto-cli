@@ -56,6 +56,7 @@ import {
   kCenterTitleSlide,
   kControlsAuto,
   kHashType,
+  kPdfMaxPagesPerSlide,
   kPdfSeparateFragments,
   kPreviewLinksAuto,
   kRevealJsConfig,
@@ -133,7 +134,6 @@ export function revealjsFormat() {
         const extraConfig: Record<string, unknown> = {
           [kControlsAuto]: controlsAuto,
           [kPreviewLinksAuto]: previewLinksAuto,
-          [kSmaller]: !!format.metadata[kSmaller],
           [kPdfSeparateFragments]: !!format.metadata[kPdfSeparateFragments],
           [kAutoAnimateEasing]: format.metadata[kAutoAnimateEasing] || "ease",
           [kAutoAnimateDuration]: format.metadata[kAutoAnimateDuration] ||
@@ -143,6 +143,11 @@ export function revealjsFormat() {
               ? format.metadata[kAutoAnimateUnmatched]
               : true,
         };
+
+        if (format.metadata[kPdfMaxPagesPerSlide]) {
+          extraConfig[kPdfMaxPagesPerSlide] =
+            format.metadata[kPdfMaxPagesPerSlide];
+        }
 
         // get theme info (including text highlighing mode)
         const theme = await revealTheme(format, input, libDir, services.temp);

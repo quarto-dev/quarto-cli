@@ -58,6 +58,17 @@ local function interpolate(str, vars)
           end))
 end
 
+function updateSizing(existingSizing, attributes, key)
+  local value = ''
+  if (attributes and attributes[key]) then
+    value = escape(attributes[key], '')
+    if not isEmpty(value) then
+      return existingSizing .. '\n    ac:' .. key .. '="' .. value ..'"'
+    end
+  end
+  return existingSizing
+end
+
 function CaptionedImageConfluence(source, title, caption, attr, id)
   --Note Title isn't usable by confluence at this time it will
   -- serve as the default value for attr.alt-text
@@ -66,7 +77,7 @@ function CaptionedImageConfluence(source, title, caption, attr, id)
 
   local IMAGE_SNIPPET = [[{anchor}<ac:image
     ac:align="{align}"
-    ac:layout="{layout}"
+    ac:layout="{layout}"{sizing}
     ac:alt="{alt}">
         <ri:attachment ri:filename="{source}" />{caption}
     </ac:image>]]
@@ -75,6 +86,7 @@ function CaptionedImageConfluence(source, title, caption, attr, id)
   local titleValue = title
   local captionValue = caption
   local anchorValue = ""
+  local sizing = ""
 
   if (id and #id > 0) then
     -- wrap in `p` to prevent an issue with CSF not redering correctly
@@ -95,6 +107,9 @@ function CaptionedImageConfluence(source, title, caption, attr, id)
   if alignValue == 'right' then layoutValue = 'align-end' end
   if alignValue == 'left' then layoutValue = 'align-start' end
 
+  sizing = updateSizing(sizing, attr, 'width')
+  sizing = updateSizing(sizing, attr, 'height')
+
   if not isEmpty(captionValue) then
     captionValue =
     interpolate {
@@ -108,6 +123,7 @@ function CaptionedImageConfluence(source, title, caption, attr, id)
       source = sourceValue,
       align = alignValue,
       layout = layoutValue,
+      sizing = sizing,
       alt = altValue,
       caption = captionValue,
       anchor = anchorValue
@@ -121,11 +137,21 @@ end
 
 function LinkConfluence(source, target, title, attr)
   -- For some reason, rendering converts spaces to a double line-break
-  -- TODO figure out exactly what is going on here
   source = string.gsub(source, "\n\n", " ")
   source = string.gsub(source, "\n \n", " ")
   source = string.gsub(source, "(\n", "")
   source = string.gsub(source, "\n)", "")
+
+  local LINK_ATTACHMENT_SNIPPET = [[<ac:link><ri:attachment ri:filename="{target}"/><ac:plain-text-link-body><![CDATA[{source}{doubleBraket}></ac:plain-text-link-body></ac:link>]]
+
+  if(not startsWithHttp(target) and (not string.find(target, ".qmd"))) then
+    return interpolate {
+      LINK_ATTACHMENT_SNIPPET,
+      source = escape(source),
+      target = target,
+      doubleBraket = "]]"
+    }
+  end
 
   return "<a href='" .. escape(target,true) .. "' title='" ..
           escape(title,true) .. "'>" .. source .. "</a>"

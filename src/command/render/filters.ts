@@ -10,10 +10,12 @@ import {
   kBibliography,
   kCitationLocation,
   kCiteMethod,
+  kClearCellOptions,
   kClearHiddenClasses,
   kCodeFold,
   kCodeLineNumbers,
   kCodeSummary,
+  kEnableCrossRef,
   kFigAlign,
   kFigEnv,
   kFigPos,
@@ -25,6 +27,7 @@ import {
   kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kIpynbProduceSourceNotebook,
   kIPynbTitleBlockTemplate,
   kJatsSubarticleId,
   kKeepHidden,
@@ -39,6 +42,7 @@ import {
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
+  kUnrollMarkdownCells,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
@@ -132,9 +136,10 @@ export async function filterParamsJson(
     ...await quartoFilterParams(options, defaults),
     ...crossrefFilterParams(options, defaults),
     ...citeIndexFilterParams(options, defaults),
-    ...layoutFilterParams(options.format),
+    ...layoutFilterParams(options.format, defaults),
     ...languageFilterParams(options.format.language),
     ...jatsFilterParams(options),
+    ...notebookContextFilterParams(options),
     ...filterParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
@@ -448,10 +453,16 @@ async function projectFilterParams(options: PandocOptions) {
 }
 
 function ipynbFilterParams(options: PandocOptions) {
-  return {
+  const params: Record<string, unknown> = {
     [kIPynbTitleBlockTemplate]:
       options.format.metadata[kIPynbTitleBlockTemplate],
   };
+  if (options.format.render[kIpynbProduceSourceNotebook]) {
+    params[kEnableCrossRef] = false;
+    params[kIpynbProduceSourceNotebook] = true;
+  }
+
+  return params;
 }
 
 function jatsFilterParams(options: PandocOptions) {
@@ -462,6 +473,16 @@ function jatsFilterParams(options: PandocOptions) {
     };
   } else {
     return {};
+  }
+}
+
+function notebookContextFilterParams(options: PandocOptions) {
+  const nbContext = options.services.notebook;
+  const notebooks = nbContext.all();
+  if (notebooks.length > 0) {
+    return {
+      "notebook-context": notebooks,
+    };
   }
 }
 
@@ -534,6 +555,16 @@ async function quartoFilterParams(
   const clearHiddenClasses = format.metadata[kClearHiddenClasses];
   if (clearHiddenClasses) {
     params[kClearHiddenClasses] = clearHiddenClasses;
+  }
+
+  const unrollMarkdownCells = format.metadata[kUnrollMarkdownCells];
+  if (unrollMarkdownCells) {
+    params[kUnrollMarkdownCells] = unrollMarkdownCells;
+  }
+
+  const clearCellOptions = format.render[kClearCellOptions];
+  if (clearCellOptions) {
+    params[kClearCellOptions] = clearCellOptions;
   }
 
   // Provide other params that may be useful to filters

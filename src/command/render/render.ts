@@ -13,7 +13,11 @@ import { Document, parseHtml } from "../../core/deno-dom.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../core/path.ts";
 
 import { FormatPandoc } from "../../config/types.ts";
 import {
@@ -113,10 +117,10 @@ export async function renderPandoc(
   // Process any placeholder for notebooks that have been injected
   const notebookResult = await replaceNotebookPlaceholders(
     format.pandoc.to || "html",
-    context.target.source,
     context,
     context.options.flags || {},
     executeResult.markdown,
+    context.options.services,
   );
 
   const embedSupporting: string[] = [];
@@ -200,7 +204,7 @@ export async function renderPandoc(
   }
 
   return {
-    complete: async (renderedFormats: RenderedFormat[]) => {
+    complete: async (renderedFormats: RenderedFormat[], cleanup?: boolean) => {
       pushTiming("render-postprocessor");
       // run optional post-processor (e.g. to restore html-preserve regions)
       if (executeResult.postProcess) {
@@ -242,6 +246,7 @@ export async function renderPandoc(
         htmlPostProcessors,
         htmlFinalizers,
         renderedFormats,
+        quiet,
       );
 
       // Compute the path to the output file
@@ -251,11 +256,15 @@ export async function renderPandoc(
 
       // run generic postprocessors
       const postProcessSupporting: string[] = [];
+      const postProcessResources: string[] = [];
       if (pandocResult.postprocessors) {
         for (const postprocessor of pandocResult.postprocessors) {
           const result = await postprocessor(outputFile);
           if (result && result.supporting) {
             postProcessSupporting.push(...result.supporting);
+          }
+          if (result && result.resources) {
+            postProcessResources.push(...result.resources);
           }
         }
       }
@@ -331,14 +340,33 @@ export async function renderPandoc(
         supporting.push(...postProcessSupporting);
       }
 
-      withTiming("render-cleanup", () =>
-        renderCleanup(
-          context.target.input,
-          finalOutput!,
-          format,
-          selfContained! ? supporting : undefined,
-          executionEngineKeepMd(context.target.input),
-        ));
+      // Deal with self contained by passing them to be cleaned up
+      // but if this is a project, instead make sure that we're not
+      // including the lib dir
+      let cleanupSelfContained: string[] | undefined = undefined;
+      if (selfContained! && supporting) {
+        cleanupSelfContained = [...supporting];
+        if (context.project!) {
+          const libDir = context.project?.config?.project["lib-dir"];
+          if (libDir) {
+            const absLibDir = join(context.project.dir, libDir);
+            cleanupSelfContained = cleanupSelfContained.filter((file) =>
+              !file.startsWith(absLibDir)
+            );
+          }
+        }
+      }
+
+      if (cleanup !== false) {
+        withTiming("render-cleanup", () =>
+          renderCleanup(
+            context.target.input,
+            finalOutput!,
+            format,
+            cleanupSelfContained,
+            executionEngineKeepMd(context.target.input),
+          ));
+      }
 
       // if there is a project context then return paths relative to the project
       const projectPath = (path: string) => {
@@ -360,6 +388,10 @@ export async function renderPandoc(
       };
       popTiming();
 
+      // Forward along any specific resources
+      const files = resourceFiles.concat(htmlPostProcessResult.resources)
+        .concat(postProcessResources);
+
       const result: RenderedFile = {
         isTransient: recipe.isOutputTransient,
         input: projectPath(context.target.source),
@@ -375,7 +407,7 @@ export async function renderPandoc(
           : projectPath(finalOutput!),
         resourceFiles: {
           globs: pandocResult.resources,
-          files: resourceFiles.concat(htmlPostProcessResult.resources),
+          files,
         },
         selfContained: selfContained!,
       };
@@ -441,7 +473,7 @@ export function renderResultFinalOutput(
 
   // if the final output doesn't exist then we must have been targetin stdout,
   // so return undefined
-  if (!existsSync(finalOutput)) {
+  if (!safeExistsSync(finalOutput)) {
     return undefined;
   }
 
@@ -487,6 +519,7 @@ async function runHtmlPostprocessors(
   htmlPostprocessors: Array<HtmlPostProcessor>,
   htmlFinalizers: Array<(doc: Document) => Promise<void>>,
   renderedFormats: RenderedFormat[],
+  quiet?: boolean,
 ): Promise<HtmlPostProcessResult> {
   const postProcessResult: HtmlPostProcessResult = {
     resources: [],
@@ -508,6 +541,7 @@ async function runHtmlPostprocessors(
             inputMetadata,
             inputTraits,
             renderedFormats,
+            quiet,
           },
         );
 

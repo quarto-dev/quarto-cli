@@ -1,0 +1,19 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["img"]
+        - ["figcaption"]
+---
+
+Having empty caption with knitr chunk can happen when defining caption from within the chunk. (when leveraging `eval.after`)
+
+See https://github.com/quarto-dev/quarto-cli/issues/6658
+
+```{r}
+#| fig-cap: !expr caption
+caption = character(0)
+knitr::include_graphics("https://quarto.org/quarto.png")
+```

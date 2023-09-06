@@ -338,10 +338,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <% } %>
 
   <% if (tippy) { %>
-  function tippyHover(el, contentFn) {
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -355,8 +354,20 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: '<%= tippyOptions.theme %>',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+
     <% for(const key of Object.keys(tippyOptions.config)) { %>
       config['<%= key %>'] = <%= JSON.stringify(tippyOptions.config[key]) %>;
     <% } %>
@@ -383,32 +394,87 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% if (hoverXrefs) { %>
   const xrefs = window.document.querySelectorAll('a.quarto-xref');
+
+  const processXRef = (id, note) => {
+
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+
+    if (id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        for (let i = 0; i < 2; i++) {
+          container.appendChild(note.children[i].cloneNode(true));
+        }
+        return container.innerHTML
+      } else {
+        return note.innerHTML;
+      }
+    } else {
+
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      return note.innerHTML;
+    }
+  }
+
+
   for (var i=0; i<xrefs.length; i++) {
     const xref = xrefs[i];
-    tippyHover(xref, function() {
-      let href = xref.getAttribute('href');
-      try { href = new URL(href).hash; } catch {}
-      const id = href.replace(/^#\/?/, "");
-      const note = window.document.getElementById(id);
-      if (note !== null) {
-        if (id.startsWith('sec-')) {
-          // Special case sections, only their first couple elements
-          const container = document.createElement("div");
-          
-          if (note.children && note.children.length > 2) {
-            for (let i = 0; i < 2; i++) {
-              container.appendChild(note.children[i].cloneNode(true));
-            }
-            return container.innerHTML
-          } else {
-            return note.innerHTML;
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
           }
         } else {
-          return note.innerHTML;
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+
+            if (note !== null) {
+              const html = processXRef(id, note);
+              
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
         }
-      } else {
-        return "";
       }
+    }, function(instance) {
     });
   }
 
@@ -467,6 +533,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
@@ -497,6 +564,37 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       };
     <% } %>
 
+
+
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        console.log("RESIZE");
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+
     <% if (codeAnnotations === true || codeAnnotations === "below")  { %>
       
       // Attach click handler to the DT
@@ -521,36 +619,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
       }
 
+    
 
     <% } else if (codeAnnotations === "hover" || codeAnnotations === "select") { %>
-      // Handle positioning of the toggle
-      window.addEventListener(
-      "resize",
-      throttle(() => {
-        elRect = undefined;
-        if (selectedAnnoteEl) {
-          selectCodeLines(selectedAnnoteEl);
-        }
-      }, 10)
-      );
-
-      function throttle(fn, ms) {
-      let throttle = false;
-      let timer;
-
-        return (...args) => {
-          if(!throttle) { // first call gets through
-              fn.apply(this, args);
-              throttle = true;
-          } else { // all the others get throttled
-              if(timer) clearTimeout(timer); // cancel #2
-              timer = setTimeout(() => {
-                fn.apply(this, args);
-                timer = throttle = false;
-              }, ms);
-          }
-        };
-      }
 
       const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
       for (let i=0; i<annoteTargets.length; i++) {
@@ -677,7 +748,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):(.quarto-navigation-tool)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {

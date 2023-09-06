@@ -8,11 +8,18 @@ format:
   html:
     comments:
       hypothesis: true
+    citations-hover: true
+    crossrefs-hover: true
     toc: true
+    toc-location: left
+    title-block-style: manuscript
   docx: default
+  jats: default
 
   # (other formats)
-  # jats: default
   # pdf: default
+
+execute:
+  freeze: true
 
 <% if(editor){ %>editor: <%= editor %><% } %>

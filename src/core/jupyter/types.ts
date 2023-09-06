@@ -34,6 +34,7 @@ import {
   kCellSlideshowSlideType,
   kCellTags,
   kCellTblColumn,
+  kCellUserExpressions,
   kCodeFold,
   kCodeLineNumbers,
   kCodeOverflow,
@@ -125,6 +126,9 @@ export interface JupyterCellMetadata {
   // nbdev language
   [kCellLanguage]?: string;
 
+  // user_expressions
+  [kCellUserExpressions]?: JupyterUserExpression[];
+
   // anything else
   [key: string]: unknown;
 }
@@ -137,6 +141,20 @@ export interface JupyterCellWithOptions extends JupyterCell {
   id: string;
   options: JupyterCellOptions;
   optionsSource: string[];
+}
+
+export interface JupyterUserExpression {
+  expression: string;
+  result: JupyterUserExpressionResult;
+}
+
+export interface JupyterCellOutputData {
+  data: { [mimeType: string]: unknown };
+}
+
+export interface JupyterUserExpressionResult extends JupyterCellOutputData {
+  metadata: Metadata;
+  status: string;
 }
 
 export interface JupyterOutput {
@@ -204,6 +222,7 @@ export interface JupyterToMarkdownOptions {
   execute: FormatExecute;
   keepHidden?: boolean;
   preserveCellMetadata?: boolean;
+  preserveCodeCellYaml?: boolean;
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
@@ -212,6 +231,7 @@ export interface JupyterToMarkdownOptions {
   figFormat?: string;
   figDpi?: number;
   figPos?: string | null;
+  fixups?: "minimal" | "default";
 }
 
 export interface JupyterToMarkdownResult {

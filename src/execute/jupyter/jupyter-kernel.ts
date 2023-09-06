@@ -293,7 +293,23 @@ interface KernelTransport {
 }
 
 function kernelTransportFile(target: string) {
-  const transportsDir = quartoRuntimeDir("jt");
+  let transportsDir: string;
+
+  try {
+    transportsDir = quartoRuntimeDir("jt");
+  } catch (e) {
+    console.error("Could create runtime directory for jupyter transport.");
+    console.error(
+      "This is possibly a permission issue in the environment Quarto is running in.",
+    );
+    console.error(
+      "Please consult the following documentation for more information:",
+    );
+    console.error(
+      "https://github.com/quarto-dev/quarto-cli/issues/4594#issuecomment-1619177667",
+    );
+    throw e;
+  }
   const targetFile = normalizePath(target);
   const hash = md5Hash(targetFile).slice(0, 20);
   return join(transportsDir, hash);
@@ -376,7 +392,9 @@ async function connectToKernel(
       return await denoConnectToKernel(transport);
     } catch {
       // remove the transport file
-      Deno.removeSync(transportFile);
+      if (existsSync(transportFile)) {
+        Deno.removeSync(transportFile);
+      }
     }
   }
 

@@ -299,11 +299,13 @@ export async function renderProject(
     };
   };
 
+  let moveOutputResult: Record<string, unknown> | undefined;
   if (outputDirAbsolute) {
     // track whether we need to keep the lib dir around
     let keepLibsDir = false;
 
     interface FileOperation {
+      key: string;
       src: string;
       performOperation: () => void;
     }
@@ -349,6 +351,7 @@ export async function renderProject(
         if (keepFiles) {
           renderedFile.supporting.forEach((file) => {
             fileOperations.push({
+              key: `${file}|copy`,
               src: file,
               performOperation: () => {
                 copyFormatDir(file);
@@ -358,6 +361,7 @@ export async function renderProject(
         } else {
           renderedFile.supporting.forEach((file) => {
             fileOperations.push({
+              key: `${file}|move`,
               src: file,
               performOperation: () => {
                 moveFormatDir(file);
@@ -401,15 +405,29 @@ export async function renderProject(
     // The second operation overwrites the folder foo_files with a copy that is
     // missing the figure_html directory. (Render a document to JATS and HTML
     // as an example case)
-    const sortedOperations = fileOperations.sort((a, b) => {
+    const uniqOps = ld.uniqBy(fileOperations, (op: FileOperation) => {
+      return op.key;
+    });
+
+    const sortedOperations = uniqOps.sort((a, b) => {
       if (a.src === b.src) {
         return 0;
-      } else if (isSubdir(a.src, b.src)) {
-        return -1;
       } else {
-        return 1;
+        if (isSubdir(a.src, b.src)) {
+          return -1;
+        } else {
+          return a.src.localeCompare(b.src);
+        }
       }
     });
+
+    // Before file move
+    if (projType.beforeMoveOutput) {
+      moveOutputResult = await projType.beforeMoveOutput(
+        context,
+        projResults.files,
+      );
+    }
 
     sortedOperations.forEach((op) => {
       op.performOperation();
@@ -587,6 +605,7 @@ export async function renderProject(
           : join(projDir, result.file);
         return {
           file,
+          input: join(projDir, result.input),
           format: result.format,
           resources: result.resourceFiles,
           supporting: result.supporting,
@@ -598,6 +617,7 @@ export async function renderProject(
         context,
         incremental,
         outputFiles,
+        moveOutputResult,
       );
     }
 

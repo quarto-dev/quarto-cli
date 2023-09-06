@@ -4,16 +4,17 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { NotebookPreviewDescriptor } from "../../../config/types.ts";
+import { kCodeLinks } from "../../../config/constants.ts";
+import { NotebookPreviewDescriptor, OtherLink } from "../../../config/types.ts";
 
 export const kManuscriptType = "manuscript";
 export const kManuscriptUrl = "manuscript-url";
-export const kMecaArchive = "meca-archive";
+export const kMecaBundle = "meca-bundle";
 export const kEnvironmentFiles = "environment";
 
 export interface ManuscriptConfig {
   [kManuscriptUrl]?: string;
-  [kMecaArchive]?: boolean | string;
+  [kMecaBundle]?: boolean | string;
   article?: string;
   notebooks?: Array<string | NotebookPreviewDescriptor>;
   resources?: string | string[];
@@ -23,6 +24,12 @@ export interface ManuscriptConfig {
 export interface ResolvedManuscriptConfig extends ManuscriptConfig {
   article: string;
   notebooks: Array<NotebookPreviewDescriptor>;
+  [kCodeLinks]?: boolean | string | string[] | OtherLink[];
   mecaFile: string;
   [kEnvironmentFiles]?: string[];
+}
+
+export interface ManuscriptOutputBundle {
+  manuscript: string;
+  supporting: string[];
 }

@@ -43,7 +43,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const mainEl = window.document.querySelector("main");
 
   // highlight matches on the page
-  if (query !== null && mainEl) {
+  if (query && mainEl) {
     // perform any highlighting
     highlight(escapeRegExp(query), mainEl);
 
@@ -57,7 +57,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // (e.g. if the user edits the query or clears it)
   let highlighting = true;
   const resetHighlighting = (searchTerm) => {
-    if (mainEl && highlighting && query !== null && searchTerm !== query) {
+    if (mainEl && highlighting && query && searchTerm !== query) {
       clearHighlight(query, mainEl);
       highlighting = false;
     }
@@ -110,6 +110,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return item.href;
     },
     onStateChange({ state }) {
+      // If this is a file URL, note that
+
       // Perhaps reset highlighting
       resetHighlighting(state.query);
 
@@ -374,6 +376,15 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     focusSearchInput();
   };
 
+  document.addEventListener("keyup", (event) => {
+    const { key } = event;
+    const kbds = quartoSearchOptions["keyboard-shortcut"];
+    if (kbds && kbds.includes(key)) {
+      event.preventDefault();
+      window.quartoOpenSearch();
+    }
+  });
+
   // Remove the labeleledby attribute since it is pointing
   // to a non-existent label
   if (quartoSearchOptions.type === "overlay") {
@@ -613,9 +624,17 @@ function showCopyLink(query, options) {
 /* Search Index Handling */
 // create the index
 var fuseIndex = undefined;
+var shownWarning = false;
 async function readSearchData() {
   // Initialize the search index on demand
   if (fuseIndex === undefined) {
+    if (window.location.protocol === "file:" && !shownWarning) {
+      window.alert(
+        "Search requires JavaScript features disabled when running in file://... URLs. In order to use search, please run this document in a web server."
+      );
+      shownWarning = true;
+      return;
+    }
     // create fuse index
     const options = {
       keys: [

@@ -1,0 +1,12 @@
+---
+title: Cool Cars
+author: Norah Jones
+---
+
+
+```{r}
+#| label: fig-mtcars
+#| fig-cap: This is a figure of cars
+plot(mtcars)
+```
+

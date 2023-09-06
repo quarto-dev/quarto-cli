@@ -31,7 +31,7 @@ export interface MecaManifest {
 export function toXml(manifest: MecaManifest): string {
   const mecaJson = {
     xml: {
-      "@version": 1,
+      "@version": "1.0",
       "@encoding": "UTF-8",
     },
     doctype: {
@@ -42,7 +42,7 @@ export function toXml(manifest: MecaManifest): string {
     },
     manifest: {
       "@manifest-version": manifest.version,
-      "@xmlns": "https://www.manuscriptexchange.org/schema/manifest",
+      "@xmlns": "https://manuscriptexchange.org/schema/manifest",
       "@xmlns:xlink": "http://www.w3.org/1999/xlink",
       item: manifest.items.map(toMecaXMLItem),
     },

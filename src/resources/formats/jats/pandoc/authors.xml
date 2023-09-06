@@ -6,6 +6,7 @@ $if(it.orcid)$
 <contrib-id contrib-id-type="orcid">$it.orcid$</contrib-id>
 $endif$
 $it:name.xml()$
+$if(it.degrees)$<degrees>$for(it.degrees)$$it$$sep$, $endfor$</degrees>$endif$
 $if(it.email)$
 <email>$it.email$</email>
 $endif$

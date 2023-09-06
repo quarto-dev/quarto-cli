@@ -86,11 +86,7 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources, kTargetFormat } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import {
-  RenderFlags,
-  RenderResult,
-  RenderServices,
-} from "../../command/render/types.ts";
+import { RenderFlags, RenderResult } from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -119,13 +115,13 @@ import { handleHttpRequests } from "../../core/http-server.ts";
 import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
+import { kManuscriptType } from "../types/manuscript/manuscript-types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  services: RenderServices,
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
@@ -187,6 +183,9 @@ export async function serveProject(
   // are we targeting pdf output?
   const pdfOutput = isPdfOutput(flags.to || "");
 
+  // Configure render services
+  const services = renderServices();
+
   // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
   // isn't up to date. for those files we aren't rendering, compute their
@@ -205,18 +204,23 @@ export async function serveProject(
     }
   }
 
-  const renderResult = await renderProject(
-    project,
-    {
-      services,
-      progress: true,
-      useFreezer: !renderBefore,
-      flags,
-      pandocArgs,
-      previewServer: true,
-    },
-    files,
-  );
+  let renderResult;
+  try {
+    renderResult = await renderProject(
+      project,
+      {
+        services,
+        progress: true,
+        useFreezer: !renderBefore,
+        flags,
+        pandocArgs,
+        previewServer: true,
+      },
+      files,
+    );
+  } finally {
+    services.cleanup();
+  }
 
   // exit if there was an error
   if (renderResult.error) {
@@ -474,10 +478,16 @@ async function internalPreviewServer(
   const pdfOutputFile = (finalOutput && pdfOutput)
     ? (): string => {
       const project = watcher.project();
-      return join(
-        dirname(finalOutput),
-        bookOutputStem(project.dir, project.config) + ".pdf",
-      );
+      if (projType.type == kManuscriptType) {
+        // For manuscripts, just use the final output as is
+        return finalOutput;
+      } else {
+        const outputFile = join(
+          dirname(finalOutput),
+          bookOutputStem(project.dir, project.config) + ".pdf",
+        );
+        return outputFile;
+      }
     }
     : undefined;
 
@@ -773,16 +783,16 @@ function previewControlChannelRequestHandler(
           // if there is no specific format requested then 'all' needs
           // to become 'html' so we don't render all formats
           const to = flags.to === "all" ? (prevReq.format || "html") : flags.to;
-          render(prevReq.path, {
-            services,
-            flags: { ...flags, to },
-            pandocArgs,
-            previewServer: true,
-          }).then((result) => {
+          renderManager.submitRender(() =>
+            render(prevReq.path, {
+              services,
+              flags: { ...flags, to },
+              pandocArgs,
+              previewServer: true,
+            })
+          ).then((result) => {
             if (result.error) {
-              if (result.error?.message) {
-                logError(result.error);
-              }
+              renderManager.onRenderError(result.error);
             } else {
               // print output created
               const finalOutput = renderResultFinalOutput(
@@ -803,7 +813,18 @@ function previewControlChannelRequestHandler(
                 watcher.project(),
               );
 
-              info("Output created: " + finalOutput + "\n");
+              const projType = projectType(
+                project.config?.project?.[kProjectType],
+              );
+
+              if (projType.filterOutputFile) {
+                info(
+                  "Output created: " + projType.filterOutputFile(finalOutput) +
+                    "\n",
+                );
+              } else {
+                info("Output created: " + finalOutput + "\n");
+              }
 
               // notify user we are watching for reload
               printWatchingForChangesMessage();

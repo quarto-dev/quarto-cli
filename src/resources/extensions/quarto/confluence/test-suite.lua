@@ -124,6 +124,119 @@ function TestCaptionedImage:testAlignRight()
   lu.assertEquals(actual, expected)
 end
 
+function TestCaptionedImage:testWidth()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:width="120"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['width'] = '120'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testWidthEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['width'] = ''}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testHeight()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:height="90"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '90'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testHeightEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = ''}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+
+function TestCaptionedImage:testBoth()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:width="120"
+    ac:height="90"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '90', ['width'] = '120'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testBothOneEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:width="120"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '', ['width'] = '120'}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+function TestCaptionedImage:testBoth_BothEmpty()
+  local expected = [[<ac:image
+    ac:align="center"
+    ac:layout="center"
+    ac:alt="fake-title">
+        <ri:attachment ri:filename="fake-source" /><ac:caption>fake-caption</ac:caption>
+    </ac:image>]]
+  local source = 'fake-source'
+  local title = 'fake-title'
+  local caption = 'fake-caption'
+  local attr = {id = '', class = '', ['height'] = '', ['width'] = ''}
+  local actual = confluence.CaptionedImageConfluence(source, title, caption, attr)
+
+  lu.assertEquals(actual, expected)
+end
+
+
 TestCodeBlockConfluence = {}
 function TestCodeBlockConfluence:testWithAllAttributes()
   local expected = [[<ac:structured-macro
@@ -222,7 +335,21 @@ function TestLinkConfluence:testLineBreakRemove_parens()
 
   lu.assertEquals(actual, expected)
 end
+function TestLinkConfluence:testAttachment()
+  --5815-bug-confluence-links-to-file-attachments-not-supported
+  local expected = [[<ac:link><ri:attachment ri:filename="fake-target"/><ac:plain-text-link-body><![CDATA[fake-source{doubleBracket}></ac:plain-text-link-body></ac:link>]]
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local source = 'fake-source'
+  local target = 'fake-target'
+  local title = 'fake-title'
+  local attributes = {
+    class = 'fake-class'
+  }
+  expected = confluence.interpolate{expected, doubleBracket = ']]'}
+  local actual = confluence.LinkConfluence(source, target, title, attributes)
 
+  lu.assertEquals(actual, expected)
+end
 TestCalloutConfluence = {}
 function TestCalloutConfluence:testBasicNote()
   local expected = [[<ac:structured-macro ac:name="info" ac:schema-version="1" ac:macro-id="1c8062cd-87de-4701-a698-fd435e057468"><ac:rich-text-body>fake-content</ac:rich-text-body></ac:structured-macro>]]

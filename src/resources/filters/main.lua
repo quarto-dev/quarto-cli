@@ -43,7 +43,6 @@ import("./common/string.lua")
 import("./common/table.lua")
 import("./common/tables.lua")
 import("./common/theorems.lua")
-import("./common/timing.lua")
 import("./common/url.lua")
 import("./common/validate.lua")
 import("./common/wrapped-filter.lua")
@@ -71,6 +70,7 @@ import("./quarto-post/tikz.lua")
 import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
+import("./quarto-post/code.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -155,6 +155,9 @@ initCrossrefIndex()
 
 initShortcodeHandlers()
 
+-- see whether the cross ref filter is enabled
+local enableCrossRef = param("enable-crossref", true)
+
 local quartoInit = {
   { name = "init-configure-filters", filter = configure_filters() },
   { name = "init-read-includes", filter = read_includes() },
@@ -172,7 +175,10 @@ local quartoNormalize = {
   { name = "pre-table-merge-raw-html", 
     filter = table_merge_raw_html()
   },
-  
+
+  { name = "pre-content-hidden-meta",
+    filter = content_hidden_meta() },
+
   -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
   -- can't be combined with parse_html_tables because combineFilters
   -- doesn't inspect the contents of the results in the inner loop.
@@ -259,8 +265,8 @@ local quartoPre = {
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
     code_filename(),
-    line_numbers(),
     engine_escape(),
+    line_numbers(),
     bootstrap_panel_input(),
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
@@ -284,10 +290,11 @@ local quartoPost = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
+  { name = "post-ipynb", filter = ipynbCode()},
+  { name = "post-ipynb", filter = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
-    ipynb(),
     quartoBook(),
     reveal(),
     tikz(),
@@ -305,6 +312,10 @@ local quartoPost = {
   { name = "post-render-jats-subarticle", filter = filterIf(function()
     return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
   end, jatsSubarticle()) },
+
+  { name = "post-code-options", filter = filterIf(function() 
+    return param("clear-cell-options", false) == true
+  end, removeCodeOptions()) },
 
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
@@ -335,6 +346,7 @@ local quartoFinalize = {
 
 local quartoLayout = {
   { name = "manuscript filtering", filter = manuscript() },
+  { name = "manuscript filtering", filter = manuscriptUnroll() },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
@@ -383,7 +395,9 @@ local filterList = {}
 tappend(filterList, quartoInit)
 tappend(filterList, quartoNormalize)
 tappend(filterList, quartoPre)
-tappend(filterList, quartoCrossref)
+if enableCrossRef then
+  tappend(filterList, quartoCrossref)
+end
 tappend(filterList, quartoLayout)
 tappend(filterList, quartoPost)
 tappend(filterList, quartoFinalize)

@@ -1,9 +1,8 @@
 /*
-* devconfig.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * devconfig.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { error, info } from "log/mod.ts";
 import { join } from "path/mod.ts";
@@ -23,6 +22,7 @@ export interface DevConfig {
   pandoc: string;
   dartsass: string;
   esbuild: string;
+  typst: string;
   script: string;
   importMap: string; // import map for most imports, which we need on dev version
   bundleImportMap: string; // import map for dynamic imports which we need on bundled versions
@@ -34,6 +34,7 @@ export function createDevConfig(
   pandoc: string,
   dartsass: string,
   esbuild: string,
+  typst: string,
   scriptDir: string,
 ): DevConfig {
   const scriptPath = join(scriptDir, "quarto" + (isWindows() ? ".cmd" : ""));
@@ -45,6 +46,7 @@ export function createDevConfig(
     pandoc,
     dartsass,
     esbuild,
+    typst,
     script: md5Hash(Deno.readTextFileSync(scriptPath)),
     importMap: md5Hash(
       Deno.readTextFileSync(
@@ -102,6 +104,7 @@ export function readSourceDevConfig(): DevConfig {
     readConfig("PANDOC"),
     readConfig("DARTSASS"),
     readConfig("ESBUILD"),
+    readConfig("TYPST"),
     quartoConfig.binPath(),
   );
 }
@@ -112,6 +115,7 @@ export function devConfigsEqual(a: DevConfig, b: DevConfig) {
     a.pandoc === b.pandoc &&
     a.dartsass == b.dartsass &&
     a.esbuild == b.esbuild &&
+    a.typst === b.typst &&
     a.script == b.script &&
     a.importMap === b.importMap &&
     a.bundleImportMap === b.bundleImportMap;
@@ -159,6 +163,8 @@ function reconfigureReason(
     return versionMessage("Dart Sass", source.dartsass);
   } else if (installed.esbuild !== source.esbuild) {
     return versionMessage("Esbuild", source.esbuild);
+  } else if (installed.typst !== source.typst) {
+    return versionMessage("Typst", source.typst);
   } else if (installed.script !== source.script) {
     return "update Quarto wrapper script";
   } else if (

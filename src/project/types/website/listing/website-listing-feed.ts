@@ -1,9 +1,8 @@
 /*
-* website-listing-feed.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-listing-feed.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
@@ -33,6 +32,7 @@ import {
   kItems,
   kListing,
   kUrlsToAbsolute,
+  kXmlStyleSheet,
   ListingDescriptor,
   ListingFeedOptions,
   ListingItem,
@@ -65,6 +65,7 @@ interface FeedMetadata {
   description: string;
   image?: FeedImage;
   language?: string;
+  [kXmlStyleSheet]?: string;
 
   generator: string;
   lastBuildDate: string;
@@ -141,6 +142,10 @@ export async function createFeed(
   // Find the most recent item (if any)
   const mostRecent = mostRecentItem(filteredItems);
 
+  const xmlSheetHref = options[kXmlStyleSheet]
+    ? absoluteUrl(siteUrl, options[kXmlStyleSheet])
+    : undefined;
+
   // Create feed metadata
   const feed: FeedMetadata = {
     title: feedTitle,
@@ -152,6 +157,7 @@ export async function createFeed(
       ? new Date(mostRecent.date).toUTCString()
       : new Date().toUTCString(),
     language: options.language,
+    [kXmlStyleSheet]: xmlSheetHref,
   };
 
   // Add any image metadata
@@ -177,6 +183,11 @@ export async function createFeed(
   const stagedPath = feedPath(dir, stem, options.type === "full");
 
   const feedFiles: string[] = [];
+
+  // Push any stylesheet
+  if (options[kXmlStyleSheet]) {
+    feedFiles.push(options[kXmlStyleSheet]);
+  }
 
   // Render the main feed
   const rendered = await renderFeed(
@@ -532,7 +543,7 @@ function prepareItems(items: ListingItem[], options: ListingFeedOptions) {
     return bTimestamp - aTimestamp;
   });
 
-  const itemCount = (options[kItems] || kDefaultItems);
+  const itemCount = options[kItems] || kDefaultItems;
   if (sortedItems.length > itemCount) {
     return sortedItems.slice(0, itemCount);
   } else {
@@ -557,6 +568,7 @@ function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
   linkEl.setAttribute("type", "application/rss+xml");
   linkEl.setAttribute("title", feed.title);
   linkEl.setAttribute("href", path);
+  linkEl.setAttribute("data-external", "1");
   doc.head.appendChild(linkEl);
 }
 

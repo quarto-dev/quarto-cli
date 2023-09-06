@@ -1,9 +1,8 @@
 /*
-* constants.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * constants.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 export const kRevealJsUrl = "revealjs-url";
 export const kRevealJsConfig = "revealjs-config";
@@ -17,6 +16,7 @@ export const kCenter = "center";
 export const kCenterTitleSlide = "center-title-slide";
 export const kControlsAuto = "controlsAuto";
 export const kPreviewLinksAuto = "previewLinksAuto";
+export const kPdfMaxPagesPerSlide = "pdfMaxPagesPerSlide";
 export const kPdfSeparateFragments = "pdfSeparateFragments";
 export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";

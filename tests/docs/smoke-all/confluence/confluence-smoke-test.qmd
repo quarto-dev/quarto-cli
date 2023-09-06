@@ -1,0 +1,613 @@
+---
+title: Confluence Smoke Test
+format: confluence-publish
+validate-yaml: false
+
+_quarto:
+  tests:
+    confluence-html:
+      ensureHtmlElements:
+        -
+          - "#markdown-basics"
+          - "#text-formatting"
+          - "#tables"
+---
+# Markdown Basics
+## Text Formatting
+
++-----------------------------------+-------------------------------+
+| Markdown Syntax                   | Output                        |
++===================================+===============================+
+|     *italics* and **bold**        | *italics* and **bold**        |
++-----------------------------------+-------------------------------+
+|     superscript^2^ / subscript~2~ | superscript^2^ / subscript~2~ |
++-----------------------------------+-------------------------------+
+|     ~~strikethrough~~             | ~~strikethrough~~             |
++-----------------------------------+-------------------------------+
+|     `verbatim code`               | `verbatim code`               |
++-----------------------------------+-------------------------------+
+
+## Headings {#headings}
+
++---------------------+-----------------------------------+
+| Markdown Syntax     | Output                            |
++=====================+===================================+
+|     # Header 1      | # Header 1 {.heading-output}      |
++---------------------+-----------------------------------+
+|     ## Header 2     | ## Header 2 {.heading-output}     |
++---------------------+-----------------------------------+
+|     ### Header 3    | ### Header 3 {.heading-output}    |
++---------------------+-----------------------------------+
+|     #### Header 4   | #### Header 4 {.heading-output}   |
++---------------------+-----------------------------------+
+|     ##### Header 5  | ##### Header 5 {.heading-output}  |
++---------------------+-----------------------------------+
+|     ###### Header 6 | ###### Header 6 {.heading-output} |
++---------------------+-----------------------------------+
+
+## Links & Images
+
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| Markdown Syntax                                                  | Output                                                                                                 |
++==================================================================+========================================================================================================+
+|     <https://quarto.org>                                         | <https://quarto.org>                                                                                   |
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+|     [Quarto](https://quarto.org)                                 | [Quarto](https://quarto.org)                                                                           |
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+|     ![Caption](elephant.png)                                     | ![Caption](elephant.png){fig-alt="A line drawing of an elephant."}                                     |
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+|     [![Caption](elephant.png)](https://quarto.org)               | [![Caption](elephant.png)](https:/quarto.org)                                                          |
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+|     [![Caption](elephant.png)](https://quarto.org "An elephant") | [![Caption](elephant.png "An elephant"){fig-alt="A line drawing of an elephant."}](https://quarto.org) |
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+|     [![](elephant.png){fig-alt="Alt text"}](https://quarto.org)  | [![](elephant.png){fig-alt="A line drawing of an elephant."}](https://quarto.org)                      |
++------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+
+## Lists
+
++-------------------------------------+---------------------------------+
+| Markdown Syntax                     | Output                          |
++=====================================+=================================+
+|     * unordered list                | -   unordered list              |
+|         + sub-item 1                |                                 |
+|         + sub-item 2                |     -   sub-item 1              |
+|             - sub-sub-item 1        |                                 |
+|                                     |     -   sub-item 2              |
+|                                     |                                 |
+|                                     |         -   sub-sub-item 1      |
++-------------------------------------+---------------------------------+
+|     *   item 2                      | -   item 2                      |
+|                                     |                                 |
+|         Continued (indent 4 spaces) |     Continued (indent 4 spaces) |
++-------------------------------------+---------------------------------+
+|     1. ordered list                 | NOT YET SUPPORTED               |
+|     2. item 2                       |                                 |
+|         i) sub-item 1               |                                 |
+|              A.  sub-sub-item 1     |                                 |
++-------------------------------------+---------------------------------+
+|     (@)  A list whose numbering     | NOT YET SUPPORTED               |
+|                                     |                                 |
+|     continues after                 |                                 |
+|                                     |                                 |
+|     (@)  an interruption            |                                 |
++-------------------------------------+---------------------------------+
+|     term                            | term                            |
+|     : definition                    |                                 |
+|                                     | :   definition                  |
++-------------------------------------+---------------------------------+
+
+## Tables
+
+#### Markdown Syntax
+
+    | Right | Left | Default | Center |
+    |------:|:-----|---------|:------:|
+    |   12  |  12  |    12   |    12  |
+    |  123  |  123 |   123   |   123  |
+    |    1  |    1 |     1   |     1  |
+
+#### Output
+
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|    12 | 12   | 12      |   12   |
+|   123 | 123  | 123     |  123   |
+|     1 | 1    | 1       |   1    |
+
+## Source Code
+
+Use ```` ``` ```` to delimit blocks of source code:
+
+```` markdown
+```
+code
+```
+````
+
+    code
+
+Add a language to syntax highlight code blocks:
+
+```` markdown
+```python
+1 + 1
+```
+````
+
+``` python
+1 + 1
+```
+
+Pandoc supports syntax highlighting for over 140 different languages. If your language is not supported then you can use the `default` langauge to get a similar visual treatment:
+
+```` markdown
+```default
+code
+```
+````
+
+``` default
+code
+```
+
+## Equations
+
+No support, yet, as it requires [plugins from the marketplace](https://marketplace.atlassian.com/search?query=math).
+
+## Diagrams
+
+No support, yet, as it requires [plugins from the marketplace](https://marketplace.atlassian.com/search?query=mermaid).
+
+## Divs and Spans
+
+### Divs
+
+No support, yet, as Confluence filters out custom divs.
+
+````{=html}
+<!-- You can add classes, attributes, and other identifiers to regions of content using Divs and Spans (you'll see an example of this below in [Callout Blocks]).
+
+For example, here we add the "border" class to a region of content using a div (`:::`):
+
+``` markdown
+::: {style='border:solid'}
+This content can be styled with a border
+:::
+```
+
+::: {style='border:solid'}
+This content can be styled with a border
+:::
+
+Divs start with a fence containing at least three consecutive colons plus some attributes. The attributes may optionally be followed by another string of consecutive colons. The Div ends with another line containing a string of at least three consecutive colons. The Div should be separated by blank lines from preceding and following blocks. Divs may also be nested. For example
+
+``` markdown
+::::: {#special .sidebar}
+
+::: {.warning}
+Here is a warning.
+:::
+
+More content.
+:::::
+```
+
+Fences without attributes are always closing fences. Unlike with fenced code blocks, the number of colons in the closing fence need not match the number in the opening fence. However, it can be helpful for visual clarity to use fences of different lengths to distinguish nested divs from their parents.
+ -->
+````
+
+### Spans
+
+A bracketed sequence of inlines, as one would use to begin a link, will be treated as a `Span` with attributes if it is followed immediately by attributes:
+
+    [This is *some orange text*]{style="color:orange"}
+
+[This is *some orange text*]{style="color:orange"}
+
+## Callout Blocks
+
+#### Markdown Syntax
+
+``` markdown
+:::{.callout-note}
+Note that there are five types of callouts, including: 
+`note`, `tip`, `warning`, `caution`, and `important`.
+:::
+```
+
+#### Output
+
+::: callout-note
+Note that there are five types of callouts, including `note`, `tip`, `warning`, `caution`, and `important`.
+:::
+
+Learn more in the article on [Callout Blocks](callouts.qmd).
+
+## Other Blocks
+
++-----------------------------+-------------------+
+| Markdown Syntax             | Output            |
++=============================+===================+
+|     > Blockquote            | > Blockquote      |
++-----------------------------+-------------------+
+|     ::: {.classname}        | Not Yet Supported |
+|     Div                     |                   |
+|     :::                     |                   |
++-----------------------------+-------------------+
+|     | Line Block            | Not Yet Supported |
+|     |   Spaces and newlines |                   |
+|     |   are preserved       |                   |
++-----------------------------+-------------------+
+
+### Special Characters
+
++-----------------+-------------+
+| Markdown Syntax | Output      |
++=================+=============+
+|     endash: --  | endash: --  |
++-----------------+-------------+
+|     emdash: --- | emdash: --- |
++-----------------+-------------+
+
+# Figures
+Quarto includes a number of features aimed at making it easier to work with figures and subfigures, as well as for laying out panels that contain multiple figures, tables, or other content.
+
+## Figure Basics
+
+In Pandoc markdown, a figure is created whenever a captioned image appears by-itself in a paragraph. For example:
+
+``` markdown
+![Elephant](elephant.png)
+```
+
+![Elephant](elephant.png)
+
+### Linked Figures
+
+When rendering with Quarto, you can enclose a figure within a link and it will still be treated within output as a captioned figure. For example:
+
+``` markdown
+[![Elephant](elephant.png)](https://en.wikipedia.org/wiki/Elephant)
+```
+
+[![Elephant](elephant.png)](https://en.wikipedia.org/wiki/Elephant)
+
+[Bug #14 Linked Captioned Images not using `CaptionedImage`](https://github.com/allenmanning/confluence/issues/14){style="color:red"}
+
+### Figure Alignment
+
+Figures are center aligned by default. Add the `fig-align` attribute to the image to use a different alignment. For example:
+
+``` markdown
+![Elephant](elephant.png){fig-align="right"}
+![Elephant](elephant.png){fig-align="left"}
+```
+
+<!-- TODO Better Preview for figure alignment -->
+
+![Elephant](elephant.png){fig-align="right"} <!-- // NOTE:  Must have carrige return or else this will be emitted as an Image and not a Captioned Image --> ![Elephant](elephant.png){fig-align="left"}
+
+Note that figure captions are left aligned to accommodate longer caption text (which looks odd when center aligned).
+
+### Alt Text
+
+You can add alternative text to a figure by adding the `fig-alt` attribute to the image. For example, the following Markdown...
+
+``` markdown
+![](elephant.png){fig-alt="A drawing of an elephant."}
+```
+
+... will create the following CSF with the corresponding alt tag:
+
+``` html
+<ac:image ... ac:alt="example alt text">
+    ...
+</ac:image>
+```
+
+Note that the figure caption, and alt text can all be different. Also, confluence doesn't yet offer a way to set the title for an image. For example, the following code...
+
+``` markdown
+![Elephant](elephant.png "Title: An elephant"){fig-alt="A drawing of an elephant."}
+```
+
+<!-- TODO Preview - remove title as it makes it seem like confluence supports it -->
+
+![Elephant](elephant.png "Title: An elephant"){fig-alt="A drawing of an elephant."}
+
+...produces this CSF:
+
+``` html
+<ac:image ... ac:alt="A drawing of an elephant.">
+    <ri:attachment ri:filename="elephant.png" />
+    <ac:caption>
+        <p>Elephant</p>
+    </ac:caption>
+</ac:image>
+```
+
+### Multiformat Figures
+
+[Bug #15 Multi-format Figures don't auto-append png extension.](https://github.com/allenmanning/confluence/issues/15){style="color:red"}
+
+## Subfigures
+
+If you have several figures that appear as a group, you can create a figure div to enclose them. For example:
+
+``` markdown
+::: {#fig-elephants layout-ncol=2}
+
+![Surus](surus.png){#fig-surus}
+
+![Hanno](hanno.png){#fig-hanno}
+
+Famous Elephants
+:::
+```
+
+Again, the last paragraph provides the main caption, and the individual figures carry the sub-captions. Here is what this looks like when rendered as CSF:
+
+<!-- TODO Preview subfigures in a table -->
+
+::: {#fig-elephants layout-ncol="2"}
+![Surus](surus.png){#fig-surus}
+
+![Hanno](hanno.png){#fig-hanno}
+
+Famous Elephants
+:::
+
+Note that the empty lines between the figures (and between the last figure and the caption) are required (it's what indicates that these images belong to their own paragraphs rather than being multiple images within the same paragraph).
+
+Note also that we also used a `layout-ncol` attribute to specify a two-column layout. The next section delves more into customizing figure layouts.
+
+## Figure Panels
+
+Above we demonstrate laying out two side-by-side figures with subcaptions and a main caption. You may or may not want the caption / sub-caption treatment, and you might also want to use multiple rows of figures. All of these variations are possible.
+
+To layout two figures with their own standalone captions (and no main caption), just eliminate the `#fig` identifiers and main caption at the bottom:
+
+``` markdown
+::: {layout-ncol=2}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+:::
+```
+
+::: {layout-ncol="2"}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+:::
+
+You can also eliminate the captions entirely:
+
+``` markdown
+::: {layout-ncol=2}
+![](surus.png)
+
+![](hanno.png)
+:::
+```
+
+::: {layout-ncol="2"}
+![](surus.png)
+
+![](hanno.png)
+:::
+
+<!-- TODO Better Preview for figure alignment -->
+
+### Multiple Rows
+
+If you have more than 2 images, you might want to lay them out across multiple rows. You can do this using the `layout-nrow` attribute. For example:
+
+``` markdown
+::: {layout-nrow=2}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+
+![Abdul Abbas](abdul-abbas.png)
+
+![Lin Wang](lin-wang.png)
+:::
+```
+
+::: {layout-nrow="2"}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+
+![Abdul Abbas](abdul-abbas.png)
+
+![Lin Wang](lin-wang.png)
+:::
+
+More complex figure arrangements (e.g. rows with varying column layouts) are possible. See the [Custom Layouts](#complex-layouts) section below for more details.
+
+## Figure Divs
+
+You can treat any markdown content you want as a figure by enclosing it in Pandoc div block with an identifier prefaced with `#fig-`. For example, here we create a figure that includes an icon character:
+
+``` markdown
+::: {#fig-elephant}
+
+🐘
+
+Elephant
+:::
+```
+
+::: {#fig-elephant}
+🐘
+
+Elephant
+:::
+
+Note that the last paragraph in the div block is used as the figure caption.
+
+## LaTeX Figures
+
+No Support
+
+## Caption Locations
+
+No Support
+
+## Custom Layouts {#complex-layouts}
+
+[Not Yet Supported]{style="color:orange"}
+
+## Computations
+
+#### Knitr
+
+``` {{r}}
+#| layout-ncol: 2
+#| fig-cap: 
+#|   - "Speed and Stopping Distances of Cars"
+#|   - "Vapor Pressure of Mercury as a Function of Temperature"
+
+plot(cars)
+plot(pressure)
+```
+
+```{r}
+#| layout-ncol: 2
+#| fig-cap: 
+#|   - "Speed and Stopping Distances of Cars"
+#|   - "Vapor Pressure of Mercury as a Function of Temperature"
+
+plot(cars)
+plot(pressure)
+```
+
+Note that in these examples we also use the `fig-cap` option to apply a caption to each of the generated figures.
+
+### Subcaptions
+
+You can create subcaptions for computational output by combining the the `fig-cap` and `fig-subcap` options. When applying captions to computational output you can optionally include a `label` with a `fig-` prefix---if you do this then the figure will be numbered and cross-referenceable.
+
+#### Knitr
+
+``` {{r}}
+#| label: fig-charts
+#| fig-cap: Charts
+#| fig-subcap: 
+#|   - "Cars"
+#|   - "Pressure"
+#| layout-ncol: 2
+
+plot(cars)
+plot(pressure)
+```
+
+```{r}
+#| label: fig-charts
+#| fig-cap: Charts
+#| fig-subcap: 
+#|   - "Cars"
+#|   - "Pressure"
+#| layout-ncol: 2
+
+plot(cars)
+plot(pressure)
+```
+
+### Custom Layout
+
+[Not Yet Supported]{style="color:orange"}
+
+``` {{r}}
+#| layout: [[45,-10, 45], [100]]
+
+plot(cars)
+plot(pressure)
+plot(mtcars)
+```
+
+```{r}
+#| layout: [[45,-10, 45], [100]]
+
+plot(cars)
+plot(pressure)
+plot(mtcars)
+```
+
+## Block Layout
+
+While the examples above illustrate laying out figures, it's important to note that layout attributes can be used to layout any sort of block content. For example, here we layout 2 lists side-by-side:
+
+``` markdown
+::: {layout-ncol=2}
+### List One
+
+- Item A
+- Item B
+- Item C
+
+### List Two
+
+- Item X
+- Item Y
+- Item Z
+:::
+```
+
+::: {layout-ncol="2"}
+### List One
+
+-   Item A
+-   Item B
+-   Item C
+
+### List Two
+
+-   Item X
+-   Item Y
+-   Item Z
+    :::
+
+Note that headings are automatically combined with the block that follows them, so this markdown has a total of 2 columns to lay out. Here's an example of a paragraph next to a bullet list (without headings):
+
+``` markdown
+::: {layout-ncol=2}
+- Item X
+- Item Y
+- Item Z
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur gravida eu erat et fring. Morbi congue augue vel eros ullamcorper, eget convallis tortor sagittis. Fusce sodales viverra mauris a fringilla. Donec feugiat, justo eu blandit placerat, enim dui volutpat turpis, eu dictum lectus urna eu urna. Mauris sed massa ornare, interdum ipsum a, semper massa. 
+:::
+```
+
+::: {layout-ncol="2"}
+-   Item X
+-   Item Y
+-   Item Z
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur gravida eu erat et fring. Morbi congue augue vel eros ullamcorper, eget convallis tortor sagittis. Fusce sodales viverra mauris a fringilla. Donec feugiat, justo eu blandit placerat, enim dui volutpat turpis, eu dictum lectus urna eu urna. Mauris sed massa ornare, interdum ipsum a, semper massa.
+:::
+
+``` markdown
+::: {layout-ncol=3}
+- Item X
+- Item Y
+- Item Z
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur gravida eu erat et fring. Morbi congue augue vel eros ullamcorper, eget convallis tortor sagittis. Fusce sodales viverra mauris a fringilla. Donec feugiat, justo eu blandit placerat, enim dui volutpat turpis, eu dictum lectus urna eu urna. Mauris sed massa ornare, interdum ipsum a, semper massa. 
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur gravida eu erat et fring. Morbi congue augue vel eros ullamcorper, eget convallis tortor sagittis. Fusce sodales viverra mauris a fringilla. Donec feugiat, justo eu blandit placerat, enim dui volutpat turpis, eu dictum lectus urna eu urna. Mauris sed massa ornare, interdum ipsum a, semper massa. 
+:::
+```
+
+::: {layout-ncol="3"}
+-   Item X
+-   Item Y
+-   Item Z
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur gravida eu erat et fring. Morbi congue augue vel eros ullamcorper, eget convallis tortor sagittis. Fusce sodales viverra mauris a fringilla. Donec feugiat, justo eu blandit placerat, enim dui volutpat turpis, eu dictum lectus urna eu urna. Mauris sed massa ornare, interdum ipsum a, semper massa.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur gravida eu erat et fring. Morbi congue augue vel eros ullamcorper, eget convallis tortor sagittis. Fusce sodales viverra mauris a fringilla. Donec feugiat, justo eu blandit placerat, enim dui volutpat turpis, eu dictum lectus urna eu urna. Mauris sed massa ornare, interdum ipsum a, semper massa.
+:::
