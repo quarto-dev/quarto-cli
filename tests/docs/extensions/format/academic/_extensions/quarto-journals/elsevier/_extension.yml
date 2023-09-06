@@ -4,7 +4,7 @@ contributes:
     common:
       date-format: full
     pdf:
-      citation-package: natbib
+      cite-method: natbib
       template-partials:
         [before-body.tex, doc-class.tex, title.tex, elsarticle.cls]
       classoption: preprint, 3p, authoryear
