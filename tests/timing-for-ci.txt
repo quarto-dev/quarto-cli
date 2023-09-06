@@ -252,7 +252,7 @@
         17.10 real 15.41 user 1.14 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/24/3152.qmd
         6.12 real 5.72 user 0.63 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/09/revealjs-knitr-embed-verbatim.qmd
+./smoke/smoke-all.test.ts -- docs/smoke-all/knitr/embed-verbatim-engine/revealjs-knitr-embed-verbatim.qmd
         3.34 real 3.54 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/17/4867.qmd
         1.70 real 2.14 user 0.14 sys
