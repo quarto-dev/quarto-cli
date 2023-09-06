@@ -7,6 +7,26 @@ merge_list <- function(x, y) {
     x
 }
 
+# inline from knitr:::create_fence() from version 1.38
+# calculate correct number of fences based on content for correct escaping
+create_fence <- function(x, char = "`") {
+  r <- paste0("\n", char, "{3,}")
+  l <- max(if (grepl(r, x)) attr(gregexpr(r, x)[[1]], "match.length"), 3)
+  paste(rep(char, l), collapse = "")
+}
+
+# inline from knitr:::eng2lang() from version 1.38
+# convert some engine names to language names
+eng2lang <- function(x) {
+  d <- c(
+    asy = "cpp", mysql = "sql", node = "javascript", 
+    psql = "sql", rscript = "r", rcpp = "cpp", tikz = "tex"
+  )
+  x <- tolower(x)
+  if (x %in% names(d)) d[x] else x
+}
+
+
 knitr_hooks <- function(format, resourceDir, handledLanguages) {
 
   knit_hooks <- list()
@@ -408,7 +428,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # handles same knitr options
-    lang <- tolower(options$lang %||% knitr:::eng2lang(options$engine))
+    lang <- tolower(options$lang %||% eng2lang(options$engine))
 
     if (isTRUE(options[["fenced.echo"]])) {
       lang <- NULL
@@ -422,7 +442,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       } else {
         x <- trimws(x, "left")
       }
-      ticks <- knitr:::create_fence(x, "`")
+      ticks <- create_fence(x, "`")
       x <- paste0("\n", ticks, "{{", options[["original.params.src"]], "}}\n", yamlCode, x, "\n", ticks)
     } else {
       # If requested, preserve the code yaml and emit it into the code blocks
@@ -438,7 +458,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       }
     }
 
-    ticks <- knitr:::create_fence(x, "`")
+    ticks <- create_fence(x, "`")
     attrs <- block_attr(
       id = id,
       lang = lang,
