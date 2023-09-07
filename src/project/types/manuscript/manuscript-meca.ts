@@ -193,7 +193,7 @@ export const createMecaBundle = async (
     type: kSrcDirMecaType,
     instance: {
       mediaType: "application/x-directory",
-      href: kSrcDirName,
+      href: kSrcDirName + "/", // https://github.com/curvenote/jats/issues/17
     },
   };
 
