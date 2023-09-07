@@ -175,3 +175,4 @@
 - ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
 - ([#6620](https://github.com/quarto-dev/quarto-cli/pull/6620)): Rewrite Crossreferenceable figure support. See the [prerelease documentation](https://quarto.org/docs/prerelease/1.4/) for more information.
 - ([#6697](https://github.com/quarto-dev/quarto-cli/pull/6697)): Fix issue with outputing to stdout (`quarto render <file> -o -`) on Windows.
+- ([#6746](https://github.com/quarto-dev/quarto-cli/issues/6746)): Let stdout and stderr finish independently to avoid deadlock.
