@@ -35,6 +35,8 @@ Examples of unacceptable behavior include:
   address, without their explicit permission
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
+* Providing bad information by copying output from AI assistants
+  without verifying its validity
 
 ## Enforcement Responsibilities
 
