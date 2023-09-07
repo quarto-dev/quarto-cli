@@ -119,26 +119,35 @@ export async function execProcess(
       closeStream(process.stderr);
     } else {
       // Process the streams independently
+      const promises: Promise<void>[] = [];
+
       if (process.stdout !== null) {
-        stdoutText = await processOutput(
-          iterateReader(process.stdout),
-          options.stdout,
-          respectStreams ? "stdout" : undefined,
+        promises.push(
+          processOutput(
+            iterateReader(process.stdout),
+            options.stdout,
+            respectStreams ? "stdout" : undefined,
+          ).then((_) => {
+            process.stdout!.close();
+          }),
         );
-        process.stdout.close();
       }
 
       if (process.stderr != null) {
         const iterator = stderrFilter
           ? filteredAsyncIterator(iterateReader(process.stderr), stderrFilter)
           : iterateReader(process.stderr);
-        stderrText = await processOutput(
-          iterator,
-          options.stderr,
-          respectStreams ? "stderr" : undefined,
+        promises.push(
+          processOutput(
+            iterator,
+            options.stderr,
+            respectStreams ? "stderr" : undefined,
+          ).then((_) => {
+            process.stderr!.close();
+          }),
         );
-        process.stderr.close();
       }
+      await Promise.all(promises);
     }
 
     // await result
