@@ -127,7 +127,8 @@ export async function execProcess(
             iterateReader(process.stdout),
             options.stdout,
             respectStreams ? "stdout" : undefined,
-          ).then((_) => {
+          ).then((text) => {
+            stdoutText = text;
             process.stdout!.close();
           }),
         );
@@ -142,7 +143,8 @@ export async function execProcess(
             iterator,
             options.stderr,
             respectStreams ? "stderr" : undefined,
-          ).then((_) => {
+          ).then((text) => {
+            stderrText = text;
             process.stderr!.close();
           }),
         );
