@@ -60,7 +60,7 @@ export function isDocumentConfig(
   return (config as InspectedDocumentConfig).formats !== undefined;
 }
 
-export async function inspectConfig(path: string): Promise<InspectedConfig> {
+export async function inspectConfig(path?: string): Promise<InspectedConfig> {
   path = path || Deno.cwd();
 
   if (!existsSync(path)) {

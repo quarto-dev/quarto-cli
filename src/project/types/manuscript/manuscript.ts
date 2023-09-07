@@ -109,16 +109,10 @@ import {
   hasDevContainer,
 } from "../../../core/container.ts";
 import { computeProjectEnvironment } from "../../project-environment.ts";
-import {
-  ensureDirSync,
-} from "../../../vendor/deno.land/std@0.185.0/fs/ensure_dir.ts";
-import { copySync } from "../../../vendor/deno.land/std@0.185.0/fs/copy.ts";
-import {
-  dirname,
-  isAbsolute,
-} from "../../../vendor/deno.land/std@0.185.0/path/win32.ts";
-import { existsSync } from "../../../vendor/deno.land/std@0.185.0/fs/exists.ts";
 import { safeExistsSync } from "../../../core/path.ts";
+
+import { dirname, isAbsolute } from "path/mod.ts";
+import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
