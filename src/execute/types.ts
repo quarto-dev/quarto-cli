@@ -52,7 +52,7 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   generatesFigures: boolean;
   canKeepSource?: (target: ExecutionTarget) => boolean;
-  keepFiles?: (input: string) => string[] | undefined;
+  intermediateFiles?: (input: string) => string[] | undefined;
   ignoreDirs?: () => string[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
 }

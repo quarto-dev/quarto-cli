@@ -1040,7 +1040,7 @@ function validateTool(tool: SidebarTool) {
   }
 }
 
-function sidebarForHref(href: string, format: Format) {
+export function sidebarForHref(href: string, format: Format) {
   // if there is a single sidebar then it applies to all hrefs
   if (navigation.sidebars.length === 1) {
     return navigation.sidebars[0];
@@ -1170,7 +1170,7 @@ function nextAndPrevious(
   }
 }
 
-function breadCrumbs(href: string, sidebar?: Sidebar) {
+export function breadCrumbs(href: string, sidebar?: Sidebar) {
   if (sidebar?.contents) {
     const crumbs: SidebarItem[] = [];
 

@@ -465,6 +465,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     "keyboard-shortcut"?: MaybeArrayOf<
       string /* One or more keys that will act as a shortcut to launch search (single characters) */
     >;
+    "show-item-parent"?: ("root" | "breadcrumbs") | boolean;
     algolia?: {
       "index-name"?: string;
       "application-id"?: string;
@@ -989,6 +990,7 @@ For descriptive text (e.g., in an annotated bibliography), use `note` instead */
 Do not use for topical descriptions or categories (e.g. "adventure" for an adventure movie) */;
   guest?: CslPerson;
   host?: CslPerson;
+  id?: string | number /* A value which uniquely identifies this item. */;
   illustrator?: CslPerson;
   interviewer?: CslPerson;
   isbn?:

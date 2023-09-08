@@ -607,7 +607,7 @@ async function renderFileInternal(
           resourceFiles.push(...ojsResourceFiles);
 
           // keep md if requested
-          const keepMd = executionEngineKeepMd(context.target.input);
+          const keepMd = executionEngineKeepMd(context);
           if (keepMd && context.format.execute[kKeepMd]) {
             Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
           }
