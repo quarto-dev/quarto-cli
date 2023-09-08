@@ -9,8 +9,8 @@
       "request": "launch",
       "type": "node",
       "program": "${workspaceFolder}/src/quarto.ts",
-      "args": ["serve"],
-      "cwd": "${workspaceFolder}/../quarto-demo",
+      "args": ["render", "about.qmd"],
+      "cwd": "/Users/ct/Desktop/daily-log/2023/09/07/web",
       "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/deno",
       "runtimeArgs": [
         "run",
