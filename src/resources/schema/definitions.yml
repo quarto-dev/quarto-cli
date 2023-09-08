@@ -764,10 +764,10 @@
                   maybeArrayOf:
                     string:
                       description: "One or more keys that will act as a shortcut to launch search (single characters)"
-                show-item-parent:
+                show-item-context:
                   schema:
                     anyOf:
-                      - enum: ["root", "breadcrumbs"]
+                      - enum: ["tree", "parent", "root"]
                       - boolean
                   description: "Whether to include search result parents when displaying items in search results (when possible)."
                 algolia:

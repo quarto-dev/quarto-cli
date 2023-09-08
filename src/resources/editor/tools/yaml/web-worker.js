@@ -9279,13 +9279,14 @@ try {
                               }
                             }
                           },
-                          "show-item-parent": {
+                          "show-item-context": {
                             schema: {
                               anyOf: [
                                 {
                                   enum: [
-                                    "root",
-                                    "breadcrumbs"
+                                    "tree",
+                                    "parent",
+                                    "root"
                                   ]
                                 },
                                 "boolean"

@@ -9278,13 +9278,14 @@ var require_yaml_intelligence_resources = __commonJS({
                             }
                           }
                         },
-                        "show-item-parent": {
+                        "show-item-context": {
                           schema: {
                             anyOf: [
                               {
                                 enum: [
-                                  "root",
-                                  "breadcrumbs"
+                                  "tree",
+                                  "parent",
+                                  "root"
                                 ]
                               },
                               "boolean"

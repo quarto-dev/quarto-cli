@@ -86,7 +86,7 @@
 - Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - ([#6432](https://github.com/quarto-dev/quarto-cli/issues/6432)): Don't decorate navigation tools with external link icon (we generally don't decorate navigation chrome in this way)
 - Add support for setting `repo-actions: false` in a document to prevent the display of repository actions on a specific page.
-- Add support for `show-item-parent` key within the `search` key to control whether page parents are display next to items in search results.
+- Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
 
 ## Books
 

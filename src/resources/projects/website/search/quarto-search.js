@@ -748,17 +748,17 @@ function createDocumentCard(
   });
   const titleEl = createElement("p", { class: "search-result-title" }, title);
   const titleContents = [iconEl, titleEl];
-  const showParent = quartoSearchOptions["show-item-parent"];
+  const showParent = quartoSearchOptions["show-item-context"];
   if (crumbs && showParent) {
     let crumbsOut = undefined;
     const crumbClz = ["search-result-crumbs"];
     if (showParent === "root") {
       crumbsOut = crumbs.length > 1 ? crumbs[0] : undefined;
-    } else if (showParent === "breadcrumbs") {
+    } else if (showParent === "parent") {
+      crumbsOut = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined;
+    } else {
       crumbsOut = crumbs.length > 1 ? crumbs.join(" > ") : undefined;
       crumbClz.push("search-result-crumbs-wrap");
-    } else {
-      crumbsOut = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined;
     }
 
     const crumbEl = createElement(
@@ -1142,6 +1142,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
     ],
     transformResponse: (response) => {
       if (!indexFields) {
+        console.log({ hits: response.hits });
         return response.hits.map((hit) => {
           return hit.map((item) => {
             return {
@@ -1171,6 +1172,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
             return newItem;
           });
         });
+        console.log({ remap: remappedHits });
         return remappedHits;
       }
     },
