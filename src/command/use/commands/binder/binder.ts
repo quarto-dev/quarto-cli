@@ -24,9 +24,14 @@ import {
 import { execProcess } from "../../../../core/process.ts";
 import { safeFileWriter } from "./binder-utils.ts";
 import { projectContext } from "../../../../project/project-context.ts";
-import { computeProjectEnvironment } from "../../../../project/project-environment.ts";
+import {
+  computeProjectEnvironment,
+  ProjectEnvironment,
+} from "../../../../project/project-environment.ts";
 import { withSpinner } from "../../../../core/console.ts";
 import { logProgress } from "../../../../core/log.ts";
+import { kEnvironmentFiles } from "../../../../project/types/manuscript/manuscript-types.ts";
+import { ProjectContext } from "../../../../project/types.ts";
 
 export const useBinderCommand = new Command()
   .name("binder")
@@ -90,8 +95,8 @@ export const useBinderCommand = new Command()
         ],
       };
 
-      // TODO: sniff for JL4
-      const jupyterLab4 = false;
+      // See if we should configure for JL3 or 4
+      const jupyterLab4 = jupyterLabVersion(context, projEnv);
       const pythonConfig: PythonConfiguration = {
         pip: [],
       };
@@ -271,15 +276,30 @@ const createPostBuild = (
   return postBuildScript.join("\n");
 };
 
-/*
+const jupyterLabVersion = (
+  context: ProjectContext,
+  env: ProjectEnvironment,
+) => {
+  const envs = env.environments;
 
-# enable the proxy extension in notebook and lab
-# TODO: This one support JL4, but need to be sure we can support either
-# TODO: need to do the same with installing the jupyter-quarto extension
-python3 -m pip install git+https://github.com/trungleduc/jupyter-server-proxy@lab4
+  // Look in requirements, environment.yml, pipfile for hints
+  // that JL4 will be used (hacky to use regex but using for hint)
+  const envMatchers: Record<string, RegExp> = {};
+  envMatchers["requirements.txt"] = /jupyterlab>*=*4.*./g;
+  envMatchers["environment.yml"] = /jupyterlab *>*=*4.*./g;
+  envMatchers["pipfile"] = /jupyterlab = "*>*=*4.*."/g;
 
-TODO: Quarto jupyterlab extension too
-*/
+  const hasJL4 = envs.some((env) => {
+    const matcher = envMatchers[env];
+    if (!matcher) {
+      return false;
+    }
+
+    const contents = Deno.readTextFileSync(join(context.dir, env));
+    return contents.match(matcher);
+  });
+  return hasJL4;
+};
 
 const msg = (text: string): string => {
   return `
