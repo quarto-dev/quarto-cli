@@ -9279,6 +9279,20 @@ try {
                               }
                             }
                           },
+                          "show-item-parent": {
+                            schema: {
+                              anyOf: [
+                                {
+                                  enum: [
+                                    "root",
+                                    "breadcrumbs"
+                                  ]
+                                },
+                                "boolean"
+                              ]
+                            },
+                            description: "Whether to include search result parents when displaying items in search results (when possible)."
+                          },
                           algolia: {
                             object: {
                               properties: {
@@ -18925,6 +18939,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -19055,6 +19070,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21076,6 +21092,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21389,6 +21406,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21846,12 +21864,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 163216,
+          _internalId: 163234,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 163208,
+              _internalId: 163226,
               type: "enum",
               enum: [
                 "png",
@@ -21867,7 +21885,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 163215,
+              _internalId: 163233,
               type: "anyOf",
               anyOf: [
                 {

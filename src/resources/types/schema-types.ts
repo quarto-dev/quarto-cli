@@ -465,6 +465,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     "keyboard-shortcut"?: MaybeArrayOf<
       string /* One or more keys that will act as a shortcut to launch search (single characters) */
     >;
+    "show-item-parent"?: ("root" | "breadcrumbs") | boolean;
     algolia?: {
       "index-name"?: string;
       "application-id"?: string;
