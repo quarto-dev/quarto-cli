@@ -179,4 +179,6 @@
 - ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): When `QUARTO_LOG_LEVEL=DEBUG`, information about search for a R binary will be shown.
 - ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
 - ([#6697](https://github.com/quarto-dev/quarto-cli/pull/6697)): Fix issue with outputing to stdout (`quarto render <file> -o -`) on Windows.
+- ([#6705](https://github.com/quarto-dev/quarto-cli/pull/6705)): Fix issue with gfm output being removed when rendered with other formats.
 - ([#6746](https://github.com/quarto-dev/quarto-cli/issues/6746)): Let stdout and stderr finish independently to avoid deadlock.
+

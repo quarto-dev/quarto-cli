@@ -431,14 +431,13 @@ export const jupyterEngine: ExecutionEngine = {
     return !isJupyterNotebook(target.source);
   },
 
-  keepFiles: (input: string) => {
+  intermediateFiles: (input: string) => {
     const files: string[] = [];
     const [fileDir, fileStem] = dirAndStem(input);
 
-    if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
+    if (!isJupyterNotebook(input)) {
       files.push(join(fileDir, fileStem + ".ipynb"));
     } else if (
-      isJupyterNotebook(input) &&
       [...kQmdExtensions, ...kJupyterPercentScriptExtensions].some((ext) => {
         return existsSync(join(fileDir, fileStem + ext));
       })
