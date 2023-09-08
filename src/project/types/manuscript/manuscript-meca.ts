@@ -366,7 +366,7 @@ export const createMecaBundle = async (
         ...renderedItems,
         ...manuscriptResources,
         ...sourceFiles,
-        // srcDirMetaItem, FIXME: Need to re-enable this once the MECA validator is fixed
+        srcDirMetaItem,
       ],
     };
 
