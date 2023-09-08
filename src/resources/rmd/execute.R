@@ -134,9 +134,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     local({
       # create a hidden environment to store specific objects
       .quarto_tools_env <- attach(NULL, name = "tools:quarto")
-      # store format information to be used by ojs_define()
-      assign("quarto_format", format, envir = .quarto_tools_env)
-      # source ojs_define function and save it in the tools environment
+      # source ojs_define() function and save it in the tools environment
       source(file.path(resourceDir, "rmd", "ojs_static.R"), local = TRUE)
       assign("ojs_define", ojs_define, envir = .quarto_tools_env)
     })
@@ -446,15 +444,15 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
     dependencies$includes$in_header <- rmarkdown:::latex_dependencies_as_string(latex_dependencies)
   }
 
-  # extract static ojs definitions
-  ojs_defines <- rmarkdown:::flatten_dependencies(
-    knit_meta,
-    function(dep) {
-      inherits(dep, "ojs-define")
-    })
-  ojs_define_str <- paste(unlist(ojs_defines), collapse='\n')
-  if (ojs_define_str != "") {
-    dependencies$includes$in_header <- paste(c(dependencies$includes$in_header, ojs_define_str), collapse='\n')
+  # extract static ojs definitions for HTML only
+  if (is_pandoc_html_format(format)) {
+    ojs_defines <- rmarkdown:::flatten_dependencies(
+      knit_meta, function(dep) inherits(dep, "ojs-define")
+    )
+    ojs_define_str <- paste(unlist(ojs_defines), collapse = "\n")
+    if (ojs_define_str != "") {
+      dependencies$includes$in_header <- paste(c(dependencies$includes$in_header, ojs_define_str), collapse = "\n")
+    }
   }
 
   # return dependencies

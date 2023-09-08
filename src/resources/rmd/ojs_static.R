@@ -39,9 +39,9 @@ ojs_define <- function(...) {
     contents,
     "</script>"
   )
-
-  # don't emit HTML output in PDF formats. (#2334)
-  if (knitr:::is_html_output(quarto_format$pandoc$to)) {
-    invisible(knitr:::knit_meta_add(list(structure(class = "ojs-define", script_string))))
-  }
+  invisible(
+    knitr::knit_meta_add(
+      list(structure(class = "ojs-define", script_string))
+    )
+  )
 }
