@@ -290,12 +290,12 @@ echo`;
 
 const kInstallQuarto = `
 # download and install the deb file
-curl -LO https://github.com/quarto-dev/quarto-cli/releases/download/v$VERSION/quarto-$QUARTO_VERSION-linux-amd64.deb
+curl -LO https://github.com/quarto-dev/quarto-cli/releases/download/v$QUARTO_VERSION/quarto-$QUARTO_VERSION-linux-amd64.deb
 dpkg -x quarto-$QUARTO_VERSION-linux-amd64.deb .quarto
 rm -rf quarto-$QUARTO_VERSION-linux-amd64.deb
 
 # get quarto in the path
-mkdir -p ./.local/bin
+mkdir -p ~/.local/bin
 ln -s ~/.quarto/opt/quarto/bin/quarto ~/.local/bin/quarto
 
 # create the proper pandoc symlink to enable visual editor in Quarto extension
