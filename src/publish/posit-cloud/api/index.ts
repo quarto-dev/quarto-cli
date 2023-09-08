@@ -55,6 +55,7 @@ export class PositCloudClient {
     name: string,
     spaceId: number | null,
     projectId: number | null,
+    contentCategory: string | null,
   ): Promise<Content> {
     return this.post<Content>(
       "outputs",
@@ -63,6 +64,7 @@ export class PositCloudClient {
         application_type: "static",
         space: spaceId,
         project: projectId,
+        content_category: contentCategory,
       }),
     );
   }
@@ -93,8 +95,13 @@ export class PositCloudClient {
     return this.get<Task>(`tasks/${id}`, { legacy: "false" });
   }
 
-  public createRevision(outputId: number) {
-    return this.post<OutputRevision>(`outputs/${outputId}/revisions`);
+  public createRevision(outputId: number, contentCategory: string | null) {
+    return this.post<OutputRevision>(
+      `outputs/${outputId}/revisions`,
+      JSON.stringify({
+        content_category: contentCategory,
+      }),
+    );
   }
 
   public getContent(id: number | string): Promise<Content> {

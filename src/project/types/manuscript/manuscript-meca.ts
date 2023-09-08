@@ -54,6 +54,7 @@ const kManuscript = "manuscript";
 const kManuscriptSupportingFile = "manuscript-supporting-file";
 
 const kSrcDirName = "source";
+const kSrcDirMecaType = "article-source-directory";
 
 const kMecaSuffix = "-meca.zip";
 
@@ -185,6 +186,15 @@ export const createMecaBundle = async (
     const item = toMecaItem(relPath, type);
     sourceFiles.push(item);
     sourceZipFiles.push(relPath);
+  };
+
+  // Create a meca item for the source directory itself
+  const srcDirMetaItem = {
+    type: kSrcDirMecaType,
+    instance: {
+      mediaType: "application/x-directory",
+      href: kSrcDirName + "/", // https://github.com/curvenote/jats/issues/17
+    },
   };
 
   for (const path of Object.keys(srcFiles)) {
@@ -356,6 +366,7 @@ export const createMecaBundle = async (
         ...renderedItems,
         ...manuscriptResources,
         ...sourceFiles,
+        // srcDirMetaItem, FIXME: Need to re-enable this once the MECA validator is fixed
       ],
     };
 

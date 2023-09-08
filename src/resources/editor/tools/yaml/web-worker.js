@@ -9279,6 +9279,20 @@ try {
                               }
                             }
                           },
+                          "show-item-parent": {
+                            schema: {
+                              anyOf: [
+                                {
+                                  enum: [
+                                    "root",
+                                    "breadcrumbs"
+                                  ]
+                                },
+                                "boolean"
+                              ]
+                            },
+                            description: "Whether to include search result parents when displaying items in search results (when possible)."
+                          },
                           algolia: {
                             object: {
                               properties: {
@@ -10647,6 +10661,13 @@ try {
                 host: {
                   ref: "csl-person",
                   description: "Host of the item (e.g. of a TV show or podcast)."
+                },
+                id: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ],
+                  description: "A value which uniquely identifies this item."
                 },
                 illustrator: {
                   ref: "csl-person",
@@ -18925,6 +18946,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -19055,6 +19077,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -19362,6 +19385,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19508,6 +19532,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19662,6 +19687,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21076,6 +21102,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21227,6 +21254,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21389,6 +21417,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21540,6 +21569,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21846,12 +21876,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 163216,
+          _internalId: 163250,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 163208,
+              _internalId: 163242,
               type: "enum",
               enum: [
                 "png",
@@ -21867,7 +21897,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 163215,
+              _internalId: 163249,
               type: "anyOf",
               anyOf: [
                 {
