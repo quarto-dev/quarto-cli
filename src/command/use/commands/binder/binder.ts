@@ -80,7 +80,9 @@ export const useBinderCommand = new Command()
       };
 
       const vsCodeConfig: VSCodeConfiguration = {
-        version: new SemVer("4.16.1"),
+        version: projEnv.codeEnvironment === "vscode"
+          ? new SemVer("4.16.1")
+          : undefined, // Whether to install vscode
         extensions: [
           "ms-python.python",
           "sumneko.lua",
@@ -88,9 +90,20 @@ export const useBinderCommand = new Command()
         ],
       };
 
+      // TODO: sniff for JL4
+      const jupyterLab4 = false;
       const pythonConfig: PythonConfiguration = {
-        pip: ["git+https://github.com/trungleduc/jupyter-server-proxy@lab4"],
+        pip: [],
       };
+      if (jupyterLab4) {
+        pythonConfig.pip?.push(
+          "git+https://github.com/trungleduc/jupyter-server-proxy@lab4",
+        );
+        pythonConfig.pip?.push("jupyterlab-quarto");
+      } else {
+        pythonConfig.pip?.push("jupyter-server-proxy");
+        pythonConfig.pip?.push("jupyterlab-quarto==0.1.45");
+      }
 
       const environmentConfig: EnvironmentConfiguration = {
         apt: ["zip"],
@@ -151,16 +164,18 @@ export const useBinderCommand = new Command()
       );
 
       // Configure JupyterLab to support VSCode
-      const traitletsDir = ".jupyter";
-      ensureDirSync(join(context.dir, traitletsDir));
+      if (vsCodeConfig.version) {
+        const traitletsDir = ".jupyter";
+        ensureDirSync(join(context.dir, traitletsDir));
 
-      // Move traitlets configuration into place
-      // Traitlets are used to configure the vscode tile in jupyterlab
-      // as well as to start the port proxying that permits vscode to work
-      const resDir = resourcePath("use/binder/");
-      for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
-        const textContents = Deno.readTextFileSync(join(resDir, file));
-        await writeFile(join(traitletsDir, file), textContents);
+        // Move traitlets configuration into place
+        // Traitlets are used to configure the vscode tile in jupyterlab
+        // as well as to start the port proxying that permits vscode to work
+        const resDir = resourcePath("use/binder/");
+        for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
+          const textContents = Deno.readTextFileSync(join(resDir, file));
+          await writeFile(join(traitletsDir, file), textContents);
+        }
       }
 
       // Generate an apt.txt file
@@ -263,6 +278,7 @@ const createPostBuild = (
 # TODO: need to do the same with installing the jupyter-quarto extension
 python3 -m pip install git+https://github.com/trungleduc/jupyter-server-proxy@lab4
 
+TODO: Quarto jupyterlab extension too
 */
 
 const msg = (text: string): string => {
