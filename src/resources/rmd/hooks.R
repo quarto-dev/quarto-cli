@@ -1045,10 +1045,6 @@ latex_animation <- function(x, options) {
           sub(sprintf('%d$', fig.num), '', xfun::sans_ext(x)), 1L, fig.num)
 }
 
-is_latex_output <- function(to) {
-  knitr:::is_latex_output() || identical(to, "pdf")
-}
-
 is_ipynb_output <- function(to) {
   identical(to, "ipynb")
 }
