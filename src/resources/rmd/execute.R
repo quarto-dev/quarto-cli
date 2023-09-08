@@ -127,12 +127,19 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   needs_ojs <- grepl("(\n|^)[[:space:]]*```+\\{ojs[^}]*\\}", markdown)
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
-  if (!is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime")) &&
-      needs_ojs) {
-    attach(list(
-      quarto_format = format
-    ), name = "tools:quarto")
-    source(file.path(resourceDir, "rmd", "ojs_static.R"))
+  if (
+    !is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime")) &&
+      needs_ojs
+  ) {
+    local({
+      # create a hidden environment to store specific objects
+      .quarto_tools_env <- attach(NULL, name = "tools:quarto")
+      # store format information to be used by ojs_define()
+      assign("quarto_format", format, envir = .quarto_tools_env)
+      # source ojs_define function and save it in the tools environment
+      source(file.path(resourceDir, "rmd", "ojs_static.R"), local = TRUE)
+      assign("ojs_define", ojs_define, envir = .quarto_tools_env)
+    })
   }
 
   env <- globalenv()
