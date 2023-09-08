@@ -164,19 +164,18 @@ export function outputRecipe(
     if (!recipe.output) {
       // no output specified: derive an output path from the extension
 
-      // special case for .md to .md, need to use the writer to create a unique extension
-      let outputExt = ext;
-      if (extname(input) === ".md" && ext === "md") {
-        outputExt = `${format.pandoc.to}.md`;
-      }
-
       // derive new output file
-      let output = inputStem + "." + outputExt;
+      let output = inputStem + "." + ext;
+      // special case for .md to .md, need to append the writer to create a
+      // non-conflicting filename
+      if (extname(input) === ".md" && ext === "md") {
+        output = `${inputStem}-${format.identifier["base-format"]}.md`;
+      }
 
       // special case if the source will overwrite the destination (note: this
       // behavior can be customized with a custom output-ext)
       if (output === basename(context.target.source)) {
-        output = inputStem + `.${kOutExt}.` + outputExt;
+        output = inputStem + `.${kOutExt}.` + ext;
       }
 
       // assign output
