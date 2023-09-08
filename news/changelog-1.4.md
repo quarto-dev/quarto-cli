@@ -154,6 +154,10 @@
 - ([#3785](https://github.com/quarto-dev/quarto-cli/issues/3785)): Recommend installation of `unzip`, which is used when installed extensions.
 - ([#5167](https://github.com/quarto-dev/quarto-cli/issues/5167)): Don't fail installation if symlink cannot be created in path.
 
+## Citable Articles
+
+- ([#6766](https://github.com/quarto-dev/quarto-cli/issues/6766)): Add `id` as valid CSL property when specifying a documents citation metadata.
+
 ## Other Fixes and Improvements
 
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.

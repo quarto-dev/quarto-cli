@@ -10661,6 +10661,13 @@ var require_yaml_intelligence_resources = __commonJS({
                 ref: "csl-person",
                 description: "Host of the item (e.g. of a TV show or podcast)."
               },
+              id: {
+                anyOf: [
+                  "string",
+                  "number"
+                ],
+                description: "A value which uniquely identifies this item."
+              },
               illustrator: {
                 ref: "csl-person",
                 description: "Illustrator (e.g. of a children\u2019s book or graphic novel)."
@@ -19377,6 +19384,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "A value which uniquely identifies this item.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19523,6 +19531,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "A value which uniquely identifies this item.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19677,6 +19686,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "A value which uniquely identifies this item.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21243,6 +21253,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "A value which uniquely identifies this item.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21557,6 +21568,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+        "A value which uniquely identifies this item.",
         "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
         "Interviewer (e.g.&nbsp;of an interview).",
         "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21863,12 +21875,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 163234,
+        _internalId: 163250,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 163226,
+            _internalId: 163242,
             type: "enum",
             enum: [
               "png",
@@ -21884,7 +21896,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 163233,
+            _internalId: 163249,
             type: "anyOf",
             anyOf: [
               {

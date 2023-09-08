@@ -1771,6 +1771,11 @@
       host:
         ref: csl-person
         description: Host of the item (e.g. of a TV show or podcast).
+      id:
+        anyOf:
+          - string
+          - number
+        description: A value which uniquely identifies this item.
       illustrator:
         ref: csl-person
         description: Illustrator (e.g. of a children’s book or graphic novel).

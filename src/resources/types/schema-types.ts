@@ -990,6 +990,7 @@ For descriptive text (e.g., in an annotated bibliography), use `note` instead */
 Do not use for topical descriptions or categories (e.g. "adventure" for an adventure movie) */;
   guest?: CslPerson;
   host?: CslPerson;
+  id?: string | number /* A value which uniquely identifies this item. */;
   illustrator?: CslPerson;
   interviewer?: CslPerson;
   isbn?:
