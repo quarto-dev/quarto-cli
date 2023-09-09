@@ -41,6 +41,8 @@ const kAppendixCreativeCommonsLic = [
   "CC BY-SA",
   "CC BY-ND",
   "CC BY-NC",
+  "CC BY-NC-SA",
+  "CC BY-NC-ND",
 ];
 
 const kStylePlain = "plain";
@@ -185,15 +187,12 @@ export async function processDocumentAppendix(
           if (typeof (license) === "string") {
             const creativeCommons = creativeCommonsLicense(license);
             if (creativeCommons) {
-              const licenseUrl = creativeCommonsUrl(
+              const licenseUrlInfo = creativeCommonsUrl(
                 creativeCommons.base,
                 format.metadata[kLang] as string | undefined,
                 creativeCommons.version,
               );
-              return {
-                url: licenseUrl,
-                text: licenseUrl,
-              };
+              return licenseUrlInfo;
             } else {
               return { text: license };
             }
@@ -432,7 +431,13 @@ function creativeCommonsLicense(
       const version = match[2];
       if (kAppendixCreativeCommonsLic.includes(base)) {
         return {
-          base: base as "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC",
+          base: base as
+            | "CC BY"
+            | "CC BY-SA"
+            | "CC BY-ND"
+            | "CC BY-NC"
+            | "CC BY-NC-ND"
+            | "CC BY-NC-SA",
           version: version || "4.0",
         };
       } else {
@@ -449,11 +454,21 @@ function creativeCommonsLicense(
 function creativeCommonsUrl(license: string, lang?: string, version?: string) {
   const licenseType = license.substring(3);
   if (lang && lang !== "en") {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
-      lang.toLowerCase().replace("-", "_")
-    }`;
+    return {
+      url:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
+          lang.toLowerCase().replace("-", "_")
+        }`,
+      text:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+    };
   } else {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`;
+    return {
+      url:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+    };
   }
 }
 
