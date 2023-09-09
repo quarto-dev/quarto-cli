@@ -917,6 +917,17 @@ pre {
   }
 }
 
+@if variable-exists(mono-foreground-color) {
+  p code:not(.sourceCode),
+  li code:not(.sourceCode),
+  kbd,
+  pre:not(.sourceCode),
+  samp {
+    background-color: $mono-foreground-color;
+    padding: 0.2em;
+  }
+}
+
 // Default padding if background is set
 p code:not(.sourceCode),
 li code:not(.sourceCode),
@@ -933,6 +944,16 @@ td code:not(.sourceCode) {
     padding: 0.2em;
   } @else if variable-exists(mono-background-color) {
     padding: 0.2em;
+  }
+}
+
+p code:not(.sourceCode),
+li code:not(.sourceCode),
+td code:not(.sourceCode) {
+  @if variable-exists(mono-foreground-color) {
+    color: $mono-foreground-color;
+  } @else if variable-exists(code-color) {
+    color: $code-color;
   }
 }
 
