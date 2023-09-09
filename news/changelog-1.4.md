@@ -61,16 +61,17 @@
 ## Website Listings
 
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
-- ([#5805](https://github.com/quarto-dev/quarto-cli/pull/5805)): Update the inherited `word-break: break-word` style (Bootstrap) to `word-break: keep-all` to prevent hyphenation of words in listings.
-- ([#5802](https://github.com/quarto-dev/quarto-cli/pull/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
-- ([#6029](https://github.com/quarto-dev/quarto-cli/pull/6029)): Only use the `image-placeholder` for a listing if no other image is available.
-- ([#6091](https://github.com/quarto-dev/quarto-cli/pull/6091)): Don't use remote / absolutes images when auto-discovering images.
-- ([#6268](https://github.com/quarto-dev/quarto-cli/pull/6268)): Enable listings even when `theme: none`
-- ([#6407](https://github.com/quarto-dev/quarto-cli/pull/6407)): Add supporting for the field `word-count` for listing items. It is not displayed by default.
-- ([#6408](https://github.com/quarto-dev/quarto-cli/pull/6408)): Fix error on Windows when using yaml to create a listing with an external (e.g. `path: https://www.quarto.org`)
-- ([#6447](https://github.com/quarto-dev/quarto-cli/pull/6447)): Fix image placholder for pages with more than one listing (or a single listing passed as an array item in yaml)
-- ([#5742](https://github.com/quarto-dev/quarto-cli/pull/5742)): Use any element to compute a description for the listing, even when there are no paragraphs.
-- ([#4800](https://github.com/quarto-dev/quarto-cli/pull/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.
+- ([#5805](https://github.com/quarto-dev/quarto-cli/issues/5805)): Update the inherited `word-break: break-word` style (Bootstrap) to `word-break: keep-all` to prevent hyphenation of words in listings.
+- ([#5802](https://github.com/quarto-dev/quarto-cli/issues/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
+- ([#6029](https://github.com/quarto-dev/quarto-cli/issues/6029)): Only use the `image-placeholder` for a listing if no other image is available.
+- ([#6091](https://github.com/quarto-dev/quarto-cli/issues/6091)): Don't use remote / absolutes images when auto-discovering images.
+- ([#6268](https://github.com/quarto-dev/quarto-cli/issues/6268)): Enable listings even when `theme: none`
+- ([#6407](https://github.com/quarto-dev/quarto-cli/issues/6407)): Add supporting for the field `word-count` for listing items. It is not displayed by default.
+- ([#6408](https://github.com/quarto-dev/quarto-cli/issues/6408)): Fix error on Windows when using yaml to create a listing with an external (e.g. `path: https://www.quarto.org`)
+- ([#6447](https://github.com/quarto-dev/quarto-cli/issues/6447)): Fix image placholder for pages with more than one listing (or a single listing passed as an array item in yaml)
+- ([#5742](https://github.com/quarto-dev/quarto-cli/issues/5742)): Use any element to compute a description for the listing, even when there are no paragraphs.
+- ([#4800](https://github.com/quarto-dev/quarto-cli/issues/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.
+- ([#6777](https://github.com/quarto-dev/quarto-cli/issues/6777)): Add support for complex fields like `citaiton.container-title` when includes custom fields in listings.
 
 ## Websites
 
@@ -181,4 +182,3 @@
 - ([#6697](https://github.com/quarto-dev/quarto-cli/pull/6697)): Fix issue with outputing to stdout (`quarto render <file> -o -`) on Windows.
 - ([#6705](https://github.com/quarto-dev/quarto-cli/pull/6705)): Fix issue with gfm output being removed when rendered with other formats.
 - ([#6746](https://github.com/quarto-dev/quarto-cli/issues/6746)): Let stdout and stderr finish independently to avoid deadlock.
-
