@@ -434,7 +434,13 @@ function creativeCommonsLicense(
       const version = match[2];
       if (kAppendixCreativeCommonsLic.includes(base)) {
         return {
-          base: base as "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC",
+          base: base as
+            | "CC BY"
+            | "CC BY-SA"
+            | "CC BY-ND"
+            | "CC BY-NC"
+            | "CC BY-NC-ND"
+            | "CC BY-NC-SA",
           version: version || "4.0",
         };
       } else {
