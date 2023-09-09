@@ -66,6 +66,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
         "front.xml",
         "authors.xml",
         "institution.xml",
+        "affiliation.xml",
         "name.xml",
       ];
       const templateContext = {
