@@ -14933,7 +14933,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "The License for this document, if any. (e.g. `CC BY`)",
-            long: "The license for this document, if any. \n\nCreative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC` will automatically generate a license link\nin the document appendix. Other license text will be placed in the appendix verbatim.\n"
+            long: "The license for this document, if any. \n\nCreative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC`, `CC BY-NC-SA`, and `CC BY-NC-ND` will automatically generate a license link\nin the document appendix. Other license text will be placed in the appendix verbatim.\n"
           }
         },
         {

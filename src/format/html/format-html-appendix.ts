@@ -41,6 +41,8 @@ const kAppendixCreativeCommonsLic = [
   "CC BY-SA",
   "CC BY-ND",
   "CC BY-NC",
+  "CC BY-NC-SA",
+  "CC BY-NC-ND",
 ];
 
 const kStylePlain = "plain";
@@ -182,7 +184,7 @@ export async function processDocumentAppendix(
         //
         // this will allow us to not include the following code.
         const normalizedLicense = (license: unknown) => {
-          if (typeof (license) === "string") {
+          if (typeof license === "string") {
             const creativeCommons = creativeCommonsLicense(license);
             if (creativeCommons) {
               const licenseUrl = creativeCommonsUrl(
@@ -192,7 +194,7 @@ export async function processDocumentAppendix(
               );
               return {
                 url: licenseUrl,
-                text: licenseUrl,
+                text: creativeCommons.base + " " + creativeCommons.version,
               };
             } else {
               return { text: license };
@@ -242,7 +244,7 @@ export async function processDocumentAppendix(
       //
       // this will allow us to not include the following code.
       const normalizedCopyright = (copyright: unknown) => {
-        if (typeof (copyright) === "string") {
+        if (typeof copyright === "string") {
           return copyright;
         } else if (copyright) {
           return (copyright as { statement?: string }).statement;
