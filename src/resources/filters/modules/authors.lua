@@ -524,11 +524,17 @@ local function processNameOrInstitution(keyName, values, authors, affiliations, 
     if pandocType == "List" then
       local results = pandoc.List()
       for i, value in ipairs(values) do
-        results:insert(processNameOrInstitutionObj(keyName, value, authors, affiliations, optional))
+        local resolved = processNameOrInstitutionObj(keyName, value, authors, affiliations, optional)
+        if resolved ~= nil then
+          results:insert(resolved)
+        end
       end
       return results
     else
-      return { processNameOrInstitutionObj(keyName, values, authors, affiliations, optional) }
+      local resolved = processNameOrInstitutionObj(keyName, values, authors, affiliations, optional)
+      if resolved ~= nil then
+        return { resolved }
+      end
     end
   else 
     return {}
