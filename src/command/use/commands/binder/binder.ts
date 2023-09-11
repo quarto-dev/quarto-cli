@@ -33,6 +33,7 @@ import { ProjectContext } from "../../../../project/types.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
+import { Confirm } from "cliffy/prompt/mod.ts";
 
 export const useBinderCommand = new Command()
   .name("binder")
@@ -64,7 +65,7 @@ export const useBinderCommand = new Command()
       const projEnv = await withSpinner(
         {
           message: "Inspecting project configuration:",
-          doneMessage: "Binder configuration:",
+          doneMessage: "Detected Project configuration:",
         },
         () => {
           return computeProjectEnvironment(context);
@@ -143,12 +144,37 @@ export const useBinderCommand = new Command()
       table.push(["Tools", projEnv.tools.join("\n")]);
       table.push(["Editor", projEnv.codeEnvironment]);
       table.push(["Environments", projEnv.environments.join("\n")]);
+      table.border(true).render();
 
-      table.border(true);
-      table.indent(4);
-      table.render();
+      // Get the list of operations that need to be performed
+      const fileOperations = await binderFileOperations(
+        projEnv,
+        jupyterLab4,
+        context,
+        options,
+        rConfig,
+      );
+      info(
+        "\nQuarto will write the following files to configure this project for deployment\nusing Binder:",
+      );
+      const changeTable = new Table();
+      fileOperations.forEach((op) => {
+        changeTable.push([op.file, op.desc]);
+      });
+      changeTable.border(true).render();
+      info("");
 
-      writeBinderFiles(projEnv, jupyterLab4, context, options, rConfig);
+      const writeFiles = !options.prompt || await Confirm.prompt({
+        message: "Continue?",
+        default: true,
+      });
+
+      if (writeFiles) {
+        logProgress("\nWriting configuration files");
+        for (const fileOperation of fileOperations) {
+          await fileOperation.performOp();
+        }
+      }
     } finally {
       temp.cleanup();
     }
@@ -309,14 +335,16 @@ rm -rf $PYTHON_SCRIPT
 fi
 `;
 
-async function writeBinderFiles(
+async function binderFileOperations(
   projEnv: ProjectEnvironment,
   jupyterLab4: boolean,
   context: ProjectContext,
   options: { prompt?: boolean | undefined },
   rConfig: RConfiguration,
 ) {
-  logProgress("\nWriting files");
+  const operations: Array<
+    { file: string; desc: string; performOp: () => Promise<void> }
+  > = [];
 
   // Write the post build to install Quarto
   const quartoConfig: QuartoConfiguration = {
@@ -354,7 +382,7 @@ async function writeBinderFiles(
     apt: ["zip"],
   };
 
-  // Get a file write
+  // Get a file writer
   const writeFile = safeFileWriter(context.dir, options.prompt);
 
   // Look for an renv.lock file
@@ -362,10 +390,16 @@ async function writeBinderFiles(
   if (existsSync(renvPath)) {
     // Create an install.R file
     const installRText = "install.packages('renv')\nrenv::activate()";
-    await writeFile(
-      "install.R",
-      installRText,
-    );
+    operations.push({
+      file: "install.R",
+      desc: "Activates the R environment described in renv.lock",
+      performOp: async () => {
+        await writeFile(
+          "install.R",
+          installRText,
+        );
+      },
+    });
   }
 
   // Generate the postBuild text
@@ -376,34 +410,51 @@ async function writeBinderFiles(
   );
 
   // Write the postBuild text
-  await writeFile(
-    "postBuild",
-    postBuildScriptText,
-  );
+  operations.push({
+    file: "postBuild",
+    desc: "Configures Quarto and supporting tools",
+    performOp: async () => {
+      await writeFile(
+        "postBuild",
+        postBuildScriptText,
+      );
+    },
+  });
 
   // Configure JupyterLab to support VSCode
   if (vsCodeConfig.version) {
-    const traitletsDir = ".jupyter";
-    ensureDirSync(join(context.dir, traitletsDir));
+    operations.push({
+      file: ".jupyter",
+      desc: "Configures JupyterLab with necessary extensions",
+      performOp: async () => {
+        const traitletsDir = ".jupyter";
+        ensureDirSync(join(context.dir, traitletsDir));
 
-    // Move traitlets configuration into place
-    // Traitlets are used to configure the vscode tile in jupyterlab
-    // as well as to start the port proxying that permits vscode to work
-    const resDir = resourcePath("use/binder/");
-    for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
-      const textContents = Deno.readTextFileSync(join(resDir, file));
-      await writeFile(join(traitletsDir, file), textContents);
-    }
+        // Move traitlets configuration into place
+        // Traitlets are used to configure the vscode tile in jupyterlab
+        // as well as to start the port proxying that permits vscode to work
+        const resDir = resourcePath("use/binder/");
+        for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
+          const textContents = Deno.readTextFileSync(join(resDir, file));
+          await writeFile(join(traitletsDir, file), textContents);
+        }
+      },
+    });
   }
 
   // Generate an apt.txt file
   if (environmentConfig.apt && environmentConfig.apt.length) {
     const aptText = environmentConfig.apt.join("\n");
-
-    await writeFile(
-      "apt.txt",
-      aptText,
-    );
+    operations.push({
+      file: "apt.txt",
+      desc: "Installs Quarto required packages",
+      performOp: async () => {
+        await writeFile(
+          "apt.txt",
+          aptText,
+        );
+      },
+    });
   }
 
   // Generate a file to configure R
@@ -416,9 +467,17 @@ async function writeBinderFiles(
     if (rConfig.date) {
       runtime.push(`-${rConfig.date}`);
     }
-    await writeFile(
-      "runtime.txt",
-      runtime.join(""),
-    );
+    operations.push({
+      file: "runtime.txt",
+      desc: "Installs R and configures RStudio",
+      performOp: async () => {
+        await writeFile(
+          "runtime.txt",
+          runtime.join(""),
+        );
+      },
+    });
   }
+
+  return operations;
 }
