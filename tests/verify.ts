@@ -425,7 +425,7 @@ export const ensureMECAValidates = (
             assert(
               result.success,
               `Failed MECA Validation\n${result.stderr}`,
-            );  
+            );
           } else {
             console.log("meca not present, skipping MECA validation");
           }

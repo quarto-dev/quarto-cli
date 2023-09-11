@@ -15,6 +15,13 @@ on:
     # only trigger on branches, not on tags
     branches: [main]
 
+concurrency:
+  # Use github.run_id on main branch
+  # Use github.event.pull_request.number on pull requests, so it's unique per pull request
+  # Use github.ref on other branches, so it's unique per branch
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.run_id || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   jobs-matrix:
     runs-on: ubuntu-latest

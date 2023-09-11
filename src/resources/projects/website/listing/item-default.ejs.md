@@ -16,8 +16,22 @@ const itemNumber = listing.utilities.itemNumber();
 
 // Writes a metadata value
 const outputMetadata = (item, field) => {
-if (item[field] !== undefined) {
-print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field)}</div>`);  
+
+const readField = (item, field) => {
+  let value = item[field];
+  if (field.includes(".") && !field.endsWith(".") && !field.startsWith(".")) {
+    const fields = field.split(".");
+    value = item;
+    for (const deref of fields) {
+      value = value[deref];
+    }
+  }
+  return value;
+}
+
+let value = readField(item, field);
+if (value !== undefined) {
+print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLink(item, field, value)}</div>`);  
  }
 }
 %>

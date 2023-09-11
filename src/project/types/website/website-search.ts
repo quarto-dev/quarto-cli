@@ -51,6 +51,7 @@ import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
+import { breadCrumbs, sidebarForHref } from "./website-navigation.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -77,6 +78,9 @@ const kKbShortcutSearch = "keyboard-shortcut";
 // The number of results to return
 const kLimit = "limit";
 
+// Whether to show the parent in the search results
+const kShowItemContext = "show-item-context";
+
 // Any aloglia configuration
 const kAlgolia = "algolia";
 
@@ -90,6 +94,7 @@ interface SearchOptions {
   [kAlgolia]?: SearchOptionsAlgolia;
   [kLanguageDefaults]?: FormatLanguage;
   [kKbShortcutSearch]?: string[];
+  [kShowItemContext]?: boolean | "parent" | "root" | "tree";
 }
 
 const kSearchOnlyApiKey = "search-only-api-key";
@@ -127,6 +132,7 @@ interface SearchDoc {
   title: string;
   section: string;
   text: string;
+  crumbs?: string[];
 }
 
 export async function updateSearchIndex(
@@ -214,6 +220,19 @@ export async function updateSearchIndex(
           }
         };
 
+        // determine crumbs
+        const navHref = `/${href}`;
+        const sidebar = sidebarForHref(navHref, outputFile.format);
+        const bc = breadCrumbs(navHref, sidebar);
+
+        const crumbs = bc.length > 0
+          ? bc.filter((crumb) => {
+            return crumb.text !== undefined;
+          }).map((crumb) => {
+            return crumb.text;
+          }) as string[]
+          : undefined;
+
         const titleEl = findTitle();
         const title = titleEl
           ? titleEl.textContent
@@ -297,6 +316,7 @@ export async function updateSearchIndex(
               title,
               section: "",
               text: encodeHtml(pageText.join("\n")),
+              crumbs,
             });
           }
 
@@ -319,6 +339,7 @@ export async function updateSearchIndex(
                   title,
                   section: sectionTitle,
                   text: encodeHtml(sectionText),
+                  crumbs,
                 });
               }
             }
@@ -335,6 +356,7 @@ export async function updateSearchIndex(
                 title,
                 section: "",
                 text: encodeHtml(mainText),
+                crumbs,
               });
             }
           }
@@ -383,6 +405,7 @@ export function searchOptions(
       [kLimit]: searchInputLimit(searchMetadata),
       [kAlgolia]: algoliaOptions(searchMetadata, project),
       [kKbShortcutSearch]: searchKbdShortcut(searchMetadata),
+      [kShowItemContext]: searchShowItemContext(searchMetadata),
     };
   } else {
     const searchRaw = websiteConfig(kSearch, project.config);
@@ -396,6 +419,7 @@ export function searchOptions(
         [kType]: searchType(undefined, location),
         [kLimit]: searchInputLimit(undefined),
         [kKbShortcutSearch]: searchKbdShortcut(undefined),
+        [kShowItemContext]: searchShowItemContext(searchMetadata),
       };
     }
   }
@@ -425,6 +449,20 @@ function searchKbdShortcut(
     }
   }
   return ["f", "/", "s"];
+}
+
+function searchShowItemContext(
+  searchConfig: string | Record<string, unknown> | undefined,
+) {
+  if (searchConfig && typeof (searchConfig) === "object") {
+    return searchConfig[kShowItemContext] as
+      | boolean
+      | "tree"
+      | "root"
+      | "parent";
+  } else {
+    return false;
+  }
 }
 
 function searchType(

@@ -361,7 +361,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 state,
                 setActiveItemId,
                 setContext,
-                refresh
+                refresh,
+                quartoSearchOptions
               );
             },
           },
@@ -665,6 +666,7 @@ async function readSearchData() {
       );
     }
   }
+
   return fuseIndex;
 }
 
@@ -693,7 +695,8 @@ function renderItem(
   state,
   setActiveItemId,
   setContext,
-  refresh
+  refresh,
+  quartoSearchOptions
 ) {
   switch (item.type) {
     case kItemTypeDoc:
@@ -703,7 +706,9 @@ function renderItem(
         item.title,
         item.section,
         item.text,
-        item.href
+        item.href,
+        item.crumbs,
+        quartoSearchOptions
       );
     case kItemTypeMore:
       return createMoreCard(
@@ -728,15 +733,46 @@ function renderItem(
   }
 }
 
-function createDocumentCard(createElement, icon, title, section, text, href) {
+function createDocumentCard(
+  createElement,
+  icon,
+  title,
+  section,
+  text,
+  href,
+  crumbs,
+  quartoSearchOptions
+) {
   const iconEl = createElement("i", {
     class: `bi bi-${icon} search-result-icon`,
   });
   const titleEl = createElement("p", { class: "search-result-title" }, title);
+  const titleContents = [iconEl, titleEl];
+  const showParent = quartoSearchOptions["show-item-context"];
+  if (crumbs && showParent) {
+    let crumbsOut = undefined;
+    const crumbClz = ["search-result-crumbs"];
+    if (showParent === "root") {
+      crumbsOut = crumbs.length > 1 ? crumbs[0] : undefined;
+    } else if (showParent === "parent") {
+      crumbsOut = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined;
+    } else {
+      crumbsOut = crumbs.length > 1 ? crumbs.join(" > ") : undefined;
+      crumbClz.push("search-result-crumbs-wrap");
+    }
+
+    const crumbEl = createElement(
+      "p",
+      { class: crumbClz.join(" ") },
+      crumbsOut
+    );
+    titleContents.push(crumbEl);
+  }
+
   const titleContainerEl = createElement(
     "div",
     { class: "search-result-title-container" },
-    [iconEl, titleEl]
+    titleContents
   );
 
   const textEls = [];
@@ -1106,6 +1142,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
     ],
     transformResponse: (response) => {
       if (!indexFields) {
+        console.log({ hits: response.hits });
         return response.hits.map((hit) => {
           return hit.map((item) => {
             return {
@@ -1118,21 +1155,24 @@ function algoliaSearch(query, limit, algoliaOptions) {
         const remappedHits = response.hits.map((hit) => {
           return hit.map((item) => {
             const newItem = { ...item };
-            ["href", "section", "title", "text"].forEach((keyName) => {
-              const mappedName = indexFields[keyName];
-              if (
-                mappedName &&
-                item[mappedName] !== undefined &&
-                mappedName !== keyName
-              ) {
-                newItem[keyName] = item[mappedName];
-                delete newItem[mappedName];
+            ["href", "section", "title", "text", "crumbs"].forEach(
+              (keyName) => {
+                const mappedName = indexFields[keyName];
+                if (
+                  mappedName &&
+                  item[mappedName] !== undefined &&
+                  mappedName !== keyName
+                ) {
+                  newItem[keyName] = item[mappedName];
+                  delete newItem[mappedName];
+                }
               }
-            });
+            );
             newItem.text = highlightMatch(query, newItem.text);
             return newItem;
           });
         });
+        console.log({ remap: remappedHits });
         return remappedHits;
       }
     },
@@ -1154,6 +1194,7 @@ function fuseSearch(query, fuse, fuseOptions) {
       section: result.item.section,
       href: addParam(result.item.href, kQueryArg, query),
       text: highlightMatch(query, result.item.text),
+      crumbs: result.item.crumbs,
     };
   });
 }

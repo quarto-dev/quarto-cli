@@ -420,20 +420,43 @@ $quarto-search-collapse-icon-size: 26px !default;
 
       .search-result-title {
         margin-top: 0.3em;
+        margin-bottom: 0em;
+      }
+
+      .search-result-crumbs {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 0.8em;
+        font-weight: 300;
+        margin-right: 1em;
+      }
+
+      .search-result-crumbs:not(.search-result-crumbs-wrap) {
+        max-width: 30%;
+        margin-left: auto;
+        margin-top: 0.5em;
         margin-bottom: 0.1rem;
+      }
+
+      .search-result-crumbs.search-result-crumbs-wrap {
+        flex-basis: 100%;
+        margin-top: 0em;
+        margin-bottom: 0.2em;
+        margin-left: 37px;
       }
     }
 
     .search-result-title-container {
       font-size: 1em;
       display: flex;
+      flex-wrap: wrap;
       padding: 6px 4px 6px 4px;
     }
 
     .search-result-text-container {
       padding-bottom: 8px;
       padding-right: 8px;
-      margin-left: 44px;
+      margin-left: 42px;
     }
 
     .search-result-doc-section,

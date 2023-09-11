@@ -58,7 +58,7 @@ import {
 
 import {
   engineIgnoreDirs,
-  executionEngineKeepFiles,
+  executionEngineIntermediateFiles,
   fileExecutionEngine,
 } from "../execute/engine.ts";
 import { kMarkdownEngine } from "../execute/types.ts";
@@ -582,7 +582,7 @@ export function projectInputFiles(
 ): { files: string[]; engines: string[] } {
   const files: string[] = [];
   const engines: string[] = [];
-  const keepFiles: string[] = [];
+  const intermediateFiles: string[] = [];
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
@@ -614,9 +614,12 @@ export function projectInputFiles(
           engines.push(engine.name);
         }
         files.push(file);
-        const keep = executionEngineKeepFiles(engine, file);
-        if (keep) {
-          keepFiles.push(...keep);
+        const engineIntermediates = executionEngineIntermediateFiles(
+          engine,
+          file,
+        );
+        if (engineIntermediates) {
+          intermediateFiles.push(...engineIntermediates);
         }
       }
     }
@@ -669,7 +672,7 @@ export function projectInputFiles(
 
   const inputFiles = ld.difference(
     ld.uniq(files),
-    ld.uniq(keepFiles),
+    ld.uniq(intermediateFiles),
   ) as string[];
 
   return { files: inputFiles, engines };

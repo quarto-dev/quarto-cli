@@ -764,6 +764,12 @@
                   maybeArrayOf:
                     string:
                       description: "One or more keys that will act as a shortcut to launch search (single characters)"
+                show-item-context:
+                  schema:
+                    anyOf:
+                      - enum: ["tree", "parent", "root"]
+                      - boolean
+                  description: "Whether to include search result parents when displaying items in search results (when possible)."
                 algolia:
                   object:
                     properties:
@@ -1765,6 +1771,11 @@
       host:
         ref: csl-person
         description: Host of the item (e.g. of a TV show or podcast).
+      id:
+        anyOf:
+          - string
+          - number
+        description: A value which uniquely identifies this item.
       illustrator:
         ref: csl-person
         description: Illustrator (e.g. of a children’s book or graphic novel).

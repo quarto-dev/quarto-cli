@@ -6,8 +6,9 @@
 import { Command, ValidationError } from "cliffy/command/mod.ts";
 
 import { useTemplateCommand } from "./commands/template.ts";
+import { useBinderCommand } from "./commands/binder/binder.ts";
 
-const kUseCommands = [useTemplateCommand];
+const kUseCommands = [useTemplateCommand, useBinderCommand];
 
 export const makeUseCommand = () => {
   const theCommand = new Command()

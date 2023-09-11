@@ -15,7 +15,7 @@ import {
 import { dirAndStem } from "../core/path.ts";
 
 import { metadataAsFormat } from "../config/metadata.ts";
-import { kEngine } from "../config/constants.ts";
+import { kBaseFormat, kEngine } from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
@@ -24,9 +24,10 @@ import { ExecutionEngine, kQmdExtensions } from "./types.ts";
 import { languagesInMarkdown } from "./engine-shared.ts";
 import { languages as handlerLanguages } from "../core/handlers/base.ts";
 import { MappedString } from "../core/lib/text-types.ts";
-import { RenderFlags } from "../command/render/types.ts";
+import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
+import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -47,28 +48,33 @@ export function executionEngine(name: string) {
   }
 }
 
-export function executionEngineKeepMd(input: string) {
-  const keepSuffix = `.md`;
+export function executionEngineKeepMd(context: RenderContext) {
+  const { input } = context.target;
+  const baseFormat = context.format.identifier[kBaseFormat] || "html";
+  const keepSuffix = `.${baseFormat}.md`;
   if (!input.endsWith(keepSuffix)) {
     const [dir, stem] = dirAndStem(input);
     return join(dir, stem + keepSuffix);
   }
 }
 
-export function executionEngineKeepFiles(
+// for the project crawl
+export function executionEngineIntermediateFiles(
   engine: ExecutionEngine,
   input: string,
 ) {
-  // standard keepMd
+  // all files of the form e.g. .html.md or -html.md are interemediate
   const files: string[] = [];
-  const keep = executionEngineKeepMd(input);
-  if (keep) {
-    files.push(keep);
-  }
+  const [dir, stem] = dirAndStem(input);
+  files.push(
+    ...pandocBuiltInFormats()
+      .flatMap((format) => [`-${format}.md`, `.${format}.md`])
+      .map((suffix) => join(dir, stem + suffix)),
+  );
 
-  // additional files
-  const engineKeepFiles = engine.keepFiles
-    ? engine.keepFiles(input)
+  // additional engine-specific intermediates (e.g. .ipynb for jupyter)
+  const engineKeepFiles = engine.intermediateFiles
+    ? engine.intermediateFiles(input)
     : undefined;
   if (engineKeepFiles) {
     return files.concat(engineKeepFiles);

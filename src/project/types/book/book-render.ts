@@ -681,7 +681,7 @@ function cleanupExecutedFile(
     finalOutput,
     file.recipe.format,
     file.executeResult.supporting,
-    executionEngineKeepMd(file.context.target.input),
+    executionEngineKeepMd(file.context),
   );
 }
 

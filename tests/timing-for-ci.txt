@@ -1,604 +1,608 @@
 ./integration/guess-chunk-options-format-document.test.ts
-        3.19 real 3.34 user 0.40 sys
+        3.22 real 3.31 user 0.36 sys
 ./integration/mermaid/github-issue-1340.test.ts
-        3.84 real 4.00 user 0.43 sys
+        3.82 real 4.02 user 0.42 sys
 ./integration/playwright-tests.test.ts
-        84.63 real 68.77 user 8.97 sys
+        81.56 real 67.68 user 8.96 sys
 ./smoke/authors/author-name.test.ts
-        7.72 real 7.47 user 1.29 sys
+        7.67 real 7.52 user 1.17 sys
 ./smoke/book/render-book.test.ts
-        30.53 real 29.49 user 3.20 sys
+        30.55 real 29.45 user 3.07 sys
 ./smoke/convert/convert-empty-frontmatter.test.ts
-        2.06 real 2.31 user 0.24 sys
+        2.04 real 2.33 user 0.20 sys
 ./smoke/create/create.test.ts
-        39.53 real 42.33 user 3.78 sys
+        40.19 real 41.91 user 3.85 sys
 ./smoke/crossref/chapters.test.ts
-        3.19 real 2.54 user 0.22 sys
+        3.16 real 2.52 user 0.26 sys
 ./smoke/crossref/docx.test.ts
-        1.70 real 2.02 user 0.17 sys
+        1.67 real 1.99 user 0.16 sys
 ./smoke/crossref/equations.test.ts
-        2.16 real 2.56 user 0.22 sys
+        2.14 real 2.52 user 0.28 sys
 ./smoke/crossref/figures.test.ts
-        67.01 real 59.33 user 2.92 sys
+        65.79 real 58.13 user 2.91 sys
 ./smoke/crossref/latex.test.ts
-        1.67 real 2.00 user 0.17 sys
+        1.66 real 2.00 user 0.20 sys
 ./smoke/crossref/listings.test.ts
-        2.14 real 2.54 user 0.20 sys
+        2.13 real 2.54 user 0.21 sys
 ./smoke/crossref/options.test.ts
-        2.69 real 3.11 user 0.33 sys
+        2.70 real 3.26 user 0.26 sys
 ./smoke/crossref/sections.test.ts
-        2.15 real 2.53 user 0.21 sys
+        2.12 real 2.49 user 0.23 sys
 ./smoke/crossref/syntax.test.ts
-        3.29 real 3.66 user 0.42 sys
+        3.27 real 3.63 user 0.45 sys
 ./smoke/crossref/tables.test.ts
-        5.42 real 5.51 user 0.67 sys
+        5.35 real 5.57 user 0.64 sys
 ./smoke/crossref/thereoms.test.ts
-        2.72 real 3.24 user 0.27 sys
+        2.68 real 3.15 user 0.33 sys
 ./smoke/crossref/unresolved.test.ts
-        2.15 real 2.47 user 0.26 sys
+        2.13 real 2.51 user 0.19 sys
 ./smoke/directives/include-fixups.test.ts
-        0.03 real 0.02 user 0.01 sys
+        0.03 real 0.01 user 0.01 sys
 ./smoke/embed/render-embed.test.ts
-        5.01 real 5.19 user 0.73 sys
+        4.96 real 5.27 user 0.63 sys
 ./smoke/engine/include-engine-detection.test.ts
-        3.34 real 3.57 user 0.40 sys
+        3.32 real 3.61 user 0.40 sys
 ./smoke/env/check.test.ts
-        8.54 real 7.95 user 1.05 sys
+        8.64 real 7.80 user 1.15 sys
 ./smoke/env/install.test.ts
-        0.81 real 0.45 user 0.10 sys
+        0.77 real 0.48 user 0.08 sys
 ./smoke/extensions/extension-render-doc.test.ts
-        5.54 real 5.85 user 0.70 sys
+        5.57 real 5.77 user 0.72 sys
 ./smoke/extensions/extension-render-journals.test.ts
-        96.24 real 84.02 user 6.88 sys
+        110.33 real 100.76 user 7.07 sys
 ./smoke/extensions/extension-render-project.test.ts
-        2.96 real 3.44 user 0.40 sys
+        2.96 real 3.50 user 0.37 sys
 ./smoke/extensions/extension-render-reveal.test.ts
-        3.64 real 3.02 user 0.46 sys
+        3.65 real 3.06 user 0.43 sys
 ./smoke/extensions/install.test.ts
-        4.53 real 3.67 user 0.65 sys
+        4.42 real 3.72 user 0.63 sys
 ./smoke/filters/editor-support.test.ts
-        2.02 real 1.69 user 0.39 sys
+        2.03 real 1.70 user 0.37 sys
 ./smoke/filters/filters.test.ts
-        3.94 real 4.27 user 0.48 sys
+        3.93 real 4.31 user 0.45 sys
 ./smoke/jats/render-jats.test.ts
-        2.13 real 2.41 user 0.31 sys
+        2.10 real 2.41 user 0.26 sys
 ./smoke/jats/render-manuscript.test.ts
-        4.19 real 3.76 user 0.50 sys
+        4.27 real 3.81 user 0.47 sys
 ./smoke/manuscript/render-manuscript.test.ts
-        44.93 real 37.86 user 4.60 sys
+        71.88 real 61.12 user 7.04 sys
 ./smoke/ojs/complex-layout.test.ts
-        3.24 real 3.53 user 0.40 sys
+        3.23 real 3.58 user 0.33 sys
 ./smoke/ojs/dependency-traversal.test.ts
-        2.49 real 2.85 user 0.22 sys
+        2.47 real 2.83 user 0.21 sys
 ./smoke/project/project-book.test.ts
-        8.03 real 8.31 user 0.77 sys
+        7.99 real 8.32 user 0.71 sys
 ./smoke/project/project-simple.test.ts
-        2.31 real 2.76 user 0.24 sys
+        2.30 real 2.69 user 0.25 sys
 ./smoke/project/project-stdout.test.ts
-        2.41 real 2.87 user 0.25 sys
+        2.40 real 2.84 user 0.28 sys
 ./smoke/project/project-website.test.ts
-        2.41 real 2.83 user 0.31 sys
+        2.40 real 2.80 user 0.32 sys
 ./smoke/render/render-bibio.test.ts
-        2.02 real 2.32 user 0.27 sys
+        2.01 real 2.33 user 0.26 sys
 ./smoke/render/render-callout.test.ts
-        2.81 real 3.24 user 0.37 sys
+        2.80 real 3.19 user 0.36 sys
 ./smoke/render/render-citeproc.test.ts
-        2.15 real 2.48 user 0.26 sys
+        2.13 real 2.46 user 0.21 sys
 ./smoke/render/render-code-highlighting.test.ts
-        3.54 real 3.64 user 0.51 sys
+        3.54 real 3.73 user 0.37 sys
 ./smoke/render/render-code-tools.test.ts
-        6.92 real 6.83 user 0.93 sys
+        6.84 real 6.96 user 0.82 sys
 ./smoke/render/render-commonmark.test.ts
-        24.77 real 21.12 user 1.32 sys
+        24.70 real 21.14 user 1.31 sys
 ./smoke/render/render-date.test.ts
-        4.75 real 5.07 user 0.60 sys
+        4.48 real 4.68 user 0.64 sys
 ./smoke/render/render-docx.test.ts
-        3.60 real 3.90 user 0.43 sys
+        3.57 real 3.81 user 0.47 sys
 ./smoke/render/render-format-extension.test.ts
-        39.08 real 36.09 user 3.70 sys
+        41.49 real 38.17 user 3.92 sys
 ./smoke/render/render-freeze.test.ts
-        11.07 real 10.60 user 1.42 sys
+        10.97 real 10.53 user 1.46 sys
 ./smoke/render/render-jupyter.test.ts
-        6.71 real 6.90 user 0.57 sys
+        6.58 real 6.70 user 0.59 sys
 ./smoke/render/render-latex-output.test.ts
-        3.55 real 3.82 user 0.32 sys
+        3.57 real 3.68 user 0.43 sys
 ./smoke/render/render-minimal.test.ts
-        1.69 real 2.09 user 0.19 sys
+        1.67 real 2.00 user 0.19 sys
 ./smoke/render/render-ojs.test.ts
-        2.51 real 2.86 user 0.26 sys
+        2.48 real 2.78 user 0.27 sys
 ./smoke/render/render-page-layout.test.ts
-        15.35 real 15.63 user 0.81 sys
+        15.23 real 15.50 user 0.90 sys
 ./smoke/render/render-pdf.test.ts
-        127.98 real 113.90 user 9.76 sys
+        124.07 real 112.91 user 10.07 sys
 ./smoke/render/render-plain.test.ts
-        3.13 real 3.47 user 0.39 sys
+        3.04 real 3.41 user 0.39 sys
 ./smoke/render/render-r.test.ts
-        10.18 real 9.91 user 1.19 sys
+        10.03 real 9.88 user 1.14 sys
 ./smoke/render/render-required.test.ts
-        1.41 real 1.80 user 0.11 sys
+        1.40 real 1.82 user 0.12 sys
 ./smoke/render/render-reveal.test.ts
-        13.97 real 10.93 user 1.14 sys
+        12.88 real 10.95 user 1.11 sys
+./smoke/render/render-stdout.test.ts
+        1.62 real 1.92 user 0.21 sys
 ./smoke/render/render-templates.test.ts
-        51.43 real 43.60 user 4.14 sys
+        48.35 real 43.26 user 4.13 sys
 ./smoke/render/render-title-block.test.ts
-        3.74 real 3.99 user 0.64 sys
+        3.70 real 3.95 user 0.58 sys
 ./smoke/run/stdlib-run-version.test.ts
-        1.16 real 0.85 user 0.22 sys
+        1.14 real 0.83 user 0.23 sys
 ./smoke/schema/load-yaml-schema-schema.test.ts
-        0.03 real 0.02 user 0.01 sys
+        0.03 real 0.02 user 0.00 sys
 ./smoke/scholar/render-scholar.test.ts
-        4.06 real 4.32 user 0.57 sys
+        4.04 real 4.23 user 0.65 sys
 ./smoke/shortcodes/shortcodes-core.test.ts
-        5.77 real 6.00 user 0.74 sys
+        5.73 real 5.93 user 0.75 sys
 ./smoke/site/render-blog.test.ts
-        5.95 real 6.29 user 0.85 sys
+        5.90 real 6.24 user 0.82 sys
 ./smoke/site/render-listings.test.ts
-        6.04 real 6.14 user 0.92 sys
+        5.98 real 6.00 user 1.00 sys
 ./smoke/site/render-navigation.test.ts
-        4.51 real 4.01 user 0.47 sys
+        3.50 real 3.99 user 0.42 sys
 ./smoke/site/render-shortcode-navbar.test.ts
-        2.28 real 2.72 user 0.26 sys
+        2.24 real 2.71 user 0.19 sys
 ./smoke/site/render-site-themes.test.ts
-        53.22 real 48.52 user 7.23 sys
+        52.19 real 47.70 user 6.99 sys
 ./smoke/site/render-site.test.ts
-        2.63 real 3.06 user 0.39 sys
+        2.63 real 3.07 user 0.36 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/inline-execution/inline-knitr.qmd
-        3.43 real 3.67 user 0.41 sys
+        3.37 real 3.64 user 0.38 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/inline-execution/inline-jupyter.qmd
-        6.05 real 5.73 user 0.59 sys
+        5.92 real 5.52 user 0.63 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/video/video-smoke-test.qmd
-        2.28 real 2.67 user 0.28 sys
+        2.27 real 2.63 user 0.27 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/website/index.qmd
-        2.26 real 2.66 user 0.28 sys
+        2.23 real 2.70 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/website/about.qmd
-        2.23 real 2.63 user 0.25 sys
+        2.29 real 2.67 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/lua/6215/test.qmd
-        2.10 real 2.54 user 0.21 sys
+        2.11 real 2.52 user 0.23 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/knitr/embed-verbatim-engine/revealjs-knitr-embed-verbatim.qmd
+        3.26 real 3.54 user 0.38 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/knitr/embed-verbatim-engine/knitr-embed-verbatim.qmd
+        5.09 real 5.28 user 0.56 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/knitr/inline-code-execution/new-syntax.qmd
-        3.60 real 3.90 user 0.39 sys
+        3.57 real 3.82 user 0.43 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/jupyter/inline-execution-jupyter.qmd
-        6.34 real 5.91 user 0.67 sys
+        6.33 real 5.94 user 0.65 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/left.qmd
-        2.24 real 2.63 user 0.25 sys
+        2.22 real 2.67 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/left-body.qmd
-        2.23 real 2.67 user 0.22 sys
+        2.23 real 2.66 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/right.qmd
-        2.21 real 2.57 user 0.24 sys
+        2.24 real 2.67 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/right-body.qmd
-        2.23 real 2.68 user 0.21 sys
+        2.21 real 2.63 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/3473-toc-side-body/body.qmd
-        2.25 real 2.72 user 0.22 sys
+        2.22 real 2.66 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/darkly-default/index.qmd
-        2.77 real 2.94 user 0.31 sys
+        2.83 real 3.01 user 0.30 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/lightly-light-cobalt/index.qmd
-        2.83 real 3.00 user 0.31 sys
+        2.99 real 3.07 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/lightly-cobalt_only/index.qmd
-        2.82 real 3.08 user 0.24 sys
+        2.83 real 3.09 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/lightly-default/index.qmd
-        2.87 real 3.04 user 0.28 sys
+        2.80 real 3.04 user 0.31 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/darkly-light-dark/index.qmd
-        2.89 real 3.05 user 0.27 sys
+        2.83 real 3.00 user 0.29 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/issues/4820-giscus-dark-mode/darkly-light-cobalt/index.qmd
-        2.87 real 2.98 user 0.32 sys
+        2.77 real 2.95 user 0.32 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/confluence/5814-confluence-figure-sizing-is-ignored.qmd
-        1.61 real 1.99 user 0.16 sys
+        1.63 real 2.02 user 0.15 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/confluence/confluence-smoke-test.qmd
-        4.76 real 5.21 user 0.36 sys
+        4.74 real 5.22 user 0.38 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/confluence/confluence-cross-refs.qmd
-        2.97 real 3.22 user 0.32 sys
+        2.93 real 3.25 user 0.30 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/confluence/5815-confluence-links-to-file-attachments-not-supported.qmd
-        2.17 real 2.55 user 0.26 sys
+        2.17 real 2.59 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/confluence/confluence-hello-world.qmd
-        1.64 real 2.03 user 0.16 sys
+        1.62 real 2.02 user 0.15 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/confluence/4489-exeblocks-lang-value-confluence.qmd
-        6.03 real 5.64 user 0.63 sys
+        5.98 real 5.61 user 0.61 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/code-annotations/code-annotations-none.qmd
-        2.37 real 2.85 user 0.29 sys
+        2.37 real 2.87 user 0.33 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/11/5507.qmd
-        2.19 real 2.65 user 0.23 sys
+        2.19 real 2.63 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/03/5368.qmd
-        2.17 real 2.58 user 0.23 sys
+        2.19 real 2.59 user 0.25 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/03/5189.qmd
-        2.25 real 2.67 user 0.29 sys
+        2.24 real 2.74 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/30/shortcode-table-dataqmd.qmd
-        2.21 real 2.65 user 0.25 sys
+        2.20 real 2.60 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/25/escaped-shortcode-in-code.qmd
-        2.09 real 2.46 user 0.25 sys
+        2.11 real 2.57 user 0.19 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/25/callout-missing-title.qmd
-        2.17 real 2.63 user 0.19 sys
+        2.17 real 2.57 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/24/5661-html.qmd
-        2.20 real 2.66 user 0.19 sys
+        2.20 real 2.61 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/24/5657-raw.qmd
-        2.32 real 2.77 user 0.26 sys
+        2.31 real 2.79 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/24/unshortcode.qmd
-        2.11 real 2.54 user 0.23 sys
+        2.10 real 2.47 user 0.29 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/09/5472.qmd
-        2.11 real 2.51 user 0.23 sys
+        2.10 real 2.50 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/15/5536-codefilename-beamer.qmd
-        5.73 real 5.76 user 0.52 sys
+        5.58 real 5.71 user 0.48 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/01/5377.qmd
-        2.21 real 2.60 user 0.25 sys
+        2.18 real 2.62 user 0.19 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/16/empty-data-qmd.qmd
-        6.37 real 6.71 user 0.44 sys
+        6.31 real 6.55 user 0.51 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/05/16/5534.qmd
-        2.14 real 2.53 user 0.27 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/08/30/6658.qmd
-        3.45 real 3.80 user 0.34 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/08/22/issue-6584.qmd
-        2.14 real 2.60 user 0.20 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/08/22/asciidoc-test.qmd
-        1.66 real 2.09 user 0.13 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/28/remote-resources.qmd
-        2.31 real 2.73 user 0.24 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/revealjs-hash-number.qmd
-        1.85 real 2.25 user 0.21 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/issue-3683.qmd
-        4.36 real 4.44 user 0.53 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/revealjs-hash-number-pandoc-style.qmd
-        1.79 real 2.17 user 0.26 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/issue-4710.qmd
-        3.52 real 3.87 user 0.36 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/03/issue-4621.qmd
-        3.55 real 3.79 user 0.40 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/03/article-layout/table-endnotes-4324.qmd
-        5.69 real 5.89 user 0.36 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/03/article-layout/tabs-callouts-3280.qmd
-        2.20 real 2.57 user 0.28 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/30/issue-5031.qmd
-        1.65 real 2.05 user 0.16 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/30/5044.qmd
-        2.22 real 2.62 user 0.26 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/29/5011.qmd
-        17.10 real 15.41 user 1.14 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/24/3152.qmd
-        6.12 real 5.72 user 0.63 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/09/revealjs-knitr-embed-verbatim.qmd
-        3.34 real 3.54 user 0.42 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/17/4867.qmd
-        1.70 real 2.14 user 0.14 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/01/issue-4568.qmd
-        2.97 real 3.24 user 0.35 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/01/issue-4586.qmd
-        2.27 real 2.71 user 0.30 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/22/gha-toc-4917.qmd
-        1.64 real 2.05 user 0.14 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/14/issue-4748.qmd
-        7.92 real 7.85 user 0.54 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/14/issue-1093.qmd
-        6.82 real 6.98 user 0.45 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/02/issue-4402.qmd
-        3.31 real 3.63 user 0.36 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/07/callout-footnote.qmd
-        1.69 real 2.10 user 0.16 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/07/issue-2997.qmd
-        2.27 real 2.71 user 0.21 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/21/index.qmd
-        2.58 real 2.95 user 0.26 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/12/ojs-local-ts-import.qmd
-        3.17 real 3.89 user 0.32 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/13/5902.qmd
-        2.12 real 2.51 user 0.21 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/07/issue-5783.qmd
-        1.80 real 2.22 user 0.20 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/27/mergetablehtml.qmd
-        2.19 real 2.64 user 0.20 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/27/5316.qmd
-        1.66 real 2.05 user 0.17 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/11/format_underscores.qmd
-        2.09 real 2.53 user 0.22 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/20/callout-test.qmd
-        2.20 real 2.62 user 0.22 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/24/format-links.qmd
-        2.27 real 2.70 user 0.24 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/24/5286.qmd
-        1.71 real 2.09 user 0.18 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/06/5112.qmd
-        1.62 real 2.01 user 0.17 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/26/issue-5317.qmd
-        2.19 real 2.57 user 0.26 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/18/test-caption.qmd
-        2.23 real 2.63 user 0.26 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/04/issue-5084.qmd
-        4.85 real 4.32 user 0.41 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/04/ojs_define.qmd
-        3.61 real 3.95 user 0.34 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/04/5089.qmd
-        6.15 real 5.96 user 0.34 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/01/5060.qmd
-        1.96 real 2.36 user 0.16 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/27/asciidoc-video.qmd
-        1.65 real 2.10 user 0.11 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/20/asciidoc.qmd
-        1.65 real 2.02 user 0.17 sys
-./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/20/test-quarto-disable-processing.qmd
         2.09 real 2.50 user 0.23 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/08/30/6658.qmd
+        3.38 real 3.70 user 0.36 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/08/22/issue-6584.qmd
+        2.08 real 2.51 user 0.18 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/08/22/asciidoc-test.qmd
+        1.61 real 1.96 user 0.19 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/28/remote-resources.qmd
+        2.24 real 2.63 user 0.23 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/revealjs-hash-number.qmd
+        1.76 real 2.14 user 0.23 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/issue-3683.qmd
+        4.15 real 4.41 user 0.42 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/revealjs-hash-number-pandoc-style.qmd
+        1.75 real 2.17 user 0.22 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/08/issue-4710.qmd
+        3.44 real 3.74 user 0.36 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/03/issue-4621.qmd
+        3.48 real 3.65 user 0.44 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/03/article-layout/table-endnotes-4324.qmd
+        5.68 real 5.94 user 0.29 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/03/article-layout/tabs-callouts-3280.qmd
+        2.20 real 2.58 user 0.26 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/30/issue-5031.qmd
+        1.63 real 1.98 user 0.19 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/30/5044.qmd
+        2.20 real 2.58 user 0.26 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/29/5011.qmd
+        16.72 real 15.28 user 1.15 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/24/3152.qmd
+        5.84 real 5.50 user 0.59 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/17/4867.qmd
+        1.66 real 2.02 user 0.18 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/01/issue-4568.qmd
+        2.92 real 3.17 user 0.30 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/01/issue-4586.qmd
+        2.21 real 2.64 user 0.29 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/22/gha-toc-4917.qmd
+        1.64 real 1.99 user 0.19 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/14/issue-4748.qmd
+        9.59 real 7.78 user 0.59 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/14/issue-1093.qmd
+        6.95 real 7.03 user 0.48 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/02/issue-4402.qmd
+        3.29 real 3.63 user 0.32 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/07/callout-footnote.qmd
+        1.68 real 2.07 user 0.16 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/03/07/issue-2997.qmd
+        2.34 real 2.69 user 0.27 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/21/index.qmd
+        2.55 real 2.92 user 0.26 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/12/ojs-local-ts-import.qmd
+        3.14 real 3.82 user 0.36 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/13/5902.qmd
+        2.11 real 2.54 user 0.22 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/06/07/issue-5783.qmd
+        1.79 real 2.19 user 0.22 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/27/mergetablehtml.qmd
+        2.18 real 2.59 user 0.22 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/27/5316.qmd
+        1.65 real 2.00 user 0.21 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/11/format_underscores.qmd
+        2.09 real 2.44 user 0.23 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/20/callout-test.qmd
+        2.19 real 2.62 user 0.19 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/24/format-links.qmd
+        2.29 real 2.75 user 0.26 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/24/5286.qmd
+        1.72 real 2.10 user 0.18 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/06/5112.qmd
+        1.62 real 2.00 user 0.16 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/26/issue-5317.qmd
+        2.21 real 2.63 user 0.23 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/18/test-caption.qmd
+        2.20 real 2.65 user 0.18 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/04/issue-5084.qmd
+        4.82 real 4.29 user 0.38 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/04/ojs_define.qmd
+        3.65 real 3.93 user 0.38 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/04/5089.qmd
+        6.04 real 5.93 user 0.40 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/04/01/5060.qmd
+        1.98 real 2.36 user 0.17 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/27/asciidoc-video.qmd
+        1.66 real 1.98 user 0.19 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/20/asciidoc.qmd
+        1.65 real 2.10 user 0.09 sys
+./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/20/test-quarto-disable-processing.qmd
+        2.10 real 2.54 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/05/content-hidden.qmd
-        2.20 real 2.67 user 0.18 sys
+        2.22 real 2.67 user 0.19 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/05/notebook-preview-complex.qmd
-        4.45 real 4.83 user 0.49 sys
+        4.40 real 4.78 user 0.51 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/05/plots.ipynb
-        2.89 real 3.22 user 0.34 sys
+        2.90 real 3.23 user 0.33 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/05/pdf-remote-image.qmd
-        5.94 real 5.86 user 0.36 sys
+        5.93 real 5.93 user 0.36 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/05/notebook-preview-simple.qmd
-        4.43 real 4.67 user 0.63 sys
+        4.39 real 4.69 user 0.56 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/31/asciidoc-kbd.qmd
-        1.71 real 2.03 user 0.19 sys
+        1.69 real 2.09 user 0.17 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/31/asciidoc-theorems.qmd
-        1.67 real 2.05 user 0.18 sys
+        1.67 real 2.15 user 0.11 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/31/css-code-annotation.qmd
-        3.30 real 3.62 user 0.39 sys
+        3.29 real 3.58 user 0.37 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/03/code-annote-latex.qmd
-        1.70 real 2.08 user 0.17 sys
+        1.71 real 2.10 user 0.16 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/03/code-annote.ipynb
-        2.94 real 3.25 user 0.35 sys
+        2.89 real 3.22 user 0.34 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/03/code-annote-simple.qmd
-        5.87 real 6.06 user 0.50 sys
+        5.78 real 5.92 user 0.50 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/03/code-annote-hover.qmd
-        2.26 real 2.64 user 0.27 sys
+        2.22 real 2.65 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/03/issue-3833.qmd
-        2.14 real 2.61 user 0.18 sys
+        2.09 real 2.51 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/03/code-annote-select.qmd
-        2.27 real 2.70 user 0.26 sys
+        2.22 real 2.67 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/23/table-options.qmd
-        2.23 real 2.62 user 0.26 sys
+        2.20 real 2.61 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/23/reveal-config-quote-4063.qmd
-        1.80 real 2.21 user 0.22 sys
+        1.78 real 2.15 user 0.25 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/12/knitr-options-yaml.qmd
-        3.65 real 3.99 user 0.35 sys
+        3.60 real 3.83 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/13/lua-raw-html.qmd
-        2.22 real 2.59 user 0.27 sys
+        2.21 real 2.63 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/24/4073.qmd
-        6.27 real 5.78 user 0.70 sys
+        6.08 real 5.69 user 0.62 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/19/2107-2.qmd
-        6.85 real 6.45 user 0.63 sys
+        6.75 real 6.30 user 0.67 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/19/2107.qmd
-        6.77 real 6.25 user 0.72 sys
+        6.60 real 6.26 user 0.57 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/06/issue-3872.qmd
-        2.21 real 2.56 user 0.30 sys
+        2.19 real 2.57 user 0.26 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/06/test-inner-content.qmd
-        2.21 real 2.65 user 0.20 sys
+        2.21 real 2.63 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/06/test-filters.qmd
-        2.14 real 2.61 user 0.20 sys
+        2.11 real 2.52 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/06/input-relative/test/index.qmd
-        2.29 real 2.79 user 0.24 sys
+        2.30 real 2.75 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/09/gfm-callout.qmd
-        1.63 real 2.04 user 0.15 sys
+        1.62 real 2.03 user 0.16 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/09/file_1.ipynb
-        3.10 real 3.44 user 0.42 sys
+        3.08 real 3.42 user 0.39 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/26/4068.qmd
-        3.54 real 3.83 user 0.37 sys
+        3.47 real 3.86 user 0.30 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/26/asciidoc-annotated-code.qmd
-        1.63 real 2.03 user 0.15 sys
+        1.64 real 2.03 user 0.16 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/26/asciidoc-callout.qmd
-        1.63 real 2.02 user 0.17 sys
+        1.65 real 2.02 user 0.16 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/26/4034.qmd
-        2.58 real 2.84 user 0.32 sys
+        2.56 real 2.86 user 0.28 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/18/3159.qmd
-        2.10 real 2.54 user 0.22 sys
+        2.09 real 2.57 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/17/online-image-mediabag.qmd
-        9.97 real 9.83 user 0.45 sys
+        9.90 real 9.86 user 0.38 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/17/format-variants.qmd
-        16.83 real 16.66 user 0.86 sys
+        16.76 real 16.69 user 0.78 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
-        2.10 real 2.56 user 0.18 sys
+        2.10 real 2.53 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/16/code-annote-none.qmd
-        3.98 real 3.79 user 0.41 sys
+        3.53 real 3.75 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/16/md-captions.qmd
-        4.70 real 4.94 user 0.56 sys
+        4.63 real 4.87 user 0.55 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/16/main.qmd
-        2.09 real 2.54 user 0.19 sys
+        2.07 real 2.45 user 0.25 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/16/code-annote-two-cells.qmd
-        3.56 real 3.84 user 0.40 sys
+        3.50 real 3.79 user 0.39 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/16/code-annote-select.qmd
-        3.63 real 3.91 user 0.41 sys
+        3.49 real 3.79 user 0.39 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/02/citation-true.qmd
-        2.49 real 2.98 user 0.30 sys
+        2.47 real 2.93 user 0.32 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/05/4200-1.qmd
-        1.70 real 2.13 user 0.18 sys
+        1.68 real 2.05 user 0.17 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/05/4200.qmd
-        5.43 real 5.64 user 0.36 sys
+        5.41 real 5.58 user 0.37 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/08/4272.qmd
-        3.81 real 4.18 user 0.31 sys
+        3.71 real 4.06 user 0.36 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/25/issue-4316.qmd
-        3.87 real 4.20 user 0.39 sys
+        3.76 real 4.07 user 0.37 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/13/dot-bug.qmd
-        2.26 real 2.84 user 0.29 sys
+        2.24 real 2.81 user 0.26 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/24/issue-4423.qmd
-        2.22 real 2.60 user 0.28 sys
+        2.23 real 2.69 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/09/tutorial.ipynb
-        3.06 real 3.74 user 0.31 sys
+        3.03 real 3.64 user 0.29 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/01/4174.qmd
-        2.22 real 2.60 user 0.27 sys
+        2.20 real 2.57 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/01/3085-r.qmd
-        4.41 real 4.69 user 0.38 sys
+        4.37 real 4.58 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/22/no-cite-as.qmd
-        2.28 real 2.75 user 0.20 sys
+        2.27 real 2.68 user 0.25 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/22/generated-bib.qmd
-        3.93 real 3.71 user 0.44 sys
+        3.33 real 3.72 user 0.40 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/02/22/cite-as-only.qmd
-        2.30 real 2.77 user 0.28 sys
+        2.27 real 2.68 user 0.30 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/20/issue-6289.qmd
-        4.01 real 4.34 user 0.40 sys
+        3.96 real 4.23 user 0.46 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/31/4057.qmd
-        3.39 real 3.69 user 0.39 sys
+        3.41 real 3.66 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/28/6367.qmd
-        4.76 real 4.44 user 0.46 sys
+        4.74 real 4.39 user 0.47 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/03/table-colwidths.qmd
-        3.47 real 3.80 user 0.37 sys
+        3.44 real 3.78 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/24/code-annotation-false.qmd
-        6.98 real 7.20 user 0.61 sys
+        6.94 real 7.22 user 0.53 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/24/code-annotation-exec-only.qmd
-        3.42 real 3.80 user 0.28 sys
+        3.38 real 3.71 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/18/6237.qmd
-        1.67 real 2.07 user 0.15 sys
+        1.66 real 2.01 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/17/echo-fenced-annotation.qmd
-        3.31 real 3.64 user 0.36 sys
+        3.32 real 3.59 user 0.40 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/07/10/6153.qmd
-        2.16 real 2.69 user 0.20 sys
+        2.14 real 2.64 user 0.28 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/typst/typst-citeproc.qmd
-        1.63 real 1.89 user 0.24 sys
+        1.64 real 2.05 user 0.14 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/typst/typst-no-citeproc.qmd
-        1.62 real 1.96 user 0.16 sys
+        1.63 real 1.97 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/formatting.qmd
-        1.75 real 2.22 user 0.17 sys
+        1.74 real 2.23 user 0.15 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/code.qmd
-        2.85 real 3.17 user 0.31 sys
+        2.80 real 3.18 user 0.27 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/references.qmd
-        1.69 real 2.12 user 0.19 sys
+        1.68 real 2.11 user 0.18 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/index.qmd
-        1.71 real 2.17 user 0.15 sys
+        1.70 real 2.13 user 0.16 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/chap-1-2.qmd
-        1.71 real 2.18 user 0.12 sys
+        1.70 real 2.18 user 0.13 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/chap-1-1.qmd
-        1.73 real 2.19 user 0.15 sys
+        1.71 real 2.12 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/appendix-2.qmd
-        1.71 real 2.16 user 0.15 sys
+        1.68 real 2.10 user 0.16 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/part-1.qmd
-        1.71 real 2.19 user 0.14 sys
+        1.68 real 2.12 user 0.15 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/htmlbook/appendix-1.qmd
-        1.71 real 2.14 user 0.19 sys
+        1.69 real 2.10 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/simple/references.qmd
-        2.35 real 2.78 user 0.25 sys
+        2.28 real 2.84 user 0.20 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/simple/index.qmd
-        2.33 real 2.82 user 0.25 sys
+        2.29 real 2.77 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/simple/summary.qmd
-        2.30 real 2.81 user 0.24 sys
+        2.29 real 2.80 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/book/simple/intro.qmd
-        2.33 real 2.88 user 0.21 sys
+        2.27 real 2.84 user 0.18 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/jats/computations.ipynb
-        2.89 real 3.26 user 0.29 sys
+        2.86 real 3.11 user 0.39 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/jats/basic.qmd
-        1.86 real 2.34 user 0.17 sys
+        1.84 real 2.27 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/conditional-content/meta.qmd
-        2.23 real 2.65 user 0.24 sys
+        2.18 real 2.62 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/29/callout-constructor.qmd
-        2.22 real 2.62 user 0.22 sys
+        2.17 real 2.60 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/19/kbd-test.qmd
-        6.09 real 6.42 user 0.45 sys
+        6.06 real 6.37 user 0.40 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/15/callout-icon-test.qmd
-        2.19 real 2.65 user 0.19 sys
+        2.19 real 2.59 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/18/mermaid-themes/3328.qmd
-        2.23 real 2.68 user 0.22 sys
+        2.25 real 2.68 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/17/3359b.qmd
-        8.24 real 8.11 user 0.59 sys
+        8.17 real 8.10 user 0.59 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/17/3359a.qmd
-        5.70 real 5.78 user 0.48 sys
+        5.61 real 5.80 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/01/3126.qmd
-        5.41 real 5.65 user 0.31 sys
+        5.38 real 5.71 user 0.28 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/22/annote/test.qmd
-        4.44 real 4.66 user 0.46 sys
+        4.36 real 4.62 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/11/14/3310.qmd
-        2.12 real 2.51 user 0.27 sys
+        2.12 real 2.61 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/9/jats/computations.ipynb
-        2.88 real 3.17 user 0.35 sys
+        2.88 real 3.23 user 0.32 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/9/jats/example.qmd
-        3.70 real 4.03 user 0.33 sys
+        3.61 real 3.96 user 0.34 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/12/12/code-annotation.qmd
-        4.45 real 4.65 user 0.45 sys
+        4.46 real 4.69 user 0.50 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/30/custom-writer-emulation/customwriter-yaml.qmd
-        1.65 real 2.03 user 0.17 sys
+        1.64 real 2.06 user 0.15 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/30/author-crossref-conditions/author.qmd
-        2.10 real 2.52 user 0.24 sys
+        2.07 real 2.41 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/30/author-crossref-conditions/crossref.qmd
-        2.19 real 2.60 user 0.23 sys
+        2.19 real 2.61 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/30/caption-footnotes/test.qmd
-        8.09 real 8.36 user 0.38 sys
+        8.05 real 8.34 user 0.32 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/30/crossref-false/crossref-false.qmd
-        2.09 real 2.51 user 0.21 sys
+        2.10 real 2.52 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/29/hello.qmd
-        6.06 real 6.32 user 0.41 sys
+        6.07 real 6.31 user 0.42 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/09/29/ast-roundtrip-test.qmd
-        6.34 real 6.64 user 0.56 sys
+        6.30 real 6.71 user 0.43 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/11/issue-2765.qmd
-        2.11 real 2.53 user 0.23 sys
+        2.09 real 2.53 user 0.21 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/31/include-notebook/subfolder/plots.ipynb
-        2.89 real 3.22 user 0.33 sys
+        2.86 real 3.18 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/31/include-notebook/embed.qmd
-        2.76 real 3.30 user 0.31 sys
+        2.72 real 3.27 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/31/include-notebook/embed-sub.qmd
-        2.77 real 3.19 user 0.37 sys
+        2.72 real 3.28 user 0.33 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/31/include-notebook/plots.ipynb
-        2.90 real 3.24 user 0.32 sys
+        2.86 real 3.21 user 0.31 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/31/callout-inner-content/callout-filter-test.qmd
-        2.24 real 2.70 user 0.21 sys
+        2.18 real 2.56 user 0.27 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/12/test-customformat-2.qmd
-        1.65 real 2.04 user 0.18 sys
+        1.63 real 1.94 user 0.23 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/12/test-customformat.qmd
-        1.64 real 1.96 user 0.21 sys
+        1.63 real 2.05 user 0.19 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/06/issue-2228.qmd
-        2.11 real 2.54 user 0.21 sys
+        2.11 real 2.58 user 0.22 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/14/google-scholar-project/index.qmd
-        2.29 real 2.78 user 0.30 sys
+        2.28 real 2.77 user 0.28 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/14/google-scholar-project/about.qmd
-        2.29 real 2.76 user 0.28 sys
+        2.28 real 2.78 user 0.24 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2022/10/14/invalid-highlight-theme.qmd
-        2.36 real 2.79 user 0.27 sys
+        2.47 real 2.77 user 0.23 sys
 ./smoke/yaml-intelligence/yaml-intelligence-folded-block-strings.test.ts
-        1.34 real 1.65 user 0.15 sys
+        1.32 real 1.67 user 0.11 sys
 ./smoke/yaml-intelligence/yaml-intelligence.test.ts
-        1.44 real 1.84 user 0.13 sys
+        1.42 real 1.82 user 0.14 sys
 ./smoke/yaml/core-yaml-dashes.test.ts
-        1.73 real 2.06 user 0.24 sys
+        1.71 real 2.10 user 0.21 sys
 ./unit/binary-search.test.ts
-        0.46 real 0.38 user 0.08 sys
-./unit/break-quarto-md/break-quarto-md.test.ts
-        1.47 real 1.85 user 0.15 sys
-./unit/confluence/confluence.test.ts
-        0.56 real 0.47 user 0.10 sys
-./unit/environment.test.ts
         0.46 real 0.40 user 0.06 sys
+./unit/break-quarto-md/break-quarto-md.test.ts
+        1.45 real 1.86 user 0.13 sys
+./unit/confluence/confluence.test.ts
+        0.56 real 0.46 user 0.10 sys
+./unit/environment.test.ts
+        0.45 real 0.40 user 0.06 sys
 ./unit/filter-paths.test.ts
-        0.47 real 0.42 user 0.06 sys
+        0.46 real 0.38 user 0.08 sys
 ./unit/giscus.test.ts
-        0.47 real 0.40 user 0.07 sys
+        0.46 real 0.39 user 0.07 sys
 ./unit/guess-chunk-options-format.test.ts
-        0.46 real 0.38 user 0.09 sys
+        0.45 real 0.38 user 0.08 sys
 ./unit/mapped-strings/mapped-text.test.ts
-        0.48 real 0.42 user 0.07 sys
+        0.48 real 0.40 user 0.08 sys
 ./unit/mapped-strings/multiple-source.test.ts
-        0.46 real 0.36 user 0.10 sys
+        0.45 real 0.37 user 0.09 sys
 ./unit/pandoc-formats.test.ts
-        0.46 real 0.38 user 0.09 sys
-./unit/pandoc-partition.test.ts
-        0.47 real 0.41 user 0.05 sys
-./unit/pandoc.test.ts
-        0.45 real 0.39 user 0.07 sys
-./unit/partition-cell-options.test.ts
-        1.34 real 1.67 user 0.11 sys
-./unit/path.test.ts
-        0.47 real 0.41 user 0.07 sys
-./unit/paths/qualified-path.test.ts
         0.46 real 0.39 user 0.08 sys
+./unit/pandoc-partition.test.ts
+        0.46 real 0.38 user 0.08 sys
+./unit/pandoc.test.ts
+        0.46 real 0.39 user 0.07 sys
+./unit/partition-cell-options.test.ts
+        1.32 real 1.64 user 0.14 sys
+./unit/path.test.ts
+        0.47 real 0.42 user 0.07 sys
+./unit/paths/qualified-path.test.ts
+        0.47 real 0.40 user 0.07 sys
 ./unit/schema-validation/error-location.test.ts
-        0.46 real 0.36 user 0.11 sys
+        0.45 real 0.38 user 0.07 sys
 ./unit/schema-validation/error-narrowing.test.ts
-        1.48 real 1.90 user 0.12 sys
+        1.45 real 1.87 user 0.13 sys
 ./unit/schema-validation/format-aliases.test.ts
-        1.45 real 1.88 user 0.17 sys
+        1.44 real 1.87 user 0.13 sys
 ./unit/schema-validation/format-execute.test.ts
         0.03 real 0.02 user 0.00 sys
 ./unit/schema-validation/format-pandoc-from-file-simple-tests.test.ts
-        1.49 real 1.87 user 0.19 sys
+        1.48 real 1.86 user 0.15 sys
 ./unit/schema-validation/hello-world.test.ts
-        1.47 real 1.91 user 0.12 sys
+        1.44 real 1.92 user 0.13 sys
 ./unit/schema-validation/object-super.test.ts
-        1.45 real 1.91 user 0.10 sys
+        1.46 real 1.86 user 0.15 sys
 ./unit/schema-validation/schema-completions.test.ts
-        1.32 real 1.69 user 0.10 sys
+        1.34 real 1.69 user 0.15 sys
 ./unit/schema-validation/schema-files.test.ts
-        1.46 real 1.90 user 0.13 sys
+        1.45 real 1.84 user 0.15 sys
 ./unit/schema-validation/schema-schema.test.ts
-        3.88 real 4.32 user 0.51 sys
+        3.85 real 4.37 user 0.48 sys
 ./unit/schema-validation/simple.test.ts
-        1.45 real 1.92 user 0.09 sys
+        1.47 real 1.91 user 0.13 sys
 ./unit/text.test.ts
-        0.45 real 0.39 user 0.06 sys
+        0.45 real 0.38 user 0.08 sys
 ./unit/yaml-intelligence/annotated-yaml.test.ts
-        1.44 real 1.79 user 0.16 sys
+        1.43 real 1.84 user 0.13 sys
 ./unit/yaml-intelligence/error-colon-no-space.test.ts
-        1.46 real 1.85 user 0.16 sys
+        1.45 real 1.82 user 0.18 sys
 ./unit/yaml-intelligence/hover-info.test.ts
-        1.45 real 1.84 user 0.16 sys
+        1.48 real 1.86 user 0.19 sys
 ./unit/yaml.test.ts
-        1.45 real 1.89 user 0.16 sys
+        1.46 real 1.88 user 0.14 sys

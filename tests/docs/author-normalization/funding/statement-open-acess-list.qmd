@@ -1,0 +1,14 @@
+---
+title: Simple Funding
+funding: 
+  - statement: | 
+        The author(s) received no specific funding for this work.
+    open-access: |
+        Funding to pay the Open Access publication charges for this article was provided by the grant-in-aid for scientific research.
+  - statement: |
+        The author(s) also received no specific funding for this work.
+
+        This is another paragraph
+    open-access: "Funding to pay the Open Access publication charges for this article was provided by the grant-in-aid for scientific research."
+format: jats
+---

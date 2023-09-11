@@ -364,7 +364,7 @@ export async function renderPandoc(
             finalOutput!,
             format,
             cleanupSelfContained,
-            executionEngineKeepMd(context.target.input),
+            executionEngineKeepMd(context),
           ));
       }
 
