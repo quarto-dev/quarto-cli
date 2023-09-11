@@ -406,7 +406,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       if (!identical(format$metadata[["crossref"]], FALSE)) {
         id <- options[["lst-label"]]
         if (!is.null(options[["lst-cap"]])) {
-          attr <- paste(attr, paste0('caption="', options[["lst-cap"]], '"'))
+          attr <- paste(attr, paste0('lst-cap="', options[["lst-cap"]], '"'))
         }
       }
       if (identical(options[["code-overflow"]], "wrap"))
