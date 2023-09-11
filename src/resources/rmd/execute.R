@@ -254,6 +254,7 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
     # options derived from format
     fig.width = format$execute$`fig-width`,
     fig.height = format$execute$`fig-height`,
+    fig.asp = format$execute$`fig-asp`,
     dev = format$execute$`fig-format`,
     dpi = format$execute$`fig-dpi`,
     eval = format$execute[["eval"]],
