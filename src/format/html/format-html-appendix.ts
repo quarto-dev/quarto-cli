@@ -184,7 +184,7 @@ export async function processDocumentAppendix(
         //
         // this will allow us to not include the following code.
         const normalizedLicense = (license: unknown) => {
-          if (typeof (license) === "string") {
+          if (typeof license === "string") {
             const creativeCommons = creativeCommonsLicense(license);
             if (creativeCommons) {
               const licenseUrlInfo = creativeCommonsUrl(
@@ -241,7 +241,7 @@ export async function processDocumentAppendix(
       //
       // this will allow us to not include the following code.
       const normalizedCopyright = (copyright: unknown) => {
-        if (typeof (copyright) === "string") {
+        if (typeof copyright === "string") {
           return copyright;
         } else if (copyright) {
           return (copyright as { statement?: string }).statement;
@@ -459,15 +459,13 @@ function creativeCommonsUrl(license: string, lang?: string, version?: string) {
         `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
           lang.toLowerCase().replace("-", "_")
         }`,
-      text:
-        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text: `CC ${licenseType} ${version}`,
     };
   } else {
     return {
       url:
         `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
-      text:
-        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text: `CC ${licenseType} ${version}`,
     };
   }
 }
