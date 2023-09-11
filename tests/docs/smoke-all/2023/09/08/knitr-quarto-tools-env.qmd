@@ -1,0 +1,26 @@
+---
+title: R special quarto env
+format: markdown
+_quarto:
+  tests:
+    markdown:
+      ensureFileRegexMatches:
+        - ["NBENV: 1"] 
+        - []
+---
+
+
+format: html
+---
+
+`tools:quarto` special env should not be duplicated
+
+```{r}
+envs <- base::search()
+envs
+knitr::asis_output(paste0("NBENV: ", sum(envs == "tools:quarto")))
+```
+
+```{ojs}
+1 + 1 
+```
