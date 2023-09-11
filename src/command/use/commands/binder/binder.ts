@@ -30,7 +30,6 @@ import {
 } from "../../../../project/project-environment.ts";
 import { withSpinner } from "../../../../core/console.ts";
 import { logProgress } from "../../../../core/log.ts";
-import { kEnvironmentFiles } from "../../../../project/types/manuscript/manuscript-types.ts";
 import { ProjectContext } from "../../../../project/types.ts";
 
 export const useBinderCommand = new Command()
@@ -115,7 +114,7 @@ export const useBinderCommand = new Command()
       };
 
       // Get a file write
-      const writeFile = safeFileWriter(context.dir);
+      const writeFile = safeFileWriter(context.dir, options.prompt);
 
       const rConfig: RConfiguration = {};
       if (projEnv.engines.includes("knitr")) {
