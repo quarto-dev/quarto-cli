@@ -72,6 +72,7 @@ import {
   kExecuteIpynb,
   kExtensionName,
   kFigAlign,
+  kFigAsp,
   kFigDpi,
   kFigEnv,
   kFigFormat,
@@ -466,6 +467,7 @@ export interface FormatExecute {
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
+  [kFigAsp]?: number;
   [kMermaidFormat]?: "png" | "svg" | "js";
   [kDfPrint]?: "default" | "kable" | "tibble" | "paged";
   [kCache]?: true | false | "refresh" | null;

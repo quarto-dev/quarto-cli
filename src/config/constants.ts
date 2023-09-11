@@ -21,6 +21,7 @@ export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
 export const kFigDpi = "fig-dpi";
+export const kFigAsp = "fig-asp";
 
 export const kMermaidFormat = "mermaid-format";
 export const kDfPrint = "df-print";
@@ -136,6 +137,7 @@ export const kExecuteDefaultsKeys = [
   kFigHeight,
   kFigFormat,
   kFigDpi,
+  kFigAsp,
   kMermaidFormat,
   kDfPrint,
   kError,
