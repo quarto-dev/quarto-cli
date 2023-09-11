@@ -187,15 +187,12 @@ export async function processDocumentAppendix(
           if (typeof license === "string") {
             const creativeCommons = creativeCommonsLicense(license);
             if (creativeCommons) {
-              const licenseUrl = creativeCommonsUrl(
+              const licenseUrlInfo = creativeCommonsUrl(
                 creativeCommons.base,
                 format.metadata[kLang] as string | undefined,
                 creativeCommons.version,
               );
-              return {
-                url: licenseUrl,
-                text: creativeCommons.base + " " + creativeCommons.version,
-              };
+              return licenseUrlInfo;
             } else {
               return { text: license };
             }
@@ -462,15 +459,13 @@ function creativeCommonsUrl(license: string, lang?: string, version?: string) {
         `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
           lang.toLowerCase().replace("-", "_")
         }`,
-      text:
-        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text: `CC ${licenseType} ${version}`,
     };
   } else {
     return {
       url:
         `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
-      text:
-        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text: `CC ${licenseType} ${version}`,
     };
   }
 }
