@@ -33,22 +33,32 @@ local kAuthors = "authors"
 -- Funding placeholders
 -- Normalized into:
 -- funding:
---   - id: string (optional)
---     statement: string (optional)
+--   - statement:
 --     open-access: string (optional)
---     source: 
---       - { text } & { country? }
---     investigator:
---       - { text } | { name } | { insitution }
---     recipient:
---       - { text } | { name } | { insitution }
+--     awards:        
+    --   - id: string (optional)
+    --     name: string (optional)
+    --     description: string (optional)
+    --     source: 
+    --       - string | { country, type } & text | { institution } 
+    --     investigator:
+    --       - { text } | { name }
+    --     recipient:
+    --       - { text } | { name } | { institution }
+
+-- add support for instition DOI in addition to ringgold/isni, etc...
 local kFunding = "funding"
-local kAwardId = 'id'
+local kAwards = "awards"
+local kAwardId = "id"
+local kAwardName = "name"
+local kAwardDesc = "description"
 local kSource = "source"
+local kSourceType = "type"
 local kStatement = "statement"
 local kOpenAccess = "open-access"
 local kRecipient = "recipient"
 local kInvestigator = "investigator"
+
 
 -- Properties that may appear on an individual author
 local kId = 'id'
@@ -477,21 +487,21 @@ end
 
 -- Normalizes a value that could be either a plain old markdown string,
 -- a name, or an affiliation
-local function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliations)
+local function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliations, optional)
   if (pandoc.utils.type(valueRaw) == 'Inlines') then
     return { text = valueRaw }
   else
     if valueRaw.name ~= nil then
       return { name = toName(valueRaw.name) }
     elseif valueRaw.institution ~= nil then
-      return { institition = processAffilationObj(valueRaw.institution) }
+      return { institution = processAffilationObj(valueRaw.institution) }
     elseif valueRaw.ref ~= nil then
       local refStr = pandoc.utils.stringify(valueRaw.ref)
 
       -- discover the reference (could be author or affiliation)
       local affiliation = findAffiliation({{ text = refStr }}, affiliations)
       if affiliation then
-        return { institition = affiliation }
+        return { institution = affiliation }
       else
         local author = findAuthor(refStr, authors)
         if author then
@@ -501,39 +511,46 @@ local function processNameOrInstitutionObj(keyName, valueRaw, authors, affiliati
         end
       end
     else
-      fail("Invalid value for " .. keyName)
+      if not optional then
+        fail("Invalid value for " .. keyName)
+      end
     end
   end
 end
 
-local function processNameOrInstitution(keyName, values, authors, affiliations) 
+local function processNameOrInstitution(keyName, values, authors, affiliations, optional) 
   if values ~= nil then
     local pandocType = pandoc.utils.type(values)
     if pandocType == "List" then
       local results = pandoc.List()
       for i, value in ipairs(values) do
-        results:insert(processNameOrInstitutionObj(keyName, value, authors, affiliations))
+        local resolved = processNameOrInstitutionObj(keyName, value, authors, affiliations, optional)
+        if resolved ~= nil then
+          results:insert(resolved)
+        end
       end
       return results
     else
-      return { processNameOrInstitutionObj(values, values, authors, affiliations) }
+      local resolved = processNameOrInstitutionObj(keyName, values, authors, affiliations, optional)
+      if resolved ~= nil then
+        return { resolved }
+      end
     end
   else 
     return {}
   end
 end
 
-local function processSources(sourceRaw)
+local function processSources(sourceRaw, authors, affiliations)
   local pandocType = pandoc.utils.type(sourceRaw)
   if pandocType == 'Inlines' then
     return {{ text = sourceRaw }}
   else
-    local result = pandoc.List()
-    for i, value in ipairs(sourceRaw) do
-      if pandoc.utils.type(value) == 'Inlines' then
-        result:insert({ text = value})
-      else
-        result:insert(value)
+    local result = processNameOrInstitution(kSource, sourceRaw, authors, affiliations, true)
+    for i, key in ipairs({ kCountry, kSourceType }) do
+      local valueRaw = sourceRaw[key]
+      if valueRaw ~= nil then
+        result[key] = valueRaw
       end
     end
     return result
@@ -541,35 +558,76 @@ local function processSources(sourceRaw)
 end
 
 -- Normalizes an indivudal funding entry
-local function processFundingAward(fundingAward, authors, affiliations)
-  if pandoc.utils.type(fundingAward) == 'table' then
+local function processFundingGroup(fundingGroup, authors, affiliations)
+  if pandoc.utils.type(fundingGroup) == 'table' then
+
+    -- awards
     
     -- this is a table of properties, process them
     local result = {}
 
-    -- process the simple values
-    for i, key in ipairs({ kAwardId, kStatement, kOpenAccess }) do
-      local valueRaw = fundingAward[key]
-      if valueRaw ~= nil then
-        result[key] = valueRaw
+    -- statement
+    local statement = fundingGroup[kStatement];
+    if statement ~= nil then
+      if pandoc.utils.type(statement) == "Block" then
+        result[kStatement] = pandoc.utils.blocks_to_inlines({statement})
+      elseif pandoc.utils.type(statement) == "Blocks" then
+        result[kStatement] = pandoc.utils.blocks_to_inlines(statement)
+      else
+        result[kStatement] = openAccess
       end
     end
 
-    -- Process the funding source
-    local sourceRaw = fundingAward[kSource]
-    if sourceRaw ~= nil then
-      result[kSource] = processSources(sourceRaw)     
+    -- open-access (must be a block so it emits a p)
+    local openAccess = fundingGroup[kOpenAccess];
+    if openAccess ~= nil then
+      if pandoc.utils.type(openAccess) == "Inlines" then
+        result[kOpenAccess] = pandoc.Para(openAccess)
+      else
+        result[kOpenAccess] = openAccess
+      end
     end
 
-    -- Process recipients
-    local recipientRaw = fundingAward[kRecipient]
-    if recipientRaw ~= nil then
-      result[kRecipient] = processNameOrInstitution(kRecipient, recipientRaw, authors, affiliations)
+    -- process any awards
+    local awardsRaw = fundingGroup[kAwards];
+    if pandoc.utils.type(awardsRaw) ~= "List" then
+      awardsRaw = pandoc.List({awardsRaw})
     end
 
-    local investigatorRaw = fundingAward[kInvestigator]
-    if investigatorRaw ~= nil then
-      result[kInvestigator] = processNameOrInstitution(kInvestigator, investigatorRaw, authors, affiliations)
+    local awards = pandoc.List({})
+    for i, awardRaw in ipairs(awardsRaw) do
+      local award = {};
+
+      -- award-id, name, description
+      for i, key in ipairs({ kAwardId, kAwardName, kAwardDesc }) do
+        local valueRaw = awardRaw[key]
+        if valueRaw ~= nil then
+          award[key] = valueRaw
+        end
+      end
+  
+      -- Process the funding source
+      local sourceRaw = awardRaw[kSource]
+      if sourceRaw ~= nil then
+        award[kSource] = processSources(sourceRaw, authors, affiliations) 
+      end
+
+      -- Process recipients
+      local recipientRaw = awardRaw[kRecipient]
+      if recipientRaw ~= nil then
+        award[kRecipient] = processNameOrInstitution(kRecipient, recipientRaw, authors, affiliations)
+      end
+
+      local investigatorRaw = awardRaw[kInvestigator]
+      if investigatorRaw ~= nil then
+        award[kInvestigator] = processNameOrInstitution(kInvestigator, investigatorRaw, authors, affiliations)
+      end
+
+      awards:insert(award)
+    end
+
+    if next(awards) ~= nil then
+      result[kAwards] = awards
     end
 
     return result
@@ -1093,10 +1151,10 @@ local function processAuthorMeta(meta)
     end
     
   
-    for i,fundingAward in ipairs(fundingRaw) do 
-      local normalizedAward = processFundingAward(fundingAward, authors, affiliations)
-      if normalizedAward then
-        funding[i] = normalizedAward
+    for i,fundingGroup in ipairs(fundingRaw) do 
+      local normalizedFundingGroup = processFundingGroup(fundingGroup, authors, affiliations)
+      if normalizedFundingGroup then
+        funding[i] = normalizedFundingGroup
       end 
     end
   end

@@ -457,11 +457,21 @@ function creativeCommonsLicense(
 function creativeCommonsUrl(license: string, lang?: string, version?: string) {
   const licenseType = license.substring(3);
   if (lang && lang !== "en") {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
-      lang.toLowerCase().replace("-", "_")
-    }`;
+    return {
+      url:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
+          lang.toLowerCase().replace("-", "_")
+        }`,
+      text:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+    };
   } else {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`;
+    return {
+      url:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+    };
   }
 }
 
