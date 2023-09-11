@@ -20350,10 +20350,120 @@ var require_yaml_intelligence_resources = __commonJS({
         "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
         "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
         "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
-        "Information about awards associated with this funding.",
+        "Unique identifier assigned to an award, contract, or grant.",
+        "The name of this award",
+        "The description for this award.",
+        "Agency or organization that funded the research on which a work was\nbased.",
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+        "Unique identifier assigned to an award, contract, or grant.",
+        "The name of this award",
+        "The description for this award.",
+        "Agency or organization that funded the research on which a work was\nbased.",
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
         "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
-        "Information about awards associated with this funding.",
+        "Unique identifier assigned to an award, contract, or grant.",
+        "The name of this award",
+        "The description for this award.",
+        "Agency or organization that funded the research on which a work was\nbased.",
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+        "Unique identifier assigned to an award, contract, or grant.",
+        "The name of this award",
+        "The description for this award.",
+        "Agency or organization that funded the research on which a work was\nbased.",
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "The text describing the source of the funding.",
+        {
+          short: "Abbreviation for country where source of grant is located.",
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+        },
+        "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was the recipient of the funding.",
+        "The institution that was the recipient of the funding.",
+        "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+        "The id of an author or affiliation in the document metadata.",
+        "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+        "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         {
           short: "Format to write to (e.g.&nbsp;html)",
           long: "Format to write to. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;gfm+footnotes)"
@@ -20569,7 +20679,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text to display for the license.",
         {
           short: "The License for this document, if any. (e.g.&nbsp;<code>CC BY</code>)",
-          long: "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code> will automatically generate\na license link in the document appendix. Other license text will be\nplaced in the appendix verbatim."
+          long: "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code>, <code>CC BY-NC-SA</code>,\nand <code>CC BY-NC-ND</code> will automatically generate a license link\nin the document appendix. Other license text will be placed in the\nappendix verbatim."
         },
         "The type of the license.",
         "A URL to the license.",
@@ -21844,12 +21954,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 159045,
+        _internalId: 164009,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 159037,
+            _internalId: 164001,
             type: "enum",
             enum: [
               "png",
@@ -21865,7 +21975,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 159044,
+            _internalId: 164008,
             type: "anyOf",
             anyOf: [
               {
