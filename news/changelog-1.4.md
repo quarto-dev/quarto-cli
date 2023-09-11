@@ -43,6 +43,7 @@
 - ([#5783](https://github.com/quarto-dev/quarto-cli/issues/5783)): Ensure fenced code blocks work with line numbers.
 - ([#6120](https://github.com/quarto-dev/quarto-cli/issues/6120)): `pdf-max-pages-per-slide` is now correctly setting [`pdfMaxPagesPerSlide` config](https://revealjs.com/pdf-export/#page-size) for RevealJS.
 - ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
+- ([#6800](https://github.com/quarto-dev/quarto-cli/issues/6800)): Move automatically-added content (slide footers, etc) to top-level of DOM when last slide is `hidden`, to avoid inadvertently removing it.
 
 ## PDF Format
 

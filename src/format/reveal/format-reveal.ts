@@ -312,6 +312,7 @@ export function revealjsFormat() {
 
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
+  lines.push("::: {.quarto-auto-generated-content}\n");
   if (format.metadata[kSlideLogo]) {
     lines.push(
       `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
@@ -324,6 +325,8 @@ function revealMarkdownAfterBody(format: Format) {
   } else {
     lines.push("");
   }
+  lines.push(":::");
+  lines.push("\n");
   lines.push(":::");
   lines.push("\n");
 
@@ -473,6 +476,15 @@ function revealHtmlPostprocessor(
         if (tocEntry) {
           tocEntry.parentElement?.remove();
         }
+      }
+
+      // bugfix for #6800
+      // if slides have content that was added by quarto then preserve that content
+      const slideContentFromQuarto = (slide as Element).querySelector(
+        ".quarto-auto-generated-content",
+      );
+      if (slideContentFromQuarto) {
+        slide.parentNode?.appendChild(slideContentFromQuarto);
       }
 
       // remove slide
