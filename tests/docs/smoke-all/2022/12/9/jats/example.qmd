@@ -37,21 +37,21 @@ author:
     deceased: true
     affiliation: Princeton University
 funding:
-  - id: award_id_23213
-    statement: "Special thanks to sloan foundation and all that."
+  - statement: "Special thanks to sloan foundation and all that."
     open-access: "Miscellaneous text about open access that appears here"
-    source:
-      - "The Sloan Foundation"
-      - text: Cool Source
-        country: USA
-    recipient:
-      - ref: cteague
-      - name: Norah Jones
-      - institution: Blue Note Records
-      - John Hamm
-    investigator: 
-      - Norah Jones
-      - ref: bn-records
+    awards:
+      id: award_id_23213
+      source:
+        - "The Sloan Foundation"
+        - text: Cool Source
+          country: USA
+      recipient:
+        - ref: cteague
+        - name: Norah Jones
+        - institution: Blue Note Records
+        - John Hamm
+      investigator: 
+        - Norah Jones
   - This is another simple statement what is up bro
 citation:
   container-id: AGU-SC

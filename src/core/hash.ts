@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { crypto } from "https://deno.land/std@0.185.0/crypto/mod.ts";
+import { crypto } from "crypto/mod.ts";
 import blueimpMd5 from "blueimpMd5";
 
 export function md5Hash(content: string) {

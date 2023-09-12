@@ -420,13 +420,14 @@ $quarto-search-collapse-icon-size: 26px !default;
 
       .search-result-title {
         margin-top: 0.3em;
-        margin-bottom: 0.1rem;
+        margin-bottom: 0em;
       }
 
       .search-result-crumbs {
         white-space: nowrap;
         text-overflow: ellipsis;
         font-size: 0.8em;
+        font-weight: 300;
         margin-right: 1em;
       }
 
@@ -440,8 +441,8 @@ $quarto-search-collapse-icon-size: 26px !default;
       .search-result-crumbs.search-result-crumbs-wrap {
         flex-basis: 100%;
         margin-top: 0em;
-        margin-bottom: 0em;
-        margin-left: 38px;
+        margin-bottom: 0.2em;
+        margin-left: 37px;
       }
     }
 

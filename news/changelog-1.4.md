@@ -33,6 +33,10 @@
 - ([#6430](https://github.com/quarto-dev/quarto-cli/issues/6430)): Fix layout issue with banner style title block authors when `page-layout:
 - ([#5955](https://github.com/quarto-dev/quarto-cli/issues/5955)): Correct HTML callout appearance when title isn't present.
 
+## Appendix
+
+- ([#6783](https://github.com/quarto-dev/quarto-cli/issues/6783)): Add additional CC licenses, improve link text
+
 ## RevealJS Format
 
 - ([#5546](https://github.com/quarto-dev/quarto-cli/issues/5546)): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
@@ -61,16 +65,17 @@
 ## Website Listings
 
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
-- ([#5805](https://github.com/quarto-dev/quarto-cli/pull/5805)): Update the inherited `word-break: break-word` style (Bootstrap) to `word-break: keep-all` to prevent hyphenation of words in listings.
-- ([#5802](https://github.com/quarto-dev/quarto-cli/pull/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
-- ([#6029](https://github.com/quarto-dev/quarto-cli/pull/6029)): Only use the `image-placeholder` for a listing if no other image is available.
-- ([#6091](https://github.com/quarto-dev/quarto-cli/pull/6091)): Don't use remote / absolutes images when auto-discovering images.
-- ([#6268](https://github.com/quarto-dev/quarto-cli/pull/6268)): Enable listings even when `theme: none`
-- ([#6407](https://github.com/quarto-dev/quarto-cli/pull/6407)): Add supporting for the field `word-count` for listing items. It is not displayed by default.
-- ([#6408](https://github.com/quarto-dev/quarto-cli/pull/6408)): Fix error on Windows when using yaml to create a listing with an external (e.g. `path: https://www.quarto.org`)
-- ([#6447](https://github.com/quarto-dev/quarto-cli/pull/6447)): Fix image placholder for pages with more than one listing (or a single listing passed as an array item in yaml)
-- ([#5742](https://github.com/quarto-dev/quarto-cli/pull/5742)): Use any element to compute a description for the listing, even when there are no paragraphs.
-- ([#4800](https://github.com/quarto-dev/quarto-cli/pull/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.
+- ([#5805](https://github.com/quarto-dev/quarto-cli/issues/5805)): Update the inherited `word-break: break-word` style (Bootstrap) to `word-break: keep-all` to prevent hyphenation of words in listings.
+- ([#5802](https://github.com/quarto-dev/quarto-cli/issues/5802)): Don't display the string `undefined` for date values if a listing table displays items without a date.
+- ([#6029](https://github.com/quarto-dev/quarto-cli/issues/6029)): Only use the `image-placeholder` for a listing if no other image is available.
+- ([#6091](https://github.com/quarto-dev/quarto-cli/issues/6091)): Don't use remote / absolutes images when auto-discovering images.
+- ([#6268](https://github.com/quarto-dev/quarto-cli/issues/6268)): Enable listings even when `theme: none`
+- ([#6407](https://github.com/quarto-dev/quarto-cli/issues/6407)): Add supporting for the field `word-count` for listing items. It is not displayed by default.
+- ([#6408](https://github.com/quarto-dev/quarto-cli/issues/6408)): Fix error on Windows when using yaml to create a listing with an external (e.g. `path: https://www.quarto.org`)
+- ([#6447](https://github.com/quarto-dev/quarto-cli/issues/6447)): Fix image placholder for pages with more than one listing (or a single listing passed as an array item in yaml)
+- ([#5742](https://github.com/quarto-dev/quarto-cli/issues/5742)): Use any element to compute a description for the listing, even when there are no paragraphs.
+- ([#4800](https://github.com/quarto-dev/quarto-cli/issues/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.
+- ([#6777](https://github.com/quarto-dev/quarto-cli/issues/6777)): Add support for complex fields like `citaiton.container-title` when includes custom fields in listings.
 
 ## Websites
 
@@ -86,7 +91,7 @@
 - Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - ([#6432](https://github.com/quarto-dev/quarto-cli/issues/6432)): Don't decorate navigation tools with external link icon (we generally don't decorate navigation chrome in this way)
 - Add support for setting `repo-actions: false` in a document to prevent the display of repository actions on a specific page.
-- Add support for `show-item-parent` key within the `search` key to control whether page parents are display next to items in search results.
+- Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
 
 ## Books
 
@@ -120,6 +125,8 @@
 ## Knitr
 
 - ([#4735](https://github.com/quarto-dev/quarto-cli/pull/4735)): Special `verbatim` and `embed` language engine for knitr's chunk are now better supported, including with special quarto cell option like `echo: fenced`.
+- ([#6775](https://github.com/quarto-dev/quarto-cli/pull/6775)): Avoid duplicating special internal `tools:quarto` R environment used for making `ojs_define()` accessible during knitting.
+- ([#6792](https://github.com/quarto-dev/quarto-cli/issues/6792)): `fig-asp` provided at YAML config level now correctly work to set `fig.asp` chunk option in **knitr**.
 
 ## OJS engine
 
@@ -182,4 +189,3 @@
 - ([#6697](https://github.com/quarto-dev/quarto-cli/pull/6697)): Fix issue with outputing to stdout (`quarto render <file> -o -`) on Windows.
 - ([#6705](https://github.com/quarto-dev/quarto-cli/pull/6705)): Fix issue with gfm output being removed when rendered with other formats.
 - ([#6746](https://github.com/quarto-dev/quarto-cli/issues/6746)): Let stdout and stderr finish independently to avoid deadlock.
-

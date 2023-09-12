@@ -117,7 +117,10 @@
 - name: tidy
   tags:
     engine: knitr
-  schema: boolean
+  schema:
+    anyOf:
+      - boolean
+      - enum: [styler, formatR]
   default: false
   description: "Whether to reformat R code."
 

@@ -193,7 +193,7 @@ export const createMecaBundle = async (
     type: kSrcDirMecaType,
     instance: {
       mediaType: "application/x-directory",
-      href: kSrcDirName + "/", // https://github.com/curvenote/jats/issues/17
+      href: kSrcDirName,
     },
   };
 
@@ -366,7 +366,7 @@ export const createMecaBundle = async (
         ...renderedItems,
         ...manuscriptResources,
         ...sourceFiles,
-        // srcDirMetaItem, FIXME: Need to re-enable this once the MECA validator is fixed
+        srcDirMetaItem,
       ],
     };
 

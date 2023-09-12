@@ -79,7 +79,7 @@ const kKbShortcutSearch = "keyboard-shortcut";
 const kLimit = "limit";
 
 // Whether to show the parent in the search results
-const kShowItemParent = "show-item-parent";
+const kShowItemContext = "show-item-context";
 
 // Any aloglia configuration
 const kAlgolia = "algolia";
@@ -94,7 +94,7 @@ interface SearchOptions {
   [kAlgolia]?: SearchOptionsAlgolia;
   [kLanguageDefaults]?: FormatLanguage;
   [kKbShortcutSearch]?: string[];
-  [kShowItemParent]?: boolean | "root" | "breadcrumbs";
+  [kShowItemContext]?: boolean | "parent" | "root" | "tree";
 }
 
 const kSearchOnlyApiKey = "search-only-api-key";
@@ -405,7 +405,7 @@ export function searchOptions(
       [kLimit]: searchInputLimit(searchMetadata),
       [kAlgolia]: algoliaOptions(searchMetadata, project),
       [kKbShortcutSearch]: searchKbdShortcut(searchMetadata),
-      [kShowItemParent]: searchShowItemParent(searchMetadata),
+      [kShowItemContext]: searchShowItemContext(searchMetadata),
     };
   } else {
     const searchRaw = websiteConfig(kSearch, project.config);
@@ -419,7 +419,7 @@ export function searchOptions(
         [kType]: searchType(undefined, location),
         [kLimit]: searchInputLimit(undefined),
         [kKbShortcutSearch]: searchKbdShortcut(undefined),
-        [kShowItemParent]: searchShowItemParent(searchMetadata),
+        [kShowItemContext]: searchShowItemContext(searchMetadata),
       };
     }
   }
@@ -451,11 +451,15 @@ function searchKbdShortcut(
   return ["f", "/", "s"];
 }
 
-function searchShowItemParent(
+function searchShowItemContext(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
   if (searchConfig && typeof (searchConfig) === "object") {
-    return searchConfig[kShowItemParent] as boolean | "breadcrumbs" | "root";
+    return searchConfig[kShowItemContext] as
+      | boolean
+      | "tree"
+      | "root"
+      | "parent";
   } else {
     return false;
   }
