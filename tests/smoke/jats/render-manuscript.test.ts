@@ -5,11 +5,10 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { docs, outputForInput } from "../../utils.ts";
 import { ensureMECAValidates, ensureXmlValidatesWithXsd } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
-import { dirname } from "../../../src/vendor/deno.land/std@0.185.0/path/win32.ts";
 
 const xsdPath = docs(join("jats", "xsd", "JATS-Archiving-1-2-MathML2-DTD"));
 const projectOutDir = "_manuscript";
