@@ -7320,7 +7320,17 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             engine: "knitr"
           },
-          schema: "boolean",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "styler",
+                  "formatR"
+                ]
+              }
+            ]
+          },
           default: false,
           description: "Whether to reformat R code."
         },
@@ -21954,12 +21964,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 164009,
+        _internalId: 164015,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 164001,
+            _internalId: 164007,
             type: "enum",
             enum: [
               "png",
@@ -21975,7 +21985,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 164008,
+            _internalId: 164014,
             type: "anyOf",
             anyOf: [
               {
