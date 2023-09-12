@@ -1168,8 +1168,20 @@ export type NotebookViewSchema = {
   url?: string; /* The url to use when viewing this notebook. */
 };
 
+export type CodeLinksSchema =
+  | boolean
+  | MaybeArrayOf<
+    ({
+      href?: string /* The href for this code link. */;
+      icon?: string /* The bootstrap icon for this code link. */;
+      rel?: string /* The rel used in the `a` tag for this code link. */;
+      text?: string /* The text for this code link. */;
+      target?: string; /* The target used in the `a` tag for this code link. */
+    } | ("repo" | "binder" | "devcontainer"))
+  >;
+
 export type ManuscriptSchema = {
-  "code-links"?: boolean | MaybeArrayOf<(SchemaObject | string)>;
+  "code-links"?: CodeLinksSchema;
   "manuscript-url"?: string /* The deployed url for this manuscript */;
   "meca-bundle"?:
     | boolean
