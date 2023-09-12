@@ -1,0 +1,23 @@
+---
+title: Code Links Text
+format: 
+  html:
+    code-links:
+      - repo
+      - binder
+toc: true
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        -
+          - ".quarto-code-links > ul > li"
+---
+
+## Section 1
+
+{{< lipsum 1 >}}
+
+## Section 2
+
+{{< unsplash imgs/jet.jpg >}}
