@@ -406,7 +406,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | boolean
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
-  "code-links"?: boolean | OtherLinks;
+  "code-links"?: boolean | CodeLinksSchema;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;

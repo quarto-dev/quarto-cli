@@ -9686,7 +9686,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   anyOf: [
                     "boolean",
                     {
-                      ref: "other-links"
+                      ref: "code-links-schema"
                     }
                   ]
                 },
@@ -14745,7 +14745,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ]
               },
               {
-                ref: "other-links"
+                ref: "code-links-schema"
               }
             ]
           },

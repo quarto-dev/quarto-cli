@@ -9687,7 +9687,7 @@ try {
                     anyOf: [
                       "boolean",
                       {
-                        ref: "other-links"
+                        ref: "code-links-schema"
                       }
                     ]
                   },
@@ -14746,7 +14746,7 @@ try {
                   ]
                 },
                 {
-                  ref: "other-links"
+                  ref: "code-links-schema"
                 }
               ]
             },

@@ -1022,7 +1022,7 @@
         schema:
           anyOf:
             - boolean
-            - ref: other-links
+            - ref: code-links-schema
         tags:
           formats: [$html-doc]
         description: "A list of codes links to appear with this document."

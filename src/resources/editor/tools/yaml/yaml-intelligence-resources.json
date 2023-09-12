@@ -2658,7 +2658,7 @@
               "anyOf": [
                 "boolean",
                 {
-                  "ref": "other-links"
+                  "ref": "code-links-schema"
                 }
               ]
             },
@@ -7717,7 +7717,7 @@
             ]
           },
           {
-            "ref": "other-links"
+            "ref": "code-links-schema"
           }
         ]
       },
