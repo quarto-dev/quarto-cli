@@ -123,10 +123,8 @@ export async function projectContext(
     project: ProjectContext,
   ) => {
     if (cachedEnv) {
-      console.log("USE CACHED ENVIRONMENT");
       return Promise.resolve(cachedEnv);
     } else {
-      console.log("COMPUTE ENVIRONMENT");
       cachedEnv = await computeProjectEnvironment(project);
       return cachedEnv;
     }
