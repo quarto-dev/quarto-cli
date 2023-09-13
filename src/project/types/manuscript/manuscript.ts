@@ -48,6 +48,7 @@ import {
   kResources,
   kTheme,
   kToc,
+  kTocLocation,
   kUnrollMarkdownCells,
   kWarning,
 } from "../../../config/constants.ts";
@@ -113,6 +114,7 @@ import { safeExistsSync } from "../../../core/path.ts";
 
 import { dirname, isAbsolute } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -296,6 +298,13 @@ export const manuscriptProjectType: ProjectType = {
 
     // Default to cosmo theme
     config[kTheme] = "cosmo";
+
+    // Default to manuscript title block style
+    config[kTitleBlockStyle] = "manuscript";
+
+    // TOC defaults
+    config[kToc] = true;
+    config[kTocLocation] = "left";
 
     return config;
   },
