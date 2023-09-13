@@ -607,14 +607,15 @@ end, function(float)
   return pandoc.Blocks({
     pandoc.RawInline("typst", "#figure(["),
     float.content,
-    pandoc.RawInline("typst", "], caption: ["),
+    pandoc.RawInline("typst", "], caption: figure.caption("),
+    pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
+    pandoc.RawInline("typst", "["),
     float.caption_long,
     -- apparently typst doesn't allow separate prefix and name
-    pandoc.RawInline("typst", "], "),
+    pandoc.RawInline("typst", "]), "),
     pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
     pandoc.RawInline("typst", "supplement: \"" .. supplement .. "\", "),
     pandoc.RawInline("typst", "numbering: \"" .. numbering .. "\", "),
-    pandoc.RawInline("typst", "caption-pos: " .. caption_location .. ", "), -- no quotes here!
 
     pandoc.RawInline("typst", ")<" .. float.identifier .. ">\n\n")
   })
