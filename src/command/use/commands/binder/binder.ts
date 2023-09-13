@@ -151,7 +151,7 @@ export const useBinderCommand = new Command()
         !isMarkdownEngineOnly(projEnv.engines)
       ) {
         info(
-          "\nNo files which provide dependencies were discovered. If you continue, no dependencies will be restored when running this project with Binder.\n\nLearn more about dependencies at:\nhttps://www.quarto.org/docs/prerelease/1.4/binder.html#dependencies\n",
+          "\nNo files which provide dependencies were discovered. If you continue, no dependencies will be restored when running this project with Binder.\n\nLearn more at:\nhttps://www.quarto.org/docs/prerelease/1.4/binder.html#dependencies\n",
         );
         const proceed = await Confirm.prompt({
           message: "Do you want to continue?",
