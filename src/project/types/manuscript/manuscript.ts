@@ -302,10 +302,6 @@ export const manuscriptProjectType: ProjectType = {
     // Default to manuscript title block style
     config[kTitleBlockStyle] = "manuscript";
 
-    // TOC defaults
-    config[kToc] = true;
-    config[kTocLocation] = "left";
-
     return config;
   },
   create: (title: string): ProjectCreate => {
@@ -434,6 +430,10 @@ export const manuscriptProjectType: ProjectType = {
           if (format.pandoc[kOutputFile] === undefined) {
             // Target index.html as its output
             format.pandoc[kOutputFile] = "index.html";
+          }
+
+          if (format.metadata[kTocLocation] === undefined) {
+            format.metadata[kTocLocation] = "left";
           }
         }
       }
