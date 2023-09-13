@@ -596,14 +596,13 @@ end, function(float)
   else
     kind = "quarto-float-" .. ref
     numbering = "1"
+    supplement = info.name
   end
 
   local caption_location = cap_location(float)
 
   -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
   -- FIXME: custom numbering doesn't work yet
-  -- FIXME: Subfloats don't work yet
-  -- FIXME: float options (like caption positioning) don't work yet
 
   return pandoc.Blocks({
     pandoc.RawInline("typst", "#figure(["),
@@ -611,11 +610,11 @@ end, function(float)
     pandoc.RawInline("typst", "], caption: ["),
     float.caption_long,
     -- apparently typst doesn't allow separate prefix and name
-    pandoc.RawInline("typst", "]"),
-    pandoc.RawInline("typst", ", kind: \"" .. kind .. "\""),
-    pandoc.RawInline("typst", ", supplement: \"" .. supplement .. "\""),
-    pandoc.RawInline("typst", ", numbering: \"" .. numbering .. "\""),
-    pandoc.RawInline("typst", ", caption-pos: " .. caption_location), -- no quotes here!
+    pandoc.RawInline("typst", "], "),
+    pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
+    pandoc.RawInline("typst", "supplement: \"" .. supplement .. "\", "),
+    pandoc.RawInline("typst", "numbering: \"" .. numbering .. "\", "),
+    pandoc.RawInline("typst", "caption-pos: " .. caption_location .. ", "), -- no quotes here!
 
     pandoc.RawInline("typst", ")<" .. float.identifier .. ">\n\n")
   })
