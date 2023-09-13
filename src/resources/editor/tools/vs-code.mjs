@@ -9686,7 +9686,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   anyOf: [
                     "boolean",
                     {
-                      ref: "other-links"
+                      ref: "code-links-schema"
                     }
                   ]
                 },
@@ -11304,6 +11304,58 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "code-links-schema",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: {
+                  anyOf: [
+                    {
+                      object: {
+                        properties: {
+                          icon: {
+                            string: {
+                              description: "The bootstrap icon for this code link."
+                            }
+                          },
+                          text: {
+                            string: {
+                              description: "The text for this code link."
+                            }
+                          },
+                          href: {
+                            string: {
+                              description: "The href for this code link."
+                            }
+                          },
+                          rel: {
+                            string: {
+                              description: "The rel used in the `a` tag for this code link."
+                            }
+                          },
+                          target: {
+                            string: {
+                              description: "The target used in the `a` tag for this code link."
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      enum: [
+                        "repo",
+                        "binder",
+                        "devcontainer"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
           id: "manuscript-schema",
           schema: {
             object: {
@@ -11315,17 +11367,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 },
                 "code-links": {
-                  anyOf: [
-                    "boolean",
-                    {
-                      maybeArrayOf: {
-                        anyOf: [
-                          "object",
-                          "string"
-                        ]
-                      }
-                    }
-                  ]
+                  schema: {
+                    ref: "code-links-schema"
+                  },
+                  description: "Code links to display for this manuscript."
                 },
                 "manuscript-url": {
                   string: {
@@ -14700,7 +14745,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ]
               },
               {
-                ref: "other-links"
+                ref: "code-links-schema"
               }
             ]
           },
@@ -19837,7 +19882,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
         "The url to use when downloading the notebook from the preview",
+        "The bootstrap icon for this code link.",
+        "The text for this code link.",
+        "The href for this code link.",
+        "The rel used in the <code>a</code> tag for this code link.",
+        "The target used in the <code>a</code> tag for this code link.",
+        "The bootstrap icon for this code link.",
+        "The text for this code link.",
+        "The href for this code link.",
+        "The rel used in the <code>a</code> tag for this code link.",
+        "The target used in the <code>a</code> tag for this code link.",
         "The input document that will serve as the root document for this\nmanuscript",
+        "Code links to display for this manuscript.",
         "The deployed url for this manuscript",
         "Whether to generate a MECA bundle for this manuscript",
         "Additional file resources to be copied to output directory",
@@ -21964,12 +22020,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 164015,
+        _internalId: 164461,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 164007,
+            _internalId: 164453,
             type: "enum",
             enum: [
               "png",
@@ -21985,7 +22041,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 164014,
+            _internalId: 164460,
             type: "anyOf",
             anyOf: [
               {

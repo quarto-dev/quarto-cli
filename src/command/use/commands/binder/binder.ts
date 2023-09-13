@@ -38,7 +38,7 @@ import { Confirm } from "cliffy/prompt/mod.ts";
 export const useBinderCommand = new Command()
   .name("binder")
   .description(
-    "Configure the current project to be deployable using Binder.",
+    "Configure the current project with Binder support.",
   )
   .option(
     "--no-prompt",
@@ -65,7 +65,7 @@ export const useBinderCommand = new Command()
       const projEnv = await withSpinner(
         {
           message: "Inspecting project configuration:",
-          doneMessage: "Detected Project configuration:",
+          doneMessage: "Detected Project configuration:\n",
         },
         () => {
           return computeProjectEnvironment(context);
@@ -101,14 +101,6 @@ export const useBinderCommand = new Command()
         }
       }
 
-      // Note whether there are depedencies restored
-      if (projEnv.environments.length === 0) {
-        // TODO: Provide a hyperlink to more information
-        info(
-          "\nNOTE: No files which declare dependencies were discovered. No dependencies will be restored when running this project on Binder.\n",
-        );
-      }
-
       const quartoVersion = typeof (projEnv.quarto) === "string"
         ? projEnv.quarto === "prerelease"
           ? "most recent prerelease"
@@ -141,10 +133,34 @@ export const useBinderCommand = new Command()
           verStr.join(" "),
         ]);
       }
-      table.push(["Tools", projEnv.tools.join("\n")]);
+      if (projEnv.tools.length > 0) {
+        table.push(["Tools", projEnv.tools.join("\n")]);
+      }
       table.push(["Editor", projEnv.codeEnvironment]);
-      table.push(["Environments", projEnv.environments.join("\n")]);
-      table.border(true).render();
+      if (projEnv.environments.length > 0) {
+        table.push(["Environments", projEnv.environments.join("\n")]);
+      }
+      table.indent(4).minColWidth(12).render();
+
+      // Note whether there are depedencies restored
+      const isMarkdownEngineOnly = (engines: string[]) => {
+        return engines.length === 1 && engines.includes("markdown");
+      };
+      if (
+        projEnv.environments.length === 0 &&
+        !isMarkdownEngineOnly(projEnv.engines)
+      ) {
+        info(
+          "\nNo files which provide dependencies were discovered. If you continue, no dependencies will be restored when running this project with Binder.\n\nLearn more at:\nhttps://www.quarto.org/docs/prerelease/1.4/binder.html#dependencies\n",
+        );
+        const proceed = await Confirm.prompt({
+          message: "Do you want to continue?",
+          default: true,
+        });
+        if (!proceed) {
+          return;
+        }
+      }
 
       // Get the list of operations that need to be performed
       const fileOperations = await binderFileOperations(
@@ -155,7 +171,7 @@ export const useBinderCommand = new Command()
         rConfig,
       );
       info(
-        "\nQuarto will write the following files to configure this project for deployment\nusing Binder:",
+        "\nThe following files will be written:",
       );
       const changeTable = new Table();
       fileOperations.forEach((op) => {

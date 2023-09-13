@@ -4,6 +4,15 @@ description: "Configures the image for Quarto Development"
 runs:
   using: "composite"
   steps:
+    - name: Cache deno std deps
+      uses: actions/cache@v3
+      with:
+        path: ./src/resources/deno_std/cache
+        key: ${{ runner.os }}-deno_std-1-${{ hashFiles('./src/resources/deno_std/deno_std.lock', './package/scripts/deno_std/deno_std.ts') }}
+        restore-keys: |
+          ${{ runner.os }}-deno_std-1-
+          ${{ runner.os }}-deno_std-
+
     - name: Configure Quarto (.sh)
       if: runner.os != 'Windows'
       shell: bash

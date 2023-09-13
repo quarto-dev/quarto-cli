@@ -16,7 +16,7 @@ import {
   MarkdownPipeline,
 } from "../../project/types/website/website-pipeline-md.ts";
 
-const kTitleBlockStyle = "title-block-style";
+export const kTitleBlockStyle = "title-block-style";
 const kTitleBlockBanner = "title-block-banner";
 const ktitleBlockColor = "title-block-banner-color";
 const kTitleBlockCategories = "title-block-categories";

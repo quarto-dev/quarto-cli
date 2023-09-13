@@ -335,10 +335,7 @@ export function mergeConfigsCustomized<T>(
 
 export function mergeDisablableArray(objValue: unknown, srcValue: unknown) {
   if (Array.isArray(objValue) && Array.isArray(srcValue)) {
-    return [
-      ...objValue,
-      ...srcValue,
-    ];
+    return mergeArrayCustomizer(objValue, srcValue);
   } else if (Array.isArray(objValue)) {
     if (srcValue === false) {
       return [];

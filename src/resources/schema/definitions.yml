@@ -1022,7 +1022,7 @@
         schema:
           anyOf:
             - boolean
-            - ref: other-links
+            - ref: code-links-schema
         tags:
           formats: [$html-doc]
         description: "A list of codes links to appear with this document."
@@ -2235,6 +2235,31 @@
             description: "The url to use when downloading the notebook from the preview"
       required: [notebook]
 
+- id: code-links-schema
+  schema:
+    anyOf:
+      - boolean
+      - maybeArrayOf:
+          anyOf:
+            - object:
+                properties:
+                  icon:
+                    string:
+                      description: The bootstrap icon for this code link.
+                  text:
+                    string:
+                      description: The text for this code link.
+                  href:
+                    string:
+                      description: The href for this code link.
+                  rel:
+                    string:
+                      description: The rel used in the `a` tag for this code link.
+                  target:
+                    string:
+                      description: The target used in the `a` tag for this code link.
+            - enum: ["repo", "binder", "devcontainer"]
+
 - id: manuscript-schema
   schema:
     object:
@@ -2244,12 +2269,9 @@
           path:
             description: "The input document that will serve as the root document for this manuscript"
         "code-links":
-          anyOf:
-            - boolean
-            - maybeArrayOf:
-                anyOf:
-                  - object
-                  - string
+          schema:
+            ref: code-links-schema
+          description: "Code links to display for this manuscript."
         "manuscript-url":
           string:
             description: "The deployed url for this manuscript"
