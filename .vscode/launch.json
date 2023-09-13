@@ -25,7 +25,7 @@
       },
       "attachSimplePort": 9229,
       "windows": {
-        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\deno.exe"
+        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\deno.exe"
       }
     },
     {
@@ -53,7 +53,7 @@
       },
       "attachSimplePort": 9229,
       "windows": {
-        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\deno.exe"
+        "runtimeExecutable": "${workspaceFolder}\\package\\dist\\bin\\tools\\x86_64\\deno.exe"
       }
     }
   ]
