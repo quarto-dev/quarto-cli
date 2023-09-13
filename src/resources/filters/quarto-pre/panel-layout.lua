@@ -168,6 +168,8 @@ function panel_insert_preamble(result, preamble)
     result:extend(preamble.content)
   elseif pt == "Inline" or pt == "Block" then
     result:insert(preamble)
+  elseif pt == "Blocks" then
+    result:extend(preamble)
   else
     fail("Don't know what to do with preamble of type " .. pt)
     return nil
