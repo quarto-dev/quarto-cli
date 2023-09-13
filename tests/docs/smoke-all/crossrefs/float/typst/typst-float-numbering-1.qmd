@@ -6,16 +6,18 @@ crossref:
   fig-labels: alpha x # (default is arabic)
   tbl-labels: alpha A # (default is arabic)
   subref-labels: roman i # (default is alpha a)
-_quarto:
-  tests:
-    typst:
-      ensureTypstFileRegexMatches:
-        - 
-          - "Figure&nbsp;x: Elephant"
-          - "Table&nbsp;A: My Caption"
-          - "Figure&nbsp;y: Famous Elephants"
-          - "\\(i\\) Surus"
-          - "\\(ii\\) Abbas"
+# TODO how do we inspect the resulting PDF for these?
+#
+# _quarto:
+#   tests:
+#     typst:
+#       ensureTypstFileRegexMatches:
+#         - 
+#           - "Figure&nbsp;x: Elephant"
+#           - "Table&nbsp;A: My Caption"
+#           - "Figure&nbsp;y: Famous Elephants"
+#           - "\\(i\\) Surus"
+#           - "\\(ii\\) Abbas"
 ---
 
 # Introduction
