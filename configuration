@@ -13,7 +13,7 @@ export DENO_DOM=v0.1.35-alpha-artifacts
 export PANDOC=3.1.8
 export DARTSASS=1.55.0
 export ESBUILD=0.18.15
-export TYPST=0.7.0
+export TYPST=0.8.0
 
 # Bootstrap dependencies from bslib
 # (use commit hash from bslib repo)

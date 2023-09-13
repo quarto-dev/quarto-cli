@@ -731,3 +731,8 @@ export const kLayout = "layout";
 
 // https://github.com/quarto-dev/quarto-cli/issues/3581
 export const kCliffyImplicitCwd = "5a6d2e4f-f9a2-43bc-8019-8149fbb76c85";
+
+export const kSourceMappingRegexes = [
+  /^\/\/#\s*sourceMappingURL\=.*\.map$/gm,
+  /\/\*\# sourceMappingURL=.* \*\//g,
+];

@@ -68,7 +68,7 @@ export const useBinderCommand = new Command()
           doneMessage: "Detected Project configuration:\n",
         },
         () => {
-          return computeProjectEnvironment(context);
+          return context.environment(context);
         },
       );
 
@@ -385,12 +385,17 @@ async function binderFileOperations(
     pip: [],
   };
   if (jupyterLab4) {
-    pythonConfig.pip?.push(
-      "git+https://github.com/trungleduc/jupyter-server-proxy@lab4",
-    );
+    if (projEnv.codeEnvironment === "vscode") {
+      pythonConfig.pip?.push(
+        "git+https://github.com/trungleduc/jupyter-server-proxy@lab4",
+      );
+    }
     pythonConfig.pip?.push("jupyterlab-quarto");
   } else {
-    pythonConfig.pip?.push("jupyter-server-proxy");
+    if (projEnv.codeEnvironment === "vscode") {
+      pythonConfig.pip?.push("jupyter-server-proxy");
+    }
+
     pythonConfig.pip?.push("jupyterlab-quarto==0.1.45");
   }
 

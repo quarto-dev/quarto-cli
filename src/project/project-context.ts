@@ -91,6 +91,10 @@ import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
 import { debug } from "log/mod.ts";
+import {
+  computeProjectEnvironment,
+  ProjectEnvironment,
+} from "./project-environment.ts";
 
 export async function projectContext(
   path: string,
@@ -111,6 +115,20 @@ export async function projectContext(
     quartoYamlProjectConfigResolver(configSchema),
     await projectExtensionsConfigResolver(extensionContext, dir),
   ];
+
+  // Compute this on demand and only a single time per
+  // project context
+  let cachedEnv: ProjectEnvironment | undefined = undefined;
+  const environment = async (
+    project: ProjectContext,
+  ) => {
+    if (cachedEnv) {
+      return Promise.resolve(cachedEnv);
+    } else {
+      cachedEnv = await computeProjectEnvironment(project);
+      return cachedEnv;
+    }
+  };
 
   while (true) {
     // use the current resolver
@@ -259,6 +277,7 @@ export async function projectContext(
           // this is a relatively ugly hack to avoid a circular import chain
           // that causes a deno bundler bug;
           renderFormats,
+          environment,
         };
       } else {
         const { files, engines } = projectInputFiles(dir);
@@ -274,6 +293,7 @@ export async function projectContext(
             configResources: projectConfigResources(dir, projectConfig),
           },
           renderFormats,
+          environment,
         };
       }
     } else {
@@ -292,6 +312,7 @@ export async function projectContext(
               input: [],
             },
             renderFormats,
+            environment,
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = projectInputFiles(originalDir);

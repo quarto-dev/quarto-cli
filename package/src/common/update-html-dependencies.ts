@@ -1,9 +1,8 @@
 /*
-* bootstrap.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * bootstrap.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
@@ -16,6 +15,7 @@ import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
 import { copyMinimal } from "../../../src/core/copy.ts";
+import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
 
 export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
@@ -60,13 +60,15 @@ export async function updateHtmlDependencies(config: Configuration) {
   // For applying git patch to what we retreive
   const patchesDir = join(
     config.directoryInfo.pkg,
-    "src", "common", "patches"
-  )
+    "src",
+    "common",
+    "patches",
+  );
 
-  function resolvePatches (patches: string[]) {
-    return patches.map(patch => {
-      return join(patchesDir, patch)
-    })
+  function resolvePatches(patches: string[]) {
+    return patches.map((patch) => {
+      return join(patchesDir, patch);
+    });
   }
 
   // Anchor
@@ -389,8 +391,8 @@ export async function updateHtmlDependencies(config: Configuration) {
     false, // not a commit
     false, // no v prefix,
     resolvePatches([
-      "0001-Patch-PdfExport-RevealJS-plugin-to-export-toggle-fun.patch"
-    ])
+      "0001-Patch-PdfExport-RevealJS-plugin-to-export-toggle-fun.patch",
+    ]),
   );
 
   // Github CSS (used for GFM HTML preview)
@@ -508,7 +510,6 @@ export async function updateHtmlDependencies(config: Configuration) {
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
-
 }
 
 async function updatePdfJs(
@@ -612,7 +613,6 @@ async function updateBootstrapFromBslib(
       info("done.");
       info("");
 
-
       // Rewrite the use of css `var()` style values to base SCSS values
       info(
         "Rewriting _variables.scss file.",
@@ -623,15 +623,20 @@ async function updateBootstrapFromBslib(
       );
       const outLines: string[] = [];
       for (let line of varContents) {
-        line = line.replace("var(--#{$prefix}font-sans-serif)", "$font-family-sans-serif");
-        line = line.replace("var(--#{$prefix}font-monospace)", "$font-family-monospace");
+        line = line.replace(
+          "var(--#{$prefix}font-sans-serif)",
+          "$font-family-sans-serif",
+        );
+        line = line.replace(
+          "var(--#{$prefix}font-monospace)",
+          "$font-family-monospace",
+        );
         line = line.replace(/var\(--#\{\$prefix\}(.*)\)/, "$$$1");
         outLines.push(line);
       }
       Deno.writeTextFileSync(bootstrapVariablesFile, outLines.join("\n"));
       info("done.");
       info("");
-
 
       // Copy utils
       info("Copying scss files");
@@ -824,7 +829,7 @@ async function updateGithubSourceCodeDependency(
   onDownload: (dir: string, version: string) => Promise<void>,
   commit = false, // set to true when commit is used instead of a tag
   vPrefix = true, // set to false if github tags don't use a v prefix
-  patches?: string[]
+  patches?: string[],
 ) {
   info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar)?.trim();
@@ -844,7 +849,7 @@ async function updateGithubSourceCodeDependency(
     await unzip(zipFile, working);
 
     await onDownload(working, version);
-    if (patches) await applyGitPatches(patches)
+    if (patches) await applyGitPatches(patches);
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
@@ -875,7 +880,10 @@ function cleanSourceMap(path: string) {
     const source = Deno.readTextFileSync(path);
     Deno.writeTextFileSync(
       path,
-      source.replaceAll(/^\/\/#\s*sourceMappingURL\=.*\.map$/gm, ""),
+      source.replaceAll(kSourceMappingRegexes[0], "").replaceAll(
+        kSourceMappingRegexes[1],
+        "",
+      ),
     );
   }
 }
@@ -971,7 +979,7 @@ const themePatches: Record<string, ThemePatch[]> = {
     from: ".navbar {\n  border-style: solid;\n  border-width: 1px;",
     to:
       ".navbar {\n  border-width: 1px;\n  border-style: solid;\n  border-color: shade-color($navbar-bg, 13%);",
-  }],  
+  }],
   "solar": [{
     from: "$body-color:                $gray-600 !default;",
     to: "$body-color:                $gray-500 !default;",
