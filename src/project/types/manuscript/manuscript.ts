@@ -744,69 +744,58 @@ const computeCodeLinks = async (
   // Resolve the other links
   const codeLinks = resolveCodeLinks(manuscriptConfig);
 
-  let cachedContext: GitHubContext | undefined = undefined;
-  const getGhContext = async () => {
-    if (cachedContext === undefined) {
-      cachedContext = await gitHubContext(context.dir);
-    }
-    return cachedContext;
-  };
+  // Compute the project environment and use that to customize the binder options
+  const projEnv = await computeProjectEnvironment(context);
 
   const outputCodeLinks: OtherLink[] = [];
   for (const codeLink of codeLinks) {
     if (typeof (codeLink) === "string") {
       if (kCodeLinkTypes.includes(codeLink)) {
-        const ghContext = await getGhContext();
-        if (ghContext) {
-          const repoUrl = ghContext.repoUrl;
-          if (codeLink === "repo" && repoUrl) {
-            const repoLink: OtherLink = {
-              icon: "github",
-              text: "GitHub Repo",
-              href: repoUrl,
-              target: "_blank",
-            };
-            outputCodeLinks.push(repoLink);
-          } else if (codeLink === "devcontainer" && repoUrl) {
-            if (
-              ghContext.organization && ghContext.repository &&
-              hasDevContainer(context.dir)
-            ) {
-              const containerUrl = codeSpacesUrl(repoUrl);
-              const containerLink: OtherLink = {
-                icon: "github",
-                text: format.language[kLaunchDevContainerTitle] ||
-                  "Launch Dev Container",
-                href: containerUrl,
-                target: "_blank",
-              };
-              outputCodeLinks.push(containerLink);
-            }
-          } else if (
-            codeLink === "binder" &&
-            ghContext.organization && ghContext.repository &&
-            hasBinderCompatibleEnvironment(context.dir)
+        const repoUrl = projEnv.github.repoUrl;
+        if (codeLink === "repo" && repoUrl) {
+          const repoLink: OtherLink = {
+            icon: "github",
+            text: "GitHub Repo",
+            href: repoUrl,
+            target: "_blank",
+          };
+          outputCodeLinks.push(repoLink);
+        } else if (codeLink === "devcontainer" && repoUrl) {
+          if (
+            projEnv.github.organization && projEnv.github.repository &&
+            hasDevContainer(context.dir)
           ) {
-            // Compute the project environment and use that to customize the binder options
-            const projEnv = await computeProjectEnvironment(context);
-
-            const containerUrl = binderUrl(
-              ghContext.organization,
-              ghContext.repository,
-              {
-                openFile: extname(source) === ".ipynb" ? source : undefined,
-                editor: projEnv.codeEnvironment,
-              },
-            );
+            const containerUrl = codeSpacesUrl(repoUrl);
             const containerLink: OtherLink = {
-              icon: "journals",
-              text: format.language[kLaunchBinderTitle] ||
-                "Launch Binder",
+              icon: "github",
+              text: format.language[kLaunchDevContainerTitle] ||
+                "Launch Dev Container",
               href: containerUrl,
               target: "_blank",
             };
             outputCodeLinks.push(containerLink);
           }
+        } else if (
+          codeLink === "binder" &&
+          projEnv.github.organization && projEnv.github.repository &&
+          hasBinderCompatibleEnvironment(context.dir)
+        ) {
+          const containerUrl = binderUrl(
+            projEnv.github.organization,
+            projEnv.github.repository,
+            {
+              openFile: extname(source) === ".ipynb" ? source : undefined,
+              editor: projEnv.codeEnvironment,
+            },
+          );
+          const containerLink: OtherLink = {
+            icon: "journals",
+            text: format.language[kLaunchBinderTitle] ||
+              "Launch Binder",
+            href: containerUrl,
+            target: "_blank",
+          };
+          outputCodeLinks.push(containerLink);
         }
       } else {
         throw new Error(

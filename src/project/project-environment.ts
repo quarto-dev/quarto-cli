@@ -15,6 +15,7 @@ import { isPdfOutput } from "../config/format.ts";
 import { ProjectContext } from "../project/types.ts";
 import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
 import { SemVer } from "semver/mod.ts";
+import { GitHubContext, gitHubContext } from "../core/github.ts";
 
 export interface ProjectEnvironment {
   title: string;
@@ -25,6 +26,7 @@ export interface ProjectEnvironment {
   environments: string[];
   openFiles: string[];
   envVars: Record<string, string>;
+  github: GitHubContext;
 }
 
 export type QuartoEditor = "vscode" | "rstudio" | "jupyterlab";
@@ -42,6 +44,9 @@ export const computeProjectEnvironment = async (
     ? "prerelease"
     : new SemVer(version);
 
+  // Compute the GitHub Context
+  const github = await gitHubContext(context.dir);
+
   const containerCtx: ProjectEnvironment = {
     title: kDefaultContainerTitle,
     engines: context.engines,
@@ -51,6 +56,7 @@ export const computeProjectEnvironment = async (
     environments: [],
     openFiles: [],
     envVars: {},
+    github,
   };
 
   // Figure out the editor
