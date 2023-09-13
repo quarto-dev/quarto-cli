@@ -515,16 +515,8 @@ export const manuscriptProjectType: ProjectType = {
       manuscriptConfig,
     );
     if (isArticle && isHtmlOutput(format.pandoc)) {
-      // Inject code links
-      const outputCodeLinks = await computeCodeLinks(
-        source,
-        format,
-        manuscriptConfig,
-        context,
-      );
-      if (outputCodeLinks.length > 0) {
-        extras.metadata[kCodeLinks] = outputCodeLinks;
-      }
+      // Forward code links
+      extras.metadata[kCodeLinks] = manuscriptConfig[kCodeLinks];
 
       // If the user isn't explicitly providing a notebook list
       // then automatically create notebooks for the other items in
@@ -726,105 +718,6 @@ const resolveNotebookDescriptors = (
     resolvedNbs.push(resolveNotebookDescriptor(nb));
   }
   return resolvedNbs;
-};
-
-const kCodeLinkTypes = ["repo", "binder", "devcontainer"];
-const kNoCodelinks: string[] = [];
-
-const computeCodeLinks = async (
-  source: string,
-  format: Format,
-  manuscriptConfig: ResolvedManuscriptConfig,
-  context: ProjectContext,
-) => {
-  if (format.metadata[kCodeLinks] === false) {
-    return [];
-  }
-
-  // Resolve the other links
-  const codeLinks = resolveCodeLinks(manuscriptConfig);
-
-  // Compute the project environment and use that to customize the binder options
-  const projEnv = await context.environment(context);
-
-  const outputCodeLinks: OtherLink[] = [];
-  for (const codeLink of codeLinks) {
-    if (typeof (codeLink) === "string") {
-      if (kCodeLinkTypes.includes(codeLink)) {
-        const repoUrl = projEnv.github.repoUrl;
-        if (codeLink === "repo" && repoUrl) {
-          const repoLink: OtherLink = {
-            icon: "github",
-            text: "GitHub Repo",
-            href: repoUrl,
-            target: "_blank",
-          };
-          outputCodeLinks.push(repoLink);
-        } else if (codeLink === "devcontainer" && repoUrl) {
-          if (
-            projEnv.github.organization && projEnv.github.repository &&
-            hasDevContainer(context.dir)
-          ) {
-            const containerUrl = codeSpacesUrl(repoUrl);
-            const containerLink: OtherLink = {
-              icon: "github",
-              text: format.language[kLaunchDevContainerTitle] ||
-                "Launch Dev Container",
-              href: containerUrl,
-              target: "_blank",
-            };
-            outputCodeLinks.push(containerLink);
-          }
-        } else if (
-          codeLink === "binder" &&
-          projEnv.github.organization && projEnv.github.repository &&
-          hasBinderCompatibleEnvironment(context.dir)
-        ) {
-          const containerUrl = binderUrl(
-            projEnv.github.organization,
-            projEnv.github.repository,
-            {
-              openFile: extname(source) === ".ipynb" ? source : undefined,
-              editor: projEnv.codeEnvironment,
-            },
-          );
-          const containerLink: OtherLink = {
-            icon: "journals",
-            text: format.language[kLaunchBinderTitle] ||
-              "Launch Binder",
-            href: containerUrl,
-            target: "_blank",
-          };
-          outputCodeLinks.push(containerLink);
-        }
-      } else {
-        throw new Error(
-          `Unknown value '${codeLink}' for code-links. Allowed values include ${
-            kCodeLinkTypes.join(", ")
-          }`,
-        );
-      }
-    } else {
-      outputCodeLinks.push(codeLink);
-    }
-  }
-  return outputCodeLinks;
-};
-
-const resolveCodeLinks = (
-  config: ResolvedManuscriptConfig,
-): Array<string | OtherLink> => {
-  const codeLinks = config[kCodeLinks];
-  if (codeLinks !== undefined) {
-    if (typeof (codeLinks) === "boolean") {
-      return codeLinks ? kCodeLinkTypes : kNoCodelinks;
-    } else if (typeof (codeLinks) === "string") {
-      return [codeLinks];
-    } else {
-      return codeLinks;
-    }
-  }
-  return kCodeLinkTypes;
 };
 
 const kTexOutDir = "_tex";
