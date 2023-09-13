@@ -68,7 +68,7 @@ export const useBinderCommand = new Command()
           doneMessage: "Detected Project configuration:\n",
         },
         () => {
-          return computeProjectEnvironment(context);
+          return context.environment(context);
         },
       );
 

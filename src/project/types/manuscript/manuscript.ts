@@ -745,7 +745,7 @@ const computeCodeLinks = async (
   const codeLinks = resolveCodeLinks(manuscriptConfig);
 
   // Compute the project environment and use that to customize the binder options
-  const projEnv = await computeProjectEnvironment(context);
+  const projEnv = await context.environment(context);
 
   const outputCodeLinks: OtherLink[] = [];
   for (const codeLink of codeLinks) {
