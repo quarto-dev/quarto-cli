@@ -26,7 +26,7 @@ $QUARTO_SRC_DIR= Join-Path $QUARTO_ROOT "src"
 # e.g quarto-cli/package/dist/bin
 $QUARTO_BIN_PATH = Join-Path $QUARTO_ROOT "package" "dist" "bin"
 # Deno binary in tools/
-$QUARTO_DENO = Join-Path $QUARTO_BIN_PATH "tools" "deno.exe"
+$QUARTO_DENO = Join-Path $QUARTO_BIN_PATH "tools" "x86_64" "deno.exe"
 
 # Shared resource folder
 # e.g quarto-cli/src/resources
