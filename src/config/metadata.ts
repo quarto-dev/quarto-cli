@@ -336,14 +336,18 @@ export function mergeConfigsCustomized<T>(
 export function mergeDisablableArray(objValue: unknown, srcValue: unknown) {
   if (Array.isArray(objValue) && Array.isArray(srcValue)) {
     return mergeArrayCustomizer(objValue, srcValue);
-  } else if (Array.isArray(objValue)) {
+  } else {
     if (srcValue === false) {
       return [];
     } else {
-      return objValue;
+      const srcArr = srcValue !== undefined
+        ? Array.isArray(srcValue) ? srcValue : [srcValue]
+        : [];
+      const objArr = objValue !== undefined
+        ? Array.isArray(objValue) ? objValue : [objValue]
+        : [];
+      return mergeArrayCustomizer(objArr, srcArr);
     }
-  } else {
-    return srcValue;
   }
 }
 

@@ -592,14 +592,14 @@ async function processOtherLinks(
           if (typeof (codeLink) === "string") {
             if (!context) {
               throw new Error(
-                `The code-link value '${codeLinks}' is only supported from within a project.`,
+                `The code-link value '${codeLink}' is only supported from within a project.`,
               );
             }
             const resolvedCodeLink = await resolveCodeLink(codeLink, context);
             if (resolvedCodeLink) {
               outputLinks.push(resolvedCodeLink);
             } else {
-              throw new Error(`Unknown code-link value '${codeLinks}'`);
+              throw new Error(`Unknown code-link value '${codeLink}'`);
             }
           } else {
             outputLinks.push(codeLink);
@@ -631,49 +631,45 @@ async function processOtherLinks(
       }
     } else if (link === "devcontainer") {
       const env = await context.environment(context);
-      if (hasDevContainer(context.dir)) {
-        if (
-          env.github.organization && env.github.repository && env.github.repoUrl
-        ) {
-          const containerUrl = codeSpacesUrl(env.github.repoUrl);
-          return {
-            icon: "github",
-            text: format.language[kLaunchDevContainerTitle] ||
-              "Launch Dev Container",
-            href: containerUrl,
-            target: "_blank",
-          };
-        } else {
-          warning(
-            "The 'devcontainer' code link is not able to be created as the project isn't a GitHub project.",
-          );
-        }
+      if (
+        env.github.organization && env.github.repository && env.github.repoUrl
+      ) {
+        const containerUrl = codeSpacesUrl(env.github.repoUrl);
+        return {
+          icon: "github",
+          text: format.language[kLaunchDevContainerTitle] ||
+            "Launch Dev Container",
+          href: containerUrl,
+          target: "_blank",
+        };
+      } else {
+        warning(
+          "The 'devcontainer' code link is not able to be created as the project isn't a GitHub project.",
+        );
       }
     } else if (link === "binder") {
       const env = await context.environment(context);
-      if (hasBinderCompatibleEnvironment(context.dir)) {
-        if (env.github.organization && env.github.repository) {
-          const containerUrl = binderUrl(
-            env.github.organization,
-            env.github.repository,
-            {
-              // TODO: figure out open file path (if support in vscode/rstudio)
-              // openFile: extname(source) === ".ipynb" ? source : undefined
-              editor: env.codeEnvironment,
-            },
-          );
-          return {
-            icon: "journals",
-            text: format.language[kLaunchBinderTitle] ||
-              "Launch Binder",
-            href: containerUrl,
-            target: "_blank",
-          };
-        } else {
-          warning(
-            "The 'binder' code link is not able to be created as the project isn't a GitHub project.",
-          );
-        }
+      if (env.github.organization && env.github.repository) {
+        const containerUrl = binderUrl(
+          env.github.organization,
+          env.github.repository,
+          {
+            // TODO: figure out open file path (if support in vscode/rstudio)
+            // openFile: extname(source) === ".ipynb" ? source : undefined
+            editor: env.codeEnvironment,
+          },
+        );
+        return {
+          icon: "journals",
+          text: format.language[kLaunchBinderTitle] ||
+            "Launch Binder",
+          href: containerUrl,
+          target: "_blank",
+        };
+      } else {
+        warning(
+          "The 'binder' code link is not able to be created as the project isn't a GitHub project.",
+        );
       }
     }
   };
