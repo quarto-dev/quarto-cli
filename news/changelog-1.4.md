@@ -190,3 +190,4 @@
 - ([#6705](https://github.com/quarto-dev/quarto-cli/pull/6705)): Fix issue with gfm output being removed when rendered with other formats.
 - ([#6746](https://github.com/quarto-dev/quarto-cli/issues/6746)): Let stdout and stderr finish independently to avoid deadlock.
 - ([#6807](https://github.com/quarto-dev/quarto-cli/pull/6807)): Improve sourcemapping reference cleanup in generated CSS files.
+- ([#6825](https://github.com/quarto-dev/quarto-cli/issues/6825)): Show filename when YAML parsing error occurs.

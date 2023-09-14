@@ -46,10 +46,12 @@ export async function configure(
     }
   }
 
+  info("Building quarto-preview.js...");
   const result = buildQuartoPreviewJs(config.directoryInfo.src);
   if (!result.success) {
     throw new Error();
   }
+  info("Build completed.");
 
   // Move the quarto script into place
   info("Placing Quarto script");
