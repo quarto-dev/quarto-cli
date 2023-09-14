@@ -27,9 +27,7 @@ jobs:
           echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Configure Quarto
-        shell: bash
-        run: |
-          ./configure.sh
+        uses: ./.github/workflows/actions/quarto-dev
 
       - name: Test Bundle
         shell: bash
