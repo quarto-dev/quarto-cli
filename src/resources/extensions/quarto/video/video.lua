@@ -27,7 +27,7 @@ local function isEmpty(s)
 end
 
 local isResponsive = function(width, height)
-  return isEmpty(height) or isEmpty(width)
+  return isEmpty(height) and isEmpty(width)
 end
 
 VIDEO_SHORTCODE_NUM_VIDEOJS = 0
