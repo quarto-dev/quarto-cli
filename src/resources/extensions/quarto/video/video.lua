@@ -240,11 +240,11 @@ function htmlVideo(src, height, width, title, start, aspectRatio)
     local strs = splitString(aspectRatio, 'x')
     wr = tonumber(strs[1])
     hr = tonumber(strs[2])
-    aspectRatio = wr / hr
+    local aspectRatioNum = wr / hr
     if height and not width then
-      width = math.floor(height * aspectRatio + 0.5)
+      width = math.floor(height * aspectRatioNum + 0.5)
     elseif width and not height then
-      height = math.floor(width / aspectRatio + 0.5)
+      height = math.floor(width / aspectRatioNum + 0.5)
     end
   end
 
