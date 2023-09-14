@@ -793,7 +793,7 @@ async function resolveFilterExtension(
           return filter;
         }
       } else {
-        return filter;
+        return [];
       }
     } else {
       return filter;
