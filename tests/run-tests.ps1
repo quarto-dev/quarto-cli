@@ -143,6 +143,8 @@ If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   Write-Host "> Activating virtualenv for Python tests in Quarto"
   . "$(pipenv --venv)/Scripts/activate.ps1"
+  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   $quarto_venv_activated = $true
 }
 
@@ -159,11 +161,15 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 If($quarto_venv_activated) {
   Write-Host "> Exiting virtualenv activated for tests"
   deactivate
+  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   Remove-Variable quarto_venv_activated
 }
 If($null -ne $OLD_VIRTUAL_ENV) {
   Write-Host "> Reactivating original virtualenv"
   . "$OLD_VIRTUAL_ENV/Scripts/activate.ps1"
+  Write-Host "> New Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   Remove-Variable OLD_VIRTUAL_ENV
 }
 
