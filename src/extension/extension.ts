@@ -26,6 +26,7 @@ import { quartoConfig } from "../core/quarto.ts";
 
 import {
   kAuthor,
+  kBuiltInExtNames,
   kBuiltInExtOrg,
   kCommon,
   kExtensionDir,
@@ -187,7 +188,7 @@ function filterExtensionAndWarn(
   warnToRemoveExtensions(filterOutExtensions);
   // filter out the extensions that have become built in
   return extensions.filter((ext) => {
-    return filterOutExtensions.map((ext) => ext.id.name).includes(
+    return !filterOutExtensions.map((ext) => ext.id.name).includes(
       ext.id.name,
     );
   });
@@ -239,13 +240,14 @@ export function filterExtensions(
     // referenced in the yaml so we don't break code in the wild)
     const oldBuiltInExt = extensions?.filter((ext) => {
       return (ext.id.organization === kQuartoExtOrganization &&
-        kQuartoExtBuiltIn.includes(ext.id.name));
+        (kQuartoExtBuiltIn.includes(ext.id.name) ||
+          kBuiltInExtNames.includes(ext.id.name)));
     });
     if (oldBuiltInExt.length > 0) {
-      filterExtensionAndWarn(extensions, oldBuiltInExt);
+      return filterExtensionAndWarn(extensions, oldBuiltInExt);
+    } else {
+      return extensions;
     }
-
-    return extensions;
   } else {
     return extensions;
   }
