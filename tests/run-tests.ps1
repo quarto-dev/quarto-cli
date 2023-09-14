@@ -137,7 +137,7 @@ $DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv
-# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtalenv manage by pipenv for the project
+# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtualenv managed by pipenv for the project
 If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
   # Save possible activated virtualenv for later restauration
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
