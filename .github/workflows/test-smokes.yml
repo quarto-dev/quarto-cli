@@ -42,8 +42,6 @@ jobs:
           - os: windows-latest
             time-test: true
     runs-on: ${{ matrix.os }}
-    env:
-      QUARTO_TESTS_FORCE_NO_PIPENV: true
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -131,7 +129,7 @@ jobs:
         working-directory: tests
         run: |
           python -m pip install pipenv
-          pipenv install --system
+          pipenv install
 
       - uses: ./.github/workflows/actions/quarto-dev
 
