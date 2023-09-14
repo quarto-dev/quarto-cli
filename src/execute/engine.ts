@@ -180,10 +180,20 @@ export function fileExecutionEngine(
   // if we were passed a transformed markdown, use that for the text instead
   // of the contents of the file.
   if (kMdExtensions.includes(ext) || kQmdExtensions.includes(ext)) {
-    return markdownExecutionEngine(
-      markdown ? markdown.value : Deno.readTextFileSync(file),
-      flags,
-    );
+    // https://github.com/quarto-dev/quarto-cli/issues/6825
+    // In case the YAML _parsing_ fails, we need to annotate the error
+    // with the filename so that the user knows which file is the problem.
+    try {
+      return markdownExecutionEngine(
+        markdown ? markdown.value : Deno.readTextFileSync(file),
+        flags,
+      );
+    } catch (error) {
+      if (error.name === "YAMLError") {
+        error.message = `${file}:\n${error.message}`;
+      }
+      throw error;
+    }
   } else {
     return undefined;
   }
