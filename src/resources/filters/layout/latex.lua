@@ -48,7 +48,7 @@ function latexPanel(layout)
       local endOfTable = i == #layout.rows.content
       local endOfRow = j == #row.content
       local prefix, content, suffix = latexCell(cell, vAlign, endOfRow, endOfTable)
-      -- local align = cell.attr.attributes[kLayoutAlign]
+      -- local align = cell.attributes[kLayoutAlign]
       -- if align == "center" then
       --   panel.content.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
       -- end
@@ -185,7 +185,7 @@ local kEndSideNote = '\\end{footnotesize}}'
 function latexEndSidenote(el, block)
   local offset = ''
   if el.attr ~= nil then
-    local offsetValue = el.attr.attributes['offset']
+    local offsetValue = el.attributes['offset']
     if offsetValue ~= nil then
       offset = '[' .. offsetValue .. ']'
     end  
@@ -251,7 +251,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local label = cell.identifier
   local image = figureImageFromLayoutCell(cell)
   if (label == "") and image then
-    label = image.attr.identifier
+    label = image.identifier
   end
   local isFigure = isFigureRef(label)
   local isTable = isTableRef(label)
@@ -259,7 +259,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local tbl = tableFromLayoutCell(cell)
   
   -- determine width 
-  local width = cell.attr.attributes["width"]
+  local width = cell.attributes["width"]
   
   -- derive prefix, content, and suffix
   local prefix = pandoc.List()
@@ -655,7 +655,7 @@ function renderLatexFigure(el, render)
 end
 
 function latexCaptionEnv(el) 
-  if el.attr.classes:includes(kSideCaptionClass) then
+  if el.classes:includes(kSideCaptionClass) then
     return kSideCaptionEnv
   else
     return 'caption'
