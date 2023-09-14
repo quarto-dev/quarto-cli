@@ -26,6 +26,27 @@ function render_pandoc3_figure()
       end
     }
   else
-    return {}
+    return {
+      traverse = "topdown",
+      Figure = function(figure)
+        local image
+        _quarto.ast.walk(figure, {
+          Image = function(img)
+            image = img
+          end
+        })
+        if image == nil then
+          return figure
+        end
+        if figure.caption.long ~= nil then
+          image.caption = quarto.utils.as_inlines(figure.caption.long)
+        end
+        for k, v in pairs(figure.attributes) do
+          image.attributes[k] = v
+        end
+        image.classes:extend(figure.classes)
+        return latexImageFigure(image)
+      end
+    }
   end
 end

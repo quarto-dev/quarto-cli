@@ -3,7 +3,24 @@
 
 
 function quarto_pre_figures() 
-  
+  -- provide default fig-pos or fig-env if specified
+  local function forward_pos_and_env(el)
+    local figPos = param(kFigPos)
+    if figPos and not el.attributes[kFigPos] then
+      el.attributes[kFigPos] = figPos
+    end
+    -- remove fig-pos if it is false, since it
+    -- signals "don't use any value"
+    if el.attributes[kFigPos] == "FALSE" then
+      el.attributes[kFigPos] = nil
+    end
+    local figEnv = param(kFigEnv)
+    
+    if figEnv and not el.attributes[kFigEnv] then
+      el.attributes[kFigEnv] = figEnv
+    end
+    return el
+end
   return {    
     FloatRefTarget = function(float)
       local kind = refType(float.identifier)
@@ -20,23 +37,13 @@ function quarto_pre_figures()
           float.attributes[kFigAlt] = nil
           return float
         end
-      -- provide default fig-pos or fig-env if specified
       elseif _quarto.format.isLatexOutput() then
-        local figPos = param(kFigPos)
-        if figPos and not float.attributes[kFigPos] then
-          float.attributes[kFigPos] = figPos
-        end
-        -- remove fig-pos if it is false, since it
-        -- signals "don't use any value"
-        if float.attributes[kFigPos] == "FALSE" then
-          float.attributes[kFigPos] = nil
-        end
-        local figEnv = param(kFigEnv)
-        
-        if figEnv and not float.attributes[kFigEnv] then
-          float.attributes[kFigEnv] = figEnv
-        end
-        return float
+        return forward_pos_and_env(float)
+      end
+    end,
+    Figure = function(figure)
+      if _quarto.format.isLatexOutput() then
+        return forward_pos_and_env(figure)
       end
     end
   }
