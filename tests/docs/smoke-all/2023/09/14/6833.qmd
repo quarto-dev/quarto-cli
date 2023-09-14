@@ -4,7 +4,9 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ["div.v2 iframe[height=\"360\"]"]
+        - 
+          - "div.v2 iframe[height=\"360\"]"
+          - "div.v3 iframe[width=\"640\"]"
         - []
 ---
 
@@ -17,5 +19,11 @@ _quarto:
 ::: v2
 
 {{< video https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ width="640" aspect-ratio="16x9" >}}
+
+::: 
+
+::: v3
+
+{{< video https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ height="360" aspect-ratio="16x9" >}}
 
 ::: 
