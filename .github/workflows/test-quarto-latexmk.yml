@@ -29,7 +29,7 @@ jobs:
       - name: Configure Quarto
         uses: ./.github/workflows/actions/quarto-dev
 
-      - name: Test ${{ runner.os }}
+      - name: Test Windows
         if: runner.os == 'Windows'
         run: |
           cd package/src
@@ -38,7 +38,7 @@ jobs:
           cd ..\dist\bin\tinitex\x86_64-pc-windows-msvc
           .\tinitex.exe --help
 
-      - name: Test ${{ runner.os }}
+      - name: Test macOS
         if: runner.os == 'macOS'
         run: |
           cd package/src
@@ -46,7 +46,7 @@ jobs:
           ls -R ../dist/bin
           ../dist/bin/tinitex/x86_64-apple-darwin/tinitex --help
 
-      - name: Test ${{ runner.os }}
+      - name: Test Linux
         if: runner.os == 'Linux'
         run: |
           cd package/src
