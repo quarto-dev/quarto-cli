@@ -357,9 +357,8 @@ local quarto_finalize_filters = {
 }
 
 local quarto_layout_filters = {
-  { name = "layout-lightbox-configure", filter = lightboxConfigure() },
-  { name = "layout-lightbox-code", filter = lightboxCodeCells() },
-  { name = "layout-lightbox-layout", filter = lightboxLayout() },
+  { name = "layout-lightbox", filter = lightbox() },
+  { name = "layout-lightbox-dependencies", filter = lightboxDependencies() },
   { name = "manuscript filtering", filter = manuscript() },
   { name = "manuscript filtering", filter = manuscriptUnroll() },
   { name = "layout-render-pandoc3-figure", filter = render_pandoc3_figure(),
