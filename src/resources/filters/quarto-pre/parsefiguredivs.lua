@@ -236,8 +236,8 @@ function parse_floats()
         el.caption.long = pandoc.List({})
         caption = createTableCaption(caption, attr)
       end
-    
-      if not label then
+
+      if label == "" then
         return nil
       end
 
