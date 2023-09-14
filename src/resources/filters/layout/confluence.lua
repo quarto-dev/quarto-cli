@@ -115,7 +115,13 @@ end, function(layout)
   local result = pandoc.Div(panel_content, attr)
 
   if layout.preamble then
-    return pandoc.Blocks({ layout.preamble, result })
+    local pt = pandoc.utils.type(layout.preamble)
+    if pt == "Blocks" then
+      layout.preamble:insert(result)
+      return result
+    elseif pt == "Block" then
+      return pandoc.Blocks({ layout.preamble, result })
+    end
   else
     return result
   end
