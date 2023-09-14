@@ -32,86 +32,81 @@ local function readAttrValue(el, attrName)
 
 end
 
-local function processFig(figEl)
-  quarto.log.output("PROCFIG")
-end
+local function lightboxImage(imgEl)
+  -- note that we need to include the dependency for lightbox
+  needsLightbox = true
+  imgCount = imgCount + 1
 
+  -- remove the class from the image
+  imgEl.attr.classes = imgEl.attr.classes:filter(function(clz) 
+    return clz ~= kLightboxClass
+  end)
+  
+  -- attributes for the link
+  local linkAttributes = {}
 
-local function processImg(imgEl)
-    quarto.log.output("PROCIMG")
+  -- mark this image as a lightbox target
+  linkAttributes.class = kLightboxClass
 
-    if quarto.doc.is_format("html:js") then
-    local isAlreadyLinked = imagesWithinLinks:includes(imgEl)
-    if (not isAlreadyLinked and auto and not imgEl.classes:includes(kNoLightboxClass)) 
-        or imgEl.classes:includes('lightbox') then
-      -- note that we need to include the dependency for lightbox
-      needsLightbox = true
-      imgCount = imgCount + 1
+  -- get the alt text from image and use that as title
+  local title = nil
+  if imgEl.caption ~= nil and #imgEl.caption > 0 then
+    title = pandoc.utils.stringify(imgEl.caption)
+  elseif imgEl.attributes['fig-alt'] ~= nil and #imgEl.attributes['fig-alt'] > 0 then
+    title = pandoc.utils.stringify(imgEl.attributes['fig-alt'])
+  end
 
-      -- remove the class from the image
-      imgEl.attr.classes = imgEl.attr.classes:filter(function(clz) 
-        return clz ~= kLightboxClass
-      end)
-      
-      -- attributes for the link
-      local linkAttributes = {}
+  -- move a group attribute to the link, if present
+  if imgEl.attr.attributes.group ~= nil then
+    linkAttributes.gallery = imgEl.attr.attributes.group
+    imgEl.attr.attributes.group = nil
+  else 
+    linkAttributes.gallery = kGalleryPrefix .. imgCount
+  end
 
-      -- mark this image as a lightbox target
-      linkAttributes.class = kLightboxClass
-
-      -- get the alt text from image and use that as title
-      local title = nil
-      if imgEl.caption ~= nil and #imgEl.caption > 0 then
-        title = pandoc.utils.stringify(imgEl.caption)
-      elseif imgEl.attributes['fig-alt'] ~= nil and #imgEl.attributes['fig-alt'] > 0 then
-        title = pandoc.utils.stringify(imgEl.attributes['fig-alt'])
-      end
-
-      -- move a group attribute to the link, if present
-      if imgEl.attr.attributes.group ~= nil then
-        linkAttributes.gallery = imgEl.attr.attributes.group
-        imgEl.attr.attributes.group = nil
-      else 
-        linkAttributes.gallery = kGalleryPrefix .. imgCount
-      end
-
-      -- forward any other known attributes
-      for i, v in ipairs(kForwardedAttr) do
-        if imgEl.attr.attributes[v] ~= nil then
-          -- forward the attribute
-          linkAttributes[v] = readAttrValue(imgEl, v)
-        
-          -- clear the attribute
-          imgEl.attr.attributes[v] = nil
-        end
-
-        -- clear the title
-        if (imgEl.title == 'fig:') then
-          imgEl.title = ""
-        end
-
-      end
-
-      -- wrap decorated images in a link with appropriate attrs
-      local link = pandoc.Link({imgEl}, imgEl.src, title, linkAttributes)
-      return link
+  -- forward any other known attributes
+  for i, v in ipairs(kForwardedAttr) do
+    if imgEl.attr.attributes[v] ~= nil then
+      -- forward the attribute
+      linkAttributes[v] = readAttrValue(imgEl, v)
+    
+      -- clear the attribute
+      imgEl.attr.attributes[v] = nil
     end
-  end 
+
+    -- clear the title
+    if (imgEl.title == 'fig:') then
+      imgEl.title = ""
+    end
+
+  end
+
+  -- wrap decorated images in a link with appropriate attrs
+  local link = pandoc.Link({imgEl}, imgEl.src, title, linkAttributes)
+  return link
 end
 
-function lightboxConfigure() 
-  return {
-    Pandoc = function(el) 
-      quarto.log.output(el)
-    end,
-    Meta = function(meta) 
-      quarto.log.output("LIGHTBOX")
+local function processImg(imgEl, automatic)
+  if quarto.doc.is_format("html:js") then
+    local isAlreadyLinked = imagesWithinLinks:includes(imgEl)
+    local autolightbox = automatic and auto and not isAlreadyLinked and not imgEl.classes:includes(kNoLightboxClass)
+    if autolightbox or imgEl.classes:includes('lightbox') then
+      return lightboxImage(imgEl)
+    end
+  end   
+end
 
+function lightbox() 
+  return {
+    traverse = "topdown",
+
+    Meta = function(meta) 
       -- If the mode is auto, we need go ahead and 
       -- run if there are any images (ideally we would)
       -- filter to images in the body, but that can be
       -- left for future me to deal with 
       -- supports:
+      -- lightbox: true
       -- lightbox: auto
       -- or
       -- lightbox:
@@ -132,19 +127,15 @@ function lightboxConfigure()
     -- Find images that are already within links
     -- we'll use this to filter out these images if
     -- the most is auto
-    Link = function(linkEl)
-      pandoc.walk_inline(linkEl, {
-        Image = function(imageEl) 
-          imagesWithinLinks[#imagesWithinLinks + 1] = imageEl
-        end
-      })
-    end
-  }
-end
-
-function lightboxCodeCells()
-  return   {
+    Link = function(_linkEl)
+      -- don't walk images, figures, etc... that are already within a link
+      -- since we rely on being able to Link the image in order to 
+      -- lightbox it
+      return nil, false
+    end,
     Div = function(div)
+      -- Walk code cells and forward any lightbox parameters through to
+      -- the image class that holds them
       if div.classes:includes("cell") and div.attributes["lightbox"] ~= nil then
         meta = quarto.json.decode(div.attributes["lightbox"])
         local imgCount=0
@@ -182,23 +173,51 @@ function lightboxCodeCells()
         })
         div.attributes["lightbox"] = nil
       end
-      quarto.log.output(div)
       return div
-    end
+    end,
+    Image = function(imgEl)
+      -- look only for explicitly targeted images
+      return processImg(imgEl, false), false
+    end,
+    Figure = function(figEl)
+      local figmodified = false
+      figEl = _quarto.ast.walk(figEl, {
+        Image = function(imgEl)
+          local modifiedImg = processImg(imgEl, true)
+          if modifiedImg ~= nil then
+            figmodified = true
+          end
+          return modifiedImg
+        end
+      })
+      if figmodified then
+        return figEl, false
+      else
+        return nil, false
+      end
+    end,
+    FloatRefTarget = function(floatEl)
+      local floatmodified = false
+      floatEl = _quarto.ast.walk(floatEl, {
+        Image = function(imgEl)
+          local modifiedImg = processImg(imgEl, true)
+          if modifiedImg ~= nil then
+            floatmodified = true
+          end
+          return modifiedImg
+        end
+      })
+      if floatmodified then
+        return floatEl, false
+      else
+        return nil, false
+      end
+    end,    
   }
 end
 
-
-
-
-function lightboxLayout() 
+function lightboxDependencies() 
   return {
-    Image = function(imgEl)
-      return processImg(imgEl)
-    end,
-    Figure = function(figEl)
-      return processFig(figEl)
-    end,
     Meta = function(meta)
       -- If we discovered lightbox-able images
       -- we need to include the dependencies
