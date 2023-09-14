@@ -32,6 +32,7 @@
 - Add support for `body-right` and `body-left` layouts for Website Table of Contents ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473))
 - ([#6430](https://github.com/quarto-dev/quarto-cli/issues/6430)): Fix layout issue with banner style title block authors when `page-layout:
 - ([#5955](https://github.com/quarto-dev/quarto-cli/issues/5955)): Correct HTML callout appearance when title isn't present.
+- ([#6833](https://github.com/quarto-dev/quarto-cli/issues/6833)): Handle partially-specified aspect ratio, width, and height attributes in `video` shortcode.
 
 ## Appendix
 
