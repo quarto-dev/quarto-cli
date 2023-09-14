@@ -27,7 +27,7 @@ local function isEmpty(s)
 end
 
 local isResponsive = function(width, height)
-  return isEmpty(height) and isEmpty(width)
+  return isEmpty(height) or isEmpty(width)
 end
 
 VIDEO_SHORTCODE_NUM_VIDEOJS = 0
@@ -233,6 +233,20 @@ local function asciidocVideo(src, height, width, title, start, _aspectRatio)
 end
 
 function htmlVideo(src, height, width, title, start, aspectRatio)
+
+  -- https://github.com/quarto-dev/quarto-cli/issues/6833
+  -- handle partially-specified width, height, and aspectRatio
+  if aspectRatio then
+    local strs = splitString(aspectRatio, 'x')
+    wr = tonumber(strs[1])
+    hr = tonumber(strs[2])
+    aspectRatio = wr / hr
+    if height and not width then
+      width = math.floor(height * aspectRatio + 0.5)
+    elseif width and not height then
+      height = math.floor(width / aspectRatio + 0.5)
+    end
+  end
 
   local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)
   local videoSnippet
