@@ -183,35 +183,15 @@ function parse_floats()
     Figure = function(fig)
       local key_prefix = refType(fig.identifier)
       if key_prefix == nil then
-        -- Figure without crossref identifier, must attempt to guess content
-        local is_image
-        _quarto.ast.walk(fig.content, {
-          Image = function(image)
-            if image.caption ~= nil then
-              is_image = true
-            end
-          end
-        })
-        if is_image then
-          fig.identifier = autoRefLabel("fig")
-          key_prefix = refType(fig.identifier)
-        else
-          warn("Quarto could not guess the crossref type for the following figure:")
-          warn(tostring(fig))
-          warn("Quarto will simply use the figure content. Please add an explicit label to the figure")
-          return fig.content
-        end
+        return nil
       end
       local category = crossref.categories.by_ref_type[key_prefix]
       if category == nil then
-        warn("Pandoc Figure with invalid crossref category - " .. fig.identifier)
-        warn("Won't be able to cross-reference this figure.")
         return nil
       end
-
       if #fig.content ~= 1 and fig.content[1].t ~= "Plain" then
-        print(fig)
-        fail_and_ask_for_bug_report("Quarto doesn't know how to parse this pandoc 3 figure")
+        -- we don't know how to parse this pandoc 3 figure
+        -- just return as is
         return nil
       end
 
@@ -247,7 +227,7 @@ function parse_floats()
       end
 
       -- check for tbl label
-      local label = nil
+      local label = el.identifier
       local caption, attr = parseTableCaption(last.content)
       if startsWith(attr.identifier, "tbl-") then
         -- set the label and remove it from the caption
