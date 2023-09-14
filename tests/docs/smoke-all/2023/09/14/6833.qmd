@@ -1,0 +1,21 @@
+---
+title: "Video Test"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.v2 iframe[height=\"360\"]"]
+        - []
+---
+
+::: v1
+
+{{< video https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ width="640" height="360" >}}
+
+:::
+
+::: v2
+
+{{< video https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ width="640" aspect-ratio="16x9" >}}
+
+::: 
