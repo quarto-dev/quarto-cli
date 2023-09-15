@@ -1,5 +1,8 @@
 ---
 title: Example Lightbox Document
+format:
+  html:
+    theme: darkly
 _quarto:
   tests:
     html:

@@ -7,7 +7,7 @@
 
 local patterns = require("modules/patterns")
 local constants = require("modules/constants")
-local lightbox = require("modules/lightbox")
+local lightbox_module = require("modules/lightbox")
 
 flags = {}
 
@@ -20,7 +20,7 @@ function compute_flags()
 
   return {
     Meta = function(el)
-      local lightbox_auto = lightbox.automatic(el)
+      local lightbox_auto = lightbox_module.automatic(el)
       if lightbox_auto then
         flags.has_lightbox = true
       elseif lightbox_auto == false then
@@ -73,7 +73,7 @@ function compute_flags()
         flags.has_theorem_refs = true
       end
 
-      local has_lightbox = lightbox.el_has_lightbox(node)
+      local has_lightbox = lightbox_module.el_has_lightbox(node)
       if has_lightbox then
         flags.has_lightbox = true
       end
@@ -130,7 +130,7 @@ function compute_flags()
         flags.has_shortcodes = true
       end
 
-      local has_lightbox = lightbox.el_has_lightbox(node)
+      local has_lightbox = lightbox_module.el_has_lightbox(node)
       if has_lightbox then
         flags.has_lightbox = true
       end
