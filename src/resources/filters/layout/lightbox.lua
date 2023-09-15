@@ -199,12 +199,10 @@ function lightbox()
         return div
       end,
       Image = function(imgEl)
-        quarto.log.output("IMAGE")
         -- look only for explicitly targeted images
         return processImg(imgEl, { automatic = false } ), false
       end,
       Figure = function(figEl)
-        quarto.log.output("FIGURE")
         return processFigure(figEl), false
       end,
       FloatRefTarget = function(floatEl)
