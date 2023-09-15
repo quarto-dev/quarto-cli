@@ -7,6 +7,7 @@
 
 local patterns = require("modules/patterns")
 local constants = require("modules/constants")
+local lightbox = require("modules/lightbox")
 
 flags = {}
 
@@ -18,6 +19,14 @@ function compute_flags()
   local latex_caption_pattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
 
   return {
+    Meta = function(el)
+      local lightbox_auto = lightbox.automatic(el)
+      if lightbox_auto then
+        flags.has_lightbox = true
+      elseif lightbox_auto == false then
+        flags.has_lightbox = false
+      end
+    end,
     Header = function(el)
       crossref.maxHeading = math.min(crossref.maxHeading, el.level)
     end,
@@ -59,10 +68,14 @@ function compute_flags()
         
     end,
     Div = function(node)
-      
       local type = refType(node.attr.identifier)
       if theoremTypes[type] ~= nil or proofType(node) ~= nil then
         flags.has_theorem_refs = true
+      end
+
+      local has_lightbox = lightbox.el_has_lightbox(node)
+      if has_lightbox then
+        flags.has_lightbox = true
       end
 
       if node.attr.classes:find("hidden") then
@@ -115,6 +128,11 @@ function compute_flags()
     Image = function(node)
       if node.src:find("%{%{%<") then
         flags.has_shortcodes = true
+      end
+
+      local has_lightbox = lightbox.el_has_lightbox(node)
+      if has_lightbox then
+        flags.has_lightbox = true
       end
     end,
     Shortcode = function(node)
