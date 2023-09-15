@@ -270,7 +270,7 @@ local function as_inlines(v)
 
   -- luacov: disable
   fatal("as_inlines: invalid type " .. t)
-  return nil
+  return pandoc.Inlines({})
   -- luacov: enable
 end
 
