@@ -170,7 +170,7 @@ function full_caption_prefix(float, subfloat)
     end
   end
   if #subfloat_title > 0 then
-    tappend(float_title,{pandoc.Space()})
+    tappend(float_title,{nbspString()})
   end
   tappend(float_title, subfloat_title)
   tappend(float_title, titleDelim())
