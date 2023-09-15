@@ -4,9 +4,8 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - 
         -
-          - 'script[src="plot_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
+          - 'script[src="lightbox-explicit_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
           - 'a.lightbox' # make sure there is a lightbox image        
 ---
 
