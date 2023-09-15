@@ -774,7 +774,7 @@ async function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = await options.services.extension?.find(
+      const extensions = await options.services.extension?.find(
         filter,
         options.source,
         "filters",
@@ -783,17 +783,28 @@ async function resolveFilterExtension(
       ) || [];
 
       // Filter this list of extensions
-      extensions = filterExtensions(extensions || [], filter, "filter");
+      const filteredExtensions = filterExtensions(
+        extensions || [],
+        filter,
+        "filter",
+      );
       // Return any contributed plugins
-      if (extensions.length > 0) {
+      if (filteredExtensions.length > 0) {
+        // This matches an extension, use the contributed filters
         const filters = extensions[0].contributes.filters;
         if (filters) {
           return filters;
         } else {
           return filter;
         }
-      } else {
+      } else if (extensions.length > 0) {
+        // There was a matching extension with this name, but
+        // it was filtered out, just hide the filter altogether
         return [];
+      } else {
+        // There were no extensions matching this name, just allow it
+        // through
+        return filter;
       }
     } else {
       return filter;
