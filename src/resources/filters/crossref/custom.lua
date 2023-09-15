@@ -4,12 +4,17 @@
 -- custom crossref categories
 
 function initialize_custom_crossref_categories(meta)
-  if meta["crossref-custom"] == nil then
+  local cr = meta["crossref"]
+  if cr == nil then
     return nil
   end
-  if type(meta["crossref-custom"]) ~= "table" then
+  local custom = cr["custom"]
+  if custom == nil then
+    return nil
+  end
+  if type(custom) ~= "table" then
     -- luacov: disable
-    fail_and_ask_for_bug_report("crossref-custom must be a table")
+    fail_and_ask_for_bug_report("crossref.custom entry must be a table")
     return nil
     -- luacov: enable
   end
@@ -22,7 +27,13 @@ function initialize_custom_crossref_categories(meta)
     "latex-env",
     "latex-list-of-name"
   }
-  for _, v in ipairs(meta["crossref-custom"]) do
+  local obj_mapping = {
+    ["default-caption-location"] = "default_caption_location",
+    ["latex-env"] = "latex_env",
+    ["latex-list-of-name"] = "latex_list_of_name",
+    ["ref-type"] = "ref_type"
+  }
+  for _, v in ipairs(custom) do
     local entry = {}
     for _, key in ipairs(keys) do
       if v[key] ~= nil then
@@ -35,7 +46,15 @@ function initialize_custom_crossref_categories(meta)
     -- slightly inefficient because we recompute the indices at
     -- every call, but should be totally ok for the number of categories
     -- we expect to see in documents
-    add_crossref_category(entry)
+    local obj_entry = {}
+    for k, v in pairs(entry) do
+      if obj_mapping[k] ~= nil then
+        obj_entry[obj_mapping[k]] = v
+      else
+        obj_entry[k] = v
+      end
+    end
+    add_crossref_category(obj_entry)
 
     if quarto.doc.isFormat("pdf") then
       metaInjectLatex(meta, function(inject)

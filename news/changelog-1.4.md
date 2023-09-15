@@ -166,6 +166,10 @@
 
 - ([#6766](https://github.com/quarto-dev/quarto-cli/issues/6766)): Add `id` as valid CSL property when specifying a documents citation metadata.
 
+## Crossrefs
+
+- ([#6620](https://github.com/quarto-dev/quarto-cli/issues/6620)): Introduce `FloatRefTarget` AST nodes that generalize crossref targets to include figures, tables, and custom floating elements.
+
 ## Other Fixes and Improvements
 
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.

@@ -1,13 +1,14 @@
 ---
 title: Proposed syntax for custom crossrefs
 keep-tex: true
-crossref-custom: # probably should be a key inside `crossref`
-  - kind: float
-    prefix: Diagram
-    name: Diagram
-    ref-type: dia
-    latex-env: diagram
-    latex-list-of-name: lod
+crossref:
+  custom:
+    - kind: float
+      prefix: Diagram
+      name: Diagram
+      ref-type: dia
+      latex-env: diagram
+      latex-list-of-name: lod
 ---
 
 ::: {#dia-1}
