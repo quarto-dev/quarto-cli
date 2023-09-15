@@ -1,0 +1,128 @@
+---
+title: Example Lightbox Document
+lightbox: auto
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'script[src="plot_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
+          - 'a.lightbox' # make sure there is a lightbox image        
+---
+
+## Chilmark
+
+Here is a simple image with a description. This also overrides the
+description position and places it to the left of the image.
+
+![Beach in Chilmark](images/mv-0.jpg){#foobar description="Chilmark has a reputation as having some of the best beaches on Martha's Vineyard. Chilmark beaches are resident only in the summer, so be sure to have your proof of residency ready if you'd like to visit one of these special places. _credit:_ [Chilmark Beach](https://unsplash.com/photos/VBDJGOMCwps)" desc-position="left"}
+
+## Elsewhere
+
+The below demonstrates placing more than one image in a gallery. Note
+the usage of the `layout-ncol` which arranges the images on the page
+side by date. Adding the `group` attribute to the markdown images places
+the images in a gallery grouped together based upon the group name
+provided.
+
+::: {layout="[[1, 1], [1]]"}
+![Aquinnah](images/mv-1.jpg){group="elsewhere"
+description="The waves break off the coast of Aquinnah on a beautiful summer day."}
+
+![Oak Bluffs](images/mv-3.jpg){group="elsewhere"
+description="Oak Bluffs is famous for its Gingerbread cottages, busy town center, and party like atmosphere."}
+
+![Vineyard lighthouse](images/mv-2.jpg){group="elsewhere"
+description="The Edgartown Lighthouse is a short walk from downtown and has beautiful views over the entrance to Edgartown Harbor."}
+:::
+
+## West Tisbury
+
+[![More about the ferry.](images/ferry.png)](https://www.steamshipauthority.com) 
+
+
+## With computation code chunks
+
+Options for lightbox can be passed using chunk options.
+
+```{r}
+#| fig-cap: Simple demo R plot 
+#| lightbox:
+#|   group: r-graph
+#|   description: This is 1 to 10 plot
+plot(1:10, rnorm(10))
+```
+
+```{r}
+#| fig-cap: Plot about cars data
+#| lightbox:
+#|   group: r-graph
+#|   description: We see our cars data above
+plot(cars)
+```
+
+It is possible to create several plots, and group them in a lightbox gallery. Use list in YAML for options when you have several plots, on per plot.
+```{r}
+#| fig-cap: 
+#|   - Caption for first plot
+#|   - Caption for second plot
+#| lightbox: 
+#|   group: cars
+#|   description: 
+#|     - This is the decription for first graph
+#|     - This is the decription for second graph
+plot(mtcars)
+plot(cars)
+```
+
+When `lightbox: auto` in main YAML config, you can opt-out lightbox on a plot by setting `lightbox: false`
+
+```{r}
+#| fig-cap: mtcars
+#| lightbox: false
+plot(mtcars)
+```
+
+## Cross Referenceable Elements
+
+```{r}
+#| label: fig-iris
+#| fig-cap: This is a figure related to the iris data set which is so cool.
+plot(iris)
+```
+
+
+```{r}
+#| label: fig-plots
+#| fig-cap: |
+#|   The below demonstrates placing more than one image in a gallery. Note
+#|   the usage of the `layout-ncol` which arranges the images on the page
+#|   side by date. Adding the `group` attribute to the markdown images places
+#|   the images in a gallery grouped together based upon the group name
+#|   provided.
+#| fig-subcap:
+#|   - "Clowning Fools Up In Here: This chart shows me clowning on fools up in this piece. It's embarrassing!"
+#|   - "A Graph of Cool Stuff: This chart shows some cool things, most frequently in the form of a visualization which makes a pretty strong point." 
+#| layout-ncol: 2
+plot(ToothGrowth)
+plot(PlantGrowth)
+```
+
+See @fig-plots for examples. In particular, @fig-plots-2.
+
+## Inline Images Are Ignored
+
+In the case of automatic lightboxing, inline images are ignored. For example this image ![So cool](images/cool.png){width=30} will not be lightboxed since this document uses automatic lightbox mode.
+
+You can still explicitly call for lightboxing by using the explicit class, like ![That's a chunky!](images/chunky.jpg){.lightbox width=30} since it includes an `explicit` lightbox class.
+
+## Credits
+
+The images in this example were used under the [Unsplash
+license](https://unsplash.com/license), view originals below:
+
+-   [Chilmark Beach](https://unsplash.com/photos/VBDJGOMCwps)
+-   [Aquinnah](https://unsplash.com/photos/2iQnDPLIXwU)
+-   [Gingerbread House](https://unsplash.com/photos/HQEtvlNzUyA)
+-   [Edgartown Light](https://unsplash.com/photos/f59MyOfLpi8)
+-   [Edgartown Sailboat](https://unsplash.com/photos/IiLiz7XpQpI)

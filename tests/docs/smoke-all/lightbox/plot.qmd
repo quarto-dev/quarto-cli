@@ -1,0 +1,32 @@
+---
+title: Example Lightbox Document
+format: 
+  html:
+    theme: lux
+lightbox: true
+echo: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'script[src="plot_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
+          - 'a.lightbox' # make sure there is a lightbox image        
+      ensureFileRegexMatches:
+        - ['data-description="Figure 1'] # make sure the caption contains the figure prefix
+---
+
+## Sample Single Plot
+
+{{< lipsum 1 >}}
+
+```{r}
+#| label: fig-single
+#| fig-cap: |
+#|   What is going on? This is a single chart that shows some stuff about
+#|   eye color and a variety of other things that are very cool and useful
+#|   especially for learning things.
+plot(iris)
+```
+
+See @fig-single.
