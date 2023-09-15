@@ -604,19 +604,13 @@ end, function(float)
   -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
   -- FIXME: custom numbering doesn't work yet
 
-  return pandoc.Blocks({
-    pandoc.RawInline("typst", "#figure(["),
-    float.content,
-    pandoc.RawInline("typst", "], caption: figure.caption("),
-    pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
-    pandoc.RawInline("typst", "["),
-    float.caption_long,
-    -- apparently typst doesn't allow separate prefix and name
-    pandoc.RawInline("typst", "]), "),
-    pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
-    pandoc.RawInline("typst", "supplement: \"" .. supplement .. "\", "),
-    pandoc.RawInline("typst", "numbering: \"" .. numbering .. "\", "),
-
-    pandoc.RawInline("typst", ")<" .. float.identifier .. ">\n\n")
-  })
+  return make_typst_figure {
+    content = float.content,
+    caption_location = caption_location,
+    caption = float.caption_long,
+    kind = kind,
+    supplement = supplement,
+    numbering = numbering,
+    identifier = float.identifier
+  }
 end)

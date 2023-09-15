@@ -1,6 +1,33 @@
 -- typst.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
+function make_typst_figure(tbl)
+  local content = tbl.content
+  local caption_location = tbl.caption_location
+  local caption = tbl.caption
+  local kind = tbl.kind
+  local supplement = tbl.supplement
+  local numbering = tbl.numbering
+  local identifier = tbl.identifier
+
+  quarto.utils.dump { tbl = tbl }
+  return pandoc.Blocks({
+    pandoc.RawInline("typst", "#figure(["),
+    content,
+    pandoc.RawInline("typst", "], caption: figure.caption("),
+    pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
+    pandoc.RawInline("typst", "["),
+    caption,
+    -- apparently typst doesn't allow separate prefix and name
+    pandoc.RawInline("typst", "]), "),
+    pandoc.RawInline("typst", "kind: \"" .. kind .. "\", "),
+    pandoc.RawInline("typst", supplement and ("supplement: \"" .. supplement .. "\", ") or ""),
+    pandoc.RawInline("typst", numbering and ("numbering: \"" .. numbering .. "\", ") or ""),
+    pandoc.RawInline("typst", ")"),
+    pandoc.RawInline("typst", identifier and ("<" .. identifier .. ">") or ""),
+    pandoc.RawInline("typst", "\n\n")
+  })
+end
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isTypstOutput()
@@ -46,15 +73,25 @@ end, function(layout)
     result:insert(layout.preamble)
   end
   local caption_location = cap_location(layout.float)
-  result:extend({
-    pandoc.RawInline("typst", "\n\n#figure(["),
-    typst_figure_content,
-    pandoc.RawInline("typst", "], caption: ["),
-    layout.float.caption_long,
-    -- apparently typst doesn't allow separate prefix and name
-    pandoc.RawInline("typst", "], kind: \"" .. kind .. "\", supplement: \"" .. info.prefix .. "\""),
-    pandoc.RawInline("typst", ", caption-pos: " .. caption_location),
-    pandoc.RawInline("typst", ")<" .. layout.float.identifier .. ">\n\n")
-  })
-  return result
+
+  return make_typst_figure {
+    content = typst_figure_content,
+    caption_location = caption_location,
+    caption = layout.float.caption_long,
+    kind = kind,
+    supplement = info.prefix,
+    numbering = info.numbering,
+    identifier = layout.float.identifier
+  }
+  -- result:extend({
+  --   pandoc.RawInline("typst", "\n\n#figure(["),
+  --   typst_figure_content,
+  --   pandoc.RawInline("typst", "], caption: ["),
+  --   layout.float.caption_long,
+  --   -- apparently typst doesn't allow separate prefix and name
+  --   pandoc.RawInline("typst", "], kind: \"" .. kind .. "\", supplement: \"" .. info.prefix .. "\""),
+  --   pandoc.RawInline("typst", ", caption-pos: " .. caption_location),
+  --   pandoc.RawInline("typst", ")<" .. layout.float.identifier .. ">\n\n")
+  -- })
+  -- return result
 end)
