@@ -7,7 +7,7 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { basename, extname, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
@@ -17,7 +17,6 @@ import {
   kHtmlPostprocessors,
   Metadata,
   NotebookPreviewDescriptor,
-  OtherLink,
   PandocFlags,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
@@ -35,8 +34,6 @@ import {
   kKeepHidden,
   kKeepTex,
   kLanguageDefaults,
-  kLaunchBinderTitle,
-  kLaunchDevContainerTitle,
   kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreserveCells,
@@ -63,7 +60,7 @@ import {
   RenderResultFile,
   RenderServices,
 } from "../../../command/render/types.ts";
-import { GitHubContext, gitHubContext } from "../../../core/github.ts";
+import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
