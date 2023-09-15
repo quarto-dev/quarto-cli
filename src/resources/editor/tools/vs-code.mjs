@@ -20219,7 +20219,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Configuration for document commenting.",
         "Configuration for crossref labels and prefixes.",
         "A custom cross reference type.",
-        "The kind of cross reference (currently only \u201CFloat\u201D is\nsupported).",
+        "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
         "The prefix used in rendered citations when referencing this type.",
         "The prefix used in captions when referencing this type.",
         "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
@@ -21845,7 +21845,16 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Enable or disable lightbox treatment for images in this document.",
+        {
+          short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+          long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+        },
+        "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+        "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+        "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+        "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name."
       ],
       "schema/external-schemas.yml": [
         {
@@ -22069,12 +22078,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 165772,
+        _internalId: 165803,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 165764,
+            _internalId: 165795,
             type: "enum",
             enum: [
               "png",
@@ -22090,7 +22099,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 165771,
+            _internalId: 165802,
             type: "anyOf",
             anyOf: [
               {
@@ -22130,7 +22139,77 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      }
+      },
+      "schema/document-lightbox.yml": [
+        {
+          name: "lightbox",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "auto"
+                ]
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    match: {
+                      schema: {
+                        enum: [
+                          "auto"
+                        ]
+                      },
+                      description: {
+                        short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
+                        long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
+                      }
+                    },
+                    effect: {
+                      schema: {
+                        enum: [
+                          "fade",
+                          "zoom",
+                          "none"
+                        ]
+                      },
+                      description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
+                    },
+                    "desc-position": {
+                      schema: {
+                        enum: [
+                          "top",
+                          "bottom",
+                          "left",
+                          "right"
+                        ]
+                      },
+                      description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
+                    },
+                    loop: {
+                      boolean: {
+                        description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
+                      }
+                    },
+                    "css-class": {
+                      string: {
+                        description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Enable or disable lightbox treatment for images in this document."
+        }
+      ]
     };
   }
 });
