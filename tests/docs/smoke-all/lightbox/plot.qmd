@@ -13,7 +13,7 @@ _quarto:
           - 'script[src="plot_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
           - 'a.lightbox' # make sure there is a lightbox image        
       ensureFileRegexMatches:
-        - ['data-description="Figure 1'] # make sure the caption contains the figure prefix
+        - ['data-description="Figure&nbsp;1'] # make sure the caption contains the figure prefix
 ---
 
 ## Sample Single Plot
