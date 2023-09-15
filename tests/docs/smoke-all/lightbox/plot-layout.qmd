@@ -2,7 +2,7 @@
 title: Example Lightbox Document
 format: 
   html:
-    theme: lux
+    theme: litera
 lightbox: true
 echo: false
 _quarto:
