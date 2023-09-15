@@ -125,12 +125,15 @@ function lightbox()
     end
   end
 
-  local function processSubFloat(subFloatEl, gallery) 
+  local function processSubFloat(subFloatEl, gallery, parentFloat) 
     local subFloatModified = false
     subFloatEl = _quarto.ast.walk(subFloatEl, {
       traverse = 'topdown',
       Image = function(imgEl)
-        local subImgModified = processImg(imgEl, { automatic = true, caption = inlinesToString(subFloatEl.caption_long.content) })
+        local caption_content = subFloatEl.caption_long.content or subFloatEl.caption_long
+        local caption = full_caption_prefix(parentFloat, subFloatEl)
+        tappend(caption, caption_content)
+        local subImgModified = processImg(imgEl, { automatic = true, caption = inlinesToString(caption), gallery = gallery })
         if subImgModified ~= nil then
           subFloatModified = true
           return subImgModified, false
@@ -219,7 +222,10 @@ function lightbox()
           floatEl = _quarto.ast.walk(floatEl, {
             traverse = 'topdown',
             Image = function(imgEl)
-              local modifiedImg = processImg(imgEl, { automatic = true, caption = inlinesToString(floatEl.caption_long.content) })
+              local caption_content = floatEl.caption_long.content or floatEl.caption_long
+              local caption = full_caption_prefix(floatEl)
+              tappend(caption, caption_content)
+              local modifiedImg = processImg(imgEl, { automatic = true, caption = inlinesToString(caption) })
               if modifiedImg ~= nil then
                 floatmodified = true
               end
@@ -227,7 +233,7 @@ function lightbox()
             end,
             FloatRefTarget = function(subFloatEl)
               if subFloatEl.parent_id ~= nil then
-                local subFloat = processSubFloat(subFloatEl, subFloatEl.parent_id)
+                local subFloat = processSubFloat(subFloatEl, subFloatEl.parent_id, floatEl)
                 if subFloat ~= nil then
                   floatmodified = true
                 end              

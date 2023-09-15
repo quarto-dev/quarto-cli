@@ -14,12 +14,18 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, order)
+function titlePrefix(type, default, order, with_delimiter)
+  if with_delimiter == nil then
+    with_delimiter = true
+  end
+
   local prefix = title(type, default)
   table.insert(prefix, nbspString())
   tappend(prefix, numberOption(type, order))
-  tappend(prefix, titleDelim())
-  table.insert(prefix, pandoc.Space())
+  if with_delimiter then
+    tappend(prefix, titleDelim())
+    table.insert(prefix, pandoc.Space())
+  end
   return prefix
 end
 
