@@ -34,6 +34,7 @@ import {
   kKeepHidden,
   kKeepTex,
   kLanguageDefaults,
+  kLightbox,
   kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreserveCells,
@@ -298,6 +299,9 @@ export const manuscriptProjectType: ProjectType = {
 
     // Default to manuscript title block style
     config[kTitleBlockStyle] = "manuscript";
+
+    // Default to lightbox auto
+    config[kLightbox] = "auto";
 
     return config;
   },

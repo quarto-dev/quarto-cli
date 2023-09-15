@@ -53,6 +53,7 @@ export const kNotebookViewStyle = "notebook-view-style";
 export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
+export const kLightbox = "lightbox";
 
 export const kNotebookPreviewOptions = "notebook-preview-options";
 export const kNotebookPreviewOptionBack = "back";
