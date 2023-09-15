@@ -11581,7 +11581,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$jats-all",
               "context",
               "ms",
-              "odt"
+              "odt",
+              "docx"
             ]
           },
           description: "Summary of document"

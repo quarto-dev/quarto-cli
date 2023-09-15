@@ -11582,7 +11582,8 @@ try {
                 "$jats-all",
                 "context",
                 "ms",
-                "odt"
+                "odt",
+                "docx"
               ]
             },
             description: "Summary of document"

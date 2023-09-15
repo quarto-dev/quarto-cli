@@ -102,6 +102,7 @@
         context,
         ms,
         odt,
+        docx
       ]
   description: "Summary of document"
 
