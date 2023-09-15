@@ -101,6 +101,7 @@ import("./layout/cites.lua")
 import("./layout/columns.lua")
 import("./layout/manuscript.lua")
 import("./layout/pandoc3_figure.lua")
+import("./layout/lightbox.lua")
 
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
@@ -358,6 +359,7 @@ local quarto_finalize_filters = {
 local quarto_layout_filters = {
   { name = "manuscript filtering", filter = manuscript() },
   { name = "manuscript filtering", filter = manuscriptUnroll() },
+  { name = "layout-lightbox", filters = lightbox(), flags = { "has_lightbox" }},
   { name = "layout-render-pandoc3-figure", filter = render_pandoc3_figure(),
     flags = { "has_pandoc3_figure" } },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },

@@ -132,6 +132,52 @@ function decorate_caption_with_crossref(float)
   return float
 end
 
+function full_caption_prefix(float, subfloat)
+  if not param("enable-crossref", true) then
+    -- don't decorate captions with crossrefs information if crossrefs are disabled
+    return {}
+  end
+
+  float = ensure_custom(float)
+  -- nil should never happen here, but the Lua analyzer doesn't know it
+  if float == nil then
+    -- luacov: disable
+    internal_error()
+    -- luacov: enable
+  end  
+
+  if subfloat ~= nil then
+    subfloat = ensure_custom(subfloat)
+    -- nil should never happen here, but the Lua analyzer doesn't know it
+    if subfloat == nil then
+      -- luacov: disable
+      internal_error()
+      -- luacov: enable
+    end  
+  end
+
+  local float_title = {}
+  if not is_unlabeled_float(float) then
+    float_title = float_title_prefix(float, false)
+  end
+
+  local subfloat_title = pandoc.Inlines({})
+  if subfloat ~= nil then
+    if subfloat.order == nil then
+      warn("Subfloat without crossref information")
+    else
+      prependSubrefNumber(subfloat_title, subfloat.order)
+    end
+  end
+  if #subfloat_title > 0 then
+    tappend(float_title,{nbspString()})
+  end
+  tappend(float_title, subfloat_title)
+  tappend(float_title, titleDelim())
+  tappend(float_title, {pandoc.Space()})
+  return pandoc.Inlines(float_title)
+end
+
 -- capture relevant figure attributes then strip them
 local function get_figure_attributes(el)
   local align = figAlignAttribute(el)

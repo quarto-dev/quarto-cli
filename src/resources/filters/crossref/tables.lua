@@ -222,14 +222,14 @@ function isTableDiv(el)
 end
 
 
-function float_title_prefix(float)
+function float_title_prefix(float, withDelimiter)
   local category = crossref.categories.by_name[float.type]
   if category == nil then
     fail("unknown float type '" .. float.type .. "'")
     return
   end
   
-  return titlePrefix(category.ref_type, category.name, float.order)
+  return titlePrefix(category.ref_type, category.name, float.order, withDelimiter)
 end
 
 function tableTitlePrefix(order)

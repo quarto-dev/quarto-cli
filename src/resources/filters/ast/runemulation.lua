@@ -116,7 +116,8 @@ function run_as_extended_ast(specTable)
           innerV._filter_name = string.format("%s-%s", v.name, j)
           table.insert(finalResult, {
             filter = innerV,
-            name = innerV._filter_name
+            name = innerV._filter_name,
+            flags = v.flags
           })
         end
       else
