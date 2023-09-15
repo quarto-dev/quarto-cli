@@ -49,7 +49,7 @@ function(tag)
     result_attrs[k] = v
   end
   local attr_string = {}
-  for k, v in pairs(result_attrs) do
+  for k, v in spairs(result_attrs) do
     table.insert(attr_string, k .. "=\"" .. html_escape(v, true) .. "\"")
   end
   result:insert(pandoc.RawBlock("html", "<" .. tag.name .. " " .. table.concat(attr_string, " ") .. ">"))
