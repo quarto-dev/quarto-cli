@@ -265,7 +265,11 @@ local function as_inlines(v)
   end
 
   if type(v) == "table" then
-    return pandoc.utils.blocks_to_inlines(v)
+    local result = pandoc.Inlines({})
+    for i, v in ipairs(v) do
+      tappend(result, as_inlines(v))
+    end
+    return result
   end
 
   -- luacov: disable
