@@ -35,7 +35,7 @@ function lightbox()
 
   -- a counter used to ensure each image is in its own gallery
   local imgCount = 0
-  local function lightboxImage(imgEl, description)
+  local function lightboxImage(imgEl, description, gallery)
     -- note that we need to include the dependency for lightbox
     needsLightbox = true
     imgCount = imgCount + 1
@@ -63,6 +63,8 @@ function lightbox()
     if imgEl.attr.attributes.group ~= nil then
       linkAttributes.gallery = imgEl.attr.attributes.group
       imgEl.attr.attributes.group = nil
+    elseif gallery ~= nil then
+      linkAttributes.gallery = gallery
     else 
       linkAttributes.gallery = kGalleryPrefix .. imgCount
     end
@@ -97,10 +99,11 @@ function lightbox()
   local function processImg(imgEl, options)
     local automatic = options.automatic
     local caption = options.caption
+    local gallery = options.gallery
   
     local autolightbox = automatic and auto and not imgEl.classes:includes(kNoLightboxClass)
     if autolightbox or imgEl.classes:includes('lightbox') then
-      return lightboxImage(imgEl, caption)
+      return lightboxImage(imgEl, caption, gallery)
     end
   end
   
@@ -122,7 +125,7 @@ function lightbox()
     end
   end
 
-  local function processSubFloat(subFloatEl) 
+  local function processSubFloat(subFloatEl, gallery) 
     local subFloatModified = false
     subFloatEl = _quarto.ast.walk(subFloatEl, {
       traverse = 'topdown',
@@ -224,7 +227,7 @@ function lightbox()
             end,
             FloatRefTarget = function(subFloatEl)
               if subFloatEl.parent_id ~= nil then
-                local subFloat = processSubFloat(subFloatEl)
+                local subFloat = processSubFloat(subFloatEl, subFloatEl.parent_id)
                 if subFloat ~= nil then
                   floatmodified = true
                 end              
