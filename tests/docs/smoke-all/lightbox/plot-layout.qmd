@@ -1,0 +1,39 @@
+---
+title: Example Lightbox Document
+format: 
+  html:
+    theme: lux
+lightbox: true
+echo: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - 'script[src="plot-layout_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
+          - 'a.lightbox' # make sure there is a lightbox image        
+      ensureFileRegexMatches:
+        - ['data-description="(a)', 'data-description="(b)'] # make sure the caption contains the sub figure prefix
+---
+
+## Sample Plot Layout
+
+{{< lipsum 1 >}}
+
+```{r}
+#| label: fig-plots
+#| fig-cap: |
+#|   The below demonstrates placing more than one image in a gallery. Note
+#|   the usage of the `layout-ncol` which arranges the images on the page
+#|   side by date. Adding the `group` attribute to the markdown images places
+#|   the images in a gallery grouped together based upon the group name
+#|   provided.
+#| fig-subcap:
+#|   - "Clowning Fools Up In Here: This chart shows me clowning on fools up in this piece. It's embarrassing!"
+#|   - "A Graph of Cool Stuff: This chart shows some cool things, most frequently in the form of a visualization which makes a pretty strong point." 
+#| layout-ncol: 2
+plot(ToothGrowth)
+plot(PlantGrowth)
+```
+
+See @fig-plots-1
