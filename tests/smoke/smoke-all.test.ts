@@ -2,7 +2,6 @@
  * smoke-all.test.ts
  *
  * Copyright (C) 2022 Posit Software, PBC
- *
  */
 
 import { expandGlobSync } from "../../src/core/deno/expand-glob.ts";
@@ -18,9 +17,13 @@ import { parse } from "yaml/mod.ts";
 import { cleanoutput } from "./render/render.ts";
 import {
   ensureDocxRegexMatches,
+  ensureDocxXpath,
   ensureFileRegexMatches,
   ensureHtmlElements,
+  ensureJatsXpath,
+  ensureOdtXpath,
   ensurePptxRegexMatches,
+  ensureTypstFileRegexMatches,
   fileExists,
   noErrors,
   noErrorsOrWarnings,
@@ -29,7 +32,7 @@ import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { dirname, join, relative } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync, WalkEntry } from "fs/mod.ts";
 import { kOutputExt } from "../../src/config/constants.ts";
 
 async function fullInit() {
@@ -88,7 +91,11 @@ function resolveTestSpecs(
   const verifyMap: Record<string, any> = {
     ensureHtmlElements,
     ensureFileRegexMatches,
+    ensureTypstFileRegexMatches,
     ensureDocxRegexMatches,
+    ensureDocxXpath,
+    ensureOdtXpath,
+    ensureJatsXpath,
     ensurePptxRegexMatches,
   };
 
@@ -106,7 +113,7 @@ function resolveTestSpecs(
         } else {
           // See if there is a project and grab it's type
           const projectOutDir = findProjectOutputDir(input);
-          const ext = metadata?.[kOutputExt]
+          const ext = metadata?.[kOutputExt];
           const outputFile = outputForInput(input, format, projectOutDir, ext);
           if (key === "fileExists") {
             for (
@@ -142,17 +149,29 @@ function resolveTestSpecs(
   return result;
 }
 
-const globOutput = Deno.args.length
-  ? expandGlobSync(Deno.args[0])
-  : expandGlobSync(
-    "docs/smoke-all/**/*.{qmd,ipynb}",
-  );
-
 await initYamlIntelligenceResourcesFromFilesystem();
 
-for (
-  const { path: fileName } of globOutput
-) {
+// Ideally we'd just walk the one single glob here,
+// but because smoke-all.test.ts ends up being called
+// from a number of different places (including different shell
+// scripts run under a variety of shells), it's
+// actually non-trivial to guarantee that we'll see a single
+// unexpanded glob pattern. So we assume that a pattern
+// might have already been expanded here, and we also
+// accommodate cases where it hasn't been expanded.
+//
+// (Do note that this means that files that don't exist will
+// be silently ignored.)
+const files: WalkEntry[] = [];
+if (Deno.args.length === 0) {
+  files.push(...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}"));
+} else {
+  for (const arg of Deno.args) {
+    files.push(...expandGlobSync(arg));
+  }
+}
+
+for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
 
   const metadata = input.endsWith("qmd")

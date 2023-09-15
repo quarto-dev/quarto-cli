@@ -1,0 +1,18 @@
+---
+title: Crossref Test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - 
+          - "\\\\ref\\{fig-elephant1\\}"
+          - "\\\\label\\{tbl-elephant1\\}"
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](img/thinker.jpg){#fig-elephant}
+
+See @fig-elephant1 for examples. 

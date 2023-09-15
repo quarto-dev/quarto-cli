@@ -2,33 +2,42 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 kSideCaptionEnv = 'sidecaption'
 
-function latexPanel(divEl, layout, caption)
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isLatexOutput()
+end, function(layout)
+  local rendered_panel = latexPanel(layout)
+  local preamble = layout.preamble
+  if preamble == nil then
+    return rendered_panel
+  end
   
-   -- create container
-  local panel = pandoc.Div({})
- 
-  -- begin container
-  local env, pos = latexPanelEnv(divEl, layout)
-  panel.content:insert(latexBeginEnv(env, pos));
+  local result = pandoc.Blocks({})
+  panel_insert_preamble(result, preamble)
+  result:insert(rendered_panel)
 
-  local capType = "fig"
-  local locDefault = "bottom"
-  if hasTableRef(divEl) then
-    capType = "tbl"
-    locDefault = "top"
-  end
-  local capLoc = capLocation(capType, locDefault)
-  if (caption and capLoc == "top") then
-    insertLatexCaption(divEl, panel.content, caption.content)
-  end
+  return result
+end)
+
+-- function latexPanel(divEl, layout, caption)
+function latexPanel(layout)
+  
+  -- begin container
+  local env, pos = latexPanelEnv(layout)
+  local panel_node, panel = quarto.LatexEnvironment({
+    name = env,
+    pos = pos
+  })
+
+  local capLoc = cap_location(layout.float)
+  local caption = create_latex_caption(layout)
   
    -- read vertical alignment and strip attribute
-  local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
-  divEl.attr.attributes[kLayoutVAlign] = nil
+  local vAlign = validatedVAlign(layout.attributes[kLayoutVAlign])
+  layout.attributes[kLayoutVAlign] = nil
 
-  for i, row in ipairs(layout) do
+  for i, row in ipairs(layout.rows.content) do
     
-    for j, cell in ipairs(row) do
+    for j, cell in ipairs(row.content) do
       
       -- there should never be \begin{table} inside a panel (as that would 
       -- create a nested float). this can happen if knitr injected it as a 
@@ -36,64 +45,47 @@ function latexPanel(divEl, layout, caption)
       cell = latexRemoveTableDelims(cell)
       
       -- process cell (enclose content w/ alignment)
-      local endOfTable = i == #layout
-      local endOfRow = j == #row
+      local endOfTable = i == #layout.rows.content
+      local endOfRow = j == #row.content
       local prefix, content, suffix = latexCell(cell, vAlign, endOfRow, endOfTable)
-      panel.content:insert(prefix)
-      local align = cell.attr.attributes[kLayoutAlign]
-      if align == "center" then
-        panel.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-      end
-      tappend(panel.content, content)
-      if align == "center" then
-        panel.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-      end
-      panel.content:insert(suffix)
+      -- local align = cell.attributes[kLayoutAlign]
+      -- if align == "center" then
+      --   panel.content.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
+      -- end
+      tappend(panel.content.content, content)
+      -- if align == "center" then
+      --   panel.content.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
+      -- end
+      -- panel.content.content:insert(suffix)
     end
     
   end
   
   -- surround caption w/ appropriate latex (and end the panel)
-  if caption and capLoc == "bottom" then
-    insertLatexCaption(divEl, panel.content, caption.content)
+  if caption then
+    if capLoc == "top" then
+      panel.content.content:insert(1, caption)
+    elseif capLoc == "bottom" then
+      panel.content.content:insert(caption)
+    else
+      warn("unknown caption location '" .. capLoc .. "'. Skipping caption.")
+    end
   end
-  
-  -- end latex env
-  panel.content:insert(latexEndEnv(env));
-  
-  -- conjoin paragarphs 
-  panel.content = latexJoinParas(panel.content)
- 
+  -- conjoin paragraphs 
+  panel.content.content = latexJoinParas(panel.content.content)
+
   -- return panel
-  return panel
-  
+  return panel_node
 end
 
 -- determine the environment (and pos) to use for a latex panel
-function latexPanelEnv(divEl, layout)
+function latexPanelEnv(layout)
   
   -- defaults
-  local env = latexFigureEnv(divEl)
-  local pos = nil
+  local env = latexFigureEnv(layout)
+  local pos = attribute(layout.float or { attributes = {} }, kFigPos)
   
-  -- explicit figure panel
-  if hasFigureRef(divEl) then
-    pos = attribute(divEl, kFigPos, pos)
-  -- explicit table panel
-  elseif hasTableRef(divEl) then
-    env = latexTableEnv(divEl)
-  -- if there are embedded tables then we need to use table
-  else 
-    local haveTables = layout:find_if(function(row)
-      return row:find_if(hasTableRef)
-    end)
-    if haveTables then
-      env = latexTableEnv(divEl)
-    end
-  end
-
   return env, pos
-  
 end
 
 -- conjoin paragraphs (allows % to work correctly between minipages or subfloats)
@@ -109,117 +101,35 @@ function latexJoinParas(content)
   return blocks
 end
 
-function latexImageFigure(image)
-
-  return renderLatexFigure(image, function(figure)
-    
-    -- make a copy of the caption and clear it
-    local caption = image.caption:clone()
-    tclear(image.caption)
-    
-    -- get align
-    local align = figAlignAttribute(image)
-   
-    -- insert the figure without the caption
-    local figureContent = { pandoc.Para({
-      pandoc.RawInline("latex", latexBeginAlign(align)),
-      image,
-      pandoc.RawInline("latex", latexEndAlign(align)),
-      pandoc.RawInline("latex", "\n")
-    }) }
-    
-    -- return the figure and caption
-    return figureContent, caption
-    
-  end)
-end
-
-function latexDivFigure(divEl)
-  
-  return renderLatexFigure(divEl, function(figure)
-    
-     -- get align
-    local align = figAlignAttribute(divEl)
-
-    -- append everything before the caption
-    local blocks = tslice(divEl.content, 1, #divEl.content - 1)
-    local figureContent = pandoc.List()
-    if align == "center" then
-      figureContent:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-    end
-    tappend(figureContent, blocks)
-    if align == "center" then
-      figureContent:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-    end
-    
-    -- return the figure and caption
-    local caption = refCaptionFromDiv(divEl)
-    if not caption then
-      caption = pandoc.Inlines()
-    end
-    return figureContent, caption.content
-   
-  end)
-  
-end
-
-function renderLatexFigure(el, render)
-  
-  -- create container
-  local figure = pandoc.Div({})
-
-  -- begin the figure
-  local figEnv = latexFigureEnv(el)
-  local figPos = latexFigurePosition(el, figEnv)
-
-  figure.content:insert(latexBeginEnv(figEnv, figPos))
-  
-  -- get the figure content and caption inlines
-  local figureContent, captionInlines = render(figure)  
-
-  local capLoc = capLocation("fig", "bottom")  
-
-  -- surround caption w/ appropriate latex (and end the figure)
-  if captionInlines and inlinesToString(captionInlines) ~= "" then
-    if capLoc == "top" then
-      insertLatexCaption(el, figure.content, captionInlines)
-      tappend(figure.content, figureContent)
-    else
-      tappend(figure.content, figureContent)
-      insertLatexCaption(el, figure.content, captionInlines)
-    end
-  else
-    tappend(figure.content, figureContent)
-  end
-  
-  -- end figure
-  figure.content:insert(latexEndEnv(figEnv))
-  
-  -- return the figure
-  return figure
-  
-end
-
 function latexCaptionEnv(el) 
-  if el.attr.classes:includes(kSideCaptionClass) then
+  if el.classes:includes(kSideCaptionClass) then
     return kSideCaptionEnv
   else
     return 'caption'
   end
 end
 
-function insertLatexCaption(divEl, content, captionInlines) 
-  local captionEnv = latexCaptionEnv(divEl)
-  markupLatexCaption(divEl, captionInlines, captionEnv)
-  if captionEnv == kSideCaptionEnv then
-    if #content > 1 then
-      content:insert(2, pandoc.Para(captionInlines))
-    else
-      content:insert(#content, pandoc.Para(captionInlines))
-    end
-  else 
-    content:insert(pandoc.Para(captionInlines))
+function create_latex_caption(layout)
+  local caption_env = latexCaptionEnv(layout.float)
+  if ((layout.caption_long == nil or #layout.caption_long.content == 0) and
+      (layout.caption_short == nil or #layout.caption_short.content == 0)) then
+    return nil
   end
+  local cap_inlines = quarto.utils.as_inlines(layout.caption_long) or pandoc.Inlines({}) -- unneeded but the Lua analyzer doesn't know that
+  if layout.identifier then
+    -- local label_node = quarto.LatexInlineCommand({ name = "label", arg = layout.identifier })
+    local label_node = pandoc.RawInline("latex", "\\label{" .. layout.identifier .. "}")
+    
+    cap_inlines:insert(1, label_node)
+  end
+  local caption_node, caption = quarto.LatexInlineCommand({
+    name = caption_env,
+    arg = scaffold(cap_inlines),
+  })
+  if layout.caption_short ~= nil then
+    caption.opt_arg = quarto.utils.as_inlines(layout.caption_short)
+  end
+  return caption_node
 end
 
 function latexWrapSignalPostProcessor(el, token) 
@@ -275,7 +185,7 @@ local kEndSideNote = '\\end{footnotesize}}'
 function latexEndSidenote(el, block)
   local offset = ''
   if el.attr ~= nil then
-    local offsetValue = el.attr.attributes['offset']
+    local offsetValue = el.attributes['offset']
     if offsetValue ~= nil then
       offset = '[' .. offsetValue .. ']'
     end  
@@ -323,7 +233,7 @@ function latexBeginEnv(env, pos, inline)
   if inline then
     return pandoc.RawInline("latex", beginEnv)
   else
-    return pandoc.RawBlock("latex", beginEnv)
+    return pandoc.RawBlock("latex-merge", beginEnv)
   end
 end
 
@@ -331,17 +241,17 @@ function latexEndEnv(env, inline)
   if inline then
     return pandoc.RawInline("latex", "\\end{" .. env .. "}")
   else
-    return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
+    return pandoc.RawBlock("latex-merge", "\\end{" .. env .. "}%")
   end
 end
 
 function latexCell(cell, vAlign, endOfRow, endOfTable)
 
   -- figure out what we are dealing with
-  local label = cell.attr.identifier
+  local label = cell.identifier
   local image = figureImageFromLayoutCell(cell)
   if (label == "") and image then
-    label = image.attr.identifier
+    label = image.identifier
   end
   local isFigure = isFigureRef(label)
   local isTable = isTableRef(label)
@@ -349,7 +259,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local tbl = tableFromLayoutCell(cell)
   
   -- determine width 
-  local width = cell.attr.attributes["width"]
+  local width = cell.attributes["width"]
   
   -- derive prefix, content, and suffix
   local prefix = pandoc.List()
@@ -596,10 +506,35 @@ function latexFigureEnv(el)
     -- the user specified figure environment
     return figEnv
   else
+    local crossref_cat
+    if pandoc.utils.type(el) == "Block" then
+      local ref_type = refType(el.identifier)
+      if ref_type ~= nil then
+        crossref_cat = crossref.categories.by_ref_type[ref_type]
+      else
+        crossref_cat = crossref.categories.by_name.Figure
+      end
+    elseif pandoc.utils.type(el) == "table" then
+      crossref_cat = crossref.categories.by_name[el.type]
+      if crossref_cat == nil then
+        crossref_cat = crossref.categories.by_name.Figure
+      end
+    elseif pandoc.utils.type(el) == "Inline" then
+      local ref_type = refType(el.identifier)
+      if ref_type ~= nil then
+        crossref_cat = crossref.categories.by_ref_type[ref_type]
+      else
+        crossref_cat = crossref.categories.by_name.Figure
+      end
+    else
+      fail("Don't know how to handle " .. pandoc.utils.type(el) .. " in latexFigureEnv")
+    end
+    local env_name = crossref_cat.latex_env
     -- if not user specified, look for other classes which might determine environment
     local classes = el.classes
     for i,class in ipairs(classes) do
 
+      -- FIXME how to deal with margin custom floats?
       -- a margin figure or aside
       if isMarginEnv(class) then 
         noteHasColumns()
@@ -609,12 +544,12 @@ function latexFigureEnv(el)
       -- any column that resolves to full width
       if isStarEnv(class) then
         noteHasColumns()
-        return "figure*"
+        return env_name .. "*"
       end
     end  
 
     -- the default figure environment
-    return "figure"
+    return env_name
   end
 end
 
@@ -656,6 +591,90 @@ function latexTableEnv(el)
   return "table"
 end
 
+-- this is still used by stray Figure nodes from Pandoc 3's AST
+function latexImageFigure(image)
+
+  return renderLatexFigure(image, function(figure)
+    
+    -- make a copy of the caption and clear it
+    local caption = image.caption:clone()
+    tclear(image.caption)
+    
+    -- get align
+    local align = figAlignAttribute(image)
+   
+    -- insert the figure without the caption
+    local figureContent = { pandoc.Para({
+      pandoc.RawInline("latex", latexBeginAlign(align)),
+      image,
+      pandoc.RawInline("latex", latexEndAlign(align)),
+      pandoc.RawInline("latex", "\n")
+    }) }
+    
+    -- return the figure and caption
+    return figureContent, caption
+    
+  end)
+end
+
+function renderLatexFigure(el, render)
+  
+  -- create container
+  local figure = pandoc.Div({})
+
+  -- begin the figure
+  local figEnv = latexFigureEnv(el)
+  local figPos = latexFigurePosition(el, figEnv)
+
+  figure.content:insert(latexBeginEnv(figEnv, figPos))
+  
+  -- get the figure content and caption inlines
+  local figureContent, captionInlines = render(figure)  
+
+  local capLoc = capLocation("fig", "bottom")  
+
+  -- surround caption w/ appropriate latex (and end the figure)
+  if captionInlines and inlinesToString(captionInlines) ~= "" then
+    if capLoc == "top" then
+      insertLatexCaption(el, figure.content, captionInlines)
+      tappend(figure.content, figureContent)
+    else
+      tappend(figure.content, figureContent)
+      insertLatexCaption(el, figure.content, captionInlines)
+    end
+  else
+    tappend(figure.content, figureContent)
+  end
+  
+  -- end figure
+  figure.content:insert(latexEndEnv(figEnv))
+  
+  -- return the figure
+  return figure
+  
+end
+
+function latexCaptionEnv(el) 
+  if el.classes:includes(kSideCaptionClass) then
+    return kSideCaptionEnv
+  else
+    return 'caption'
+  end
+end
+
+function insertLatexCaption(divEl, content, captionInlines) 
+  local captionEnv = latexCaptionEnv(divEl)
+  markupLatexCaption(divEl, captionInlines, captionEnv)
+  if captionEnv == kSideCaptionEnv then
+    if #content > 1 then
+      content:insert(2, pandoc.Para(captionInlines))
+    else
+      content:insert(#content, pandoc.Para(captionInlines))
+    end
+  else 
+    content:insert(pandoc.Para(captionInlines))
+  end
+end
 
 function isStarEnv(clz) 
   return (clz:match('^column%-screen') or clz:match('^column%-page')) and not clz:match('%-left$')

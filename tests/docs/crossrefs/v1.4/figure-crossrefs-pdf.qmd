@@ -1,0 +1,13 @@
+---
+title: PDF subfloats breakage
+format: pdf
+---
+
+::: {#fig-sub-elephant layout-ncol=1}
+
+![Elephant](img/thinker.jpg){#fig-sub-elephant-sub1}
+
+![another elephant](img/thinker.jpg){#fig-sub-elephant-sub2}
+
+Overall caption
+:::

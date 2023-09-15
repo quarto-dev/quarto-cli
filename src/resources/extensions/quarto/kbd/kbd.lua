@@ -64,7 +64,9 @@ return {
       else
         -- all kwargs
         if n_kwargs == 0 then
+          -- luacov: disable
           error("kbd requires at least one argument")
+          -- luacov: enable
         else
           for k, v in pairs(kwargs) do
             table.insert(result, pandoc.Code(pandoc.utils.stringify(v)))

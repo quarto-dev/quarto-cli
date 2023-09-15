@@ -1,0 +1,20 @@
+---
+title: Proposed syntax for custom crossrefs
+keep-tex: true
+crossref:
+  custom:
+    - kind: float
+      prefix: Diagram
+      name: Diagram
+      ref-type: dia
+      latex-env: diagram
+      latex-list-of-name: lod
+---
+
+::: {#dia-1}
+![](./diagram.jpg)
+
+A diagram
+:::
+
+See @dia-1.

@@ -4,58 +4,42 @@
 -- process all figures
 function crossref_figures()
   return {
-    Div = function(el)
-      if isFigureDiv(el) and isReferenceableFig(el) then
-        local caption = refCaptionFromDiv(el)
-        if caption then
-          process_figure(el, caption.content)
-        end
-      end
-      return el
-    end,
+    -- process a float
+    -- adding it to the global index of floats (figures, tables, etc)
+    --
+    -- in 1.4, we won't re-write its caption here, but instead we'll
+    -- do it at the render filter.
 
-    Para = function(el)
-      local image = discoverFigure(el)
-      if image and isFigureImage(image) then
-        process_figure(image, image.caption)
+    FloatRefTarget = function(float)
+      -- if figure is unlabeled, do not process
+      if is_unlabeled_float(float) then
+        return nil
       end
-      return el
+
+      -- get label and base caption
+      -- local label = el.attr.identifier
+      local kind = refType(float.identifier)
+      if kind == nil then
+        -- luacov: disable
+        warn("Could not determine float type for " .. float.identifier)
+        return nil
+        -- luacov: enable
+      end
+    
+      -- determine order, parent, and displayed caption
+      local order
+      local parent = float.parent_id
+      if (parent) then
+        order = nextSubrefOrder()
+      else
+        order = indexNextOrder(kind)
+      end
+    
+      float.order = order
+      -- update the index
+      indexAddEntry(float.identifier, parent, order, {float.caption_long})
+      return float
     end
   }
 end
 
-
--- process a figure, re-writing its caption as necessary and
--- adding it to the global index of figures
-function process_figure(el, captionContent)
-  -- get label and base caption
-  local label = el.attr.identifier
-  local caption = captionContent:clone()
-
-  -- determine order, parent, and displayed caption
-  local order
-  local parent = el.attr.attributes[kRefParent]
-  if (parent) then
-    order = nextSubrefOrder()
-    prependSubrefNumber(captionContent, order)
-  else
-    order = indexNextOrder("fig")
-    if _quarto.format.isLatexOutput() then
-      tprepend(captionContent, {
-        pandoc.RawInline('latex', '\\label{' .. label .. '}')
-      })
-    elseif _quarto.format.isAsciiDocOutput() or _quarto.format.isTypstOutput() then
-      el.attr.identifier = label
-    else
-      tprepend(captionContent, figureTitlePrefix(order))
-    end
-  end
-
-  -- update the index
-  indexAddEntry(label, parent, order, caption)
-end
-
-
-function figureTitlePrefix(order)
-  return titlePrefix("fig", param("crossref-fig-title", "Figure"), order)
-end

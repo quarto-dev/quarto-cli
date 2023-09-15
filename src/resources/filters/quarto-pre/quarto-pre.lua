@@ -91,10 +91,6 @@ local filterList = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-table-colwidth-cell", 
-    filter = table_colwidth_cell(),
-    flags = { "has_tbl_colwidths" } },
-
   { name = "pre-hidden", 
     filter = hidden(), 
     flags = { "has_hidden" } },
@@ -134,7 +130,7 @@ local filterList = {
     quarto_pre_figures(),
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
-    code_filename(),
+    -- code_filename(),
     line_numbers(),
     engine_escape(),
     bootstrap_panel_input(),

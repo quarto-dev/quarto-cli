@@ -1,13 +1,12 @@
 /*
-* render-reveal.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render-reveal.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { docs, fileLoader, outputForInput } from "../../utils.ts";
 import {
-ensureFileRegexMatches,
+  ensureFileRegexMatches,
   ensureHtmlElements,
   ensureHtmlSelectorSatisfies,
 } from "../../verify.ts";
@@ -41,7 +40,7 @@ testRender(input, "revealjs", false, [
     "#chunk-below > p + img.r-stretch + p.caption + div.cell",
     "#no-caption > p + img.r-stretch",
     "#height-defined img:not(.r-stretch)",
-    "#rigth-aligned > p + img.r-stretch.quarto-figure-right",
+    "#rigth-aligned > img.r-stretch.quarto-figure-right",
     "#only-image > img.r-stretch + p.caption",
     "#alt-text > img.r-stretch[alt]",
     "#caption-title > img.r-stretch[title] + p.caption",
@@ -117,9 +116,9 @@ testRender(revealConfigs.input, "revealjs", false, [
     "pdfSeparateFragments.*true",
     "smaller.*true",
     "pdfSeparateFragments.*true",
-    "autoAnimateEasing.*\"ease-in-out\"",
+    'autoAnimateEasing.*"ease-in-out"',
     "autoAnimateDuration.*5",
     "autoAnimateUnmatched.*false",
     "pdfMaxPagesPerSlide.*1",
-  ], [])
+  ], []),
 ]);

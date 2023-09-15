@@ -71,7 +71,7 @@ function ojs()
 
   stringifyTokenInto = function(token, sequence)
     local function unknown()
-      fail("Don't know how to handle token " .. token.t)
+      fail_and_ask_for_bug_report("Don't know how to handle token " .. token.t)
     end
     if     token.t == 'Cite' then
       unknown()

@@ -12067,6 +12067,47 @@ var require_yaml_intelligence_resources = __commonJS({
                 object: {
                   closed: true,
                   properties: {
+                    custom: {
+                      arrayOf: {
+                        object: {
+                          description: "A custom cross reference type.",
+                          closed: true,
+                          properties: {
+                            kind: {
+                              enum: [
+                                "float"
+                              ],
+                              description: 'The kind of cross reference (currently only "float" is supported).'
+                            },
+                            prefix: {
+                              string: {
+                                description: "The prefix used in rendered citations when referencing this type."
+                              }
+                            },
+                            name: {
+                              string: {
+                                description: "The prefix used in captions when referencing this type."
+                              }
+                            },
+                            "ref-type": {
+                              string: {
+                                description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                              }
+                            },
+                            "latex-env": {
+                              string: {
+                                description: "The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output."
+                              }
+                            },
+                            "latex-list-of-name": {
+                              string: {
+                                description: 'The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.'
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
                     chapters: {
                       boolean: {
                         description: "Use top level sections (H1) in this document as chapters.",
@@ -20177,6 +20218,13 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Configuration for document commenting.",
         "Configuration for crossref labels and prefixes.",
+        "A custom cross reference type.",
+        "The kind of cross reference (currently only \u201CFloat\u201D is\nsupported).",
+        "The prefix used in rendered citations when referencing this type.",
+        "The prefix used in captions when referencing this type.",
+        "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+        "The name of the custom LaTeX environment that quarto will use to\ncreate this type of crossreferenceable object in LaTeX output.",
+        "The name of the custom LaTeX \u201Clist of\u201D command that quarto will use\nto create this type of crossreferenceable object in LaTeX output.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
@@ -22021,12 +22069,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 164461,
+        _internalId: 165772,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 164453,
+            _internalId: 165764,
             type: "enum",
             enum: [
               "png",
@@ -22042,7 +22090,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 164460,
+            _internalId: 165771,
             type: "anyOf",
             anyOf: [
               {

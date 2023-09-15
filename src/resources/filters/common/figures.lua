@@ -27,15 +27,10 @@ function figAlignAttribute(el)
   return validatedAlign(align)
 end
 
--- is this an image containing a figure
-function isFigureImage(el)
-  return hasFigureRef(el) and #el.caption > 0
-end
-
 -- is this a Div containing a figure
 function isFigureDiv(el)
   if el.t == "Div" and hasFigureRef(el) then
-    return refCaptionFromDiv(el) ~= nil
+    return el.attributes[kFigCap] ~= nil or refCaptionFromDiv(el) ~= nil
   else
     return discoverLinkedFigureDiv(el) ~= nil
   end
@@ -78,58 +73,6 @@ function discoverLinkedFigure(el, captionRequired)
   return nil
 end
 
-function createFigureDiv(paraEl, fig)
-  flags.has_figure_divs = true
-  
-  -- create figure div
-  local figureDiv = pandoc.Div({})
- 
-  -- transfer identifier
-  figureDiv.attr.identifier = fig.attr.identifier
-  fig.attr.identifier = ""
-  
-  -- provide anonymous identifier if necessary
-  if figureDiv.attr.identifier == "" then
-    figureDiv.attr.identifier = anonymousFigId()
-  end
-  
-  -- transfer classes
-  figureDiv.attr.classes = fig.attr.classes:clone()
-  tclear(fig.attr.classes)
-  
-  -- transfer fig. attributes
-  for k,v in pairs(fig.attr.attributes) do
-    if isFigAttribute(k) then
-      figureDiv.attr.attributes[k] = v
-    end
-  end
-  local attribs = tkeys(fig.attr.attributes)
-  for _,k in ipairs(attribs) do
-    if isFigAttribute(k) then
-      fig.attr.attributes[k] = v
-    end
-  end
-    
-  --  collect caption
-  local caption = fig.caption:clone()
-  fig.caption = {}
-  
-  -- if the image is a .tex file we need to tex \input 
-  if latexIsTikzImage(fig) then
-    paraEl = pandoc.walk_block(paraEl, {
-      Image = latexFigureInline
-    })
-  end
-  
-  -- insert the paragraph and a caption paragraph
-  figureDiv.content:insert(paraEl)
-  figureDiv.content:insert(pandoc.Para(caption))
-  
-  -- return the div
-  return figureDiv
-  
-end
-
 function discoverLinkedFigureDiv(el, captionRequired)
   if el.t == "Div" and 
      hasFigureRef(el) and
@@ -155,8 +98,6 @@ function isReferenceableFig(figEl)
   return figEl.attr.identifier ~= "" and 
          not isAnonymousFigId(figEl.attr.identifier)
 end
-
-
 
 function latexIsTikzImage(image)
   return _quarto.format.isLatexOutput() and string.find(image.src, "%.tex$")

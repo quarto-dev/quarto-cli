@@ -102,12 +102,22 @@ function handlerForShortcode(shortCode)
   return handlers[shortCode.name]
 end
 
+local function read_arg(args)
+  local arg = args[1]
+  local varName
+  if type(arg) ~= "string" then
+    varName = inlinesToString(arg)
+  else
+    varName = arg
+  end
+  return varName
+end
 
 -- Implements reading values from envrionment variables
 function handleEnv(args)
   if #args > 0 then
     -- the args are the var name
-    local varName = inlinesToString(args[1])
+    local varName = read_arg(args)
 
     -- read the environment variable
     local envValue = os.getenv(varName)
@@ -130,7 +140,7 @@ end
 function handleMeta(args) 
   if #args > 0 then
     -- the args are the var name
-    local varName = inlinesToString(args[1])
+    local varName = read_arg(args)
 
     -- read the option value
     local optionValue = option(varName, nil)
@@ -152,9 +162,8 @@ end
 -- This only supports emitting simple types (not arrays or maps)
 function handleVars(args) 
   if #args > 0 then
-    
     -- the args are the var name
-    local varName = inlinesToString(args[1])
+    local varName = read_arg(args)
     
     -- read the option value
     local varValue = var(varName, nil)

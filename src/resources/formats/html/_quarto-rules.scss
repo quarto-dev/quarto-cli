@@ -18,6 +18,10 @@
 
 // layout and figures
 
+figure.figure {
+  display: block;
+}
+
 .quarto-layout-panel {
   margin-bottom: 1em;
 }
@@ -73,7 +77,7 @@
   margin: 0;
 }
 .quarto-layout-cell figure {
-  display: inline-block;
+  display: block;
   margin-inline-start: 0;
   margin-inline-end: 0;
 }
@@ -121,6 +125,9 @@ figure > p:first-child {
 }
 figure > figcaption {
   margin-top: 0.5em;
+}
+figure.quarto-float-lst > figcaption {
+  margin-bottom: 0.5em;
 }
 
 // anchor
@@ -212,6 +219,7 @@ table,
   margin-bottom: 1.5rem;
 }
 
+figure.quarto-float-tbl figcaption,
 caption,
 .table-caption {
   padding-top: 0.5rem;

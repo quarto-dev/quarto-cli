@@ -1,0 +1,23 @@
+---
+title: Table Crossref Test
+---
+
+::: {#tbl-panel layout-ncol=2}
+| Col1 | Col2 |
+|------|------|
+| A    | B    |
+| E    | F    |
+
+: First Table {#tbl-first}
+
+| Col1 | Col2 |
+|------|------|
+| A    | B    |
+| E    | F    |
+
+: Second Table {#tbl-second}
+
+Main Caption
+:::
+
+See @tbl-panel for details, especially @tbl-second.

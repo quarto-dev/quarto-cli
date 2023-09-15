@@ -64,8 +64,6 @@ function parse_html_tables()
                 skip = true
               end
             end,
-            Div = needs_dom_processing,
-            Span = needs_dom_processing,
           })
           if not found then
             warn("Unable to parse table from raw html block: skipping.")

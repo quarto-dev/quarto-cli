@@ -1,0 +1,36 @@
+---
+title: float crossref test
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[contains(text(), \"Figure\u00a01\")]"
+        - []
+---
+
+This tests:
+
+- div float with image element as payload.
+- div float with image element as payload for non-figure floats.
+
+
+::: {#fig-foo}
+![](../img/surus.jpg)
+
+This is the figure
+:::
+See @fig-foo for more.
+
+
+::: {#tbl-foo}
+![](../img/surus.jpg)
+
+This is the table
+:::
+See @tbl-foo for more.
+

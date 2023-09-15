@@ -1,0 +1,35 @@
+---
+title: Python Subfig Test
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - []
+      ensureHtmlElements:
+        - 
+          - "div#fig-plots figure.quarto-float-fig > figcaption.quarto-float-caption"
+          - "div#fig-plots-1 figure.quarto-subfloat-fig figcaption.quarto-subfloat-caption"
+          - "div#fig-plots-2 figure.quarto-subfloat-fig figcaption.quarto-subfloat-caption"
+        - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plots
+#| fig-cap: "Plots" 
+#| fig-subcap:
+#|   - "Plot 1"
+#|   - "Plot 2" 
+#| layout-ncol: 2
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+
+plt.plot([8,65,23,90])
+plt.show()
+```
+
+See @fig-plots for examples. In particular, @fig-plots-2.

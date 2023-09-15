@@ -1,0 +1,19 @@
+---
+title: caption-formatting-test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "\\. Customers _query_"
+          - "<<lst-customers>>"
+          - "\\[\\[lst-customers\\]\\]"
+---
+
+```{#lst-customers .sql lst-cap="Customers *query*"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).
+

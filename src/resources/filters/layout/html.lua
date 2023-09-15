@@ -1,119 +1,216 @@
 -- html.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function htmlPanel(divEl, layout, caption)
-  
-  -- outer panel to contain css and figure panel
-  local divId = divEl.attr.identifier
-  if divId == nil then
-    divId = ''
-  end
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isHtmlOutput()
+end, function(panel_layout)
+  local panel = pandoc.Div({})
 
-  local panel = pandoc.Div({}, pandoc.Attr(divId, divEl.attr.classes))
-  panel.attr.classes:insert("quarto-layout-panel")
-  
-  -- enclose in figure if it's a figureRef
-  if hasFigureRef(divEl) then
-    panel.content:insert(pandoc.RawBlock("html", "<figure>"))
-  end
-
-  -- compute vertical alignment and remove attribute
-  local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
-  local vAlignClass = vAlignClass(vAlign);
-  divEl.attr.attributes[kLayoutVAlign] = nil
-  
   -- layout
-  for i, row in ipairs(layout) do
-    
-    local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
-
-    -- add the vertical align element to this row
-    if vAlignClass then
-      rowDiv.attr.classes:insert(vAlignClass);
+  for i, row in ipairs(panel_layout.rows.content) do    
+    local row_div = row
+    row_div.attr.classes:insert("quarto-layout-row")
+    if panel_layout.valign_class then
+      row_div.attr.classes:insert(panel_layout.valign_class)
     end
-  
-    for i, cellDiv in ipairs(row) do
+    for j, cell_div in ipairs(row.content) do
       
       -- add cell class
-      cellDiv.attr.classes:insert("quarto-layout-cell")
-      
-      -- if it has a ref parent then give it another class
-      -- (used to provide subcaption styling)
-      if layoutCellHasRefParent(cellDiv) then
-        cellDiv.attr.classes:insert("quarto-layout-cell-subref")
-      end
-      
+      cell_div.attr.classes:insert("quarto-layout-cell")
+           
       -- create css style for width
-      local cellDivStyle = ""
-      local width = cellDiv.attr.attributes["width"]
-      local align = cellDiv.attr.attributes[kLayoutAlign]
-      cellDiv.attr.attributes[kLayoutAlign] = nil
-      cellDivStyle = cellDivStyle .. "flex-basis: " .. width .. ";"
-      cellDiv.attr.attributes["width"] = nil
+      local cell_div_style = ""
+      local width = cell_div.attr.attributes["width"]
+      local align = cell_div.attr.attributes[kLayoutAlign]
+      cell_div.attr.attributes[kLayoutAlign] = nil
+      cell_div_style = cell_div_style .. "flex-basis: " .. width .. ";"
+      cell_div.attr.attributes["width"] = nil
       local justify = flexAlign(align)
-      cellDivStyle = cellDivStyle .. "justify-content: " .. justify .. ";"
-      cellDiv.attr.attributes["style"] = cellDivStyle
+      cell_div_style = cell_div_style .. "justify-content: " .. justify .. ";"
+      cell_div.attr.attributes["style"] = cell_div_style
       
+      local has_table = false
+      local parent_id
       -- if it's a table then our table-inline style will cause table headers
       -- (th) to be centered. set them to left is they are default
-      local tbl = tableFromLayoutCell(cellDiv)
-      if tbl then
-        tbl.colspecs = tbl.colspecs:map(function(spec)
-          if spec[1] == pandoc.AlignDefault then
-            spec[1] = pandoc.AlignLeft
+      -- print(cell_div)
+      cell_div = _quarto.ast.walk(cell_div, {
+        FloatRefTarget = function(float)
+          parent_id = float.parent_id
+          return nil
+        end,
+        Table = function(table)
+          has_table = true
+          local changed = false
+          table.colspecs = table.colspecs:map(function(spec)
+            if spec[1] == pandoc.AlignDefault then
+              spec[1] = pandoc.AlignLeft
+              changed = true
+            end
+            return spec
+          end)
+          if changed then 
+            return table 
           end
-          return spec
-        end)
+        end
+      }) or {} -- this isn't needed by the Lua analyzer doesn't know it
+
+      if has_table and parent_id ~= nil then
+        cell_div.attr.attributes[kRefParent] = parent_id
       end
-      
-      -- add div to row
-      rowDiv.content:insert(cellDiv)
+      row_div.content[j] = cell_div
     end
     
     -- add row to the panel
-    panel.content:insert(rowDiv)
+    panel.content:insert(row_div)
+  end
+
+  local rendered_panel
+
+  if panel_layout.is_float_reftarget then
+    rendered_panel = float_reftarget_render_html_figure(
+      decorate_caption_with_crossref(quarto.FloatRefTarget({
+        identifier = panel_layout.identifier,
+        classes = panel_layout.classes,
+        attributes = panel_layout.attributes,
+        order = panel_layout.order,
+        type = panel_layout.type,
+        content = panel.content,
+        caption_long = pandoc.List({panel_layout.caption_long}),
+      })))
+    rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+  else
+    rendered_panel = panel
+    rendered_panel.attr = pandoc.Attr(
+      panel_layout.identifier or "",
+      panel_layout.classes,
+      panel_layout.attributes)
+    rendered_panel.attr.classes:insert("quarto-layout-panel")
+  end
+  local preamble = panel_layout.preamble
+  if preamble == nil then
+    return rendered_panel
   end
   
-  -- determine alignment
-  local align = layoutAlignAttribute(divEl)
-  divEl.attr.attributes[kLayoutAlign] = nil
+  local result = pandoc.Blocks({})
+  panel_insert_preamble(result, preamble)
+  result:insert(rendered_panel)
+  return result
+end)
+
+-- function htmlPanel(divEl, layout, caption)
   
-  -- insert caption and </figure>
-  if caption then
-    if hasFigureRef(divEl) then
-      local captionPara = pandoc.Para({})
-      -- apply alignment if we have it
-      local figcaption = "<figcaption>"
-      captionPara.content:insert(pandoc.RawInline("html", figcaption))
-      tappend(captionPara.content, caption.content)
-      captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
-      if capLocation('fig', 'bottom') == 'bottom' then
-        panel.content:insert(captionPara)
-      else
-        tprepend(panel.content, { captionPara })
-      end
-    else
-      local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
-      if hasTableRef(divEl) then
-        panelCaption.attr.classes:insert("table-caption")
-        if capLocation('tbl', 'top') == 'bottom' then
-          panel.content:insert(panelCaption)
-        else
-          tprepend(panel.content, { panelCaption })
-        end
-      else
-        panel.content:insert(panelCaption)
-      end
-    end
-  end
+--   -- outer panel to contain css and figure panel
+--   local divId = divEl.attr.identifier
+--   if divId == nil then
+--     divId = ''
+--   end
+
+--   local panel = pandoc.Div({}, pandoc.Attr(divId, divEl.attr.classes))
+--   panel.attr.classes:insert("quarto-layout-panel")
   
-  if hasFigureRef(divEl) then
-    panel.content:insert(pandoc.RawBlock("html", "</figure>"))
-  end
+--   -- enclose in figure if it's a figureRef
+--   if hasFigureRef(divEl) then
+--     panel.content:insert(pandoc.RawBlock("html", "<figure>"))
+--   end
+
+--   -- compute vertical alignment and remove attribute
+--   local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
+--   local vAlignClass = vAlignClass(vAlign);
+--   divEl.attr.attributes[kLayoutVAlign] = nil
   
-  -- return panel
-  return panel
-end
+--   -- layout
+--   for i, row in ipairs(layout) do
+    
+--     local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
+
+--     -- add the vertical align element to this row
+--     if vAlignClass then
+--       rowDiv.attr.classes:insert(vAlignClass);
+--     end
+  
+--     for i, cellDiv in ipairs(row) do
+      
+--       -- add cell class
+--       cellDiv.attr.classes:insert("quarto-layout-cell")
+      
+--       -- if it has a ref parent then give it another class
+--       -- (used to provide subcaption styling)
+--       if layoutCellHasRefParent(cellDiv) then
+--         cellDiv.attr.classes:insert("quarto-layout-cell-subref")
+--       end
+      
+--       -- create css style for width
+--       local cellDivStyle = ""
+--       local width = cellDiv.attr.attributes["width"]
+--       local align = cellDiv.attr.attributes[kLayoutAlign]
+--       cellDiv.attr.attributes[kLayoutAlign] = nil
+--       cellDivStyle = cellDivStyle .. "flex-basis: " .. width .. ";"
+--       cellDiv.attr.attributes["width"] = nil
+--       local justify = flexAlign(align)
+--       cellDivStyle = cellDivStyle .. "justify-content: " .. justify .. ";"
+--       cellDiv.attr.attributes["style"] = cellDivStyle
+      
+--       -- if it's a table then our table-inline style will cause table headers
+--       -- (th) to be centered. set them to left is they are default
+--       local tbl = tableFromLayoutCell(cellDiv)
+--       if tbl then
+--         tbl.colspecs = tbl.colspecs:map(function(spec)
+--           if spec[1] == pandoc.AlignDefault then
+--             spec[1] = pandoc.AlignLeft
+--           end
+--           return spec
+--         end)
+--       end
+      
+--       -- add div to row
+--       rowDiv.content:insert(cellDiv)
+--     end
+    
+--     -- add row to the panel
+--     panel.content:insert(rowDiv)
+--   end
+  
+--   -- determine alignment
+--   local align = layoutAlignAttribute(divEl)
+--   divEl.attr.attributes[kLayoutAlign] = nil
+  
+--   -- insert caption and </figure>
+--   if caption then
+--     if hasFigureRef(divEl) then
+--       local captionPara = pandoc.Para({})
+--       -- apply alignment if we have it
+--       local figcaption = "<figcaption>"
+--       captionPara.content:insert(pandoc.RawInline("html", figcaption))
+--       tappend(captionPara.content, caption.content)
+--       captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
+--       if capLocation('fig', 'bottom') == 'bottom' then
+--         panel.content:insert(captionPara)
+--       else
+--         tprepend(panel.content, { captionPara })
+--       end
+--     else
+--       local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
+--       if hasTableRef(divEl) then
+--         panelCaption.attr.classes:insert("table-caption")
+--         if capLocation('tbl', 'top') == 'bottom' then
+--           panel.content:insert(panelCaption)
+--         else
+--           tprepend(panel.content, { panelCaption })
+--         end
+--       else
+--         panel.content:insert(panelCaption)
+--       end
+--     end
+--   end
+  
+--   if hasFigureRef(divEl) then
+--     panel.content:insert(pandoc.RawBlock("html", "</figure>"))
+--   end
+  
+--   -- return panel
+--   return panel
+-- end
 
 function htmlDivFigure(el)
   

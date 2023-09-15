@@ -1,0 +1,37 @@
+---
+title: Python Subfig Test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "import matplotlib.pyplot as plt" # this checks if the panel preamble has been emitted
+          - "\\[#fig-plots\\]"
+          - "\\[#fig-plots-1\\]"
+          - "\\[#fig-plots-2\\]"
+          - "\\. Plots"
+          - "\\.Plot 1"
+          - "\\.Plot 2"
+        - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plots
+#| fig-cap: "Plots" 
+#| fig-subcap:
+#|   - "Plot 1"
+#|   - "Plot 2" 
+#| layout-ncol: 2
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+
+plt.plot([8,65,23,90])
+plt.show()
+```
+
+See @fig-plots for examples. In particular, @fig-plots-2.

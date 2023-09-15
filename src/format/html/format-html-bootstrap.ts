@@ -277,10 +277,10 @@ function bootstrapHtmlPostprocessor(
       for (let j = 0; j < images.length; j++) {
         (images[j] as Element).classList.add("figure-img");
       }
-      const captions = figure.querySelectorAll("figcaption");
-      for (let j = 0; j < captions.length; j++) {
-        (captions[j] as Element).classList.add("figure-caption");
-      }
+      // const captions = figure.querySelectorAll("figcaption");
+      // for (let j = 0; j < captions.length; j++) {
+      //   (captions[j] as Element).classList.add("figure-caption");
+      // }
     }
 
     // move the toc if there is a sidebar

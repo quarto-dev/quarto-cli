@@ -81,7 +81,7 @@ function jats()
       Meta = jatsMeta,
   
       -- clear out divs
-      Div = function(div)
+      Div = function(div) 
         if isTableDiv(div) then
           local tbl = div.content[1]
           if tbl.t == "Table" then
@@ -90,7 +90,9 @@ function jats()
           return tbl
         else
           -- otherwise, if this is a div, we can unroll its contents
-          return unrollDiv(div)
+
+          -- TODO can we replace this by a single return div.content?
+          return unrollDiv(div, is_custom_node)
         end
       end,
 
@@ -156,7 +158,7 @@ function jatsSubarticle()
     return {
       Meta = jatsMeta,
       Div = function(div)
-        
+
         -- this is a notebook cell, handle it
         if isCell(div) then
           if isCodeCell(div) then

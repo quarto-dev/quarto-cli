@@ -1,0 +1,27 @@
+---
+title: listing within Jupyter cells
+format: html
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['a.quarto-xref[href="#lst-code-source"]', 'div#lst-code-source.listing']
+        - []
+    latex:
+      ensureFileRegexMatches:
+        - ['Listing~\\ref\{lst-code-source\}', '\\caption\{\\label\{lst-code-source\}Some code source\}']
+        - []
+    docx:
+      ensureDocxRegexMatches:
+        - ['bookmarkStart.*name="lst-code-source"', 'hyperlink.*anchor="lst-code-source"']
+        - []
+---
+
+```{python}
+#| lst-label: lst-code-source
+#| lst-cap: Some code source
+1 + 1
+```
+
+See @lst-code-source.

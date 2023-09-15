@@ -7,20 +7,26 @@ kLayoutNcol = "layout-ncol"
 kLayoutNrow = "layout-nrow"
 kLayout = "layout"
 
-
-function layoutAlignAttribute(el, default)
-  return validatedAlign(attribute(el, kLayoutAlign, default))
+function layout_align_attribute(el_with_attr, default)
+  return validatedAlign(el_with_attr.attributes[kLayoutAlign] or default)
 end
 
-function layoutVAlignAttribute(el, default)
-  return validatedVAlign(attribute(el, kLayoutVAlign, default))
+-- now unused. Remove?
+-- luacov: disable
+function layout_valign_attribute(el_with_attr, default)
+  return validatedVAlign(el_with_attr.attributes[kLayoutVAlign] or default)
 end
+-- luacov: enable
 
-function hasLayoutAttributes(el)
-  local attribs = tkeys(el.attr.attributes)
+function attr_has_layout_attributes(attr)
+  local attribs = tkeys(attr.attributes)
   return attribs:includes(kLayoutNrow) or
          attribs:includes(kLayoutNcol) or
          attribs:includes(kLayout)
+end
+
+function hasLayoutAttributes(el)
+  return attr_has_layout_attributes(el.attr)
 end
 
 function isLayoutAttribute(key)
@@ -49,11 +55,13 @@ end
 
 -- we often wrap a table in a div, unwrap it
 function tableFromLayoutCell(cell)
-  if #cell.content == 1 and cell.content[1].t == "Table" then
-    return cell.content[1]
-  else
-    return nil
-  end
+  local tbl
+  cell:walk({
+    Table = function(t)
+      tbl = t
+    end
+  })
+  return tbl
 end
 
 -- resolve alignment for layout cell (default to center or left depending
@@ -70,19 +78,6 @@ function layoutCellAlignment(cell, align)
   else
     return align
   end
-end
-
--- does the layout cell have a ref parent
-function layoutCellHasRefParent(cell)
-  if hasRefParent(cell) then
-    return true
-  else
-    local image = figureImageFromLayoutCell(cell)
-    if image then
-      return hasRefParent(image)
-    end
-  end
-  return false
 end
 
 function sizeToPercent(size)

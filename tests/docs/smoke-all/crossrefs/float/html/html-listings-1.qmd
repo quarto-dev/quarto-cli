@@ -1,0 +1,17 @@
+---
+title: Listings Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#lst-customers figure.quarto-float-lst figcaption.listing"
+          - "a[href='#lst-customers'].quarto-xref"
+        - []
+---
+
+```{#lst-customers .sql lst-cap="Customers Query"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

@@ -1,6 +1,8 @@
 -- refs.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+-- FIXME this resolveRefs filter should be in post-processing
+-- since it emits format-specific AST elements
 
 -- resolve references
 function resolveRefs()
@@ -70,7 +72,16 @@ function resolveRefs()
             elseif _quarto.format.isAsciiDocOutput() then
               ref = pandoc.List({pandoc.RawInline('asciidoc', '<<' .. label .. '>>')})
             elseif _quarto.format.isTypstOutput() then
-              ref = pandoc.List({pandoc.RawInline('typst', '@' .. label)})
+              -- if we're referencing a subfloat,
+              -- we need to package the parent_id information in the
+              -- supplement as well, so that we can provide
+              -- better numbering in the typst renderer
+              local subfloat_info = crossref.subfloats[label]
+              if subfloat_info == nil then
+                ref = pandoc.List({pandoc.RawInline('typst', '@' .. label)})
+              else
+                ref = pandoc.List({pandoc.RawInline('typst', '@' .. label .. '[45127368-afa1-446a-820f-fc64c546b2c5%' .. subfloat_info.parent_id .. ']')})
+              end
             else
               if not resolve then
                 local refClasses = pandoc.List({"quarto-unresolved-ref"})
@@ -126,7 +137,25 @@ function resolveRefs()
   }
 end
 
-function autoRefLabel(parentId)
+
+-- we're removing the dashes from this uuid because
+-- it makes it easier to handling it in lua patterns
+
+local quarto_auto_label_safe_latex_uuid = "539a35d47e664c97a50115a146a7f1bd"
+function autoRefLabel(refType)
+  local index = 1
+  while true do
+    local label = refType .. "-" .. quarto_auto_label_safe_latex_uuid .. "-" ..tostring(index)
+    if not crossref.autolabels:includes(label) then
+      crossref.autolabels:insert(label)
+      return label
+    else
+      index = index + 1
+    end
+  end
+end
+
+function autoSubrefLabel(parentId)
   local index = 1
   while true do
     local label = parentId .. "-" .. tostring(index)
@@ -161,10 +190,16 @@ end
 
 function validRefTypes()
   local types = tkeys(theoremTypes)
-  table.insert(types, "fig")
-  table.insert(types, "tbl")
+  for k, _ in pairs(crossref.categories.by_ref_type) do
+    table.insert(types, k)
+    -- if v.type ~= nil and not tcontains(types, v.type) then
+    --   table.insert(types, v.type)
+    -- end
+  end
+  -- table.insert(types, "fig")
+  -- table.insert(types, "tbl")
+  -- table.insert(types, "lst")
   table.insert(types, "eq")
-  table.insert(types, "lst")
   table.insert(types, "sec")
   return types
 end

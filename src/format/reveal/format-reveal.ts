@@ -799,7 +799,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           imageEl.classList.add("r-stretch");
         }
 
-        // If <img class="stetch"> is not a direct child of <section>, move it
+        // If <img class="stretch"> is not a direct child of <section>, move it
         if (
           hasStretchClass(imageEl) &&
           imageEl.parentNode?.nodeName !== "SECTION"

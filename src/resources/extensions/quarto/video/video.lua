@@ -328,7 +328,9 @@ return {
       if #raw_args > 0 then
         srcValue = pandoc.utils.stringify(raw_args[1])
       else
+        -- luacov: disable
         fail("No video source specified for video shortcode")        
+        -- luacov: enable
       end
     end
 

@@ -3,7 +3,7 @@
 
 local produceSourceNotebook = param('produce-source-notebook', false)
 
-function ipynbCode() 
+function ipynb()
   if FORMAT == "ipynb" then
     return {
       Div = function(el)
@@ -44,16 +44,7 @@ function ipynbCode()
 
         el.attr.classes = removeClass(el.attr.classes, 'cell-output')
         return el
-      end
-    }
-  else
-    return {}
-  end
-end
-
-function ipynb()
-  if FORMAT == "ipynb" then
-    return {
+      end,
 
       Pandoc = function(doc)
 
@@ -78,6 +69,7 @@ function ipynb()
         if (el.attr.classes:includes('cell-code')) then
           el.attr.classes = removeClass(el.attr.classes, 'cell-code')
         end
+        return el
       end,
 
       -- remove image classes/attributes (as this causes Pandoc to write raw html, which in turn
