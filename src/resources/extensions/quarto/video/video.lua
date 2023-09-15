@@ -234,6 +234,20 @@ end
 
 function htmlVideo(src, height, width, title, start, aspectRatio)
 
+  -- https://github.com/quarto-dev/quarto-cli/issues/6833
+  -- handle partially-specified width, height, and aspectRatio
+  if aspectRatio then
+    local strs = splitString(aspectRatio, 'x')
+    wr = tonumber(strs[1])
+    hr = tonumber(strs[2])
+    local aspectRatioNum = wr / hr
+    if height and not width then
+      width = math.floor(height * aspectRatioNum + 0.5)
+    elseif width and not height then
+      height = math.floor(width / aspectRatioNum + 0.5)
+    end
+  end
+
   local videoSnippetAndType = getSnippetFromBuilders(src, height, width, title, start)
   local videoSnippet
 
