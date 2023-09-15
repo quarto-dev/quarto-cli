@@ -5,7 +5,7 @@
 
 function initialize_custom_crossref_categories(meta)
   local cr = meta["crossref"]
-  if cr == nil then
+  if pandoc.utils.type(cr) ~= "table" then
     return nil
   end
   local custom = cr["custom"]
