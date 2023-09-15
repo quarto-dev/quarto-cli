@@ -14,13 +14,13 @@ function initialize_custom_crossref_categories(meta)
     -- luacov: enable
   end
   local keys = {
-    "default_caption_location",
+    "default-caption-location",
     "kind",
     "name",
     "prefix",
-    "ref_type",
-    "latex_env",
-    "latex_list_of_name"
+    "ref-type",
+    "latex-env",
+    "latex-list-of-name"
   }
   for _, v in ipairs(meta["crossref-custom"]) do
     local entry = {}
@@ -29,8 +29,8 @@ function initialize_custom_crossref_categories(meta)
         entry[key] = pandoc.utils.stringify(v[key])
       end
     end
-    if entry["default_caption_location"] == nil then
-      entry["default_caption_location"] = "bottom"
+    if entry["default-caption-location"] == nil then
+      entry["default-caption-location"] = "bottom"
     end
     -- slightly inefficient because we recompute the indices at
     -- every call, but should be totally ok for the number of categories
@@ -39,11 +39,11 @@ function initialize_custom_crossref_categories(meta)
 
     if quarto.doc.isFormat("pdf") then
       metaInjectLatex(meta, function(inject)
-        local env_name = entry["latex_env"]
+        local env_name = entry["latex-env"]
         local name = entry["name"]
         local env_prefix = entry["prefix"]
-        local ref_type = entry["ref_type"]
-        local list_of_name = entry["latex_list_of_name"]
+        local ref_type = entry["ref-type"]
+        local list_of_name = entry["latex-list-of-name"]
 
         -- FIXME do we need different "lop" extensions for each category?
         -- we should be able to test this by creating a document with listings and diagrams

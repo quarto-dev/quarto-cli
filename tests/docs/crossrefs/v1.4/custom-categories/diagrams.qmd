@@ -5,9 +5,9 @@ crossref-custom: # probably should be a key inside `crossref`
   - kind: float
     prefix: Diagram
     name: Diagram
-    ref_type: dia
-    latex_env: diagram
-    latex_list_of_name: lod
+    ref-type: dia
+    latex-env: diagram
+    latex-list-of-name: lod
 ---
 
 ::: {#dia-1}
