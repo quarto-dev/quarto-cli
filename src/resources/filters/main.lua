@@ -359,9 +359,9 @@ local quarto_finalize_filters = {
 local quarto_layout_filters = {
   { name = "manuscript filtering", filter = manuscript() },
   { name = "manuscript filtering", filter = manuscriptUnroll() },
+  { name = "layout-lightbox", filters = lightbox(), flags = { "has_lightbox" }},
   { name = "layout-render-pandoc3-figure", filter = render_pandoc3_figure(),
     flags = { "has_pandoc3_figure" } },
-  { name = "layout-lightbox", filters = lightbox(), flags = { "has_lightbox" }},
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },

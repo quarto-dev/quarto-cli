@@ -71,7 +71,7 @@ function lightbox()
   
     -- write a description, if provided
     if description ~= nil then
-      linkAttributes[kDescription] = description
+      linkAttributes[kDescription] = inlinesToString(quarto.utils.as_inlines(description))
     end
   
     -- forward any other known attributes
@@ -108,21 +108,11 @@ function lightbox()
   end
   
   local function processFigure(figEl)
-    local figmodified = false
-    figEl = _quarto.ast.walk(figEl, {
+    return _quarto.ast.walk(figEl, {
       Image = function(imgEl)
-        local modifiedImg = processImg(imgEl, { automatic = true, caption = figEl.caption })
-        if modifiedImg ~= nil then
-          figmodified = true
-        end
-        return modifiedImg
+        return processImg(imgEl, { automatic = true, caption = figEl.caption })
       end
     })
-    if figmodified then
-      return figEl
-    else
-      return nil
-    end
   end
 
   local function processSubFloat(subFloatEl, gallery, parentFloat) 
@@ -133,7 +123,7 @@ function lightbox()
         local caption_content = subFloatEl.caption_long.content or subFloatEl.caption_long
         local caption = full_caption_prefix(parentFloat, subFloatEl)
         tappend(caption, caption_content)
-        local subImgModified = processImg(imgEl, { automatic = true, caption = inlinesToString(caption), gallery = gallery })
+        local subImgModified = processImg(imgEl, { automatic = true, caption = caption, gallery = gallery })
         if subImgModified ~= nil then
           subFloatModified = true
           return subImgModified, false
@@ -209,10 +199,12 @@ function lightbox()
         return div
       end,
       Image = function(imgEl)
+        quarto.log.output("IMAGE")
         -- look only for explicitly targeted images
         return processImg(imgEl, { automatic = false } ), false
       end,
       Figure = function(figEl)
+        quarto.log.output("FIGURE")
         return processFigure(figEl), false
       end,
       FloatRefTarget = function(floatEl)
@@ -225,7 +217,7 @@ function lightbox()
               local caption_content = floatEl.caption_long.content or floatEl.caption_long
               local caption = full_caption_prefix(floatEl)
               tappend(caption, caption_content)
-              local modifiedImg = processImg(imgEl, { automatic = true, caption = inlinesToString(caption) })
+              local modifiedImg = processImg(imgEl, { automatic = true, caption = caption })
               if modifiedImg ~= nil then
                 floatmodified = true
               end
