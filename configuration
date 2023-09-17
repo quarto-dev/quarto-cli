@@ -36,6 +36,7 @@ export LIST_JS=2.3.1
 export DAY_JS=1.11.7
 export ZENSCROLL_JS=4.0.2
 export GITHUB_MARKDOWN_CSS=5.2.0
+export GLIGHTBOX_JS=3.2.0
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.9.2
