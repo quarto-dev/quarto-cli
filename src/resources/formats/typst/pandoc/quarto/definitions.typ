@@ -21,6 +21,16 @@
     .join()
 }
 
+// Some quarto-specific definitions.
+
+#show raw: it => {
+  if it.block {
+    block(fill: luma(230), width: 100%, inset: 8pt, radius: 2pt, it)
+  } else {
+    it
+  }
+}
+
 #show ref: it => locate(loc => {
   let target = query(it.target, loc).first()
   if it.at("supplement", default: none) == none {
