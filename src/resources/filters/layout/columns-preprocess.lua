@@ -78,7 +78,6 @@ function resolveColumnClassesForCodeCell(el)
           -- look through the children for any figures or tables
           local forwarded = false
           for j, figOrTableEl in ipairs(childEl.content) do
-            print(figOrTableEl)
             local custom = _quarto.ast.resolve_custom_data(figOrTableEl)
             if custom ~= nil then
               local ref_type = crossref.categories.by_name[custom.type].ref_type
