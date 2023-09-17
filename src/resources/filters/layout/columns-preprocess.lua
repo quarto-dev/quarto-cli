@@ -83,7 +83,8 @@ function resolveColumnClassesForCodeCell(el)
               local ref_type = crossref.categories.by_name[custom.type].ref_type
               local custom_classes = float_classes[ref_type]
               local custom_caption_classes = float_caption_classes[ref_type]
-              applyClasses(custom_classes, custom_caption_classes, el, childEl, custom, ref_type)
+              -- applyClasses(colClasses, captionClasses, containerEl, colEl, captionEl, scope)
+              applyClasses(custom_classes, custom_caption_classes, el, custom, custom, ref_type)
             else
               local figure = discoverFigure(figOrTableEl, false)
               if figure ~= nil then
