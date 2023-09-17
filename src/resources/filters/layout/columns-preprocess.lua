@@ -64,6 +64,13 @@ function resolveColumnClassesForCodeCell(el)
   local figCaptionClasses = float_caption_classes.fig
   local tblCaptionClasses = float_caption_classes.tbl
 
+  quarto.utils.dump {
+    figClasses = figClasses,
+    tblClasses = tblClasses,
+    figCaptionClasses = figCaptionClasses,
+    tblCaptionClasses = tblCaptionClasses
+  }
+
   if found then
     noteHasColumns()
     
@@ -78,12 +85,14 @@ function resolveColumnClassesForCodeCell(el)
           -- look through the children for any figures or tables
           local forwarded = false
           for j, figOrTableEl in ipairs(childEl.content) do
+            print(figOrTableEl)
             local custom = _quarto.ast.resolve_custom_data(figOrTableEl)
             if custom ~= nil then
               local ref_type = crossref.categories.by_name[custom.type].ref_type
               local custom_classes = float_classes[ref_type]
               local custom_caption_classes = float_caption_classes[ref_type]
-              applyClasses(custom_classes, custom_caption_classes, el, childEl, custom, ref_type)
+              -- applyClasses(colClasses, captionClasses, containerEl, colEl, captionEl, scope)
+              applyClasses(custom_classes, custom_caption_classes, el, custom, custom, ref_type)
             else
               local figure = discoverFigure(figOrTableEl, false)
               if figure ~= nil then
