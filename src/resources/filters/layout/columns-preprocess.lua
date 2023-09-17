@@ -64,13 +64,6 @@ function resolveColumnClassesForCodeCell(el)
   local figCaptionClasses = float_caption_classes.fig
   local tblCaptionClasses = float_caption_classes.tbl
 
-  quarto.utils.dump {
-    figClasses = figClasses,
-    tblClasses = tblClasses,
-    figCaptionClasses = figCaptionClasses,
-    tblCaptionClasses = tblCaptionClasses
-  }
-
   if found then
     noteHasColumns()
     
