@@ -162,7 +162,7 @@ function lightbox()
         if div.classes:includes("cell") and div.attributes["lightbox"] ~= nil then
           meta = quarto.json.decode(div.attributes["lightbox"])
           local codeImgCount = 0
-          div = div:walk({
+          div = _quarto.ast.walk({
             Image = function(imgEl)
               codeImgCount = codeImgCount + 1
               if (type(meta) == "table" and meta[kNoLightboxClass] == true) or meta == false then
