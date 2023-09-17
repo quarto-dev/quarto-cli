@@ -194,7 +194,9 @@ function lightbox()
               return imgEl
             end
           })
-          div.attributes["lightbox"] = nil
+          if div then
+            div.attributes["lightbox"] = nil
+          end
         end
         return div
       end,
