@@ -10,7 +10,6 @@ function make_typst_figure(tbl)
   local numbering = tbl.numbering
   local identifier = tbl.identifier
 
-  quarto.utils.dump { tbl = tbl }
   return pandoc.Blocks({
     pandoc.RawInline("typst", "#figure(["),
     content,
