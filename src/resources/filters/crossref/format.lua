@@ -64,7 +64,10 @@ function refPrefix(type, upper)
   local opt = type .. "-prefix"
   local default = param("crossref-" .. type .. "-prefix")
   if default == nil then
-    default = crossref.categories.by_ref_type[type].prefix
+    default = crossref.categories.by_ref_type[type]
+    if default ~= nil then
+      default = default.prefix
+    end
   end
   if default == nil then
     default = type .. "."
