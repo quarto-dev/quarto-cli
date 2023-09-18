@@ -105,12 +105,12 @@ end, function(layout)
 
   local pt = pandoc.utils.type(layout.preamble)
   if pt == "Blocks" then
-    layout.preamble:insert(figure)
+    layout.preamble:insert(result)
     return layout.preamble
   elseif pt == "Block" then
-    return pandoc.Blocks({ layout.preamble, figure })
+    return pandoc.Blocks({ layout.preamble, result })
   elseif pt == "nil" then
-    return figure
+    return result
   else
     internal_error()
   end
