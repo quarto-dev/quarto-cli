@@ -7213,7 +7213,7 @@ try {
             },
             description: {
               short: "Include cell source code in rendered output.",
-              long: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+              long: "Include cell source code in rendered output.\n\n- `true` (default in most formats): include source code in output\n- `false` (default in presentation formats like `beamer`, `revealjs`, and `pptx`): do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
             }
           },
           {
@@ -21532,6 +21532,15 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "Enable or disable lightbox treatment for images in this document.",
+          {
+            short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+            long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+          },
+          "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+          "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+          "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+          "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -21846,16 +21855,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "Enable or disable lightbox treatment for images in this document.",
-          {
-            short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
-            long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
-          },
-          "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
-          "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
-          "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
-          "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name."
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -22079,12 +22079,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 165803,
+          _internalId: 167847,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 165795,
+              _internalId: 167839,
               type: "enum",
               enum: [
                 "png",
@@ -22100,7 +22100,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 165802,
+              _internalId: 167846,
               type: "anyOf",
               anyOf: [
                 {

@@ -28,8 +28,8 @@
     long: |
       Include cell source code in rendered output.
 
-      - `true` (default): include source code in output
-      - `false`: do not include source code in output
+      - `true` (default in most formats): include source code in output
+      - `false` (default in presentation formats like `beamer`, `revealjs`, and `pptx`): do not include source code in output
       - `fenced`: in addition to echoing, include the cell delimiter as part of the output.
       - `[...]`: A list of positive or negative line numbers to selectively include or exclude lines
         (explicit inclusion/excusion of lines is available only when using the knitr engine)
