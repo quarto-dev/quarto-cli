@@ -14,19 +14,7 @@ function manuscriptUnroll()
       Div = function(divEl)   
           -- If this is a markdown cell, we may need to unroll it
           if divEl.classes:includes("cell") and divEl.classes:includes("markdown") then
-            local blocks = pandoc.List()
-            for _, childBlock in ipairs(divEl.content) do
-              if childBlock.t == "Div" then
-                if fnSkip and not fnSkip(divEl) then
-                  blocks:insert(childBlock)
-                else
-                  tappend(blocks, childBlock.content)
-                end
-              else
-                blocks:insert(childBlock)
-              end
-            end
-            return blocks
+            return divEl.content
           end        
         end
       }
