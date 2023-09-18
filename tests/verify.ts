@@ -344,7 +344,7 @@ const xmlChecker = (
         (Array.isArray(xpathResult) && xpathResult.length > 0);
       assert(
         passes,
-        `Required XPath selector ${selector} returned empty array.`,
+        `Required XPath selector ${selector} returned empty array. Failing document follows:\n\n${xmlText}}`,
       );
     }
     for (const falseSelector of noMatchSelectors ?? []) {
@@ -353,7 +353,7 @@ const xmlChecker = (
         (Array.isArray(xpathResult) && xpathResult.length > 0);
       assert(
         !passes,
-        `Illegal XPath selector ${falseSelector} returned non-empty array.`,
+        `Illegal XPath selector ${falseSelector} returned non-empty array. Failing document follows:\n\n${xmlText}}`,
       );
     }
     return Promise.resolve();
