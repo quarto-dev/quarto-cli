@@ -116,9 +116,15 @@ end, function(layout)
   local content_str = pandoc.write(_quarto.ast.walk(pandoc.Pandoc(panel_content), render_extended_nodes()) or {}, "asciidoc")
   local figure_str = ". " .. caption_str .. "[#" .. layout.identifier .. "]\n" .. content_str
 
-  if layout.preamble then
+  local pt = pandoc.utils.type(layout.preamble)
+  if pt == "Blocks" then
+    layout.preamble:insert(pandoc.RawBlock("asciidoc", figure_str))
+    return layout.preamble
+  elseif pt == "Block" then
     return pandoc.Blocks({ layout.preamble, pandoc.RawBlock("asciidoc", figure_str) })
-  else
+  elseif pt == "nil" then
     return pandoc.RawBlock("asciidoc", figure_str)
+  else
+    internal_error()
   end
 end)
