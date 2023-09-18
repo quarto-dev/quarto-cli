@@ -116,12 +116,9 @@ function parse_floats()
       end
     end
 
-    -- luacov: disable
     if caption == nil then
-      internal_error()
       return nil
     end
-    -- luacov: enable
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
