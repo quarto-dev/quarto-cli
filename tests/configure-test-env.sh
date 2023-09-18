@@ -7,7 +7,11 @@ if [ -z $r_exists ]
 then 
   echo "No Rscript found in PATH - Check your PATH or install R and add to PATH."
 else
+  echo "   > Restoring renv project"
   Rscript -e 'renv::restore()'
+  echo "   > Installing dev knitr and rmarkdown"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
 fi
 
 
