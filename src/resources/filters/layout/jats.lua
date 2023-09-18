@@ -103,9 +103,15 @@ end, function(layout)
   decorate_caption_with_crossref(layout.float)
   local result = pandoc.Figure(panel_content, {layout.float.caption_long}, attr)
 
-  if layout.preamble then
+  local pt = pandoc.utils.type(layout.preamble)
+  if pt == "Blocks" then
+    layout.preamble:insert(result)
+    return layout.preamble
+  elseif pt == "Block" then
     return pandoc.Blocks({ layout.preamble, result })
-  else
+  elseif pt == "nil" then
     return result
+  else
+    internal_error()
   end
 end)
