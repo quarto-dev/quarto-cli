@@ -178,6 +178,7 @@
 
 ## Crossrefs
 
+- ([#2551](https://github.com/quarto-dev/quarto-cli/issues/2551)): Support crossreferenceable figures without captions.
 - ([#6620](https://github.com/quarto-dev/quarto-cli/issues/6620)): Introduce `FloatRefTarget` AST nodes that generalize crossref targets to include figures, tables, and custom floating elements.
 
 ## Other Fixes and Improvements
