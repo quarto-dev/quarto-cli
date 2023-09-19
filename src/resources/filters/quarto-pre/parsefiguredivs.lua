@@ -167,6 +167,40 @@ function parse_floats()
       return div
     end
 
+    if div.classes:includes("cell") and div.attributes["layout-ncol"] == nil then
+      -- if this is a non-layout cell, we need to splice the code out of the
+      -- cell-output-display div
+      -- 
+      -- layout cells do their own processing later
+
+      local return_cell = pandoc.Div({})
+      local final_content = pandoc.Div({})
+      local found_cell_output_display = false
+      for i, element in ipairs(content or {}) do
+        if element.t == "Div" and element.classes:includes("cell-output-display") then
+          found_cell_output_display = true
+        end
+        if found_cell_output_display then
+          final_content.content:insert(element)
+        else
+          return_cell.content:insert(element)
+        end
+      end
+
+      return_cell.classes = div.classes
+      return_cell.attributes = div.attributes
+      local reftarget = quarto.FloatRefTarget({
+        attr = attr,
+        type = category.name,
+        content = final_content,
+        caption_long = {pandoc.Plain(caption.content)},
+      })
+      -- need to reference as a local variable because of the
+      -- second return value from the constructor
+      return_cell.content:insert(reftarget)
+      return return_cell
+    end
+
     return quarto.FloatRefTarget({
       attr = attr,
       type = category.name,
