@@ -116,6 +116,7 @@ jobs:
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+          RENV_CONFIG_PAK_ENABLED: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
