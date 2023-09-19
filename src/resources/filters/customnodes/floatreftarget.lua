@@ -310,12 +310,9 @@ end, function(float)
   end
 
   if float.parent_id then
-    local width = float.width or "0.50"
-    return quarto.LatexEnvironment({
-      name = "minipage",
-      pos = "[t]{" .. width .. "\\linewidth}",
-      content = figure_content
-    })
+    -- the environment here is handled by the parent float and
+    -- the panel layout code
+    return figure_content
   else
     return quarto.LatexEnvironment({
       name = figEnv,

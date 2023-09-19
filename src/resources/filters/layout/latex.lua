@@ -48,15 +48,9 @@ function latexPanel(layout)
       local endOfTable = i == #layout.rows.content
       local endOfRow = j == #row.content
       local prefix, content, suffix = latexCell(cell, vAlign, endOfRow, endOfTable)
-      -- local align = cell.attributes[kLayoutAlign]
-      -- if align == "center" then
-      --   panel.content.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-      -- end
+      panel.content.content:insert(prefix)
       tappend(panel.content.content, content)
-      -- if align == "center" then
-      --   panel.content.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-      -- end
-      -- panel.content.content:insert(suffix)
+      panel.content.content:insert(suffix)
     end
     
   end
@@ -250,12 +244,29 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   -- figure out what we are dealing with
   local label = cell.identifier
   local image = figureImageFromLayoutCell(cell)
+  local has_pandoc_3_figure = false
+  if image == nil then
+    -- attempt to unwrap a Pandoc Figure
+    cell = _quarto.ast.walk(cell, {
+      Figure = function(figure)
+        has_pandoc_3_figure = true
+        _quarto.ast.walk(figure, {
+          Image = function(img)
+            image = img
+          end
+        })
+        if image ~= nil then
+          return image
+        end
+      end
+    })
+  end
   if (label == "") and image then
     label = image.identifier
   end
   local isFigure = isFigureRef(label)
   local isTable = isTableRef(label)
-  local isSubRef = hasRefParent(cell) or (image and hasRefParent(image))
+  local isSubRef = hasRefParent(cell) or (image and hasRefParent(image)) or has_pandoc_3_figure
   local tbl = tableFromLayoutCell(cell)
   
   -- determine width 
@@ -267,7 +278,6 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local content = pandoc.List()
   local suffix = pandoc.List()
 
-  -- sub-captioned always uses \subfloat
   if isSubRef then
     
     -- lift the caption out it it's current location and onto the \subfloat
@@ -293,12 +303,16 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
         caption = pandoc.List()
       end
     end
-    
-    -- subcap
-    latexAppend(subcap, "\\subcaption{\\label{" .. label .. "}")
-    tappend(subcap, caption)
-    latexAppend(subcap, "}\n")
+
+    -- only subcap in the passthrough Figure special case
+    if has_pandoc_3_figure then
+      -- subcap
+      latexAppend(subcap, "\\subcaption{\\label{" .. label .. "}")
+      tappend(subcap, caption)
+      latexAppend(subcap, "}\n")
+    end
   end
+
   
   -- convert to latex percent as necessary
   width = asLatexSize(width)
