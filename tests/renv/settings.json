@@ -1,5 +1,5 @@
 {
-  "bioconductor.version": [],
+  "bioconductor.version": null,
   "external.libraries": [],
   "ignored.packages": [],
   "package.dependency.fields": [
@@ -7,8 +7,13 @@
     "Depends",
     "LinkingTo"
   ],
-  "r.version": [],
-  "snapshot.type": "implicit",
+  "ppm.enabled": true,
+  "ppm.ignored.urls": [
+    "https://yihui.r-universe.dev",
+    "https://rstudio.r-universe.dev"
+  ],
+  "r.version": "4.2.2",
+  "snapshot.type": "explicit",
   "use.cache": true,
   "vcs.ignore.cellar": true,
   "vcs.ignore.library": true,
