@@ -1,0 +1,19 @@
+---
+title: "Footnote in Fig. Caption PDF issue."
+
+format:
+    pdf:
+        pdf-engine: xelatex
+        documentclass: scrartcl
+        fig-pos: "H"
+        output: true
+        toc: true
+        lof: true
+        colorlinks: true
+        code-line-numbers: true
+---
+
+
+## A Figure
+
+![The caption of a figure with a footnote ^[This is a figure caption footnote containing a link <https://quarto.org/quarto-dark-bg.jpeg>]](https://quarto.org/quarto-dark-bg.jpeg)

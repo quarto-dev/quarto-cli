@@ -606,7 +606,7 @@ const captionFootnoteLineProcessor = () => {
   return (line: string): string | undefined => {
     switch (state) {
       case "scanning":
-        if (line.match(/^\\begin{figure}$/)) {
+        if (line.match(/^\\begin{figure}.*$/)) {
           state = "capturing";
           capturedLines = [line];
           return undefined;
