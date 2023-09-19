@@ -251,7 +251,7 @@ function parse_floats()
     end,
 
     Div = function(div)
-      if isFigureDiv(div) then
+      if isFigureDiv(div, false) then
         -- The code below is a fixup that existed since the very beginning of
         -- quarto, see https://github.com/quarto-dev/quarto-cli/commit/12e770616869d43f5a1a3f84f9352491a2034bde
         -- and parent commits. We replicate it here to try and

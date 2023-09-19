@@ -124,8 +124,11 @@ function decorate_caption_with_crossref(float)
     end
   else
     -- in HTML, unlabeled floats do not get a title prefix
-    if (not is_unlabeled_float(float)) and (caption_content ~= nil) and (#caption_content > 0) then
-      local title_prefix = float_title_prefix(float)
+    if (not is_unlabeled_float(float)) then
+      local is_uncaptioned = not ((caption_content ~= nil) and (#caption_content > 0))
+      -- this is a hack but we need it to control styling downstream
+      float.is_uncaptioned = is_uncaptioned
+      local title_prefix = float_title_prefix(float, not is_uncaptioned)
       tprepend(caption_content, title_prefix)
     end
   end
@@ -417,10 +420,11 @@ end)
 local figcaption_uuid = "0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"
 
 local function create_figcaption(float)
+  local cap = float.caption_long
   if float.caption_long == nil or pandoc.utils.stringify(float.caption_long) == "" then
-    return nil
+    cap = pandoc.Blocks({})
   end
-  local ref_type = refType(float.identifier)
+    local ref_type = refType(float.identifier)
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
@@ -431,6 +435,10 @@ local function create_figcaption(float)
   else
     table.insert(classes, "quarto-float-caption")
     table.insert(classes, "quarto-float-" .. ref_type)
+  end
+  if float.is_uncaptioned then
+    -- this figcaption will only contain the crossreferenceable label
+    table.insert(classes, "quarto-uncaptioned")
   end
   return quarto.HtmlTag({
     name = "figcaption",
