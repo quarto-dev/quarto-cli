@@ -65,6 +65,17 @@ function render_pandoc3_figure()
   elseif _quarto.format.isLatexOutput() then
     return {
       traverse = "topdown",
+      FloatRefTarget = function(float)
+        local count = 0
+        _quarto.ast.walk(float.content, {
+          Figure = function()
+            count = count + 1
+          end
+        })
+        if count > 0 then
+          return nil, false
+        end
+      end,
       Figure = function(figure)
         local image
         _quarto.ast.walk(figure, {
