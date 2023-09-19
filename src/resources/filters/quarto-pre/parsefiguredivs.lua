@@ -171,7 +171,7 @@ function parse_floats()
       -- if this is a cell, we need to splice the code out of the
       -- cell-output-display div
 
-      local preamble = pandoc.Div({})
+      local return_cell = pandoc.Div({})
       local final_content = pandoc.Div({})
       local found_cell_output_display = false
       for i, element in ipairs(content or {}) do
@@ -181,18 +181,22 @@ function parse_floats()
         if found_cell_output_display then
           final_content.content:insert(element)
         else
-          preamble.content:insert(element)
+          return_cell.content:insert(element)
         end
       end
-      return pandoc.Blocks({
-        preamble,
-        quarto.FloatRefTarget({
-          attr = attr,
-          type = category.name,
-          content = final_content,
-          caption_long = {pandoc.Plain(caption.content)},
-        })
+
+      return_cell.classes = div.classes
+      return_cell.attributes = div.attributes
+      local reftarget = quarto.FloatRefTarget({
+        attr = attr,
+        type = category.name,
+        content = final_content,
+        caption_long = {pandoc.Plain(caption.content)},
       })
+      -- need to reference as a local variable because of the
+      -- second return value from the constructor
+      return_cell.content:insert(reftarget)
+      return return_cell
     end
 
     return quarto.FloatRefTarget({
