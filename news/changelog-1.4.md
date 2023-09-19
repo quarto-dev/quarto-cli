@@ -48,6 +48,7 @@
 ## PDF Format
 
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
+- ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
 
 ## Docusaurus Format
 
