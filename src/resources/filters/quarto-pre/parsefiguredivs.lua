@@ -167,9 +167,11 @@ function parse_floats()
       return div
     end
 
-    if div.classes:includes("cell") then
-      -- if this is a cell, we need to splice the code out of the
+    if div.classes:includes("cell") and div.attributes["layout-ncol"] == nil then
+      -- if this is a non-layout cell, we need to splice the code out of the
       -- cell-output-display div
+      -- 
+      -- layout cells do their own processing later
 
       local return_cell = pandoc.Div({})
       local final_content = pandoc.Div({})
