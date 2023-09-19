@@ -1667,13 +1667,10 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.17.3",
-      "Source": "Repository",
+      "Version": "1.0.2",
+      "OS_type": null,
       "Repository": "RSPM",
-      "Requirements": [
-        "utils"
-      ],
-      "Hash": "4543b8cd233ae25c6aba8548be9e747e"
+      "Source": "Repository"
     },
     "reprex": {
       "Package": "reprex",
