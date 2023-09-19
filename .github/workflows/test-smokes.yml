@@ -102,7 +102,10 @@ jobs:
       - name: Install missing system deps
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev && sudo apt-get install -y libxml2-utils
+          sudo apt-get update -y
+          sudo apt-get install -y libcurl4-openssl-dev
+          sudo apt-get install -y libxml2-utils
+          sudo apt-get install -y libharfbuzz-dev libfribidi-dev
 
       - name: Restore R packages
         working-directory: tests
@@ -116,7 +119,6 @@ jobs:
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-          RENV_CONFIG_PAK_ENABLED: true
 
       - name: Set up Python
         uses: actions/setup-python@v4
