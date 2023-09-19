@@ -11457,7 +11457,8 @@ try {
                 "$html-all",
                 "context",
                 "muse",
-                "odt"
+                "odt",
+                "docx"
               ]
             },
             description: "Identifies the subtitle of the document."
@@ -11594,7 +11595,8 @@ try {
             tags: {
               formats: [
                 "$html-doc",
-                "$epub-all"
+                "$epub-all",
+                "docx"
               ]
             },
             description: "Title used to label document abstract"
@@ -14931,7 +14933,9 @@ try {
                 "$asciidoc-all",
                 "$html-files",
                 "$pdf-all",
-                "context"
+                "context",
+                "odt",
+                "$office-all"
               ]
             },
             description: "List of keywords to be included in the document metadata."
@@ -14942,7 +14946,8 @@ try {
             tags: {
               formats: [
                 "$pdf-all",
-                "$office-all"
+                "$office-all",
+                "odt"
               ]
             },
             description: "The document subject"
@@ -14952,6 +14957,7 @@ try {
             schema: "string",
             tags: {
               formats: [
+                "odt",
                 "$office-all"
               ]
             },

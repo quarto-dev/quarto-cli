@@ -11456,7 +11456,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "context",
               "muse",
-              "odt"
+              "odt",
+              "docx"
             ]
           },
           description: "Identifies the subtitle of the document."
@@ -11593,7 +11594,8 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             formats: [
               "$html-doc",
-              "$epub-all"
+              "$epub-all",
+              "docx"
             ]
           },
           description: "Title used to label document abstract"
@@ -14930,7 +14932,9 @@ var require_yaml_intelligence_resources = __commonJS({
               "$asciidoc-all",
               "$html-files",
               "$pdf-all",
-              "context"
+              "context",
+              "odt",
+              "$office-all"
             ]
           },
           description: "List of keywords to be included in the document metadata."
@@ -14941,7 +14945,8 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             formats: [
               "$pdf-all",
-              "$office-all"
+              "$office-all",
+              "odt"
             ]
           },
           description: "The document subject"
@@ -14951,6 +14956,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
+              "odt",
               "$office-all"
             ]
           },
