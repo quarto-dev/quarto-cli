@@ -8,7 +8,10 @@
     "LinkingTo"
   ],
   "ppm.enabled": true,
-  "ppm.ignored.urls": [],
+  "ppm.ignored.urls": [
+    "https://yihui.r-universe.dev",
+    "https://rstudio.r-universe.dev"
+  ],
   "r.version": "4.2.2",
   "snapshot.type": "explicit",
   "use.cache": true,
