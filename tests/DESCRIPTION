@@ -4,6 +4,7 @@ Depends:
     rmarkdown,
     knitr,
     shiny,
+    downlit,
     tidyverse,
     ggplot2,
     ggExtra,
