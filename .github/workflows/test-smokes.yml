@@ -114,8 +114,8 @@ jobs:
           renv::restore()
           # Install dev versions for our testing 
           # Use r-universe to avoid github api calls
-          try(renv::install('knitr', repos = c('https://yihui.r-universe.dev')))
-          try(renv::install('rmarkdown', repos = c('https://rstudio.r-universe.dev')))
+          try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
+          try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
         shell: Rscript {0}
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
