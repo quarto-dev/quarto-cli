@@ -115,7 +115,6 @@ jobs:
           try(renv::install('rmarkdown', repos = c('https://rstudio.r-universe.dev')))
         shell: Rscript {0}
         env:
-          RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
