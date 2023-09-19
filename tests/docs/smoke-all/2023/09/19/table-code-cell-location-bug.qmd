@@ -1,0 +1,22 @@
+---
+title: table-cell-bug
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["figure div.cell-code pre"]
+---
+
+```{r}
+#| label: tbl-1
+#| tbl-cap: A caption
+knitr::kable(cars)
+```
+
+```{r}
+#| label: fig-1
+#| fig-cap: A caption
+plot(cars)
+```
