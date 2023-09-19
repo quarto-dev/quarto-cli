@@ -5,7 +5,7 @@
 - name: subtitle
   schema: string
   tags:
-    formats: [$pdf-all, $html-all, context, muse, odt]
+    formats: [$pdf-all, $html-all, context, muse, odt, docx]
   description: "Identifies the subtitle of the document."
 
 - name: date
@@ -102,14 +102,14 @@
         context,
         ms,
         odt,
-        docx
+        docx,
       ]
   description: "Summary of document"
 
 - name: abstract-title
   schema: string
   tags:
-    formats: [$html-doc, $epub-all]
+    formats: [$html-doc, $epub-all, docx]
   description: "Title used to label document abstract"
 
 - name: notes

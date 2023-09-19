@@ -2,19 +2,19 @@
   schema:
     maybeArrayOf: string
   tags:
-    formats: [$asciidoc-all, $html-files, $pdf-all, context]
+    formats: [$asciidoc-all, $html-files, $pdf-all, context, odt, $office-all]
   description: "List of keywords to be included in the document metadata."
 
 - name: subject
   schema: string
   tags:
-    formats: [$pdf-all, $office-all]
+    formats: [$pdf-all, $office-all, odt]
   description: "The document subject"
 
 - name: description
   schema: string
   tags:
-    formats: [$office-all]
+    formats: [odt, $office-all]
   description: "The document description. Some applications show this as `Comments` metadata."
 
 - name: category
