@@ -28,8 +28,14 @@ function figAlignAttribute(el)
 end
 
 -- is this a Div containing a figure
-function isFigureDiv(el)
+function isFigureDiv(el, captionRequired)
   if el.t == "Div" and hasFigureRef(el) then
+    if captionRequired == nil then
+      captionRequired = true
+    end
+    if not captionRequired then
+      return true
+    end
     return el.attributes[kFigCap] ~= nil or refCaptionFromDiv(el) ~= nil
   else
     return discoverLinkedFigureDiv(el) ~= nil
