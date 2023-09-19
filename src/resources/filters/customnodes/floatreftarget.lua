@@ -239,18 +239,31 @@ end, function(float)
 
   local latex_caption
 
-  if float.caption_long and #float.caption_long.content > 0 then
-    local label_cmd = quarto.LatexInlineCommand({
-      name = "label",
-      arg = pandoc.Str(float.identifier)
+  if float.caption_long and #float.caption_long.content == 0 then
+    local caption_setup = quarto.LatexInlineCommand({
+      name = "captionsetup",
+      arg = "labelsep=none"
     })
-    float.caption_long.content:insert(1, label_cmd)
-    latex_caption = quarto.LatexInlineCommand({
-      name = caption_cmd_name,
-      opt_arg = fig_scap,
-      arg = pandoc.Span(quarto.utils.as_inlines(float.caption_long) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
-    })
+    local pt = pandoc.utils.type(float.content)
+    if pt == "Block" then
+      float.content.content:insert(1, caption_setup)
+    elseif pt == "Blocks" then
+      float.content:insert(1, caption_setup)
+    else
+      internal_error()
+    end
   end
+
+  local label_cmd = quarto.LatexInlineCommand({
+    name = "label",
+    arg = pandoc.Str(float.identifier)
+  })
+  float.caption_long.content:insert(1, label_cmd)
+  latex_caption = quarto.LatexInlineCommand({
+    name = caption_cmd_name,
+    opt_arg = fig_scap,
+    arg = pandoc.Span(quarto.utils.as_inlines(float.caption_long or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
+  })
 
   if float.parent_id then
     -- need to fixup subtables because nested longtables appear to give latex fits

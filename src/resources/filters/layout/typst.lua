@@ -9,11 +9,17 @@ function make_typst_figure(tbl)
   local supplement = tbl.supplement
   local numbering = tbl.numbering
   local identifier = tbl.identifier
+  local separator = tbl.separator
+
+  if #caption.content == 0 and tbl.separator == nil then
+    separator = ""
+  end
 
   return pandoc.Blocks({
     pandoc.RawInline("typst", "#figure(["),
     content,
     pandoc.RawInline("typst", "], caption: figure.caption("),
+    pandoc.RawInline("typst", separator and ("separator: \"" .. separator .. "\", ") or ""),
     pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
     pandoc.RawInline("typst", "["),
     caption,
