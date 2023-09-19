@@ -50,7 +50,7 @@ testRender(input, "revealjs", false, [
     "#knitr-plot-no-echo > img.r-stretch + p.caption",
     "#knitr-and-text > img.r-stretch + p.caption + p",
     "#knitr-align > img.r-stretch.quarto-figure-right + p.caption",
-    "#knitr-no-caption-and-content > img.r-stretch + div.cell",
+    "#knitr-no-caption-and-content > img.r-stretch ~ div.cell",
     "#no-content > img.r-stretch",
     "#no-content-caption > img.r-stretch + p.caption",
     "#custom-divs-opt-in > div.custom-block:not(.r-stretch) + img.r-stretch + p.caption",
