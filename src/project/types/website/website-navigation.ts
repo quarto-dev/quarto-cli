@@ -1438,6 +1438,7 @@ async function resolveItem<T extends { href?: string; text?: string }>(
       };
     }
   } else {
+    item.text = item.text || item.href;
     return item;
   }
 }
