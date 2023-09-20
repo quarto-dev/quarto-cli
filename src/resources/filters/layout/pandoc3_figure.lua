@@ -96,6 +96,19 @@ function render_pandoc3_figure()
         return latexImageFigure(image)
       end
     }
+  elseif _quarto.format.isTypstOutput() then
+    return {
+      traverse = "topdown",
+      Figure = function(figure)
+        return make_typst_figure({
+          content = figure.content[1],
+          caption = figure.caption.long[1],
+          kind = "quarto-float-fig",
+          caption_location = crossref.categories.by_ref_type["fig"].default_caption_location,
+          supplement = "Figure",
+        })
+      end
+    }
   end
   return {}
 end
