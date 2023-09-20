@@ -28,7 +28,11 @@ function latexPanel(layout)
     pos = pos
   })
 
-  local capLoc = cap_location(layout.float)
+  local capLoc = "bottom"
+
+  if layout.float ~= nil then
+    capLoc = cap_location(layout.float)
+  end
   local caption = create_latex_caption(layout)
   
    -- read vertical alignment and strip attribute
@@ -104,6 +108,9 @@ function latexCaptionEnv(el)
 end
 
 function create_latex_caption(layout)
+  if layout.float == nil then
+     return nil
+  end
   local caption_env = latexCaptionEnv(layout.float)
   if ((layout.caption_long == nil or #layout.caption_long.content == 0) and
       (layout.caption_short == nil or #layout.caption_short.content == 0)) then
