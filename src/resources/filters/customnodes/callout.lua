@@ -596,6 +596,5 @@ end, function(callout)
   else
     internal_error()
   end
-  print("HERE!!")
   return pandoc.BlockQuote(result)
 end)

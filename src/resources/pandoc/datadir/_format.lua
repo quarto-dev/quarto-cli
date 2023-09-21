@@ -129,7 +129,7 @@ local function isMarkdownOutput()
 end
 
 local function isGithubMarkdownOutput()
-  return FORMAT == "markdown_github" or FORMAT == "gfm"
+  return isMarkdownOutput() and PANDOC_WRITER_OPTIONS.extensions:includes("gfm_auto_identifiers")
 end
 
 -- check for markdown with raw_html enabled

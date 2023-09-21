@@ -14,6 +14,6 @@ This is a callout
 
 ::: {.callout-important}
 
-This is a callout without a titlew
+This is a callout without a title.
 
 :::
