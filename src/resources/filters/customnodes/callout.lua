@@ -385,9 +385,6 @@ function epubCallout(node)
 end
 
 function simpleCallout(node) 
-  print("WHAT")
-  print(_quarto.format.isGithubMarkdownOutput())
-  print(FORMAT)
   local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
   return pandoc.Div(callout, pandoc.Attr(node.id or ""))
