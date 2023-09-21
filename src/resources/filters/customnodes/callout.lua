@@ -584,13 +584,14 @@ end, function(callout)
   local result = pandoc.Blocks({})
   local header = "[!" .. callout.type:upper() .. "]"
   result:insert(pandoc.RawBlock("markdown", header))
-  if callout.title ~= nil then
-    result:insert(pandoc.Header(2, callout.title))
+  local tt = pandoc.utils.type(callout.title)
+  if tt ~= "nil" then 
+    result:insert(pandoc.Header(3, quarto.utils.as_inlines(callout.title)))
   end
-  local pt = pandoc.utils.type(callout.content)
-  if pt == "Block" then
+  local ct = pandoc.utils.type(callout.content)
+  if ct == "Block" then
     result:insert(callout.content)
-  elseif pt == "Blocks" then
+  elseif ct == "Blocks" then
     result:extend(callout.content)
   else
     internal_error()
