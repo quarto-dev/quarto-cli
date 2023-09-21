@@ -520,7 +520,10 @@ function hydrateListing(
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
-      return itemFields;
+      const undisplayable = ["path"];
+      return itemFields.filter((field) => {
+        return !undisplayable.includes(field);
+      });
     } else {
       return defaultFields(type, itemFields);
     }
