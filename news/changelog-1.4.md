@@ -81,6 +81,7 @@
 - ([#6777](https://github.com/quarto-dev/quarto-cli/issues/6777)): Add support for complex fields like `citaiton.container-title` when includes custom fields in listings.
 - ([#6706](https://github.com/quarto-dev/quarto-cli/issues/6706)): If there is no text displayed for external links in navigation items (navbar, sidebar), display the href value as the text.
 - ([#6903](https://github.com/quarto-dev/quarto-cli/issues/6903)): Don't display the `path` field for external paths provided in metadata files.
+- ([#5463](https://github.com/quarto-dev/quarto-cli/issues/5463)): Error if the `contents` of a listing match no items.
 
 ## Websites
 
