@@ -1,0 +1,19 @@
+---
+title: issue-6935
+format: gfm
+---
+
+::: {.callout-note}
+
+## With title
+
+This is a callout
+
+:::
+
+
+::: {.callout-important}
+
+This is a callout without a titlew
+
+:::

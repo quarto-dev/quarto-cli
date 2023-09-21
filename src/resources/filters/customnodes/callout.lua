@@ -385,6 +385,9 @@ function epubCallout(node)
 end
 
 function simpleCallout(node) 
+  print("WHAT")
+  print(_quarto.format.isGithubMarkdownOutput())
+  print(FORMAT)
   local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
   return pandoc.Div(callout, pandoc.Attr(node.id or ""))
@@ -574,3 +577,24 @@ end, calloutDiv)
 _quarto.ast.add_renderer("Callout", function(_) 
   return _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput()
 end, epubCallout)
+
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isGithubMarkdownOutput()
+end, function(callout)
+  local result = pandoc.Blocks({})
+  local header = "[!" .. callout.type:upper() .. "]"
+  result:insert(pandoc.RawBlock("markdown", header))
+  if callout.title ~= nil then
+    result:insert(pandoc.Header(2, callout.title))
+  end
+  local pt = pandoc.utils.type(callout.content)
+  if pt == "Block" then
+    result:insert(callout.content)
+  elseif pt == "Blocks" then
+    result:extend(callout.content)
+  else
+    internal_error()
+  end
+  print("HERE!!")
+  return pandoc.BlockQuote(result)
+end)
