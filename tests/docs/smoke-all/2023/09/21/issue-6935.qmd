@@ -1,6 +1,6 @@
 ---
 title: issue-6935
-format: gfm
+# format: gfm
 ---
 
 ::: {.callout-note}
