@@ -24,7 +24,7 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 Here are what is expected in the environment for the tests :
 
 - R should be installed and in PATH
-  - On Windows, Rtools should be to (for source package) e.g `winget install --id RProject.Rtools`
+  - On Windows, Rtools should be too (for source package installation) e.g `winget install --id RProject.Rtools`
 - Python should be installed and in PATH
   - On Windows, one can use [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage version or install from https://www.python.org/ manually or using `winget`.
 - Julia should be installed and in PATH
@@ -42,6 +42,14 @@ Dependencies are managed using the following tools:
 We use [**renv**](https://rstudio.github.io/renv/). `renv.lock` and `renv/` folders are the files used to recreate the environment for R.
 
 Updating `renv.lock` is done using `renv::snapshot()`. File shouldn't be modified manually.
+
+Our project is using [explicit dependencies discovery](https://rstudio.github.io/renv/reference/dependencies.html?q=dependen#explicit-dependencies) through a `DESCRIPTION` file. This is to avoid a costly scanning of all files in `tests/` to guess R dependencies. This means that if you need to add a test with a new R package dependencies:
+
+- Add package(s) to `DESCRIPTION` in `tests/`
+- `renv::install()` the package into the project library
+- Finish to work on your test
+- `renv::snapshot()` to record the new dependency in the `renv.lock`
+- Commit the new `DESCRIPTION` and `renv.lock`
 
 See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
 

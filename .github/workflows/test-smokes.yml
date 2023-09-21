@@ -95,14 +95,17 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('tests/renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev && sudo apt-get install -y libxml2-utils
+          sudo apt-get update -y
+          sudo apt-get install -y libcurl4-openssl-dev
+          sudo apt-get install -y libxml2-utils
+          sudo apt-get install -y libharfbuzz-dev libfribidi-dev
 
       - name: Restore R packages
         working-directory: tests
@@ -111,11 +114,10 @@ jobs:
           renv::restore()
           # Install dev versions for our testing 
           # Use r-universe to avoid github api calls
-          try(renv::install('knitr', repos = c('https://yihui.r-universe.dev')))
-          try(renv::install('rmarkdown', repos = c('https://rstudio.r-universe.dev')))
+          try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
+          try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
         shell: Rscript {0}
         env:
-          RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python

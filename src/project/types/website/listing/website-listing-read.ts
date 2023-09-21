@@ -520,7 +520,10 @@ function hydrateListing(
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
-      return itemFields;
+      const undisplayable = ["path"];
+      return itemFields.filter((field) => {
+        return !undisplayable.includes(field);
+      });
     } else {
       return defaultFields(type, itemFields);
     }
@@ -740,66 +743,76 @@ async function readContents(
     const files = filterListingFiles(contentGlobs);
     debug(`[listing] matches ${files.include.length} files:`);
 
-    for (const file of files.include) {
-      if (!files.exclude.includes(file)) {
-        if (isYamlPath(file)) {
-          debug(`[listing] Reading YAML file ${file}`);
-          const yaml = readYaml(file);
-          if (Array.isArray(yaml)) {
-            const items = yaml as Array<unknown>;
-            for (const yamlItem of items) {
-              if (typeof (yamlItem) === "object") {
-                const { item, source } = await listItemFromMeta(
-                  yamlItem as Metadata,
-                  project,
-                  listing,
-                  dirname(file),
-                );
-                validateItem(listing, item, (field: string) => {
-                  return `An item from the file '${file}' is missing the required field '${field}'.`;
-                });
-                listingItemSources.add(source);
-                listingItems.push(item);
-              } else {
-                throw new Error(
-                  `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
-                );
-              }
-            }
-          } else if (typeof (yaml) === "object") {
-            const { item, source } = await listItemFromMeta(
-              yaml as Metadata,
-              project,
-              listing,
-              dirname(file),
-            );
-            validateItem(listing, item, (field: string) => {
-              return `The item defined in file '${file}' is missing the required field '${field}'.`;
-            });
-            listingItemSources.add(source);
-            listingItems.push(item);
-          } else {
-            throw new Error(
-              `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
-            );
-          }
-        } else {
-          const isFile = Deno.statSync(file).isFile;
-          if (isFile) {
-            debug(`[listing] Reading file ${file}`);
-            const item = await listItemFromFile(file, project, listing);
-            if (item) {
+    const readFiles = files.include.filter((file) => {
+      return !files.exclude.includes(file);
+    });
+    if (readFiles.length === 0) {
+      const projRelativePath = relative(project.dir, source);
+      throw new Error(
+        `The listing in '${projRelativePath}' using the following contents:\n- ${
+          contentGlobs.join("\n- ")
+        }\ndoesn't match any files or folders.`,
+      );
+    }
+
+    for (const file of readFiles) {
+      if (isYamlPath(file)) {
+        debug(`[listing] Reading YAML file ${file}`);
+        const yaml = readYaml(file);
+        if (Array.isArray(yaml)) {
+          const items = yaml as Array<unknown>;
+          for (const yamlItem of items) {
+            if (typeof (yamlItem) === "object") {
+              const { item, source } = await listItemFromMeta(
+                yamlItem as Metadata,
+                project,
+                listing,
+                dirname(file),
+              );
               validateItem(listing, item, (field: string) => {
-                return `The file ${file} is missing the required field '${field}'.`;
+                return `An item from the file '${file}' is missing the required field '${field}'.`;
               });
-
-              if (item.item.title === undefined) {
-                debug(`[listing] Missing Title in File ${file}`);
-              }
-
-              listingItemSources.add(item.source);
-              listingItems.push(item.item);
+              listingItemSources.add(source);
+              listingItems.push(item);
+            } else {
+              throw new Error(
+                `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
+              );
             }
+          }
+        } else if (typeof (yaml) === "object") {
+          const { item, source } = await listItemFromMeta(
+            yaml as Metadata,
+            project,
+            listing,
+            dirname(file),
+          );
+          validateItem(listing, item, (field: string) => {
+            return `The item defined in file '${file}' is missing the required field '${field}'.`;
+          });
+          listingItemSources.add(source);
+          listingItems.push(item);
+        } else {
+          throw new Error(
+            `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
+          );
+        }
+      } else {
+        const isFile = Deno.statSync(file).isFile;
+        if (isFile) {
+          debug(`[listing] Reading file ${file}`);
+          const item = await listItemFromFile(file, project, listing);
+          if (item) {
+            validateItem(listing, item, (field: string) => {
+              return `The file ${file} is missing the required field '${field}'.`;
+            });
+
+            if (item.item.title === undefined) {
+              debug(`[listing] Missing Title in File ${file}`);
+            }
+
+            listingItemSources.add(item.source);
+            listingItems.push(item.item);
           }
         }
       }

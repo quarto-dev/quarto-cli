@@ -7,6 +7,13 @@ rm -f /usr/local/bin/quarto
 else
 rm -f ~/bin/quarto
 fi
-rm -f /opt/quarto/bin/tools/pandoc
+
+# Remove pandoc symlink created by postinst
+# (before 1.4 this was a regular file that shouldn't be removed here)
+pandoc=/opt/quarto/bin/tools/pandoc
+if [ -h "$pandoc" ]
+then
+  rm -f "$pandoc"
+fi
 
 exit 0

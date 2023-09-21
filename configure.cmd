@@ -36,15 +36,15 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
   %WINDIR%/System32/tar -xf !DENO_FILE!
 
   REM If tar failed, try unzipping it.
-  IF %ERRORLEVEL% NEQ 0 ( 
+  IF ERRORLEVEL 1 ( 
     ECHO tar failed; trying to unzip...
-    unzip !DENO_FILE!	
+    unzip -o !DENO_FILE!	
   )
 
   REM If both failed, exit with error.
   REM These blocks aren't nested because of the way Windows evaluates variables in control blocks;
   REM %ERRORLEVEL% won't update without jumping through more hoops in a nested if.
-  IF %ERRORLEVEL% NEQ 0 (
+  IF ERRORLEVEL 1 (
     ECHO Unable to decompress !DENO_FILE!
     exit 1
   )
