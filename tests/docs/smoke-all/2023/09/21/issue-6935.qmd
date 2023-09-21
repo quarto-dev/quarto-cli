@@ -1,6 +1,15 @@
 ---
 title: issue-6935
-# format: gfm
+_quarto:
+  tests:
+    gfm:
+      ensureFileRegexMatches:
+        - 
+          - "[>] ### With title" # Note that all headers are re-rendered to level 3
+          - "[>] This is a callout"
+          - "[>] \\[[!]NOTE\\]"
+          - "[>] \\[[!]IMPORTANT\\]"
+        - ["<div>"]
 ---
 
 ::: {.callout-note}

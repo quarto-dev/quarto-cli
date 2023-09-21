@@ -159,6 +159,8 @@
 - ([#6211](https://github.com/quarto-dev/quarto-cli/pull/6211)): Improve error message when a JSON filter (or a potentially misspelled Lua filter from an extension) is not found.
 - ([#6215](https://github.com/quarto-dev/quarto-cli/issues/6215)): Add `quarto.utils.string_to_inlines` and `quarto.utils.string_to_blocks` to Lua API to convert a string to a list of inlines or blocks taking into account quarto's AST structure.
 - ([#6289](https://github.com/quarto-dev/quarto-cli/issues/6289)): allow `markdownToInlines` to take empty string.
+- ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): render callouts to `gfm` using GitHub's syntax.
+- ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): Add isGithubMarkdownOutput() to quarto.format API.
 
 ## Debian Installer
 
