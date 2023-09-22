@@ -62,6 +62,7 @@ import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
+import("./quarto-post/typst.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
@@ -328,6 +329,7 @@ local quarto_post_filters = {
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
+  { name = "post-render-typst", filter = render_typst() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
