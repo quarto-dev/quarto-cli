@@ -16,6 +16,7 @@ import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
 import { copyMinimal } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
+import { execProcess } from "../../../src/core/process.ts";
 
 export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
@@ -207,7 +208,7 @@ export async function updateHtmlDependencies(config: Configuration) {
   const glightboxDir = join(formatDir, "glightbox");
   const glightBoxVersion = Deno.env.get("GLIGHTBOX_JS");;
 
-  info("Updating gloghtbox");
+  info("Updating glightbox");
   const basename = `glightbox-master`;
   const fileName = `${basename}.zip`;
   const distUrl = `https://github.com/biati-digital/glightbox/releases/download/${glightBoxVersion}/${fileName}`;
@@ -238,6 +239,7 @@ export async function updateHtmlDependencies(config: Configuration) {
       join(glightboxDir, depends.to)
     );
   });
+  info("");
 
   // Fuse
   const fuseJs = join(
@@ -587,6 +589,36 @@ async function updateBootstrapFromBslib(
       // Checkout the appropriate version
       await repo.checkout(commit);
 
+      // Build the required JS files
+      info("Copying Components");
+
+      // Get the components
+      const componentsFrom = join(repo.dir, "inst", "components", "dist");
+      const componentsTo = join(distDir, "components");
+      const components = ["accordion", "card", "grid", "sidebar", "valuebox"];
+      for (const component of components) {
+        info(` - ${component}`);
+        const componentDir = join(componentsTo, component);
+        ensureDirSync(componentDir);
+
+        const files = [
+          `${component}.min.js`,
+          `${component}.css`
+        ];
+
+        for (const file of files) {
+          const fromPath = join(componentsFrom, component, file);
+          if (existsSync(fromPath)) {
+            const toPath = join(componentsTo, component, file);
+            ensureDirSync(dirname(toPath));
+            Deno.copyFileSync(fromPath, toPath);
+
+            // Clean the source path
+            cleanSourceMap(toPath);
+          }
+        }        
+      }
+
       // Copy the scss files
       info("Copying scss files");
       const from = join(repo.dir, "inst", "lib", "bs5", "scss");
@@ -693,6 +725,8 @@ async function updateBootstrapFromBslib(
           Deno.writeTextFileSync(themeOut, patchedScss);
         }
       }
+
+
       info("Done\n");
     }
   );
