@@ -678,3 +678,9 @@ div.cell-output-display div.pagedtable-wrapper table.table {
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10) ~ li {
   margin-left: 1em;
 }
+
+// Patch to revealjs' pdf.scss to avoid last blank slide
+// https://github.com/quarto-dev/quarto-cli/issues/3997
+html.print-pdf .reveal .slides .pdf-page:last-child {
+  page-break-after: avoid;
+}
