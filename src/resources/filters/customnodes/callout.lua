@@ -350,7 +350,7 @@ function epubCallout(node)
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
   -- title
-  if title ~= nil then
+  if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
     local callout_title = pandoc.Div({}, pandoc.Attr("", {"callout-title"}))
     if hasIcon then
       callout_title.content:insert(imgDiv)
