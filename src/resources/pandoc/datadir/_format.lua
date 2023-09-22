@@ -128,6 +128,10 @@ local function isMarkdownOutput()
   return tcontains(formats, FORMAT) or is_docusaurus_output()
 end
 
+local function isGithubMarkdownOutput()
+  return param("format-identifier", {})["base-format"] == "gfm"
+end
+
 -- check for markdown with raw_html enabled
 local function isMarkdownWithHtmlOutput()
   return (isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")) or is_docusaurus_output()
@@ -240,7 +244,6 @@ local function isTypstOutput()
   return FORMAT == "typst"
 end
 
-
 return {
   isAsciiDocOutput = isAsciiDocOutput,
   isRawHtml = isRawHtml,
@@ -256,6 +259,7 @@ return {
   isRevealJsOutput = isRevealJsOutput,
   isSlideOutput = isSlideOutput,
   isEpubOutput = isEpubOutput,
+  isGithubMarkdownOutput = isGithubMarkdownOutput,
   isMarkdownOutput = isMarkdownOutput,
   isMarkdownWithHtmlOutput = isMarkdownWithHtmlOutput,
   isIpynbOutput = isIpynbOutput, 

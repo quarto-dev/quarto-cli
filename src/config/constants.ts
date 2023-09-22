@@ -737,3 +737,5 @@ export const kSourceMappingRegexes = [
   /^\/\/#\s*sourceMappingURL\=.*\.map$/gm,
   /\/\*\# sourceMappingURL=.* \*\//g,
 ];
+
+export const kFormatIdentifier = "format-identifier";

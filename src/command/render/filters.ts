@@ -20,6 +20,7 @@ import {
   kFigEnv,
   kFigPos,
   kFigResponsive,
+  kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
   kIncludeAfter,
@@ -156,6 +157,7 @@ export async function filterParamsJson(
       crossref: crossrefFilterActive(options),
       jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
+    [kFormatIdentifier]: options.format.identifier,
   };
   return JSON.stringify(params);
 }
