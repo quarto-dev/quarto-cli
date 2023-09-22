@@ -29,6 +29,18 @@ testRender(input, "html", false, [
     // formatting is kept in caption
     "div.callout-tip > div.callout-header > div.callout-title-container > strong",
     "div.callout-tip > div.callout-header > div.callout-title-container > code",
+    // appearance correctly modify structure
+    "#appearance div.callout-style-simple > div.callout-body > div.callout-icon-container + div.callout-body-container",
+    "#appearance div.callout-style-default.callout-titled > div.callout-header > div.callout-icon-container + div.callout-title-container",
+    "#appearance div.callout-style-default.callout-titled > div.callout-header + div.callout-body-container",
+    "#appearance div.callout-style-default.no-icon.callout-titled > div.callout-header > div.callout-icon-container > i.no-icon",
+    "#appearance div.callout-style-default.no-icon.callout-titled > div.callout-header > div.callout-icon-container + div.callout-title-container",
+    "#appearance div.callout-style-simple.no-icon > div.callout-body",
+    "#minimal div.callout-style-simple.no-icon > div.callout-body",
+  ], 
+  [
+    "#appearance div.callout-style-simple.no-icon > div.callout-header",
+    "#minimal div.callout-style-simple.no-icon > div.callout-header"
   ]),
 ]);
 
