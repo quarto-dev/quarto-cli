@@ -376,7 +376,7 @@ function epubCallout(node)
   if hasIcon == false then
     attributes:insert("no-icon")
   end
-  if title ~= nil then
+  if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
     attributes:insert("callout-titled")
   end
   attributes:insert("callout-style-" .. calloutAppearance)
