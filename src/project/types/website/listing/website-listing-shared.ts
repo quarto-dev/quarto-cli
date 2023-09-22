@@ -278,8 +278,12 @@ export const renderedContentReader = (
   };
 };
 
+const isWebUrl = (url: string) => {
+  return url.startsWith("http:") || url.startsWith("https:");
+};
+
 export const absoluteUrl = (siteUrl: string, url: string) => {
-  if (url.startsWith("http:") || url.startsWith("https:")) {
+  if (isWebUrl(url)) {
     return url;
   } else {
     const baseUrl = siteUrl.endsWith("/")
@@ -330,7 +334,7 @@ export function readRenderedContents(
         const imgEl = imgNode as Element;
         let src = imgEl.getAttribute("src");
         if (src) {
-          if (!src.startsWith("/")) {
+          if (!src.startsWith("/") && !isWebUrl(src)) {
             src = join(fileRelFolder, src);
           }
           imgEl.setAttribute("src", absoluteUrl(siteUrl, src));
