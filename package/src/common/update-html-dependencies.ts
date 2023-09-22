@@ -716,14 +716,14 @@ async function updateBoostrapIcons(
 
   // Copy the woff file
   Deno.copyFileSync(
-    join(working, dirName, "font", "fonts", "bootstrap-icons.woff"),
+    join(working, dirName, "fonts", "bootstrap-icons.woff"),
     join(distDir, "bootstrap-icons.woff")
   );
 
   // Copy the css file, then fix it up
   const cssPath = join(distDir, "bootstrap-icons.css");
   Deno.copyFileSync(
-    join(working, dirName, "font", "bootstrap-icons.css"),
+    join(working, dirName, "bootstrap-icons.css"),
     cssPath
   );
   fixupFontCss(cssPath);
