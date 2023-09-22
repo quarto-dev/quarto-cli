@@ -20,7 +20,11 @@ function coalesce_raw()
     -- flatten out divs before merging raw blocks
     table.insert(filters, {
       Div = function(div)
-        return div.content
+        -- only flatten out divs that have no classes or attributes
+        -- (see https://github.com/quarto-dev/quarto-cli/issues/6936)
+        if #div.classes == 0 and #div.attributes == 0 then
+          return div.content
+        end
       end
     })
   end
