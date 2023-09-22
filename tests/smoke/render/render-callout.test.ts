@@ -44,6 +44,35 @@ testRender(input, "html", false, [
   ]),
 ]);
 
+testRender(input, "revealjs", false, [
+  ensureHtmlElements(htmlOutput.outputPath, [
+    // callout environments are created
+    "div.callout-warning",
+    "div.callout-important",
+    "div.callout-note",
+    "div.callout-tip",
+    "div.callout-caution",
+    "div.callout.no-icon",
+    // formatting is kept in caption
+    "#markup div.callout-tip > div.callout-body > div.callout-title strong > code",
+    "#markup div.callout-caution > div.callout-body > div.callout-content code",
+    "#markup div.callout-none.no-icon.callout-titled.callout-style-simple > div.callout-body > div.callout-content code",
+    // appearance correctly modify structure
+    "#overview div.callout-style-default.callout-titled > div.callout-body > div.callout-title > div.callout-icon-container + p > strong", // default: title and icon correctly set
+    "#overview div.callout-style-default.callout-titled > div.callout-body > div.callout-title + div.callout-content", // default: title and content correctly set
+    "#appearance div.callout-style-simple > div.callout-body > div.callout-icon-container + div.callout-content", // simple: icon and content correctly set
+    "#appearance div.callout-style-default.callout-titled > div.callout-body > div.callout-title + div.callout-content", // default: title and content correctly set
+    "#appearance div.callout-style-default.no-icon.callout-titled > div.callout-body > div.callout-title + div.callout-content", // default no icon: title and content correctly set
+    "#appearance div.callout-style-simple.no-icon > div.callout-body", // simple no icon: content correctly set
+    "#minimal div.callout-style-simple.no-icon > div.callout-body > div.callout-content", // minimal
+  ], 
+  [
+    "#appearance div.callout-style-default.no-icon.callout-titled > div.callout-body > div.callout-title > div.callout-icon-container", // default no icon: title and content correctly set
+    "#appearance div.callout-style-simple.no-icon > div.callout-body > div.callout-icon-container", // simple no icon
+    "#minimal div.callout-style-simple.no-icon > div.callout-body > div.callout-icon-container"
+  ]),
+]);
+
 const teXOutput = outputForInput(input, "latex");
 testRender(input, "latex", true, [
   ensureFileRegexMatches(teXOutput.outputPath, [
