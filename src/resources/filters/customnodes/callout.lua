@@ -339,7 +339,7 @@ function epubCallout(node)
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
 
-  if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == nil then
+  if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == "" then
     title = displayName(type)
   end
   
