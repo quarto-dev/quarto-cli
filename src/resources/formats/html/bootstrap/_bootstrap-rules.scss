@@ -914,23 +914,22 @@ pre {
   border: initial;
 }
 
-// Maps the pandoc 'monobackgroundcolor' to bootstrap
+/ Maps the pandoc 'monobackgroundcolor' to bootstrap
 // Note this only targets code outside of sourceCode blocks
-@if variable-exists(mono-background-color) {
-  p code:not(.sourceCode),
-  li code:not(.sourceCode),
-  kbd,
-  pre:not(.sourceCode),
-  samp {
-    background-color: $mono-background-color;
-    padding: 0.2em;
-  }
-}
 
 // Default padding if background is set
+h1 code:not(.sourceCode),
+h2 code:not(.sourceCode),
+h3 code:not(.sourceCode),
+h4 code:not(.sourceCode),
+h5 code:not(.sourceCode),
+h6 code:not(.sourceCode),
 p code:not(.sourceCode),
 li code:not(.sourceCode),
-td code:not(.sourceCode) {
+td code:not(.sourceCode),
+kbd,
+pre:not(.sourceCode),
+samp  {
   @if variable-exists(mono-background-color) {
     background-color: $mono-background-color;
   } @else if variable-exists(code-bg) {
