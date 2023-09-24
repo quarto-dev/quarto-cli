@@ -26,6 +26,12 @@
     formats: [html, html4, html5, slidy, slideous, s5, dzslides]
   description: Sets the CSS `background-color` property on code elements and adds extra padding.
 
+- name: monoforegroundcolor
+  schema: string
+  tags:
+    formats: [html, html4, html5, slidy, slideous, s5, dzslides]
+  description: Sets the CSS `color` property on code elements and adds extra padding.
+
 - name: backgroundcolor
   schema: string
   tags:
