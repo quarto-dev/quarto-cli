@@ -7033,538 +7033,489 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "Unique label for code cell",
-            long: "Unique label for code cell. Used when other code needs to refer to the cell \n(e.g. for cross references `fig-samples` or `tbl-summary`)\n"
-          }
+            long: "Unique label for code cell. Used when other code needs to refer to the cell \n(e.g. for cross references `fig-samples` or `tbl-summary`)\n",
+          },
         },
         {
           name: "classes",
           schema: "string",
-          description: "Classes to apply to cell container"
+          description: "Classes to apply to cell container",
         },
         {
           name: "tags",
           tags: {
-            engine: "jupyter"
+            engine: "jupyter",
           },
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
-          description: "Array of tags for notebook cell"
+          description: "Array of tags for notebook cell",
         },
         {
           name: "id",
           tags: {
-            engine: "jupyter"
+            engine: "jupyter",
           },
           schema: "string",
           description: {
             short: "Notebook cell identifier",
-            long: "Notebook cell identifier. Note that if there is no cell `id` then `label` \nwill be used as the cell `id` if it is present.\nSee <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>\nfor additional details on cell ids.\n"
-          }
+            long: "Notebook cell identifier. Note that if there is no cell `id` then `label` \nwill be used as the cell `id` if it is present.\nSee <https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html>\nfor additional details on cell ids.\n",
+          },
         },
         {
           name: "export",
           tags: {
-            engine: "jupyter"
+            engine: "jupyter",
           },
           schema: null,
           hidden: true,
-          description: "nbconvert tag to export cell"
-        }
+          description: "nbconvert tag to export cell",
+        },
       ],
       "schema/cell-cache.yml": [
         {
           name: "cache",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
           description: {
             short: "Whether to cache a code chunk.",
-            long: "Whether to cache a code chunk. When evaluating\ncode chunks for the second time, the cached chunks are skipped (unless they\nhave been modified), but the objects created in these chunks are loaded from\npreviously saved databases (`.rdb` and `.rdx` files), and these files are\nsaved when a chunk is evaluated for the first time, or when cached files are\nnot found (e.g., you may have removed them by hand). Note that the filename\nconsists of the chunk label with an MD5 digest of the R code and chunk\noptions of the code chunk, which means any changes in the chunk will produce\na different MD5 digest, and hence invalidate the cache.\n"
-          }
+            long: "Whether to cache a code chunk. When evaluating\ncode chunks for the second time, the cached chunks are skipped (unless they\nhave been modified), but the objects created in these chunks are loaded from\npreviously saved databases (`.rdb` and `.rdx` files), and these files are\nsaved when a chunk is evaluated for the first time, or when cached files are\nnot found (e.g., you may have removed them by hand). Note that the filename\nconsists of the chunk label with an MD5 digest of the R code and chunk\noptions of the code chunk, which means any changes in the chunk will produce\na different MD5 digest, and hence invalidate the cache.\n",
+          },
         },
         {
           name: "cache-path",
           hidden: true,
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "path",
-          description: "A prefix to be used to generate the paths of cache files"
+          description:
+            "A prefix to be used to generate the paths of cache files",
         },
         {
           name: "cache-vars",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           description: {
             short: "Variable names to be saved in the cache database.",
-            long: "Variable names to be saved in\nthe cache database. By default, all variables created in the current chunks\nare identified and saved, but you may want to manually specify the variables\nto be saved, because the automatic detection of variables may not be robust,\nor you may want to save only a subset of variables.\n"
-          }
+            long: "Variable names to be saved in\nthe cache database. By default, all variables created in the current chunks\nare identified and saved, but you may want to manually specify the variables\nto be saved, because the automatic detection of variables may not be robust,\nor you may want to save only a subset of variables.\n",
+          },
         },
         {
           name: "cache-globals",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "string",
           description: {
-            short: "Variables names that are not created from the current chunk",
-            long: "Variables names that are not created from the current chunk.\n\nThis option is mainly for `autodep: true` to work more precisely---a chunk\n`B` depends on chunk `A` when any of `B`'s global variables are `A`'s local \nvariables. In case the automatic detection of global variables in a chunk \nfails, you may manually specify the names of global variables via this option.\nIn addition, `cache-globals: false` means detecting all variables in a code\nchunk, no matter if they are global or local variables.\n"
-          }
+            short:
+              "Variables names that are not created from the current chunk",
+            long: "Variables names that are not created from the current chunk.\n\nThis option is mainly for `autodep: true` to work more precisely---a chunk\n`B` depends on chunk `A` when any of `B`'s global variables are `A`'s local \nvariables. In case the automatic detection of global variables in a chunk \nfails, you may manually specify the names of global variables via this option.\nIn addition, `cache-globals: false` means detecting all variables in a code\nchunk, no matter if they are global or local variables.\n",
+          },
         },
         {
           name: "cache-lazy",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: true,
           description: {
             short: "Whether to `lazyLoad()` or directly `load()` objects",
-            long: "Whether to `lazyLoad()` or directly `load()` objects. For very large objects, \nlazyloading may not work, so `cache-lazy: false` may be desirable (see\n[#572](https://github.com/yihui/knitr/issues/572)).\n"
-          }
+            long: "Whether to `lazyLoad()` or directly `load()` objects. For very large objects, \nlazyloading may not work, so `cache-lazy: false` may be desirable (see\n[#572](https://github.com/yihui/knitr/issues/572)).\n",
+          },
         },
         {
           name: "cache-rebuild",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
-          description: "Force rebuild of cache for chunk"
+          description: "Force rebuild of cache for chunk",
         },
         {
           name: "cache-comments",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: true,
-          description: "Prevent comment changes from invalidating the cache for a chunk"
+          description:
+            "Prevent comment changes from invalidating the cache for a chunk",
         },
         {
           name: "dependson",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
             anyOf: [
               {
-                maybeArrayOf: "string"
+                maybeArrayOf: "string",
               },
               {
-                maybeArrayOf: "number"
-              }
-            ]
+                maybeArrayOf: "number",
+              },
+            ],
           },
-          description: "Explicitly specify cache dependencies for this chunk (one or more chunk labels)\n"
+          description:
+            "Explicitly specify cache dependencies for this chunk (one or more chunk labels)\n",
         },
         {
           name: "autodep",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
-          description: "Detect cache dependencies automatically via usage of global variables"
-        }
+          description:
+            "Detect cache dependencies automatically via usage of global variables",
+        },
       ],
       "schema/cell-codeoutput.yml": [
         {
           name: "eval",
           tags: {
-            contexts: [
-              "document-execute"
-            ],
-            "execute-only": true
+            contexts: ["document-execute"],
+            "execute-only": true,
           },
           schema: "boolean",
           default: true,
           description: {
-            short: "Evaluate code cells (if `false` just echos the code into output).",
-            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
-          }
+            short:
+              "Evaluate code cells (if `false` just echos the code into output).",
+            long: "Evaluate code cells (if `false` just echos the code into output).\n\n- `true` (default): evaluate code cell\n- `false`: don't evaluate code cell\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines \n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n",
+          },
         },
         {
           name: "echo",
           tags: {
-            contexts: [
-              "document-execute"
-            ],
-            "execute-only": true
+            contexts: ["document-execute"],
+            "execute-only": true,
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "fenced"
-                ]
-              }
+                enum: ["fenced"],
+              },
             ],
-            errorDescription: "be `true`, `false`, or `fenced`"
+            errorDescription: "be `true`, `false`, or `fenced`",
           },
           description: {
             short: "Include cell source code in rendered output.",
-            long: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
-          }
+            long: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n",
+          },
         },
         {
           name: "code-fold",
           tags: {
-            contexts: [
-              "document-code"
-            ],
-            formats: [
-              "$html-all"
-            ]
+            contexts: ["document-code"],
+            formats: ["$html-all"],
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "show"
-                ]
-              }
-            ]
+                enum: ["show"],
+              },
+            ],
           },
           default: false,
           description: {
-            short: "Collapse code into an HTML `<details>` tag so the user can display it on-demand.",
-            long: "Collapse code into an HTML `<details>` tag so the user can display it on-demand.\n\n- `true`: collapse code\n- `false` (default): do not collapse code\n- `show`: use the `<details>` tag, but show the expanded code initially.\n"
-          }
+            short:
+              "Collapse code into an HTML `<details>` tag so the user can display it on-demand.",
+            long: "Collapse code into an HTML `<details>` tag so the user can display it on-demand.\n\n- `true`: collapse code\n- `false` (default): do not collapse code\n- `show`: use the `<details>` tag, but show the expanded code initially.\n",
+          },
         },
         {
           name: "code-summary",
           tags: {
-            contexts: [
-              "document-code"
-            ],
-            formats: [
-              "$html-all"
-            ]
+            contexts: ["document-code"],
+            formats: ["$html-all"],
           },
           schema: "string",
           default: "Code",
-          description: "Summary text to use for code blocks collapsed using `code-fold`"
+          description:
+            "Summary text to use for code blocks collapsed using `code-fold`",
         },
         {
           name: "code-overflow",
           tags: {
-            contexts: [
-              "document-code"
-            ],
-            formats: [
-              "$html-all"
-            ]
+            contexts: ["document-code"],
+            formats: ["$html-all"],
           },
           schema: {
-            enum: [
-              "scroll",
-              "wrap"
-            ]
+            enum: ["scroll", "wrap"],
           },
           default: "scroll",
           description: {
-            short: "Choose whether to `scroll` or `wrap` when code lines are too wide for their container.",
-            long: "Choose how to handle code overflow, when code lines are too wide for their container. One of:\n\n- `scroll`\n- `wrap`\n"
-          }
+            short:
+              "Choose whether to `scroll` or `wrap` when code lines are too wide for their container.",
+            long: "Choose how to handle code overflow, when code lines are too wide for their container. One of:\n\n- `scroll`\n- `wrap`\n",
+          },
         },
         {
           name: "code-line-numbers",
           tags: {
-            contexts: [
-              "document-code"
-            ],
-            formats: [
-              "$html-all",
-              "ms",
-              "$pdf-all"
-            ]
+            contexts: ["document-code"],
+            formats: ["$html-all", "ms", "$pdf-all"],
           },
           schema: {
-            anyOf: [
-              "boolean",
-              "string"
-            ],
+            anyOf: ["boolean", "string"],
             tags: {
-              doNotNarrowError: true
+              doNotNarrowError: true,
             },
-            errorDescription: "be `true`, `false`, or a string specifying the lines to highlight"
+            errorDescription:
+              "be `true`, `false`, or a string specifying the lines to highlight",
           },
           default: false,
           description: {
-            short: "Include line numbers in code block output (`true` or `false`)",
-            long: "Include line numbers in code block output (`true` or `false`).\n\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines).\n\n* Sets of lines are denoted with commas:\n  * `3,4,5`\n  * `1,10,12`\n* Ranges can be denoted with dashes and combined with commas:\n  * `1-3,5` \n  * `5-10,12,14`\n* Finally, animation steps are separated by `|`:\n  * `1-3|1-3,5` first shows `1-3`, then `1-3,5`\n  * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10\n    and 12\n"
-          }
+            short:
+              "Include line numbers in code block output (`true` or `false`)",
+            long: "Include line numbers in code block output (`true` or `false`).\n\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines).\n\n* Sets of lines are denoted with commas:\n  * `3,4,5`\n  * `1,10,12`\n* Ranges can be denoted with dashes and combined with commas:\n  * `1-3,5` \n  * `5-10,12,14`\n* Finally, animation steps are separated by `|`:\n  * `1-3|1-3,5` first shows `1-3`, then `1-3,5`\n  * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10\n    and 12\n",
+          },
         },
         {
           name: "lst-label",
           schema: "string",
-          description: "Unique label for code listing (used in cross references)"
+          description:
+            "Unique label for code listing (used in cross references)",
         },
         {
           name: "lst-cap",
           schema: "string",
-          description: "Caption for code listing"
+          description: "Caption for code listing",
         },
         {
           name: "tidy",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
-          description: "Whether to reformat R code."
+          description: "Whether to reformat R code.",
         },
         {
           name: "tidy-opts",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
-          description: "List of options to pass to `tidy` handler"
+          description: "List of options to pass to `tidy` handler",
         },
         {
           name: "collapse",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
-          description: "Collapse all the source and output blocks from one code chunk into a single block\n"
+          description:
+            "Collapse all the source and output blocks from one code chunk into a single block\n",
         },
         {
           name: "prompt",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
           description: {
             short: "Whether to add the prompt characters in R code.",
-            long: "Whether to add the prompt characters in R\ncode. See `prompt` and `continue` on the help page `?base::options`. Note\nthat adding prompts can make it difficult for readers to copy R code from\nthe output, so `prompt: false` may be a better choice. This option may not\nwork well when the `engine` is not `R`\n([#1274](https://github.com/yihui/knitr/issues/1274)).\n"
-          }
+            long: "Whether to add the prompt characters in R\ncode. See `prompt` and `continue` on the help page `?base::options`. Note\nthat adding prompts can make it difficult for readers to copy R code from\nthe output, so `prompt: false` may be a better choice. This option may not\nwork well when the `engine` is not `R`\n([#1274](https://github.com/yihui/knitr/issues/1274)).\n",
+          },
         },
         {
           name: "highlight",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: false,
           hidden: true,
-          description: "Whether to syntax highlight the source code"
+          description: "Whether to syntax highlight the source code",
         },
         {
           name: "class-source",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Class name(s) for source code blocks"
+          description: "Class name(s) for source code blocks",
         },
         {
           name: "attr-source",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Attribute(s) for source code blocks"
-        }
+          description: "Attribute(s) for source code blocks",
+        },
       ],
       "schema/cell-figure.yml": [
         {
           name: "fig-width",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "number",
-          description: "Default width for figures"
+          description: "Default width for figures",
         },
         {
           name: "fig-height",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "number",
-          description: "Default height for figures"
+          description: "Default height for figures",
         },
         {
           name: "fig-cap",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Figure caption"
+          description: "Figure caption",
         },
         {
           name: "fig-subcap",
           schema: {
             anyOf: [
               {
-                enum: [
-                  true
-                ]
+                enum: [true],
               },
               {
-                maybeArrayOf: "string"
-              }
-            ]
+                maybeArrayOf: "string",
+              },
+            ],
           },
-          description: "Figure subcaptions"
+          description: "Figure subcaptions",
         },
         {
           name: "fig-link",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Hyperlink target for the figure"
+          description: "Hyperlink target for the figure",
         },
         {
           name: "fig-align",
           tags: {
-            contexts: [
-              "document-figures"
-            ],
-            formats: [
-              "docx",
-              "rtf",
-              "$odt-all",
-              "$pdf-all",
-              "$html-all"
-            ]
+            contexts: ["document-figures"],
+            formats: ["docx", "rtf", "$odt-all", "$pdf-all", "$html-all"],
           },
           schema: {
             maybeArrayOf: {
-              enum: [
-                "default",
-                "left",
-                "right",
-                "center"
-              ]
-            }
+              enum: ["default", "left", "right", "center"],
+            },
           },
           default: "default",
-          description: "Figure horizontal alignment (`default`, `left`, `right`, or `center`)"
+          description:
+            "Figure horizontal alignment (`default`, `left`, `right`, or `center`)",
         },
         {
           name: "fig-alt",
           tags: {
-            formats: [
-              "$html-all"
-            ]
+            formats: ["$html-all"],
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Alternative text to be used in the `alt` attribute of HTML images.\n"
+          description:
+            "Alternative text to be used in the `alt` attribute of HTML images.\n",
         },
         {
           name: "fig-env",
           tags: {
-            formats: [
-              "$pdf-all"
-            ],
-            contexts: [
-              "document-figures"
-            ]
+            formats: ["$pdf-all"],
+            contexts: ["document-figures"],
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "LaTeX environment for figure output"
+          description: "LaTeX environment for figure output",
         },
         {
           name: "fig-pos",
           tags: {
-            formats: [
-              "$pdf-all"
-            ],
-            contexts: [
-              "document-figures"
-            ]
+            formats: ["$pdf-all"],
+            contexts: ["document-figures"],
           },
           schema: {
             anyOf: [
               {
-                maybeArrayOf: "string"
+                maybeArrayOf: "string",
               },
               {
-                enum: [
-                  false
-                ]
-              }
-            ]
+                enum: [false],
+              },
+            ],
           },
           description: {
-            short: "LaTeX figure position arrangement to be used in `\\begin{figure}[]`.",
-            long: 'LaTeX figure position arrangement to be used in `\\begin{figure}[]`.\n\nComputational figure output that is accompanied by the code \nthat produced it is given a default value of `fig-pos="H"` (so \nthat the code and figure are not inordinately separated).\n\nIf `fig-pos` is `false`, then we don\'t use any figure position\nspecifier, which is sometimes necessary with custom figure\nenvironments (such as `sidewaysfigure`).\n'
-          }
+            short:
+              "LaTeX figure position arrangement to be used in `\\begin{figure}[]`.",
+            long: 'LaTeX figure position arrangement to be used in `\\begin{figure}[]`.\n\nComputational figure output that is accompanied by the code \nthat produced it is given a default value of `fig-pos="H"` (so \nthat the code and figure are not inordinately separated).\n\nIf `fig-pos` is `false`, then we don\'t use any figure position\nspecifier, which is sometimes necessary with custom figure\nenvironments (such as `sidewaysfigure`).\n',
+          },
         },
         {
           name: "fig-scap",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           description: {
             short: "A short caption (only used in LaTeX output)",
-            long: "A short caption (only used in LaTeX output). A short caption is inserted in `\\caption[]`, \nand usually displayed in the \u201CList of Figures\u201D of a PDF document.\n"
-          }
+            long: "A short caption (only used in LaTeX output). A short caption is inserted in `\\caption[]`, \nand usually displayed in the \u201CList of Figures\u201D of a PDF document.\n",
+          },
         },
         {
           name: "fig-format",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            enum: [
-              "retina",
-              "png",
-              "jpeg",
-              "svg",
-              "pdf"
-            ]
+            enum: ["retina", "png", "jpeg", "svg", "pdf"],
           },
-          description: "Default output format for figures (`retina`, `png`, `jpeg`, `svg`, or `pdf`)"
+          description:
+            "Default output format for figures (`retina`, `png`, `jpeg`, `svg`, or `pdf`)",
         },
         {
           name: "fig-dpi",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "number",
-          description: "Default DPI for figures"
+          description: "Default DPI for figures",
         },
         {
           name: "fig-asp",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "number",
-          description: "The aspect ratio of the plot, i.e., the ratio of height/width. When `fig-asp` is specified, the height of a plot \n(the option `fig-height`) is calculated from `fig-width * fig-asp`.\n"
+          description:
+            "The aspect ratio of the plot, i.e., the ratio of height/width. When `fig-asp` is specified, the height of a plot \n(the option `fig-height`) is calculated from `fig-width * fig-asp`.\n",
         },
         {
           name: "out-width",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
             anyOf: [
@@ -7572,183 +7523,170 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 schema: {
                   null: {
-                    completions: []
-                  }
-                }
-              }
-            ]
+                    completions: [],
+                  },
+                },
+              },
+            ],
           },
           description: {
             short: "Width of plot in the output document",
-            long: "Width of the plot in the output document, which can be different from its physical `fig-width`,\ni.e., plots can be scaled in the output document.\nWhen used without a unit, the unit is assumed to be pixels. However, any of the following unit \nidentifiers can be used: px, cm, mm, in, inch and %, for example, `3in`, `8cm`, `300px` or `50%`.\n"
-          }
+            long: "Width of the plot in the output document, which can be different from its physical `fig-width`,\ni.e., plots can be scaled in the output document.\nWhen used without a unit, the unit is assumed to be pixels. However, any of the following unit \nidentifiers can be used: px, cm, mm, in, inch and %, for example, `3in`, `8cm`, `300px` or `50%`.\n",
+          },
         },
         {
           name: "out-height",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "string",
           description: {
             short: "Height of plot in the output document",
-            long: "Height of the plot in the output document, which can be different from its physical `fig-height`, \ni.e., plots can be scaled in the output document.\nDepending on the output format, this option can take special values.\nFor example, for LaTeX output, it can be `3in`, or `8cm`;\nfor HTML, it can be `300px`.\n"
-          }
+            long: "Height of the plot in the output document, which can be different from its physical `fig-height`, \ni.e., plots can be scaled in the output document.\nDepending on the output format, this option can take special values.\nFor example, for LaTeX output, it can be `3in`, or `8cm`;\nfor HTML, it can be `300px`.\n",
+          },
         },
         {
           name: "fig-keep",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
             anyOf: [
               {
-                enum: [
-                  "high",
-                  "none",
-                  "all",
-                  "first",
-                  "last"
-                ]
+                enum: ["high", "none", "all", "first", "last"],
               },
               {
-                maybeArrayOf: "number"
-              }
-            ]
+                maybeArrayOf: "number",
+              },
+            ],
           },
           default: "high",
           description: {
             short: "How plots in chunks should be kept.",
-            long: "How plots in chunks should be kept. Possible values are as follows:\n\n-   `high`: Only keep high-level plots (merge low-level changes into\n    high-level plots).\n-   `none`: Discard all plots.\n-   `all`: Keep all plots (low-level plot changes may produce new plots).\n-   `first`: Only keep the first plot.\n-   `last`: Only keep the last plot.\n-   A numeric vector: In this case, the values are indices of (low-level) plots\n    to keep.\n"
-          }
+            long: "How plots in chunks should be kept. Possible values are as follows:\n\n-   `high`: Only keep high-level plots (merge low-level changes into\n    high-level plots).\n-   `none`: Discard all plots.\n-   `all`: Keep all plots (low-level plot changes may produce new plots).\n-   `first`: Only keep the first plot.\n-   `last`: Only keep the last plot.\n-   A numeric vector: In this case, the values are indices of (low-level) plots\n    to keep.\n",
+          },
         },
         {
           name: "fig-show",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            enum: [
-              "asis",
-              "hold",
-              "animate",
-              "hide"
-            ]
+            enum: ["asis", "hold", "animate", "hide"],
           },
           default: "asis",
           description: {
             short: "How to show/arrange the plots",
-            long: "How to show/arrange the plots. Possible values are as follows:\n\n-   `asis`: Show plots exactly in places where they were generated (as if\n    the code were run in an R terminal).\n-   `hold`: Hold all plots and output them at the end of a code chunk.\n-   `animate`: Concatenate all plots into an animation if there are multiple\n    plots in a chunk.\n-   `hide`: Generate plot files but hide them in the output document.\n"
-          }
+            long: "How to show/arrange the plots. Possible values are as follows:\n\n-   `asis`: Show plots exactly in places where they were generated (as if\n    the code were run in an R terminal).\n-   `hold`: Hold all plots and output them at the end of a code chunk.\n-   `animate`: Concatenate all plots into an animation if there are multiple\n    plots in a chunk.\n-   `hide`: Generate plot files but hide them in the output document.\n",
+          },
         },
         {
           name: "out-extra",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "string",
-          description: "Additional raw LaTeX or HTML options to be applied to figures"
+          description:
+            "Additional raw LaTeX or HTML options to be applied to figures",
         },
         {
           name: "external",
           tags: {
             engine: "knitr",
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           schema: "boolean",
           default: true,
-          description: "Externalize tikz graphics (pre-compile to PDF)"
+          description: "Externalize tikz graphics (pre-compile to PDF)",
         },
         {
           name: "sanitize",
           tags: {
             engine: "knitr",
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           schema: "boolean",
           default: false,
-          description: "sanitize tikz graphics (escape special LaTeX characters)."
+          description:
+            "sanitize tikz graphics (escape special LaTeX characters).",
         },
         {
           name: "interval",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "number",
           default: 1,
-          description: "Time interval (number of seconds) between animation frames."
+          description:
+            "Time interval (number of seconds) between animation frames.",
         },
         {
           name: "aniopts",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "string",
           default: "controls, loop",
           description: {
             short: "Extra options for animations",
-            long: "Extra options for animations; see the documentation of the LaTeX [**animate**\npackage.](http://ctan.org/pkg/animate)\n"
-          }
+            long: "Extra options for animations; see the documentation of the LaTeX [**animate**\npackage.](http://ctan.org/pkg/animate)\n",
+          },
         },
         {
           name: "animation-hook",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
             string: {
-              completions: [
-                "ffmpeg",
-                "gifski"
-              ]
-            }
+              completions: ["ffmpeg", "gifski"],
+            },
           },
           default: "ffmpeg",
           description: {
             short: "Hook function to create animations in HTML output",
-            long: "Hook function to create animations in HTML output. \n\nThe default hook (`ffmpeg`) uses FFmpeg to convert images to a WebM video.\n\nAnother hook function is `gifski` based on the\n[**gifski**](https://cran.r-project.org/package=gifski) package to\ncreate GIF animations.\n"
-          }
-        }
+            long: "Hook function to create animations in HTML output. \n\nThe default hook (`ffmpeg`) uses FFmpeg to convert images to a WebM video.\n\nAnother hook function is `gifski` based on the\n[**gifski**](https://cran.r-project.org/package=gifski) package to\ncreate GIF animations.\n",
+          },
+        },
       ],
       "schema/cell-include.yml": [
         {
           name: "child",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: "path",
           },
-          description: "One or more paths of child documents to be knitted and input into the main document."
+          description:
+            "One or more paths of child documents to be knitted and input into the main document.",
         },
         {
           name: "file",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "path",
-          description: "File containing code to execute for this chunk"
+          description: "File containing code to execute for this chunk",
         },
         {
           name: "code",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "string",
-          description: "String containing code to execute for this chunk"
+          description: "String containing code to execute for this chunk",
         },
         {
           name: "purl",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: true,
-          description: "Include chunk when extracting code with `knitr::purl()`"
-        }
+          description:
+            "Include chunk when extracting code with `knitr::purl()`",
+        },
       ],
       "schema/cell-layout.yml": [
         {
@@ -7758,420 +7696,353 @@ var require_yaml_intelligence_resources = __commonJS({
               "string",
               {
                 arrayOf: {
-                  arrayOf: "number"
-                }
-              }
-            ]
+                  arrayOf: "number",
+                },
+              },
+            ],
           },
           description: {
-            short: "2d-array of widths where the first dimension specifies columns and the second rows.",
-            long: "2d-array of widths where the first dimension specifies columns and the second rows.\n\nFor example, to layout the first two output blocks side-by-side on the top with the third\nblock spanning the full width below, use `[[3,3], [1]]`.\n\nUse negative values to create margin. For example, to create space between the \noutput blocks in the top row of the previous example, use `[[3,-1, 3], [1]]`.\n"
-          }
+            short:
+              "2d-array of widths where the first dimension specifies columns and the second rows.",
+            long: "2d-array of widths where the first dimension specifies columns and the second rows.\n\nFor example, to layout the first two output blocks side-by-side on the top with the third\nblock spanning the full width below, use `[[3,3], [1]]`.\n\nUse negative values to create margin. For example, to create space between the \noutput blocks in the top row of the previous example, use `[[3,-1, 3], [1]]`.\n",
+          },
         },
         {
           name: "layout-ncol",
           schema: "number",
-          description: "Layout output blocks into columns"
+          description: "Layout output blocks into columns",
         },
         {
           name: "layout-nrow",
           schema: "number",
-          description: "Layout output blocks into rows"
+          description: "Layout output blocks into rows",
         },
         {
           name: "layout-align",
           schema: {
-            enum: [
-              "default",
-              "left",
-              "center",
-              "right"
-            ]
+            enum: ["default", "left", "center", "right"],
           },
           default: "center",
-          description: "Horizontal alignment for layout content (`default`, `left`, `right`, or `center`)"
+          description:
+            "Horizontal alignment for layout content (`default`, `left`, `right`, or `center`)",
         },
         {
           name: "layout-valign",
           schema: {
-            enum: [
-              "default",
-              "top",
-              "center",
-              "bottom"
-            ]
+            enum: ["default", "top", "center", "bottom"],
           },
           default: "top",
-          description: "Vertical alignment for layout content (`default`, `top`, `center`, or `bottom`)"
-        }
+          description:
+            "Vertical alignment for layout content (`default`, `top`, `center`, or `bottom`)",
+        },
       ],
       "schema/cell-pagelayout.yml": [
         {
           name: "column",
           schema: {
-            ref: "page-column"
+            ref: "page-column",
           },
           description: {
             short: "Page column for output",
-            long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for output"
-          }
+            long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for output",
+          },
         },
         {
           name: "fig-column",
           schema: {
-            ref: "page-column"
+            ref: "page-column",
           },
           description: {
             short: "Page column for figure output",
-            long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for figure output"
-          }
+            long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for figure output",
+          },
         },
         {
           name: "tbl-column",
           schema: {
-            ref: "page-column"
+            ref: "page-column",
           },
           description: {
             short: "Page column for table output",
-            long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for table output"
-          }
+            long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for table output",
+          },
         },
         {
           name: "cap-location",
           tags: {
-            contexts: [
-              "document-layout"
-            ],
-            formats: [
-              "$html-files",
-              "$pdf-all"
-            ]
+            contexts: ["document-layout"],
+            formats: ["$html-files", "$pdf-all"],
           },
           schema: {
-            enum: [
-              "top",
-              "bottom",
-              "margin"
-            ]
+            enum: ["top", "bottom", "margin"],
           },
           default: "inline",
-          description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
+          description:
+            "Where to place figure and table captions (`top`, `bottom`, or `margin`)",
         },
         {
           name: "fig-cap-location",
           tags: {
-            contexts: [
-              "document-layout",
-              "document-figures"
-            ],
-            formats: [
-              "$html-files",
-              "$pdf-all"
-            ]
+            contexts: ["document-layout", "document-figures"],
+            formats: ["$html-files", "$pdf-all"],
           },
           schema: {
-            enum: [
-              "top",
-              "bottom",
-              "margin"
-            ]
+            enum: ["top", "bottom", "margin"],
           },
           default: "inline",
-          description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
+          description:
+            "Where to place figure captions (`top`, `bottom`, or `margin`)",
         },
         {
           name: "tbl-cap-location",
           tags: {
-            contexts: [
-              "document-layout",
-              "document-tables"
-            ],
-            formats: [
-              "$html-files",
-              "$pdf-all"
-            ]
+            contexts: ["document-layout", "document-tables"],
+            formats: ["$html-files", "$pdf-all"],
           },
           schema: {
-            enum: [
-              "top",
-              "bottom",
-              "margin"
-            ]
+            enum: ["top", "bottom", "margin"],
           },
           default: "inline",
-          description: "Where to place table captions (`top`, `bottom`, or `margin`)"
-        }
+          description:
+            "Where to place table captions (`top`, `bottom`, or `margin`)",
+        },
       ],
       "schema/cell-table.yml": [
         {
           name: "tbl-cap",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Table caption"
+          description: "Table caption",
         },
         {
           name: "tbl-subcap",
           schema: {
             anyOf: [
               {
-                enum: [
-                  true
-                ]
+                enum: [true],
               },
               {
-                maybeArrayOf: "string"
-              }
-            ]
+                maybeArrayOf: "string",
+              },
+            ],
           },
-          description: "Table subcaptions"
+          description: "Table subcaptions",
         },
         {
           name: "tbl-colwidths",
           tags: {
-            contexts: [
-              "document-tables"
-            ],
-            engine: [
-              "knitr",
-              "jupyter"
-            ]
+            contexts: ["document-tables"],
+            engine: ["knitr", "jupyter"],
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "auto"
-                ]
+                enum: ["auto"],
               },
               {
-                arrayOf: "number"
-              }
-            ]
+                arrayOf: "number",
+              },
+            ],
           },
           description: {
             short: "Apply explicit table column widths",
-            long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than `columns` characters wide (72 by default). \n\nSome formats (e.g. HTML) do an excellent job automatically sizing\ntable columns and so don't benefit much from column width specifications.\nOther formats (e.g. LaTeX) require table column sizes in order to \ncorrectly flow longer cell content (this is a major reason why tables \n> 72 columns wide are assigned explicit widths by Pandoc).\n\nThis can be specified as:\n\n- `auto`: Apply markdown table column widths except when there is a\n  hyperlink in the table (which tends to throw off automatic\n  calculation of column widths based on the markdown text width of cells).\n  (`auto` is the default for HTML output formats)\n\n- `true`: Always apply markdown table widths (`true` is the default\n  for all non-HTML formats)\n\n- `false`: Never apply markdown table widths.\n\n- An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.\n"
-          }
-        }
+            long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than `columns` characters wide (72 by default). \n\nSome formats (e.g. HTML) do an excellent job automatically sizing\ntable columns and so don't benefit much from column width specifications.\nOther formats (e.g. LaTeX) require table column sizes in order to \ncorrectly flow longer cell content (this is a major reason why tables \n> 72 columns wide are assigned explicit widths by Pandoc).\n\nThis can be specified as:\n\n- `auto`: Apply markdown table column widths except when there is a\n  hyperlink in the table (which tends to throw off automatic\n  calculation of column widths based on the markdown text width of cells).\n  (`auto` is the default for HTML output formats)\n\n- `true`: Always apply markdown table widths (`true` is the default\n  for all non-HTML formats)\n\n- `false`: Never apply markdown table widths.\n\n- An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.\n",
+          },
+        },
       ],
       "schema/cell-textoutput.yml": [
         {
           name: "output",
           tags: {
-            contexts: [
-              "document-execute"
-            ],
-            "execute-only": true
+            contexts: ["document-execute"],
+            "execute-only": true,
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "asis"
-                ]
+                enum: ["asis"],
               },
               "string",
-              "object"
-            ]
+              "object",
+            ],
           },
           description: {
-            short: "Include the results of executing the code in the output (specify `asis` to\ntreat output as raw markdown with no enclosing containers).\n",
-            long: "Include the results of executing the code in the output. Possible values:\n\n- `true`: Include results.\n- `false`: Do not include results.\n- `asis`: Treat output as raw markdown with no enclosing containers.\n"
-          }
+            short:
+              "Include the results of executing the code in the output (specify `asis` to\ntreat output as raw markdown with no enclosing containers).\n",
+            long: "Include the results of executing the code in the output. Possible values:\n\n- `true`: Include results.\n- `false`: Do not include results.\n- `asis`: Treat output as raw markdown with no enclosing containers.\n",
+          },
         },
         {
           name: "warning",
           tags: {
-            contexts: [
-              "document-execute"
-            ],
-            "execute-only": true
+            contexts: ["document-execute"],
+            "execute-only": true,
           },
           schema: "boolean",
-          description: "Include warnings in rendered output."
+          description: "Include warnings in rendered output.",
         },
         {
           name: "error",
           tags: {
-            contexts: [
-              "document-execute"
-            ],
-            "execute-only": true
+            contexts: ["document-execute"],
+            "execute-only": true,
           },
           schema: "boolean",
           default: false,
-          description: "Include errors in the output (note that this implies that errors executing code\nwill not halt processing of the document).\n"
+          description:
+            "Include errors in the output (note that this implies that errors executing code\nwill not halt processing of the document).\n",
         },
         {
           name: "include",
           tags: {
-            contexts: [
-              "document-execute"
-            ],
-            "execute-only": true
+            contexts: ["document-execute"],
+            "execute-only": true,
           },
           schema: "boolean",
           default: false,
-          description: "Catch all for preventing any output (code or results) from being included in output.\n"
+          description:
+            "Catch all for preventing any output (code or results) from being included in output.\n",
         },
         {
           name: "panel",
           schema: {
-            enum: [
-              "tabset",
-              "input",
-              "sidebar",
-              "fill",
-              "center"
-            ]
+            enum: ["tabset", "input", "sidebar", "fill", "center"],
           },
-          description: "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)"
+          description:
+            "Panel type for cell output (`tabset`, `input`, `sidebar`, `fill`, `center`)",
         },
         {
           name: "output-location",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "default",
-              "fragment",
-              "slide",
-              "column",
-              "column-fragment"
-            ]
+            enum: ["default", "fragment", "slide", "column", "column-fragment"],
           },
           description: {
-            short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
-          }
+            short:
+              "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
+            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n",
+          },
         },
         {
           name: "message",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "boolean",
           default: true,
-          description: "Include messages in rendered output."
+          description: "Include messages in rendered output.",
         },
         {
           name: "results",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            enum: [
-              "markup",
-              "asis",
-              "hold",
-              "hide",
-              false
-            ]
+            enum: ["markup", "asis", "hold", "hide", false],
           },
           default: "markup",
           description: {
             short: "How to display text results",
-            long: 'How to display text results. Note that this option only applies to normal text output (not warnings,\nmessages, or errors). The possible values are as follows:\n\n- `markup`: Mark up text output with the appropriate environments\n  depending on the output format. For example, if the text\n  output is a character string `"[1] 1 2 3"`, the actual output that\n  **knitr** produces will be:\n\n  ```` md\n  ```\n  [1] 1 2 3\n  ```\n  ````\n\n  In this case, `results: markup` means to put the text output in fenced\n  code blocks (```` ``` ````).\n\n- `asis`: Write text output as-is, i.e., write the raw text results\n  directly into the output document without any markups.\n\n  ```` md\n  ```{r}\n  #| results: asis\n  cat("I\'m raw **Markdown** content.\\n")\n  ```\n  ````\n\n- `hold`: Hold all pieces of text output in a chunk and flush them to the\n  end of the chunk.\n\n- `hide` (or `false`): Hide text output.\n'
-          }
+            long: 'How to display text results. Note that this option only applies to normal text output (not warnings,\nmessages, or errors). The possible values are as follows:\n\n- `markup`: Mark up text output with the appropriate environments\n  depending on the output format. For example, if the text\n  output is a character string `"[1] 1 2 3"`, the actual output that\n  **knitr** produces will be:\n\n  ```` md\n  ```\n  [1] 1 2 3\n  ```\n  ````\n\n  In this case, `results: markup` means to put the text output in fenced\n  code blocks (```` ``` ````).\n\n- `asis`: Write text output as-is, i.e., write the raw text results\n  directly into the output document without any markups.\n\n  ```` md\n  ```{r}\n  #| results: asis\n  cat("I\'m raw **Markdown** content.\\n")\n  ```\n  ````\n\n- `hold`: Hold all pieces of text output in a chunk and flush them to the\n  end of the chunk.\n\n- `hide` (or `false`): Hide text output.\n',
+          },
         },
         {
           name: "comment",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "string",
           default: "##",
           description: {
             short: "Prefix to be added before each line of text output.",
-            long: "Prefix to be added before each line of text output.\nBy default, the text output is commented out by `##`, so if\nreaders want to copy and run the source code from the output document, they\ncan select and copy everything from the chunk, since the text output is\nmasked in comments (and will be ignored when running the copied text). Set\n`comment: ''` to remove the default `##`.\n"
-          }
+            long: "Prefix to be added before each line of text output.\nBy default, the text output is commented out by `##`, so if\nreaders want to copy and run the source code from the output document, they\ncan select and copy everything from the chunk, since the text output is\nmasked in comments (and will be ignored when running the copied text). Set\n`comment: ''` to remove the default `##`.\n",
+          },
         },
         {
           name: "class-output",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Class name(s) for text/console output"
+          description: "Class name(s) for text/console output",
         },
         {
           name: "attr-output",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Attribute(s) for text/console output"
+          description: "Attribute(s) for text/console output",
         },
         {
           name: "class-warning",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Class name(s) for warning output"
+          description: "Class name(s) for warning output",
         },
         {
           name: "attr-warning",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Attribute(s) for warning output"
+          description: "Attribute(s) for warning output",
         },
         {
           name: "class-message",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Class name(s) for message output"
+          description: "Class name(s) for message output",
         },
         {
           name: "attr-message",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Attribute(s) for message output"
+          description: "Attribute(s) for message output",
         },
         {
           name: "class-error",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Class name(s) for error output"
+          description: "Class name(s) for error output",
         },
         {
           name: "attr-error",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Attribute(s) for error output"
-        }
+          description: "Attribute(s) for error output",
+        },
       ],
       "schema/definitions.yml": [
         {
@@ -8182,14 +8053,12 @@ var require_yaml_intelligence_resources = __commonJS({
               object: {
                 properties: {
                   value: "string",
-                  format: "string"
+                  format: "string",
                 },
-                required: [
-                  "value"
-                ]
-              }
-            }
-          ]
+                required: ["value"],
+              },
+            },
+          ],
         },
         {
           id: "math-methods",
@@ -8200,18 +8069,18 @@ var require_yaml_intelligence_resources = __commonJS({
               "gladtex",
               "mathml",
               "mathjax",
-              "katex"
-            ]
-          }
+              "katex",
+            ],
+          },
         },
         {
           id: "pandoc-format-request-headers",
           arrayOf: {
             arrayOf: {
               schema: "string",
-              length: 2
-            }
-          }
+              length: 2,
+            },
+          },
         },
         {
           id: "pandoc-format-output-file",
@@ -8219,13 +8088,11 @@ var require_yaml_intelligence_resources = __commonJS({
             "path",
             {
               enum: {
-                values: [
-                  null
-                ],
-                hidden: true
-              }
-            }
-          ]
+                values: [null],
+                hidden: true,
+              },
+            },
+          ],
         },
         {
           id: "pandoc-format-filters",
@@ -8235,24 +8102,22 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 record: {
                   type: "string",
-                  path: "path"
-                }
+                  path: "path",
+                },
               },
               {
                 record: {
                   type: {
-                    enum: [
-                      "citeproc"
-                    ]
-                  }
-                }
-              }
-            ]
-          }
+                    enum: ["citeproc"],
+                  },
+                },
+              },
+            ],
+          },
         },
         {
           id: "pandoc-shortcodes",
-          arrayOf: "path"
+          arrayOf: "path",
         },
         {
           id: "page-column",
@@ -8274,8 +8139,8 @@ var require_yaml_intelligence_resources = __commonJS({
             "screen-inset-shaded",
             "screen-inset-left",
             "screen-inset-right",
-            "margin"
-          ]
+            "margin",
+          ],
         },
         {
           id: "contents-auto",
@@ -8285,25 +8150,25 @@ var require_yaml_intelligence_resources = __commonJS({
                 anyOf: [
                   "boolean",
                   {
-                    maybeArrayOf: "string"
-                  }
+                    maybeArrayOf: "string",
+                  },
                 ],
                 description: {
                   short: "Automatically generate sidebar contents.",
-                  long: "Automatically generate sidebar contents. Pass `true` to include all documents\nin the site, a directory name to include only documents in that directory, \nor a glob (or list of globs) to include documents based on a pattern. \n\nSubdirectories will create sections (use an `index.qmd` in the directory to\nprovide its title). Order will be alphabetical unless a numeric `order` field\nis provided in document metadata.\n"
-                }
-              }
-            }
-          }
+                  long: "Automatically generate sidebar contents. Pass `true` to include all documents\nin the site, a directory name to include only documents in that directory, \nor a glob (or list of globs) to include documents based on a pattern. \n\nSubdirectories will create sections (use an `index.qmd` in the directory to\nprovide its title). Order will be alphabetical unless a numeric `order` field\nis provided in document metadata.\n",
+                },
+              },
+            },
+          },
         },
         {
           id: "navigation-item",
           anyOf: [
             "path",
             {
-              ref: "navigation-item-object"
-            }
-          ]
+              ref: "navigation-item-object",
+            },
+          ],
         },
         {
           id: "navigation-item-object",
@@ -8312,70 +8177,73 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               "aria-label": {
                 string: {
-                  description: "Accessible label for the item."
-                }
+                  description: "Accessible label for the item.",
+                },
               },
               file: {
                 hidden: true,
                 string: {
-                  description: "Alias for href\n"
-                }
+                  description: "Alias for href\n",
+                },
               },
               href: {
                 string: {
-                  description: "Link to file contained with the project or external URL\n"
-                }
+                  description:
+                    "Link to file contained with the project or external URL\n",
+                },
               },
               icon: {
                 string: {
                   description: {
-                    short: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
-                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n"
-                  }
-                }
+                    short:
+                      "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)",
+                    long: "Name of bootstrap icon (e.g. `github`, `twitter`, `share`)\nSee <https://icons.getbootstrap.com/> for a list of available icons\n",
+                  },
+                },
               },
               id: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               menu: {
                 arrayOf: {
                   schema: {
-                    ref: "navigation-item"
-                  }
-                }
+                    ref: "navigation-item",
+                  },
+                },
               },
               text: {
                 string: {
-                  description: "Text to display for item (defaults to the\ndocument title if not provided)\n"
-                }
+                  description:
+                    "Text to display for item (defaults to the\ndocument title if not provided)\n",
+                },
               },
               url: {
                 hidden: true,
                 string: {
-                  description: "Alias for href\n"
-                }
+                  description: "Alias for href\n",
+                },
               },
               rel: {
                 string: {
-                  description: "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor a details.\n"
-                }
+                  description:
+                    "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor a details.\n",
+                },
               },
               target: {
                 string: {
-                  description: "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
-                }
-              }
-            }
-          }
+                  description:
+                    "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n",
+                },
+              },
+            },
+          },
         },
         {
           id: "comments",
           anyOf: [
             {
-              enum: [
-                false
-              ]
+              enum: [false],
             },
             {
               object: {
@@ -8387,19 +8255,22 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         repo: {
                           string: {
-                            description: "The Github repo that will be used to store comments."
-                          }
+                            description:
+                              "The Github repo that will be used to store comments.",
+                          },
                         },
                         label: {
                           string: {
-                            description: "The label that will be assigned to issues created by Utterances."
-                          }
+                            description:
+                              "The label that will be assigned to issues created by Utterances.",
+                          },
                         },
                         theme: {
                           string: {
                             description: {
-                              short: "The Github theme that should be used for Utterances.",
-                              long: "The Github theme that should be used for Utterances\n(`github-light`, `github-dark`, `github-dark-orange`,\n`icy-dark`, `dark-blue`, `photon-dark`, `body-light`,\nor `gruvbox-dark`)\n"
+                              short:
+                                "The Github theme that should be used for Utterances.",
+                              long: "The Github theme that should be used for Utterances\n(`github-light`, `github-dark`, `github-dark-orange`,\n`icy-dark`, `dark-blue`, `photon-dark`, `body-light`,\nor `gruvbox-dark`)\n",
                             },
                             completions: [
                               "github-light",
@@ -8409,29 +8280,28 @@ var require_yaml_intelligence_resources = __commonJS({
                               "dark-blue",
                               "photon-dark",
                               "body-light",
-                              "gruvbox-dark"
-                            ]
-                          }
+                              "gruvbox-dark",
+                            ],
+                          },
                         },
                         "issue-term": {
                           string: {
                             description: {
-                              short: "How posts should be mapped to Github issues",
-                              long: "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n"
+                              short:
+                                "How posts should be mapped to Github issues",
+                              long: "How posts should be mapped to Github issues\n(`pathname`, `url`, `title` or `og:title`)\n",
                             },
                             completions: [
                               "pathname",
                               "url",
                               "title",
-                              "og:title"
-                            ]
-                          }
-                        }
+                              "og:title",
+                            ],
+                          },
+                        },
                       },
-                      required: [
-                        "repo"
-                      ]
-                    }
+                      required: ["repo"],
+                    },
                   },
                   giscus: {
                     object: {
@@ -8440,69 +8310,65 @@ var require_yaml_intelligence_resources = __commonJS({
                         repo: {
                           string: {
                             description: {
-                              short: "The Github repo that will be used to store comments.",
-                              long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n"
-                            }
-                          }
+                              short:
+                                "The Github repo that will be used to store comments.",
+                              long: "The Github repo that will be used to store comments.\n\nIn order to work correctly, the repo must be public, with the giscus app installed, and \nthe discussions feature must be enabled.\n",
+                            },
+                          },
                         },
                         "repo-id": {
                           string: {
                             description: {
                               short: "The Github repository identifier.",
-                              long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
+                              long: "The Github repository identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n",
+                            },
+                          },
                         },
                         category: {
                           string: {
                             description: {
-                              short: "The discussion category where new discussions will be created.",
-                              long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n"
-                            }
-                          }
+                              short:
+                                "The discussion category where new discussions will be created.",
+                              long: "The discussion category where new discussions will be created. It is recommended \nto use a category with the **Announcements** type so that new discussions \ncan only be created by maintainers and giscus.\n",
+                            },
+                          },
                         },
                         "category-id": {
                           string: {
                             description: {
                               short: "The Github category identifier.",
-                              long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n"
-                            }
-                          }
+                              long: "The Github category identifier.\n\nYou can quickly find this by using the configuration tool at [https://giscus.app](https://giscus.app).\nIf this is not provided, Quarto will attempt to discover it at render time.\n",
+                            },
+                          },
                         },
                         mapping: {
                           anyOf: [
                             {
-                              enum: [
-                                "pathname",
-                                "url",
-                                "title",
-                                "og:title"
-                              ]
+                              enum: ["pathname", "url", "title", "og:title"],
                             },
-                            "string"
+                            "string",
                           ],
                           description: {
-                            short: "The mapping between the page and the embedded discussion.",
-                            long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n"
-                          }
+                            short:
+                              "The mapping between the page and the embedded discussion.",
+                            long: "The mapping between the page and the embedded discussion. \n\n- `pathname`: The discussion title contains the page path\n- `url`: The discussion title contains the page url\n- `title`: The discussion title contains the page title\n- `og:title`: The discussion title contains the `og:title` metadata value\n- any other string or number: Any other strings will be passed through verbatim and a discussion title\ncontaining that value will be used. Numbers will be treated\nas a discussion number and automatic discussion creation is not supported.\n",
+                          },
                         },
                         "reactions-enabled": {
                           boolean: {
-                            description: "Display reactions for the discussion's main post before the comments."
-                          }
+                            description:
+                              "Display reactions for the discussion's main post before the comments.",
+                          },
                         },
                         loading: {
-                          enum: [
-                            "lazy"
-                          ],
-                          description: "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container."
+                          enum: ["lazy"],
+                          description:
+                            "Specify `loading: lazy` to defer loading comments until the user scrolls near the comments container.",
                         },
                         "input-position": {
-                          enum: [
-                            "top",
-                            "bottom"
-                          ],
-                          description: "Place the comment input box above or below the comments."
+                          enum: ["top", "bottom"],
+                          description:
+                            "Place the comment input box above or below the comments.",
                         },
                         theme: {
                           anyOf: [
@@ -8517,8 +8383,8 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "dark_protanopia",
                                 "dark_dimmed",
                                 "transparent_dark",
-                                "preferred_color_scheme"
-                              ]
+                                "preferred_color_scheme",
+                              ],
                             },
                             {
                               object: {
@@ -8526,30 +8392,30 @@ var require_yaml_intelligence_resources = __commonJS({
                                 properties: {
                                   light: {
                                     string: {
-                                      description: "The light theme name."
-                                    }
+                                      description: "The light theme name.",
+                                    },
                                   },
                                   dark: {
                                     string: {
-                                      description: "The dark theme name."
-                                    }
-                                  }
-                                }
-                              }
-                            }
+                                      description: "The dark theme name.",
+                                    },
+                                  },
+                                },
+                              },
+                            },
                           ],
-                          description: "The giscus theme to use when displaying comments."
+                          description:
+                            "The giscus theme to use when displaying comments.",
                         },
                         language: {
                           string: {
-                            description: "The language that should be used when displaying the commenting interface."
-                          }
-                        }
+                            description:
+                              "The language that should be used when displaying the commenting interface.",
+                          },
+                        },
                       },
-                      required: [
-                        "repo"
-                      ]
-                    }
+                      required: ["repo"],
+                    },
                   },
                   hypothesis: {
                     anyOf: [
@@ -8561,40 +8427,38 @@ var require_yaml_intelligence_resources = __commonJS({
                             openSidebar: {
                               boolean: {
                                 default: false,
-                                description: "Controls whether the sidebar opens automatically on startup."
-                              }
+                                description:
+                                  "Controls whether the sidebar opens automatically on startup.",
+                              },
                             },
                             showHighlights: {
                               anyOf: [
                                 "boolean",
                                 {
-                                  enum: [
-                                    "always",
-                                    "whenSidebarOpen",
-                                    "never"
-                                  ]
-                                }
+                                  enum: ["always", "whenSidebarOpen", "never"],
+                                },
                               ],
                               default: "always",
-                              description: "Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`)"
+                              description:
+                                "Controls whether the in-document highlights are shown by default (`always`, `whenSidebarOpen` or `never`)",
                             },
                             theme: {
-                              enum: [
-                                "classic",
-                                "clean"
-                              ],
+                              enum: ["classic", "clean"],
                               default: "classic",
-                              description: "Controls the overall look of the sidebar (`classic` or `clean`)"
+                              description:
+                                "Controls the overall look of the sidebar (`classic` or `clean`)",
                             },
                             enableExperimentalNewNoteButton: {
                               boolean: {
                                 default: false,
-                                description: "Controls whether the experimental New Note button \nshould be shown in the notes tab in the sidebar.\n"
-                              }
+                                description:
+                                  "Controls whether the experimental New Note button \nshould be shown in the notes tab in the sidebar.\n",
+                              },
                             },
                             usernameUrl: {
                               schema: "string",
-                              description: "Specify a URL to direct a user to, \nin a new tab. when they click on the annotation author \nlink in the header of an annotation.\n"
+                              description:
+                                "Specify a URL to direct a user to, \nin a new tab. when they click on the annotation author \nlink in the header of an annotation.\n",
                             },
                             services: {
                               arrayOf: {
@@ -8602,95 +8466,108 @@ var require_yaml_intelligence_resources = __commonJS({
                                   properties: {
                                     apiUrl: {
                                       string: {
-                                        description: "The base URL of the service API."
-                                      }
+                                        description:
+                                          "The base URL of the service API.",
+                                      },
                                     },
                                     authority: {
                                       string: {
-                                        description: "The domain name which the annotation service is associated with."
-                                      }
+                                        description:
+                                          "The domain name which the annotation service is associated with.",
+                                      },
                                     },
                                     grantToken: {
                                       string: {
-                                        description: "An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service."
-                                      }
+                                        description:
+                                          "An OAuth 2 grant token which the client can send to the service in order to get an access token for making authenticated requests to the service.",
+                                      },
                                     },
                                     allowLeavingGroups: {
                                       boolean: {
                                         default: true,
-                                        description: "A flag indicating whether users should be able to leave groups of which they are a member."
-                                      }
+                                        description:
+                                          "A flag indicating whether users should be able to leave groups of which they are a member.",
+                                      },
                                     },
                                     enableShareLinks: {
                                       boolean: {
                                         default: true,
-                                        description: "A flag indicating whether annotation cards should show links that take the user to see an annotation in context."
-                                      }
+                                        description:
+                                          "A flag indicating whether annotation cards should show links that take the user to see an annotation in context.",
+                                      },
                                     },
                                     groups: {
                                       anyOf: [
                                         {
-                                          enum: [
-                                            "$rpc:requestGroups"
-                                          ]
+                                          enum: ["$rpc:requestGroups"],
                                         },
                                         {
-                                          arrayOf: "string"
-                                        }
+                                          arrayOf: "string",
+                                        },
                                       ],
-                                      description: "An array of Group IDs or the literal string `$rpc:requestGroups`"
+                                      description:
+                                        "An array of Group IDs or the literal string `$rpc:requestGroups`",
                                     },
                                     icon: {
                                       string: {
-                                        description: "The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group."
-                                      }
-                                    }
+                                        description:
+                                          "The URL to an image for the annotation service. This image will appear to the left of the name of the currently selected group.",
+                                      },
+                                    },
                                   },
                                   required: [
                                     "apiUrl",
                                     "authority",
-                                    "grantToken"
-                                  ]
+                                    "grantToken",
+                                  ],
                                 },
-                                description: "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n"
-                              }
+                                description:
+                                  "Alternative annotation services which the client should \nconnect to instead of connecting to the public Hypothesis \nservice at hypothes.is.\n",
+                              },
                             },
                             branding: {
                               object: {
                                 properties: {
                                   accentColor: {
                                     string: {
-                                      description: "Secondary color for elements of the commenting UI."
-                                    }
+                                      description:
+                                        "Secondary color for elements of the commenting UI.",
+                                    },
                                   },
                                   appBackgroundColor: {
                                     string: {
-                                      description: "The main background color of the commenting UI."
-                                    }
+                                      description:
+                                        "The main background color of the commenting UI.",
+                                    },
                                   },
                                   ctaBackgroundColor: {
                                     string: {
-                                      description: "The background color for call to action buttons."
-                                    }
+                                      description:
+                                        "The background color for call to action buttons.",
+                                    },
                                   },
                                   selectionFontFamily: {
                                     string: {
-                                      description: "The font family for selection text in the annotation card."
-                                    }
+                                      description:
+                                        "The font family for selection text in the annotation card.",
+                                    },
                                   },
                                   annotationFontFamily: {
                                     string: {
-                                      description: "The font family for the actual annotation value that the user writes about the page or selection."
-                                    }
-                                  }
+                                      description:
+                                        "The font family for the actual annotation value that the user writes about the page or selection.",
+                                    },
+                                  },
                                 },
-                                description: "Settings to adjust the commenting sidebar's look and feel."
-                              }
+                                description:
+                                  "Settings to adjust the commenting sidebar's look and feel.",
+                              },
                             },
                             externalContainerSelector: {
                               string: {
-                                description: "A CSS selector specifying the containing element into which the sidebar iframe will be placed."
-                              }
+                                description:
+                                  "A CSS selector specifying the containing element into which the sidebar iframe will be placed.",
+                              },
                             },
                             focus: {
                               object: {
@@ -8700,65 +8577,71 @@ var require_yaml_intelligence_resources = __commonJS({
                                       properties: {
                                         username: {
                                           string: {
-                                            description: "The username of the user to focus on."
-                                          }
+                                            description:
+                                              "The username of the user to focus on.",
+                                          },
                                         },
                                         userid: {
                                           string: {
-                                            description: "The userid of the user to focus on."
-                                          }
+                                            description:
+                                              "The userid of the user to focus on.",
+                                          },
                                         },
                                         displayName: {
                                           string: {
-                                            description: "The display name of the user to focus on."
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
+                                            description:
+                                              "The display name of the user to focus on.",
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
                                 },
-                                required: [
-                                  "user"
-                                ]
+                                required: ["user"],
                               },
-                              description: "Defines a focused filter set for the available annotations on a page."
+                              description:
+                                "Defines a focused filter set for the available annotations on a page.",
                             },
                             requestConfigFromFrame: {
                               object: {
                                 properties: {
                                   origin: {
                                     string: {
-                                      description: "Host url and port number of receiving iframe"
-                                    }
+                                      description:
+                                        "Host url and port number of receiving iframe",
+                                    },
                                   },
                                   ancestorLevel: {
                                     number: {
-                                      description: "Number of nested iframes deep the client is relative from the receiving iframe."
-                                    }
-                                  }
-                                }
-                              }
+                                      description:
+                                        "Number of nested iframes deep the client is relative from the receiving iframe.",
+                                    },
+                                  },
+                                },
+                              },
                             },
                             assetRoot: {
                               string: {
-                                description: "The root URL from which assets are loaded."
-                              }
+                                description:
+                                  "The root URL from which assets are loaded.",
+                              },
                             },
                             sidebarAppUrl: {
                               string: {
-                                description: "The URL for the sidebar application which displays annotations.",
-                                default: "https://hypothes.is/app.html"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          ]
+                                description:
+                                  "The URL for the sidebar application which displays annotations.",
+                                default: "https://hypothes.is/app.html",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           id: "social-metadata",
@@ -8769,46 +8652,46 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The title of the page",
-                    long: "The title of the page. Note that by default Quarto will automatically \nuse the title metadata from the page. Specify this field if you\u2019d like \nto override the title for this provider.\n"
-                  }
-                }
+                    long: "The title of the page. Note that by default Quarto will automatically \nuse the title metadata from the page. Specify this field if you\u2019d like \nto override the title for this provider.\n",
+                  },
+                },
               },
               description: {
                 string: {
                   description: {
                     short: "A short description of the content.",
-                    long: "A short description of the content. Note that by default Quarto will\nautomatically  use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider.\n"
-                  }
-                }
+                    long: "A short description of the content. Note that by default Quarto will\nautomatically  use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider.\n",
+                  },
+                },
               },
               image: {
                 path: {
                   description: {
                     short: "The path to a preview image for the content.",
-                    long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
-                  }
-                }
+                    long: "The path to a preview image for the content. By default, Quarto will use\nthe `image` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n",
+                  },
+                },
               },
               "image-alt": {
                 path: {
                   description: {
                     short: "The alt text for the preview image.",
-                    long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n"
-                  }
-                }
+                    long: "The alt text for the preview image. By default, Quarto will use\nthe `image-alt` value from the format metadata. If you provide an \nimage, you may also optionally provide an `image-width` and `image-height`.\n",
+                  },
+                },
               },
               "image-width": {
                 number: {
-                  description: "Image width (pixels)"
-                }
+                  description: "Image width (pixels)",
+                },
               },
               "image-height": {
                 number: {
-                  description: "Image height (pixels)"
-                }
-              }
-            }
-          }
+                  description: "Image height (pixels)",
+                },
+              },
+            },
+          },
         },
         {
           id: "page-footer-region",
@@ -8816,23 +8699,23 @@ var require_yaml_intelligence_resources = __commonJS({
             "string",
             {
               arrayOf: {
-                ref: "navigation-item"
-              }
-            }
-          ]
+                ref: "navigation-item",
+              },
+            },
+          ],
         },
         {
           id: "sidebar-contents",
           anyOf: [
             "string",
             {
-              ref: "contents-auto"
+              ref: "contents-auto",
             },
             {
               arrayOf: {
                 anyOf: [
                   {
-                    ref: "navigation-item"
+                    ref: "navigation-item",
                   },
                   "path",
                   {
@@ -8840,24 +8723,21 @@ var require_yaml_intelligence_resources = __commonJS({
                       closed: true,
                       properties: {
                         section: {
-                          anyOf: [
-                            "string",
-                            null
-                          ]
+                          anyOf: ["string", null],
                         },
                         contents: {
-                          ref: "sidebar-contents"
-                        }
-                      }
-                    }
+                          ref: "sidebar-contents",
+                        },
+                      },
+                    },
                   },
                   {
-                    ref: "contents-auto"
-                  }
-                ]
-              }
-            }
-          ]
+                    ref: "contents-auto",
+                  },
+                ],
+              },
+            },
+          ],
         },
         {
           id: "project-preview",
@@ -8866,42 +8746,48 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               port: {
                 number: {
-                  description: "Port to listen on (defaults to random value between 3000 and 8000)"
-                }
+                  description:
+                    "Port to listen on (defaults to random value between 3000 and 8000)",
+                },
               },
               host: {
                 string: {
-                  description: "Hostname to bind to (defaults to 127.0.0.1)"
-                }
+                  description: "Hostname to bind to (defaults to 127.0.0.1)",
+                },
               },
               serve: {
-                description: "Use an exernal application to preview the project.",
+                description:
+                  "Use an exernal application to preview the project.",
                 schema: {
-                  ref: "project-serve"
-                }
+                  ref: "project-serve",
+                },
               },
               browser: {
                 boolean: {
-                  description: "Open a web browser to view the preview (defaults to true)"
-                }
+                  description:
+                    "Open a web browser to view the preview (defaults to true)",
+                },
               },
               "watch-inputs": {
                 boolean: {
-                  description: "Re-render input files when they change (defaults to true)"
-                }
+                  description:
+                    "Re-render input files when they change (defaults to true)",
+                },
               },
               navigate: {
                 boolean: {
-                  description: "Navigate the browser automatically when outputs are updated (defaults to true)"
-                }
+                  description:
+                    "Navigate the browser automatically when outputs are updated (defaults to true)",
+                },
               },
               timeout: {
                 number: {
-                  description: "Time (in seconds) after which to exit if there are no active clients"
-                }
-              }
-            }
-          }
+                  description:
+                    "Time (in seconds) after which to exit if there are no active clients",
+                },
+              },
+            },
+          },
         },
         {
           id: "project-serve",
@@ -8910,30 +8796,31 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               cmd: {
                 string: {
-                  description: "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n"
-                }
+                  description:
+                    "Serve project preview using the specified command.\nInterpolate the `--port` into the command using `{port}`.\n",
+                },
               },
               args: {
                 string: {
-                  description: "Additional command line arguments for preview command."
-                }
+                  description:
+                    "Additional command line arguments for preview command.",
+                },
               },
               env: {
                 object: {
-                  description: "Environment variables to set for preview command."
-                }
+                  description:
+                    "Environment variables to set for preview command.",
+                },
               },
               ready: {
                 string: {
-                  description: "Regular expression for detecting when the server is ready."
-                }
-              }
+                  description:
+                    "Regular expression for detecting when the server is ready.",
+                },
+              },
             },
-            required: [
-              "cmd",
-              "ready"
-            ]
-          }
+            required: ["cmd", "ready"],
+          },
         },
         {
           id: "publish",
@@ -8944,13 +8831,13 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 netlify: {
                   arrayOf: {
-                    ref: "publish-record"
-                  }
-                }
+                    ref: "publish-record",
+                  },
+                },
               },
-              description: "Sites published to Netlify"
-            }
-          }
+              description: "Sites published to Netlify",
+            },
+          },
         },
         {
           id: "publish-record",
@@ -8959,71 +8846,70 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               id: {
                 string: {
-                  description: "Unique identifier for site"
-                }
+                  description: "Unique identifier for site",
+                },
               },
               url: {
                 string: {
-                  description: "Published URL for site"
-                }
-              }
-            }
-          }
+                  description: "Published URL for site",
+                },
+              },
+            },
+          },
         },
         {
           id: "twitter-card-config",
           object: {
             super: {
-              resolveRef: "social-metadata"
+              resolveRef: "social-metadata",
             },
             closed: true,
             properties: {
               "card-style": {
-                enum: [
-                  "summary",
-                  "summary_large_image"
-                ],
+                enum: ["summary", "summary_large_image"],
                 description: {
                   short: "Card style",
-                  long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n"
-                }
+                  long: "Card style (`summary` or `summary_large_image`).\n\nIf this is not provided, the best style will automatically\nselected based upon other metadata. You can learn more about Twitter Card\nstyles [here](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards).\n",
+                },
               },
               creator: {
                 string: {
-                  description: "`@username` of the content creator (must be a quoted string)"
-                }
+                  description:
+                    "`@username` of the content creator (must be a quoted string)",
+                },
               },
               site: {
                 string: {
-                  description: "`@username` of the website (must be a quoted string)"
-                }
-              }
-            }
-          }
+                  description:
+                    "`@username` of the website (must be a quoted string)",
+                },
+              },
+            },
+          },
         },
         {
           id: "open-graph-config",
           object: {
             super: {
-              resolveRef: "social-metadata"
+              resolveRef: "social-metadata",
             },
             closed: true,
             properties: {
               locale: {
                 string: {
-                  description: "Locale of open graph metadata"
-                }
+                  description: "Locale of open graph metadata",
+                },
               },
               "site-name": {
                 string: {
                   description: {
                     short: "Name that should be displayed for the overall site",
-                    long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n"
-                  }
-                }
-              }
-            }
-          }
+                    long: "Name that should be displayed for the overall site. If not explicitly \nprovided in the `open-graph` metadata, Quarto will use the website or\nbook `title` by default.\n",
+                  },
+                },
+              },
+            },
+          },
         },
         {
           id: "page-footer",
@@ -9031,34 +8917,32 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               left: {
                 ref: "page-footer-region",
-                description: "Footer left content"
+                description: "Footer left content",
               },
               right: {
                 ref: "page-footer-region",
-                description: "Footer right content"
+                description: "Footer right content",
               },
               center: {
                 ref: "page-footer-region",
-                description: "Footer center content"
+                description: "Footer center content",
               },
               border: {
-                anyOf: [
-                  "boolean",
-                  "string"
-                ],
-                description: "Footer border (`true`, `false`, or a border color)"
+                anyOf: ["boolean", "string"],
+                description:
+                  "Footer border (`true`, `false`, or a border color)",
               },
               background: {
                 schema: "string",
-                description: "Footer background color"
+                description: "Footer background color",
               },
               foreground: {
                 schema: "string",
-                description: "Footer foreground color"
-              }
+                description: "Footer foreground color",
+              },
             },
-            closed: true
-          }
+            closed: true,
+          },
         },
         {
           id: "base-website",
@@ -9067,67 +8951,66 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               title: {
                 string: {
-                  description: "Website title"
-                }
+                  description: "Website title",
+                },
               },
               description: {
                 string: {
-                  description: "Website description"
-                }
+                  description: "Website description",
+                },
               },
               favicon: {
                 string: {
-                  description: "The path to the favicon for this website"
-                }
+                  description: "The path to the favicon for this website",
+                },
               },
               "site-url": {
                 string: {
-                  description: "Base URL for published website"
-                }
+                  description: "Base URL for published website",
+                },
               },
               "site-path": {
                 string: {
-                  description: "Path to site (defaults to `/`). Not required if you specify `site-url`.\n"
-                }
+                  description:
+                    "Path to site (defaults to `/`). Not required if you specify `site-url`.\n",
+                },
               },
               "repo-url": {
                 string: {
-                  description: "Base URL for website source code repository"
-                }
+                  description: "Base URL for website source code repository",
+                },
               },
               "repo-subdir": {
                 string: {
-                  description: "Subdirectory of repository containing website"
-                }
+                  description: "Subdirectory of repository containing website",
+                },
               },
               "repo-branch": {
                 string: {
-                  description: "Branch of website source code (defaults to `main`)"
-                }
+                  description:
+                    "Branch of website source code (defaults to `main`)",
+                },
               },
               "issue-url": {
                 string: {
-                  description: "URL to use for the 'report an issue' repository action."
-                }
+                  description:
+                    "URL to use for the 'report an issue' repository action.",
+                },
               },
               "repo-actions": {
                 maybeArrayOf: {
-                  enum: [
-                    "none",
-                    "edit",
-                    "source",
-                    "issue"
-                  ],
+                  enum: ["none", "edit", "source", "issue"],
                   description: {
                     short: "Links to source repository actions",
-                    long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
-                  }
-                }
+                    long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)",
+                  },
+                },
               },
               "reader-mode": {
                 boolean: {
-                  description: "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n"
-                }
+                  description:
+                    "Displays a 'reader-mode' tool which allows users to hide the sidebar and table of contents when viewing a page.\n",
+                },
               },
               "google-analytics": {
                 anyOf: [
@@ -9137,107 +9020,101 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         "tracking-id": {
                           schema: "string",
-                          description: "The Google tracking Id or measurement Id of this website."
+                          description:
+                            "The Google tracking Id or measurement Id of this website.",
                         },
                         storage: {
-                          enum: [
-                            "cookies",
-                            "none"
-                          ],
+                          enum: ["cookies", "none"],
                           description: {
                             short: "Storage options for Google Analytics data",
-                            long: "Storage option for Google Analytics data using on of these two values:\n\n`cookies`: Use cookies to store unique user and session identification (default).\n\n`none`: Do not use cookies to store unique user and session identification.\n\nFor more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).\n"
-                          }
+                            long: "Storage option for Google Analytics data using on of these two values:\n\n`cookies`: Use cookies to store unique user and session identification (default).\n\n`none`: Do not use cookies to store unique user and session identification.\n\nFor more about choosing storage options see [Storage](https://quarto.org/docs/websites/website-tools.html#storage).\n",
+                          },
                         },
                         "anonymize-ip": {
                           schema: "boolean",
                           description: {
                             short: "Anonymize the user ip address.",
-                            long: "Anonymize the user ip address. For more about this feature, see \n[IP Anonymization (or IP masking) in Google Analytics](https://support.google.com/analytics/answer/2763052?hl=en).\n"
-                          }
+                            long: "Anonymize the user ip address. For more about this feature, see \n[IP Anonymization (or IP masking) in Google Analytics](https://support.google.com/analytics/answer/2763052?hl=en).\n",
+                          },
                         },
                         version: {
-                          enum: [
-                            3,
-                            4
-                          ],
+                          enum: [3, 4],
                           description: {
-                            short: "The version number of Google Analytics to use.",
-                            long: "The version number of Google Analytics to use. \n\n- `3`: Use analytics.js\n- `4`: use gtag. \n\nThis is automatically detected based upon the `tracking-id`, but you may specify it.\n"
-                          }
-                        }
-                      }
-                    }
-                  }
+                            short:
+                              "The version number of Google Analytics to use.",
+                            long: "The version number of Google Analytics to use. \n\n- `3`: Use analytics.js\n- `4`: use gtag. \n\nThis is automatically detected based upon the `tracking-id`, but you may specify it.\n",
+                          },
+                        },
+                      },
+                    },
+                  },
                 ],
-                description: "Enable Google Analytics for this website"
+                description: "Enable Google Analytics for this website",
               },
               "cookie-consent": {
                 anyOf: [
                   {
-                    enum: [
-                      "express",
-                      "implied"
-                    ]
+                    enum: ["express", "implied"],
                   },
                   "boolean",
                   {
                     object: {
                       properties: {
                         type: {
-                          enum: [
-                            "implied",
-                            "express"
-                          ],
+                          enum: ["implied", "express"],
                           description: {
-                            short: "The type of consent that should be requested",
-                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n"
-                          }
+                            short:
+                              "The type of consent that should be requested",
+                            long: "The type of consent that should be requested, using one of these two values:\n\n- `implied` (default): This will notify the user that the site uses cookies and permit them to change preferences, but not block cookies unless the user changes their preferences.\n\n- `express`: This will block cookies until the user expressly agrees to allow them (or continue blocking them if the user doesn\u2019t agree).\n",
+                          },
                         },
                         style: {
                           enum: [
                             "simple",
                             "headline",
                             "interstitial",
-                            "standalone"
+                            "standalone",
                           ],
                           description: {
-                            short: "The style of the consent banner that is displayed",
-                            long: "The style of the consent banner that is displayed:\n\n- `simple` (default): A simple dialog in the lower right corner of the website.\n\n- `headline`: A full width banner across the top of the website.\n\n- `interstitial`: An semi-transparent overlay of the entire website.\n\n- `standalone`: An opaque overlay of the entire website.\n"
-                          }
+                            short:
+                              "The style of the consent banner that is displayed",
+                            long: "The style of the consent banner that is displayed:\n\n- `simple` (default): A simple dialog in the lower right corner of the website.\n\n- `headline`: A full width banner across the top of the website.\n\n- `interstitial`: An semi-transparent overlay of the entire website.\n\n- `standalone`: An opaque overlay of the entire website.\n",
+                          },
                         },
                         palette: {
-                          enum: [
-                            "light",
-                            "dark"
-                          ],
-                          description: "Whether to use a dark or light appearance for the consent banner (`light` or `dark`)."
+                          enum: ["light", "dark"],
+                          description:
+                            "Whether to use a dark or light appearance for the consent banner (`light` or `dark`).",
                         },
                         "policy-url": {
                           schema: "string",
-                          description: "The url to the website\u2019s cookie or privacy policy."
+                          description:
+                            "The url to the website\u2019s cookie or privacy policy.",
                         },
                         language: {
                           schema: "string",
                           description: {
-                            short: "The language to be used when diplaying the cookie consent prompt (defaults to document language).",
-                            long: "The language to be used when diplaying the cookie consent prompt specified using an IETF language tag.\n\nIf not specified, the document language will be used.\n"
-                          }
+                            short:
+                              "The language to be used when diplaying the cookie consent prompt (defaults to document language).",
+                            long: "The language to be used when diplaying the cookie consent prompt specified using an IETF language tag.\n\nIf not specified, the document language will be used.\n",
+                          },
                         },
                         "prefs-text": {
                           schema: "string",
                           description: {
-                            short: "The text to display for the cookie preferences link in the website footer."
-                          }
-                        }
-                      }
-                    }
-                  }
+                            short:
+                              "The text to display for the cookie preferences link in the website footer.",
+                          },
+                        },
+                      },
+                    },
+                  },
                 ],
                 description: {
-                  short: "Request cookie consent before enabling scripts that set cookies",
-                  long: "Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).\n\nThe user\u2019s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent).\n"
-                }
+                  short:
+                    "Request cookie consent before enabling scripts that set cookies",
+                  long: "Quarto includes the ability to request cookie consent before enabling scripts that set cookies, using [Cookie Consent](https://www.cookieconsent.com/).\n\nThe user\u2019s cookie preferences will automatically control Google Analytics (if enabled) and can be used to control custom scripts you add as well. For more information see [Custom Scripts and Cookie Consent](https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent).\n",
+                },
               },
               search: {
                 anyOf: [
@@ -9246,117 +9123,123 @@ var require_yaml_intelligence_resources = __commonJS({
                     object: {
                       properties: {
                         location: {
-                          enum: [
-                            "navbar",
-                            "sidebar"
-                          ],
-                          description: "Location for search widget (`navbar` or `sidebar`)"
+                          enum: ["navbar", "sidebar"],
+                          description:
+                            "Location for search widget (`navbar` or `sidebar`)",
                         },
                         type: {
-                          enum: [
-                            "overlay",
-                            "textbox"
-                          ],
-                          description: "Type of search UI (`overlay` or `textbox`)"
+                          enum: ["overlay", "textbox"],
+                          description:
+                            "Type of search UI (`overlay` or `textbox`)",
                         },
                         limit: {
                           schema: "number",
-                          description: "Number of matches to display (defaults to 20)"
+                          description:
+                            "Number of matches to display (defaults to 20)",
                         },
                         "collapse-after": {
                           schema: "number",
-                          description: "Matches after which to collapse additional results"
+                          description:
+                            "Matches after which to collapse additional results",
                         },
                         "copy-button": {
                           schema: "boolean",
-                          description: "Provide button for copying search link"
+                          description: "Provide button for copying search link",
                         },
                         "keyboard-shortcut": {
                           maybeArrayOf: {
                             string: {
-                              description: "One or more keys that will act as a shortcut to launch search (single characters)"
-                            }
-                          }
+                              description:
+                                "One or more keys that will act as a shortcut to launch search (single characters)",
+                            },
+                          },
                         },
                         "show-item-context": {
                           schema: {
                             anyOf: [
                               {
-                                enum: [
-                                  "tree",
-                                  "parent",
-                                  "root"
-                                ]
+                                enum: ["tree", "parent", "root"],
                               },
-                              "boolean"
-                            ]
+                              "boolean",
+                            ],
                           },
-                          description: "Whether to include search result parents when displaying items in search results (when possible)."
+                          description:
+                            "Whether to include search result parents when displaying items in search results (when possible).",
                         },
                         algolia: {
                           object: {
                             properties: {
                               "index-name": {
                                 schema: "string",
-                                description: "The name of the index to use when performing a search"
+                                description:
+                                  "The name of the index to use when performing a search",
                               },
                               "application-id": {
                                 schema: "string",
-                                description: "The unique ID used by Algolia to identify your application"
+                                description:
+                                  "The unique ID used by Algolia to identify your application",
                               },
                               "search-only-api-key": {
                                 schema: "string",
-                                description: "The Search-Only API key to use to connect to Algolia"
+                                description:
+                                  "The Search-Only API key to use to connect to Algolia",
                               },
                               "analytics-events": {
                                 boolean: {
-                                  description: "Enable tracking of Algolia analytics events"
-                                }
+                                  description:
+                                    "Enable tracking of Algolia analytics events",
+                                },
                               },
                               "show-logo": {
                                 boolean: {
-                                  description: "Enable the display of the Algolia logo in the search results footer."
-                                }
+                                  description:
+                                    "Enable the display of the Algolia logo in the search results footer.",
+                                },
                               },
                               "index-fields": {
                                 object: {
                                   properties: {
                                     href: {
                                       schema: "string",
-                                      description: "Field that contains the URL of index entries"
+                                      description:
+                                        "Field that contains the URL of index entries",
                                     },
                                     title: {
                                       schema: "string",
-                                      description: "Field that contains the title of index entries"
+                                      description:
+                                        "Field that contains the title of index entries",
                                     },
                                     text: {
                                       schema: "string",
-                                      description: "Field that contains the text of index entries"
+                                      description:
+                                        "Field that contains the text of index entries",
                                     },
                                     section: {
                                       schema: "string",
-                                      description: "Field that contains the section of index entries"
-                                    }
+                                      description:
+                                        "Field that contains the section of index entries",
+                                    },
                                   },
-                                  closed: true
-                                }
+                                  closed: true,
+                                },
                               },
                               params: {
                                 object: {
-                                  description: "Additional parameters to pass when executing a search"
-                                }
-                              }
+                                  description:
+                                    "Additional parameters to pass when executing a search",
+                                },
+                              },
                             },
-                            closed: true
+                            closed: true,
                           },
-                          description: "Use external Algolia search index"
-                        }
+                          description: "Use external Algolia search index",
+                        },
                       },
-                      closed: true
-                    }
-                  }
+                      closed: true,
+                    },
+                  },
                 ],
-                description: "Provide full text search for website"
+                description: "Provide full text search for website",
               },
               navbar: {
                 anyOf: [
@@ -9365,26 +9248,26 @@ var require_yaml_intelligence_resources = __commonJS({
                     object: {
                       properties: {
                         title: {
-                          anyOf: [
-                            "string",
-                            "boolean"
-                          ],
-                          description: "The navbar title. Uses the project title if none is specified."
+                          anyOf: ["string", "boolean"],
+                          description:
+                            "The navbar title. Uses the project title if none is specified.",
                         },
                         logo: {
                           path: {
-                            description: "Path to a logo image that will be displayed to the left of the title."
-                          }
+                            description:
+                              "Path to a logo image that will be displayed to the left of the title.",
+                          },
                         },
                         "logo-alt": {
                           string: {
-                            description: "Alternate text for the logo image."
-                          }
+                            description: "Alternate text for the logo image.",
+                          },
                         },
                         "logo-href": {
                           string: {
-                            description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
-                          }
+                            description:
+                              "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html).",
+                          },
                         },
                         background: {
                           anyOf: [
@@ -9397,12 +9280,13 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "warning",
                                 "info",
                                 "light",
-                                "dark"
-                              ]
+                                "dark",
+                              ],
                             },
-                            "string"
+                            "string",
                           ],
-                          description: "The navbar's background color (named or hex color)."
+                          description:
+                            "The navbar's background color (named or hex color).",
                         },
                         foreground: {
                           anyOf: [
@@ -9415,58 +9299,58 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "warning",
                                 "info",
                                 "light",
-                                "dark"
-                              ]
+                                "dark",
+                              ],
                             },
-                            "string"
+                            "string",
                           ],
-                          description: "The navbar's foreground color (named or hex color)."
+                          description:
+                            "The navbar's foreground color (named or hex color).",
                         },
                         search: {
                           boolean: {
-                            description: "Include a search box in the navbar."
-                          }
+                            description: "Include a search box in the navbar.",
+                          },
                         },
                         pinned: {
                           boolean: {
-                            description: "Always show the navbar (keeping it pinned).",
-                            default: false
-                          }
+                            description:
+                              "Always show the navbar (keeping it pinned).",
+                            default: false,
+                          },
                         },
                         collapse: {
                           boolean: {
-                            description: "Collapse the navbar into a menu when the display becomes narrow.",
-                            default: true
-                          }
+                            description:
+                              "Collapse the navbar into a menu when the display becomes narrow.",
+                            default: true,
+                          },
                         },
                         "collapse-below": {
-                          enum: [
-                            "sm",
-                            "md",
-                            "lg",
-                            "xl",
-                            "xxl"
-                          ],
-                          description: "The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`).",
-                          default: "lg"
+                          enum: ["sm", "md", "lg", "xl", "xxl"],
+                          description:
+                            "The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`).",
+                          default: "lg",
                         },
                         left: {
                           arrayOf: {
-                            ref: "navigation-item"
+                            ref: "navigation-item",
                           },
-                          description: "List of items for the left side of the navbar."
+                          description:
+                            "List of items for the left side of the navbar.",
                         },
                         right: {
                           arrayOf: {
-                            ref: "navigation-item"
+                            ref: "navigation-item",
                           },
-                          description: "List of items for the right side of the navbar."
-                        }
-                      }
-                    }
-                  }
+                          description:
+                            "List of items for the right side of the navbar.",
+                        },
+                      },
+                    },
+                  },
                 ],
-                description: "Top navigation options"
+                description: "Top navigation options",
               },
               sidebar: {
                 anyOf: [
@@ -9477,43 +9361,41 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           id: {
                             string: {
-                              description: "The identifier for this sidebar."
-                            }
+                              description: "The identifier for this sidebar.",
+                            },
                           },
                           title: {
-                            anyOf: [
-                              "string",
-                              "boolean"
-                            ],
-                            description: "The sidebar title. Uses the project title if none is specified."
+                            anyOf: ["string", "boolean"],
+                            description:
+                              "The sidebar title. Uses the project title if none is specified.",
                           },
                           logo: {
                             path: {
-                              description: "Path to a logo image that will be displayed in the sidebar."
-                            }
+                              description:
+                                "Path to a logo image that will be displayed in the sidebar.",
+                            },
                           },
                           search: {
                             boolean: {
-                              description: "Include a search control in the sidebar."
-                            }
+                              description:
+                                "Include a search control in the sidebar.",
+                            },
                           },
                           tools: {
                             arrayOf: {
-                              ref: "navigation-item-object"
+                              ref: "navigation-item-object",
                             },
-                            description: "List of sidebar tools"
+                            description: "List of sidebar tools",
                           },
                           contents: {
                             ref: "sidebar-contents",
-                            description: "List of items for the sidebar"
+                            description: "List of items for the sidebar",
                           },
                           style: {
-                            enum: [
-                              "docked",
-                              "floating"
-                            ],
-                            description: "The style of sidebar (`docked` or `floating`).",
-                            default: "floating"
+                            enum: ["docked", "floating"],
+                            description:
+                              "The style of sidebar (`docked` or `floating`).",
+                            default: "floating",
                           },
                           background: {
                             anyOf: [
@@ -9526,12 +9408,13 @@ var require_yaml_intelligence_resources = __commonJS({
                                   "warning",
                                   "info",
                                   "light",
-                                  "dark"
-                                ]
+                                  "dark",
+                                ],
                               },
-                              "string"
+                              "string",
                             ],
-                            description: "The sidebar's background color (named or hex color)."
+                            description:
+                              "The sidebar's background color (named or hex color).",
                           },
                           foreground: {
                             anyOf: [
@@ -9544,151 +9427,158 @@ var require_yaml_intelligence_resources = __commonJS({
                                   "warning",
                                   "info",
                                   "light",
-                                  "dark"
-                                ]
+                                  "dark",
+                                ],
                               },
-                              "string"
+                              "string",
                             ],
-                            description: "The sidebar's foreground color (named or hex color)."
+                            description:
+                              "The sidebar's foreground color (named or hex color).",
                           },
                           border: {
                             boolean: {
-                              description: "Whether to show a border on the sidebar (defaults to true for 'docked' sidebars)"
-                            }
+                              description:
+                                "Whether to show a border on the sidebar (defaults to true for 'docked' sidebars)",
+                            },
                           },
                           alignment: {
-                            enum: [
-                              "left",
-                              "right",
-                              "center"
-                            ],
-                            description: "Alignment of the items within the sidebar (`left`, `right`, or `center`)"
+                            enum: ["left", "right", "center"],
+                            description:
+                              "Alignment of the items within the sidebar (`left`, `right`, or `center`)",
                           },
                           "collapse-level": {
                             number: {
-                              description: "The depth at which the sidebar contents should be collapsed by default.",
-                              default: 2
-                            }
+                              description:
+                                "The depth at which the sidebar contents should be collapsed by default.",
+                              default: 2,
+                            },
                           },
                           pinned: {
                             boolean: {
-                              description: "When collapsed, pin the collapsed sidebar to the top of the page."
-                            }
+                              description:
+                                "When collapsed, pin the collapsed sidebar to the top of the page.",
+                            },
                           },
                           header: {
                             maybeArrayOf: "string",
-                            description: "Markdown to place above sidebar content (text or file path)"
+                            description:
+                              "Markdown to place above sidebar content (text or file path)",
                           },
                           footer: {
                             maybeArrayOf: "string",
-                            description: "Markdown to place below sidebar content (text or file path)"
-                          }
-                        }
-                      }
-                    }
-                  }
+                            description:
+                              "Markdown to place below sidebar content (text or file path)",
+                          },
+                        },
+                      },
+                    },
+                  },
                 ],
-                description: "Side navigation options"
+                description: "Side navigation options",
               },
               "body-header": {
                 string: {
-                  description: "Markdown to insert at the beginning of each page\u2019s body (below the title and author block)."
-                }
+                  description:
+                    "Markdown to insert at the beginning of each page\u2019s body (below the title and author block).",
+                },
               },
               "body-footer": {
                 string: {
-                  description: "Markdown to insert below each page\u2019s body."
-                }
+                  description:
+                    "Markdown to insert below each page\u2019s body.",
+                },
               },
               "margin-header": {
                 maybeArrayOf: "string",
-                description: "Markdown to place above margin content (text or file path)"
+                description:
+                  "Markdown to place above margin content (text or file path)",
               },
               "margin-footer": {
                 maybeArrayOf: "string",
-                description: "Markdown to place below margin content (text or file path)"
+                description:
+                  "Markdown to place below margin content (text or file path)",
               },
               "page-navigation": {
                 boolean: {
-                  description: "Provide next and previous article links in footer"
-                }
+                  description:
+                    "Provide next and previous article links in footer",
+                },
               },
               "back-to-top-navigation": {
                 boolean: {
-                  description: "Provide a 'back to top' navigation button"
-                }
+                  description: "Provide a 'back to top' navigation button",
+                },
               },
               "bread-crumbs": {
                 boolean: {
-                  description: "Whether to show navigation breadcrumbs for pages more than 1 level deep"
-                }
+                  description:
+                    "Whether to show navigation breadcrumbs for pages more than 1 level deep",
+                },
               },
               "page-footer": {
                 anyOf: [
                   "string",
                   {
-                    ref: "page-footer"
-                  }
+                    ref: "page-footer",
+                  },
                 ],
-                description: "Shared page footer"
+                description: "Shared page footer",
               },
               image: {
                 path: {
-                  description: "Default site thumbnail image for `twitter` /`open-graph`\n"
-                }
+                  description:
+                    "Default site thumbnail image for `twitter` /`open-graph`\n",
+                },
               },
               comments: {
                 schema: {
-                  ref: "comments"
-                }
+                  ref: "comments",
+                },
               },
               "open-graph": {
                 anyOf: [
                   "boolean",
                   {
-                    ref: "open-graph-config"
-                  }
+                    ref: "open-graph-config",
+                  },
                 ],
-                description: "Publish open graph metadata"
+                description: "Publish open graph metadata",
               },
               "twitter-card": {
                 anyOf: [
                   "boolean",
                   {
-                    ref: "twitter-card-config"
-                  }
+                    ref: "twitter-card-config",
+                  },
                 ],
-                description: "Publish twitter card metadata"
+                description: "Publish twitter card metadata",
               },
               "other-links": {
                 schema: {
-                  ref: "other-links"
+                  ref: "other-links",
                 },
                 tags: {
-                  formats: [
-                    "$html-doc"
-                  ]
+                  formats: ["$html-doc"],
                 },
-                description: "A list of other links to appear below the TOC."
+                description: "A list of other links to appear below the TOC.",
               },
               "code-links": {
                 schema: {
                   anyOf: [
                     "boolean",
                     {
-                      ref: "other-links"
-                    }
-                  ]
+                      ref: "other-links",
+                    },
+                  ],
                 },
                 tags: {
-                  formats: [
-                    "$html-doc"
-                  ]
+                  formats: ["$html-doc"],
                 },
-                description: "A list of codes links to appear with this document."
-              }
-            }
-          }
+                description:
+                  "A list of codes links to appear with this document.",
+              },
+            },
+          },
         },
         {
           id: "book-schema",
@@ -9696,157 +9586,147 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               closed: true,
               super: {
-                resolveRef: "base-website"
+                resolveRef: "base-website",
               },
               properties: {
                 title: {
                   string: {
-                    description: "Book title"
-                  }
+                    description: "Book title",
+                  },
                 },
                 subtitle: {
                   string: {
-                    description: "Book subtitle"
-                  }
+                    description: "Book subtitle",
+                  },
                 },
                 author: {
                   maybeArrayOf: {
-                    anyOf: [
-                      "string",
-                      "object"
-                    ],
-                    description: "Author or authors of the book"
-                  }
+                    anyOf: ["string", "object"],
+                    description: "Author or authors of the book",
+                  },
                 },
                 date: {
                   string: {
-                    description: "Book publication date"
-                  }
+                    description: "Book publication date",
+                  },
                 },
                 "date-format": {
                   string: {
-                    description: "Format string for dates in the book"
-                  }
+                    description: "Format string for dates in the book",
+                  },
                 },
                 abstract: {
                   string: {
-                    description: "Book abstract"
-                  }
+                    description: "Book abstract",
+                  },
                 },
                 description: {
                   string: {
-                    description: "Description metadata for HTML version of book"
-                  }
+                    description:
+                      "Description metadata for HTML version of book",
+                  },
                 },
                 chapters: {
                   schema: {
-                    ref: "chapter-list"
+                    ref: "chapter-list",
                   },
                   description: "Book part and chapter files",
-                  hidden: true
+                  hidden: true,
                 },
                 appendices: {
                   schema: {
-                    ref: "chapter-list"
+                    ref: "chapter-list",
                   },
                   description: "Book appendix files",
-                  hidden: true
+                  hidden: true,
                 },
                 references: {
                   path: {
-                    description: "Book references file"
-                  }
+                    description: "Book references file",
+                  },
                 },
                 "output-file": {
                   path: {
-                    description: "Base name for single-file output (e.g. PDF, ePub)"
-                  }
+                    description:
+                      "Base name for single-file output (e.g. PDF, ePub)",
+                  },
                 },
                 "cover-image": {
                   path: {
-                    description: "Cover image (used in HTML and ePub formats)"
-                  }
+                    description: "Cover image (used in HTML and ePub formats)",
+                  },
                 },
                 "cover-image-alt": {
                   string: {
-                    description: "Alternative text for cover image (used in HTML format)"
-                  }
+                    description:
+                      "Alternative text for cover image (used in HTML format)",
+                  },
                 },
                 sharing: {
                   maybeArrayOf: {
-                    enum: [
-                      "twitter",
-                      "facebook",
-                      "linkedin"
-                    ],
-                    description: "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n"
-                  }
+                    enum: ["twitter", "facebook", "linkedin"],
+                    description:
+                      "Sharing buttons to include on navbar or sidebar\n(one or more of `twitter`, `facebook`, `linkedin`)\n",
+                  },
                 },
                 downloads: {
                   maybeArrayOf: {
-                    enum: [
-                      "pdf",
-                      "epub",
-                      "docx"
-                    ],
-                    description: "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n"
-                  }
+                    enum: ["pdf", "epub", "docx"],
+                    description:
+                      "Download buttons for other formats to include on navbar or sidebar\n(one or more of `pdf`, `epub`, and `docx`)\n",
+                  },
                 },
                 tools: {
                   arrayOf: {
                     schema: {
-                      ref: "navigation-item"
+                      ref: "navigation-item",
                     },
-                    description: "Custom tools for navbar or sidebar"
-                  }
+                    description: "Custom tools for navbar or sidebar",
+                  },
                 },
                 doi: {
                   string: {
                     tags: {
-                      formats: [
-                        "$html-doc"
-                      ]
+                      formats: ["$html-doc"],
                     },
-                    description: "The Digital Object Identifier for this book."
-                  }
-                }
-              }
-            }
-          }
+                    description: "The Digital Object Identifier for this book.",
+                  },
+                },
+              },
+            },
+          },
         },
         {
           id: "chapter-item",
           anyOf: [
             {
-              ref: "navigation-item"
+              ref: "navigation-item",
             },
             {
               object: {
                 properties: {
                   part: {
                     string: {
-                      description: "Part title or path to input file"
-                    }
+                      description: "Part title or path to input file",
+                    },
                   },
                   chapters: {
                     arrayOf: {
-                      ref: "navigation-item"
+                      ref: "navigation-item",
                     },
-                    description: "Path to chapter input file"
-                  }
+                    description: "Path to chapter input file",
+                  },
                 },
-                required: [
-                  "part"
-                ]
-              }
-            }
-          ]
+                required: ["part"],
+              },
+            },
+          ],
         },
         {
           id: "chapter-list",
           arrayOf: {
-            ref: "chapter-item"
-          }
+            ref: "chapter-item",
+          },
         },
         {
           id: "other-links",
@@ -9855,46 +9735,39 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 text: {
                   string: {
-                    description: "The text for the link."
-                  }
+                    description: "The text for the link.",
+                  },
                 },
                 href: {
                   string: {
-                    description: "The href for the link."
-                  }
+                    description: "The href for the link.",
+                  },
                 },
                 icon: {
                   string: {
-                    description: "The bootstrap icon name for the link."
-                  }
+                    description: "The bootstrap icon name for the link.",
+                  },
                 },
                 rel: {
                   string: {
-                    description: "The rel attribute value for the link."
-                  }
+                    description: "The rel attribute value for the link.",
+                  },
                 },
                 target: {
                   string: {
-                    description: "The target attribute value for the link."
-                  }
-                }
+                    description: "The target attribute value for the link.",
+                  },
+                },
               },
-              required: [
-                "text",
-                "href"
-              ]
-            }
-          }
+              required: ["text", "href"],
+            },
+          },
         },
         {
           id: "crossref-labels-schema",
           string: {
-            completions: [
-              "alpha",
-              "arabic",
-              "roman"
-            ]
-          }
+            completions: ["alpha", "arabic", "roman"],
+          },
         },
         {
           id: "epub-contributor",
@@ -9909,25 +9782,27 @@ var require_yaml_intelligence_resources = __commonJS({
                       string: {
                         description: {
                           short: "The role of this creator or contributor.",
-                          long: "The role of this creator or contributor using \n[MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable\ntranslations to commonly used relators (e.g. 'author', 'editor') will \nattempt to be automatically translated.\n"
-                        }
-                      }
+                          long: "The role of this creator or contributor using \n[MARC relators](https://loc.gov/marc/relators/relaterm.html). Human readable\ntranslations to commonly used relators (e.g. 'author', 'editor') will \nattempt to be automatically translated.\n",
+                        },
+                      },
                     },
                     "file-as": {
                       string: {
-                        description: "An alternate version of the creator or contributor text used for alphabatizing."
-                      }
+                        description:
+                          "An alternate version of the creator or contributor text used for alphabatizing.",
+                      },
                     },
                     text: {
                       string: {
-                        description: "The text describing the creator or contributor (for example, creator name)."
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ]
+                        description:
+                          "The text describing the creator or contributor (for example, creator name).",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           id: "format-language",
@@ -9993,10 +9868,10 @@ var require_yaml_intelligence_resources = __commonJS({
               "crossref-exr-prefix": "string",
               "crossref-lof-title": "string",
               "crossref-lot-title": "string",
-              "crossref-lol-title": "string"
+              "crossref-lol-title": "string",
             },
-            errorDescription: "be a format language description object"
-          }
+            errorDescription: "be a format language description object",
+          },
         },
         {
           id: "website-about",
@@ -10007,9 +9882,9 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The target id for the about page.",
-                    long: "The target id of this about page. When the about page is rendered, it will \nplace read the contents of a `div` with this id into the about template that you \nhave selected (and replace the contents with the rendered about content).\n\nIf no such `div` is defined on the page, a `div` with this id will be created \nand appended to the end of the page.\n"
-                  }
-                }
+                    long: "The target id of this about page. When the about page is rendered, it will \nplace read the contents of a `div` with this id into the about template that you \nhave selected (and replace the contents with the rendered about content).\n\nIf no such `div` is defined on the page, a `div` with this id will be created \nand appended to the end of the page.\n",
+                  },
+                },
               },
               template: {
                 anyOf: [
@@ -10019,50 +9894,46 @@ var require_yaml_intelligence_resources = __commonJS({
                       "trestles",
                       "solana",
                       "marquee",
-                      "broadside"
-                    ]
+                      "broadside",
+                    ],
                   },
-                  "path"
+                  "path",
                 ],
                 description: {
                   short: "The template to use to layout this about page.",
-                  long: "The template to use to layout this about page. Choose from:\n\n- `jolla`\n- `trestles`\n- `solana`\n- `marquee`\n- `broadside`\n"
-                }
+                  long: "The template to use to layout this about page. Choose from:\n\n- `jolla`\n- `trestles`\n- `solana`\n- `marquee`\n- `broadside`\n",
+                },
               },
               image: {
                 path: {
                   description: {
                     short: "The path to the main image on the about page.",
-                    long: "The path to the main image on the about page. If not specified, \nthe `image` provided for the document itself will be used.\n"
-                  }
-                }
+                    long: "The path to the main image on the about page. If not specified, \nthe `image` provided for the document itself will be used.\n",
+                  },
+                },
               },
               "image-width": {
                 string: {
                   description: {
                     short: "A valid CSS width for the about page image.",
-                    long: "A valid CSS width for the about page image.\n"
-                  }
-                }
+                    long: "A valid CSS width for the about page image.\n",
+                  },
+                },
               },
               "image-shape": {
-                enum: [
-                  "rectangle",
-                  "round",
-                  "rounded"
-                ],
+                enum: ["rectangle", "round", "rounded"],
                 description: {
                   short: "The shape of the image on the about page.",
-                  long: "The shape of the image on the about page.\n\n- `rectangle`\n- `round`\n- `rounded`\n"
-                }
+                  long: "The shape of the image on the about page.\n\n- `rectangle`\n- `round`\n- `rounded`\n",
+                },
               },
               links: {
                 arrayOf: {
-                  ref: "navigation-item"
-                }
-              }
-            }
-          }
+                  ref: "navigation-item",
+                },
+              },
+            },
+          },
         },
         {
           id: "website-listing",
@@ -10073,94 +9944,89 @@ var require_yaml_intelligence_resources = __commonJS({
                 string: {
                   description: {
                     short: "The id of this listing.",
-                    long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIn no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
-                  }
-                }
+                    long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIn no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n",
+                  },
+                },
               },
               type: {
-                enum: [
-                  "default",
-                  "table",
-                  "grid",
-                  "custom"
-                ],
+                enum: ["default", "table", "grid", "custom"],
                 description: {
                   short: "The type of listing to create.",
-                  long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` field\n"
-                }
+                  long: "The type of listing to create. Choose one of:\n\n- `default`: A blog style list of items\n- `table`: A table of items\n- `grid`: A grid of item cards\n- `custom`: A custom template, provided by the `template` field\n",
+                },
               },
               contents: {
                 maybeArrayOf: {
                   anyOf: [
                     "string",
                     {
-                      ref: "website-listing-contents-object"
-                    }
-                  ]
+                      ref: "website-listing-contents-object",
+                    },
+                  ],
                 },
-                description: "The files or path globs of Quarto documents or YAML files that should be included in the listing."
+                description:
+                  "The files or path globs of Quarto documents or YAML files that should be included in the listing.",
               },
               sort: {
                 anyOf: [
                   "boolean",
                   {
-                    maybeArrayOf: "string"
-                  }
+                    maybeArrayOf: "string",
+                  },
                 ],
                 description: {
                   short: "Sort items in the listing by these fields.",
-                  long: "Sort items in the listing by these fields. The sort key is made up of a \nfield name followed by a direction `asc` or `desc`.\n\nFor example:\n`date asc`\n\nUse `sort:false` to use the unsorted original order of items.\n"
-                }
+                  long: "Sort items in the listing by these fields. The sort key is made up of a \nfield name followed by a direction `asc` or `desc`.\n\nFor example:\n`date asc`\n\nUse `sort:false` to use the unsorted original order of items.\n",
+                },
               },
               "max-items": {
                 number: {
-                  description: "The maximum number of items to include in this listing."
-                }
+                  description:
+                    "The maximum number of items to include in this listing.",
+                },
               },
               "page-size": {
                 number: {
-                  description: "The number of items to display on a page."
-                }
+                  description: "The number of items to display on a page.",
+                },
               },
               "sort-ui": {
                 anyOf: [
                   "boolean",
                   {
-                    arrayOf: "string"
-                  }
+                    arrayOf: "string",
+                  },
                 ],
                 description: {
                   short: "Shows or hides the sorting control for the listing.",
-                  long: "Shows or hides the sorting control for the listing. To control the \nfields that will be displayed in the sorting control, provide a list\nof field names.\n"
-                }
+                  long: "Shows or hides the sorting control for the listing. To control the \nfields that will be displayed in the sorting control, provide a list\nof field names.\n",
+                },
               },
               "filter-ui": {
                 anyOf: [
                   "boolean",
                   {
-                    arrayOf: "string"
-                  }
+                    arrayOf: "string",
+                  },
                 ],
                 description: {
-                  short: "Shows or hides the filtering control for the listing.",
-                  long: "Shows or hides the filtering control for the listing. To control the \nfields that will be used to filter the listing, provide a list\nof field names. By default all fields of the listing will be used\nwhen filtering.\n"
-                }
+                  short:
+                    "Shows or hides the filtering control for the listing.",
+                  long: "Shows or hides the filtering control for the listing. To control the \nfields that will be used to filter the listing, provide a list\nof field names. By default all fields of the listing will be used\nwhen filtering.\n",
+                },
               },
               categories: {
                 anyOf: [
                   "boolean",
                   {
-                    enum: [
-                      "numbered",
-                      "unnumbered",
-                      "cloud"
-                    ]
-                  }
+                    enum: ["numbered", "unnumbered", "cloud"],
+                  },
                 ],
                 description: {
-                  short: "Display item categories from this listing in the margin of the page.",
-                  long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
-                }
+                  short:
+                    "Display item categories from this listing in the margin of the page.",
+                  long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n",
+                },
               },
               feed: {
                 anyOf: [
@@ -10171,235 +10037,244 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         items: {
                           number: {
-                            description: "The number of items to include in your feed. Defaults to 20.\n"
-                          }
+                            description:
+                              "The number of items to include in your feed. Defaults to 20.\n",
+                          },
                         },
                         type: {
-                          enum: [
-                            "full",
-                            "partial"
-                          ],
+                          enum: ["full", "partial"],
                           description: {
-                            short: "Whether to include full or partial content in the feed.",
-                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n"
-                          }
+                            short:
+                              "Whether to include full or partial content in the feed.",
+                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n",
+                          },
                         },
                         title: {
                           string: {
                             description: {
                               short: "The title for this feed.",
-                              long: "The title for this feed. Defaults to the site title provided the Quarto project.\n"
-                            }
-                          }
+                              long: "The title for this feed. Defaults to the site title provided the Quarto project.\n",
+                            },
+                          },
                         },
                         image: {
                           path: {
                             description: {
                               short: "The path to an image for this feed.",
-                              long: "The path to an image for this feed. If not specified, the image for the page the listing \nappears on will be used, otherwise an image will be used if specified for the site \nin the Quarto project.\n"
-                            }
-                          }
+                              long: "The path to an image for this feed. If not specified, the image for the page the listing \nappears on will be used, otherwise an image will be used if specified for the site \nin the Quarto project.\n",
+                            },
+                          },
                         },
                         description: {
                           string: {
                             description: {
                               short: "The description of this feed.",
-                              long: "The description of this feed. If not specified, the description for the page the \nlisting appears on will be used, otherwise the description \nof the site will be used if specified in the Quarto project.\n"
-                            }
-                          }
+                              long: "The description of this feed. If not specified, the description for the page the \nlisting appears on will be used, otherwise the description \nof the site will be used if specified in the Quarto project.\n",
+                            },
+                          },
                         },
                         language: {
                           string: {
                             description: {
                               short: "The language of the feed.",
-                              long: "The language of the feed. Omitted if not specified. \nSee [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)\nfor a list of valid language codes.\n"
-                            }
-                          }
+                              long: "The language of the feed. Omitted if not specified. \nSee [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-language-codes)\nfor a list of valid language codes.\n",
+                            },
+                          },
                         },
                         categories: {
                           maybeArrayOf: {
                             string: {
-                              description: "A list of categories for which to create separate RSS feeds containing only posts with that category"
-                            }
-                          }
+                              description:
+                                "A list of categories for which to create separate RSS feeds containing only posts with that category",
+                            },
+                          },
                         },
                         "xml-stylesheet": {
                           path: {
-                            description: "The path to an XML stylesheet (XSL file) used to style the RSS feed."
-                          }
-                        }
-                      }
-                    }
-                  }
+                            description:
+                              "The path to an XML stylesheet (XSL file) used to style the RSS feed.",
+                          },
+                        },
+                      },
+                    },
+                  },
                 ],
-                description: "Enables an RSS feed for the listing."
+                description: "Enables an RSS feed for the listing.",
               },
               "date-format": {
                 string: {
                   description: {
-                    short: "The date format to use when displaying dates (e.g. d-M-yyy).",
-                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n"
-                  }
-                }
+                    short:
+                      "The date format to use when displaying dates (e.g. d-M-yyy).",
+                    long: "The date format to use when displaying dates (e.g. d-M-yyy). \nLearn more about supported date formatting values [here](https://deno.land/std@0.125.0/datetime).\n",
+                  },
+                },
               },
               "max-description-length": {
                 number: {
                   description: {
-                    short: "The maximum length (in characters) of the description displayed in the listing.",
-                    long: "The maximum length (in characters) of the description displayed in the listing.\nDefaults to 175.\n"
-                  }
-                }
+                    short:
+                      "The maximum length (in characters) of the description displayed in the listing.",
+                    long: "The maximum length (in characters) of the description displayed in the listing.\nDefaults to 175.\n",
+                  },
+                },
               },
               "image-placeholder": {
                 string: {
-                  description: "The default image to use if an item in the listing doesn't have an image."
-                }
+                  description:
+                    "The default image to use if an item in the listing doesn't have an image.",
+                },
               },
               "image-align": {
-                enum: [
-                  "left",
-                  "right"
-                ],
-                description: "In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`)."
+                enum: ["left", "right"],
+                description:
+                  "In `default` type listings, whether to place the image on the right or left side of the post content (`left` or `right`).",
               },
               "image-height": {
                 string: {
                   description: {
                     short: "The height of the image being displayed.",
-                    long: "The height of the image being displayed (a CSS height string).\n\nThe width is automatically determined and the image will fill the rectangle without scaling (cropped to fill).\n"
-                  }
-                }
+                    long: "The height of the image being displayed (a CSS height string).\n\nThe width is automatically determined and the image will fill the rectangle without scaling (cropped to fill).\n",
+                  },
+                },
               },
               "grid-columns": {
                 number: {
                   description: {
-                    short: "In `grid` type listings, the number of columns in the grid display.",
-                    long: "In grid type listings, the number of columns in the grid display.\nDefaults to 3.\n"
-                  }
-                }
+                    short:
+                      "In `grid` type listings, the number of columns in the grid display.",
+                    long: "In grid type listings, the number of columns in the grid display.\nDefaults to 3.\n",
+                  },
+                },
               },
               "grid-item-border": {
                 boolean: {
                   description: {
-                    short: "In `grid` type listings, whether to display a border around the item card.",
-                    long: "In grid type listings, whether to display a border around the item card. Defaults to `true`.\n"
-                  }
-                }
+                    short:
+                      "In `grid` type listings, whether to display a border around the item card.",
+                    long: "In grid type listings, whether to display a border around the item card. Defaults to `true`.\n",
+                  },
+                },
               },
               "grid-item-align": {
-                enum: [
-                  "left",
-                  "right",
-                  "center"
-                ],
+                enum: ["left", "right", "center"],
                 description: {
-                  short: "In `grid` type listings, the alignment of the content within the card.",
-                  long: "In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).\n"
-                }
+                  short:
+                    "In `grid` type listings, the alignment of the content within the card.",
+                  long: "In grid type listings, the alignment of the content within the card (`left` (default), `right`, or `center`).\n",
+                },
               },
               "table-striped": {
                 boolean: {
                   description: {
-                    short: "In `table` type listings, display the table rows with alternating background colors.",
-                    long: "In table type listings, display the table rows with alternating background colors.\nDefaults to `false`.\n"
-                  }
-                }
+                    short:
+                      "In `table` type listings, display the table rows with alternating background colors.",
+                    long: "In table type listings, display the table rows with alternating background colors.\nDefaults to `false`.\n",
+                  },
+                },
               },
               "table-hover": {
                 boolean: {
                   description: {
-                    short: "In `table` type listings, highlight rows of the table when the user hovers the mouse over them.",
-                    long: "In table type listings, highlight rows of the table when the user hovers the mouse over them.\nDefaults to false.\n"
-                  }
-                }
+                    short:
+                      "In `table` type listings, highlight rows of the table when the user hovers the mouse over them.",
+                    long: "In table type listings, highlight rows of the table when the user hovers the mouse over them.\nDefaults to false.\n",
+                  },
+                },
               },
               template: {
                 path: {
                   description: {
                     short: "The path to a custom listing template.",
-                    long: "The path to a custom listing template.\n"
-                  }
-                }
+                    long: "The path to a custom listing template.\n",
+                  },
+                },
               },
               "template-params": {
                 schema: "object",
-                description: "Parameters that are passed to the custom template."
+                description:
+                  "Parameters that are passed to the custom template.",
               },
               fields: {
                 arrayOf: "string",
                 description: {
                   short: "The list of fields to include in this listing",
-                  long: "The list of fields to include in this listing.\n"
-                }
+                  long: "The list of fields to include in this listing.\n",
+                },
               },
               "field-display-names": {
                 object: {
                   description: {
                     short: "A mapping of display names for listing fields.",
-                    long: 'A mapping that provides display names for specific fields. For example, to display the title column as \u2018Report\u2019 in a table listing you would write:\n\n```yaml\nlisting:\n  field-display-names:\n  title: "Report"\n```\n'
-                  }
-                }
+                    long: 'A mapping that provides display names for specific fields. For example, to display the title column as \u2018Report\u2019 in a table listing you would write:\n\n```yaml\nlisting:\n  field-display-names:\n  title: "Report"\n```\n',
+                  },
+                },
               },
               "field-types": {
                 object: {
                   description: {
-                    short: "Provides the date type for the field of a listing item.",
-                    long: "Provides the date type for the field of a listing item. Unknown fields are treated\nas strings unless a type is provided. Valid types are `date`, `number`.\n"
-                  }
-                }
+                    short:
+                      "Provides the date type for the field of a listing item.",
+                    long: "Provides the date type for the field of a listing item. Unknown fields are treated\nas strings unless a type is provided. Valid types are `date`, `number`.\n",
+                  },
+                },
               },
               "field-links": {
                 arrayOf: "string",
                 description: {
-                  short: "This list of fields to display as links in a table listing.",
-                  long: "The list of fields to display as hyperlinks to the source document \nwhen the listing type is a table. By default, only the `title` or \n`filename` is displayed as a link.\n"
-                }
+                  short:
+                    "This list of fields to display as links in a table listing.",
+                  long: "The list of fields to display as hyperlinks to the source document \nwhen the listing type is a table. By default, only the `title` or \n`filename` is displayed as a link.\n",
+                },
               },
               "field-required": {
                 arrayOf: "string",
                 description: {
-                  short: "Fields that items in this listing must have populated.",
-                  long: "Fields that items in this listing must have populated.\nIf a listing is rendered and one more items in this listing \nis missing a required field, an error will occur and the render will.\n"
-                }
+                  short:
+                    "Fields that items in this listing must have populated.",
+                  long: "Fields that items in this listing must have populated.\nIf a listing is rendered and one more items in this listing \nis missing a required field, an error will occur and the render will.\n",
+                },
               },
               include: {
                 maybeArrayOf: "object",
-                description: "Items with matching field values will be included in the listing."
+                description:
+                  "Items with matching field values will be included in the listing.",
               },
               exclude: {
                 maybeArrayOf: "object",
-                description: "Items with matching field values will be excluded from the listing."
-              }
-            }
-          }
+                description:
+                  "Items with matching field values will be excluded from the listing.",
+              },
+            },
+          },
         },
         {
           id: "website-listing-contents-object",
           object: {
             properties: {
               author: {
-                maybeArrayOf: "string"
+                maybeArrayOf: "string",
               },
               date: "string",
               title: "string",
-              subtitle: "string"
-            }
-          }
+              subtitle: "string",
+            },
+          },
         },
         {
           id: "csl-date",
           anyOf: [
             "string",
             {
-              maybeArrayOf: "number"
-            }
-          ]
+              maybeArrayOf: "number",
+            },
+          ],
         },
         {
           id: "csl-person",
           anyOf: [
             {
-              maybeArrayOf: "string"
+              maybeArrayOf: "string",
             },
             {
               maybeArrayOf: {
@@ -10407,26 +10282,23 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     "family-name": {
                       string: {
-                        description: "The family name."
-                      }
+                        description: "The family name.",
+                      },
                     },
                     "given-name": {
                       string: {
-                        description: "The given name."
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ]
+                        description: "The given name.",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           id: "csl-number",
-          anyOf: [
-            "number",
-            "string"
-          ]
+          anyOf: ["number", "string"],
         },
         {
           id: "csl-item-shared",
@@ -10434,503 +10306,554 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               "abstract-url": {
                 string: {
-                  description: "A url to the abstract for this item."
-                }
+                  description: "A url to the abstract for this item.",
+                },
               },
               accessed: {
                 ref: "csl-date",
-                description: "Date the item has been accessed."
+                description: "Date the item has been accessed.",
               },
               annote: {
                 string: {
                   description: {
-                    short: "Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review).",
-                    long: "Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review);\n\nFor descriptive text (e.g., in an annotated bibliography), use `note` instead\n"
-                  }
-                }
+                    short:
+                      "Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review).",
+                    long: "Short markup, decoration, or annotation to the item (e.g., to indicate items included in a review);\n\nFor descriptive text (e.g., in an annotated bibliography), use `note` instead\n",
+                  },
+                },
               },
               archive: {
                 string: {
-                  description: "Archive storing the item"
-                }
+                  description: "Archive storing the item",
+                },
               },
               "archive-collection": {
                 string: {
-                  description: "Collection the item is part of within an archive."
-                }
+                  description:
+                    "Collection the item is part of within an archive.",
+                },
               },
               archive_collection: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               "archive-location": {
                 string: {
-                  description: "Storage location within an archive (e.g. a box and folder number)."
-                }
+                  description:
+                    "Storage location within an archive (e.g. a box and folder number).",
+                },
               },
               archive_location: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               "archive-place": {
                 string: {
-                  description: "Geographic location of the archive."
-                }
+                  description: "Geographic location of the archive.",
+                },
               },
               authority: {
                 string: {
-                  description: 'Issuing or judicial authority (e.g. "USPTO" for a patent, "Fairfax Circuit Court" for a legal case).'
-                }
+                  description:
+                    'Issuing or judicial authority (e.g. "USPTO" for a patent, "Fairfax Circuit Court" for a legal case).',
+                },
               },
               "available-date": {
                 ref: "csl-date",
                 description: {
                   short: "Date the item was initially available",
-                  long: "Date the item was initially available (e.g. the online publication date of a journal \narticle before its formal publication date; the date a treaty was made available for signing).\n"
-                }
+                  long: "Date the item was initially available (e.g. the online publication date of a journal \narticle before its formal publication date; the date a treaty was made available for signing).\n",
+                },
               },
               "call-number": {
                 string: {
-                  description: "Call number (to locate the item in a library)."
-                }
+                  description: "Call number (to locate the item in a library).",
+                },
               },
               chair: {
                 ref: "csl-person",
-                description: "The person leading the session containing a presentation (e.g. the organizer of the `container-title` of a `speech`)."
+                description:
+                  "The person leading the session containing a presentation (e.g. the organizer of the `container-title` of a `speech`).",
               },
               "chapter-number": {
                 ref: "csl-number",
-                description: "Chapter number (e.g. chapter number in a book; track number on an album)."
+                description:
+                  "Chapter number (e.g. chapter number in a book; track number on an album).",
               },
               "citation-key": {
                 string: {
                   description: {
-                    short: "Identifier of the item in the input data file (analogous to BiTeX entrykey).",
-                    long: "Identifier of the item in the input data file (analogous to BiTeX entrykey);\n\nUse this variable to facilitate conversion between word-processor and plain-text writing systems;\nFor an identifer intended as formatted output label for a citation \n(e.g. \u201CFerr78\u201D), use `citation-label` instead\n"
-                  }
-                }
+                    short:
+                      "Identifier of the item in the input data file (analogous to BiTeX entrykey).",
+                    long: "Identifier of the item in the input data file (analogous to BiTeX entrykey);\n\nUse this variable to facilitate conversion between word-processor and plain-text writing systems;\nFor an identifer intended as formatted output label for a citation \n(e.g. \u201CFerr78\u201D), use `citation-label` instead\n",
+                  },
+                },
               },
               "citation-label": {
                 string: {
                   description: {
-                    short: 'Label identifying the item in in-text citations of label styles (e.g. "Ferr78").',
-                    long: 'Label identifying the item in in-text citations of label styles (e.g. "Ferr78");\n\nMay be assigned by the CSL processor based on item metadata; For the identifier of the item \nin the input data file, use `citation-key` instead\n'
-                  }
-                }
+                    short:
+                      'Label identifying the item in in-text citations of label styles (e.g. "Ferr78").',
+                    long: 'Label identifying the item in in-text citations of label styles (e.g. "Ferr78");\n\nMay be assigned by the CSL processor based on item metadata; For the identifier of the item \nin the input data file, use `citation-key` instead\n',
+                  },
+                },
               },
               "citation-number": {
                 schema: {
                   ref: "csl-number",
-                  description: "Index (starting at 1) of the cited reference in the bibliography (generated by the CSL processor)."
+                  description:
+                    "Index (starting at 1) of the cited reference in the bibliography (generated by the CSL processor).",
                 },
-                hidden: true
+                hidden: true,
               },
               "collection-editor": {
                 ref: "csl-person",
-                description: "Editor of the collection holding the item (e.g. the series editor for a book)."
+                description:
+                  "Editor of the collection holding the item (e.g. the series editor for a book).",
               },
               "collection-number": {
                 ref: "csl-number",
-                description: "Number identifying the collection holding the item (e.g. the series number for a book)"
+                description:
+                  "Number identifying the collection holding the item (e.g. the series number for a book)",
               },
               "collection-title": {
                 string: {
-                  description: "Title of the collection holding the item (e.g. the series title for a book; the lecture series title for a presentation)."
-                }
+                  description:
+                    "Title of the collection holding the item (e.g. the series title for a book; the lecture series title for a presentation).",
+                },
               },
               compiler: {
                 ref: "csl-person",
-                description: "Person compiling or selecting material for an item from the works of various persons or bodies (e.g. for an anthology)."
+                description:
+                  "Person compiling or selecting material for an item from the works of various persons or bodies (e.g. for an anthology).",
               },
               composer: {
                 ref: "csl-person",
-                description: "Composer (e.g. of a musical score)."
+                description: "Composer (e.g. of a musical score).",
               },
               "container-author": {
                 ref: "csl-person",
-                description: "Author of the container holding the item (e.g. the book author for a book chapter)."
+                description:
+                  "Author of the container holding the item (e.g. the book author for a book chapter).",
               },
               "container-title": {
                 string: {
                   description: {
                     short: "Title of the container holding the item.",
-                    long: "Title of the container holding the item (e.g. the book title for a book chapter, \nthe journal title for a journal article; the album title for a recording; \nthe session title for multi-part presentation at a conference)\n"
-                  }
-                }
+                    long: "Title of the container holding the item (e.g. the book title for a book chapter, \nthe journal title for a journal article; the album title for a recording; \nthe session title for multi-part presentation at a conference)\n",
+                  },
+                },
               },
               "container-title-short": {
                 string: {
-                  description: "Short/abbreviated form of container-title;"
+                  description: "Short/abbreviated form of container-title;",
                 },
-                hidden: true
+                hidden: true,
               },
               contributor: {
                 ref: "csl-person",
-                description: "A minor contributor to the item; typically cited using \u201Cwith\u201D before the name when listed in a bibliography."
+                description:
+                  "A minor contributor to the item; typically cited using \u201Cwith\u201D before the name when listed in a bibliography.",
               },
               curator: {
                 ref: "csl-person",
-                description: "Curator of an exhibit or collection (e.g. in a museum)."
+                description:
+                  "Curator of an exhibit or collection (e.g. in a museum).",
               },
               dimensions: {
                 string: {
-                  description: "Physical (e.g. size) or temporal (e.g. running time) dimensions of the item."
-                }
+                  description:
+                    "Physical (e.g. size) or temporal (e.g. running time) dimensions of the item.",
+                },
               },
               director: {
                 ref: "csl-person",
-                description: "Director (e.g. of a film)."
+                description: "Director (e.g. of a film).",
               },
               division: {
                 string: {
-                  description: "Minor subdivision of a court with a `jurisdiction` for a legal item"
-                }
+                  description:
+                    "Minor subdivision of a court with a `jurisdiction` for a legal item",
+                },
               },
               DOI: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               edition: {
                 ref: "csl-number",
-                description: '(Container) edition holding the item (e.g. "3" when citing a chapter in the third edition of a book).'
+                description:
+                  '(Container) edition holding the item (e.g. "3" when citing a chapter in the third edition of a book).',
               },
               editor: {
                 ref: "csl-person",
-                description: "The editor of the item."
+                description: "The editor of the item.",
               },
               "editorial-director": {
                 ref: "csl-person",
-                description: 'Managing editor ("Directeur de la Publication" in French).'
+                description:
+                  'Managing editor ("Directeur de la Publication" in French).',
               },
               "editor-translator": {
                 ref: "csl-person",
                 description: {
                   short: "Combined editor and translator of a work.",
-                  long: "Combined editor and translator of a work.\n\nThe citation processory must be automatically generate if editor and translator variables \nare identical; May also be provided directly in item data.\n"
-                }
+                  long: "Combined editor and translator of a work.\n\nThe citation processory must be automatically generate if editor and translator variables \nare identical; May also be provided directly in item data.\n",
+                },
               },
               event: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               "event-date": {
                 ref: "csl-date",
-                description: "Date the event related to an item took place."
+                description: "Date the event related to an item took place.",
               },
               "event-title": {
                 string: {
-                  description: "Name of the event related to the item (e.g. the conference name when citing a conference paper; the meeting where presentation was made)."
-                }
+                  description:
+                    "Name of the event related to the item (e.g. the conference name when citing a conference paper; the meeting where presentation was made).",
+                },
               },
               "event-place": {
                 string: {
-                  description: 'Geographic location of the event related to the item (e.g. "Amsterdam, The Netherlands").'
-                }
+                  description:
+                    'Geographic location of the event related to the item (e.g. "Amsterdam, The Netherlands").',
+                },
               },
               "executive-producer": {
                 ref: "csl-person",
-                description: "Executive producer of the item (e.g. of a television series)."
+                description:
+                  "Executive producer of the item (e.g. of a television series).",
               },
               "first-reference-note-number": {
                 schema: {
-                  ref: "csl-number"
+                  ref: "csl-number",
                 },
                 description: {
-                  short: "Number of a preceding note containing the first reference to the item.",
-                  long: "Number of a preceding note containing the first reference to the item\n\nAssigned by the CSL processor; Empty in non-note-based styles or when the item hasn't \nbeen cited in any preceding notes in a document\n"
+                  short:
+                    "Number of a preceding note containing the first reference to the item.",
+                  long: "Number of a preceding note containing the first reference to the item\n\nAssigned by the CSL processor; Empty in non-note-based styles or when the item hasn't \nbeen cited in any preceding notes in a document\n",
                 },
-                hidden: true
+                hidden: true,
               },
               "fulltext-url": {
                 string: {
-                  description: "A url to the full text for this item."
-                }
+                  description: "A url to the full text for this item.",
+                },
               },
               genre: {
                 string: {
                   description: {
                     short: "Type, class, or subtype of the item",
-                    long: 'Type, class, or subtype of the item (e.g. "Doctoral dissertation" for a PhD thesis; "NIH Publication" for an NIH technical report);\n\nDo not use for topical descriptions or categories (e.g. "adventure" for an adventure movie)\n'
-                  }
-                }
+                    long: 'Type, class, or subtype of the item (e.g. "Doctoral dissertation" for a PhD thesis; "NIH Publication" for an NIH technical report);\n\nDo not use for topical descriptions or categories (e.g. "adventure" for an adventure movie)\n',
+                  },
+                },
               },
               guest: {
                 ref: "csl-person",
-                description: "Guest (e.g. on a TV show or podcast)."
+                description: "Guest (e.g. on a TV show or podcast).",
               },
               host: {
                 ref: "csl-person",
-                description: "Host of the item (e.g. of a TV show or podcast)."
+                description: "Host of the item (e.g. of a TV show or podcast).",
               },
               id: {
-                anyOf: [
-                  "string",
-                  "number"
-                ],
-                description: "A value which uniquely identifies this item."
+                anyOf: ["string", "number"],
+                description: "A value which uniquely identifies this item.",
               },
               illustrator: {
                 ref: "csl-person",
-                description: "Illustrator (e.g. of a children\u2019s book or graphic novel)."
+                description:
+                  "Illustrator (e.g. of a children\u2019s book or graphic novel).",
               },
               interviewer: {
                 ref: "csl-person",
-                description: "Interviewer (e.g. of an interview)."
+                description: "Interviewer (e.g. of an interview).",
               },
               isbn: {
                 string: {
-                  description: 'International Standard Book Number (e.g. "978-3-8474-1017-1").'
-                }
+                  description:
+                    'International Standard Book Number (e.g. "978-3-8474-1017-1").',
+                },
               },
               ISBN: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               issn: {
                 string: {
-                  description: "International Standard Serial Number."
-                }
+                  description: "International Standard Serial Number.",
+                },
               },
               ISSN: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               issue: {
                 ref: "csl-number",
                 description: {
-                  short: "Issue number of the item or container holding the item",
-                  long: 'Issue number of the item or container holding the item (e.g. "5" when citing a \njournal article from journal volume 2, issue 5);\n\nUse `volume-title` for the title of the issue, if any.\n'
-                }
+                  short:
+                    "Issue number of the item or container holding the item",
+                  long: 'Issue number of the item or container holding the item (e.g. "5" when citing a \njournal article from journal volume 2, issue 5);\n\nUse `volume-title` for the title of the issue, if any.\n',
+                },
               },
               issued: {
                 ref: "csl-date",
-                description: "Date the item was issued/published."
+                description: "Date the item was issued/published.",
               },
               jurisdiction: {
                 string: {
-                  description: 'Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case).'
-                }
+                  description:
+                    'Geographic scope of relevance (e.g. "US" for a US patent; the court hearing a legal case).',
+                },
               },
               keyword: {
                 string: {
-                  description: "Keyword(s) or tag(s) attached to the item."
-                }
+                  description: "Keyword(s) or tag(s) attached to the item.",
+                },
               },
               language: {
                 string: {
                   description: {
-                    short: "The language of the item (used only for citation of the item).",
-                    long: 'The language of the item (used only for citation of the item).\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), \noptionally with a two-letter locale code (e.g. "de-DE", "de-AT").\n\nThis does not change the language of the item, instead it documents \nwhat language the item uses (which may be used in citing the item).\n'
-                  }
-                }
+                    short:
+                      "The language of the item (used only for citation of the item).",
+                    long: 'The language of the item (used only for citation of the item).\n\nShould be entered as an ISO 639-1 two-letter language code (e.g. "en", "zh"), \noptionally with a two-letter locale code (e.g. "de-DE", "de-AT").\n\nThis does not change the language of the item, instead it documents \nwhat language the item uses (which may be used in citing the item).\n',
+                  },
+                },
               },
               license: {
                 string: {
                   description: {
                     short: "The license information applicable to an item.",
-                    long: "The license information applicable to an item (e.g. the license an article \nor software is released under; the copyright information for an item; \nthe classification status of a document)\n"
-                  }
-                }
+                    long: "The license information applicable to an item (e.g. the license an article \nor software is released under; the copyright information for an item; \nthe classification status of a document)\n",
+                  },
+                },
               },
               locator: {
                 ref: "csl-number",
                 description: {
                   short: "A cite-specific pinpointer within the item.",
-                  long: "A cite-specific pinpointer within the item (e.g. a page number within a book, \nor a volume in a multi-volume work).\n\nMust be accompanied in the input data by a label indicating the locator type \n(see the Locators term list).\n"
-                }
+                  long: "A cite-specific pinpointer within the item (e.g. a page number within a book, \nor a volume in a multi-volume work).\n\nMust be accompanied in the input data by a label indicating the locator type \n(see the Locators term list).\n",
+                },
               },
               medium: {
                 string: {
-                  description: 'Description of the item\u2019s format or medium (e.g. "CD", "DVD", "Album", etc.)'
-                }
+                  description:
+                    'Description of the item\u2019s format or medium (e.g. "CD", "DVD", "Album", etc.)',
+                },
               },
               narrator: {
                 ref: "csl-person",
-                description: "Narrator (e.g. of an audio book)."
+                description: "Narrator (e.g. of an audio book).",
               },
               note: {
                 string: {
-                  description: "Descriptive text or notes about an item (e.g. in an annotated bibliography)."
-                }
+                  description:
+                    "Descriptive text or notes about an item (e.g. in an annotated bibliography).",
+                },
               },
               number: {
                 ref: "csl-number",
-                description: "Number identifying the item (e.g. a report number)."
+                description:
+                  "Number identifying the item (e.g. a report number).",
               },
               "number-of-pages": {
                 ref: "csl-number",
-                description: "Total number of pages of the cited item."
+                description: "Total number of pages of the cited item.",
               },
               "number-of-volumes": {
                 ref: "csl-number",
-                description: "Total number of volumes, used when citing multi-volume books and such."
+                description:
+                  "Total number of volumes, used when citing multi-volume books and such.",
               },
               organizer: {
                 ref: "csl-person",
-                description: "Organizer of an event (e.g. organizer of a workshop or conference)."
+                description:
+                  "Organizer of an event (e.g. organizer of a workshop or conference).",
               },
               "original-author": {
                 ref: "csl-person",
                 description: {
                   short: "The original creator of a work.",
-                  long: "The original creator of a work (e.g. the form of the author name \nlisted on the original version of a book; the historical author of a work; \nthe original songwriter or performer for a musical piece; the original \ndeveloper or programmer for a piece of software; the original author of an \nadapted work such as a book adapted into a screenplay)\n"
-                }
+                  long: "The original creator of a work (e.g. the form of the author name \nlisted on the original version of a book; the historical author of a work; \nthe original songwriter or performer for a musical piece; the original \ndeveloper or programmer for a piece of software; the original author of an \nadapted work such as a book adapted into a screenplay)\n",
+                },
               },
               "original-date": {
                 ref: "csl-date",
-                description: "Issue date of the original version."
+                description: "Issue date of the original version.",
               },
               "original-publisher": {
                 string: {
-                  description: "Original publisher, for items that have been republished by a different publisher."
-                }
+                  description:
+                    "Original publisher, for items that have been republished by a different publisher.",
+                },
               },
               "original-publisher-place": {
                 string: {
-                  description: 'Geographic location of the original publisher (e.g. "London, UK").'
-                }
+                  description:
+                    'Geographic location of the original publisher (e.g. "London, UK").',
+                },
               },
               "original-title": {
                 string: {
-                  description: 'Title of the original version (e.g. "\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440", the untranslated Russian title of "War and Peace").'
-                }
+                  description:
+                    'Title of the original version (e.g. "\u0412\u043E\u0439\u043D\u0430 \u0438 \u043C\u0438\u0440", the untranslated Russian title of "War and Peace").',
+                },
               },
               page: {
                 ref: "csl-number",
-                description: "Range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue)."
+                description:
+                  "Range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue).",
               },
               "page-first": {
                 ref: "csl-number",
-                description: "First page of the range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue)."
+                description:
+                  "First page of the range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue).",
               },
               "page-last": {
                 ref: "csl-number",
-                description: "Last page of the range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue)."
+                description:
+                  "Last page of the range of pages the item (e.g. a journal article) covers in a container (e.g. a journal issue).",
               },
               "part-number": {
                 ref: "csl-number",
                 description: {
-                  short: "Number of the specific part of the item being cited (e.g. part 2 of a journal article).",
-                  long: "Number of the specific part of the item being cited (e.g. part 2 of a journal article).\n\nUse `part-title` for the title of the part, if any.\n"
-                }
+                  short:
+                    "Number of the specific part of the item being cited (e.g. part 2 of a journal article).",
+                  long: "Number of the specific part of the item being cited (e.g. part 2 of a journal article).\n\nUse `part-title` for the title of the part, if any.\n",
+                },
               },
               "part-title": {
                 string: {
-                  description: "Title of the specific part of an item being cited."
-                }
+                  description:
+                    "Title of the specific part of an item being cited.",
+                },
               },
               "pdf-url": {
                 string: {
-                  description: "A url to the pdf for this item."
-                }
+                  description: "A url to the pdf for this item.",
+                },
               },
               performer: {
                 ref: "csl-person",
-                description: "Performer of an item (e.g. an actor appearing in a film; a muscian performing a piece of music)."
+                description:
+                  "Performer of an item (e.g. an actor appearing in a film; a muscian performing a piece of music).",
               },
               pmcid: {
                 string: {
-                  description: "PubMed Central reference number."
-                }
+                  description: "PubMed Central reference number.",
+                },
               },
               PMCID: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               pmid: {
                 string: {
-                  description: "PubMed reference number."
-                }
+                  description: "PubMed reference number.",
+                },
               },
               PMID: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               "printing-number": {
                 ref: "csl-number",
-                description: "Printing number of the item or container holding the item."
+                description:
+                  "Printing number of the item or container holding the item.",
               },
               producer: {
                 ref: "csl-person",
-                description: "Producer (e.g. of a television or radio broadcast)."
+                description:
+                  "Producer (e.g. of a television or radio broadcast).",
               },
               "public-url": {
                 string: {
-                  description: "A public url for this item."
-                }
+                  description: "A public url for this item.",
+                },
               },
               publisher: {
                 string: {
-                  description: "The publisher of the item."
-                }
+                  description: "The publisher of the item.",
+                },
               },
               "publisher-place": {
                 string: {
-                  description: "The geographic location of the publisher."
-                }
+                  description: "The geographic location of the publisher.",
+                },
               },
               recipient: {
                 ref: "csl-person",
-                description: "Recipient (e.g. of a letter)."
+                description: "Recipient (e.g. of a letter).",
               },
               "reviewed-author": {
                 ref: "csl-person",
-                description: "Author of the item reviewed by the current item."
+                description: "Author of the item reviewed by the current item.",
               },
               "reviewed-genre": {
                 string: {
-                  description: "Type of the item being reviewed by the current item (e.g. book, film)."
-                }
+                  description:
+                    "Type of the item being reviewed by the current item (e.g. book, film).",
+                },
               },
               "reviewed-title": {
                 string: {
-                  description: "Title of the item reviewed by the current item."
-                }
+                  description:
+                    "Title of the item reviewed by the current item.",
+                },
               },
               scale: {
                 string: {
-                  description: "Scale of e.g. a map or model."
-                }
+                  description: "Scale of e.g. a map or model.",
+                },
               },
               "script-writer": {
                 ref: "csl-person",
-                description: "Writer of a script or screenplay (e.g. of a film)."
+                description:
+                  "Writer of a script or screenplay (e.g. of a film).",
               },
               section: {
                 ref: "csl-number",
-                description: 'Section of the item or container holding the item (e.g. "\xA72.0.1" for a law; "politics" for a newspaper article).'
+                description:
+                  'Section of the item or container holding the item (e.g. "\xA72.0.1" for a law; "politics" for a newspaper article).',
               },
               "series-creator": {
                 ref: "csl-person",
-                description: "Creator of a series (e.g. of a television series)."
+                description:
+                  "Creator of a series (e.g. of a television series).",
               },
               source: {
                 string: {
-                  description: "Source from whence the item originates (e.g. a library catalog or database)."
-                }
+                  description:
+                    "Source from whence the item originates (e.g. a library catalog or database).",
+                },
               },
               status: {
                 string: {
-                  description: 'Publication status of the item (e.g. "forthcoming"; "in press"; "advance online publication"; "retracted")'
-                }
+                  description:
+                    'Publication status of the item (e.g. "forthcoming"; "in press"; "advance online publication"; "retracted")',
+                },
               },
               submitted: {
                 ref: "csl-date",
-                description: "Date the item (e.g. a manuscript) was submitted for publication."
+                description:
+                  "Date the item (e.g. a manuscript) was submitted for publication.",
               },
               "supplement-number": {
                 ref: "csl-number",
-                description: "Supplement number of the item or container holding the item (e.g. for secondary legal items that are regularly updated between editions)."
+                description:
+                  "Supplement number of the item or container holding the item (e.g. for secondary legal items that are regularly updated between editions).",
               },
               "title-short": {
                 string: {
-                  description: "Short/abbreviated form of`title`."
+                  description: "Short/abbreviated form of`title`.",
                 },
-                hidden: true
+                hidden: true,
               },
               translator: {
                 ref: "csl-person",
-                description: "Translator"
+                description: "Translator",
               },
               type: {
                 enum: [
@@ -10978,89 +10901,98 @@ var require_yaml_intelligence_resources = __commonJS({
                   "standard",
                   "thesis",
                   "treaty",
-                  "webpage"
+                  "webpage",
                 ],
-                description: "The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item."
+                description:
+                  "The [type](https://docs.citationstyles.org/en/stable/specification.html#appendix-iii-types) of the item.",
               },
               url: {
                 string: {
-                  description: 'Uniform Resource Locator (e.g. "https://aem.asm.org/cgi/content/full/74/9/2766")'
-                }
+                  description:
+                    'Uniform Resource Locator (e.g. "https://aem.asm.org/cgi/content/full/74/9/2766")',
+                },
               },
               URL: {
                 schema: "string",
-                hidden: true
+                hidden: true,
               },
               version: {
                 ref: "csl-number",
-                description: 'Version of the item (e.g. "2.0.9" for a software program).'
+                description:
+                  'Version of the item (e.g. "2.0.9" for a software program).',
               },
               volume: {
                 ref: "csl-number",
                 description: {
-                  short: "Volume number of the item (e.g. \u201C2\u201D when citing volume 2 of a book) or the container holding the item.",
-                  long: 'Volume number of the item (e.g. "2" when citing volume 2 of a book) or the container holding the \nitem (e.g. "2" when citing a chapter from volume 2 of a book).\n\nUse `volume-title` for the title of the volume, if any.\n'
-                }
+                  short:
+                    "Volume number of the item (e.g. \u201C2\u201D when citing volume 2 of a book) or the container holding the item.",
+                  long: 'Volume number of the item (e.g. "2" when citing volume 2 of a book) or the container holding the \nitem (e.g. "2" when citing a chapter from volume 2 of a book).\n\nUse `volume-title` for the title of the volume, if any.\n',
+                },
               },
               "volume-title": {
                 string: {
                   description: {
-                    short: "Title of the volume of the item or container holding the item.",
-                    long: "Title of the volume of the item or container holding the item.\n\nAlso use for titles of periodical special issues, special sections, and the like.\n"
-                  }
-                }
+                    short:
+                      "Title of the volume of the item or container holding the item.",
+                    long: "Title of the volume of the item or container holding the item.\n\nAlso use for titles of periodical special issues, special sections, and the like.\n",
+                  },
+                },
               },
               "year-suffix": {
                 string: {
-                  description: 'Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").'
-                }
-              }
-            }
-          }
+                  description:
+                    'Disambiguating year suffix in author-date styles (e.g. "a" in "Doe, 1999a").',
+                },
+              },
+            },
+          },
         },
         {
           id: "csl-item",
           object: {
             super: {
-              resolveRef: "csl-item-shared"
+              resolveRef: "csl-item-shared",
             },
             closed: true,
             properties: {
               abstract: {
                 string: {
-                  description: "Abstract of the item (e.g. the abstract of a journal article)"
-                }
+                  description:
+                    "Abstract of the item (e.g. the abstract of a journal article)",
+                },
               },
               author: {
                 ref: "csl-person",
-                description: "The author(s) of the item."
+                description: "The author(s) of the item.",
               },
               doi: {
                 string: {
-                  description: 'Digital Object Identifier (e.g. "10.1128/AEM.02591-07")'
-                }
+                  description:
+                    'Digital Object Identifier (e.g. "10.1128/AEM.02591-07")',
+                },
               },
               references: {
                 string: {
                   description: {
-                    short: "Resources related to the procedural history of a legal case or legislation.",
-                    long: 'Resources related to the procedural history of a legal case or legislation;\n\nCan also be used to refer to the procedural history of other items (e.g. \n"Conference canceled" for a presentation accepted as a conference that was subsequently \ncanceled; details of a retraction or correction notice)\n'
-                  }
-                }
+                    short:
+                      "Resources related to the procedural history of a legal case or legislation.",
+                    long: 'Resources related to the procedural history of a legal case or legislation;\n\nCan also be used to refer to the procedural history of other items (e.g. \n"Conference canceled" for a presentation accepted as a conference that was subsequently \ncanceled; details of a retraction or correction notice)\n',
+                  },
+                },
               },
               title: {
                 string: {
-                  description: "The primary title of the item."
-                }
-              }
-            }
-          }
+                  description: "The primary title of the item.",
+                },
+              },
+            },
+          },
         },
         {
           id: "citation-item",
           object: {
             super: {
-              resolveRef: "csl-item"
+              resolveRef: "csl-item",
             },
             closed: true,
             properties: {
@@ -11073,57 +11005,61 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           type: {
                             string: {
-                              description: "The type of identifier"
-                            }
+                              description: "The type of identifier",
+                            },
                           },
                           value: {
                             string: {
-                              description: "The value for the identifier"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
+                              description: "The value for the identifier",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
                 },
-                description: "The unique identifier for this article."
+                description: "The unique identifier for this article.",
               },
               "elocation-id": {
                 string: {
-                  description: "Bibliographic identifier for a document that does not have traditional printed page numbers."
-                }
+                  description:
+                    "Bibliographic identifier for a document that does not have traditional printed page numbers.",
+                },
               },
               eissn: {
                 string: {
-                  description: "Electronic International Standard Serial Number."
-                }
+                  description:
+                    "Electronic International Standard Serial Number.",
+                },
               },
               pissn: {
                 string: {
-                  description: "Print International Standard Serial Number."
-                }
+                  description: "Print International Standard Serial Number.",
+                },
               },
               "art-access-id": {
                 string: {
-                  description: "Generic article accession identifier."
-                }
+                  description: "Generic article accession identifier.",
+                },
               },
               "publisher-location": {
                 string: {
-                  description: "The location of the publisher of this item."
-                }
+                  description: "The location of the publisher of this item.",
+                },
               },
               subject: {
                 string: {
-                  description: "The name of a subject or topic describing the article."
-                }
+                  description:
+                    "The name of a subject or topic describing the article.",
+                },
               },
               categories: {
                 maybeArrayOf: {
                   string: {
-                    description: "A list of subjects or topics describing the article."
-                  }
-                }
+                    description:
+                      "A list of subjects or topics describing the article.",
+                  },
+                },
               },
               "container-id": {
                 maybeArrayOf: {
@@ -11134,31 +11070,32 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           type: {
                             string: {
-                              description: "The type of identifier (e.g. `nlm-ta` or `pmc`)."
-                            }
+                              description:
+                                "The type of identifier (e.g. `nlm-ta` or `pmc`).",
+                            },
                           },
                           value: {
                             string: {
-                              description: "The value for the identifier"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
+                              description: "The value for the identifier",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
                 },
                 description: {
                   short: "External identifier of a publication or journal.",
-                  long: "External identifier, typically assigned to a journal by \na publisher, archive, or library to provide a unique identifier for \nthe journal or publication.\n"
-                }
+                  long: "External identifier, typically assigned to a journal by \na publisher, archive, or library to provide a unique identifier for \nthe journal or publication.\n",
+                },
               },
               "jats-type": {
                 string: {
-                  description: "The type used for the JATS `article` tag."
-                }
-              }
-            }
-          }
+                  description: "The type used for the JATS `article` tag.",
+                },
+              },
+            },
+          },
         },
         {
           id: "smart-include",
@@ -11167,28 +11104,29 @@ var require_yaml_intelligence_resources = __commonJS({
               record: {
                 text: {
                   string: {
-                    description: "Textual content to add to includes"
-                  }
-                }
-              }
+                    description: "Textual content to add to includes",
+                  },
+                },
+              },
             },
             {
               record: {
                 file: {
                   string: {
-                    description: "Name of file with content to add to includes"
-                  }
-                }
-              }
-            }
-          ]
+                    description: "Name of file with content to add to includes",
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           id: "semver",
           string: {
-            pattern: "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+            pattern:
+              "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
           },
-          description: "Version number according to Semantic Versioning"
+          description: "Version number according to Semantic Versioning",
         },
         {
           id: "quarto-date",
@@ -11199,14 +11137,12 @@ var require_yaml_intelligence_resources = __commonJS({
                 closed: true,
                 properties: {
                   format: "string",
-                  value: "string"
+                  value: "string",
                 },
-                required: [
-                  "value"
-                ]
-              }
-            }
-          ]
+                required: ["value"],
+              },
+            },
+          ],
         },
         {
           id: "project-profile",
@@ -11216,18 +11152,20 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 default: {
                   maybeArrayOf: "string",
-                  description: "Default profile to apply if QUARTO_PROFILE is not defined.\n"
+                  description:
+                    "Default profile to apply if QUARTO_PROFILE is not defined.\n",
                 },
                 group: {
                   maybeArrayOf: {
-                    arrayOf: "string"
+                    arrayOf: "string",
                   },
-                  description: "Define a profile group for which at least one profile is always active.\n"
-                }
-              }
-            }
+                  description:
+                    "Define a profile group for which at least one profile is always active.\n",
+                },
+              },
+            },
           },
-          description: "Specify a default profile and profile groups"
+          description: "Specify a default profile and profile groups",
         },
         {
           id: "bad-parse-schema",
@@ -11235,11 +11173,11 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               propertyNames: {
                 string: {
-                  pattern: "^[^\\s]+$"
-                }
-              }
-            }
-          }
+                  pattern: "^[^\\s]+$",
+                },
+              },
+            },
+          },
         },
         {
           id: "quarto-dev-schema",
@@ -11251,13 +11189,13 @@ var require_yaml_intelligence_resources = __commonJS({
                   object: {
                     properties: {
                       "trace-filters": "string",
-                      tests: "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
+                      tests: "object",
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         {
           id: "notebook-view-schema",
@@ -11266,32 +11204,28 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 notebook: {
                   string: {
-                    description: "The path to the locally referenced notebook."
-                  }
+                    description: "The path to the locally referenced notebook.",
+                  },
                 },
                 title: {
                   description: "The title of the notebook when viewed.",
-                  anyOf: [
-                    "string",
-                    "boolean"
-                  ]
+                  anyOf: ["string", "boolean"],
                 },
                 url: {
                   string: {
-                    description: "The url to use when viewing this notebook."
-                  }
+                    description: "The url to use when viewing this notebook.",
+                  },
                 },
                 "download-url": {
                   string: {
-                    description: "The url to use when downloading the notebook from the preview"
-                  }
-                }
+                    description:
+                      "The url to use when downloading the notebook from the preview",
+                  },
+                },
               },
-              required: [
-                "notebook"
-              ]
-            }
-          }
+              required: ["notebook"],
+            },
+          },
         },
         {
           id: "manuscript-schema",
@@ -11301,218 +11235,184 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 article: {
                   path: {
-                    description: "The input document that will serve as the root document for this manuscript"
-                  }
+                    description:
+                      "The input document that will serve as the root document for this manuscript",
+                  },
                 },
                 "code-links": {
                   anyOf: [
                     "boolean",
                     {
                       maybeArrayOf: {
-                        anyOf: [
-                          "object",
-                          "string"
-                        ]
-                      }
-                    }
-                  ]
+                        anyOf: ["object", "string"],
+                      },
+                    },
+                  ],
                 },
                 "manuscript-url": {
                   string: {
-                    description: "The deployed url for this manuscript"
-                  }
+                    description: "The deployed url for this manuscript",
+                  },
                 },
                 "meca-bundle": {
-                  anyOf: [
-                    "boolean",
-                    "string"
-                  ],
-                  description: "Whether to generate a MECA bundle for this manuscript"
+                  anyOf: ["boolean", "string"],
+                  description:
+                    "Whether to generate a MECA bundle for this manuscript",
                 },
                 notebooks: {
                   arrayOf: {
                     anyOf: [
                       "string",
                       {
-                        ref: "notebook-view-schema"
-                      }
-                    ]
-                  }
+                        ref: "notebook-view-schema",
+                      },
+                    ],
+                  },
                 },
                 resources: {
                   maybeArrayOf: {
                     schema: "path",
-                    description: "Additional file resources to be copied to output directory"
-                  }
+                    description:
+                      "Additional file resources to be copied to output directory",
+                  },
                 },
                 environment: {
                   maybeArrayOf: {
                     schema: "path",
-                    description: "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)"
-                  }
-                }
-              }
-            }
-          }
-        }
+                    description:
+                      "Files that specify the execution environment (e.g. renv.lock, requirements.text, etc...)",
+                  },
+                },
+              },
+            },
+          },
+        },
       ],
       "schema/document-about.yml": [
         {
           name: "about",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
               {
-                enum: [
-                  "jolla",
-                  "trestles",
-                  "solana",
-                  "marquee",
-                  "broadside"
-                ]
+                enum: ["jolla", "trestles", "solana", "marquee", "broadside"],
               },
               {
-                ref: "website-about"
-              }
-            ]
+                ref: "website-about",
+              },
+            ],
           },
           description: {
-            short: "Specifies that the page is an 'about' page and which template to use when laying out the page.",
-            long: "Specifies that the page is an 'about' page and which template to use when laying out the page.\n\nThe allowed values are either:\n\n- one of the possible template values (`jolla`, `trestles`, `solana`, `marquee`, or `broadside`))\n- an object describing the 'about' page in more detail. See [About Pages](https://quarto.org/docs/websites/website-about.html) for more.\n"
-          }
-        }
+            short:
+              "Specifies that the page is an 'about' page and which template to use when laying out the page.",
+            long: "Specifies that the page is an 'about' page and which template to use when laying out the page.\n\nThe allowed values are either:\n\n- one of the possible template values (`jolla`, `trestles`, `solana`, `marquee`, or `broadside`))\n- an object describing the 'about' page in more detail. See [About Pages](https://quarto.org/docs/websites/website-about.html) for more.\n",
+          },
+        },
       ],
       "schema/document-attributes.yml": [
         {
           name: "title",
           schema: "string",
-          description: "Document title"
+          description: "Document title",
         },
         {
           name: "subtitle",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all",
-              "$html-all",
-              "context",
-              "muse",
-              "odt"
-            ]
+            formats: ["$pdf-all", "$html-all", "context", "muse", "odt"],
           },
-          description: "Identifies the subtitle of the document."
+          description: "Identifies the subtitle of the document.",
         },
         {
           name: "date",
           schema: {
-            ref: "date"
+            ref: "date",
           },
-          description: "Document date"
+          description: "Document date",
         },
         {
           name: "date-modified",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
-            ref: "date"
+            ref: "date",
           },
-          description: "Document date modified"
+          description: "Document date modified",
         },
         {
           name: "author",
           schema: {
             maybeArrayOf: {
-              anyOf: [
-                "object",
-                "string"
-              ]
-            }
+              anyOf: ["object", "string"],
+            },
           },
-          description: "Author or authors of the document"
+          description: "Author or authors of the document",
         },
         {
           name: "affiliation",
           schema: {
             maybeArrayOf: {
-              anyOf: [
-                "object",
-                "string"
-              ]
-            }
+              anyOf: ["object", "string"],
+            },
           },
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
           description: {
-            short: "The list of organizations with which contributors are affiliated.",
-            long: "The list of organizations with which contributors are\naffiliated. Each institution is added as an [`<aff>`] element to\nthe author's contrib-group. See the Pandoc [JATS documentation](https://pandoc.org/jats.html) \nfor details on `affiliation` fields.\n"
-          }
+            short:
+              "The list of organizations with which contributors are affiliated.",
+            long: "The list of organizations with which contributors are\naffiliated. Each institution is added as an [`<aff>`] element to\nthe author's contrib-group. See the Pandoc [JATS documentation](https://pandoc.org/jats.html) \nfor details on `affiliation` fields.\n",
+          },
         },
         {
           name: "copyright",
           schema: "object",
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
           description: {
             short: "Licensing and copyright information.",
-            long: "Licensing and copyright information. This information is\nrendered via the [`<permissions>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/permissions.html) element.\nThe variables `type`, `link`, and `text` should always be used\ntogether. See the Pandoc [JATS documentation](https://pandoc.org/jats.html)\nfor details on `copyright` fields.\n"
-          }
+            long: "Licensing and copyright information. This information is\nrendered via the [`<permissions>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/permissions.html) element.\nThe variables `type`, `link`, and `text` should always be used\ntogether. See the Pandoc [JATS documentation](https://pandoc.org/jats.html)\nfor details on `copyright` fields.\n",
+          },
         },
         {
           name: "article",
           schema: "object",
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
           description: {
-            short: "Information concerning the article that identifies or describes it.",
-            long: "Information concerning the article that identifies or describes\nit. The key-value pairs within this map are typically used\nwithin the [`<article-meta>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html) element.\nSee the Pandoc [JATS documentation](https://pandoc.org/jats.html) for details on `article` fields.\n"
-          }
+            short:
+              "Information concerning the article that identifies or describes it.",
+            long: "Information concerning the article that identifies or describes\nit. The key-value pairs within this map are typically used\nwithin the [`<article-meta>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html) element.\nSee the Pandoc [JATS documentation](https://pandoc.org/jats.html) for details on `article` fields.\n",
+          },
         },
         {
           name: "journal",
           schema: "object",
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
           description: {
-            short: "Information on the journal in which the article is published.",
-            long: "Information on the journal in which the article is published.\nSee the Pandoc [JATS documentation](https://pandoc.org/jats.html) for details on `journal` fields.\n"
-          }
+            short:
+              "Information on the journal in which the article is published.",
+            long: "Information on the journal in which the article is published.\nSee the Pandoc [JATS documentation](https://pandoc.org/jats.html) for details on `journal` fields.\n",
+          },
         },
         {
           name: "institute",
           schema: {
             maybeArrayOf: {
-              anyOf: [
-                "object",
-                "string"
-              ]
-            }
+              anyOf: ["object", "string"],
+            },
           },
           tags: {
-            formats: [
-              "$html-pres",
-              "beamer"
-            ]
+            formats: ["$html-pres", "beamer"],
           },
-          description: "Author affiliations for the presentation."
+          description: "Author affiliations for the presentation.",
         },
         {
           name: "abstract",
@@ -11526,69 +11426,63 @@ var require_yaml_intelligence_resources = __commonJS({
               "$jats-all",
               "context",
               "ms",
-              "odt"
-            ]
+              "odt",
+            ],
           },
-          description: "Summary of document"
+          description: "Summary of document",
         },
         {
           name: "abstract-title",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc",
-              "$epub-all"
-            ]
+            formats: ["$html-doc", "$epub-all"],
           },
-          description: "Title used to label document abstract"
+          description: "Title used to label document abstract",
         },
         {
           name: "notes",
           schema: "string",
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
-          description: "Additional notes concerning the whole article. Added to the\narticle's frontmatter via the [`<notes>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/notes.html) element.\n"
+          description:
+            "Additional notes concerning the whole article. Added to the\narticle's frontmatter via the [`<notes>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/notes.html) element.\n",
         },
         {
           name: "tags",
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
-          description: "List of keywords. Items are used as contents of the [`<kwd>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd.html) element; the elements are grouped in a [`<kwd-group>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd-group.html) with the [`kwd-group-type`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html) value `author`."
+          description:
+            "List of keywords. Items are used as contents of the [`<kwd>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd.html) element; the elements are grouped in a [`<kwd-group>`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/kwd-group.html) with the [`kwd-group-type`](https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html) value `author`.",
         },
         {
           name: "doi",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Displays the document Digital Object Identifier in the header."
+          description:
+            "Displays the document Digital Object Identifier in the header.",
         },
         {
           name: "thanks",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "The contents of an acknowledgments footnote after the document title."
+          description:
+            "The contents of an acknowledgments footnote after the document title.",
         },
         {
           name: "order",
           schema: "number",
-          description: "Order for document when included in a website automatic sidebar menu."
-        }
+          description:
+            "Order for document when included in a website automatic sidebar menu.",
+        },
       ],
       "schema/document-citation.yml": [
         {
@@ -11596,16 +11490,16 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               {
-                ref: "citation-item"
+                ref: "citation-item",
               },
-              "boolean"
-            ]
+              "boolean",
+            ],
           },
           description: {
             short: "Citation information for the document itself.",
-            long: "Citation information for the document itself specified as [CSL](https://docs.citationstyles.org/en/stable/specification.html) \nYAML in the document front matter.\n\nFor more on supported options, see [Citation Metadata](https://quarto.org/docs/reference/metadata/citation.html).\n"
-          }
-        }
+            long: "Citation information for the document itself specified as [CSL](https://docs.citationstyles.org/en/stable/specification.html) \nYAML in the document front matter.\n\nFor more on supported options, see [Citation Metadata](https://quarto.org/docs/reference/metadata/citation.html).\n",
+          },
+        },
       ],
       "schema/document-code.yml": [
         {
@@ -11613,38 +11507,33 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               {
-                enum: [
-                  "hover"
-                ]
+                enum: ["hover"],
               },
-              "boolean"
-            ]
+              "boolean",
+            ],
           },
           tags: {
-            formats: [
-              "$html-all"
-            ]
+            formats: ["$html-all"],
           },
           default: "hover",
           description: {
             short: "Enable a code copy icon for code blocks.",
-            long: "Enable a code copy icon for code blocks. \n\n- `true`: Always show the icon\n- `false`: Never show the icon\n- `hover` (default): Show the icon when the mouse hovers over the code block\n"
-          }
+            long: "Enable a code copy icon for code blocks. \n\n- `true`: Always show the icon\n- `false`: Never show the icon\n- `hover` (default): Show the icon when the mouse hovers over the code block\n",
+          },
         },
         {
           name: "code-link",
           schema: "boolean",
           tags: {
             engine: "knitr",
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           default: false,
           description: {
-            short: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
-            long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true`.\n"
-          }
+            short:
+              "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
+            long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true`.\n",
+          },
         },
         {
           name: "code-annotations",
@@ -11652,27 +11541,20 @@ var require_yaml_intelligence_resources = __commonJS({
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "hover",
-                  "select",
-                  "below",
-                  "none"
-                ]
-              }
-            ]
+                enum: ["hover", "select", "below", "none"],
+              },
+            ],
           },
           default: "below",
           description: {
             short: "The style to use when displaying code annotations",
-            long: "The style to use when displaying code annotations. Set this value\nto false to hide code annotations.\n"
-          }
+            long: "The style to use when displaying code annotations. Set this value\nto false to hide code annotations.\n",
+          },
         },
         {
           name: "code-tools",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
@@ -11682,71 +11564,51 @@ var require_yaml_intelligence_resources = __commonJS({
                   closed: true,
                   properties: {
                     source: {
-                      anyOf: [
-                        "boolean",
-                        "string"
-                      ]
+                      anyOf: ["boolean", "string"],
                     },
                     toggle: "boolean",
-                    caption: "string"
-                  }
-                }
-              }
-            ]
+                    caption: "string",
+                  },
+                },
+              },
+            ],
           },
           default: false,
           description: {
             short: "Include a code tools menu (for hiding and showing code).",
-            long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearance of code tools.\n"
-          }
+            long: "Include a code tools menu (for hiding and showing code).\nUse `true` or `false` to enable or disable the standard code \ntools menu. Specify sub-properties `source`, `toggle`, and\n`caption` to customize the behavior and appearance of code tools.\n",
+          },
         },
         {
           name: "code-block-border-left",
           tags: {
-            formats: [
-              "$html-doc",
-              "$pdf-all"
-            ]
+            formats: ["$html-doc", "$pdf-all"],
           },
           schema: {
-            anyOf: [
-              "string",
-              "boolean"
-            ]
+            anyOf: ["string", "boolean"],
           },
           description: {
             short: "Show a thick left border on code blocks.",
-            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.\n"
-          }
+            long: "Specifies to apply a left border on code blocks. Provide a hex color to specify that the border is\nenabled as well as the color of the border.\n",
+          },
         },
         {
           name: "code-block-bg",
           tags: {
-            formats: [
-              "$html-doc",
-              "$pdf-all"
-            ]
+            formats: ["$html-doc", "$pdf-all"],
           },
           schema: {
-            anyOf: [
-              "string",
-              "boolean"
-            ]
+            anyOf: ["string", "boolean"],
           },
           description: {
             short: "Show a background color for code blocks.",
-            long: "Specifies to apply a background color on code blocks. Provide a hex color to specify that the background color is\nenabled as well as the color of the background.\n"
-          }
+            long: "Specifies to apply a background color on code blocks. Provide a hex color to specify that the background color is\nenabled as well as the color of the background.\n",
+          },
         },
         {
           name: "highlight-style",
           tags: {
-            formats: [
-              "$html-all",
-              "docx",
-              "ms",
-              "$pdf-all"
-            ]
+            formats: ["$html-all", "docx", "ms", "$pdf-all"],
           },
           schema: {
             anyOf: [
@@ -11755,9 +11617,9 @@ var require_yaml_intelligence_resources = __commonJS({
                   closed: true,
                   properties: {
                     light: "path",
-                    dark: "path"
-                  }
-                }
+                    dark: "path",
+                  },
+                },
               },
               {
                 string: {
@@ -11784,100 +11646,78 @@ var require_yaml_intelligence_resources = __commonJS({
                     "printing",
                     "radical",
                     "solarized",
-                    "vim-dark"
-                  ]
-                }
-              }
-            ]
+                    "vim-dark",
+                  ],
+                },
+              },
+            ],
           },
           description: {
-            short: "Specifies the coloring style to be used in highlighted source code.",
-            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n"
-          }
+            short:
+              "Specifies the coloring style to be used in highlighted source code.",
+            long: "Specifies the coloring style to be used in highlighted source code.\n\nInstead of a *STYLE* name, a JSON file with extension\n` .theme` may be supplied.  This will be parsed as a KDE\nsyntax highlighting theme and (if valid) used as the\nhighlighting style.\n",
+          },
         },
         {
           name: "syntax-definition",
           tags: {
-            formats: [
-              "$html-all",
-              "docx",
-              "ms",
-              "$pdf-all"
-            ]
+            formats: ["$html-all", "docx", "ms", "$pdf-all"],
           },
           schema: "path",
           hidden: true,
-          description: "KDE language syntax definition file (XML)"
+          description: "KDE language syntax definition file (XML)",
         },
         {
           name: "syntax-definitions",
           tags: {
-            formats: [
-              "$html-all",
-              "docx",
-              "ms",
-              "$pdf-all"
-            ]
+            formats: ["$html-all", "docx", "ms", "$pdf-all"],
           },
           schema: {
-            arrayOf: "path"
+            arrayOf: "path",
           },
-          description: "KDE language syntax definition files (XML)"
+          description: "KDE language syntax definition files (XML)",
         },
         {
           name: "listings",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           schema: "boolean",
           description: {
             short: "Use the listings package for LaTeX code blocks.",
-            long: "Use the `listings` package for LaTeX code blocks. The package\ndoes not support multi-byte encoding for source code. To handle UTF-8\nyou would need to use a custom template. This issue is fully\ndocumented here: [Encoding issue with the listings package](https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue)\n"
-          }
+            long: "Use the `listings` package for LaTeX code blocks. The package\ndoes not support multi-byte encoding for source code. To handle UTF-8\nyou would need to use a custom template. This issue is fully\ndocumented here: [Encoding issue with the listings package](https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue)\n",
+          },
         },
         {
           name: "indented-code-classes",
           tags: {
-            formats: [
-              "$html-all",
-              "docx",
-              "ms",
-              "$pdf-all"
-            ]
+            formats: ["$html-all", "docx", "ms", "$pdf-all"],
           },
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
-          description: "Specify classes to use for all indented code blocks"
-        }
+          description: "Specify classes to use for all indented code blocks",
+        },
       ],
       "schema/document-colors.yml": [
         {
           name: "fontcolor",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Sets the CSS `color` property."
+          description: "Sets the CSS `color` property.",
         },
         {
           name: "linkcolor",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-doc", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the color of hyperlinks in the document.",
-            long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n"
-          }
+            long: "For HTML output, sets the CSS `color` property on all links.\n\nFor LaTeX output, The color used for internal links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n\nFor ConTeXt output, sets the color for both external links and links within the document.\n",
+          },
         },
         {
           name: "monobackgroundcolor",
@@ -11890,111 +11730,119 @@ var require_yaml_intelligence_resources = __commonJS({
               "slidy",
               "slideous",
               "s5",
-              "dzslides"
-            ]
+              "dzslides",
+            ],
           },
-          description: "Sets the CSS `background-color` property on code elements and adds extra padding."
+          description:
+            "Sets the CSS `background-color` property on code elements and adds extra padding.",
+        },
+        {
+          name: "monoforegroundcolor",
+          schema: "string",
+          tags: {
+            formats: [
+              "html",
+              "html4",
+              "html5",
+              "slidy",
+              "slideous",
+              "s5",
+              "dzslides",
+            ],
+          },
+          description:
+            "Sets the CSS `color` property on code elements and adds extra padding.",
         },
         {
           name: "backgroundcolor",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Sets the CSS `background-color` property on the html element.\n"
+          description:
+            "Sets the CSS `background-color` property on the html element.\n",
         },
         {
           name: "filecolor",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The color used for external links using color options allowed by `xcolor`",
-            long: "The color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
-          }
+            short:
+              "The color used for external links using color options allowed by `xcolor`",
+            long: "The color used for external links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n",
+          },
         },
         {
           name: "citecolor",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The color used for citation links using color options allowed by `xcolor`",
-            long: "The color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
-          }
+            short:
+              "The color used for citation links using color options allowed by `xcolor`",
+            long: "The color used for citation links using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n",
+          },
         },
         {
           name: "urlcolor",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The color used for linked URLs using color options allowed by `xcolor`",
-            long: "The color used for linked URLs using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
-          }
+            short:
+              "The color used for linked URLs using color options allowed by `xcolor`",
+            long: "The color used for linked URLs using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n",
+          },
         },
         {
           name: "toccolor",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The color used for links in the Table of Contents using color options allowed by `xcolor`",
-            long: "The color used for links in the Table of Contents using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n"
-          }
+            short:
+              "The color used for links in the Table of Contents using color options allowed by `xcolor`",
+            long: "The color used for links in the Table of Contents using color options\nallowed by [`xcolor`](https://ctan.org/pkg/xcolor), \nincluding the `dvipsnames`, `svgnames`, and\n`x11names` lists.\n",
+          },
         },
         {
           name: "colorlinks",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           default: true,
-          description: "Add color to link text, automatically enabled if any of \n`linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.\n"
+          description:
+            "Add color to link text, automatically enabled if any of \n`linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set.\n",
         },
         {
           name: "contrastcolor",
           schema: "string",
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
             short: "Color for links to other content within the document.",
-            long: "Color for links to other content within the document. \n\nSee [ConTeXt Color](https://wiki.contextgarden.net/Color) for additional information.\n"
-          }
-        }
+            long: "Color for links to other content within the document. \n\nSee [ConTeXt Color](https://wiki.contextgarden.net/Color) for additional information.\n",
+          },
+        },
       ],
       "schema/document-comments.yml": [
         {
           name: "comments",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: {
-            ref: "comments"
+            ref: "comments",
           },
-          description: "Configuration for document commenting."
-        }
+          description: "Configuration for document commenting.",
+        },
       ],
       "schema/document-crossref.yml": [
         {
@@ -12003,9 +11851,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               {
-                enum: [
-                  false
-                ]
+                enum: [false],
               },
               {
                 object: {
@@ -12013,248 +11859,277 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     chapters: {
                       boolean: {
-                        description: "Use top level sections (H1) in this document as chapters.",
-                        default: false
-                      }
+                        description:
+                          "Use top level sections (H1) in this document as chapters.",
+                        default: false,
+                      },
                     },
                     "title-delim": {
                       string: {
-                        description: "The delimiter used between the prefix and the caption."
-                      }
+                        description:
+                          "The delimiter used between the prefix and the caption.",
+                      },
                     },
                     "fig-title": {
                       string: {
-                        description: "The title prefix used for figure captions."
-                      }
+                        description:
+                          "The title prefix used for figure captions.",
+                      },
                     },
                     "tbl-title": {
                       string: {
-                        description: "The title prefix used for table captions."
-                      }
+                        description:
+                          "The title prefix used for table captions.",
+                      },
                     },
                     "eq-title": {
                       string: {
-                        description: "The title prefix used for equation captions."
-                      }
+                        description:
+                          "The title prefix used for equation captions.",
+                      },
                     },
                     "lst-title": {
                       string: {
-                        description: "The title prefix used for listing captions."
-                      }
+                        description:
+                          "The title prefix used for listing captions.",
+                      },
                     },
                     "thm-title": {
                       string: {
-                        description: "The title prefix used for theorem captions."
-                      }
+                        description:
+                          "The title prefix used for theorem captions.",
+                      },
                     },
                     "lem-title": {
                       string: {
-                        description: "The title prefix used for lemma captions."
-                      }
+                        description:
+                          "The title prefix used for lemma captions.",
+                      },
                     },
                     "cor-title": {
                       string: {
-                        description: "The title prefix used for corollary captions."
-                      }
+                        description:
+                          "The title prefix used for corollary captions.",
+                      },
                     },
                     "prp-title": {
                       string: {
-                        description: "The title prefix used for proposition captions."
-                      }
+                        description:
+                          "The title prefix used for proposition captions.",
+                      },
                     },
                     "cnj-title": {
                       string: {
-                        description: "The title prefix used for conjecture captions."
-                      }
+                        description:
+                          "The title prefix used for conjecture captions.",
+                      },
                     },
                     "def-title": {
                       string: {
-                        description: "The title prefix used for definition captions."
-                      }
+                        description:
+                          "The title prefix used for definition captions.",
+                      },
                     },
                     "exm-title": {
                       string: {
-                        description: "The title prefix used for example captions."
-                      }
+                        description:
+                          "The title prefix used for example captions.",
+                      },
                     },
                     "exr-title": {
                       string: {
-                        description: "The title prefix used for exercise captions."
-                      }
+                        description:
+                          "The title prefix used for exercise captions.",
+                      },
                     },
                     "fig-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a figure."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a figure.",
+                      },
                     },
                     "tbl-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a table."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a table.",
+                      },
                     },
                     "eq-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to an equation."
-                      }
+                        description:
+                          "The prefix used for an inline reference to an equation.",
+                      },
                     },
                     "sec-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a section."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a section.",
+                      },
                     },
                     "lst-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a listing."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a listing.",
+                      },
                     },
                     "thm-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a theorem."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a theorem.",
+                      },
                     },
                     "lem-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a lemma."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a lemma.",
+                      },
                     },
                     "cor-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a corollary."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a corollary.",
+                      },
                     },
                     "prp-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a proposition."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a proposition.",
+                      },
                     },
                     "cnj-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a conjecture."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a conjecture.",
+                      },
                     },
                     "def-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to a definition."
-                      }
+                        description:
+                          "The prefix used for an inline reference to a definition.",
+                      },
                     },
                     "exm-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to an example."
-                      }
+                        description:
+                          "The prefix used for an inline reference to an example.",
+                      },
                     },
                     "exr-prefix": {
                       string: {
-                        description: "The prefix used for an inline reference to an exercise."
-                      }
+                        description:
+                          "The prefix used for an inline reference to an exercise.",
+                      },
                     },
                     "fig-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for figures."
+                      description: "The numbering scheme used for figures.",
                     },
                     "tbl-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for tables."
+                      description: "The numbering scheme used for tables.",
                     },
                     "eq-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for equations."
+                      description: "The numbering scheme used for equations.",
                     },
                     "sec-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for sections."
+                      description: "The numbering scheme used for sections.",
                     },
                     "lst-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for listings."
+                      description: "The numbering scheme used for listings.",
                     },
                     "thm-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for theorems."
+                      description: "The numbering scheme used for theorems.",
                     },
                     "lem-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for lemmas."
+                      description: "The numbering scheme used for lemmas.",
                     },
                     "cor-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for corollaries."
+                      description: "The numbering scheme used for corollaries.",
                     },
                     "prp-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for propositions."
+                      description:
+                        "The numbering scheme used for propositions.",
                     },
                     "cnj-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for conjectures."
+                      description: "The numbering scheme used for conjectures.",
                     },
                     "def-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for definitions."
+                      description: "The numbering scheme used for definitions.",
                     },
                     "exm-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for examples."
+                      description: "The numbering scheme used for examples.",
                     },
                     "exr-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The numbering scheme used for exercises."
+                      description: "The numbering scheme used for exercises.",
                     },
                     "lof-title": {
                       string: {
-                        description: "The title used for the list of figures."
-                      }
+                        description: "The title used for the list of figures.",
+                      },
                     },
                     "lot-title": {
                       string: {
-                        description: "The title used for the list of tables."
-                      }
+                        description: "The title used for the list of tables.",
+                      },
                     },
                     "lol-title": {
                       string: {
-                        description: "The title used for the list of listings."
-                      }
+                        description: "The title used for the list of listings.",
+                      },
                     },
                     labels: {
                       ref: "crossref-labels-schema",
-                      description: "The number scheme used for references."
+                      description: "The number scheme used for references.",
                     },
                     "subref-labels": {
                       ref: "crossref-labels-schema",
-                      description: "The number scheme used for sub references."
+                      description: "The number scheme used for sub references.",
                     },
                     "ref-hyperlink": {
                       boolean: {
                         default: true,
-                        description: "Whether cross references should be hyper-linked."
-                      }
+                        description:
+                          "Whether cross references should be hyper-linked.",
+                      },
                     },
                     "appendix-title": {
                       string: {
-                        description: "The title used for appendix."
-                      }
+                        description: "The title used for appendix.",
+                      },
                     },
                     "appendix-delim": {
                       string: {
-                        description: "The delimiter beween appendix number and title."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
+                        description:
+                          "The delimiter beween appendix number and title.",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
         },
         {
           name: "crossrefs-hover",
           schema: "boolean",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           default: true,
-          description: "Enables a hover popup for cross references that shows the item being referenced."
-        }
+          description:
+            "Enables a hover popup for cross references that shows the item being referenced.",
+        },
       ],
       "schema/document-editor.yml": [
         {
@@ -12262,21 +12137,15 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               {
-                enum: [
-                  "source",
-                  "visual"
-                ]
+                enum: ["source", "visual"],
               },
               {
                 object: {
                   hidden: true,
                   properties: {
                     mode: {
-                      enum: [
-                        "source",
-                        "visual"
-                      ],
-                      description: "Default editing mode for document"
+                      enum: ["source", "visual"],
+                      description: "Default editing mode for document",
                     },
                     markdown: {
                       object: {
@@ -12284,66 +12153,64 @@ var require_yaml_intelligence_resources = __commonJS({
                           wrap: {
                             anyOf: [
                               {
-                                enum: [
-                                  "sentence",
-                                  "none"
-                                ]
+                                enum: ["sentence", "none"],
                               },
-                              "number"
+                              "number",
                             ],
-                            description: "A column number (e.g. 72), `sentence`, or `none`"
+                            description:
+                              "A column number (e.g. 72), `sentence`, or `none`",
                           },
                           canonical: {
                             boolean: {
-                              description: "Write standard visual editor markdown from source mode."
-                            }
+                              description:
+                                "Write standard visual editor markdown from source mode.",
+                            },
                           },
                           references: {
                             object: {
                               properties: {
                                 location: {
                                   schema: {
-                                    enum: [
-                                      "block",
-                                      "section",
-                                      "document"
-                                    ],
-                                    description: "Location to write references (`block`, `section`, or `document`)"
-                                  }
+                                    enum: ["block", "section", "document"],
+                                    description:
+                                      "Location to write references (`block`, `section`, or `document`)",
+                                  },
                                 },
                                 links: {
                                   boolean: {
-                                    description: "Write markdown links as references rather than inline."
-                                  }
+                                    description:
+                                      "Write markdown links as references rather than inline.",
+                                  },
                                 },
                                 prefix: {
                                   string: {
-                                    description: "Unique prefix for references (`none` to prevent automatic prefixes)"
-                                  }
-                                }
-                              }
+                                    description:
+                                      "Unique prefix for references (`none` to prevent automatic prefixes)",
+                                  },
+                                },
+                              },
                             },
-                            description: "Reference writing options for visual editor"
-                          }
-                        }
+                            description:
+                              "Reference writing options for visual editor",
+                          },
+                        },
                       },
-                      description: "Markdown writing options for visual editor"
+                      description: "Markdown writing options for visual editor",
                     },
                     "render-on-save": {
                       tags: {
-                        engine: [
-                          "jupyter"
-                        ]
+                        engine: ["jupyter"],
                       },
                       schema: "boolean",
-                      description: "Automatically re-render for preview whenever document is saved (note that this requires a preview\nfor the saved document be already running). This option currently works only within VS Code.\n"
-                    }
-                  }
-                }
-              }
-            ]
+                      description:
+                        "Automatically re-render for preview whenever document is saved (note that this requires a preview\nfor the saved document be already running). This option currently works only within VS Code.\n",
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "Visual editor configuration"
+          description: "Visual editor configuration",
         },
         {
           name: "zotero",
@@ -12351,20 +12218,19 @@ var require_yaml_intelligence_resources = __commonJS({
             anyOf: [
               "boolean",
               {
-                maybeArrayOf: "string"
-              }
-            ]
+                maybeArrayOf: "string",
+              },
+            ],
           },
-          description: "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n"
-        }
+          description:
+            "Enable (`true`) or disable (`false`) Zotero for a document. Alternatively, provide a list of one or\nmore Zotero group libraries to use with the document.\n",
+        },
       ],
       "schema/document-epub.yml": [
         {
           name: "identifier",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
             anyOf: [
@@ -12375,8 +12241,8 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     text: {
                       string: {
-                        description: "The identifier value."
-                      }
+                        description: "The identifier value.",
+                      },
                     },
                     schema: {
                       enum: [
@@ -12394,47 +12260,42 @@ var require_yaml_intelligence_resources = __commonJS({
                         "ISMN-13",
                         "ISBN-A",
                         "JP",
-                        "OLCC"
+                        "OLCC",
                       ],
-                      description: "The identifier schema (e.g. `DOI`, `ISBN-A`, etc.)"
-                    }
-                  }
-                }
-              }
-            ]
+                      description:
+                        "The identifier schema (e.g. `DOI`, `ISBN-A`, etc.)",
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "The identifier for this publication."
+          description: "The identifier for this publication.",
         },
         {
           name: "creator",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
-            ref: "epub-contributor"
+            ref: "epub-contributor",
           },
-          description: "Creators of this publication."
+          description: "Creators of this publication.",
         },
         {
           name: "contributor",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
-            ref: "epub-contributor"
+            ref: "epub-contributor",
           },
-          description: "Contributors to this publication."
+          description: "Contributors to this publication.",
         },
         {
           name: "subject",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
             anyOf: [
@@ -12445,121 +12306,104 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     text: {
                       string: {
-                        description: "The subject text."
-                      }
+                        description: "The subject text.",
+                      },
                     },
                     authority: {
                       string: {
-                        description: "An EPUB reserved authority value."
-                      }
+                        description: "An EPUB reserved authority value.",
+                      },
                     },
                     term: {
                       string: {
-                        description: "The subject term (defined by the schema)."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
+                        description:
+                          "The subject term (defined by the schema).",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "The subject of the publication."
+          description: "The subject of the publication.",
         },
         {
           name: "type",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "string",
           description: {
             short: "Text describing the specialized type of this publication.",
-            long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
-          }
+            long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n",
+          },
         },
         {
           name: "format",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "string",
-          description: "Text describing the format of this publication."
+          description: "Text describing the format of this publication.",
         },
         {
           name: "relation",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "string",
-          description: "Text describing the relation of this publication."
+          description: "Text describing the relation of this publication.",
         },
         {
           name: "coverage",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "string",
-          description: "Text describing the coverage of this publication."
+          description: "Text describing the coverage of this publication.",
         },
         {
           name: "rights",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "string",
-          description: "Text describing the rights of this publication."
+          description: "Text describing the rights of this publication.",
         },
         {
           name: "belongs-to-collection",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "string",
-          description: "Identifies the name of a collection to which the EPUB Publication belongs."
+          description:
+            "Identifies the name of a collection to which the EPUB Publication belongs.",
         },
         {
           name: "group-position",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "number",
-          description: "Indicates the numeric position in which this publication \nbelongs relative to other works belonging to the same \n`belongs-to-collection` field.\n"
+          description:
+            "Indicates the numeric position in which this publication \nbelongs relative to other works belonging to the same \n`belongs-to-collection` field.\n",
         },
         {
           name: "page-progression-direction",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
-            enum: [
-              "ltr",
-              "rtl"
-            ]
+            enum: ["ltr", "rtl"],
           },
-          description: "Sets the global direction in which content flows (`ltr` or `rtl`)"
+          description:
+            "Sets the global direction in which content flows (`ltr` or `rtl`)",
         },
         {
           name: "ibooks",
           description: "iBooks specific metadata options.",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
             object: {
@@ -12567,118 +12411,102 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 version: {
                   string: {
-                    description: "What is new in this version of the book."
-                  }
+                    description: "What is new in this version of the book.",
+                  },
                 },
                 "specified-fonts": {
                   boolean: {
-                    description: "Whether this book provides embedded fonts in a flowing or fixed layout book."
-                  }
+                    description:
+                      "Whether this book provides embedded fonts in a flowing or fixed layout book.",
+                  },
                 },
                 "scroll-axis": {
-                  enum: [
-                    "vertical",
-                    "horizontal",
-                    "default"
-                  ],
-                  description: "The scroll direction for this book (`vertical`, `horizontal`, or `default`)"
-                }
-              }
-            }
-          }
+                  enum: ["vertical", "horizontal", "default"],
+                  description:
+                    "The scroll direction for this book (`vertical`, `horizontal`, or `default`)",
+                },
+              },
+            },
+          },
         },
         {
           name: "epub-metadata",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "path",
           description: {
-            short: "Look in the specified XML file for metadata for the EPUB.\nThe file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).\n",
-            long: 'Look in the specified XML file for metadata for the EPUB.\nThe file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).\nFor example:\n\n```xml\n<dc:rights>Creative Commons</dc:rights>\n<dc:language>es-AR</dc:language>\n```\n\nBy default, pandoc will include the following metadata elements:\n`<dc:title>` (from the document title), `<dc:creator>` (from the\ndocument authors), `<dc:date>` (from the document date, which should\nbe in [ISO 8601 format]), `<dc:language>` (from the `lang`\nvariable, or, if is not set, the locale), and `<dc:identifier\nid="BookId">` (a randomly generated UUID). Any of these may be\noverridden by elements in the metadata file.\n\nNote: if the source document is Markdown, a YAML metadata block\nin the document can be used instead.\n'
-          }
+            short:
+              "Look in the specified XML file for metadata for the EPUB.\nThe file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).\n",
+            long: 'Look in the specified XML file for metadata for the EPUB.\nThe file should contain a series of [Dublin Core elements](https://www.dublincore.org/specifications/dublin-core/dces/).\nFor example:\n\n```xml\n<dc:rights>Creative Commons</dc:rights>\n<dc:language>es-AR</dc:language>\n```\n\nBy default, pandoc will include the following metadata elements:\n`<dc:title>` (from the document title), `<dc:creator>` (from the\ndocument authors), `<dc:date>` (from the document date, which should\nbe in [ISO 8601 format]), `<dc:language>` (from the `lang`\nvariable, or, if is not set, the locale), and `<dc:identifier\nid="BookId">` (a randomly generated UUID). Any of these may be\noverridden by elements in the metadata file.\n\nNote: if the source document is Markdown, a YAML metadata block\nin the document can be used instead.\n',
+          },
         },
         {
           name: "epub-subdirectory",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
-            anyOf: [
-              "path",
-              null
-            ]
+            anyOf: ["path", null],
           },
           default: "EPUB",
-          description: "Specify the subdirectory in the OCF container that is to hold the\nEPUB-specific contents. The default is `EPUB`. To put the EPUB \ncontents in the top level, use an empty string.\n"
+          description:
+            "Specify the subdirectory in the OCF container that is to hold the\nEPUB-specific contents. The default is `EPUB`. To put the EPUB \ncontents in the top level, use an empty string.\n",
         },
         {
           name: "epub-fonts",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: {
-            arrayOf: "path"
+            arrayOf: "path",
           },
           description: {
             short: "Embed the specified fonts in the EPUB",
-            long: 'Embed the specified fonts in the EPUB. Wildcards can also be used: for example,\n`DejaVuSans-*.ttf`. To use the embedded fonts, you will need to add declarations\nlike the following to your CSS:\n\n```css\n@font-face {\n  font-family: DejaVuSans;\n  font-style: normal;\n  font-weight: normal;\n  src:url("DejaVuSans-Regular.ttf");\n}\n```\n'
-          }
+            long: 'Embed the specified fonts in the EPUB. Wildcards can also be used: for example,\n`DejaVuSans-*.ttf`. To use the embedded fonts, you will need to add declarations\nlike the following to your CSS:\n\n```css\n@font-face {\n  font-family: DejaVuSans;\n  font-style: normal;\n  font-weight: normal;\n  src:url("DejaVuSans-Regular.ttf");\n}\n```\n',
+          },
         },
         {
           name: "epub-chapter-level",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "number",
           default: 1,
           description: {
-            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
-            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n"
-          }
+            short:
+              "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
+            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n",
+          },
         },
         {
           name: "epub-cover-image",
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
           schema: "path",
-          description: "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n"
+          description:
+            "Use the specified image as the EPUB cover. It is recommended\nthat the image be less than 1000px in width and height.\n",
         },
         {
           name: "epub-title-page",
           schema: "boolean",
           default: true,
           tags: {
-            formats: [
-              "$epub-all"
-            ]
+            formats: ["$epub-all"],
           },
-          description: "If false, disables the generation of a title page."
-        }
+          description: "If false, disables the generation of a title page.",
+        },
       ],
       "schema/document-execute.yml": [
         {
           name: "engine",
           schema: {
             string: {
-              completions: [
-                "jupyter",
-                "knitr"
-              ]
-            }
+              completions: ["jupyter", "knitr"],
+            },
           },
-          description: "Engine used for executable code blocks."
+          description: "Engine used for executable code blocks.",
         },
         {
           name: "jupyter",
@@ -12695,29 +12523,30 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           display_name: {
                             string: {
-                              description: "The name to display in the UI."
-                            }
+                              description: "The name to display in the UI.",
+                            },
                           },
                           language: {
                             string: {
-                              description: "The name of the language the kernel implements."
-                            }
+                              description:
+                                "The name of the language the kernel implements.",
+                            },
                           },
                           name: {
                             string: {
-                              description: "The name of the kernel."
-                            }
-                          }
+                              description: "The name of the kernel.",
+                            },
+                          },
                         },
-                        required: "all"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
+                        required: "all",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "Configures the Jupyter engine."
+          description: "Configures the Jupyter engine.",
         },
         {
           name: "knitr",
@@ -12730,62 +12559,58 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     opts_knit: {
                       object: {
-                        description: "Knit options."
-                      }
+                        description: "Knit options.",
+                      },
                     },
                     opts_chunk: {
                       object: {
-                        description: "Knitr chunk options."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
+                        description: "Knitr chunk options.",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "Set Knitr options."
+          description: "Set Knitr options.",
         },
         {
           name: "cache",
           tags: {
-            "execute-only": true
+            "execute-only": true,
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "refresh"
-                ]
-              }
-            ]
+                enum: ["refresh"],
+              },
+            ],
           },
           default: false,
           description: {
             short: "Cache results of computations.",
-            long: "Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) \nfor R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) \nfor Jupyter documents).\n\nNote that cache invalidation is triggered by changes in chunk source code \n(or other cache attributes you've defined). \n\n- `true`: Cache results\n- `false`: Do not cache results\n- `refresh`: Force a refresh of the cache even if has not been otherwise invalidated.\n"
-          }
+            long: "Cache results of computations (using the [knitr cache](https://yihui.org/knitr/demo/cache/) \nfor R documents, and [Jupyter Cache](https://jupyter-cache.readthedocs.io/en/latest/) \nfor Jupyter documents).\n\nNote that cache invalidation is triggered by changes in chunk source code \n(or other cache attributes you've defined). \n\n- `true`: Cache results\n- `false`: Do not cache results\n- `refresh`: Force a refresh of the cache even if has not been otherwise invalidated.\n",
+          },
         },
         {
           name: "freeze",
           tags: {
-            "execute-only": true
+            "execute-only": true,
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "auto"
-                ]
-              }
-            ]
+                enum: ["auto"],
+              },
+            ],
           },
           default: false,
           description: {
             short: "Re-use previous computational output when rendering",
-            long: "Control the re-use of previous computational output when rendering.\n\n- `true`: Never recompute previously generated computational output during a global project render\n- `false` (default): Recompute previously generated computational output\n- `auto`: Re-compute previously generated computational output only in case their source file changes\n"
-          }
+            long: "Control the re-use of previous computational output when rendering.\n\n- `true`: Never recompute previously generated computational output during a global project render\n- `false` (default): Recompute previously generated computational output\n- `auto`: Re-compute previously generated computational output only in case their source file changes\n",
+          },
         },
         {
           name: "server",
@@ -12793,411 +12618,360 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: {
             anyOf: [
               {
-                enum: [
-                  "shiny"
-                ]
+                enum: ["shiny"],
               },
               {
                 object: {
                   properties: {
                     type: {
-                      enum: [
-                        "shiny"
-                      ],
-                      description: "Type of server to run behind the document (e.g. `shiny`)"
+                      enum: ["shiny"],
+                      description:
+                        "Type of server to run behind the document (e.g. `shiny`)",
                     },
                     "ojs-export": {
                       maybeArrayOf: "string",
-                      description: "OJS variables to export to server."
+                      description: "OJS variables to export to server.",
                     },
                     "ojs-import": {
                       maybeArrayOf: "string",
-                      description: "Server reactive values to import into OJS."
-                    }
-                  }
-                }
-              }
-            ]
+                      description: "Server reactive values to import into OJS.",
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "Document server"
+          description: "Document server",
         },
         {
           name: "daemon",
           hidden: true,
           schema: {
-            anyOf: [
-              "number",
-              "boolean"
-            ]
+            anyOf: ["number", "boolean"],
           },
           default: 300,
           description: {
-            short: "Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time).",
-            long: "Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time).\nBy default a daemon with a timeout of 300 seconds will be used. Set `daemon`\nto another timeout value or to `false` to disable it altogether.\n"
-          }
+            short:
+              "Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time).",
+            long: "Run Jupyter kernels within a peristent daemon (to mitigate kernel startup time).\nBy default a daemon with a timeout of 300 seconds will be used. Set `daemon`\nto another timeout value or to `false` to disable it altogether.\n",
+          },
         },
         {
           name: "daemon-restart",
           schema: "boolean",
           hidden: true,
           default: false,
-          description: "Restart any running Jupyter daemon before rendering."
+          description: "Restart any running Jupyter daemon before rendering.",
         },
         {
           name: "enabled",
           schema: "boolean",
           default: true,
           hidden: true,
-          description: "Enable code cell execution."
+          description: "Enable code cell execution.",
         },
         {
           name: "ipynb",
           schema: "boolean",
           default: false,
           hidden: true,
-          description: "Execute code cell execution in Jupyter notebooks."
+          description: "Execute code cell execution in Jupyter notebooks.",
         },
         {
           name: "debug",
           hidden: true,
           schema: "boolean",
           default: false,
-          description: "Show code-execution related debug information."
-        }
+          description: "Show code-execution related debug information.",
+        },
       ],
       "schema/document-figures.yml": [
         {
           name: "fig-width",
           schema: "number",
           description: {
-            short: "Default width for figures generated by Matplotlib or R graphics",
-            long: "Default width for figures generated by Matplotlib or R graphics.\n\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with\ndocument or project metadata.\n"
-          }
+            short:
+              "Default width for figures generated by Matplotlib or R graphics",
+            long: "Default width for figures generated by Matplotlib or R graphics.\n\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with\ndocument or project metadata.\n",
+          },
         },
         {
           name: "fig-height",
           schema: "number",
           description: {
-            short: "Default height for figures generated by Matplotlib or R graphics",
-            long: "Default height for figures generated by Matplotlib or R graphics.\n\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with\ndocument or project metadata.\n"
-          }
+            short:
+              "Default height for figures generated by Matplotlib or R graphics",
+            long: "Default height for figures generated by Matplotlib or R graphics.\n\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with\ndocument or project metadata.\n",
+          },
         },
         {
           name: "fig-format",
           schema: {
-            enum: [
-              "retina",
-              "png",
-              "jpeg",
-              "svg",
-              "pdf"
-            ]
+            enum: ["retina", "png", "jpeg", "svg", "pdf"],
           },
-          description: "Default format for figures generated by Matplotlib or R graphics (`retina`, `png`, `jpeg`, `svg`, or `pdf`)"
+          description:
+            "Default format for figures generated by Matplotlib or R graphics (`retina`, `png`, `jpeg`, `svg`, or `pdf`)",
         },
         {
           name: "fig-dpi",
           schema: "number",
           description: {
-            short: "Default DPI for figures generated by Matplotlib or R graphics",
-            long: "Default DPI for figures generated by Matplotlib or R graphics.\n\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with\ndocument or project metadata.\n"
-          }
+            short:
+              "Default DPI for figures generated by Matplotlib or R graphics",
+            long: "Default DPI for figures generated by Matplotlib or R graphics.\n\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with\ndocument or project metadata.\n",
+          },
         },
         {
           name: "fig-asp",
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           schema: "number",
           description: {
-            short: "The aspect ratio of the plot, i.e., the ratio of height/width.\n",
-            long: "The aspect ratio of the plot, i.e., the ratio of height/width. When `fig-asp` is specified,\nthe height of a plot (the option `fig-height`) is calculated from `fig-width * fig-asp`.\n\nThe `fig-asp` option is only available within the knitr engine.\n"
-          }
+            short:
+              "The aspect ratio of the plot, i.e., the ratio of height/width.\n",
+            long: "The aspect ratio of the plot, i.e., the ratio of height/width. When `fig-asp` is specified,\nthe height of a plot (the option `fig-height`) is calculated from `fig-width * fig-asp`.\n\nThe `fig-asp` option is only available within the knitr engine.\n",
+          },
         },
         {
           name: "fig-responsive",
           tags: {
-            formats: [
-              "$html-all"
-            ]
+            formats: ["$html-all"],
           },
           schema: "boolean",
           default: true,
-          description: "Whether to make images in this document responsive."
-        }
+          description: "Whether to make images in this document responsive.",
+        },
       ],
       "schema/document-fonts.yml": [
         {
           name: "mainfont",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc",
-              "context",
-              "$pdf-all",
-              "typst"
-            ]
+            formats: ["$html-doc", "context", "$pdf-all", "typst"],
           },
           description: {
             short: "Sets the main font for the document.",
-            long: "For HTML output, sets the CSS `font-family` on the HTML element.\n\nFor LaTeX output, the main font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package. \n\nFor ConTeXt output, the main font family. Use the name of any \nsystem font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more\ninformation.\n"
-          }
+            long: "For HTML output, sets the CSS `font-family` on the HTML element.\n\nFor LaTeX output, the main font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package. \n\nFor ConTeXt output, the main font family. Use the name of any \nsystem font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more\ninformation.\n",
+          },
         },
         {
           name: "monofont",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-doc", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the font used for when displaying code.",
-            long: "For HTML output, sets the CSS font-family property on code elements.\n\nFor PowerPoint output, sets the font used for code.\n\nFor LaTeX output, the monospace font family for use with `xelatex` or \n`lualatex`: take the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.  \n\nFor ConTeXt output, the monspace font family. Use the name of any \nsystem font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more\ninformation.\n"
-          }
+            long: "For HTML output, sets the CSS font-family property on code elements.\n\nFor PowerPoint output, sets the font used for code.\n\nFor LaTeX output, the monospace font family for use with `xelatex` or \n`lualatex`: take the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.  \n\nFor ConTeXt output, the monspace font family. Use the name of any \nsystem font. See [ConTeXt Fonts](https://wiki.contextgarden.net/Fonts) for more\ninformation.\n",
+          },
         },
         {
           name: "fontsize",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc",
-              "context",
-              "$pdf-all",
-              "typst"
-            ]
+            formats: ["$html-doc", "context", "$pdf-all", "typst"],
           },
           description: {
             short: "Sets the main font size for the document.",
-            long: "For HTML output, sets the base CSS `font-size` property.\n\nFor LaTeX and ConTeXt output, sets the font size for the document body text.\n"
-          }
+            long: "For HTML output, sets the base CSS `font-size` property.\n\nFor LaTeX and ConTeXt output, sets the font size for the document body text.\n",
+          },
         },
         {
           name: "fontenc",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           default: "T1",
           description: {
-            short: "Allows font encoding to be specified through `fontenc` package.",
-            long: "Allows font encoding to be specified through [`fontenc`](https://www.ctan.org/pkg/fontenc) package.\n\nSee [LaTeX Font Encodings Guide](https://ctan.org/pkg/encguide) for addition information on font encoding.\n"
-          }
+            short:
+              "Allows font encoding to be specified through `fontenc` package.",
+            long: "Allows font encoding to be specified through [`fontenc`](https://www.ctan.org/pkg/fontenc) package.\n\nSee [LaTeX Font Encodings Guide](https://ctan.org/pkg/encguide) for addition information on font encoding.\n",
+          },
         },
         {
           name: "fontfamily",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all",
-              "ms"
-            ]
+            formats: ["$pdf-all", "ms"],
           },
           default: "Latin Modern",
           description: {
-            short: "Font package to use when compiling a PDF with the `pdflatex` `pdf-engine`.",
-            long: "Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`. \n\nSee [The LaTeX Font Catalogue](https://tug.org/FontCatalogue/) for a \nsummary of font options available.\n\nFor groff (`ms`) files, the font family for example, `T` or `P`.\n"
-          }
+            short:
+              "Font package to use when compiling a PDF with the `pdflatex` `pdf-engine`.",
+            long: "Font package to use when compiling a PDf with the `pdflatex` `pdf-engine`. \n\nSee [The LaTeX Font Catalogue](https://tug.org/FontCatalogue/) for a \nsummary of font options available.\n\nFor groff (`ms`) files, the font family for example, `T` or `P`.\n",
+          },
         },
         {
           name: "fontfamilyoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
             short: "Options for the package used as `fontfamily`.",
-            long: "Options for the package used as `fontfamily`.\n\nFor example, to use the Libertine font with proportional lowercase\n(old-style) figures through the [`libertinus`](https://ctan.org/pkg/libertinus) package:\n\n```yaml\nfontfamily: libertinus\nfontfamilyoptions:\n  - osf\n  - p\n```\n"
-          }
+            long: "Options for the package used as `fontfamily`.\n\nFor example, to use the Libertine font with proportional lowercase\n(old-style) figures through the [`libertinus`](https://ctan.org/pkg/libertinus) package:\n\n```yaml\nfontfamily: libertinus\nfontfamilyoptions:\n  - osf\n  - p\n```\n",
+          },
         },
         {
           name: "sansfont",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The sans serif font family for use with `xelatex` or `lualatex`.",
-            long: "The sans serif font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n"
-          }
+            short:
+              "The sans serif font family for use with `xelatex` or `lualatex`.",
+            long: "The sans serif font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n",
+          },
         },
         {
           name: "mathfont",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
             short: "The math font family for use with `xelatex` or `lualatex`.",
-            long: "The math font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n"
-          }
+            long: "The math font family for use with `xelatex` or \n`lualatex`. Takes the name of any system font, using the\n[`fontspec`](https://ctan.org/pkg/fontspec) package.\n",
+          },
         },
         {
           name: "CJKmainfont",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The CJK main font family for use with `xelatex` or `lualatex`.",
-            long: "The CJK main font family for use with `xelatex` or \n`lualatex` using the [`xecjk`](https://ctan.org/pkg/xecjk) package.\n"
-          }
+            short:
+              "The CJK main font family for use with `xelatex` or `lualatex`.",
+            long: "The CJK main font family for use with `xelatex` or \n`lualatex` using the [`xecjk`](https://ctan.org/pkg/xecjk) package.\n",
+          },
         },
         {
           name: "mainfontoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The main font options for use with `xelatex` or `lualatex`.",
-            long: "The main font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n"
-          }
+            short:
+              "The main font options for use with `xelatex` or `lualatex`.",
+            long: "The main font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n\nFor example, to use the [TeX Gyre](http://www.gust.org.pl/projects/e-foundry/tex-gyre) \nversion of Palatino with lowercase figures:\n\n```yaml\nmainfont: TeX Gyre Pagella\nmainfontoptions:\n  - Numbers=Lowercase\n  - Numbers=Proportional    \n```\n",
+          },
         },
         {
           name: "sansfontoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The sans serif font options for use with `xelatex` or `lualatex`.",
-            long: "The sans serif font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
-          }
+            short:
+              "The sans serif font options for use with `xelatex` or `lualatex`.",
+            long: "The sans serif font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n",
+          },
         },
         {
           name: "monofontoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The monospace font options for use with `xelatex` or `lualatex`.",
-            long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
-          }
+            short:
+              "The monospace font options for use with `xelatex` or `lualatex`.",
+            long: "The monospace font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n",
+          },
         },
         {
           name: "mathfontoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "The math font options for use with `xelatex` or `lualatex`.",
-            long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
-          }
+            short:
+              "The math font options for use with `xelatex` or `lualatex`.",
+            long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n",
+          },
         },
         {
           name: "CJKoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
             short: "The CJK font options for use with `xelatex` or `lualatex`.",
-            long: "The CJK font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
-          }
+            long: "The CJK font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n",
+          },
         },
         {
           name: "microtypeoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
             short: "Options to pass to the microtype package.",
-            long: "Options to pass to the [microtype](https://ctan.org/pkg/microtype) package."
-          }
+            long: "Options to pass to the [microtype](https://ctan.org/pkg/microtype) package.",
+          },
         },
         {
           name: "pointsize",
           schema: "string",
           tags: {
-            formats: [
-              "ms"
-            ]
+            formats: ["ms"],
           },
-          description: "The point size, for example, `10p`."
+          description: "The point size, for example, `10p`.",
         },
         {
           name: "lineheight",
           schema: "string",
           tags: {
-            formats: [
-              "ms"
-            ]
+            formats: ["ms"],
           },
-          description: "The line height, for example, `12p`."
+          description: "The line height, for example, `12p`.",
         },
         {
           name: "linestretch",
           schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
+            anyOf: ["string", "number"],
           },
           tags: {
-            formats: [
-              "$html-doc",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-doc", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the line height or spacing for text in the document.",
-            long: "For HTML output sets the CSS `line-height` property on the html \nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the \n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n"
-          }
+            long: "For HTML output sets the CSS `line-height` property on the html \nelement, which is preferred to be unitless.\n\nFor LaTeX output, adjusts line spacing using the \n[setspace](https://ctan.org/pkg/setspace) package, e.g. 1.25, 1.5.\n",
+          },
         },
         {
           name: "interlinespace",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
-          description: "Adjusts line spacing using the `\\setupinterlinespace` command."
+          description:
+            "Adjusts line spacing using the `\\setupinterlinespace` command.",
         },
         {
           name: "linkstyle",
@@ -13210,78 +12984,62 @@ var require_yaml_intelligence_resources = __commonJS({
                 "boldslanted",
                 "type",
                 "cap",
-                "small"
-              ]
-            }
+                "small",
+              ],
+            },
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
-          description: "The typeface style for links in the document."
+          description: "The typeface style for links in the document.",
         },
         {
           name: "whitespace",
           schema: "string",
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
-            short: "Set the spacing between paragraphs, for example `none`, `small.",
-            long: "Set the spacing between paragraphs, for example `none`, `small` \nusing the [`setupwhitespace`](https://wiki.contextgarden.net/Command/setupwhitespace) \ncommand.\n"
-          }
-        }
+            short:
+              "Set the spacing between paragraphs, for example `none`, `small.",
+            long: "Set the spacing between paragraphs, for example `none`, `small` \nusing the [`setupwhitespace`](https://wiki.contextgarden.net/Command/setupwhitespace) \ncommand.\n",
+          },
+        },
       ],
       "schema/document-footnotes.yml": [
         {
           name: "footnotes-hover",
           schema: "boolean",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           default: true,
-          description: "Enables a hover popup for footnotes that shows the footnote contents."
+          description:
+            "Enables a hover popup for footnotes that shows the footnote contents.",
         },
         {
           name: "links-as-notes",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           default: false,
-          description: "Causes links to be printed as footnotes."
+          description: "Causes links to be printed as footnotes.",
         },
         {
           name: "reference-location",
           tags: {
-            formats: [
-              "$markdown-all",
-              "muse",
-              "$html-files",
-              "pdf"
-            ]
+            formats: ["$markdown-all", "muse", "$html-files", "pdf"],
           },
           schema: {
-            enum: [
-              "block",
-              "section",
-              "margin",
-              "document"
-            ]
+            enum: ["block", "section", "margin", "document"],
           },
           default: "document",
           description: {
             short: "Location for footnotes and references\n",
-            long: "Specify location for footnotes. Also controls the location of references, if `reference-links` is set.\n\n- `block`: Place at end of current top-level block\n- `section`: Place at end of current section\n- `margin`: Place at the margin\n- `document`: Place at end of document\n"
-          }
-        }
+            long: "Specify location for footnotes. Also controls the location of references, if `reference-links` is set.\n\n- `block`: Place at end of current top-level block\n- `section`: Place at end of current section\n- `margin`: Place at the margin\n- `document`: Place at end of document\n",
+          },
+        },
       ],
       "schema/document-formatting.yml": [
         {
@@ -13300,78 +13058,66 @@ var require_yaml_intelligence_resources = __commonJS({
                   "next",
                   "odd",
                   "even",
-                  "normal"
-                ]
-              }
-            }
+                  "normal",
+                ],
+              },
+            },
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
-            short: "Set the indentation of paragraphs with one or more options.",
-            long: "Set the indentation of paragraphs with one or more options.\n\nSee [ConTeXt Indentation](https://wiki.contextgarden.net/Indentation) for additional information.\n"
-          }
+            short:
+              "Set the indentation of paragraphs with one or more options.",
+            long: "Set the indentation of paragraphs with one or more options.\n\nSee [ConTeXt Indentation](https://wiki.contextgarden.net/Indentation) for additional information.\n",
+          },
         },
         {
           name: "adjusting",
           schema: {
-            enum: [
-              "l",
-              "r",
-              "c",
-              "b"
-            ]
+            enum: ["l", "r", "c", "b"],
           },
           tags: {
-            formats: [
-              "man"
-            ]
+            formats: ["man"],
           },
-          description: "Adjusts text to the left, right, center, or both margins (`l`, `r`, `c`, or `b`)."
+          description:
+            "Adjusts text to the left, right, center, or both margins (`l`, `r`, `c`, or `b`).",
         },
         {
           name: "hyphenate",
           schema: "boolean",
           default: true,
           tags: {
-            formats: [
-              "man"
-            ]
+            formats: ["man"],
           },
           description: {
-            short: "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
-            long: "Whether to hyphenate text at line breaks even in words that do not contain \nhyphens if it is necessary to do so to lay out words on a line without excessive spacing\n"
-          }
+            short:
+              "Whether to hyphenate text at line breaks even in words that do not contain hyphens.",
+            long: "Whether to hyphenate text at line breaks even in words that do not contain \nhyphens if it is necessary to do so to lay out words on a line without excessive spacing\n",
+          },
         },
         {
           name: "list-tables",
           schema: "boolean",
           default: false,
           tags: {
-            formats: [
-              "rst"
-            ]
+            formats: ["rst"],
           },
-          description: "If true, tables are formatted as RST list tables."
+          description: "If true, tables are formatted as RST list tables.",
         },
         {
           name: "split-level",
           tags: {
-            formats: [
-              "$epub-all",
-              "chunkedhtml"
-            ]
+            formats: ["$epub-all", "chunkedhtml"],
           },
           schema: "number",
           default: 1,
           description: {
-            short: "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
-            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n"
-          }
-        }
+            short:
+              "Specify the heading level at which to split the EPUB into separate\nchapter files.\n",
+            long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the\nEPUB, not the way chapters and sections are displayed to users. Some\nreaders may be slow if the chapter files are too large, so for large\ndocuments with few level-1 headings, one might want to use a chapter\nlevel of 2 or 3.\n",
+          },
+        },
       ],
       "schema/document-funding.yml": [
         {
@@ -13386,18 +13132,21 @@ var require_yaml_intelligence_resources = __commonJS({
                     properties: {
                       id: {
                         string: {
-                          description: "Unique identifier assigned to an award, contract, or grant."
-                        }
+                          description:
+                            "Unique identifier assigned to an award, contract, or grant.",
+                        },
                       },
                       statement: {
                         string: {
-                          description: "Displayable prose statement that describes the funding for the research on which a work was based."
-                        }
+                          description:
+                            "Displayable prose statement that describes the funding for the research on which a work was based.",
+                        },
                       },
                       "open-access": {
                         string: {
-                          description: "Open access provisions that apply to a work or the funding information that provided the open access provisions."
-                        }
+                          description:
+                            "Open access provisions that apply to a work or the funding information that provided the open access provisions.",
+                        },
                       },
                       source: {
                         maybeArrayOf: {
@@ -13409,23 +13158,26 @@ var require_yaml_intelligence_resources = __commonJS({
                                 properties: {
                                   text: {
                                     string: {
-                                      description: "The text describing the source of the funding."
-                                    }
+                                      description:
+                                        "The text describing the source of the funding.",
+                                    },
                                   },
                                   country: {
                                     string: {
                                       description: {
-                                        short: "Abbreviation for country where source of grant is located.",
-                                        long: "Abbreviation for country where source of grant is located.\nWhenever possible, ISO 3166-1 2-letter alphabetic codes should be used.\n"
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          ]
+                                        short:
+                                          "Abbreviation for country where source of grant is located.",
+                                        long: "Abbreviation for country where source of grant is located.\nWhenever possible, ISO 3166-1 2-letter alphabetic codes should be used.\n",
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          ],
                         },
-                        description: "Agency or organization that funded the research on which a work was based."
+                        description:
+                          "Agency or organization that funded the research on which a work was based.",
                       },
                       recipient: {
                         maybeArrayOf: {
@@ -13437,11 +13189,12 @@ var require_yaml_intelligence_resources = __commonJS({
                                 properties: {
                                   ref: {
                                     string: {
-                                      description: "The id of an author or affiliation in the document metadata."
-                                    }
-                                  }
-                                }
-                              }
+                                      description:
+                                        "The id of an author or affiliation in the document metadata.",
+                                    },
+                                  },
+                                },
+                              },
                             },
                             {
                               object: {
@@ -13449,29 +13202,29 @@ var require_yaml_intelligence_resources = __commonJS({
                                 properties: {
                                   name: {
                                     string: {
-                                      description: "The name of an individual that was the recipient of the funding."
-                                    }
-                                  }
-                                }
-                              }
+                                      description:
+                                        "The name of an individual that was the recipient of the funding.",
+                                    },
+                                  },
+                                },
+                              },
                             },
                             {
                               object: {
                                 closed: true,
                                 properties: {
                                   institution: {
-                                    anyOf: [
-                                      "string",
-                                      "object"
-                                    ],
-                                    description: "The institution that was the recipient of the funding."
-                                  }
-                                }
-                              }
-                            }
-                          ]
+                                    anyOf: ["string", "object"],
+                                    description:
+                                      "The institution that was the recipient of the funding.",
+                                  },
+                                },
+                              },
+                            },
+                          ],
                         },
-                        description: "Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual)."
+                        description:
+                          "Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual).",
                       },
                       investigator: {
                         maybeArrayOf: {
@@ -13483,11 +13236,12 @@ var require_yaml_intelligence_resources = __commonJS({
                                 properties: {
                                   ref: {
                                     string: {
-                                      description: "The id of an author or affiliation in the document metadata."
-                                    }
-                                  }
-                                }
-                              }
+                                      description:
+                                        "The id of an author or affiliation in the document metadata.",
+                                    },
+                                  },
+                                },
+                              },
                             },
                             {
                               object: {
@@ -13495,38 +13249,39 @@ var require_yaml_intelligence_resources = __commonJS({
                                 properties: {
                                   name: {
                                     string: {
-                                      description: "The name of an individual that was responsible for the intellectual content of the work reported in the document."
-                                    }
-                                  }
-                                }
-                              }
+                                      description:
+                                        "The name of an individual that was responsible for the intellectual content of the work reported in the document.",
+                                    },
+                                  },
+                                },
+                              },
                             },
                             {
                               object: {
                                 closed: true,
                                 properties: {
                                   institution: {
-                                    anyOf: [
-                                      "string",
-                                      "object"
-                                    ],
-                                    description: "The institution that was responsible for the intellectual content of the work reported in the document."
-                                  }
-                                }
-                              }
-                            }
-                          ]
+                                    anyOf: ["string", "object"],
+                                    description:
+                                      "The institution that was responsible for the intellectual content of the work reported in the document.",
+                                  },
+                                },
+                              },
+                            },
+                          ],
                         },
-                        description: "Individual(s) responsible for the intellectual content of the work reported in the document."
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+                        description:
+                          "Individual(s) responsible for the intellectual content of the work reported in the document.",
+                      },
+                    },
+                  },
+                },
+              ],
+            },
           },
-          description: "Information about the funding of the research reported in the article \n(for example, grants, contracts, sponsors) and any open access fees for the article itself\n"
-        }
+          description:
+            "Information about the funding of the research reported in the article \n(for example, grants, contracts, sponsors) and any open access fees for the article itself\n",
+        },
       ],
       "schema/document-hidden.yml": [
         {
@@ -13537,356 +13292,321 @@ var require_yaml_intelligence_resources = __commonJS({
           hidden: true,
           description: {
             short: "Format to write to (e.g. html)",
-            long: "Format to write to. Extensions can be individually enabled or disabled by appending +EXTENSION or -EXTENSION to the format name (e.g. gfm+footnotes)\n"
-          }
+            long: "Format to write to. Extensions can be individually enabled or disabled by appending +EXTENSION or -EXTENSION to the format name (e.g. gfm+footnotes)\n",
+          },
         },
         {
           name: "input-file",
           schema: "path",
           hidden: true,
-          description: "Input file to read from"
+          description: "Input file to read from",
         },
         {
           name: "input-files",
           schema: {
-            arrayOf: "path"
+            arrayOf: "path",
           },
           hidden: true,
-          description: "Input files to read from"
+          description: "Input files to read from",
         },
         {
           name: "defaults",
           schema: {
-            arrayOf: "path"
+            arrayOf: "path",
           },
           hidden: true,
-          description: "Include options from the specified defaults files"
+          description: "Include options from the specified defaults files",
         },
         {
           name: "variables",
           schema: "object",
           hidden: true,
-          description: "Pandoc metadata variables"
+          description: "Pandoc metadata variables",
         },
         {
           name: "metadata",
           schema: "object",
           hidden: true,
-          description: "Pandoc metadata variables"
+          description: "Pandoc metadata variables",
         },
         {
           name: "request-headers",
           schema: {
-            ref: "pandoc-format-request-headers"
+            ref: "pandoc-format-request-headers",
           },
           hidden: true,
-          description: "Headers to include with HTTP requests by Pandoc"
+          description: "Headers to include with HTTP requests by Pandoc",
         },
         {
           name: "trace",
           schema: "boolean",
           default: false,
-          description: "Display trace debug output."
+          description: "Display trace debug output.",
         },
         {
           name: "fail-if-warnings",
           schema: "boolean",
           default: false,
-          description: "Exit with error status if there are any warnings."
+          description: "Exit with error status if there are any warnings.",
         },
         {
           name: "dump-args",
           schema: "boolean",
           default: false,
           hidden: true,
-          description: "Print information about command-line arguments to *stdout*, then exit."
+          description:
+            "Print information about command-line arguments to *stdout*, then exit.",
         },
         {
           name: "ignore-args",
           schema: "boolean",
           default: false,
           hidden: true,
-          description: "Ignore command-line arguments (for use in wrapper scripts)."
+          description:
+            "Ignore command-line arguments (for use in wrapper scripts).",
         },
         {
           name: "file-scope",
           schema: "boolean",
           hidden: true,
           default: false,
-          description: "Parse each file individually before combining for multifile documents."
+          description:
+            "Parse each file individually before combining for multifile documents.",
         },
         {
           name: "data-dir",
           schema: "path",
           hidden: true,
-          description: "Specify the user data directory to search for pandoc data files."
+          description:
+            "Specify the user data directory to search for pandoc data files.",
         },
         {
           name: "verbosity",
           schema: {
-            enum: [
-              "ERROR",
-              "WARNING",
-              "INFO"
-            ]
+            enum: ["ERROR", "WARNING", "INFO"],
           },
           default: "WARNING",
           hidden: true,
-          description: "Level of program output (`INFO`, `ERROR`, or `WARNING`)"
+          description:
+            "Level of program output (`INFO`, `ERROR`, or `WARNING`)",
         },
         {
           name: "log-file",
           hidden: true,
           schema: "path",
-          description: "Write log messages in machine-readable JSON format to FILE."
+          description:
+            "Write log messages in machine-readable JSON format to FILE.",
         },
         {
           name: "track-changes",
           tags: {
-            formats: [
-              "docx"
-            ]
+            formats: ["docx"],
           },
           hidden: true,
           schema: {
-            enum: [
-              "accept",
-              "reject",
-              "all"
-            ]
+            enum: ["accept", "reject", "all"],
           },
           default: "accept",
           description: {
-            short: "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
-            long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n'
-          }
+            short:
+              "Specify what to do with insertions, deletions, and comments produced by \nthe MS Word \u201CTrack Changes\u201D feature.\n",
+            long: 'Specify what to do with insertions, deletions, and comments\nproduced by the MS Word "Track Changes" feature.  \n\n- `accept` (default): Process all insertions and deletions.\n- `reject`: Ignore them.\n- `all`: Include all insertions, deletions, and comments, wrapped\n  in spans with `insertion`, `deletion`, `comment-start`, and\n  `comment-end` classes, respectively. The author and time of\n  change is included. \n\nNotes:\n\n- Both `accept` and `reject` ignore comments.\n\n- `all` is useful for scripting: only\n  accepting changes from a certain reviewer, say, or before a\n  certain date. If a paragraph is inserted or deleted,\n  `track-changes: all` produces a span with the class\n  `paragraph-insertion`/`paragraph-deletion` before the\n  affected paragraph break. \n\n- This option only affects the docx reader.\n',
+          },
         },
         {
           name: "keep-source",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: "boolean",
           default: false,
           hidden: true,
           description: {
             short: "Embed the input file source code in the generated HTML",
-            long: "Embed the input file source code in the generated HTML. A hidden div with \nclass `quarto-embedded-source-code` will be added to the document. This\noption is not normally used directly but rather in the implementation\nof the `code-tools` option.\n"
-          }
+            long: "Embed the input file source code in the generated HTML. A hidden div with \nclass `quarto-embedded-source-code` will be added to the document. This\noption is not normally used directly but rather in the implementation\nof the `code-tools` option.\n",
+          },
         },
         {
           name: "keep-hidden",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: "boolean",
           default: false,
           hidden: true,
-          description: "Keep hidden source code and output (marked with class `.hidden`)"
+          description:
+            "Keep hidden source code and output (marked with class `.hidden`)",
         },
         {
           name: "prefer-html",
           tags: {
-            formats: [
-              "$markdown-all"
-            ]
+            formats: ["$markdown-all"],
           },
           schema: "boolean",
           default: false,
           hidden: true,
           description: {
-            short: "Generate HTML output (if necessary) even when targeting markdown.",
-            long: "Generate HTML output (if necessary) even when targeting markdown. Enables the \nembedding of more sophisticated output (e.g. Jupyter widgets) in markdown.\n"
-          }
+            short:
+              "Generate HTML output (if necessary) even when targeting markdown.",
+            long: "Generate HTML output (if necessary) even when targeting markdown. Enables the \nembedding of more sophisticated output (e.g. Jupyter widgets) in markdown.\n",
+          },
         },
         {
           name: "output-divs",
           schema: "boolean",
           default: true,
           hidden: true,
-          description: "Indicates that computational output should not be written within divs. \nThis is necessary for some formats (e.g. `pptx`) to properly layout\nfigures.\n"
+          description:
+            "Indicates that computational output should not be written within divs. \nThis is necessary for some formats (e.g. `pptx`) to properly layout\nfigures.\n",
         },
         {
           name: "merge-includes",
           schema: "boolean",
           default: true,
           hidden: true,
-          description: "Disable merging of string based and file based includes (some formats, \nspecifically ePub, do not correctly handle this merging)\n"
-        }
+          description:
+            "Disable merging of string based and file based includes (some formats, \nspecifically ePub, do not correctly handle this merging)\n",
+        },
       ],
       "schema/document-includes.yml": [
         {
           name: "header-includes",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "$jats-all", "ipynb"],
           hidden: true,
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Content to include at the end of the document header."
+          description: "Content to include at the end of the document header.",
         },
         {
           name: "include-before",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "$jats-all", "ipynb"],
           hidden: true,
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Content to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command in LaTeX)."
+          description:
+            "Content to include at the beginning of the document body (e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command in LaTeX).",
         },
         {
           name: "include-after",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "$jats-all", "ipynb"],
           hidden: true,
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
-          description: "Content to include at the end of the document body (before the `</body>` tag in HTML, or the `\\end{document}` command in LaTeX)."
+          description:
+            "Content to include at the end of the document body (before the `</body>` tag in HTML, or the `\\end{document}` command in LaTeX).",
         },
         {
           name: "include-before-body",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "$jats-all", "ipynb"],
           schema: {
             maybeArrayOf: {
               anyOf: [
                 "path",
                 {
-                  ref: "smart-include"
-                }
-              ]
-            }
+                  ref: "smart-include",
+                },
+              ],
+            },
           },
-          description: 'Include contents at the beginning of the document body\n(e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command\nin LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
+          description:
+            'Include contents at the beginning of the document body\n(e.g. after the `<body>` tag in HTML, or the `\\begin{document}` command\nin LaTeX).\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n',
         },
         {
           name: "include-after-body",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "$jats-all", "ipynb"],
           schema: {
             maybeArrayOf: {
               anyOf: [
                 "path",
                 {
-                  ref: "smart-include"
-                }
-              ]
-            }
+                  ref: "smart-include",
+                },
+              ],
+            },
           },
-          description: 'Include content at the end of the document body immediately after the markdown content. While it will be included before the closing `</body>` tag in HTML and the `\\end{document}` command in LaTeX, this option refers to the end of the markdown content.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
+          description:
+            'Include content at the end of the document body immediately after the markdown content. While it will be included before the closing `</body>` tag in HTML and the `\\end{document}` command in LaTeX, this option refers to the end of the markdown content.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n',
         },
         {
           name: "include-in-header",
-          disabled: [
-            "$office-all",
-            "$jats-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "$jats-all", "ipynb"],
           schema: {
             maybeArrayOf: {
               anyOf: [
                 "path",
                 {
-                  ref: "smart-include"
-                }
-              ]
-            }
+                  ref: "smart-include",
+                },
+              ],
+            },
           },
-          description: 'Include contents at the end of the header. This can\nbe used, for example, to include special CSS or JavaScript in HTML\ndocuments.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n'
+          description:
+            'Include contents at the end of the header. This can\nbe used, for example, to include special CSS or JavaScript in HTML\ndocuments.\n\nA string value or an object with key "file" indicates a filename whose contents are to be included\n\nAn object with key "text" indicates textual content to be included\n',
         },
         {
           name: "resources",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$html-all"
-            ]
+            formats: ["$html-all"],
           },
-          description: "Path (or glob) to files to publish with this document."
+          description: "Path (or glob) to files to publish with this document.",
         },
         {
           name: "headertext",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
             short: "Text to be in a running header.",
-            long: "Text to be in a running header.\n\nProvide a single option or up to four options for different placements\n(odd page inner, odd page outer, even page innner, even page outer).\n"
-          }
+            long: "Text to be in a running header.\n\nProvide a single option or up to four options for different placements\n(odd page inner, odd page outer, even page innner, even page outer).\n",
+          },
         },
         {
           name: "footertext",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
             short: "Text to be in a running footer.",
-            long: "Text to be in a running footer.\n\nProvide a single option or up to four options for different placements\n(odd page inner, odd page outer, even page innner, even page outer).\n\nSee [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.\n"
-          }
+            long: "Text to be in a running footer.\n\nProvide a single option or up to four options for different placements\n(odd page inner, odd page outer, even page innner, even page outer).\n\nSee [ConTeXt Headers and Footers](https://wiki.contextgarden.net/Headers_and_Footers) for more information.\n",
+          },
         },
         {
           name: "includesource",
           schema: "boolean",
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           default: false,
-          description: "Whether to include all source documents as file attachments in the PDF file."
+          description:
+            "Whether to include all source documents as file attachments in the PDF file.",
         },
         {
           name: "footer",
           schema: "string",
           tags: {
-            formats: [
-              "man"
-            ]
+            formats: ["man"],
           },
-          description: "The footer for man pages."
+          description: "The footer for man pages.",
         },
         {
           name: "header",
           schema: "string",
           tags: {
-            formats: [
-              "man"
-            ]
+            formats: ["man"],
           },
-          description: "The header for man pages."
+          description: "The header for man pages.",
         },
         {
           name: "metadata-file",
@@ -13894,190 +13614,154 @@ var require_yaml_intelligence_resources = __commonJS({
           hidden: true,
           description: {
             short: "Include file with YAML metadata",
-            long: "Read metadata from the supplied YAML (or JSON) file. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nMetadata values specified inside the document, or by using `-M`,\noverwrite values specified with this option.\n"
-          }
+            long: "Read metadata from the supplied YAML (or JSON) file. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nMetadata values specified inside the document, or by using `-M`,\noverwrite values specified with this option.\n",
+          },
         },
         {
           name: "metadata-files",
           schema: {
-            arrayOf: "path"
+            arrayOf: "path",
           },
           description: {
             short: "Include files with YAML metadata",
-            long: "Read metadata from the supplied YAML (or JSON) files. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nValues in files specified later in the list will be preferred\nover those specified earlier. Metadata values specified inside\nthe document, or by using `-M`, overwrite values specified with\nthis option.\n"
-          }
-        }
+            long: "Read metadata from the supplied YAML (or JSON) files. This\noption can be used with every input format, but string scalars\nin the YAML file will always be parsed as Markdown. Generally,\nthe input will be handled the same as in YAML metadata blocks.\nValues in files specified later in the list will be preferred\nover those specified earlier. Metadata values specified inside\nthe document, or by using `-M`, overwrite values specified with\nthis option.\n",
+          },
+        },
       ],
       "schema/document-language.yml": [
         {
           name: "lang",
           schema: "string",
           description: {
-            short: "Identifies the main language of the document (e.g. `en` or `en-GB`).",
-            long: "Identifies the main language of the document using IETF language tags \n(following the [BCP 47](https://www.rfc-editor.org/info/bcp47) standard), \nsuch as `en` or `en-GB`. The [Language subtag lookup](https://r12a.github.io/app-subtags/) \ntool can look up or verify these tags. \n\nThis affects most formats, and controls hyphenation \nin PDF output when using LaTeX (through [`babel`](https://ctan.org/pkg/babel) \nand [`polyglossia`](https://ctan.org/pkg/polyglossia)) or ConTeXt.\n"
-          }
+            short:
+              "Identifies the main language of the document (e.g. `en` or `en-GB`).",
+            long: "Identifies the main language of the document using IETF language tags \n(following the [BCP 47](https://www.rfc-editor.org/info/bcp47) standard), \nsuch as `en` or `en-GB`. The [Language subtag lookup](https://r12a.github.io/app-subtags/) \ntool can look up or verify these tags. \n\nThis affects most formats, and controls hyphenation \nin PDF output when using LaTeX (through [`babel`](https://ctan.org/pkg/babel) \nand [`polyglossia`](https://ctan.org/pkg/polyglossia)) or ConTeXt.\n",
+          },
         },
         {
           name: "language",
           schema: {
-            anyOf: [
-              "path",
-              "object"
-            ]
+            anyOf: ["path", "object"],
           },
-          description: "YAML file containing custom language translations"
+          description: "YAML file containing custom language translations",
         },
         {
           name: "dir",
           schema: {
-            enum: [
-              "rtl",
-              "ltr"
-            ]
+            enum: ["rtl", "ltr"],
           },
           description: {
-            short: "The base script direction for the document (`rtl` or `ltr`).",
-            long: "The base script direction for the document (`rtl` or `ltr`).\n\nFor bidirectional documents, native pandoc `span`s and\n`div`s with the `dir` attribute can\nbe used to override the base direction in some output\nformats.  This may not always be necessary if the final\nrenderer (e.g. the browser, when generating HTML) supports\nthe [Unicode Bidirectional Algorithm].\n\nWhen using LaTeX for bidirectional documents, only the\n`xelatex` engine is fully supported (use\n`--pdf-engine=xelatex`).\n"
-          }
-        }
+            short:
+              "The base script direction for the document (`rtl` or `ltr`).",
+            long: "The base script direction for the document (`rtl` or `ltr`).\n\nFor bidirectional documents, native pandoc `span`s and\n`div`s with the `dir` attribute can\nbe used to override the base direction in some output\nformats.  This may not always be necessary if the final\nrenderer (e.g. the browser, when generating HTML) supports\nthe [Unicode Bidirectional Algorithm].\n\nWhen using LaTeX for bidirectional documents, only the\n`xelatex` engine is fully supported (use\n`--pdf-engine=xelatex`).\n",
+          },
+        },
       ],
       "schema/document-latexmk.yml": [
         {
           name: "latex-auto-mk",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "boolean",
           default: true,
           description: {
             short: "Use Quarto's built-in PDF rendering wrapper",
-            long: "Use Quarto's built-in PDF rendering wrapper (includes support \nfor automatically installing missing LaTeX packages)\n"
-          }
+            long: "Use Quarto's built-in PDF rendering wrapper (includes support \nfor automatically installing missing LaTeX packages)\n",
+          },
         },
         {
           name: "latex-auto-install",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "boolean",
           default: true,
-          description: "Enable/disable automatic LaTeX package installation"
+          description: "Enable/disable automatic LaTeX package installation",
         },
         {
           name: "latex-min-runs",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "number",
           default: 1,
-          description: "Minimum number of compilation passes."
+          description: "Minimum number of compilation passes.",
         },
         {
           name: "latex-max-runs",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "number",
           default: 10,
-          description: "Maximum number of compilation passes."
+          description: "Maximum number of compilation passes.",
         },
         {
           name: "latex-clean",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "boolean",
           default: true,
-          description: "Clean intermediates after compilation."
+          description: "Clean intermediates after compilation.",
         },
         {
           name: "latex-makeindex",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "string",
           default: "makeindex",
-          description: "Program to use for `makeindex`."
+          description: "Program to use for `makeindex`.",
         },
         {
           name: "latex-makeindex-opts",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
-          description: "Array of command line options for `makeindex`."
+          description: "Array of command line options for `makeindex`.",
         },
         {
           name: "latex-tlmgr-opts",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
-          description: "Array of command line options for `tlmgr`."
+          description: "Array of command line options for `tlmgr`.",
         },
         {
           name: "latex-output-dir",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "string",
-          description: "Output directory for intermediates and PDF."
+          description: "Output directory for intermediates and PDF.",
         },
         {
           name: "latex-tinytex",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "boolean",
-          description: "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents."
+          description:
+            "Set to `false` to prevent an installation of TinyTex from being used to compile PDF documents.",
         },
         {
           name: "latex-input-paths",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
-          description: "Array of paths LaTeX should search for inputs."
-        }
+          description: "Array of paths LaTeX should search for inputs.",
+        },
       ],
       "schema/document-layout.yml": [
         {
@@ -14092,109 +13776,86 @@ var require_yaml_intelligence_resources = __commonJS({
                 "article",
                 "book",
                 "report",
-                "memoir"
-              ]
-            }
+                "memoir",
+              ],
+            },
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           default: "scrartcl",
-          description: "The document class."
+          description: "The document class.",
         },
         {
           name: "classoption",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$html-files",
-              "$pdf-all"
-            ]
+            formats: ["$html-files", "$pdf-all"],
           },
           description: {
             short: "Options for the document class,",
-            long: "For LaTeX/PDF output, the options set for the document\nclass.\n\nFor HTML output using KaTeX, you can render display\nmath equations flush left using `classoption: fleqn`\n"
-          }
+            long: "For LaTeX/PDF output, the options set for the document\nclass.\n\nFor HTML output using KaTeX, you can render display\nmath equations flush left using `classoption: fleqn`\n",
+          },
         },
         {
           name: "pagestyle",
           schema: {
             string: {
-              completions: [
-                "plain",
-                "empty",
-                "headings"
-              ]
-            }
+              completions: ["plain", "empty", "headings"],
+            },
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           default: "plain",
-          description: "Control the `\\pagestyle{}` for the document."
+          description: "Control the `\\pagestyle{}` for the document.",
         },
         {
           name: "papersize",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all",
-              "typst"
-            ]
+            formats: ["$pdf-all", "typst"],
           },
-          description: "The paper size for the document.\n"
+          description: "The paper size for the document.\n",
         },
         {
           name: "layout",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
             short: "The options for margins and text layout for this document.",
-            long: "The options for margins and text layout for this document.\n\nSee [ConTeXt Layout](https://wiki.contextgarden.net/Layout) for additional information.\n"
-          }
+            long: "The options for margins and text layout for this document.\n\nSee [ConTeXt Layout](https://wiki.contextgarden.net/Layout) for additional information.\n",
+          },
         },
         {
           name: "page-layout",
           schema: {
-            enum: [
-              "article",
-              "full",
-              "custom"
-            ]
+            enum: ["article", "full", "custom"],
           },
           default: "article",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "The page layout to use for this document (`article`, `full`, or `custom`)"
+          description:
+            "The page layout to use for this document (`article`, `full`, or `custom`)",
         },
         {
           name: "page-width",
           tags: {
-            formats: [
-              "docx",
-              "$odt-all"
-            ]
+            formats: ["docx", "$odt-all"],
           },
           schema: "number",
           description: {
-            short: "Target page width for output (used to compute columns widths for `layout` divs)\n",
-            long: "Target page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt.\n"
-          }
+            short:
+              "Target page width for output (used to compute columns widths for `layout` divs)\n",
+            long: "Target page width for output (used to compute columns widths for `layout` divs).\nDefaults to 6.5 inches, which corresponds to default letter page settings in \ndocx and odt.\n",
+          },
         },
         {
           name: "grid",
@@ -14203,64 +13864,60 @@ var require_yaml_intelligence_resources = __commonJS({
               closed: true,
               properties: {
                 "content-mode": {
-                  enum: [
-                    "auto",
-                    "standard",
-                    "full",
-                    "slim"
-                  ],
-                  description: "Defines whether to use the standard, slim, or full content grid or to automatically select the most appropriate content grid."
+                  enum: ["auto", "standard", "full", "slim"],
+                  description:
+                    "Defines whether to use the standard, slim, or full content grid or to automatically select the most appropriate content grid.",
                 },
                 "sidebar-width": {
                   string: {
-                    description: "The base width of the sidebar (left) column in an HTML page."
-                  }
+                    description:
+                      "The base width of the sidebar (left) column in an HTML page.",
+                  },
                 },
                 "margin-width": {
                   string: {
-                    description: "The base width of the margin (right) column in an HTML page."
-                  }
+                    description:
+                      "The base width of the margin (right) column in an HTML page.",
+                  },
                 },
                 "body-width": {
                   string: {
-                    description: "The base width of the body (center) column in an HTML page."
-                  }
+                    description:
+                      "The base width of the body (center) column in an HTML page.",
+                  },
                 },
                 "gutter-width": {
                   string: {
-                    description: "The width of the gutter that appears between columns in an HTML page."
-                  }
-                }
-              }
-            }
+                    description:
+                      "The width of the gutter that appears between columns in an HTML page.",
+                  },
+                },
+              },
+            },
           },
           description: {
-            short: "Properties of the grid system used to layout Quarto HTML pages."
-          }
+            short:
+              "Properties of the grid system used to layout Quarto HTML pages.",
+          },
         },
         {
           name: "appendix-style",
           schema: {
             anyOf: [
               {
-                enum: [
-                  "default",
-                  "plain",
-                  "none"
-                ]
-              }
-            ]
+                enum: ["default", "plain", "none"],
+              },
+            ],
           },
           default: "default",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
-            short: "The layout of the appendix for this document (`none`, `plain`, or `default`)",
-            long: "The layout of the appendix for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n"
-          }
+            short:
+              "The layout of the appendix for this document (`none`, `plain`, or `default`)",
+            long: "The layout of the appendix for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the appendix, choose the appendix style `none`. For minimal styling, choose `plain.`\n",
+          },
         },
         {
           name: "appendix-cite-as",
@@ -14269,312 +13926,250 @@ var require_yaml_intelligence_resources = __commonJS({
               "boolean",
               {
                 maybeArrayOf: {
-                  enum: [
-                    "display",
-                    "bibtex"
-                  ]
-                }
-              }
-            ]
+                  enum: ["display", "bibtex"],
+                },
+              },
+            ],
           },
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
-            short: "Controls the formats which are provided in the citation section of the appendix (`false`, `display`, or `bibtex`).",
-            long: "Controls the formats which are provided in the citation section of the appendix.\n\nUse `false` to disable the display of the 'cite as' appendix. Pass one or more of `display` or `bibtex` to enable that\nformat in 'cite as' appendix.\n"
-          }
+            short:
+              "Controls the formats which are provided in the citation section of the appendix (`false`, `display`, or `bibtex`).",
+            long: "Controls the formats which are provided in the citation section of the appendix.\n\nUse `false` to disable the display of the 'cite as' appendix. Pass one or more of `display` or `bibtex` to enable that\nformat in 'cite as' appendix.\n",
+          },
         },
         {
           name: "title-block-style",
           schema: {
             anyOf: [
               {
-                enum: [
-                  "default",
-                  "plain",
-                  "manuscript",
-                  "none"
-                ]
-              }
-            ]
+                enum: ["default", "plain", "manuscript", "none"],
+              },
+            ],
           },
           default: "default",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
-            short: "The layout of the title block for this document (`none`, `plain`, or `default`).",
-            long: "The layout of the title block for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`\n"
-          }
+            short:
+              "The layout of the title block for this document (`none`, `plain`, or `default`).",
+            long: "The layout of the title block for this document (`none`, `plain`, or `default`).\n\nTo completely disable any styling of the title block, choose the style `none`. For minimal styling, choose `plain.`\n",
+          },
         },
         {
           name: "title-block-banner",
           schema: {
-            anyOf: [
-              "string",
-              "boolean"
-            ]
+            anyOf: ["string", "boolean"],
           },
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
             short: "Apply a banner style treatment to the title block.",
-            long: "Applies a banner style treatment for the title block. You may specify one of the following values:\n\n`true`\n: Will enable the banner style display and automatically select a background color based upon the theme.\n\n`<css color value>`\n: If you provide a CSS color value, the banner will be enabled and the background color set to the provided CSS color.\n\n`<path>`\n: If you provide the path to a file, the banner will be enabled and the background image will be set to the file path.\n\nSee `title-block-banner-color` if you'd like to control the color of the title block banner text.\n"
-          }
+            long: "Applies a banner style treatment for the title block. You may specify one of the following values:\n\n`true`\n: Will enable the banner style display and automatically select a background color based upon the theme.\n\n`<css color value>`\n: If you provide a CSS color value, the banner will be enabled and the background color set to the provided CSS color.\n\n`<path>`\n: If you provide the path to a file, the banner will be enabled and the background image will be set to the file path.\n\nSee `title-block-banner-color` if you'd like to control the color of the title block banner text.\n",
+          },
         },
         {
           name: "title-block-banner-color",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
-            short: "Sets the color of text elements in a banner style title block.",
-            long: "Sets the color of text elements in a banner style title block. Use one of the following values:\n\n`body` | `body-bg`\n: Will set the text color to the body text color or body background color, respectively.\n\n`<css color value>`\n: If you provide a CSS color value, the text color will be set to the provided CSS color.\n"
-          }
+            short:
+              "Sets the color of text elements in a banner style title block.",
+            long: "Sets the color of text elements in a banner style title block. Use one of the following values:\n\n`body` | `body-bg`\n: Will set the text color to the body text color or body background color, respectively.\n\n`<css color value>`\n: If you provide a CSS color value, the text color will be set to the provided CSS color.\n",
+          },
         },
         {
           name: "title-block-categories",
           schema: "boolean",
           default: true,
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
-            short: "Enables or disables the display of categories in the title block."
-          }
+            short:
+              "Enables or disables the display of categories in the title block.",
+          },
         },
         {
           name: "max-width",
           schema: "string",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
-          description: "Adds a css `max-width` to the body Element."
+          description: "Adds a css `max-width` to the body Element.",
         },
         {
           name: "margin-left",
           schema: "string",
           tags: {
-            formats: [
-              "$html-files",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-files", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the left margin of the document.",
-            long: "For HTML output, sets the `margin-left` property on the Body element.\n\nFor LaTeX output, sets the left margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the left margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the left page margin.\n"
-          }
+            long: "For HTML output, sets the `margin-left` property on the Body element.\n\nFor LaTeX output, sets the left margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the left margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the left page margin.\n",
+          },
         },
         {
           name: "margin-right",
           schema: "string",
           tags: {
-            formats: [
-              "$html-files",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-files", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the right margin of the document.",
-            long: "For HTML output, sets the `margin-right` property on the Body element.\n\nFor LaTeX output, sets the right margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the right margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the right page margin.\n"
-          }
+            long: "For HTML output, sets the `margin-right` property on the Body element.\n\nFor LaTeX output, sets the right margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the right margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the right page margin.\n",
+          },
         },
         {
           name: "margin-top",
           schema: "string",
           tags: {
-            formats: [
-              "$html-files",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-files", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the top margin of the document.",
-            long: "For HTML output, sets the `margin-top` property on the Body element.\n\nFor LaTeX output, sets the top margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the top margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the top page margin.\n"
-          }
+            long: "For HTML output, sets the `margin-top` property on the Body element.\n\nFor LaTeX output, sets the top margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the top margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the top page margin.\n",
+          },
         },
         {
           name: "margin-bottom",
           schema: "string",
           tags: {
-            formats: [
-              "$html-files",
-              "context",
-              "$pdf-all"
-            ]
+            formats: ["$html-files", "context", "$pdf-all"],
           },
           description: {
             short: "Sets the bottom margin of the document.",
-            long: "For HTML output, sets the `margin-bottom` property on the Body element.\n\nFor LaTeX output, sets the bottom margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the bottom margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the bottom page margin.\n"
-          }
+            long: "For HTML output, sets the `margin-bottom` property on the Body element.\n\nFor LaTeX output, sets the bottom margin if `geometry` is not \nused (otherwise `geometry` overrides this value)\n\nFor ConTeXt output, sets the bottom margin if `layout` is not used, \notherwise `layout` overrides these.\n\nFor `wkhtmltopdf` sets the bottom page margin.\n",
+          },
         },
         {
           name: "geometry",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
             short: "Options for the geometry package.",
-            long: "Options for the [geometry](https://ctan.org/pkg/geometry) package. For example:\n\n```yaml\ngeometry:\n  - top=30mm\n  - left=20mm\n  - heightrounded\n```\n"
-          }
+            long: "Options for the [geometry](https://ctan.org/pkg/geometry) package. For example:\n\n```yaml\ngeometry:\n  - top=30mm\n  - left=20mm\n  - heightrounded\n```\n",
+          },
         },
         {
           name: "hyperrefoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
             short: "Additional non-color options for the hyperref package.",
-            long: "Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:\n\n```yaml\nhyperrefoptions:\n  - linktoc=all\n  - pdfwindowui\n  - pdfpagemode=FullScreen      \n```\n\nTo customize link colors, please see the [Quarto PDF reference](https://quarto.org/docs/reference/formats/pdf.html#colors).\n"
-          }
+            long: "Options for the [hyperref](https://ctan.org/pkg/hyperref) package. For example:\n\n```yaml\nhyperrefoptions:\n  - linktoc=all\n  - pdfwindowui\n  - pdfpagemode=FullScreen      \n```\n\nTo customize link colors, please see the [Quarto PDF reference](https://quarto.org/docs/reference/formats/pdf.html#colors).\n",
+          },
         },
         {
           name: "indent",
           schema: {
-            anyOf: [
-              "boolean",
-              "string"
-            ]
+            anyOf: ["boolean", "string"],
           },
           tags: {
-            formats: [
-              "$pdf-all",
-              "ms"
-            ]
+            formats: ["$pdf-all", "ms"],
           },
           default: false,
           description: {
             short: "Whether to use document class settings for indentation.",
-            long: "Whether to use document class settings for indentation. If the document \nclass settings are not used, the default LaTeX template removes indentation \nand adds space between paragraphs\n\nFor groff (`ms`) documents, the paragraph indent, for example, `2m`.\n"
-          }
+            long: "Whether to use document class settings for indentation. If the document \nclass settings are not used, the default LaTeX template removes indentation \nand adds space between paragraphs\n\nFor groff (`ms`) documents, the paragraph indent, for example, `2m`.\n",
+          },
         },
         {
           name: "block-headings",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           description: {
-            short: "Make `\\paragraph` and `\\subparagraph` free-standing rather than run-in.",
-            long: "Make `\\paragraph` and `\\subparagraph` (fourth- and\nfifth-level headings, or fifth- and sixth-level with book\nclasses) free-standing rather than run-in; requires further\nformatting to distinguish from `\\subsubsection` (third- or\nfourth-level headings). Instead of using this option,\n[KOMA-Script](https://ctan.org/pkg/koma-script) can adjust headings \nmore extensively:\n\n```yaml\nheader-includes: |\n  \\RedeclareSectionCommand[\n    beforeskip=-10pt plus -2pt minus -1pt,\n    afterskip=1sp plus -1sp minus 1sp,\n    font=\\normalfont\\itshape]{paragraph}\n  \\RedeclareSectionCommand[\n    beforeskip=-10pt plus -2pt minus -1pt,\n    afterskip=1sp plus -1sp minus 1sp,\n    font=\\normalfont\\scshape,\n    indent=0pt]{subparagraph}\n```\n"
-          }
-        }
+            short:
+              "Make `\\paragraph` and `\\subparagraph` free-standing rather than run-in.",
+            long: "Make `\\paragraph` and `\\subparagraph` (fourth- and\nfifth-level headings, or fifth- and sixth-level with book\nclasses) free-standing rather than run-in; requires further\nformatting to distinguish from `\\subsubsection` (third- or\nfourth-level headings). Instead of using this option,\n[KOMA-Script](https://ctan.org/pkg/koma-script) can adjust headings \nmore extensively:\n\n```yaml\nheader-includes: |\n  \\RedeclareSectionCommand[\n    beforeskip=-10pt plus -2pt minus -1pt,\n    afterskip=1sp plus -1sp minus 1sp,\n    font=\\normalfont\\itshape]{paragraph}\n  \\RedeclareSectionCommand[\n    beforeskip=-10pt plus -2pt minus -1pt,\n    afterskip=1sp plus -1sp minus 1sp,\n    font=\\normalfont\\scshape,\n    indent=0pt]{subparagraph}\n```\n",
+          },
+        },
       ],
       "schema/document-library.yml": [
         {
           name: "revealjs-url",
           schema: "path",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
-          description: "Directory containing reveal.js files."
+          description: "Directory containing reveal.js files.",
         },
         {
           name: "s5-url",
           schema: "string",
           tags: {
-            formats: [
-              "s5"
-            ]
+            formats: ["s5"],
           },
-          description: "The base url for s5 presentations."
+          description: "The base url for s5 presentations.",
         },
         {
           name: "slidy-url",
           schema: "string",
           tags: {
-            formats: [
-              "slidy"
-            ]
+            formats: ["slidy"],
           },
-          description: "The base url for Slidy presentations."
+          description: "The base url for Slidy presentations.",
         },
         {
           name: "slideous-url",
           schema: "string",
           tags: {
-            formats: [
-              "slideous"
-            ]
+            formats: ["slideous"],
           },
-          description: "The base url for Slideous presentations."
-        }
+          description: "The base url for Slideous presentations.",
+        },
       ],
       "schema/document-links.yml": [
         {
           name: "link-external-icon",
           tags: {
-            formats: [
-              "$html-doc",
-              "revealjs"
-            ]
+            formats: ["$html-doc", "revealjs"],
           },
           schema: "boolean",
-          description: "Show a special icon next to links that leave the current site."
+          description:
+            "Show a special icon next to links that leave the current site.",
         },
         {
           name: "link-external-newwindow",
           tags: {
-            formats: [
-              "$html-doc",
-              "revealjs"
-            ]
+            formats: ["$html-doc", "revealjs"],
           },
           schema: "boolean",
-          description: "Open external links in a new browser window or tab (rather than navigating the current tab)."
+          description:
+            "Open external links in a new browser window or tab (rather than navigating the current tab).",
         },
         {
           name: "link-external-filter",
           tags: {
-            formats: [
-              "$html-doc",
-              "revealjs"
-            ]
+            formats: ["$html-doc", "revealjs"],
           },
           schema: "string",
           description: {
-            short: "A regular expression that can be used to determine whether a link is an internal link.",
-            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n"
-          }
+            short:
+              "A regular expression that can be used to determine whether a link is an internal link.",
+            long: "A regular expression that can be used to determine whether a link is an internal link. For example, \nthe following will treat links that start with http://www.quarto.org as internal links (and others\nwill be considered external):\n\n```\n^(?:http:|https:)\\/\\/www\\.quarto\\.org\\/custom\n```\n",
+          },
         },
         {
           name: "format-links",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
@@ -14588,115 +14183,102 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           text: {
                             string: {
-                              description: "The title for this alternative link."
-                            }
+                              description:
+                                "The title for this alternative link.",
+                            },
                           },
                           href: {
                             string: {
-                              description: "The href for tihs alternative link."
-                            }
-                          }
+                              description:
+                                "The href for tihs alternative link.",
+                            },
+                          },
                         },
-                        required: [
-                          "title",
-                          "href"
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
+                        required: ["title", "href"],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
           },
           description: {
-            short: "Controls whether links to other rendered formats are displayed in HTML output.",
-            long: "Controls whether links to other rendered formats are displayed in HTML output.\n\nPass `false` to disable the display of format lengths or pass a list of format names for which you'd\nlike links to be shown.\n"
-          }
+            short:
+              "Controls whether links to other rendered formats are displayed in HTML output.",
+            long: "Controls whether links to other rendered formats are displayed in HTML output.\n\nPass `false` to disable the display of format lengths or pass a list of format names for which you'd\nlike links to be shown.\n",
+          },
         },
         {
           name: "notebook-links",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "inline",
-                  "global"
-                ]
-              }
-            ]
+                enum: ["inline", "global"],
+              },
+            ],
           },
           description: {
-            short: "Controls the display of links to notebooks that provided embedded content or are created from documents.",
-            long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n"
-          }
+            short:
+              "Controls the display of links to notebooks that provided embedded content or are created from documents.",
+            long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nSpecify `false` to disable linking to source Notebooks. Specify `inline` to show links to source notebooks beneath the content they provide. \nSpecify `global` to show a set of global links to source notebooks.\n",
+          },
         },
         {
           name: "other-links",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
               {
-                enum: [
-                  false
-                ]
+                enum: [false],
               },
               {
-                ref: "other-links"
-              }
-            ]
+                ref: "other-links",
+              },
+            ],
           },
-          description: "A list of links that should be displayed below the table of contents in an `Other Links` section."
+          description:
+            "A list of links that should be displayed below the table of contents in an `Other Links` section.",
         },
         {
           name: "code-links",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
               {
-                enum: [
-                  false
-                ]
+                enum: [false],
               },
               {
-                ref: "other-links"
-              }
-            ]
+                ref: "other-links",
+              },
+            ],
           },
-          description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
+          description:
+            "A list of links that should be displayed below the table of contents in an `Code Links` section.",
         },
         {
           name: "notebook-subarticles",
           tags: {
-            formats: [
-              "$jats-all"
-            ]
+            formats: ["$jats-all"],
           },
           schema: "boolean",
           description: {
-            short: "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
-            long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n"
-          }
+            short:
+              "Controls whether referenced notebooks are embedded in JATS output as subarticles.",
+            long: "Controls the display of links to notebooks that provided embedded content or are created from documents.\n\nDefaults to `true` - specify `false` to disable embedding Notebook as subarticles with the JATS output.\n",
+          },
         },
         {
           name: "notebook-view",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
@@ -14706,59 +14288,54 @@ var require_yaml_intelligence_resources = __commonJS({
                   anyOf: [
                     "string",
                     {
-                      ref: "notebook-view-schema"
-                    }
-                  ]
-                }
-              }
-            ]
+                      ref: "notebook-view-schema",
+                    },
+                  ],
+                },
+              },
+            ],
           },
-          description: "Configures the HTML viewer for notebooks that provide embedded content."
+          description:
+            "Configures the HTML viewer for notebooks that provide embedded content.",
         },
         {
           name: "notebook-view-style",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
-            enum: [
-              "document",
-              "notebook"
-            ]
+            enum: ["document", "notebook"],
           },
           hidden: true,
-          description: "The style of document to render. Setting this to `notebook` will create additional notebook style affordances."
+          description:
+            "The style of document to render. Setting this to `notebook` will create additional notebook style affordances.",
         },
         {
           name: "notebook-preview-options",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             object: {
               properties: {
                 back: {
                   boolean: {
-                    description: "Whether to show a back button in the notebook preview."
-                  }
-                }
-              }
-            }
+                    description:
+                      "Whether to show a back button in the notebook preview.",
+                  },
+                },
+              },
+            },
           },
-          description: "Options for controlling the display and behavior of Notebook previews."
-        }
+          description:
+            "Options for controlling the display and behavior of Notebook previews.",
+        },
       ],
       "schema/document-listing.yml": [
         {
           name: "listing",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: {
             anyOf: [
@@ -14768,88 +14345,72 @@ var require_yaml_intelligence_resources = __commonJS({
                   anyOf: [
                     "string",
                     {
-                      ref: "website-listing"
-                    }
-                  ]
-                }
-              }
-            ]
+                      ref: "website-listing",
+                    },
+                  ],
+                },
+              },
+            ],
           },
-          description: "Automatically generate the contents of a page from a list of Quarto documents or other custom data."
-        }
+          description:
+            "Automatically generate the contents of a page from a list of Quarto documents or other custom data.",
+        },
       ],
       "schema/document-mermaid.yml": [
         {
           name: "mermaid",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: {
             object: {
               properties: {
                 theme: {
-                  enum: [
-                    "default",
-                    "dark",
-                    "forest",
-                    "neutral"
-                  ],
-                  description: "The mermaid built-in theme to use."
-                }
-              }
-            }
+                  enum: ["default", "dark", "forest", "neutral"],
+                  description: "The mermaid built-in theme to use.",
+                },
+              },
+            },
           },
-          description: "Mermaid diagram options"
-        }
+          description: "Mermaid diagram options",
+        },
       ],
       "schema/document-metadata.yml": [
         {
           name: "keywords",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$asciidoc-all",
-              "$html-files",
-              "$pdf-all",
-              "context"
-            ]
+            formats: ["$asciidoc-all", "$html-files", "$pdf-all", "context"],
           },
-          description: "List of keywords to be included in the document metadata."
+          description:
+            "List of keywords to be included in the document metadata.",
         },
         {
           name: "subject",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all",
-              "$office-all"
-            ]
+            formats: ["$pdf-all", "$office-all"],
           },
-          description: "The document subject"
+          description: "The document subject",
         },
         {
           name: "description",
           schema: "string",
           tags: {
-            formats: [
-              "$office-all"
-            ]
+            formats: ["$office-all"],
           },
-          description: "The document description. Some applications show this as `Comments` metadata."
+          description:
+            "The document description. Some applications show this as `Comments` metadata.",
         },
         {
           name: "category",
           schema: "string",
           tags: {
-            formats: [
-              "$office-all"
-            ]
+            formats: ["$office-all"],
           },
-          description: "The document category."
+          description: "The document category.",
         },
         {
           name: "copyright",
@@ -14860,40 +14421,34 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     year: {
                       maybeArrayOf: {
-                        anyOf: [
-                          "string",
-                          "number"
-                        ]
+                        anyOf: ["string", "number"],
                       },
-                      description: "The year for this copyright"
+                      description: "The year for this copyright",
                     },
                     holder: {
                       maybeArrayOf: {
                         string: {
-                          description: "The holder of the copyright."
-                        }
-                      }
+                          description: "The holder of the copyright.",
+                        },
+                      },
                     },
                     statement: {
                       maybeArrayOf: {
                         string: {
-                          description: "The text to display for the license."
-                        }
-                      }
-                    }
-                  }
-                }
+                          description: "The text to display for the license.",
+                        },
+                      },
+                    },
+                  },
+                },
               },
-              "string"
-            ]
+              "string",
+            ],
           },
           tags: {
-            formats: [
-              "$html-doc",
-              "$jats-all"
-            ]
+            formats: ["$html-doc", "$jats-all"],
           },
-          description: "The copyright for this document, if any."
+          description: "The copyright for this document, if any.",
         },
         {
           name: "license",
@@ -14905,99 +14460,83 @@ var require_yaml_intelligence_resources = __commonJS({
                     properties: {
                       type: {
                         string: {
-                          description: "The type of the license."
-                        }
+                          description: "The type of the license.",
+                        },
                       },
                       link: {
                         string: {
-                          description: "A URL to the license."
-                        }
+                          description: "A URL to the license.",
+                        },
                       },
                       text: {
                         string: {
-                          description: "The text to display for the license."
-                        }
-                      }
-                    }
-                  }
+                          description: "The text to display for the license.",
+                        },
+                      },
+                    },
+                  },
                 },
-                "string"
-              ]
-            }
+                "string",
+              ],
+            },
           },
           tags: {
-            formats: [
-              "$html-doc",
-              "$jats-all"
-            ]
+            formats: ["$html-doc", "$jats-all"],
           },
           description: {
             short: "The License for this document, if any. (e.g. `CC BY`)",
-            long: "The license for this document, if any. \n\nCreative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC` will automatically generate a license link\nin the document appendix. Other license text will be placed in the appendix verbatim.\n"
-          }
+            long: "The license for this document, if any. \n\nCreative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC` will automatically generate a license link\nin the document appendix. Other license text will be placed in the appendix verbatim.\n",
+          },
         },
         {
           name: "title-meta",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "Sets the title metadata for the document"
+          description: "Sets the title metadata for the document",
         },
         {
           name: "pagetitle",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: "string",
-          description: "Sets the title metadata for the document"
+          description: "Sets the title metadata for the document",
         },
         {
           name: "title-prefix",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: "string",
-          description: "Specify STRING as a prefix at the beginning of the title that appears in \nthe HTML header (but not in the title as it appears at the beginning of the body)\n"
+          description:
+            "Specify STRING as a prefix at the beginning of the title that appears in \nthe HTML header (but not in the title as it appears at the beginning of the body)\n",
         },
         {
           name: "description-meta",
           schema: "string",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
-          description: "Sets the description metadata for the document"
+          description: "Sets the description metadata for the document",
         },
         {
           name: "author-meta",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all",
-              "$html-files"
-            ]
+            formats: ["$pdf-all", "$html-files"],
           },
-          description: "Sets the author metadata for the document"
+          description: "Sets the author metadata for the document",
         },
         {
           name: "date-meta",
           schema: "string",
           tags: {
-            formats: [
-              "$html-all",
-              "$pdf-all"
-            ]
+            formats: ["$html-all", "$pdf-all"],
           },
-          description: "Sets the date metadata for the document"
-        }
+          description: "Sets the date metadata for the document",
+        },
       ],
       "schema/document-numbering.yml": [
         {
@@ -15006,148 +14545,119 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Number section headings",
-            long: "Number section headings rendered output. By default, sections are not numbered.\nSections with class `.unnumbered` will never be numbered, even if `number-sections`\nis specified.\n"
-          }
+            long: "Number section headings rendered output. By default, sections are not numbered.\nSections with class `.unnumbered` will never be numbered, even if `number-sections`\nis specified.\n",
+          },
         },
         {
           name: "number-depth",
           schema: "number",
           tags: {
-            formats: [
-              "$html-all",
-              "$pdf-all",
-              "docx"
-            ]
+            formats: ["$html-all", "$pdf-all", "docx"],
           },
           description: {
             short: "The depth to which sections should be numbered.",
-            long: "By default, all headings in your document create a \nnumbered section. You customize numbering depth using \nthe `number-depth` option. \n\nFor example, to only number sections immediately below \nthe chapter level, use this:\n\n```yaml  \nnumber-depth: 1\n```\n"
-          }
+            long: "By default, all headings in your document create a \nnumbered section. You customize numbering depth using \nthe `number-depth` option. \n\nFor example, to only number sections immediately below \nthe chapter level, use this:\n\n```yaml  \nnumber-depth: 1\n```\n",
+          },
         },
         {
           name: "secnumdepth",
           schema: "number",
           hidden: true,
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "The numbering depth for sections. (Use `number-depth` instead)."
+          description:
+            "The numbering depth for sections. (Use `number-depth` instead).",
         },
         {
           name: "number-offset",
           schema: {
-            maybeArrayOf: "number"
+            maybeArrayOf: "number",
           },
-          default: [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ],
+          default: [0, 0, 0, 0, 0, 0],
           description: {
-            short: "Offset for section headings in output (offsets are 0 by default)",
-            long: 'Offset for section headings in output (offsets are 0 by default)\nThe first number is added to the section number for\ntop-level headings, the second for second-level headings, and so on.\nSo, for example, if you want the first top-level heading in your\ndocument to be numbered "6", specify `number-offset: 5`. If your\ndocument starts with a level-2 heading which you want to be numbered\n"1.5", specify `number-offset: [1,4]`. Implies `number-sections`\n'
-          }
+            short:
+              "Offset for section headings in output (offsets are 0 by default)",
+            long: 'Offset for section headings in output (offsets are 0 by default)\nThe first number is added to the section number for\ntop-level headings, the second for second-level headings, and so on.\nSo, for example, if you want the first top-level heading in your\ndocument to be numbered "6", specify `number-offset: 5`. If your\ndocument starts with a level-2 heading which you want to be numbered\n"1.5", specify `number-offset: [1,4]`. Implies `number-sections`\n',
+          },
         },
         {
           name: "section-numbering",
           tags: {
-            formats: [
-              "typst"
-            ]
+            formats: ["typst"],
           },
           schema: "string",
-          description: "Schema to use for numbering sections, e.g. `1.A.1`"
+          description: "Schema to use for numbering sections, e.g. `1.A.1`",
         },
         {
           name: "shift-heading-level-by",
           schema: "number",
           description: {
-            short: "Shift heading levels by a positive or negative integer. For example, with \n`shift-heading-level-by: -1`, level 2 headings become level 1 headings.\n",
-            long: "Shift heading levels by a positive or negative integer.\nFor example, with `shift-heading-level-by: -1`, level 2\nheadings become level 1 headings, and level 3 headings\nbecome level 2 headings.  Headings cannot have a level\nless than 1, so a heading that would be shifted below level 1\nbecomes a regular paragraph.  Exception: with a shift of -N,\na level-N heading at the beginning of the document\nreplaces the metadata title.\n"
-          }
+            short:
+              "Shift heading levels by a positive or negative integer. For example, with \n`shift-heading-level-by: -1`, level 2 headings become level 1 headings.\n",
+            long: "Shift heading levels by a positive or negative integer.\nFor example, with `shift-heading-level-by: -1`, level 2\nheadings become level 1 headings, and level 3 headings\nbecome level 2 headings.  Headings cannot have a level\nless than 1, so a heading that would be shifted below level 1\nbecomes a regular paragraph.  Exception: with a shift of -N,\na level-N heading at the beginning of the document\nreplaces the metadata title.\n",
+          },
         },
         {
           name: "pagenumbering",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
-            short: "Sets the page numbering style and location for the document.",
-            long: "Sets the page numbering style and location for the document using the\n`\\setuppagenumbering` command. \n\nSee [ConTeXt Page Numbering](https://wiki.contextgarden.net/Command/setuppagenumbering) \nfor additional information.\n"
-          }
+            short:
+              "Sets the page numbering style and location for the document.",
+            long: "Sets the page numbering style and location for the document using the\n`\\setuppagenumbering` command. \n\nSee [ConTeXt Page Numbering](https://wiki.contextgarden.net/Command/setuppagenumbering) \nfor additional information.\n",
+          },
         },
         {
           name: "top-level-division",
           tags: {
-            formats: [
-              "$pdf-all",
-              "context",
-              "$docbook-all",
-              "tei"
-            ]
+            formats: ["$pdf-all", "context", "$docbook-all", "tei"],
           },
           schema: {
-            enum: [
-              "default",
-              "section",
-              "chapter",
-              "part"
-            ]
+            enum: ["default", "section", "chapter", "part"],
           },
           description: {
-            short: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.\n",
-            long: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.  \n\nThe default behavior is to determine the\nbest division type via heuristics: unless other conditions\napply, `section` is chosen. When the `documentclass`\nvariable is set to `report`, `book`, or `memoir` (unless the\n`article` option is specified), `chapter` is implied as the\nsetting for this option. If `beamer` is the output format,\nspecifying either `chapter` or `part` will cause top-level\nheadings to become `\\part{..}`, while second-level headings\nremain as their default type.\n"
-          }
-        }
+            short:
+              "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.\n",
+            long: "Treat top-level headings as the given division type (`default`, `section`, `chapter`, or `part`). The hierarchy\norder is part, chapter, then section; all headings are shifted such \nthat the top-level heading becomes the specified type.  \n\nThe default behavior is to determine the\nbest division type via heuristics: unless other conditions\napply, `section` is chosen. When the `documentclass`\nvariable is set to `report`, `book`, or `memoir` (unless the\n`article` option is specified), `chapter` is implied as the\nsetting for this option. If `beamer` is the output format,\nspecifying either `chapter` or `part` will cause top-level\nheadings to become `\\part{..}`, while second-level headings\nremain as their default type.\n",
+          },
+        },
       ],
       "schema/document-ojs.yml": [
         {
           name: "ojs-engine",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: "boolean",
-          description: "If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.\nIf unset, the OJS runtime is included only if OJS cells are present in the document.\n"
-        }
+          description:
+            "If `true`, force the presence of the OJS runtime. If `false`, force the absence instead.\nIf unset, the OJS runtime is included only if OJS cells are present in the document.\n",
+        },
       ],
       "schema/document-options.yml": [
         {
           name: "reference-doc",
           tags: {
-            formats: [
-              "$office-all",
-              "odt"
-            ]
+            formats: ["$office-all", "odt"],
           },
           schema: "path",
-          description: "Use the specified file as a style reference in producing a docx, \npptx, or odt file.\n"
+          description:
+            "Use the specified file as a style reference in producing a docx, \npptx, or odt file.\n",
         },
         {
           name: "theme",
           tags: {
-            formats: [
-              "$html-doc",
-              "revealjs",
-              "beamer"
-            ]
+            formats: ["$html-doc", "revealjs", "beamer"],
           },
           schema: {
             anyOf: [
               "string",
               {
-                arrayOf: "string"
+                arrayOf: "string",
               },
               {
                 object: {
@@ -15156,34 +14666,35 @@ var require_yaml_intelligence_resources = __commonJS({
                     light: {
                       maybeArrayOf: {
                         string: {
-                          description: "The light theme name, theme scss file, or a mix of both."
-                        }
-                      }
+                          description:
+                            "The light theme name, theme scss file, or a mix of both.",
+                        },
+                      },
                     },
                     dark: {
                       maybeArrayOf: {
                         string: {
-                          description: "The dark theme name, theme scss file, or a mix of both."
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            ]
+                          description:
+                            "The dark theme name, theme scss file, or a mix of both.",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
-          description: "Theme name, theme scss file, or a mix of both."
+          description: "Theme name, theme scss file, or a mix of both.",
         },
         {
           name: "minimal",
           schema: "boolean",
           default: false,
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Disables the built in html features like theming, anchor sections, code block behavior, and more."
+          description:
+            "Disables the built in html features like theming, anchor sections, code block behavior, and more.",
         },
         {
           name: "document-css",
@@ -15191,90 +14702,77 @@ var require_yaml_intelligence_resources = __commonJS({
           hidden: true,
           default: true,
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
-          description: "Enables inclusion of Pandoc default CSS for this document."
+          description:
+            "Enables inclusion of Pandoc default CSS for this document.",
         },
         {
           name: "css",
           tags: {
-            formats: [
-              "$html-all"
-            ]
+            formats: ["$html-all"],
           },
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: "path",
           },
-          description: "One or more CSS style sheets."
+          description: "One or more CSS style sheets.",
         },
         {
           name: "anchor-sections",
           schema: "boolean",
           default: true,
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Enables hover over a section title to see an anchor link."
+          description:
+            "Enables hover over a section title to see an anchor link.",
         },
         {
           name: "smooth-scroll",
           schema: "boolean",
           default: false,
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Enables smooth scrolling within the page."
+          description: "Enables smooth scrolling within the page.",
         },
         {
           name: "html-math-method",
           tags: {
-            formats: [
-              "$html-doc",
-              "$epub-all",
-              "gfm"
-            ]
+            formats: ["$html-doc", "$epub-all", "gfm"],
           },
           schema: {
             anyOf: [
               {
-                ref: "math-methods"
+                ref: "math-methods",
               },
               {
                 object: {
                   properties: {
                     method: {
-                      ref: "math-methods"
+                      ref: "math-methods",
                     },
-                    url: "string"
+                    url: "string",
                   },
-                  required: [
-                    "method"
-                  ]
-                }
-              }
-            ]
+                  required: ["method"],
+                },
+              },
+            ],
           },
           description: {
             short: "Method use to render math in HTML output",
-            long: "Method use to render math in HTML output (`plain`, `webtex`, `gladtex`, `mathml`, `mathjax`, `katex`).\n\nSee the Pandoc documentation on [Math Rendering in HTML](https://pandoc.org/MANUAL.html#math-rendering-in-html)\nfor additional details.\n"
-          }
+            long: "Method use to render math in HTML output (`plain`, `webtex`, `gladtex`, `mathml`, `mathjax`, `katex`).\n\nSee the Pandoc documentation on [Math Rendering in HTML](https://pandoc.org/MANUAL.html#math-rendering-in-html)\nfor additional details.\n",
+          },
         },
         {
           name: "section-divs",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           schema: "boolean",
           default: true,
-          description: "Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`\nrather than the heading itself.\n"
+          description:
+            "Wrap sections in `<section>` tags and attach identifiers to the enclosing `<section>`\nrather than the heading itself.\n",
         },
         {
           name: "identifier-prefix",
@@ -15283,54 +14781,43 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-files",
               "$docbook-all",
               "$markdown-all",
-              "haddock"
-            ]
+              "haddock",
+            ],
           },
           schema: "string",
           description: {
-            short: "Specify a prefix to be added to all identifiers and internal links.",
-            long: "Specify a prefix to be added to all identifiers and internal links in HTML and\nDocBook output, and to footnote numbers in Markdown and Haddock output. \nThis is useful for preventing duplicate identifiers when generating fragments\nto be included in other pages.\n"
-          }
+            short:
+              "Specify a prefix to be added to all identifiers and internal links.",
+            long: "Specify a prefix to be added to all identifiers and internal links in HTML and\nDocBook output, and to footnote numbers in Markdown and Haddock output. \nThis is useful for preventing duplicate identifiers when generating fragments\nto be included in other pages.\n",
+          },
         },
         {
           name: "email-obfuscation",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: {
-            enum: [
-              "none",
-              "references",
-              "javascript"
-            ]
+            enum: ["none", "references", "javascript"],
           },
           default: "none",
           description: {
             short: "Method for obfuscating mailto: links in HTML documents.",
-            long: "Specify a method for obfuscating `mailto:` links in HTML documents.\n\n- `javascript`: Obfuscate links using JavaScript.\n- `references`: Obfuscate links by printing their letters as decimal or hexadecimal character references.\n- `none` (default): Do not obfuscate links.\n"
-          }
+            long: "Specify a method for obfuscating `mailto:` links in HTML documents.\n\n- `javascript`: Obfuscate links using JavaScript.\n- `references`: Obfuscate links by printing their letters as decimal or hexadecimal character references.\n- `none` (default): Do not obfuscate links.\n",
+          },
         },
         {
           name: "html-q-tags",
           tags: {
-            formats: [
-              "$html-all"
-            ]
+            formats: ["$html-all"],
           },
           schema: "boolean",
           default: false,
-          description: "Use `<q>` tags for quotes in HTML."
+          description: "Use `<q>` tags for quotes in HTML.",
         },
         {
           name: "pdf-engine",
           tags: {
-            formats: [
-              "$pdf-all",
-              "ms",
-              "context"
-            ]
+            formats: ["$pdf-all", "ms", "context"],
           },
           schema: {
             string: {
@@ -15344,367 +14831,299 @@ var require_yaml_intelligence_resources = __commonJS({
                 "weasyprint",
                 "prince",
                 "context",
-                "pdfroff"
-              ]
-            }
+                "pdfroff",
+              ],
+            },
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
-            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n"
-          }
+            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n",
+          },
         },
         {
           name: "pdf-engine-opt",
           tags: {
-            formats: [
-              "$pdf-all",
-              "ms",
-              "context"
-            ]
+            formats: ["$pdf-all", "ms", "context"],
           },
           schema: "string",
           description: {
-            short: "Use the given string as a command-line argument to the `pdf-engine`.",
-            long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use `pdf-engine-opt: -outdir=foo`. Note that no check for \nduplicate options is done.\n"
-          }
+            short:
+              "Use the given string as a command-line argument to the `pdf-engine`.",
+            long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use `pdf-engine-opt: -outdir=foo`. Note that no check for \nduplicate options is done.\n",
+          },
         },
         {
           name: "beamerarticle",
           schema: "boolean",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "Whether to produce a Beamer article from this presentation."
+          description:
+            "Whether to produce a Beamer article from this presentation.",
         },
         {
           name: "beameroption",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "Add an extra Beamer option using `\\setbeameroption{}`."
+          description:
+            "Add an extra Beamer option using `\\setbeameroption{}`.",
         },
         {
           name: "aspectratio",
           schema: {
-            enum: [
-              43,
-              169,
-              1610,
-              149,
-              141,
-              54,
-              32
-            ]
+            enum: [43, 169, 1610, 149, 141, 54, 32],
           },
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The aspect ratio for this presentation."
+          description: "The aspect ratio for this presentation.",
         },
         {
           name: "logo",
           schema: "path",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The logo image for slides."
+          description: "The logo image for slides.",
         },
         {
           name: "titlegraphic",
           schema: "path",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The image for the title slide."
+          description: "The image for the title slide.",
         },
         {
           name: "navigation",
           schema: {
-            enum: [
-              "empty",
-              "frame",
-              "vertical",
-              "horizontal"
-            ]
+            enum: ["empty", "frame", "vertical", "horizontal"],
           },
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "Controls navigation symbols for the presentation (`empty`, `frame`, `vertical`, or `horizontal`)"
+          description:
+            "Controls navigation symbols for the presentation (`empty`, `frame`, `vertical`, or `horizontal`)",
         },
         {
           name: "section-titles",
           schema: "boolean",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
           default: true,
-          description: "Whether to enable title pages for new sections."
+          description: "Whether to enable title pages for new sections.",
         },
         {
           name: "colortheme",
           schema: "string",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The Beamer color theme for this presentation."
+          description: "The Beamer color theme for this presentation.",
         },
         {
           name: "fonttheme",
           schema: "string",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The Beamer font theme for this presentation."
+          description: "The Beamer font theme for this presentation.",
         },
         {
           name: "innertheme",
           schema: "string",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The Beamer inner theme for this presentation."
+          description: "The Beamer inner theme for this presentation.",
         },
         {
           name: "outertheme",
           schema: "string",
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "The Beamer outer theme for this presentation."
+          description: "The Beamer outer theme for this presentation.",
         },
         {
           name: "themeoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "beamer"
-            ]
+            formats: ["beamer"],
           },
-          description: "Options passed to LaTeX Beamer themes."
+          description: "Options passed to LaTeX Beamer themes.",
         },
         {
           name: "section",
           schema: "number",
           tags: {
-            formats: [
-              "man"
-            ]
+            formats: ["man"],
           },
-          description: "The section number in man pages."
+          description: "The section number in man pages.",
         },
         {
           name: "variant",
           tags: {
-            formats: [
-              "$markdown-all"
-            ]
+            formats: ["$markdown-all"],
           },
           schema: "string",
-          description: 'Enable and disable extensions for markdown output (e.g. "+emoji")\n'
+          description:
+            'Enable and disable extensions for markdown output (e.g. "+emoji")\n',
         },
         {
           name: "markdown-headings",
           tags: {
-            formats: [
-              "$markdown-all",
-              "ipynb"
-            ]
+            formats: ["$markdown-all", "ipynb"],
           },
           schema: {
-            enum: [
-              "setext",
-              "atx"
-            ]
+            enum: ["setext", "atx"],
           },
           default: "atx",
-          description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
+          description:
+            "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n",
         },
         {
           name: "keep-yaml",
           tags: {
-            formats: [
-              "$markdown-all"
-            ]
+            formats: ["$markdown-all"],
           },
           schema: "boolean",
           default: false,
-          description: "Preserve the original YAML front matter in rendered markdown"
+          description:
+            "Preserve the original YAML front matter in rendered markdown",
         },
         {
           name: "ipynb-output",
           tags: {
-            formats: [
-              "ipynb"
-            ]
+            formats: ["ipynb"],
           },
           schema: {
-            enum: [
-              "none",
-              "all",
-              "best"
-            ]
+            enum: ["none", "all", "best"],
           },
           default: "best",
           description: {
-            short: "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`).",
-            long: "Determines which ipynb cell output formats are rendered.\n\n- `all`: Preserve all of the data formats included in the original.\n- `none`: Omit the contents of data cells.\n- `best` (default): Instruct pandoc to try to pick the\n  richest data block in each output cell that is compatible\n  with the output format.\n"
-          }
+            short:
+              "Determines which ipynb cell output formats are rendered (`none`, `all`, or `best`).",
+            long: "Determines which ipynb cell output formats are rendered.\n\n- `all`: Preserve all of the data formats included in the original.\n- `none`: Omit the contents of data cells.\n- `best` (default): Instruct pandoc to try to pick the\n  richest data block in each output cell that is compatible\n  with the output format.\n",
+          },
         },
         {
           name: "quarto-required",
           schema: "string",
           description: {
             short: "semver version range for required quarto version",
-            long: "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n"
-          }
+            long: "A semver version range describing the supported quarto versions for this document\nor project.\n\nExamples:\n\n- `>= 1.1.0`: Require at least quarto version 1.1\n- `1.*`: Require any quarto versions whose major version number is 1\n",
+          },
         },
         {
           name: "preview-mode",
           schema: "string",
           tags: {
-            formats: [
-              "$jats-all",
-              "gfm"
-            ]
+            formats: ["$jats-all", "gfm"],
           },
           description: {
             short: "The mode to use when previewing this document.",
-            long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n"
-          }
-        }
+            long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n",
+          },
+        },
       ],
       "schema/document-pdfa.yml": [
         {
           name: "pdfa",
           schema: {
-            anyOf: [
-              "boolean",
-              "string"
-            ]
+            anyOf: ["boolean", "string"],
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
-            short: "Adds the necessary setup to the document preamble to generate PDF/A of the type specified.",
-            long: "Adds the necessary setup to the document preamble to generate PDF/A of the type specified.\n\nIf the value is set to `true`, `1b:2005` will be used as default.\n\nTo successfully generate PDF/A the required\nICC color profiles have to be available and the content and all\nincluded files (such as images) have to be standard conforming.\nThe ICC profiles and output intent may be specified using the\nvariables `pdfaiccprofile` and `pdfaintent`.  See also [ConTeXt\nPDFA](https://wiki.contextgarden.net/PDF/A) for more details.\n"
-          }
+            short:
+              "Adds the necessary setup to the document preamble to generate PDF/A of the type specified.",
+            long: "Adds the necessary setup to the document preamble to generate PDF/A of the type specified.\n\nIf the value is set to `true`, `1b:2005` will be used as default.\n\nTo successfully generate PDF/A the required\nICC color profiles have to be available and the content and all\nincluded files (such as images) have to be standard conforming.\nThe ICC profiles and output intent may be specified using the\nvariables `pdfaiccprofile` and `pdfaintent`.  See also [ConTeXt\nPDFA](https://wiki.contextgarden.net/PDF/A) for more details.\n",
+          },
         },
         {
           name: "pdfaiccprofile",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
-            short: "When used in conjunction with `pdfa`, specifies the ICC profile to use \nin the PDF, e.g. `default.cmyk`.\n",
-            long: "When used in conjunction with `pdfa`, specifies the ICC profile to use \nin the PDF, e.g. `default.cmyk`.\n\nIf left unspecified, `sRGB.icc` is used as default. May be repeated to \ninclude multiple profiles. Note that the profiles have to be available \non the system. They can be obtained from \n[ConTeXt ICC Profiles](https://wiki.contextgarden.net/PDFX#ICC_profiles).\n"
-          }
+            short:
+              "When used in conjunction with `pdfa`, specifies the ICC profile to use \nin the PDF, e.g. `default.cmyk`.\n",
+            long: "When used in conjunction with `pdfa`, specifies the ICC profile to use \nin the PDF, e.g. `default.cmyk`.\n\nIf left unspecified, `sRGB.icc` is used as default. May be repeated to \ninclude multiple profiles. Note that the profiles have to be available \non the system. They can be obtained from \n[ConTeXt ICC Profiles](https://wiki.contextgarden.net/PDFX#ICC_profiles).\n",
+          },
         },
         {
           name: "pdfaintent",
           schema: "string",
           tags: {
-            formats: [
-              "context"
-            ]
+            formats: ["context"],
           },
           description: {
-            short: "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
-            long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n"
-          }
-        }
+            short:
+              "When used in conjunction with `pdfa`, specifies the output intent for the colors.",
+            long: "When used in conjunction with `pdfa`, specifies the output intent for\nthe colors, for example `ISO coated v2 300\\letterpercent\\space (ECI)`\n\nIf left unspecified, `sRGB IEC61966-2.1` is used as default.\n",
+          },
+        },
       ],
       "schema/document-references.yml": [
         {
           name: "bibliography",
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: "path",
           },
-          description: "Document bibliography (BibTeX or CSL). May be a single file or a list of files\n"
+          description:
+            "Document bibliography (BibTeX or CSL). May be a single file or a list of files\n",
         },
         {
           name: "csl",
           schema: "path",
-          description: "Citation Style Language file to use for formatting references."
+          description:
+            "Citation Style Language file to use for formatting references.",
         },
         {
           name: "citations-hover",
           schema: "boolean",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           default: true,
-          description: "Enables a hover popup for citation that shows the reference information."
+          description:
+            "Enables a hover popup for citation that shows the reference information.",
         },
         {
           name: "citation-location",
           schema: {
-            enum: [
-              "document",
-              "margin"
-            ]
+            enum: ["document", "margin"],
           },
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           default: "document",
-          description: "Where citation information should be displayed (`document` or `margin`)"
+          description:
+            "Where citation information should be displayed (`document` or `margin`)",
         },
         {
           name: "cite-method",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
           schema: {
-            enum: [
-              "citeproc",
-              "natbib",
-              "biblatex"
-            ]
+            enum: ["citeproc", "natbib", "biblatex"],
           },
           default: "citeproc",
-          description: "Method used to format citations (`citeproc`, `natbib`, or `biblatex`).\n"
+          description:
+            "Method used to format citations (`citeproc`, `natbib`, or `biblatex`).\n",
         },
         {
           name: "citeproc",
@@ -15712,120 +15131,108 @@ var require_yaml_intelligence_resources = __commonJS({
           default: true,
           description: {
             short: "Turn on built-in citation processing",
-            long: "Turn on built-in citation processing. To use this feature, you will need\nto have a document containing citations and a source of bibliographic data: \neither an external bibliography file or a list of `references` in the \ndocument's YAML metadata. You can optionally also include a `csl` \ncitation style file.\n"
-          }
+            long: "Turn on built-in citation processing. To use this feature, you will need\nto have a document containing citations and a source of bibliographic data: \neither an external bibliography file or a list of `references` in the \ndocument's YAML metadata. You can optionally also include a `csl` \ncitation style file.\n",
+          },
         },
         {
           name: "biblatexoptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "A list of options for BibLaTeX."
+          description: "A list of options for BibLaTeX.",
         },
         {
           name: "natbiboptions",
           schema: {
-            maybeArrayOf: "string"
+            maybeArrayOf: "string",
           },
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "One or more options to provide for `natbib` when generating a bibliography."
+          description:
+            "One or more options to provide for `natbib` when generating a bibliography.",
         },
         {
           name: "biblio-style",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`."
+          description:
+            "The bibliography style to use (e.g. `\\bibliographystyle{dinat}`) when using `natbib` or `biblatex`.",
         },
         {
           name: "bibliographystyle",
           schema: "string",
           tags: {
-            formats: [
-              "typst"
-            ]
+            formats: ["typst"],
           },
-          description: 'The bibliography style to use (e.g. `#set bibliography(style: "apa")`) when using typst built-in citation system (e.g when not `citeproc: true`).'
+          description:
+            'The bibliography style to use (e.g. `#set bibliography(style: "apa")`) when using typst built-in citation system (e.g when not `citeproc: true`).',
         },
         {
           name: "biblio-title",
           schema: "string",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "The bibliography title to use when using `natbib` or `biblatex`."
+          description:
+            "The bibliography title to use when using `natbib` or `biblatex`.",
         },
         {
           name: "biblio-config",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "Controls whether to output bibliography configuration for `natbib` or `biblatex` when cite method is not `citeproc`."
+          description:
+            "Controls whether to output bibliography configuration for `natbib` or `biblatex` when cite method is not `citeproc`.",
         },
         {
           name: "citation-abbreviations",
           schema: "path",
           description: {
-            short: "JSON file containing abbreviations of journals that should be used in formatted bibliographies.",
-            long: 'JSON file containing abbreviations of journals that should be\nused in formatted bibliographies when `form="short"` is\nspecified. The format of the file can be illustrated with an\nexample:\n\n```json\n{ "default": {\n    "container-title": {\n      "Lloyd\'s Law Reports": "Lloyd\'s Rep",\n      "Estates Gazette": "EG",\n      "Scots Law Times": "SLT"\n    }\n  }\n}\n```\n'
-          }
+            short:
+              "JSON file containing abbreviations of journals that should be used in formatted bibliographies.",
+            long: 'JSON file containing abbreviations of journals that should be\nused in formatted bibliographies when `form="short"` is\nspecified. The format of the file can be illustrated with an\nexample:\n\n```json\n{ "default": {\n    "container-title": {\n      "Lloyd\'s Law Reports": "Lloyd\'s Rep",\n      "Estates Gazette": "EG",\n      "Scots Law Times": "SLT"\n    }\n  }\n}\n```\n',
+          },
         },
         {
           name: "link-citations",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all",
-              "docx"
-            ]
+            formats: ["$pdf-all", "docx"],
           },
-          description: "If true, citations will be hyperlinked to the corresponding bibliography entries (for author-date and numerical styles only). Defaults to false."
+          description:
+            "If true, citations will be hyperlinked to the corresponding bibliography entries (for author-date and numerical styles only). Defaults to false.",
         },
         {
           name: "link-bibliography",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all",
-              "docx"
-            ]
+            formats: ["$pdf-all", "docx"],
           },
           description: {
-            short: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks.",
-            long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or URL, but none of \nthese fields are rendered by the style, then the title, or in the absence of a title the whole entry, will be hyperlinked.) Defaults to true.\n"
-          }
+            short:
+              "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks.",
+            long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be rendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or URL, but none of \nthese fields are rendered by the style, then the title, or in the absence of a title the whole entry, will be hyperlinked.) Defaults to true.\n",
+          },
         },
         {
           name: "notes-after-punctuation",
           schema: "boolean",
           tags: {
-            formats: [
-              "$pdf-all",
-              "docx"
-            ]
+            formats: ["$pdf-all", "docx"],
           },
           description: {
-            short: "Places footnote references or superscripted numerical citations after following punctuation.",
-            long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
-          }
-        }
+            short:
+              "Places footnote references or superscripted numerical citations after following punctuation.",
+            long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n",
+          },
+        },
       ],
       "schema/document-render.yml": [
         {
@@ -15835,362 +15242,320 @@ var require_yaml_intelligence_resources = __commonJS({
           default: "markdown",
           description: {
             short: "Format to read from",
-            long: "Format to read from. Extensions can be individually enabled or disabled by appending +EXTENSION or -EXTENSION to the format name (e.g. markdown+emoji).\n"
-          }
+            long: "Format to read from. Extensions can be individually enabled or disabled by appending +EXTENSION or -EXTENSION to the format name (e.g. markdown+emoji).\n",
+          },
         },
         {
           name: "output-file",
           schema: {
-            ref: "pandoc-format-output-file"
+            ref: "pandoc-format-output-file",
           },
-          default: "Input filename with output extension (e.g. .pdf, .html, etc.)",
-          description: "Output file to write to"
+          default:
+            "Input filename with output extension (e.g. .pdf, .html, etc.)",
+          description: "Output file to write to",
         },
         {
           name: "output-ext",
           schema: "string",
-          description: "Extension to use for generated output file\n"
+          description: "Extension to use for generated output file\n",
         },
         {
           name: "template",
-          disabled: [
-            "$office-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "ipynb"],
           schema: "path",
-          description: "Use the specified file as a custom template for the generated document.\n"
+          description:
+            "Use the specified file as a custom template for the generated document.\n",
         },
         {
           name: "template-partials",
-          disabled: [
-            "$office-all",
-            "ipynb"
-          ],
+          disabled: ["$office-all", "ipynb"],
           schema: {
-            maybeArrayOf: "path"
+            maybeArrayOf: "path",
           },
-          description: "Include the specified files as partials accessible to the template for the generated content.\n"
+          description:
+            "Include the specified files as partials accessible to the template for the generated content.\n",
         },
         {
           name: "standalone",
           schema: "boolean",
           default: true,
-          description: "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n"
+          description:
+            "Produce output with an appropriate header and footer (e.g. a standalone HTML, LaTeX, TEI, or RTF file, not a fragment)\n",
         },
         {
           name: "embed-resources",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: "boolean",
           default: false,
           description: {
-            short: "Produce a standalone HTML file with no external dependencies",
-            long: 'Produce a standalone HTML file with no external dependencies, using\n`data:` URIs to incorporate the contents of linked scripts, stylesheets,\nimages, and videos. The resulting file should be "self-contained," in the\nsense that it needs no external files and no net access to be displayed\nproperly by a browser. This option works only with HTML output formats,\nincluding `html4`, `html5`, `html+lhs`, `html5+lhs`, `s5`, `slidy`,\n`slideous`, `dzslides`, and `revealjs`. Scripts, images, and stylesheets at\nabsolute URLs will be downloaded; those at relative URLs will be sought\nrelative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source\nfile is remote).  Elements with the attribute\n`data-external="1"` will be left alone; the documents they\nlink to will not be incorporated in the document.\nLimitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some\nadvanced features (e.g.  zoom or speaker notes) may not work\nin an offline "self-contained" `reveal.js` slide show.\n'
-          }
+            short:
+              "Produce a standalone HTML file with no external dependencies",
+            long: 'Produce a standalone HTML file with no external dependencies, using\n`data:` URIs to incorporate the contents of linked scripts, stylesheets,\nimages, and videos. The resulting file should be "self-contained," in the\nsense that it needs no external files and no net access to be displayed\nproperly by a browser. This option works only with HTML output formats,\nincluding `html4`, `html5`, `html+lhs`, `html5+lhs`, `s5`, `slidy`,\n`slideous`, `dzslides`, and `revealjs`. Scripts, images, and stylesheets at\nabsolute URLs will be downloaded; those at relative URLs will be sought\nrelative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source\nfile is remote).  Elements with the attribute\n`data-external="1"` will be left alone; the documents they\nlink to will not be incorporated in the document.\nLimitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some\nadvanced features (e.g.  zoom or speaker notes) may not work\nin an offline "self-contained" `reveal.js` slide show.\n',
+          },
         },
         {
           name: "self-contained",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: "boolean",
           default: false,
           description: {
-            short: "Produce a standalone HTML file with no external dependencies",
-            long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n"
-          }
+            short:
+              "Produce a standalone HTML file with no external dependencies",
+            long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n",
+          },
         },
         {
           name: "self-contained-math",
           tags: {
-            formats: [
-              "$html-files"
-            ]
+            formats: ["$html-files"],
           },
           schema: "boolean",
           default: false,
           description: {
-            short: "Embed math libraries (e.g. MathJax) within `self-contained` output.",
-            long: "Embed math libraries (e.g. MathJax) within `self-contained` output.\nNote that math libraries are not embedded by default because they are \n quite large and often time consuming to download.\n"
-          }
+            short:
+              "Embed math libraries (e.g. MathJax) within `self-contained` output.",
+            long: "Embed math libraries (e.g. MathJax) within `self-contained` output.\nNote that math libraries are not embedded by default because they are \n quite large and often time consuming to download.\n",
+          },
         },
         {
           name: "filters",
           schema: {
-            ref: "pandoc-format-filters"
+            ref: "pandoc-format-filters",
           },
-          description: "Specify executables or Lua scripts to be used as a filter transforming\nthe pandoc AST after the input is parsed and before the output is written.\n"
+          description:
+            "Specify executables or Lua scripts to be used as a filter transforming\nthe pandoc AST after the input is parsed and before the output is written.\n",
         },
         {
           name: "shortcodes",
           schema: {
-            ref: "pandoc-shortcodes"
+            ref: "pandoc-shortcodes",
           },
-          description: "Specify Lua scripts that implement shortcode handlers\n"
+          description:
+            "Specify Lua scripts that implement shortcode handlers\n",
         },
         {
           name: "keep-md",
           schema: "boolean",
           default: false,
           tags: {
-            contexts: [
-              "document-execute"
-            ]
+            contexts: ["document-execute"],
           },
-          description: "Keep the markdown file generated by executing code"
+          description: "Keep the markdown file generated by executing code",
         },
         {
           name: "keep-ipynb",
           schema: "boolean",
           default: false,
           tags: {
-            contexts: [
-              "document-execute"
-            ]
+            contexts: ["document-execute"],
           },
-          description: "Keep the notebook file generated from executing code."
+          description: "Keep the notebook file generated from executing code.",
         },
         {
           name: "ipynb-filters",
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
           tags: {
-            contexts: [
-              "document-execute"
-            ]
+            contexts: ["document-execute"],
           },
-          description: "Filters to pre-process ipynb files before rendering to markdown"
+          description:
+            "Filters to pre-process ipynb files before rendering to markdown",
         },
         {
           name: "keep-typ",
           tags: {
-            formats: [
-              "typst"
-            ]
+            formats: ["typst"],
           },
           schema: "boolean",
           default: false,
-          description: "Keep the intermediate typst file used during render."
+          description: "Keep the intermediate typst file used during render.",
         },
         {
           name: "keep-tex",
           tags: {
-            formats: [
-              "pdf",
-              "beamer"
-            ]
+            formats: ["pdf", "beamer"],
           },
           schema: "boolean",
           default: false,
-          description: "Keep the intermediate tex file used during render."
+          description: "Keep the intermediate tex file used during render.",
         },
         {
           name: "extract-media",
           schema: "path",
           description: {
-            short: "Extract images and other media contained in or linked from the source document to the\npath DIR.\n",
-            long: "Extract images and other media contained in or linked from the source document to the\npath DIR, creating it if necessary, and adjust the images references in the document\nso they point to the extracted files. Media are downloaded, read from the file\nsystem, or extracted from a binary container (e.g. docx), as needed. The original\nfile paths are used if they are relative paths not containing ... Otherwise filenames\nare constructed from the SHA1 hash of the contents.\n"
-          }
+            short:
+              "Extract images and other media contained in or linked from the source document to the\npath DIR.\n",
+            long: "Extract images and other media contained in or linked from the source document to the\npath DIR, creating it if necessary, and adjust the images references in the document\nso they point to the extracted files. Media are downloaded, read from the file\nsystem, or extracted from a binary container (e.g. docx), as needed. The original\nfile paths are used if they are relative paths not containing ... Otherwise filenames\nare constructed from the SHA1 hash of the contents.\n",
+          },
         },
         {
           name: "resource-path",
           schema: {
-            arrayOf: "path"
+            arrayOf: "path",
           },
-          default: [
-            "."
-          ],
-          description: "List of paths to search for images and other resources.\n"
+          default: ["."],
+          description:
+            "List of paths to search for images and other resources.\n",
         },
         {
           name: "default-image-extension",
           schema: "string",
           description: {
-            short: "Specify a default extension to use when image paths/URLs have no extension.\n",
-            long: "Specify a default extension to use when image paths/URLs have no\nextension.  This allows you to use the same source for formats that\nrequire different kinds of images.  Currently this option only affects\nthe Markdown and LaTeX readers.\n"
-          }
+            short:
+              "Specify a default extension to use when image paths/URLs have no extension.\n",
+            long: "Specify a default extension to use when image paths/URLs have no\nextension.  This allows you to use the same source for formats that\nrequire different kinds of images.  Currently this option only affects\nthe Markdown and LaTeX readers.\n",
+          },
         },
         {
           name: "abbreviations",
           schema: "string",
           description: {
-            short: "Specifies a custom abbreviations file, with abbreviations one to a line.\n",
-            long: "Specifies a custom abbreviations file, with abbreviations one to a line.\nThis list is used when reading Markdown input: strings found in this list\nwill be followed by a nonbreaking space, and the period will not produce sentence-ending space in formats like LaTeX.  The strings may not contain\nspaces.\n"
-          }
+            short:
+              "Specifies a custom abbreviations file, with abbreviations one to a line.\n",
+            long: "Specifies a custom abbreviations file, with abbreviations one to a line.\nThis list is used when reading Markdown input: strings found in this list\nwill be followed by a nonbreaking space, and the period will not produce sentence-ending space in formats like LaTeX.  The strings may not contain\nspaces.\n",
+          },
         },
         {
           name: "dpi",
           schema: "number",
           default: 96,
           description: {
-            short: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa.\n",
-            long: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa. (Technically, the correct term would be ppi: pixels per\ninch.) The default is `96`. When images contain information about dpi internally, the\nencoded value is used instead of the default specified by this option.\n"
-          }
-        }
+            short:
+              "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa.\n",
+            long: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa. (Technically, the correct term would be ppi: pixels per\ninch.) The default is `96`. When images contain information about dpi internally, the\nencoded value is used instead of the default specified by this option.\n",
+          },
+        },
       ],
       "schema/document-reveal-content.yml": [
         {
           name: "logo",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "path",
-          description: "Logo image (placed in bottom right corner of slides)"
+          description: "Logo image (placed in bottom right corner of slides)",
         },
         {
           name: "footer",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "string",
           description: {
             short: "Footer to include on all slides",
-            long: "Footer to include on all slides. Can also be set per-slide by including a\ndiv with class `.footer` on the slide.\n"
-          }
+            long: "Footer to include on all slides. Can also be set per-slide by including a\ndiv with class `.footer` on the slide.\n",
+          },
         },
         {
           name: "scrollable",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
           description: {
             short: "Allow content that overflows slides vertically to scroll",
-            long: "`true` to allow content that overflows slides vertically to scroll. This can also\nbe set per-slide by including the `.scrollable` class on the slide title.\n"
-          }
+            long: "`true` to allow content that overflows slides vertically to scroll. This can also\nbe set per-slide by including the `.scrollable` class on the slide title.\n",
+          },
         },
         {
           name: "smaller",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
           description: {
             short: "Use a smaller default font for slide content",
-            long: "`true` to use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n"
-          }
+            long: "`true` to use a smaller default font for slide content. This can also\nbe set per-slide by including the `.smaller` class on the slide title.\n",
+          },
         },
         {
           name: "output-location",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "default",
-              "fragment",
-              "slide",
-              "column",
-              "column-fragment"
-            ]
+            enum: ["default", "fragment", "slide", "column", "column-fragment"],
           },
           description: {
-            short: "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
-            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n"
-          }
-        }
+            short:
+              "Location of output relative to the code that generated it (`default`, `fragment`, `slide`, `column`, or `column-location`)",
+            long: "Location of output relative to the code that generated it. The possible values are as follows:\n\n- `default`: Normal flow of the slide after the code\n- `fragment`: In a fragment (not visible until you advance)\n- `slide`: On a new slide after the curent one\n- `column`: In an adjacent column \n- `column-fragment`:   In an adjacent column (not visible until you advance)\n\nNote that this option is supported only for the `revealjs` format.\n",
+          },
+        },
       ],
       "schema/document-reveal-hidden.yml": [
         {
           name: "embedded",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           hidden: true,
           default: false,
-          description: "Flags if the presentation is running in an embedded mode\n"
+          description:
+            "Flags if the presentation is running in an embedded mode\n",
         },
         {
           name: "display",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "string",
           hidden: true,
           default: "block",
-          description: "The display mode that will be used to show slides"
-        }
+          description: "The display mode that will be used to show slides",
+        },
       ],
       "schema/document-reveal-layout.yml": [
         {
           name: "auto-stretch",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "For slides with a single top-level image, automatically stretch it to fill the slide."
+          description:
+            "For slides with a single top-level image, automatically stretch it to fill the slide.",
         },
         {
           name: "width",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            anyOf: [
-              "number",
-              "string"
-            ]
+            anyOf: ["number", "string"],
           },
           default: 1050,
           description: {
             short: "The 'normal' width of the presentation",
-            long: 'The "normal" width of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n'
-          }
+            long: 'The "normal" width of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n',
+          },
         },
         {
           name: "height",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            anyOf: [
-              "number",
-              "string"
-            ]
+            anyOf: ["number", "string"],
           },
           default: 700,
           description: {
             short: "The 'normal' height of the presentation",
-            long: 'The "normal" height of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n'
-          }
+            long: 'The "normal" height of the presentation, aspect ratio will\nbe preserved when the presentation is scaled to fit different\nresolutions. Can be specified using percentage units.\n',
+          },
         },
         {
           name: "margin",
           tags: {
-            formats: [
-              "revealjs",
-              "typst"
-            ]
+            formats: ["revealjs", "typst"],
           },
           schema: {
             anyOf: [
@@ -16201,605 +15566,510 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     x: {
                       string: {
-                        description: "Horizontal margin (e.g. 5cm)"
-                      }
+                        description: "Horizontal margin (e.g. 5cm)",
+                      },
                     },
                     y: {
                       string: {
-                        description: "Vertical margin (e.g. 5cm)"
-                      }
+                        description: "Vertical margin (e.g. 5cm)",
+                      },
                     },
                     top: {
                       string: {
-                        description: "Top margin (e.g. 5cm)"
-                      }
+                        description: "Top margin (e.g. 5cm)",
+                      },
                     },
                     bottom: {
                       string: {
-                        description: "Bottom margin (e.g. 5cm)"
-                      }
+                        description: "Bottom margin (e.g. 5cm)",
+                      },
                     },
                     left: {
                       string: {
-                        description: "Left margin (e.g. 5cm)"
-                      }
+                        description: "Left margin (e.g. 5cm)",
+                      },
                     },
                     right: {
                       string: {
-                        description: "Right margin (e.g. 5cm)"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
+                        description: "Right margin (e.g. 5cm)",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
           default: 0.1,
-          description: "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n"
+          description:
+            "For `revealjs`, the factor of the display size that should remain empty around the content (e.g. 0.1).\n\nFor `typst`, a dictionary with the fields defined in the Typst documentation:\n`x`, `y`, `top`, `bottom`, `left`, `right` (margins are specified in `cm` units,\ne.g. `5cm`).\n",
         },
         {
           name: "min-scale",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 0.2,
-          description: "Bounds for smallest possible scale to apply to content"
+          description: "Bounds for smallest possible scale to apply to content",
         },
         {
           name: "max-scale",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 2,
-          description: "Bounds for largest possible scale to apply to content"
+          description: "Bounds for largest possible scale to apply to content",
         },
         {
           name: "center",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Vertical centering of slides"
+          description: "Vertical centering of slides",
         },
         {
           name: "disable-layout",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Disables the default reveal.js slide layout (scaling and centering)\n"
-        }
+          description:
+            "Disables the default reveal.js slide layout (scaling and centering)\n",
+        },
       ],
       "schema/document-reveal-media.yml": [
         {
           name: "preview-links",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
               {
-                enum: [
-                  "auto"
-                ]
+                enum: ["auto"],
               },
-              "boolean"
-            ]
+              "boolean",
+            ],
           },
           default: "auto",
           description: {
-            short: "Open links in an iframe preview overlay (`true`, `false`, or `auto`)",
-            long: "Open links in an iframe preview overlay.\n\n- `true`: Open links in iframe preview overlay\n- `false`: Do not open links in iframe preview overlay\n- `auto` (default): Open links in iframe preview overlay, in fullscreen mode.\n"
-          }
+            short:
+              "Open links in an iframe preview overlay (`true`, `false`, or `auto`)",
+            long: "Open links in an iframe preview overlay.\n\n- `true`: Open links in iframe preview overlay\n- `false`: Do not open links in iframe preview overlay\n- `auto` (default): Open links in iframe preview overlay, in fullscreen mode.\n",
+          },
         },
         {
           name: "auto-play-media",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              null,
-              true,
-              false
-            ]
+            enum: [null, true, false],
           },
           default: null,
-          description: "Autoplay embedded media (`null`, `true`, or `false`). Default is `null` (only when `autoplay` \nattribute is specified)\n"
+          description:
+            "Autoplay embedded media (`null`, `true`, or `false`). Default is `null` (only when `autoplay` \nattribute is specified)\n",
         },
         {
           name: "preload-iframes",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              null,
-              true,
-              false
-            ]
+            enum: [null, true, false],
           },
           default: null,
           description: {
-            short: "Global override for preloading lazy-loaded iframes (`null`, `true`, or `false`).",
-            long: "Global override for preloading lazy-loaded iframes\n\n- `null`:   Iframes with data-src AND data-preload will be loaded when within\n  the `viewDistance`, iframes with only data-src will be loaded when visible\n- `true`:   All iframes with data-src will be loaded when within the viewDistance\n- `false`:  All iframes with data-src will be loaded only when visible\n"
-          }
+            short:
+              "Global override for preloading lazy-loaded iframes (`null`, `true`, or `false`).",
+            long: "Global override for preloading lazy-loaded iframes\n\n- `null`:   Iframes with data-src AND data-preload will be loaded when within\n  the `viewDistance`, iframes with only data-src will be loaded when visible\n- `true`:   All iframes with data-src will be loaded when within the viewDistance\n- `false`:  All iframes with data-src will be loaded only when visible\n",
+          },
         },
         {
           name: "view-distance",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 3,
-          description: "Number of slides away from the current slide to pre-load resources for"
+          description:
+            "Number of slides away from the current slide to pre-load resources for",
         },
         {
           name: "mobile-view-distance",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 2,
-          description: "Number of slides away from the current slide to pre-load resources for (on mobile devices).\n"
+          description:
+            "Number of slides away from the current slide to pre-load resources for (on mobile devices).\n",
         },
         {
           name: "parallax-background-image",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "path",
-          description: "Parallax background image"
+          description: "Parallax background image",
         },
         {
           name: "parallax-background-size",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "string",
-          description: "Parallax background size (e.g. '2100px 900px')"
+          description: "Parallax background size (e.g. '2100px 900px')",
         },
         {
           name: "parallax-background-horizontal",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 200,
-          description: "Number of pixels to move the parallax background horizontally per slide."
+          description:
+            "Number of pixels to move the parallax background horizontally per slide.",
         },
         {
           name: "parallax-background-vertical",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 50,
-          description: "Number of pixels to move the parallax background vertically per slide."
-        }
+          description:
+            "Number of pixels to move the parallax background vertically per slide.",
+        },
       ],
       "schema/document-reveal-navigation.yml": [
         {
           name: "progress",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Display a presentation progress bar"
+          description: "Display a presentation progress bar",
         },
         {
           name: "history",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Push each slide change to the browser history\n"
+          description: "Push each slide change to the browser history\n",
         },
         {
           name: "navigation-mode",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "linear",
-              "vertical",
-              "grid"
-            ]
+            enum: ["linear", "vertical", "grid"],
           },
           default: "linear",
           description: {
             short: "Navigation progression (`linear`, `vertical`, or `grid`)",
-            long: "Changes the behavior of navigation directions.\n\n- `linear`: Removes the up/down arrows. Left/right arrows step through all\n  slides (both horizontal and vertical).\n\n- `vertical`: Left/right arrow keys step between horizontal slides, up/down\n  arrow keys step between vertical slides. Space key steps through\n  all slides (both horizontal and vertical).\n\n- `grid`: When this is enabled, stepping left/right from a vertical stack\n  to an adjacent vertical stack will land you at the same vertical\n  index.\n"
-          }
+            long: "Changes the behavior of navigation directions.\n\n- `linear`: Removes the up/down arrows. Left/right arrows step through all\n  slides (both horizontal and vertical).\n\n- `vertical`: Left/right arrow keys step between horizontal slides, up/down\n  arrow keys step between vertical slides. Space key steps through\n  all slides (both horizontal and vertical).\n\n- `grid`: When this is enabled, stepping left/right from a vertical stack\n  to an adjacent vertical stack will land you at the same vertical\n  index.\n",
+          },
         },
         {
           name: "touch",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Enable touch navigation on devices with touch input\n"
+          description: "Enable touch navigation on devices with touch input\n",
         },
         {
           name: "keyboard",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Enable keyboard shortcuts for navigation"
+          description: "Enable keyboard shortcuts for navigation",
         },
         {
           name: "mouse-wheel",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Enable slide navigation via mouse wheel"
+          description: "Enable slide navigation via mouse wheel",
         },
         {
           name: "hide-inactive-cursor",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Hide cursor if inactive"
+          description: "Hide cursor if inactive",
         },
         {
           name: "hide-cursor-time",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 5e3,
-          description: "Time before the cursor is hidden (in ms)"
+          description: "Time before the cursor is hidden (in ms)",
         },
         {
           name: "loop",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Loop the presentation"
+          description: "Loop the presentation",
         },
         {
           name: "shuffle",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Randomize the order of slides each time the presentation loads"
+          description:
+            "Randomize the order of slides each time the presentation loads",
         },
         {
           name: "controls",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "auto"
-                ]
-              }
-            ]
+                enum: ["auto"],
+              },
+            ],
           },
           default: "auto",
           description: {
-            short: "Show arrow controls for navigating through slides (`true`, `false`, or `auto`).",
-            long: "Show arrow controls for navigating through slides.\n\n- `true`: Always show controls\n- `false`: Never show controls\n- `auto` (default): Show controls when vertical slides are present or when the deck is embedded in an iframe.\n"
-          }
+            short:
+              "Show arrow controls for navigating through slides (`true`, `false`, or `auto`).",
+            long: "Show arrow controls for navigating through slides.\n\n- `true`: Always show controls\n- `false`: Never show controls\n- `auto` (default): Show controls when vertical slides are present or when the deck is embedded in an iframe.\n",
+          },
         },
         {
           name: "controls-layout",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "edges",
-              "bottom-right"
-            ]
+            enum: ["edges", "bottom-right"],
           },
           default: "edges",
-          description: "Location for navigation controls (`edges` or `bottom-right`)"
+          description:
+            "Location for navigation controls (`edges` or `bottom-right`)",
         },
         {
           name: "controls-tutorial",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Help the user learn the controls by providing visual hints."
+          description:
+            "Help the user learn the controls by providing visual hints.",
         },
         {
           name: "controls-back-arrows",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "faded",
-              "hidden",
-              "visible"
-            ]
+            enum: ["faded", "hidden", "visible"],
           },
           default: "faded",
-          description: "Visibility rule for backwards navigation arrows (`faded`, `hidden`, or `visible`).\n"
+          description:
+            "Visibility rule for backwards navigation arrows (`faded`, `hidden`, or `visible`).\n",
         },
         {
           name: "auto-slide",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
               "number",
               {
-                enum: [
-                  false
-                ]
-              }
-            ]
+                enum: [false],
+              },
+            ],
           },
           default: 0,
-          description: "Automatically progress all slides at the specified interval"
+          description:
+            "Automatically progress all slides at the specified interval",
         },
         {
           name: "auto-slide-stoppable",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Stop auto-sliding after user input"
+          description: "Stop auto-sliding after user input",
         },
         {
           name: "auto-slide-method",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "string",
           default: "navigateNext",
-          description: "Navigation method to use when auto sliding (defaults to navigateNext)"
+          description:
+            "Navigation method to use when auto sliding (defaults to navigateNext)",
         },
         {
           name: "default-timing",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
-          description: "Expected average seconds per slide (used by pacing timer in speaker view)"
+          description:
+            "Expected average seconds per slide (used by pacing timer in speaker view)",
         },
         {
           name: "pause",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Flags whether it should be possible to pause the presentation (blackout)\n"
+          description:
+            "Flags whether it should be possible to pause the presentation (blackout)\n",
         },
         {
           name: "help",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Show a help overlay when the `?` key is pressed\n"
+          description: "Show a help overlay when the `?` key is pressed\n",
         },
         {
           name: "hash",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Add the current slide to the URL hash"
+          description: "Add the current slide to the URL hash",
         },
         {
           name: "hash-type",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "number",
-              "title"
-            ]
+            enum: ["number", "title"],
           },
           default: "title",
-          description: "URL hash type (`number` or `title`)"
+          description: "URL hash type (`number` or `title`)",
         },
         {
           name: "hash-one-based-index",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Use 1 based indexing for hash links to match slide number\n"
+          description:
+            "Use 1 based indexing for hash links to match slide number\n",
         },
         {
           name: "respond-to-hash-changes",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Monitor the hash and change slides accordingly\n"
+          description: "Monitor the hash and change slides accordingly\n",
         },
         {
           name: "fragment-in-url",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Include the current fragment in the URL"
+          description: "Include the current fragment in the URL",
         },
         {
           name: "slide-tone",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Play a subtle sound when changing slides"
-        }
+          description: "Play a subtle sound when changing slides",
+        },
       ],
       "schema/document-reveal-print.yml": [
         {
           name: "pdf-max-pages-per-slide",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           description: {
-            short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-            long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
-          }
+            short:
+              "Slides that are too tall to fit within a single page will expand onto multiple pages",
+            long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n',
+          },
         },
         {
           name: "pdf-separate-fragments",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Prints each fragment on a separate slide"
+          description: "Prints each fragment on a separate slide",
         },
         {
           name: "pdf-page-height-offset",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: -1,
           description: {
-            short: "Offset used to reduce the height of content within exported PDF pages.",
-            long: "Offset used to reduce the height of content within exported PDF pages.\nThis exists to account for environment differences based on how you\nprint to PDF. CLI printing options, like phantomjs and wkpdf, can end\non precisely the total height of the document whereas in-browser\nprinting has to end one pixel before.\n"
-          }
-        }
+            short:
+              "Offset used to reduce the height of content within exported PDF pages.",
+            long: "Offset used to reduce the height of content within exported PDF pages.\nThis exists to account for environment differences based on how you\nprint to PDF. CLI printing options, like phantomjs and wkpdf, can end\non precisely the total height of the document whereas in-browser\nprinting has to end one pixel before.\n",
+          },
+        },
       ],
       "schema/document-reveal-tools.yml": [
         {
           name: "overview",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Enable the slide overview mode"
+          description: "Enable the slide overview mode",
         },
         {
           name: "menu",
           description: "Configuration for revealjs menu.",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
@@ -16808,12 +16078,10 @@ var require_yaml_intelligence_resources = __commonJS({
                 object: {
                   properties: {
                     side: {
-                      enum: [
-                        "left",
-                        "right"
-                      ],
+                      enum: ["left", "right"],
                       default: "left",
-                      description: "Side of the presentation where the menu will be shown (`left` or `right`)"
+                      description:
+                        "Side of the presentation where the menu will be shown (`left` or `right`)",
                     },
                     width: {
                       string: {
@@ -16822,37 +16090,36 @@ var require_yaml_intelligence_resources = __commonJS({
                           "wide",
                           "third",
                           "half",
-                          "full"
-                        ]
+                          "full",
+                        ],
                       },
                       default: "normal",
-                      description: "Width of the menu"
+                      description: "Width of the menu",
                     },
                     numbers: {
                       boolean: {
                         default: false,
-                        description: "Add slide numbers to menu items"
-                      }
+                        description: "Add slide numbers to menu items",
+                      },
                     },
                     "use-text-content-for-missing-titles": {
                       boolean: {
                         default: true,
-                        description: "For slides with no title, attempt to use the start of the text content as the title instead.\n"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
+                        description:
+                          "For slides with no title, attempt to use the start of the text content as the title instead.\n",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
         },
         {
           name: "chalkboard",
           description: "Configuration for revealjs chalkboard.",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
@@ -16861,60 +16128,62 @@ var require_yaml_intelligence_resources = __commonJS({
                 object: {
                   properties: {
                     theme: {
-                      enum: [
-                        "chalkboard",
-                        "whiteboard"
-                      ],
+                      enum: ["chalkboard", "whiteboard"],
                       default: "chalkboard",
-                      description: "Visual theme for drawing surface (`chalkboard` or `whiteboard`)"
+                      description:
+                        "Visual theme for drawing surface (`chalkboard` or `whiteboard`)",
                     },
                     "boardmarker-width": {
                       number: {
                         default: 3,
-                        description: "The drawing width of the boardmarker. Defaults to 3. Larger values draw thicker lines.\n"
-                      }
+                        description:
+                          "The drawing width of the boardmarker. Defaults to 3. Larger values draw thicker lines.\n",
+                      },
                     },
                     "chalk-width": {
                       number: {
                         default: 7,
-                        description: "The drawing width of the chalk. Defaults to 7. Larger values draw thicker lines.\n"
-                      }
+                        description:
+                          "The drawing width of the chalk. Defaults to 7. Larger values draw thicker lines.\n",
+                      },
                     },
                     src: {
                       path: {
-                        description: "Optional file name for pre-recorded drawings (download drawings using the `D` key)\n"
-                      }
+                        description:
+                          "Optional file name for pre-recorded drawings (download drawings using the `D` key)\n",
+                      },
                     },
                     "read-only": {
                       boolean: {
                         default: false,
-                        description: "Configuration option to prevent changes to existing drawings\n"
-                      }
+                        description:
+                          "Configuration option to prevent changes to existing drawings\n",
+                      },
                     },
                     buttons: {
                       boolean: {
                         default: true,
-                        description: "Add chalkboard buttons at the bottom of the slide\n"
-                      }
+                        description:
+                          "Add chalkboard buttons at the bottom of the slide\n",
+                      },
                     },
                     transition: {
                       number: {
-                        description: "Gives the duration (in ms) of the transition for a slide change, \nso that the notes canvas is drawn after the transition is completed.\n"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
+                        description:
+                          "Gives the duration (in ms) of the transition for a slide change, \nso that the notes canvas is drawn after the transition is completed.\n",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
         },
         {
           name: "multiplex",
           description: "Configuration for reveal presentation multiplexing.",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
@@ -16925,160 +16194,128 @@ var require_yaml_intelligence_resources = __commonJS({
                     url: {
                       string: {
                         default: "https://reveal-multiplex.glitch.me/",
-                        description: "Multiplex token server (defaults to Reveal-hosted server)\n"
-                      }
+                        description:
+                          "Multiplex token server (defaults to Reveal-hosted server)\n",
+                      },
                     },
                     id: {
                       string: {
-                        description: "Unique presentation id provided by multiplex token server"
-                      }
+                        description:
+                          "Unique presentation id provided by multiplex token server",
+                      },
                     },
                     secret: {
                       string: {
-                        description: "Secret provided by multiplex token server"
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
+                        description:
+                          "Secret provided by multiplex token server",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
       ],
       "schema/document-reveal-transitions.yml": [
         {
           name: "transition",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "none",
-              "fade",
-              "slide",
-              "convex",
-              "concave",
-              "zoom"
-            ]
+            enum: ["none", "fade", "slide", "convex", "concave", "zoom"],
           },
           default: "none",
           description: {
             short: "Transition style for slides",
-            long: "Transition style for slides backgrounds.\n(`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`)\n"
-          }
+            long: "Transition style for slides backgrounds.\n(`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`)\n",
+          },
         },
         {
           name: "transition-speed",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "default",
-              "fast",
-              "slow"
-            ]
+            enum: ["default", "fast", "slow"],
           },
           default: "default",
-          description: "Slide transition speed (`default`, `fast`, or `slow`)"
+          description: "Slide transition speed (`default`, `fast`, or `slow`)",
         },
         {
           name: "background-transition",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "none",
-              "fade",
-              "slide",
-              "convex",
-              "concave",
-              "zoom"
-            ]
+            enum: ["none", "fade", "slide", "convex", "concave", "zoom"],
           },
           default: "none",
           description: {
             short: "Transition style for full page slide backgrounds",
-            long: "Transition style for full page slide backgrounds.\n(`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`)\n"
-          }
+            long: "Transition style for full page slide backgrounds.\n(`none`, `fade`, `slide`, `convex`, `concave`, or `zoom`)\n",
+          },
         },
         {
           name: "fragments",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Turns fragments on and off globally"
+          description: "Turns fragments on and off globally",
         },
         {
           name: "auto-animate",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Globally enable/disable auto-animate (enabled by default)"
+          description:
+            "Globally enable/disable auto-animate (enabled by default)",
         },
         {
           name: "auto-animate-easing",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "string",
           default: "ease",
           description: {
             short: "Default CSS easing function for auto-animation",
-            long: "Default CSS easing function for auto-animation.\nCan be overridden per-slide or per-element via attributes.\n"
-          }
+            long: "Default CSS easing function for auto-animation.\nCan be overridden per-slide or per-element via attributes.\n",
+          },
         },
         {
           name: "auto-animate-duration",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "number",
           default: 1,
           description: {
             short: "Duration (in seconds) of auto-animate transition",
-            long: "Duration (in seconds) of auto-animate transition.\nCan be overridden per-slide or per-element via attributes.\n"
-          }
+            long: "Duration (in seconds) of auto-animate transition.\nCan be overridden per-slide or per-element via attributes.\n",
+          },
         },
         {
           name: "auto-animate-unmatched",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
           description: {
             short: "Auto-animate unmatched elements.",
-            long: "Auto-animate unmatched elements.\nCan be overridden per-slide or per-element via attributes.\n"
-          }
+            long: "Auto-animate unmatched elements.\nCan be overridden per-slide or per-element via attributes.\n",
+          },
         },
         {
           name: "auto-animate-styles",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             arrayOf: {
@@ -17094,87 +16331,70 @@ var require_yaml_intelligence_resources = __commonJS({
                 "border-color",
                 "border-radius",
                 "outline",
-                "outline-offset"
-              ]
-            }
+                "outline-offset",
+              ],
+            },
           },
           description: {
-            short: "CSS properties that can be auto-animated (positional styles like top, left, etc.\nare always animated).\n"
-          }
-        }
+            short:
+              "CSS properties that can be auto-animated (positional styles like top, left, etc.\nare always animated).\n",
+          },
+        },
       ],
       "schema/document-slides.yml": [
         {
           name: "incremental",
           tags: {
-            formats: [
-              "pptx",
-              "beamer",
-              "$html-pres"
-            ]
+            formats: ["pptx", "beamer", "$html-pres"],
           },
           schema: "boolean",
           default: false,
-          description: "Make list items in slide shows display incrementally (one by one). \nThe default is for lists to be displayed all at once.\n"
+          description:
+            "Make list items in slide shows display incrementally (one by one). \nThe default is for lists to be displayed all at once.\n",
         },
         {
           name: "slide-level",
           tags: {
-            formats: [
-              "pptx",
-              "beamer",
-              "$html-pres"
-            ]
+            formats: ["pptx", "beamer", "$html-pres"],
           },
           schema: "number",
           default: 2,
           description: {
-            short: "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide \nthe slide show into sections.\n",
-            long: "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide \nthe slide show into sections; headings below this level create \nsubheads within a slide. Valid values are 0-6. If a slide level\nof 0 is specified, slides will not be split automatically on \nheadings, and horizontal rules must be used to indicate slide \nboundaries. If a slide level is not specified explicitly, the\nslide level will be set automatically based on the contents of\nthe document\n"
-          }
+            short:
+              "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide \nthe slide show into sections.\n",
+            long: "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide \nthe slide show into sections; headings below this level create \nsubheads within a slide. Valid values are 0-6. If a slide level\nof 0 is specified, slides will not be split automatically on \nheadings, and horizontal rules must be used to indicate slide \nboundaries. If a slide level is not specified explicitly, the\nslide level will be set automatically based on the contents of\nthe document\n",
+          },
         },
         {
           name: "slide-number",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "h.v",
-                  "h/v",
-                  "c",
-                  "c/t"
-                ]
-              }
-            ]
+                enum: ["h.v", "h/v", "c", "c/t"],
+              },
+            ],
           },
           default: false,
           description: {
             short: "Display the page number of the current slide",
-            long: "Display the page number of the current slide\n\n- `true`:    Show slide number\n- `false`:   Hide slide number\n\nCan optionally be set as a string that specifies the number formatting:\n\n- `h.v`:   Horizontal . vertical slide number\n- `h/v`:   Horizontal / vertical slide number\n- `c`:   Flattened slide number\n- `c/t`:   Flattened slide number / total slides (default)\n"
-          }
+            long: "Display the page number of the current slide\n\n- `true`:    Show slide number\n- `false`:   Hide slide number\n\nCan optionally be set as a string that specifies the number formatting:\n\n- `h.v`:   Horizontal . vertical slide number\n- `h/v`:   Horizontal / vertical slide number\n- `c`:   Flattened slide number\n- `c/t`:   Flattened slide number / total slides (default)\n",
+          },
         },
         {
           name: "show-slide-number",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "all",
-              "print",
-              "speaker"
-            ]
+            enum: ["all", "print", "speaker"],
           },
           default: "all",
-          description: "Contexts in which the slide number appears (`all`, `print`, or `speaker`)"
+          description:
+            "Contexts in which the slide number appears (`all`, `print`, or `speaker`)",
         },
         {
           name: "title-slide-attributes",
@@ -17183,126 +16403,112 @@ var require_yaml_intelligence_resources = __commonJS({
               properties: {
                 "data-background-color": {
                   string: {
-                    description: "CSS color for title slide background"
-                  }
+                    description: "CSS color for title slide background",
+                  },
                 },
                 "data-background-image": {
                   string: {
-                    description: "URL or path to the background image."
-                  }
+                    description: "URL or path to the background image.",
+                  },
                 },
                 "data-background-size": {
                   string: {
-                    description: "CSS background size (defaults to `cover`)"
-                  }
+                    description: "CSS background size (defaults to `cover`)",
+                  },
                 },
                 "data-background-position": {
                   string: {
-                    description: "CSS background position (defaults to `center`)"
-                  }
+                    description:
+                      "CSS background position (defaults to `center`)",
+                  },
                 },
                 "data-background-repeat": {
                   string: {
-                    description: "CSS background repeat (defaults to `no-repeat`)"
-                  }
+                    description:
+                      "CSS background repeat (defaults to `no-repeat`)",
+                  },
                 },
                 "data-background-opacity": {
                   string: {
-                    description: "Opacity of the background image on a 0-1 scale. \n0 is transparent and 1 is fully opaque.\n"
-                  }
-                }
-              }
-            }
+                    description:
+                      "Opacity of the background image on a 0-1 scale. \n0 is transparent and 1 is fully opaque.\n",
+                  },
+                },
+              },
+            },
           },
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           description: {
-            short: "Additional attributes for the title slide of a reveal.js presentation.",
-            long: "Additional attributes for the title slide of a reveal.js presentation as a map of \nattribute names and values. For example\n\n```yaml\n  title-slide-attributes:\n      data-background-image: /path/to/title_image.png\n      data-background-size: contain      \n```\n\n(Note that the data- prefix is required here, as it isn\u2019t added automatically.)\n"
-          }
+            short:
+              "Additional attributes for the title slide of a reveal.js presentation.",
+            long: "Additional attributes for the title slide of a reveal.js presentation as a map of \nattribute names and values. For example\n\n```yaml\n  title-slide-attributes:\n      data-background-image: /path/to/title_image.png\n      data-background-size: contain      \n```\n\n(Note that the data- prefix is required here, as it isn\u2019t added automatically.)\n",
+          },
         },
         {
           name: "title-slide-style",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
-            enum: [
-              "pandoc",
-              "default"
-            ]
+            enum: ["pandoc", "default"],
           },
           default: "default",
-          description: "The title slide style. Use `pandoc` to select the Pandoc default title slide style."
+          description:
+            "The title slide style. Use `pandoc` to select the Pandoc default title slide style.",
         },
         {
           name: "center-title-slide",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: true,
-          description: "Vertical centering of title slide"
+          description: "Vertical centering of title slide",
         },
         {
           name: "show-notes",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: {
             anyOf: [
               "boolean",
               {
-                enum: [
-                  "separate-page"
-                ]
-              }
-            ]
+                enum: ["separate-page"],
+              },
+            ],
           },
           default: false,
-          description: "Make speaker notes visible to all viewers\n"
+          description: "Make speaker notes visible to all viewers\n",
         },
         {
           name: "rtl",
           tags: {
-            formats: [
-              "revealjs"
-            ]
+            formats: ["revealjs"],
           },
           schema: "boolean",
           default: false,
-          description: "Change the presentation direction to be RTL\n"
-        }
+          description: "Change the presentation direction to be RTL\n",
+        },
       ],
       "schema/document-tables.yml": [
         {
           name: "df-print",
           schema: {
-            enum: [
-              "default",
-              "kable",
-              "tibble",
-              "paged"
-            ]
+            enum: ["default", "kable", "tibble", "paged"],
           },
           tags: {
-            engine: "knitr"
+            engine: "knitr",
           },
           default: "kable",
           description: {
-            short: "Method used to print tables in Knitr engine documents (`default`,\n`kable`, `tibble`, or `paged`). Uses `default` if not specified.\n",
-            long: "Method used to print tables in Knitr engine documents:\n\n-  `default`: Use the default S3 method for the data frame.\n-  `kable`: Markdown table using the `knitr::kable()` function.\n-  `tibble`: Plain text table using the `tibble` package.\n-  `paged`: HTML table with paging for row and column overflow.\n\nThe default printing method is `kable`.\n"
-          }
-        }
+            short:
+              "Method used to print tables in Knitr engine documents (`default`,\n`kable`, `tibble`, or `paged`). Uses `default` if not specified.\n",
+            long: "Method used to print tables in Knitr engine documents:\n\n-  `default`: Use the default S3 method for the data frame.\n-  `kable`: Markdown table using the `knitr::kable()` function.\n-  `tibble`: Plain text table using the `tibble` package.\n-  `paged`: HTML table with paging for row and column overflow.\n\nThe default printing method is `kable`.\n",
+          },
+        },
       ],
       "schema/document-text.yml": [
         {
@@ -17313,21 +16519,18 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$office-all",
               "!$odt-all",
               "!$html-all",
-              "!$docbook-all"
-            ]
+              "!$docbook-all",
+            ],
           },
           schema: {
-            enum: [
-              "auto",
-              "none",
-              "preserve"
-            ]
+            enum: ["auto", "none", "preserve"],
           },
           default: "auto",
           description: {
-            short: "Determine how text is wrapped in the output (`auto`, `none`, or `preserve`).",
-            long: "Determine how text is wrapped in the output (the source code, not the rendered\nversion). \n\n- `auto` (default): Pandoc will attempt to wrap lines to the column width specified by `columns` (default 72). \n- `none`: Pandoc will not wrap lines at all. \n- `preserve`: Pandoc will attempt to preserve the wrapping from the source\n  document. Where there are nonsemantic newlines in the source, there will be\n  nonsemantic newlines in the output as well.\n"
-          }
+            short:
+              "Determine how text is wrapped in the output (`auto`, `none`, or `preserve`).",
+            long: "Determine how text is wrapped in the output (the source code, not the rendered\nversion). \n\n- `auto` (default): Pandoc will attempt to wrap lines to the column width specified by `columns` (default 72). \n- `none`: Pandoc will not wrap lines at all. \n- `preserve`: Pandoc will attempt to preserve the wrapping from the source\n  document. Where there are nonsemantic newlines in the source, there will be\n  nonsemantic newlines in the output as well.\n",
+          },
         },
         {
           name: "columns",
@@ -17338,14 +16541,15 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$odt-all",
               "!$html-all",
               "!$docbook-all",
-              "typst"
-            ]
+              "typst",
+            ],
           },
           schema: "number",
           description: {
-            short: "For text formats, specify length of lines in characters. For `typst`, number of columns for body text.",
-            long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables. \n\nFor `typst`, number of columns for body text.\n"
-          }
+            short:
+              "For text formats, specify length of lines in characters. For `typst`, number of columns for body text.",
+            long: "Specify length of lines in characters. This affects text wrapping in generated source\ncode (see `wrap`). It also affects calculation of column widths for plain text\ntables. \n\nFor `typst`, number of columns for body text.\n",
+          },
         },
         {
           name: "tab-stop",
@@ -17355,14 +16559,14 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$office-all",
               "!$odt-all",
               "!$html-all",
-              "!$docbook-all"
-            ]
+              "!$docbook-all",
+            ],
           },
           schema: "number",
           description: {
             short: "Specify the number of spaces per tab (default is 4).",
-            long: "Specify the number of spaces per tab (default is 4). Note that tabs\nwithin normal textual input are always converted to spaces. Tabs \nwithin code are also converted, however this can be disabled with\n`preserve-tabs: false`.\n"
-          }
+            long: "Specify the number of spaces per tab (default is 4). Note that tabs\nwithin normal textual input are always converted to spaces. Tabs \nwithin code are also converted, however this can be disabled with\n`preserve-tabs: false`.\n",
+          },
         },
         {
           name: "preserve-tabs",
@@ -17372,15 +16576,16 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$office-all",
               "!$odt-all",
               "!$html-all",
-              "!$docbook-all"
-            ]
+              "!$docbook-all",
+            ],
           },
           schema: "boolean",
           default: false,
           description: {
-            short: "Preserve tabs within code instead of converting them to spaces.\n",
-            long: "Preserve tabs within code instead of converting them to spaces.\n(By default, pandoc converts tabs to spaces before parsing its input.) \nNote that this will only affect tabs in literal code spans and code blocks. \nTabs in regular text are always treated as spaces.\n"
-          }
+            short:
+              "Preserve tabs within code instead of converting them to spaces.\n",
+            long: "Preserve tabs within code instead of converting them to spaces.\n(By default, pandoc converts tabs to spaces before parsing its input.) \nNote that this will only affect tabs in literal code spans and code blocks. \nTabs in regular text are always treated as spaces.\n",
+          },
         },
         {
           name: "eol",
@@ -17390,104 +16595,77 @@ var require_yaml_intelligence_resources = __commonJS({
               "!$office-all",
               "!$odt-all",
               "!$html-all",
-              "!$docbook-all"
-            ]
+              "!$docbook-all",
+            ],
           },
           schema: {
-            enum: [
-              "lf",
-              "crlf",
-              "native"
-            ]
+            enum: ["lf", "crlf", "native"],
           },
           description: {
             short: "Manually specify line endings (`lf`, `crlf`, or `native`).",
-            long: "Manually specify line endings: \n\n- `crlf`: Use Windows line endings\n- `lf`: Use macOS/Linux/UNIX line endings\n- `native` (default): Use line endings appropriate to the OS on which pandoc is being run).\n"
-          }
+            long: "Manually specify line endings: \n\n- `crlf`: Use Windows line endings\n- `lf`: Use macOS/Linux/UNIX line endings\n- `native` (default): Use line endings appropriate to the OS on which pandoc is being run).\n",
+          },
         },
         {
           name: "strip-comments",
           schema: "boolean",
           tags: {
-            formats: [
-              "$markdown-all",
-              "textile",
-              "$html-files"
-            ]
+            formats: ["$markdown-all", "textile", "$html-files"],
           },
           description: {
-            short: "Strip out HTML comments in source, rather than passing them on to output.",
-            long: "Strip out HTML comments in the Markdown source,\nrather than passing them on to Markdown, Textile or HTML\noutput as raw HTML.  This does not apply to HTML comments\ninside raw HTML blocks when the `markdown_in_html_blocks`\nextension is not set.\n"
-          }
+            short:
+              "Strip out HTML comments in source, rather than passing them on to output.",
+            long: "Strip out HTML comments in the Markdown source,\nrather than passing them on to Markdown, Textile or HTML\noutput as raw HTML.  This does not apply to HTML comments\ninside raw HTML blocks when the `markdown_in_html_blocks`\nextension is not set.\n",
+          },
         },
         {
           name: "ascii",
           tags: {
-            formats: [
-              "$html-all",
-              "$pdf-all",
-              "$markdown-all",
-              "ms"
-            ]
+            formats: ["$html-all", "$pdf-all", "$markdown-all", "ms"],
           },
           schema: "boolean",
           description: {
             short: "Use only ASCII characters in output.",
-            long: "Use only ASCII characters in output. Currently supported for XML\nand HTML formats (which use entities instead of UTF-8 when this\noption is selected), CommonMark, gfm, and Markdown (which use\nentities), roff ms (which use hexadecimal escapes), and to a\nlimited degree LaTeX (which uses standard commands for accented\ncharacters when possible). roff man output uses ASCII by default.\n"
-          }
-        }
+            long: "Use only ASCII characters in output. Currently supported for XML\nand HTML formats (which use entities instead of UTF-8 when this\noption is selected), CommonMark, gfm, and Markdown (which use\nentities), roff ms (which use hexadecimal escapes), and to a\nlimited degree LaTeX (which uses standard commands for accented\ncharacters when possible). roff man output uses ASCII by default.\n",
+          },
+        },
       ],
       "schema/document-toc.yml": [
         {
           name: "toc",
           alias: "table-of-contents",
           tags: {
-            formats: [
-              "!man",
-              "!$docbook-all",
-              "!$jats-all"
-            ]
+            formats: ["!man", "!$docbook-all", "!$jats-all"],
           },
           schema: "boolean",
           description: {
             short: "Include an automatically generated table of contents",
-            long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document. This option has no effect\nif `standalone` is `false`.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
-          }
+            long: "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document. This option has no effect\nif `standalone` is `false`.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n",
+          },
         },
         {
           name: "toc-depth",
           tags: {
-            formats: [
-              "!man",
-              "!$docbook-all",
-              "!$jats-all",
-              "!beamer"
-            ]
+            formats: ["!man", "!$docbook-all", "!$jats-all", "!beamer"],
           },
           schema: "number",
-          description: "Specify the number of section levels to include in the table of contents.\nThe default is 3\n"
+          description:
+            "Specify the number of section levels to include in the table of contents.\nThe default is 3\n",
         },
         {
           name: "toc-location",
           schema: {
-            enum: [
-              "body",
-              "left",
-              "right",
-              "left-body",
-              "right-body"
-            ]
+            enum: ["body", "left", "right", "left-body", "right-body"],
           },
           default: "right",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
-            short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
-          }
+            short:
+              "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
+            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n",
+          },
         },
         {
           name: "toc-title",
@@ -17499,61 +16677,52 @@ var require_yaml_intelligence_resources = __commonJS({
               "$office-all",
               "$pdf-all",
               "$html-doc",
-              "revealjs"
-            ]
+              "revealjs",
+            ],
           },
-          description: "The title used for the table of contents."
+          description: "The title used for the table of contents.",
         },
         {
           name: "toc-expand",
           schema: {
-            anyOf: [
-              "number",
-              "boolean"
-            ]
+            anyOf: ["number", "boolean"],
           },
           default: 1,
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output. Use `true` to expand all or `false` to collapse all.\n"
+          description:
+            "Specifies the depth of items in the table of contents that should be displayed as expanded in HTML output. Use `true` to expand all or `false` to collapse all.\n",
         },
         {
           name: "lof",
           schema: "boolean",
           default: false,
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "Print a list of figures in the document."
+          description: "Print a list of figures in the document.",
         },
         {
           name: "lot",
           schema: "boolean",
           default: false,
           tags: {
-            formats: [
-              "$pdf-all"
-            ]
+            formats: ["$pdf-all"],
           },
-          description: "Print a list of tables in the document."
-        }
+          description: "Print a list of tables in the document.",
+        },
       ],
       "schema/document-website.yml": [
         {
           name: "search",
           schema: "boolean",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           default: true,
-          description: "Setting this to false prevents this document from being included in searches."
+          description:
+            "Setting this to false prevents this document from being included in searches.",
         },
         {
           name: "repo-actions",
@@ -17562,105 +16731,91 @@ var require_yaml_intelligence_resources = __commonJS({
               "boolean",
               {
                 maybeArrayOf: {
-                  enum: [
-                    "none",
-                    "edit",
-                    "source",
-                    "issue"
-                  ],
+                  enum: ["none", "edit", "source", "issue"],
                   description: {
                     short: "Links to source repository actions",
-                    long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)"
-                  }
-                }
-              }
-            ]
+                    long: "Links to source repository actions (`none` or one or more of `edit`, `source`, `issue`)",
+                  },
+                },
+              },
+            ],
           },
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "Setting this to false prevents the `repo-actions` from appearing on this page."
+          description:
+            "Setting this to false prevents the `repo-actions` from appearing on this page.",
         },
         {
           name: "aliases",
           schema: {
-            arrayOf: "string"
+            arrayOf: "string",
           },
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "URLs that alias this document, when included in a website."
+          description:
+            "URLs that alias this document, when included in a website.",
         },
         {
           name: "image",
           schema: "path",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
           description: {
             short: "The path to a preview image for this document.",
-            long: "The path to a preview image for this content. By default, \nQuarto will use the image value from the site: metadata. \nIf you provide an image, you may also optionally provide \nan image-width and image-height to improve \nthe appearance of your Twitter Card.\n\nIf image is not provided, Quarto will automatically attempt \nto locate a preview image.\n"
-          }
+            long: "The path to a preview image for this content. By default, \nQuarto will use the image value from the site: metadata. \nIf you provide an image, you may also optionally provide \nan image-width and image-height to improve \nthe appearance of your Twitter Card.\n\nIf image is not provided, Quarto will automatically attempt \nto locate a preview image.\n",
+          },
         },
         {
           name: "image-height",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "The height of the preview image for this document."
+          description: "The height of the preview image for this document.",
         },
         {
           name: "image-width",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "The width of the preview image for this document."
+          description: "The width of the preview image for this document.",
         },
         {
           name: "image-alt",
           schema: "string",
           tags: {
-            formats: [
-              "$html-doc"
-            ]
+            formats: ["$html-doc"],
           },
-          description: "The alt text for preview image on this page."
-        }
+          description: "The alt text for preview image on this page.",
+        },
       ],
       "schema/extension.yml": [
         {
           name: "title",
           description: "Extension title.",
-          schema: "string"
+          schema: "string",
         },
         {
           name: "author",
           description: "Extension author.",
-          schema: "string"
+          schema: "string",
         },
         {
           name: "version",
           description: "Extension version.",
           schema: {
-            ref: "semver"
-          }
+            ref: "semver",
+          },
         },
         {
           name: "quarto-required",
-          description: "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
-          schema: "string"
+          description:
+            "Quarto version range. See https://docs.npmjs.com/cli/v6/using-npm/semver for syntax details.",
+          schema: "string",
         },
         {
           name: "contributes",
@@ -17668,86 +16823,45 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               properties: {
                 shortcodes: {
-                  arrayOf: "path"
+                  arrayOf: "path",
                 },
                 filters: {
-                  arrayOf: "path"
+                  arrayOf: "path",
                 },
                 formats: {
-                  schema: "object"
-                }
-              }
-            }
-          }
-        }
+                  schema: "object",
+                },
+              },
+            },
+          },
+        },
       ],
       "schema/format-aliases.yml": {
         aliases: {
-          "epub-all": [
-            "epub",
-            "epub2",
-            "epub3"
-          ],
-          "pdf-all": [
-            "latex",
-            "pdf",
-            "beamer"
-          ],
+          "epub-all": ["epub", "epub2", "epub3"],
+          "pdf-all": ["latex", "pdf", "beamer"],
           "markdown-all": [
             "markdown",
             "gfm",
             "commonmark",
             "commonmark_x",
             "markua",
-            "md"
+            "md",
           ],
-          "office-all": [
-            "docx",
-            "pptx"
-          ],
-          "docbook-all": [
-            "docbook",
-            "docbook4",
-            "docbook5"
-          ],
-          "odt-all": [
-            "odt",
-            "opendocument"
-          ],
-          "html-doc": [
-            "html",
-            "html4",
-            "html5"
-          ],
-          "html-pres": [
-            "slidy",
-            "slideous",
-            "s5",
-            "revealjs",
-            "dzslides"
-          ],
-          "pres-all": [
-            "pptx",
-            "beamer",
-            "$html-pres"
-          ],
-          "html-files": [
-            "$html-doc",
-            "$html-pres"
-          ],
-          "html-all": [
-            "$html-files",
-            "$epub-all"
-          ],
-          "asciidoc-all": [
-            "asciidoc",
-            "asciidoctor"
-          ],
+          "office-all": ["docx", "pptx"],
+          "docbook-all": ["docbook", "docbook4", "docbook5"],
+          "odt-all": ["odt", "opendocument"],
+          "html-doc": ["html", "html4", "html5"],
+          "html-pres": ["slidy", "slideous", "s5", "revealjs", "dzslides"],
+          "pres-all": ["pptx", "beamer", "$html-pres"],
+          "html-files": ["$html-doc", "$html-pres"],
+          "html-all": ["$html-files", "$epub-all"],
+          "asciidoc-all": ["asciidoc", "asciidoctor"],
           "jats-all": [
             "jats",
             "jats_archiving",
             "jats_articleauthoring",
-            "jats_publishing"
+            "jats_publishing",
           ],
           "pandoc-all": [
             "asciidoc",
@@ -17814,160 +16928,161 @@ var require_yaml_intelligence_resources = __commonJS({
             "typst",
             "xwiki",
             "zimwiki",
-            "md"
-          ]
-        }
+            "md",
+          ],
+        },
       },
       "schema/groups.yml": {
         cell: {
           attributes: {
-            title: "Attributes"
+            title: "Attributes",
           },
           codeoutput: {
-            title: "Code Output"
+            title: "Code Output",
           },
           textoutput: {
-            title: "Cell Output"
+            title: "Cell Output",
           },
           figure: {
-            title: "Figures"
+            title: "Figures",
           },
           table: {
-            title: "Tables"
+            title: "Tables",
           },
           layout: {
-            title: "Panel Layout"
+            title: "Panel Layout",
           },
           pagelayout: {
-            title: "Page Columns"
+            title: "Page Columns",
           },
           cache: {
-            title: "Cache"
+            title: "Cache",
           },
           include: {
-            title: "Include"
-          }
+            title: "Include",
+          },
         },
         document: {
           attributes: {
-            title: "Title & Author"
+            title: "Title & Author",
           },
           options: {
-            title: "Format Options"
+            title: "Format Options",
           },
           toc: {
-            title: "Table of Contents"
+            title: "Table of Contents",
           },
           numbering: {
-            title: "Numbering"
+            title: "Numbering",
           },
           slides: {
-            title: "Slides"
+            title: "Slides",
           },
           "reveal-content": {
-            title: "Slide Content"
+            title: "Slide Content",
           },
           "reveal-tools": {
-            title: "Slide Tools"
+            title: "Slide Tools",
           },
           "reveal-transitions": {
-            title: "Transitions"
+            title: "Transitions",
           },
           "reveal-navigation": {
-            title: "Navigation"
+            title: "Navigation",
           },
           "reveal-print": {
-            title: "Print to PDF"
+            title: "Print to PDF",
           },
           "reveal-media": {
-            title: "Media"
+            title: "Media",
           },
           "reveal-layout": {
-            title: "Slide Layout"
+            title: "Slide Layout",
           },
           "reveal-hidden": {
-            title: "Reveal Hidden"
+            title: "Reveal Hidden",
           },
           epub: {
-            title: "ePub Options"
+            title: "ePub Options",
           },
           fonts: {
-            title: "Fonts"
+            title: "Fonts",
           },
           colors: {
-            title: "Colors"
+            title: "Colors",
           },
           layout: {
-            title: "Layout"
+            title: "Layout",
           },
           formatting: {
-            title: "Formatting"
+            title: "Formatting",
           },
           code: {
-            title: "Code"
+            title: "Code",
           },
           execute: {
             title: "Execution",
-            description: "Execution options should be specified within the `execute` key. For example:\n\n```yaml\nexecute:\n  echo: false\n  warning: false\n```\n"
+            description:
+              "Execution options should be specified within the `execute` key. For example:\n\n```yaml\nexecute:\n  echo: false\n  warning: false\n```\n",
           },
           figures: {
-            title: "Figures"
+            title: "Figures",
           },
           tables: {
-            title: "Tables"
+            title: "Tables",
           },
           links: {
-            title: "Links"
+            title: "Links",
           },
           references: {
-            title: "References"
+            title: "References",
           },
           footnotes: {
-            title: "Footnotes"
+            title: "Footnotes",
           },
           crossref: {
-            title: "Crossrefs"
+            title: "Crossrefs",
           },
           citation: {
-            title: "Citation"
+            title: "Citation",
           },
           language: {
-            title: "Language"
+            title: "Language",
           },
           comments: {
-            title: "Comments"
+            title: "Comments",
           },
           includes: {
-            title: "Includes"
+            title: "Includes",
           },
           metadata: {
-            title: "Metadata"
+            title: "Metadata",
           },
           render: {
-            title: "Rendering"
+            title: "Rendering",
           },
           latexmk: {
-            title: "Latexmk"
+            title: "Latexmk",
           },
           website: {
-            title: "Website"
+            title: "Website",
           },
           pdfa: {
-            title: "PDF/A"
+            title: "PDF/A",
           },
           text: {
-            title: "Text Output"
+            title: "Text Output",
           },
           library: {
-            title: "Library"
+            title: "Library",
           },
           editor: {
-            title: "Editor"
+            title: "Editor",
           },
           hidden: {
-            title: "Hidden"
-          }
-        }
+            title: "Hidden",
+          },
+        },
       },
       "schema/project.yml": [
         {
@@ -17978,86 +17093,81 @@ var require_yaml_intelligence_resources = __commonJS({
               closed: true,
               properties: {
                 title: {
-                  schema: "string"
+                  schema: "string",
                 },
                 type: {
                   string: {
-                    completions: [
-                      "default",
-                      "website",
-                      "book",
-                      "manuscript"
-                    ],
-                    description: "Project type (`default`, `website`, `book`, or `manuscript`)"
-                  }
+                    completions: ["default", "website", "book", "manuscript"],
+                    description:
+                      "Project type (`default`, `website`, `book`, or `manuscript`)",
+                  },
                 },
                 render: {
                   arrayOf: "path",
-                  description: "Files to render (defaults to all files)"
+                  description: "Files to render (defaults to all files)",
                 },
                 "execute-dir": {
-                  enum: [
-                    "file",
-                    "project"
-                  ],
+                  enum: ["file", "project"],
                   description: {
                     short: "Working directory for computations",
-                    long: "Control the working directory for computations. \n\n- `file`: Use the directory of the file that is currently executing.\n- `project`: Use the root directory of the project.\n"
-                  }
+                    long: "Control the working directory for computations. \n\n- `file`: Use the directory of the file that is currently executing.\n- `project`: Use the root directory of the project.\n",
+                  },
                 },
                 "output-dir": {
                   path: {
-                    description: "Output directory"
-                  }
+                    description: "Output directory",
+                  },
                 },
                 "lib-dir": {
                   path: {
-                    description: "HTML library (JS/CSS/etc.) directory"
-                  }
+                    description: "HTML library (JS/CSS/etc.) directory",
+                  },
                 },
                 resources: {
                   maybeArrayOf: {
                     schema: "path",
-                    description: "Additional file resources to be copied to output directory"
-                  }
+                    description:
+                      "Additional file resources to be copied to output directory",
+                  },
                 },
                 preview: {
                   description: "Options for `quarto preview`",
                   schema: {
-                    ref: "project-preview"
-                  }
+                    ref: "project-preview",
+                  },
                 },
                 "pre-render": {
                   description: "Scripts to run as a pre-render step",
                   schema: {
-                    maybeArrayOf: "string"
-                  }
+                    maybeArrayOf: "string",
+                  },
                 },
                 "post-render": {
                   description: "Scripts to run as a post-render step",
                   schema: {
-                    maybeArrayOf: "string"
-                  }
+                    maybeArrayOf: "string",
+                  },
                 },
                 detect: {
-                  description: "Array of paths used to detect the project type within a directory",
+                  description:
+                    "Array of paths used to detect the project type within a directory",
                   schema: {
                     arrayOf: {
-                      arrayOf: "string"
-                    }
+                      arrayOf: "string",
+                    },
                   },
-                  hidden: true
-                }
-              }
-            }
-          }
+                  hidden: true,
+                },
+              },
+            },
+          },
         },
         {
           name: "website",
           description: "Website configuration.",
           schema: {
-            ref: "base-website"
-          }
+            ref: "base-website",
+          },
         },
         {
           name: "book",
@@ -18066,33 +17176,32 @@ var require_yaml_intelligence_resources = __commonJS({
             object: {
               super: [
                 {
-                  resolveRef: "book-schema"
+                  resolveRef: "book-schema",
                 },
                 {
-                  resolveRef: "csl-item-shared"
-                }
-              ]
-            }
-          }
+                  resolveRef: "csl-item-shared",
+                },
+              ],
+            },
+          },
         },
         {
           name: "manuscript",
           description: "Manuscript configuration",
           schema: {
-            ref: "manuscript-schema"
-          }
+            ref: "manuscript-schema",
+          },
         },
         {
           name: "type",
           hidden: true,
           schema: {
-            enum: [
-              "cd93424f-d5ba-4e95-91c6-1890eab59fc7"
-            ]
+            enum: ["cd93424f-d5ba-4e95-91c6-1890eab59fc7"],
           },
-          errorMessage: "type key not supported at project type-level. Use `project: type: ...` instead.",
-          description: "internal-schema-hack"
-        }
+          errorMessage:
+            "type key not supported at project type-level. Use `project: type: ...` instead.",
+          description: "internal-schema-hack",
+        },
       ],
       "schema/schema.yml": [
         {
@@ -18102,11 +17211,9 @@ var require_yaml_intelligence_resources = __commonJS({
             "boolean",
             "string",
             {
-              enum: [
-                null
-              ]
-            }
-          ]
+              enum: [null],
+            },
+          ],
         },
         {
           id: "schema/description",
@@ -18117,11 +17224,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 closed: true,
                 properties: {
                   short: "string",
-                  long: "string"
-                }
-              }
-            }
-          ]
+                  long: "string",
+                },
+              },
+            },
+          ],
         },
         {
           id: "schema/base",
@@ -18129,84 +17236,84 @@ var require_yaml_intelligence_resources = __commonJS({
             closed: true,
             properties: {
               additionalCompletions: {
-                arrayOf: "string"
+                arrayOf: "string",
               },
               completions: {
-                arrayOf: "string"
+                arrayOf: "string",
               },
               id: "string",
               hidden: "boolean",
               tags: "object",
               errorDescription: "string",
               description: {
-                ref: "schema/description"
+                ref: "schema/description",
               },
-              default: "any"
-            }
-          }
+              default: "any",
+            },
+          },
         },
         {
           id: "schema/enum",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               enum: {
                 anyOf: [
                   {
                     arrayOf: {
-                      ref: "schema/scalar"
-                    }
+                      ref: "schema/scalar",
+                    },
                   },
                   {
                     object: {
                       closed: true,
                       super: {
-                        resolveRef: "schema/base"
+                        resolveRef: "schema/base",
                       },
                       properties: {
                         values: {
                           arrayOf: {
-                            ref: "schema/scalar"
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
+                            ref: "schema/scalar",
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
         {
           id: "schema/null",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               null: {
-                ref: "schema/schema"
-              }
-            }
-          }
+                ref: "schema/schema",
+              },
+            },
+          },
         },
         {
           id: "schema/explicit-schema",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               schema: {
-                ref: "schema/schema"
-              }
-            }
-          }
+                ref: "schema/schema",
+              },
+            },
+          },
         },
         {
           id: "schema/string",
@@ -18215,70 +17322,70 @@ var require_yaml_intelligence_resources = __commonJS({
               object: {
                 closed: true,
                 super: {
-                  resolveRef: "schema/base"
+                  resolveRef: "schema/base",
                 },
                 properties: {
-                  pattern: "string"
-                }
-              }
+                  pattern: "string",
+                },
+              },
             },
             {
               object: {
                 closed: true,
                 super: {
-                  resolveRef: "schema/base"
+                  resolveRef: "schema/base",
                 },
                 properties: {
                   string: {
-                    ref: "schema/schema"
+                    ref: "schema/schema",
                   },
                   path: {
-                    ref: "schema/schema"
+                    ref: "schema/schema",
                   },
                   pattern: {
-                    ref: "schema/schema"
-                  }
-                }
-              }
-            }
-          ]
+                    ref: "schema/schema",
+                  },
+                },
+              },
+            },
+          ],
         },
         {
           id: "schema/number",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               number: {
-                ref: "schema/schema"
-              }
-            }
-          }
+                ref: "schema/schema",
+              },
+            },
+          },
         },
         {
           id: "schema/boolean",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               boolean: {
-                ref: "schema/schema"
-              }
-            }
-          }
+                ref: "schema/schema",
+              },
+            },
+          },
         },
         {
           id: "schema/resolve-ref",
           object: {
             closed: true,
             properties: {
-              resolveRef: "string"
-            }
-          }
+              resolveRef: "string",
+            },
+          },
         },
         {
           id: "schema/ref",
@@ -18287,131 +17394,131 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               ref: "string",
               description: {
-                ref: "schema/description"
-              }
-            }
-          }
+                ref: "schema/description",
+              },
+            },
+          },
         },
         {
           id: "schema/maybe-array-of",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               maybeArrayOf: {
-                ref: "schema/schema"
-              }
-            }
-          }
+                ref: "schema/schema",
+              },
+            },
+          },
         },
         {
           id: "schema/array-of",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               arrayOf: {
                 anyOf: [
                   {
-                    ref: "schema/schema"
+                    ref: "schema/schema",
                   },
                   {
                     object: {
                       closed: true,
                       super: {
-                        resolveRef: "schema/base"
+                        resolveRef: "schema/base",
                       },
                       properties: {
                         length: "number",
                         schema: {
-                          ref: "schema/schema"
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
+                          ref: "schema/schema",
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
         {
           id: "schema/all-of",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               allOf: {
                 anyOf: [
                   {
                     arrayOf: {
-                      ref: "schema/schema"
-                    }
+                      ref: "schema/schema",
+                    },
                   },
                   {
                     object: {
                       super: {
-                        resolveRef: "schema/base"
+                        resolveRef: "schema/base",
                       },
                       properties: {
                         schemas: {
                           arrayOf: {
-                            ref: "schema/schema"
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
+                            ref: "schema/schema",
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
         {
           id: "schema/any-of",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               anyOf: {
                 anyOf: [
                   {
                     arrayOf: {
-                      ref: "schema/schema"
-                    }
+                      ref: "schema/schema",
+                    },
                   },
                   {
                     object: {
                       super: {
-                        resolveRef: "schema/base"
+                        resolveRef: "schema/base",
                       },
                       properties: {
                         schemas: {
                           arrayOf: {
-                            ref: "schema/schema"
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
+                            ref: "schema/schema",
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
         {
           id: "schema/record",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               record: {
@@ -18419,56 +17526,52 @@ var require_yaml_intelligence_resources = __commonJS({
                   {
                     object: {
                       additionalProperties: {
-                        ref: "schema/schema"
-                      }
-                    }
+                        ref: "schema/schema",
+                      },
+                    },
                   },
                   {
                     object: {
                       closed: true,
                       super: {
-                        resolveRef: "schema/base"
+                        resolveRef: "schema/base",
                       },
                       properties: {
                         properties: {
                           object: {
                             additionalProperties: {
-                              ref: "schema/schema"
-                            }
-                          }
-                        }
+                              ref: "schema/schema",
+                            },
+                          },
+                        },
                       },
-                      required: [
-                        "properties"
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          }
+                      required: ["properties"],
+                    },
+                  },
+                ],
+              },
+            },
+          },
         },
         {
           id: "schema/object",
           object: {
             closed: true,
             super: {
-              resolveRef: "schema/base"
+              resolveRef: "schema/base",
             },
             properties: {
               object: {
                 object: {
                   super: {
-                    resolveRef: "schema/base"
+                    resolveRef: "schema/base",
                   },
                   closed: true,
                   properties: {
                     namingConvention: {
                       anyOf: [
                         {
-                          enum: [
-                            "ignore"
-                          ]
+                          enum: ["ignore"],
                         },
                         {
                           arrayOf: {
@@ -18490,106 +17593,104 @@ var require_yaml_intelligence_resources = __commonJS({
                               "dash_case",
                               "kebabCase",
                               "kebab-case",
-                              "kebab_case"
-                            ]
-                          }
-                        }
-                      ]
+                              "kebab_case",
+                            ],
+                          },
+                        },
+                      ],
                     },
                     properties: {
                       object: {
                         additionalProperties: {
-                          ref: "schema/schema"
-                        }
-                      }
+                          ref: "schema/schema",
+                        },
+                      },
                     },
                     patternProperties: {
                       object: {
                         additionalProperties: {
-                          ref: "schema/schema"
-                        }
-                      }
+                          ref: "schema/schema",
+                        },
+                      },
                     },
                     propertyNames: {
-                      ref: "schema/schema"
+                      ref: "schema/schema",
                     },
                     additionalProperties: {
-                      ref: "schema/schema"
+                      ref: "schema/schema",
                     },
                     super: {
                       maybeArrayOf: {
-                        ref: "schema/schema"
-                      }
+                        ref: "schema/schema",
+                      },
                     },
                     required: {
                       anyOf: [
                         {
-                          enum: [
-                            "all"
-                          ]
+                          enum: ["all"],
                         },
                         {
-                          arrayOf: "string"
-                        }
-                      ]
+                          arrayOf: "string",
+                        },
+                      ],
                     },
                     closed: "boolean",
                     description: {
-                      ref: "schema/description"
+                      ref: "schema/description",
                     },
                     completions: {
-                      arrayOf: "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
+                      arrayOf: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         {
           id: "schema/schema",
           anyOf: [
             {
-              ref: "schema/enum"
+              ref: "schema/enum",
             },
             {
-              ref: "schema/null"
+              ref: "schema/null",
             },
             {
-              ref: "schema/explicit-schema"
+              ref: "schema/explicit-schema",
             },
             {
-              ref: "schema/string"
+              ref: "schema/string",
             },
             {
-              ref: "schema/number"
+              ref: "schema/number",
             },
             {
-              ref: "schema/boolean"
+              ref: "schema/boolean",
             },
             {
-              ref: "schema/ref"
+              ref: "schema/ref",
             },
             {
-              ref: "schema/resolve-ref"
+              ref: "schema/resolve-ref",
             },
             {
-              ref: "schema/any-of"
+              ref: "schema/any-of",
             },
             {
-              ref: "schema/array-of"
+              ref: "schema/array-of",
             },
             {
-              ref: "schema/maybe-array-of"
+              ref: "schema/maybe-array-of",
             },
             {
-              ref: "schema/all-of"
+              ref: "schema/all-of",
             },
             {
-              ref: "schema/record"
+              ref: "schema/record",
             },
             {
-              ref: "schema/object"
+              ref: "schema/object",
             },
             {
               enum: [
@@ -18600,11 +17701,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 null,
                 "null",
                 "object",
-                "any"
-              ]
-            }
+                "any",
+              ],
+            },
           ],
-          description: "be a yaml schema"
+          description: "be a yaml schema",
         },
         {
           id: "schema/schema-field",
@@ -18612,28 +17713,24 @@ var require_yaml_intelligence_resources = __commonJS({
             properties: {
               name: "string",
               schema: {
-                ref: "schema/schema"
+                ref: "schema/schema",
               },
               hidden: "boolean",
               alias: "string",
               disabled: {
-                maybeArrayOf: "string"
+                maybeArrayOf: "string",
               },
               enabled: {
-                maybeArrayOf: "string"
+                maybeArrayOf: "string",
               },
               description: {
-                ref: "schema/description"
+                ref: "schema/description",
               },
               tags: "object",
-              errorMessage: "string"
+              errorMessage: "string",
             },
             namingConvention: "ignore",
-            required: [
-              "name",
-              "schema",
-              "description"
-            ],
+            required: ["name", "schema", "description"],
             propertyNames: {
               enum: [
                 "name",
@@ -18645,11 +17742,11 @@ var require_yaml_intelligence_resources = __commonJS({
                 "description",
                 "tags",
                 "errorMessage",
-                "default"
-              ]
-            }
-          }
-        }
+                "default",
+              ],
+            },
+          },
+        },
       ],
       "pandoc/formats.yml": [
         "asciidoc",
@@ -18716,19 +17813,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "textile",
         "typst",
         "xwiki",
-        "zimwiki"
+        "zimwiki",
       ],
       "schema/html-descriptions.yml": [
         {
           short: "Automatically generate sidebar contents.",
-          long: "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata."
+          long: "Automatically generate sidebar contents. Pass <code>true</code> to\ninclude all documents in the site, a directory name to include only\ndocuments in that directory, or a glob (or list of globs) to include\ndocuments based on a pattern.\nSubdirectories will create sections (use an <code>index.qmd</code> in\nthe directory to provide its title). Order will be alphabetical unless a\nnumeric <code>order</code> field is provided in document metadata.",
         },
         "Accessible label for the item.",
         "Alias for href",
         "Link to file contained with the project or external URL",
         {
-          short: "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
-          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons'
+          short:
+            "Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>)",
+          long: 'Name of bootstrap icon (e.g.&nbsp;<code>github</code>,\n<code>twitter</code>, <code>share</code>) See <a href="https://icons.getbootstrap.com/" class="uri">https://icons.getbootstrap.com/</a> for a list of available\nicons',
         },
         "Text to display for item (defaults to the document title if not\nprovided)",
         "Alias for href",
@@ -18738,31 +17836,32 @@ var require_yaml_intelligence_resources = __commonJS({
         "The label that will be assigned to issues created by Utterances.",
         {
           short: "The Github theme that should be used for Utterances.",
-          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)"
+          long: "The Github theme that should be used for Utterances\n(<code>github-light</code>, <code>github-dark</code>,\n<code>github-dark-orange</code>, <code>icy-dark</code>,\n<code>dark-blue</code>, <code>photon-dark</code>,\n<code>body-light</code>, or <code>gruvbox-dark</code>)",
         },
         {
           short: "How posts should be mapped to Github issues",
-          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)"
+          long: "How posts should be mapped to Github issues (<code>pathname</code>,\n<code>url</code>, <code>title</code> or <code>og:title</code>)",
         },
         {
           short: "The Github repo that will be used to store comments.",
-          long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled."
+          long: "The Github repo that will be used to store comments.\nIn order to work correctly, the repo must be public, with the giscus\napp installed, and the discussions feature must be enabled.",
         },
         {
           short: "The Github repository identifier.",
-          long: 'The Github repository identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
+          long: 'The Github repository identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.',
         },
         {
-          short: "The discussion category where new discussions will be created.",
-          long: "The discussion category where new discussions will be created. It is\nrecommended to use a category with the <strong>Announcements</strong>\ntype so that new discussions can only be created by maintainers and\ngiscus."
+          short:
+            "The discussion category where new discussions will be created.",
+          long: "The discussion category where new discussions will be created. It is\nrecommended to use a category with the <strong>Announcements</strong>\ntype so that new discussions can only be created by maintainers and\ngiscus.",
         },
         {
           short: "The Github category identifier.",
-          long: 'The Github category identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.'
+          long: 'The Github category identifier.\nYou can quickly find this by using the configuration tool at <a href="https://giscus.app">https://giscus.app</a>. If this is not\nprovided, Quarto will attempt to discover it at render time.',
         },
         {
           short: "The mapping between the page and the embedded discussion.",
-          long: "The mapping between the page and the embedded discussion."
+          long: "The mapping between the page and the embedded discussion.",
         },
         "Display reactions for the discussion\u2019s main post before the\ncomments.",
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
@@ -18801,19 +17900,19 @@ var require_yaml_intelligence_resources = __commonJS({
         "The URL for the sidebar application which displays annotations.",
         {
           short: "The title of the page",
-          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider.",
         },
         {
           short: "A short description of the content.",
-          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider.",
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>.",
         },
         {
           short: "The alt text for the preview image.",
-          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>.",
         },
         "Image width (pixels)",
         "Image height (pixels)",
@@ -18833,50 +17932,50 @@ var require_yaml_intelligence_resources = __commonJS({
         "Published URL for site",
         {
           short: "The title of the page",
-          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider.",
         },
         {
           short: "A short description of the content.",
-          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider.",
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>.",
         },
         {
           short: "The alt text for the preview image.",
-          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>.",
         },
         "Image width (pixels)",
         "Image height (pixels)",
         {
           short: "Card style",
-          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.'
+          long: 'Card style (<code>summary</code> or\n<code>summary_large_image</code>).\nIf this is not provided, the best style will automatically selected\nbased upon other metadata. You can learn more about Twitter Card styles\n<a href="https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards">here</a>.',
         },
         "<code>@username</code> of the content creator (must be a quoted\nstring)",
         "<code>@username</code> of the website (must be a quoted string)",
         {
           short: "The title of the page",
-          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider."
+          long: "The title of the page. Note that by default Quarto will automatically\nuse the title metadata from the page. Specify this field if you\u2019d like\nto override the title for this provider.",
         },
         {
           short: "A short description of the content.",
-          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider."
+          long: "A short description of the content. Note that by default Quarto will\nautomatically use the description metadata from the page. Specify this\nfield if you\u2019d like to override the description for this provider.",
         },
         {
           short: "The path to a preview image for the content.",
-          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>."
+          long: "The path to a preview image for the content. By default, Quarto will\nuse the <code>image</code> value from the format metadata. If you\nprovide an image, you may also optionally provide an\n<code>image-width</code> and <code>image-height</code>.",
         },
         {
           short: "The alt text for the preview image.",
-          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>."
+          long: "The alt text for the preview image. By default, Quarto will use the\n<code>image-alt</code> value from the format metadata. If you provide an\nimage, you may also optionally provide an <code>image-width</code> and\n<code>image-height</code>.",
         },
         "Image width (pixels)",
         "Image height (pixels)",
         "Locale of open graph metadata",
         {
           short: "Name that should be displayed for the overall site",
-          long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default."
+          long: "Name that should be displayed for the overall site. If not explicitly\nprovided in the <code>open-graph</code> metadata, Quarto will use the\nwebsite or book <code>title</code> by default.",
         },
         "Footer left content",
         "Footer right content",
@@ -18895,48 +17994,51 @@ var require_yaml_intelligence_resources = __commonJS({
         "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.',
         },
         {
           short: "Anonymize the user ip address.",
-          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.',
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use."
+          long: "The version number of Google Analytics to use.",
         },
         {
-          short: "Request cookie consent before enabling scripts that set cookies",
-          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+          short:
+            "Request cookie consent before enabling scripts that set cookies",
+          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.',
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:"
+          long: "The type of consent that should be requested, using one of these two\nvalues:",
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:"
+          long: "The style of the consent banner that is displayed:",
         },
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
-          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
-          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          short:
+            "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used.",
         },
         {
-          short: "The text to display for the cookie preferences link in the website\nfooter.",
-          long: ""
+          short:
+            "The text to display for the cookie preferences link in the website\nfooter.",
+          long: "",
         },
         "Provide full text search for website",
         "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
@@ -19026,48 +18128,51 @@ var require_yaml_intelligence_resources = __commonJS({
         "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.',
         },
         {
           short: "Anonymize the user ip address.",
-          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.',
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use."
+          long: "The version number of Google Analytics to use.",
         },
         {
-          short: "Request cookie consent before enabling scripts that set cookies",
-          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+          short:
+            "Request cookie consent before enabling scripts that set cookies",
+          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.',
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:"
+          long: "The type of consent that should be requested, using one of these two\nvalues:",
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:"
+          long: "The style of the consent banner that is displayed:",
         },
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
-          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
-          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          short:
+            "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used.",
         },
         {
-          short: "The text to display for the cookie preferences link in the website\nfooter.",
-          long: ""
+          short:
+            "The text to display for the cookie preferences link in the website\nfooter.",
+          long: "",
         },
         "Provide full text search for website",
         "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
@@ -19173,146 +18278,154 @@ var require_yaml_intelligence_resources = __commonJS({
         "The target attribute value for the link.",
         {
           short: "The role of this creator or contributor.",
-          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
+          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.',
         },
         "An alternate version of the creator or contributor text used for\nalphabatizing.",
         "The text describing the creator or contributor (for example, creator\nname).",
         {
           short: "The role of this creator or contributor.",
-          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.'
+          long: 'The role of this creator or contributor using <a href="https://loc.gov/marc/relators/relaterm.html">MARC relators</a>.\nHuman readable translations to commonly used relators (e.g.&nbsp;\u2018author\u2019,\n\u2018editor\u2019) will attempt to be automatically translated.',
         },
         "An alternate version of the creator or contributor text used for\nalphabatizing.",
         "The text describing the creator or contributor (for example, creator\nname).",
         {
           short: "The target id for the about page.",
-          long: "The target id of this about page. When the about page is rendered, it\nwill place read the contents of a <code>div</code> with this id into the\nabout template that you have selected (and replace the contents with the\nrendered about content).\nIf no such <code>div</code> is defined on the page, a\n<code>div</code> with this id will be created and appended to the end of\nthe page."
+          long: "The target id of this about page. When the about page is rendered, it\nwill place read the contents of a <code>div</code> with this id into the\nabout template that you have selected (and replace the contents with the\nrendered about content).\nIf no such <code>div</code> is defined on the page, a\n<code>div</code> with this id will be created and appended to the end of\nthe page.",
         },
         {
           short: "The template to use to layout this about page.",
-          long: "The template to use to layout this about page. Choose from:"
+          long: "The template to use to layout this about page. Choose from:",
         },
         {
           short: "The path to the main image on the about page.",
-          long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used."
+          long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used.",
         },
         {
           short: "A valid CSS width for the about page image.",
-          long: "A valid CSS width for the about page image."
+          long: "A valid CSS width for the about page image.",
         },
         {
           short: "The shape of the image on the about page.",
-          long: "The shape of the image on the about page."
+          long: "The shape of the image on the about page.",
         },
         {
           short: "The id of this listing.",
-          long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIn no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
+          long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIn no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page.",
         },
         {
           short: "The type of listing to create.",
-          long: "The type of listing to create. Choose one of:"
+          long: "The type of listing to create. Choose one of:",
         },
         "The files or path globs of Quarto documents or YAML files that should\nbe included in the listing.",
         {
           short: "Sort items in the listing by these fields.",
-          long: "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>\nUse <code>sort:false</code> to use the unsorted original order of\nitems."
+          long: "Sort items in the listing by these fields. The sort key is made up of\na field name followed by a direction <code>asc</code> or\n<code>desc</code>.\nFor example: <code>date asc</code>\nUse <code>sort:false</code> to use the unsorted original order of\nitems.",
         },
         "The maximum number of items to include in this listing.",
         "The number of items to display on a page.",
         {
           short: "Shows or hides the sorting control for the listing.",
-          long: "Shows or hides the sorting control for the listing. To control the\nfields that will be displayed in the sorting control, provide a list of\nfield names."
+          long: "Shows or hides the sorting control for the listing. To control the\nfields that will be displayed in the sorting control, provide a list of\nfield names.",
         },
         {
           short: "Shows or hides the filtering control for the listing.",
-          long: "Shows or hides the filtering control for the listing. To control the\nfields that will be used to filter the listing, provide a list of field\nnames. By default all fields of the listing will be used when\nfiltering."
+          long: "Shows or hides the filtering control for the listing. To control the\nfields that will be used to filter the listing, provide a list of field\nnames. By default all fields of the listing will be used when\nfiltering.",
         },
         {
-          short: "Display item categories from this listing in the margin of the\npage.",
-          long: "Display item categories from this listing in the margin of the\npage."
+          short:
+            "Display item categories from this listing in the margin of the\npage.",
+          long: "Display item categories from this listing in the margin of the\npage.",
         },
         "Enables an RSS feed for the listing.",
         "The number of items to include in your feed. Defaults to 20.",
         {
           short: "Whether to include full or partial content in the feed.",
-          long: "Whether to include full or partial content in the feed."
+          long: "Whether to include full or partial content in the feed.",
         },
         {
           short: "The title for this feed.",
-          long: "The title for this feed. Defaults to the site title provided the\nQuarto project."
+          long: "The title for this feed. Defaults to the site title provided the\nQuarto project.",
         },
         {
           short: "The path to an image for this feed.",
-          long: "The path to an image for this feed. If not specified, the image for\nthe page the listing appears on will be used, otherwise an image will be\nused if specified for the site in the Quarto project."
+          long: "The path to an image for this feed. If not specified, the image for\nthe page the listing appears on will be used, otherwise an image will be\nused if specified for the site in the Quarto project.",
         },
         {
           short: "The description of this feed.",
-          long: "The description of this feed. If not specified, the description for\nthe page the listing appears on will be used, otherwise the description\nof the site will be used if specified in the Quarto project."
+          long: "The description of this feed. If not specified, the description for\nthe page the listing appears on will be used, otherwise the description\nof the site will be used if specified in the Quarto project.",
         },
         {
           short: "The language of the feed.",
-          long: 'The language of the feed. Omitted if not specified. See <a href="https://www.rssboard.org/rss-language-codes">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes.'
+          long: 'The language of the feed. Omitted if not specified. See <a href="https://www.rssboard.org/rss-language-codes">https://www.rssboard.org/rss-language-codes</a>\nfor a list of valid language codes.',
         },
         "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
         "A list of categories for which to create separate RSS feeds\ncontaining only posts with that category",
         "The path to an XML stylesheet (XSL file) used to style the RSS\nfeed.",
         {
-          short: "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
-          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.'
+          short:
+            "The date format to use when displaying dates (e.g.&nbsp;d-M-yyy).",
+          long: 'The date format to use when displaying dates (e.g.&nbsp;d-M-yyy). Learn\nmore about supported date formatting values <a href="https://deno.land/std@0.125.0/datetime">here</a>.',
         },
         {
-          short: "The maximum length (in characters) of the description displayed in\nthe listing.",
-          long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175."
+          short:
+            "The maximum length (in characters) of the description displayed in\nthe listing.",
+          long: "The maximum length (in characters) of the description displayed in\nthe listing. Defaults to 175.",
         },
         "The default image to use if an item in the listing doesn\u2019t have an\nimage.",
         "In <code>default</code> type listings, whether to place the image on\nthe right or left side of the post content (<code>left</code> or\n<code>right</code>).",
         {
           short: "The height of the image being displayed.",
-          long: "The height of the image being displayed (a CSS height string).\nThe width is automatically determined and the image will fill the\nrectangle without scaling (cropped to fill)."
+          long: "The height of the image being displayed (a CSS height string).\nThe width is automatically determined and the image will fill the\nrectangle without scaling (cropped to fill).",
         },
         {
-          short: "In <code>grid</code> type listings, the number of columns in the grid\ndisplay.",
-          long: "In grid type listings, the number of columns in the grid display.\nDefaults to 3."
+          short:
+            "In <code>grid</code> type listings, the number of columns in the grid\ndisplay.",
+          long: "In grid type listings, the number of columns in the grid display.\nDefaults to 3.",
         },
         {
-          short: "In <code>grid</code> type listings, whether to display a border\naround the item card.",
-          long: "In grid type listings, whether to display a border around the item\ncard. Defaults to <code>true</code>."
+          short:
+            "In <code>grid</code> type listings, whether to display a border\naround the item card.",
+          long: "In grid type listings, whether to display a border around the item\ncard. Defaults to <code>true</code>.",
         },
         {
-          short: "In <code>grid</code> type listings, the alignment of the content\nwithin the card.",
-          long: "In grid type listings, the alignment of the content within the card\n(<code>left</code> (default), <code>right</code>, or\n<code>center</code>)."
+          short:
+            "In <code>grid</code> type listings, the alignment of the content\nwithin the card.",
+          long: "In grid type listings, the alignment of the content within the card\n(<code>left</code> (default), <code>right</code>, or\n<code>center</code>).",
         },
         {
-          short: "In <code>table</code> type listings, display the table rows with\nalternating background colors.",
-          long: "In table type listings, display the table rows with alternating\nbackground colors. Defaults to <code>false</code>."
+          short:
+            "In <code>table</code> type listings, display the table rows with\nalternating background colors.",
+          long: "In table type listings, display the table rows with alternating\nbackground colors. Defaults to <code>false</code>.",
         },
         {
-          short: "In <code>table</code> type listings, highlight rows of the table when\nthe user hovers the mouse over them.",
-          long: "In table type listings, highlight rows of the table when the user\nhovers the mouse over them. Defaults to false."
+          short:
+            "In <code>table</code> type listings, highlight rows of the table when\nthe user hovers the mouse over them.",
+          long: "In table type listings, highlight rows of the table when the user\nhovers the mouse over them. Defaults to false.",
         },
         {
           short: "The path to a custom listing template.",
-          long: "The path to a custom listing template."
+          long: "The path to a custom listing template.",
         },
         "Parameters that are passed to the custom template.",
         {
           short: "The list of fields to include in this listing",
-          long: "The list of fields to include in this listing."
+          long: "The list of fields to include in this listing.",
         },
         {
           short: "A mapping of display names for listing fields.",
-          long: "A mapping that provides display names for specific fields. For\nexample, to display the title column as \u2018Report\u2019 in a table listing you\nwould write:"
+          long: "A mapping that provides display names for specific fields. For\nexample, to display the title column as \u2018Report\u2019 in a table listing you\nwould write:",
         },
         {
           short: "Provides the date type for the field of a listing item.",
-          long: "Provides the date type for the field of a listing item. Unknown\nfields are treated as strings unless a type is provided. Valid types are\n<code>date</code>, <code>number</code>."
+          long: "Provides the date type for the field of a listing item. Unknown\nfields are treated as strings unless a type is provided. Valid types are\n<code>date</code>, <code>number</code>.",
         },
         {
           short: "This list of fields to display as links in a table listing.",
-          long: "The list of fields to display as hyperlinks to the source document\nwhen the listing type is a table. By default, only the\n<code>title</code> or <code>filename</code> is displayed as a link."
+          long: "The list of fields to display as hyperlinks to the source document\nwhen the listing type is a table. By default, only the\n<code>title</code> or <code>filename</code> is displayed as a link.",
         },
         {
           short: "Fields that items in this listing must have populated.",
-          long: "Fields that items in this listing must have populated. If a listing\nis rendered and one more items in this listing is missing a required\nfield, an error will occur and the render will."
+          long: "Fields that items in this listing must have populated. If a listing\nis rendered and one more items in this listing is missing a required\nfield, an error will occur and the render will.",
         },
         "Items with matching field values will be included in the listing.",
         "Items with matching field values will be excluded from the\nlisting.",
@@ -19323,8 +18436,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
-          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          short:
+            "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead",
         },
         "Archive storing the item",
         "Collection the item is part of within an archive.",
@@ -19333,18 +18447,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
-          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing).",
         },
         "Call number (to locate the item in a library).",
         "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
         "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
         {
-          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          short:
+            "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead",
         },
         {
-          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          short:
+            "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead",
         },
         "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
         "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
@@ -19355,7 +18471,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
         {
           short: "Title of the container holding the item.",
-          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)",
         },
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
@@ -19368,20 +18484,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
         {
           short: "Combined editor and translator of a work.",
-          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data.",
         },
         "Date the event related to an item took place.",
         "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
         "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
         "Executive producer of the item (e.g.&nbsp;of a television series).",
         {
-          short: "Number of a preceding note containing the first reference to the\nitem.",
-          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          short:
+            "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document",
         },
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)",
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -19392,22 +18509,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "International Standard Serial Number.",
         {
           short: "Issue number of the item or container holding the item",
-          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any.",
         },
         "Date the item was issued/published.",
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item (used only for citation of the item).",
-          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          short:
+            "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item).",
         },
         {
           short: "The license information applicable to an item.",
-          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)",
         },
         {
           short: "A cite-specific pinpointer within the item.",
-          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list).",
         },
         "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
         "Narrator (e.g.&nbsp;of an audio book).",
@@ -19418,7 +18536,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
         {
           short: "The original creator of a work.",
-          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)",
         },
         "Issue date of the original version.",
         "Original publisher, for items that have been republished by a\ndifferent publisher.",
@@ -19428,8 +18546,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         {
-          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          short:
+            "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any.",
         },
         "Title of the specific part of an item being cited.",
         "A url to the pdf for this item.",
@@ -19459,19 +18578,22 @@ var require_yaml_intelligence_resources = __commonJS({
         "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
         "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
         {
-          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          short:
+            "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany.",
         },
         {
-          short: "Title of the volume of the item or container holding the item.",
-          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          short:
+            "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like.",
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
-          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          short:
+            "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead",
         },
         "Archive storing the item",
         "Collection the item is part of within an archive.",
@@ -19480,18 +18602,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
-          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing).",
         },
         "Call number (to locate the item in a library).",
         "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
         "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
         {
-          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          short:
+            "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead",
         },
         {
-          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          short:
+            "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead",
         },
         "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
         "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
@@ -19502,7 +18626,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
         {
           short: "Title of the container holding the item.",
-          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)",
         },
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
@@ -19515,20 +18639,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
         {
           short: "Combined editor and translator of a work.",
-          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data.",
         },
         "Date the event related to an item took place.",
         "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
         "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
         "Executive producer of the item (e.g.&nbsp;of a television series).",
         {
-          short: "Number of a preceding note containing the first reference to the\nitem.",
-          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          short:
+            "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document",
         },
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)",
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -19539,22 +18664,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "International Standard Serial Number.",
         {
           short: "Issue number of the item or container holding the item",
-          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any.",
         },
         "Date the item was issued/published.",
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item (used only for citation of the item).",
-          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          short:
+            "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item).",
         },
         {
           short: "The license information applicable to an item.",
-          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)",
         },
         {
           short: "A cite-specific pinpointer within the item.",
-          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list).",
         },
         "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
         "Narrator (e.g.&nbsp;of an audio book).",
@@ -19565,7 +18691,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
         {
           short: "The original creator of a work.",
-          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)",
         },
         "Issue date of the original version.",
         "Original publisher, for items that have been republished by a\ndifferent publisher.",
@@ -19575,8 +18701,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         {
-          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          short:
+            "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any.",
         },
         "Title of the specific part of an item being cited.",
         "A url to the pdf for this item.",
@@ -19606,27 +18733,31 @@ var require_yaml_intelligence_resources = __commonJS({
         "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
         "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
         {
-          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          short:
+            "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany.",
         },
         {
-          short: "Title of the volume of the item or container holding the item.",
-          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          short:
+            "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like.",
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
         "The author(s) of the item.",
         "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
         {
-          short: "Resources related to the procedural history of a legal case or\nlegislation.",
-          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+          short:
+            "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)",
         },
         "The primary title of the item.",
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
-          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          short:
+            "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead",
         },
         "Archive storing the item",
         "Collection the item is part of within an archive.",
@@ -19635,18 +18766,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
-          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing).",
         },
         "Call number (to locate the item in a library).",
         "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
         "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
         {
-          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          short:
+            "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead",
         },
         {
-          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          short:
+            "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead",
         },
         "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
         "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
@@ -19657,7 +18790,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
         {
           short: "Title of the container holding the item.",
-          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)",
         },
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
@@ -19670,20 +18803,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
         {
           short: "Combined editor and translator of a work.",
-          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data.",
         },
         "Date the event related to an item took place.",
         "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
         "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
         "Executive producer of the item (e.g.&nbsp;of a television series).",
         {
-          short: "Number of a preceding note containing the first reference to the\nitem.",
-          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          short:
+            "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document",
         },
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)",
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -19694,22 +18828,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "International Standard Serial Number.",
         {
           short: "Issue number of the item or container holding the item",
-          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any.",
         },
         "Date the item was issued/published.",
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item (used only for citation of the item).",
-          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          short:
+            "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item).",
         },
         {
           short: "The license information applicable to an item.",
-          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)",
         },
         {
           short: "A cite-specific pinpointer within the item.",
-          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list).",
         },
         "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
         "Narrator (e.g.&nbsp;of an audio book).",
@@ -19720,7 +18855,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
         {
           short: "The original creator of a work.",
-          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)",
         },
         "Issue date of the original version.",
         "Original publisher, for items that have been republished by a\ndifferent publisher.",
@@ -19730,8 +18865,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         {
-          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          short:
+            "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any.",
         },
         "Title of the specific part of an item being cited.",
         "A url to the pdf for this item.",
@@ -19761,20 +18897,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
         "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
         {
-          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          short:
+            "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany.",
         },
         {
-          short: "Title of the volume of the item or container holding the item.",
-          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          short:
+            "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like.",
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Abstract of the item (e.g.&nbsp;the abstract of a journal article)",
         "The author(s) of the item.",
         "Digital Object Identifier (e.g.&nbsp;\u201C10.1128/AEM.02591-07\u201D)",
         {
-          short: "Resources related to the procedural history of a legal case or\nlegislation.",
-          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)"
+          short:
+            "Resources related to the procedural history of a legal case or\nlegislation.",
+          long: "Resources related to the procedural history of a legal case or\nlegislation;\nCan also be used to refer to the procedural history of other items\n(e.g.&nbsp; \u201CConference canceled\u201D for a presentation accepted as a conference\nthat was subsequently canceled; details of a retraction or correction\nnotice)",
         },
         "The primary title of the item.",
         "The unique identifier for this article.",
@@ -19792,7 +18931,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of subjects or topics describing the article.",
         {
           short: "External identifier of a publication or journal.",
-          long: "External identifier, typically assigned to a journal by a publisher,\narchive, or library to provide a unique identifier for the journal or\npublication."
+          long: "External identifier, typically assigned to a journal by a publisher,\narchive, or library to provide a unique identifier for the journal or\npublication.",
         },
         "The type of identifier (e.g.&nbsp;<code>nlm-ta</code> or\n<code>pmc</code>).",
         "The value for the identifier",
@@ -19818,56 +18957,61 @@ var require_yaml_intelligence_resources = __commonJS({
         "Files that specify the execution environment (e.g.&nbsp;renv.lock,\nrequirements.text, etc\u2026)",
         {
           short: "Unique label for code cell",
-          long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)"
+          long: "Unique label for code cell. Used when other code needs to refer to\nthe cell (e.g.&nbsp;for cross references <code>fig-samples</code> or\n<code>tbl-summary</code>)",
         },
         "Classes to apply to cell container",
         "Array of tags for notebook cell",
         {
           short: "Notebook cell identifier",
-          long: 'Notebook cell identifier. Note that if there is no cell\n<code>id</code> then <code>label</code> will be used as the cell\n<code>id</code> if it is present. See <a href="https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html" class="uri">https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html</a>\nfor additional details on cell ids.'
+          long: 'Notebook cell identifier. Note that if there is no cell\n<code>id</code> then <code>label</code> will be used as the cell\n<code>id</code> if it is present. See <a href="https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html" class="uri">https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html</a>\nfor additional details on cell ids.',
         },
         "nbconvert tag to export cell",
         {
           short: "Whether to cache a code chunk.",
-          long: "Whether to cache a code chunk. When evaluating code chunks for the\nsecond time, the cached chunks are skipped (unless they have been\nmodified), but the objects created in these chunks are loaded from\npreviously saved databases (<code>.rdb</code> and <code>.rdx</code>\nfiles), and these files are saved when a chunk is evaluated for the\nfirst time, or when cached files are not found (e.g., you may have\nremoved them by hand). Note that the filename consists of the chunk\nlabel with an MD5 digest of the R code and chunk options of the code\nchunk, which means any changes in the chunk will produce a different MD5\ndigest, and hence invalidate the cache."
+          long: "Whether to cache a code chunk. When evaluating code chunks for the\nsecond time, the cached chunks are skipped (unless they have been\nmodified), but the objects created in these chunks are loaded from\npreviously saved databases (<code>.rdb</code> and <code>.rdx</code>\nfiles), and these files are saved when a chunk is evaluated for the\nfirst time, or when cached files are not found (e.g., you may have\nremoved them by hand). Note that the filename consists of the chunk\nlabel with an MD5 digest of the R code and chunk options of the code\nchunk, which means any changes in the chunk will produce a different MD5\ndigest, and hence invalidate the cache.",
         },
         "A prefix to be used to generate the paths of cache files",
         {
           short: "Variable names to be saved in the cache database.",
-          long: "Variable names to be saved in the cache database. By default, all\nvariables created in the current chunks are identified and saved, but\nyou may want to manually specify the variables to be saved, because the\nautomatic detection of variables may not be robust, or you may want to\nsave only a subset of variables."
+          long: "Variable names to be saved in the cache database. By default, all\nvariables created in the current chunks are identified and saved, but\nyou may want to manually specify the variables to be saved, because the\nautomatic detection of variables may not be robust, or you may want to\nsave only a subset of variables.",
         },
         {
           short: "Variables names that are not created from the current chunk",
-          long: "Variables names that are not created from the current chunk.\nThis option is mainly for <code>autodep: true</code> to work more\nprecisely\u2014a chunk <code>B</code> depends on chunk <code>A</code> when\nany of <code>B</code>\u2019s global variables are <code>A</code>\u2019s local\nvariables. In case the automatic detection of global variables in a\nchunk fails, you may manually specify the names of global variables via\nthis option. In addition, <code>cache-globals: false</code> means\ndetecting all variables in a code chunk, no matter if they are global or\nlocal variables."
+          long: "Variables names that are not created from the current chunk.\nThis option is mainly for <code>autodep: true</code> to work more\nprecisely\u2014a chunk <code>B</code> depends on chunk <code>A</code> when\nany of <code>B</code>\u2019s global variables are <code>A</code>\u2019s local\nvariables. In case the automatic detection of global variables in a\nchunk fails, you may manually specify the names of global variables via\nthis option. In addition, <code>cache-globals: false</code> means\ndetecting all variables in a code chunk, no matter if they are global or\nlocal variables.",
         },
         {
-          short: "Whether to <code>lazyLoad()</code> or directly <code>load()</code>\nobjects",
-          long: 'Whether to <code>lazyLoad()</code> or directly <code>load()</code>\nobjects. For very large objects, lazyloading may not work, so\n<code>cache-lazy: false</code> may be desirable (see <a href="https://github.com/yihui/knitr/issues/572">#572</a>).'
+          short:
+            "Whether to <code>lazyLoad()</code> or directly <code>load()</code>\nobjects",
+          long: 'Whether to <code>lazyLoad()</code> or directly <code>load()</code>\nobjects. For very large objects, lazyloading may not work, so\n<code>cache-lazy: false</code> may be desirable (see <a href="https://github.com/yihui/knitr/issues/572">#572</a>).',
         },
         "Force rebuild of cache for chunk",
         "Prevent comment changes from invalidating the cache for a chunk",
         "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
         "Detect cache dependencies automatically via usage of global\nvariables",
         {
-          short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
-          long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
+          short:
+            "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
+          long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
         },
         {
           short: "Include cell source code in rendered output.",
-          long: "Include cell source code in rendered output."
+          long: "Include cell source code in rendered output.",
         },
         {
-          short: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
-          long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand."
+          short:
+            "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
+          long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
         },
         "Summary text to use for code blocks collapsed using\n<code>code-fold</code>",
         {
-          short: "Choose whether to <code>scroll</code> or <code>wrap</code> when code\nlines are too wide for their container.",
-          long: "Choose how to handle code overflow, when code lines are too wide for\ntheir container. One of:"
+          short:
+            "Choose whether to <code>scroll</code> or <code>wrap</code> when code\nlines are too wide for their container.",
+          long: "Choose how to handle code overflow, when code lines are too wide for\ntheir container. One of:",
         },
         {
-          short: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
-          long: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
+          short:
+            "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
+          long: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines).",
         },
         "Unique label for code listing (used in cross references)",
         "Caption for code listing",
@@ -19876,7 +19020,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Collapse all the source and output blocks from one code chunk into a\nsingle block",
         {
           short: "Whether to add the prompt characters in R code.",
-          long: 'Whether to add the prompt characters in R code. See\n<code>prompt</code> and <code>continue</code> on the help page\n<code>?base::options</code>. Note that adding prompts can make it\ndifficult for readers to copy R code from the output, so\n<code>prompt: false</code> may be a better choice. This option may not\nwork well when the <code>engine</code> is not <code>R</code> (<a href="https://github.com/yihui/knitr/issues/1274">#1274</a>).'
+          long: 'Whether to add the prompt characters in R code. See\n<code>prompt</code> and <code>continue</code> on the help page\n<code>?base::options</code>. Note that adding prompts can make it\ndifficult for readers to copy R code from the output, so\n<code>prompt: false</code> may be a better choice. This option may not\nwork well when the <code>engine</code> is not <code>R</code> (<a href="https://github.com/yihui/knitr/issues/1274">#1274</a>).',
         },
         "Whether to syntax highlight the source code",
         "Class name(s) for source code blocks",
@@ -19890,31 +19034,32 @@ var require_yaml_intelligence_resources = __commonJS({
         "Alternative text to be used in the <code>alt</code> attribute of HTML\nimages.",
         "LaTeX environment for figure output",
         {
-          short: "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",
-          long: 'LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.\nComputational figure output that is accompanied by the code that\nproduced it is given a default value of <code>fig-pos="H"</code> (so\nthat the code and figure are not inordinately separated).\nIf <code>fig-pos</code> is <code>false</code>, then we don\u2019t use any\nfigure position specifier, which is sometimes necessary with custom\nfigure environments (such as <code>sidewaysfigure</code>).'
+          short:
+            "LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.",
+          long: 'LaTeX figure position arrangement to be used in\n<code>\\begin{figure}[]</code>.\nComputational figure output that is accompanied by the code that\nproduced it is given a default value of <code>fig-pos="H"</code> (so\nthat the code and figure are not inordinately separated).\nIf <code>fig-pos</code> is <code>false</code>, then we don\u2019t use any\nfigure position specifier, which is sometimes necessary with custom\nfigure environments (such as <code>sidewaysfigure</code>).',
         },
         {
           short: "A short caption (only used in LaTeX output)",
-          long: "A short caption (only used in LaTeX output). A short caption is\ninserted in <code>\\caption[]</code>, and usually displayed in the \u201CList\nof Figures\u201D of a PDF document."
+          long: "A short caption (only used in LaTeX output). A short caption is\ninserted in <code>\\caption[]</code>, and usually displayed in the \u201CList\nof Figures\u201D of a PDF document.",
         },
         "Default output format for figures (<code>retina</code>,\n<code>png</code>, <code>jpeg</code>, <code>svg</code>, or\n<code>pdf</code>)",
         "Default DPI for figures",
         "The aspect ratio of the plot, i.e., the ratio of height/width. When\n<code>fig-asp</code> is specified, the height of a plot (the option\n<code>fig-height</code>) is calculated from\n<code>fig-width * fig-asp</code>.",
         {
           short: "Width of plot in the output document",
-          long: "Width of the plot in the output document, which can be different from\nits physical <code>fig-width</code>, i.e., plots can be scaled in the\noutput document. When used without a unit, the unit is assumed to be\npixels. However, any of the following unit identifiers can be used: px,\ncm, mm, in, inch and %, for example, <code>3in</code>, <code>8cm</code>,\n<code>300px</code> or <code>50%</code>."
+          long: "Width of the plot in the output document, which can be different from\nits physical <code>fig-width</code>, i.e., plots can be scaled in the\noutput document. When used without a unit, the unit is assumed to be\npixels. However, any of the following unit identifiers can be used: px,\ncm, mm, in, inch and %, for example, <code>3in</code>, <code>8cm</code>,\n<code>300px</code> or <code>50%</code>.",
         },
         {
           short: "Height of plot in the output document",
-          long: "Height of the plot in the output document, which can be different\nfrom its physical <code>fig-height</code>, i.e., plots can be scaled in\nthe output document. Depending on the output format, this option can\ntake special values. For example, for LaTeX output, it can be\n<code>3in</code>, or <code>8cm</code>; for HTML, it can be\n<code>300px</code>."
+          long: "Height of the plot in the output document, which can be different\nfrom its physical <code>fig-height</code>, i.e., plots can be scaled in\nthe output document. Depending on the output format, this option can\ntake special values. For example, for LaTeX output, it can be\n<code>3in</code>, or <code>8cm</code>; for HTML, it can be\n<code>300px</code>.",
         },
         {
           short: "How plots in chunks should be kept.",
-          long: "How plots in chunks should be kept. Possible values are as\nfollows:"
+          long: "How plots in chunks should be kept. Possible values are as\nfollows:",
         },
         {
           short: "How to show/arrange the plots",
-          long: "How to show/arrange the plots. Possible values are as follows:"
+          long: "How to show/arrange the plots. Possible values are as follows:",
         },
         "Additional raw LaTeX or HTML options to be applied to figures",
         "Externalize tikz graphics (pre-compile to PDF)",
@@ -19922,19 +19067,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Time interval (number of seconds) between animation frames.",
         {
           short: "Extra options for animations",
-          long: 'Extra options for animations; see the documentation of the LaTeX <a href="http://ctan.org/pkg/animate"><strong>animate</strong>\npackage.</a>'
+          long: 'Extra options for animations; see the documentation of the LaTeX <a href="http://ctan.org/pkg/animate"><strong>animate</strong>\npackage.</a>',
         },
         {
           short: "Hook function to create animations in HTML output",
-          long: 'Hook function to create animations in HTML output.\nThe default hook (<code>ffmpeg</code>) uses FFmpeg to convert images\nto a WebM video.\nAnother hook function is <code>gifski</code> based on the <a href="https://cran.r-project.org/package=gifski"><strong>gifski</strong></a>\npackage to create GIF animations.'
+          long: 'Hook function to create animations in HTML output.\nThe default hook (<code>ffmpeg</code>) uses FFmpeg to convert images\nto a WebM video.\nAnother hook function is <code>gifski</code> based on the <a href="https://cran.r-project.org/package=gifski"><strong>gifski</strong></a>\npackage to create GIF animations.',
         },
         "One or more paths of child documents to be knitted and input into the\nmain document.",
         "File containing code to execute for this chunk",
         "String containing code to execute for this chunk",
         "Include chunk when extracting code with\n<code>knitr::purl()</code>",
         {
-          short: "2d-array of widths where the first dimension specifies columns and\nthe second rows.",
-          long: "2d-array of widths where the first dimension specifies columns and\nthe second rows.\nFor example, to layout the first two output blocks side-by-side on\nthe top with the third block spanning the full width below, use\n<code>[[3,3], [1]]</code>.\nUse negative values to create margin. For example, to create space\nbetween the output blocks in the top row of the previous example, use\n<code>[[3,-1, 3], [1]]</code>."
+          short:
+            "2d-array of widths where the first dimension specifies columns and\nthe second rows.",
+          long: "2d-array of widths where the first dimension specifies columns and\nthe second rows.\nFor example, to layout the first two output blocks side-by-side on\nthe top with the third block spanning the full width below, use\n<code>[[3,3], [1]]</code>.\nUse negative values to create margin. For example, to create space\nbetween the output blocks in the top row of the previous example, use\n<code>[[3,-1, 3], [1]]</code>.",
         },
         "Layout output blocks into columns",
         "Layout output blocks into rows",
@@ -19942,15 +19088,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "Vertical alignment for layout content (<code>default</code>,\n<code>top</code>, <code>center</code>, or <code>bottom</code>)",
         {
           short: "Page column for output",
-          long: '<a href="https://quarto.org/docs/authoring/article-layout.html">Page\ncolumn</a> for output'
+          long: '<a href="https://quarto.org/docs/authoring/article-layout.html">Page\ncolumn</a> for output',
         },
         {
           short: "Page column for figure output",
-          long: '<a href="https://quarto.org/docs/authoring/article-layout.html">Page\ncolumn</a> for figure output'
+          long: '<a href="https://quarto.org/docs/authoring/article-layout.html">Page\ncolumn</a> for figure output',
         },
         {
           short: "Page column for table output",
-          long: '<a href="https://quarto.org/docs/authoring/article-layout.html">Page\ncolumn</a> for table output'
+          long: '<a href="https://quarto.org/docs/authoring/article-layout.html">Page\ncolumn</a> for table output',
         },
         "Where to place figure and table captions (<code>top</code>,\n<code>bottom</code>, or <code>margin</code>)",
         "Where to place figure captions (<code>top</code>,\n<code>bottom</code>, or <code>margin</code>)",
@@ -19959,28 +19105,30 @@ var require_yaml_intelligence_resources = __commonJS({
         "Table subcaptions",
         {
           short: "Apply explicit table column widths",
-          long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than <code>columns</code> characters wide (72 by\ndefault).\nSome formats (e.g.&nbsp;HTML) do an excellent job automatically sizing\ntable columns and so don\u2019t benefit much from column width\nspecifications. Other formats (e.g.&nbsp;LaTeX) require table column sizes in\norder to correctly flow longer cell content (this is a major reason why\ntables &gt; 72 columns wide are assigned explicit widths by Pandoc).\nThis can be specified as:"
+          long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than <code>columns</code> characters wide (72 by\ndefault).\nSome formats (e.g.&nbsp;HTML) do an excellent job automatically sizing\ntable columns and so don\u2019t benefit much from column width\nspecifications. Other formats (e.g.&nbsp;LaTeX) require table column sizes in\norder to correctly flow longer cell content (this is a major reason why\ntables &gt; 72 columns wide are assigned explicit widths by Pandoc).\nThis can be specified as:",
         },
         {
-          short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
-          long: "Include the results of executing the code in the output. Possible\nvalues:"
+          short:
+            "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
+          long: "Include the results of executing the code in the output. Possible\nvalues:",
         },
         "Include warnings in rendered output.",
         "Include errors in the output (note that this implies that errors\nexecuting code will not halt processing of the document).",
         "Catch all for preventing any output (code or results) from being\nincluded in output.",
         "Panel type for cell output (<code>tabset</code>, <code>input</code>,\n<code>sidebar</code>, <code>fill</code>, <code>center</code>)",
         {
-          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
-          long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+          short:
+            "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
+          long: "Location of output relative to the code that generated it. The\npossible values are as follows:",
         },
         "Include messages in rendered output.",
         {
           short: "How to display text results",
-          long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:"
+          long: "How to display text results. Note that this option only applies to\nnormal text output (not warnings, messages, or errors). The possible\nvalues are as follows:",
         },
         {
           short: "Prefix to be added before each line of text output.",
-          long: "Prefix to be added before each line of text output. By default, the\ntext output is commented out by <code>##</code>, so if readers want to\ncopy and run the source code from the output document, they can select\nand copy everything from the chunk, since the text output is masked in\ncomments (and will be ignored when running the copied text). Set\n<code>comment: ''</code> to remove the default <code>##</code>."
+          long: "Prefix to be added before each line of text output. By default, the\ntext output is commented out by <code>##</code>, so if readers want to\ncopy and run the source code from the output document, they can select\nand copy everything from the chunk, since the text output is masked in\ncomments (and will be ignored when running the copied text). Set\n<code>comment: ''</code> to remove the default <code>##</code>.",
         },
         "Class name(s) for text/console output",
         "Attribute(s) for text/console output",
@@ -19991,8 +19139,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Class name(s) for error output",
         "Attribute(s) for error output",
         {
-          short: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
-          long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:"
+          short:
+            "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.",
+          long: "Specifies that the page is an \u2018about\u2019 page and which template to use\nwhen laying out the page.\nThe allowed values are either:",
         },
         "Document title",
         "Identifies the subtitle of the document.",
@@ -20000,20 +19149,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "Document date modified",
         "Author or authors of the document",
         {
-          short: "The list of organizations with which contributors are affiliated.",
-          long: 'The list of organizations with which contributors are affiliated.\nEach institution is added as an [<code>&lt;aff&gt;</code>] element to\nthe author\u2019s contrib-group. See the Pandoc <a href="https://pandoc.org/jats.html">JATS documentation</a> for details\non <code>affiliation</code> fields.'
+          short:
+            "The list of organizations with which contributors are affiliated.",
+          long: 'The list of organizations with which contributors are affiliated.\nEach institution is added as an [<code>&lt;aff&gt;</code>] element to\nthe author\u2019s contrib-group. See the Pandoc <a href="https://pandoc.org/jats.html">JATS documentation</a> for details\non <code>affiliation</code> fields.',
         },
         {
           short: "Licensing and copyright information.",
-          long: 'Licensing and copyright information. This information is rendered via\nthe <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/permissions.html"><code>&lt;permissions&gt;</code></a>\nelement. The variables <code>type</code>, <code>link</code>, and\n<code>text</code> should always be used together. See the Pandoc <a href="https://pandoc.org/jats.html">JATS documentation</a> for details\non <code>copyright</code> fields.'
+          long: 'Licensing and copyright information. This information is rendered via\nthe <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/permissions.html"><code>&lt;permissions&gt;</code></a>\nelement. The variables <code>type</code>, <code>link</code>, and\n<code>text</code> should always be used together. See the Pandoc <a href="https://pandoc.org/jats.html">JATS documentation</a> for details\non <code>copyright</code> fields.',
         },
         {
-          short: "Information concerning the article that identifies or describes\nit.",
-          long: 'Information concerning the article that identifies or describes it.\nThe key-value pairs within this map are typically used within the <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html"><code>&lt;article-meta&gt;</code></a>\nelement. See the Pandoc <a href="https://pandoc.org/jats.html">JATS\ndocumentation</a> for details on <code>article</code> fields.'
+          short:
+            "Information concerning the article that identifies or describes\nit.",
+          long: 'Information concerning the article that identifies or describes it.\nThe key-value pairs within this map are typically used within the <a href="https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html"><code>&lt;article-meta&gt;</code></a>\nelement. See the Pandoc <a href="https://pandoc.org/jats.html">JATS\ndocumentation</a> for details on <code>article</code> fields.',
         },
         {
-          short: "Information on the journal in which the article is published.",
-          long: 'Information on the journal in which the article is published. See the\nPandoc <a href="https://pandoc.org/jats.html">JATS documentation</a> for\ndetails on <code>journal</code> fields.'
+          short:
+            "Information on the journal in which the article is published.",
+          long: 'Information on the journal in which the article is published. See the\nPandoc <a href="https://pandoc.org/jats.html">JATS documentation</a> for\ndetails on <code>journal</code> fields.',
         },
         "Author affiliations for the presentation.",
         "Summary of document",
@@ -20025,70 +19177,76 @@ var require_yaml_intelligence_resources = __commonJS({
         "Order for document when included in a website automatic sidebar\nmenu.",
         {
           short: "Citation information for the document itself.",
-          long: 'Citation information for the document itself specified as <a href="https://docs.citationstyles.org/en/stable/specification.html">CSL</a>\nYAML in the document front matter.\nFor more on supported options, see <a href="https://quarto.org/docs/reference/metadata/citation.html">Citation\nMetadata</a>.'
+          long: 'Citation information for the document itself specified as <a href="https://docs.citationstyles.org/en/stable/specification.html">CSL</a>\nYAML in the document front matter.\nFor more on supported options, see <a href="https://quarto.org/docs/reference/metadata/citation.html">Citation\nMetadata</a>.',
         },
         {
           short: "Enable a code copy icon for code blocks.",
-          long: "Enable a code copy icon for code blocks."
+          long: "Enable a code copy icon for code blocks.",
         },
         {
-          short: "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
-          long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>.'
+          short:
+            "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
+          long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>.',
         },
         {
           short: "The style to use when displaying code annotations",
-          long: "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations."
+          long: "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations.",
         },
         {
           short: "Include a code tools menu (for hiding and showing code).",
-          long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearance of code tools."
+          long: "Include a code tools menu (for hiding and showing code). Use\n<code>true</code> or <code>false</code> to enable or disable the\nstandard code tools menu. Specify sub-properties <code>source</code>,\n<code>toggle</code>, and <code>caption</code> to customize the behavior\nand appearance of code tools.",
         },
         {
           short: "Show a thick left border on code blocks.",
-          long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder."
+          long: "Specifies to apply a left border on code blocks. Provide a hex color\nto specify that the border is enabled as well as the color of the\nborder.",
         },
         {
           short: "Show a background color for code blocks.",
-          long: "Specifies to apply a background color on code blocks. Provide a hex\ncolor to specify that the background color is enabled as well as the\ncolor of the background."
+          long: "Specifies to apply a background color on code blocks. Provide a hex\ncolor to specify that the background color is enabled as well as the\ncolor of the background.",
         },
         {
-          short: "Specifies the coloring style to be used in highlighted source\ncode.",
-          long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style."
+          short:
+            "Specifies the coloring style to be used in highlighted source\ncode.",
+          long: "Specifies the coloring style to be used in highlighted source\ncode.\nInstead of a <em>STYLE</em> name, a JSON file with extension\n<code>.theme</code> may be supplied. This will be parsed as a KDE syntax\nhighlighting theme and (if valid) used as the highlighting style.",
         },
         "KDE language syntax definition file (XML)",
         "KDE language syntax definition files (XML)",
         {
           short: "Use the listings package for LaTeX code blocks.",
-          long: 'Use the <code>listings</code> package for LaTeX code blocks. The\npackage does not support multi-byte encoding for source code. To handle\nUTF-8 you would need to use a custom template. This issue is fully\ndocumented here: <a href="https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue">Encoding\nissue with the listings package</a>'
+          long: 'Use the <code>listings</code> package for LaTeX code blocks. The\npackage does not support multi-byte encoding for source code. To handle\nUTF-8 you would need to use a custom template. This issue is fully\ndocumented here: <a href="https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue">Encoding\nissue with the listings package</a>',
         },
         "Specify classes to use for all indented code blocks",
         "Sets the CSS <code>color</code> property.",
         {
           short: "Sets the color of hyperlinks in the document.",
-          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.'
+          long: 'For HTML output, sets the CSS <code>color</code> property on all\nlinks.\nFor LaTeX output, The color used for internal links using color\noptions allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.\nFor ConTeXt output, sets the color for both external links and links\nwithin the document.',
         },
         "Sets the CSS <code>background-color</code> property on code elements\nand adds extra padding.",
         "Sets the CSS <code>background-color</code> property on the html\nelement.",
         {
-          short: "The color used for external links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for external links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short:
+            "The color used for external links using color options allowed by\n<code>xcolor</code>",
+          long: 'The color used for external links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.',
         },
         {
-          short: "The color used for citation links using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for citation links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short:
+            "The color used for citation links using color options allowed by\n<code>xcolor</code>",
+          long: 'The color used for citation links using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.',
         },
         {
-          short: "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
-          long: 'The color used for linked URLs using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short:
+            "The color used for linked URLs using color options allowed by\n<code>xcolor</code>",
+          long: 'The color used for linked URLs using color options allowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.',
         },
         {
-          short: "The color used for links in the Table of Contents using color options\nallowed by <code>xcolor</code>",
-          long: 'The color used for links in the Table of Contents using color options\nallowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.'
+          short:
+            "The color used for links in the Table of Contents using color options\nallowed by <code>xcolor</code>",
+          long: 'The color used for links in the Table of Contents using color options\nallowed by <a href="https://ctan.org/pkg/xcolor"><code>xcolor</code></a>, including\nthe <code>dvipsnames</code>, <code>svgnames</code>, and\n<code>x11names</code> lists.',
         },
         "Add color to link text, automatically enabled if any of\n<code>linkcolor</code>, <code>filecolor</code>, <code>citecolor</code>,\n<code>urlcolor</code>, or <code>toccolor</code> are set.",
         {
           short: "Color for links to other content within the document.",
-          long: 'Color for links to other content within the document.\nSee <a href="https://wiki.contextgarden.net/Color">ConTeXt Color</a>\nfor additional information.'
+          long: 'Color for links to other content within the document.\nSee <a href="https://wiki.contextgarden.net/Color">ConTeXt Color</a>\nfor additional information.',
         },
         "Configuration for document commenting.",
         "Configuration for crossref labels and prefixes.",
@@ -20163,7 +19321,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The subject term (defined by the schema).",
         {
           short: "Text describing the specialized type of this publication.",
-          long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.'
+          long: 'Text describing the specialized type of this publication.\nAn informative registry of specialized EPUB Publication types for use\nwith this element is maintained in the <a href="https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry">TypesRegistry</a>,\nbut Authors may use any text string as a value.',
         },
         "Text describing the format of this publication.",
         "Text describing the relation of this publication.",
@@ -20177,17 +19335,19 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether this book provides embedded fonts in a flowing or fixed\nlayout book.",
         "The scroll direction for this book (<code>vertical</code>,\n<code>horizontal</code>, or <code>default</code>)",
         {
-          short: 'Look in the specified XML file for metadata for the EPUB. The file\nshould contain a series of <a href="https://www.dublincore.org/specifications/dublin-core/dces/">Dublin\nCore elements</a>.',
-          long: 'Look in the specified XML file for metadata for the EPUB. The file\nshould contain a series of <a href="https://www.dublincore.org/specifications/dublin-core/dces/">Dublin\nCore elements</a>. For example:'
+          short:
+            'Look in the specified XML file for metadata for the EPUB. The file\nshould contain a series of <a href="https://www.dublincore.org/specifications/dublin-core/dces/">Dublin\nCore elements</a>.',
+          long: 'Look in the specified XML file for metadata for the EPUB. The file\nshould contain a series of <a href="https://www.dublincore.org/specifications/dublin-core/dces/">Dublin\nCore elements</a>. For example:',
         },
         "Specify the subdirectory in the OCF container that is to hold the\nEPUB-specific contents. The default is <code>EPUB</code>. To put the\nEPUB contents in the top level, use an empty string.",
         {
           short: "Embed the specified fonts in the EPUB",
-          long: "Embed the specified fonts in the EPUB. Wildcards can also be used:\nfor example, <code>DejaVuSans-*.ttf</code>. To use the embedded fonts,\nyou will need to add declarations like the following to your CSS:"
+          long: "Embed the specified fonts in the EPUB. Wildcards can also be used:\nfor example, <code>DejaVuSans-*.ttf</code>. To use the embedded fonts,\nyou will need to add declarations like the following to your CSS:",
         },
         {
-          short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
-          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
+          short:
+            "Specify the heading level at which to split the EPUB into separate\nchapter files.",
+          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3.",
         },
         "Use the specified image as the EPUB cover. It is recommended that the\nimage be less than 1000px in width and height.",
         "If false, disables the generation of a title page.",
@@ -20201,133 +19361,151 @@ var require_yaml_intelligence_resources = __commonJS({
         "Knitr chunk options.",
         {
           short: "Cache results of computations.",
-          long: 'Cache results of computations (using the <a href="https://yihui.org/knitr/demo/cache/">knitr cache</a> for R\ndocuments, and <a href="https://jupyter-cache.readthedocs.io/en/latest/">Jupyter Cache</a>\nfor Jupyter documents).\nNote that cache invalidation is triggered by changes in chunk source\ncode (or other cache attributes you\u2019ve defined).'
+          long: 'Cache results of computations (using the <a href="https://yihui.org/knitr/demo/cache/">knitr cache</a> for R\ndocuments, and <a href="https://jupyter-cache.readthedocs.io/en/latest/">Jupyter Cache</a>\nfor Jupyter documents).\nNote that cache invalidation is triggered by changes in chunk source\ncode (or other cache attributes you\u2019ve defined).',
         },
         {
           short: "Re-use previous computational output when rendering",
-          long: "Control the re-use of previous computational output when\nrendering."
+          long: "Control the re-use of previous computational output when\nrendering.",
         },
         "Document server",
         "Type of server to run behind the document\n(e.g.&nbsp;<code>shiny</code>)",
         "OJS variables to export to server.",
         "Server reactive values to import into OJS.",
         {
-          short: "Run Jupyter kernels within a peristent daemon (to mitigate kernel\nstartup time).",
-          long: "Run Jupyter kernels within a peristent daemon (to mitigate kernel\nstartup time). By default a daemon with a timeout of 300 seconds will be\nused. Set <code>daemon</code> to another timeout value or to\n<code>false</code> to disable it altogether."
+          short:
+            "Run Jupyter kernels within a peristent daemon (to mitigate kernel\nstartup time).",
+          long: "Run Jupyter kernels within a peristent daemon (to mitigate kernel\nstartup time). By default a daemon with a timeout of 300 seconds will be\nused. Set <code>daemon</code> to another timeout value or to\n<code>false</code> to disable it altogether.",
         },
         "Restart any running Jupyter daemon before rendering.",
         "Enable code cell execution.",
         "Execute code cell execution in Jupyter notebooks.",
         "Show code-execution related debug information.",
         {
-          short: "Default width for figures generated by Matplotlib or R graphics",
-          long: "Default width for figures generated by Matplotlib or R graphics.\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with document or\nproject metadata."
+          short:
+            "Default width for figures generated by Matplotlib or R graphics",
+          long: "Default width for figures generated by Matplotlib or R graphics.\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with document or\nproject metadata.",
         },
         {
-          short: "Default height for figures generated by Matplotlib or R graphics",
-          long: "Default height for figures generated by Matplotlib or R graphics.\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with document or\nproject metadata."
+          short:
+            "Default height for figures generated by Matplotlib or R graphics",
+          long: "Default height for figures generated by Matplotlib or R graphics.\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with document or\nproject metadata.",
         },
         "Default format for figures generated by Matplotlib or R graphics\n(<code>retina</code>, <code>png</code>, <code>jpeg</code>,\n<code>svg</code>, or <code>pdf</code>)",
         {
-          short: "Default DPI for figures generated by Matplotlib or R graphics",
-          long: "Default DPI for figures generated by Matplotlib or R graphics.\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with document or\nproject metadata."
+          short:
+            "Default DPI for figures generated by Matplotlib or R graphics",
+          long: "Default DPI for figures generated by Matplotlib or R graphics.\nNote that with the Jupyter engine, this option has no effect when\nprovided at the cell level; it can only be provided with document or\nproject metadata.",
         },
         {
-          short: "The aspect ratio of the plot, i.e., the ratio of height/width.",
-          long: "The aspect ratio of the plot, i.e., the ratio of height/width. When\n<code>fig-asp</code> is specified, the height of a plot (the option\n<code>fig-height</code>) is calculated from\n<code>fig-width * fig-asp</code>.\nThe <code>fig-asp</code> option is only available within the knitr\nengine."
+          short:
+            "The aspect ratio of the plot, i.e., the ratio of height/width.",
+          long: "The aspect ratio of the plot, i.e., the ratio of height/width. When\n<code>fig-asp</code> is specified, the height of a plot (the option\n<code>fig-height</code>) is calculated from\n<code>fig-width * fig-asp</code>.\nThe <code>fig-asp</code> option is only available within the knitr\nengine.",
         },
         "Whether to make images in this document responsive.",
         {
           short: "Sets the main font for the document.",
-          long: 'For HTML output, sets the CSS <code>font-family</code> on the HTML\nelement.\nFor LaTeX output, the main font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the main font family. Use the name of any system\nfont. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.'
+          long: 'For HTML output, sets the CSS <code>font-family</code> on the HTML\nelement.\nFor LaTeX output, the main font family for use with\n<code>xelatex</code> or <code>lualatex</code>. Takes the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the main font family. Use the name of any system\nfont. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.',
         },
         {
           short: "Sets the font used for when displaying code.",
-          long: 'For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.'
+          long: 'For HTML output, sets the CSS font-family property on code\nelements.\nFor PowerPoint output, sets the font used for code.\nFor LaTeX output, the monospace font family for use with\n<code>xelatex</code> or <code>lualatex</code>: take the name of any\nsystem font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.\nFor ConTeXt output, the monspace font family. Use the name of any\nsystem font. See <a href="https://wiki.contextgarden.net/Fonts">ConTeXt\nFonts</a> for more information.',
         },
         {
           short: "Sets the main font size for the document.",
-          long: "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text."
+          long: "For HTML output, sets the base CSS <code>font-size</code>\nproperty.\nFor LaTeX and ConTeXt output, sets the font size for the document\nbody text.",
         },
         {
-          short: "Allows font encoding to be specified through <code>fontenc</code>\npackage.",
-          long: 'Allows font encoding to be specified through <a href="https://www.ctan.org/pkg/fontenc"><code>fontenc</code></a>\npackage.\nSee <a href="https://ctan.org/pkg/encguide">LaTeX Font Encodings\nGuide</a> for addition information on font encoding.'
+          short:
+            "Allows font encoding to be specified through <code>fontenc</code>\npackage.",
+          long: 'Allows font encoding to be specified through <a href="https://www.ctan.org/pkg/fontenc"><code>fontenc</code></a>\npackage.\nSee <a href="https://ctan.org/pkg/encguide">LaTeX Font Encodings\nGuide</a> for addition information on font encoding.',
         },
         {
-          short: "Font package to use when compiling a PDF with the\n<code>pdflatex</code> <code>pdf-engine</code>.",
-          long: 'Font package to use when compiling a PDf with the\n<code>pdflatex</code> <code>pdf-engine</code>.\nSee <a href="https://tug.org/FontCatalogue/">The LaTeX Font\nCatalogue</a> for a summary of font options available.\nFor groff (<code>ms</code>) files, the font family for example,\n<code>T</code> or <code>P</code>.'
+          short:
+            "Font package to use when compiling a PDF with the\n<code>pdflatex</code> <code>pdf-engine</code>.",
+          long: 'Font package to use when compiling a PDf with the\n<code>pdflatex</code> <code>pdf-engine</code>.\nSee <a href="https://tug.org/FontCatalogue/">The LaTeX Font\nCatalogue</a> for a summary of font options available.\nFor groff (<code>ms</code>) files, the font family for example,\n<code>T</code> or <code>P</code>.',
         },
         {
           short: "Options for the package used as <code>fontfamily</code>.",
-          long: 'Options for the package used as <code>fontfamily</code>.\nFor example, to use the Libertine font with proportional lowercase\n(old-style) figures through the <a href="https://ctan.org/pkg/libertinus"><code>libertinus</code></a>\npackage:'
+          long: 'Options for the package used as <code>fontfamily</code>.\nFor example, to use the Libertine font with proportional lowercase\n(old-style) figures through the <a href="https://ctan.org/pkg/libertinus"><code>libertinus</code></a>\npackage:',
         },
         {
-          short: "The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
+          short:
+            "The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The sans serif font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.',
         },
         {
-          short: "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.'
+          short:
+            "The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The math font family for use with <code>xelatex</code> or\n<code>lualatex</code>. Takes the name of any system font, using the <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>\npackage.',
         },
         {
-          short: "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code> using the <a href="https://ctan.org/pkg/xecjk"><code>xecjk</code></a> package.'
+          short:
+            "The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The CJK main font family for use with <code>xelatex</code> or\n<code>lualatex</code> using the <a href="https://ctan.org/pkg/xecjk"><code>xecjk</code></a> package.',
         },
         {
-          short: "The main font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The main font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:'
+          short:
+            "The main font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The main font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.\nFor example, to use the <a href="http://www.gust.org.pl/projects/e-foundry/tex-gyre">TeX Gyre</a>\nversion of Palatino with lowercase figures:',
         },
         {
-          short: "The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+          short:
+            "The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The sans serif font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.',
         },
         {
-          short: "The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+          short:
+            "The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The monospace font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.',
         },
         {
-          short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+          short:
+            "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.',
         },
         {
-          short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
-          long: 'The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+          short:
+            "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
+          long: 'The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.',
         },
         {
           short: "Options to pass to the microtype package.",
-          long: 'Options to pass to the <a href="https://ctan.org/pkg/microtype">microtype</a> package.'
+          long: 'Options to pass to the <a href="https://ctan.org/pkg/microtype">microtype</a> package.',
         },
         "The point size, for example, <code>10p</code>.",
         "The line height, for example, <code>12p</code>.",
         {
           short: "Sets the line height or spacing for text in the document.",
-          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.'
+          long: 'For HTML output sets the CSS <code>line-height</code> property on the\nhtml element, which is preferred to be unitless.\nFor LaTeX output, adjusts line spacing using the <a href="https://ctan.org/pkg/setspace">setspace</a> package, e.g.&nbsp;1.25,\n1.5.',
         },
         "Adjusts line spacing using the <code>\\setupinterlinespace</code>\ncommand.",
         "The typeface style for links in the document.",
         {
-          short: "Set the spacing between paragraphs, for example <code>none</code>,\n`small.",
-          long: 'Set the spacing between paragraphs, for example <code>none</code>,\n<code>small</code> using the <a href="https://wiki.contextgarden.net/Command/setupwhitespace"><code>setupwhitespace</code></a>\ncommand.'
+          short:
+            "Set the spacing between paragraphs, for example <code>none</code>,\n`small.",
+          long: 'Set the spacing between paragraphs, for example <code>none</code>,\n<code>small</code> using the <a href="https://wiki.contextgarden.net/Command/setupwhitespace"><code>setupwhitespace</code></a>\ncommand.',
         },
         "Enables a hover popup for footnotes that shows the footnote\ncontents.",
         "Causes links to be printed as footnotes.",
         {
           short: "Location for footnotes and references",
-          long: "Specify location for footnotes. Also controls the location of\nreferences, if <code>reference-links</code> is set."
+          long: "Specify location for footnotes. Also controls the location of\nreferences, if <code>reference-links</code> is set.",
         },
         {
           short: "Set the indentation of paragraphs with one or more options.",
-          long: 'Set the indentation of paragraphs with one or more options.\nSee <a href="https://wiki.contextgarden.net/Indentation">ConTeXt\nIndentation</a> for additional information.'
+          long: 'Set the indentation of paragraphs with one or more options.\nSee <a href="https://wiki.contextgarden.net/Indentation">ConTeXt\nIndentation</a> for additional information.',
         },
         "Adjusts text to the left, right, center, or both margins\n(<code>l</code>, <code>r</code>, <code>c</code>, or <code>b</code>).",
         {
-          short: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens.",
-          long: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens if it is necessary to do so to lay out words on a line\nwithout excessive spacing"
+          short:
+            "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens.",
+          long: "Whether to hyphenate text at line breaks even in words that do not\ncontain hyphens if it is necessary to do so to lay out words on a line\nwithout excessive spacing",
         },
         "If true, tables are formatted as RST list tables.",
         {
-          short: "Specify the heading level at which to split the EPUB into separate\nchapter files.",
-          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
+          short:
+            "Specify the heading level at which to split the EPUB into separate\nchapter files.",
+          long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3.",
         },
         "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
         "Unique identifier assigned to an award, contract, or grant.",
@@ -20337,12 +19515,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text describing the source of the funding.",
         {
           short: "Abbreviation for country where source of grant is located.",
-          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used.",
         },
         "The text describing the source of the funding.",
         {
           short: "Abbreviation for country where source of grant is located.",
-          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used.",
         },
         "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
         "The id of an author or affiliation in the document metadata.",
@@ -20365,12 +19543,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text describing the source of the funding.",
         {
           short: "Abbreviation for country where source of grant is located.",
-          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used.",
         },
         "The text describing the source of the funding.",
         {
           short: "Abbreviation for country where source of grant is located.",
-          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used.",
         },
         "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
         "The id of an author or affiliation in the document metadata.",
@@ -20388,11 +19566,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
         {
           short: "Format to write to (e.g.&nbsp;html)",
-          long: "Format to write to. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;gfm+footnotes)"
+          long: "Format to write to. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;gfm+footnotes)",
         },
         {
           short: "Format to write to (e.g.&nbsp;html)",
-          long: "Format to write to. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;gfm+footnotes)"
+          long: "Format to write to. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;gfm+footnotes)",
         },
         "Input file to read from",
         "Input files to read from",
@@ -20409,17 +19587,19 @@ var require_yaml_intelligence_resources = __commonJS({
         "Level of program output (<code>INFO</code>, <code>ERROR</code>, or\n<code>WARNING</code>)",
         "Write log messages in machine-readable JSON format to FILE.",
         {
-          short: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
-          long: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature."
+          short:
+            "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
+          long: "Specify what to do with insertions, deletions, and comments produced\nby the MS Word \u201CTrack Changes\u201D feature.",
         },
         {
           short: "Embed the input file source code in the generated HTML",
-          long: "Embed the input file source code in the generated HTML. A hidden div\nwith class <code>quarto-embedded-source-code</code> will be added to the\ndocument. This option is not normally used directly but rather in the\nimplementation of the <code>code-tools</code> option."
+          long: "Embed the input file source code in the generated HTML. A hidden div\nwith class <code>quarto-embedded-source-code</code> will be added to the\ndocument. This option is not normally used directly but rather in the\nimplementation of the <code>code-tools</code> option.",
         },
         "Keep hidden source code and output (marked with class\n<code>.hidden</code>)",
         {
-          short: "Generate HTML output (if necessary) even when targeting markdown.",
-          long: "Generate HTML output (if necessary) even when targeting markdown.\nEnables the embedding of more sophisticated output (e.g.&nbsp;Jupyter\nwidgets) in markdown."
+          short:
+            "Generate HTML output (if necessary) even when targeting markdown.",
+          long: "Generate HTML output (if necessary) even when targeting markdown.\nEnables the embedding of more sophisticated output (e.g.&nbsp;Jupyter\nwidgets) in markdown.",
         },
         "Indicates that computational output should not be written within\ndivs. This is necessary for some formats (e.g.&nbsp;<code>pptx</code>) to\nproperly layout figures.",
         "Disable merging of string based and file based includes (some\nformats, specifically ePub, do not correctly handle this merging)",
@@ -20432,35 +19612,37 @@ var require_yaml_intelligence_resources = __commonJS({
         "Path (or glob) to files to publish with this document.",
         {
           short: "Text to be in a running header.",
-          long: "Text to be in a running header.\nProvide a single option or up to four options for different\nplacements (odd page inner, odd page outer, even page innner, even page\nouter)."
+          long: "Text to be in a running header.\nProvide a single option or up to four options for different\nplacements (odd page inner, odd page outer, even page innner, even page\nouter).",
         },
         {
           short: "Text to be in a running footer.",
-          long: 'Text to be in a running footer.\nProvide a single option or up to four options for different\nplacements (odd page inner, odd page outer, even page innner, even page\nouter).\nSee <a href="https://wiki.contextgarden.net/Headers_and_Footers">ConTeXt\nHeaders and Footers</a> for more information.'
+          long: 'Text to be in a running footer.\nProvide a single option or up to four options for different\nplacements (odd page inner, odd page outer, even page innner, even page\nouter).\nSee <a href="https://wiki.contextgarden.net/Headers_and_Footers">ConTeXt\nHeaders and Footers</a> for more information.',
         },
         "Whether to include all source documents as file attachments in the\nPDF file.",
         "The footer for man pages.",
         "The header for man pages.",
         {
           short: "Include file with YAML metadata",
-          long: "Read metadata from the supplied YAML (or JSON) file. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Metadata values specified inside\nthe document, or by using <code>-M</code>, overwrite values specified\nwith this option."
+          long: "Read metadata from the supplied YAML (or JSON) file. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Metadata values specified inside\nthe document, or by using <code>-M</code>, overwrite values specified\nwith this option.",
         },
         {
           short: "Include files with YAML metadata",
-          long: "Read metadata from the supplied YAML (or JSON) files. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Values in files specified later in\nthe list will be preferred over those specified earlier. Metadata values\nspecified inside the document, or by using <code>-M</code>, overwrite\nvalues specified with this option."
+          long: "Read metadata from the supplied YAML (or JSON) files. This option can\nbe used with every input format, but string scalars in the YAML file\nwill always be parsed as Markdown. Generally, the input will be handled\nthe same as in YAML metadata blocks. Values in files specified later in\nthe list will be preferred over those specified earlier. Metadata values\nspecified inside the document, or by using <code>-M</code>, overwrite\nvalues specified with this option.",
         },
         {
-          short: "Identifies the main language of the document (e.g.&nbsp;<code>en</code> or\n<code>en-GB</code>).",
-          long: 'Identifies the main language of the document using IETF language tags\n(following the <a href="https://www.rfc-editor.org/info/bcp47">BCP\n47</a> standard), such as <code>en</code> or <code>en-GB</code>. The <a href="https://r12a.github.io/app-subtags/">Language subtag lookup</a>\ntool can look up or verify these tags.\nThis affects most formats, and controls hyphenation in PDF output\nwhen using LaTeX (through <a href="https://ctan.org/pkg/babel"><code>babel</code></a> and <a href="https://ctan.org/pkg/polyglossia"><code>polyglossia</code></a>) or\nConTeXt.'
+          short:
+            "Identifies the main language of the document (e.g.&nbsp;<code>en</code> or\n<code>en-GB</code>).",
+          long: 'Identifies the main language of the document using IETF language tags\n(following the <a href="https://www.rfc-editor.org/info/bcp47">BCP\n47</a> standard), such as <code>en</code> or <code>en-GB</code>. The <a href="https://r12a.github.io/app-subtags/">Language subtag lookup</a>\ntool can look up or verify these tags.\nThis affects most formats, and controls hyphenation in PDF output\nwhen using LaTeX (through <a href="https://ctan.org/pkg/babel"><code>babel</code></a> and <a href="https://ctan.org/pkg/polyglossia"><code>polyglossia</code></a>) or\nConTeXt.',
         },
         "YAML file containing custom language translations",
         {
-          short: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
-          long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>)."
+          short:
+            "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).",
+          long: "The base script direction for the document (<code>rtl</code> or\n<code>ltr</code>).\nFor bidirectional documents, native pandoc <code>span</code>s and\n<code>div</code>s with the <code>dir</code> attribute can be used to\noverride the base direction in some output formats. This may not always\nbe necessary if the final renderer (e.g.&nbsp;the browser, when generating\nHTML) supports the [Unicode Bidirectional Algorithm].\nWhen using LaTeX for bidirectional documents, only the\n<code>xelatex</code> engine is fully supported (use\n<code>--pdf-engine=xelatex</code>).",
         },
         {
           short: "Use Quarto\u2019s built-in PDF rendering wrapper",
-          long: "Use Quarto\u2019s built-in PDF rendering wrapper (includes support for\nautomatically installing missing LaTeX packages)"
+          long: "Use Quarto\u2019s built-in PDF rendering wrapper (includes support for\nautomatically installing missing LaTeX packages)",
         },
         "Enable/disable automatic LaTeX package installation",
         "Minimum number of compilation passes.",
@@ -20475,22 +19657,24 @@ var require_yaml_intelligence_resources = __commonJS({
         "The document class.",
         {
           short: "Options for the document class,",
-          long: "For LaTeX/PDF output, the options set for the document class.\nFor HTML output using KaTeX, you can render display math equations\nflush left using <code>classoption: fleqn</code>"
+          long: "For LaTeX/PDF output, the options set for the document class.\nFor HTML output using KaTeX, you can render display math equations\nflush left using <code>classoption: fleqn</code>",
         },
         "Control the <code>\\pagestyle{}</code> for the document.",
         "The paper size for the document.",
         {
           short: "The options for margins and text layout for this document.",
-          long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.'
+          long: 'The options for margins and text layout for this document.\nSee <a href="https://wiki.contextgarden.net/Layout">ConTeXt\nLayout</a> for additional information.',
         },
         "The page layout to use for this document (<code>article</code>,\n<code>full</code>, or <code>custom</code>)",
         {
-          short: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs)",
-          long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt."
+          short:
+            "Target page width for output (used to compute columns widths for\n<code>layout</code> divs)",
+          long: "Target page width for output (used to compute columns widths for\n<code>layout</code> divs). Defaults to 6.5 inches, which corresponds to\ndefault letter page settings in docx and odt.",
         },
         {
-          short: "Properties of the grid system used to layout Quarto HTML pages.",
-          long: ""
+          short:
+            "Properties of the grid system used to layout Quarto HTML pages.",
+          long: "",
         },
         "Defines whether to use the standard, slim, or full content grid or to\nautomatically select the most appropriate content grid.",
         "The base width of the sidebar (left) column in an HTML page.",
@@ -20498,61 +19682,67 @@ var require_yaml_intelligence_resources = __commonJS({
         "The base width of the body (center) column in an HTML page.",
         "The width of the gutter that appears between columns in an HTML\npage.",
         {
-          short: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
-          long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
+          short:
+            "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>)",
+          long: "The layout of the appendix for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the appendix, choose the\nappendix style <code>none</code>. For minimal styling, choose\n<code>plain.</code>",
         },
         {
-          short: "Controls the formats which are provided in the citation section of\nthe appendix (<code>false</code>, <code>display</code>, or\n<code>bibtex</code>).",
-          long: "Controls the formats which are provided in the citation section of\nthe appendix.\nUse <code>false</code> to disable the display of the \u2018cite as\u2019\nappendix. Pass one or more of <code>display</code> or\n<code>bibtex</code> to enable that format in \u2018cite as\u2019 appendix."
+          short:
+            "Controls the formats which are provided in the citation section of\nthe appendix (<code>false</code>, <code>display</code>, or\n<code>bibtex</code>).",
+          long: "Controls the formats which are provided in the citation section of\nthe appendix.\nUse <code>false</code> to disable the display of the \u2018cite as\u2019\nappendix. Pass one or more of <code>display</code> or\n<code>bibtex</code> to enable that format in \u2018cite as\u2019 appendix.",
         },
         {
-          short: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).",
-          long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the title block, choose the\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>"
+          short:
+            "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).",
+          long: "The layout of the title block for this document (<code>none</code>,\n<code>plain</code>, or <code>default</code>).\nTo completely disable any styling of the title block, choose the\nstyle <code>none</code>. For minimal styling, choose\n<code>plain.</code>",
         },
         {
           short: "Apply a banner style treatment to the title block.",
-          long: "Applies a banner style treatment for the title block. You may specify\none of the following values:"
+          long: "Applies a banner style treatment for the title block. You may specify\none of the following values:",
         },
         {
-          short: "Sets the color of text elements in a banner style title block.",
-          long: "Sets the color of text elements in a banner style title block. Use\none of the following values:"
+          short:
+            "Sets the color of text elements in a banner style title block.",
+          long: "Sets the color of text elements in a banner style title block. Use\none of the following values:",
         },
         {
-          short: "Enables or disables the display of categories in the title block.",
-          long: ""
+          short:
+            "Enables or disables the display of categories in the title block.",
+          long: "",
         },
         "Adds a css <code>max-width</code> to the body Element.",
         {
           short: "Sets the left margin of the document.",
-          long: "For HTML output, sets the <code>margin-left</code> property on the\nBody element.\nFor LaTeX output, sets the left margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the left margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the left page margin."
+          long: "For HTML output, sets the <code>margin-left</code> property on the\nBody element.\nFor LaTeX output, sets the left margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the left margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the left page margin.",
         },
         {
           short: "Sets the right margin of the document.",
-          long: "For HTML output, sets the <code>margin-right</code> property on the\nBody element.\nFor LaTeX output, sets the right margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the right margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the right page margin."
+          long: "For HTML output, sets the <code>margin-right</code> property on the\nBody element.\nFor LaTeX output, sets the right margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the right margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the right page margin.",
         },
         {
           short: "Sets the top margin of the document.",
-          long: "For HTML output, sets the <code>margin-top</code> property on the\nBody element.\nFor LaTeX output, sets the top margin if <code>geometry</code> is not\nused (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the top margin if <code>layout</code> is not\nused, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the top page margin."
+          long: "For HTML output, sets the <code>margin-top</code> property on the\nBody element.\nFor LaTeX output, sets the top margin if <code>geometry</code> is not\nused (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the top margin if <code>layout</code> is not\nused, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the top page margin.",
         },
         {
           short: "Sets the bottom margin of the document.",
-          long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin."
+          long: "For HTML output, sets the <code>margin-bottom</code> property on the\nBody element.\nFor LaTeX output, sets the bottom margin if <code>geometry</code> is\nnot used (otherwise <code>geometry</code> overrides this value)\nFor ConTeXt output, sets the bottom margin if <code>layout</code> is\nnot used, otherwise <code>layout</code> overrides these.\nFor <code>wkhtmltopdf</code> sets the bottom page margin.",
         },
         {
           short: "Options for the geometry package.",
-          long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:'
+          long: 'Options for the <a href="https://ctan.org/pkg/geometry">geometry</a>\npackage. For example:',
         },
         {
           short: "Additional non-color options for the hyperref package.",
-          long: 'Options for the <a href="https://ctan.org/pkg/hyperref">hyperref</a>\npackage. For example:'
+          long: 'Options for the <a href="https://ctan.org/pkg/hyperref">hyperref</a>\npackage. For example:',
         },
         {
           short: "Whether to use document class settings for indentation.",
-          long: "Whether to use document class settings for indentation. If the\ndocument class settings are not used, the default LaTeX template removes\nindentation and adds space between paragraphs\nFor groff (<code>ms</code>) documents, the paragraph indent, for\nexample, <code>2m</code>."
+          long: "Whether to use document class settings for indentation. If the\ndocument class settings are not used, the default LaTeX template removes\nindentation and adds space between paragraphs\nFor groff (<code>ms</code>) documents, the paragraph indent, for\nexample, <code>2m</code>.",
         },
         {
-          short: "Make <code>\\paragraph</code> and <code>\\subparagraph</code>\nfree-standing rather than run-in.",
-          long: 'Make <code>\\paragraph</code> and <code>\\subparagraph</code> (fourth-\nand fifth-level headings, or fifth- and sixth-level with book classes)\nfree-standing rather than run-in; requires further formatting to\ndistinguish from <code>\\subsubsection</code> (third- or fourth-level\nheadings). Instead of using this option, <a href="https://ctan.org/pkg/koma-script">KOMA-Script</a> can adjust\nheadings more extensively:'
+          short:
+            "Make <code>\\paragraph</code> and <code>\\subparagraph</code>\nfree-standing rather than run-in.",
+          long: 'Make <code>\\paragraph</code> and <code>\\subparagraph</code> (fourth-\nand fifth-level headings, or fifth- and sixth-level with book classes)\nfree-standing rather than run-in; requires further formatting to\ndistinguish from <code>\\subsubsection</code> (third- or fourth-level\nheadings). Instead of using this option, <a href="https://ctan.org/pkg/koma-script">KOMA-Script</a> can adjust\nheadings more extensively:',
         },
         "Directory containing reveal.js files.",
         "The base url for s5 presentations.",
@@ -20561,26 +19751,30 @@ var require_yaml_intelligence_resources = __commonJS({
         "Show a special icon next to links that leave the current site.",
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
-          short: "A regular expression that can be used to determine whether a link is\nan internal link.",
-          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):"
+          short:
+            "A regular expression that can be used to determine whether a link is\nan internal link.",
+          long: "A regular expression that can be used to determine whether a link is\nan internal link. For example, the following will treat links that start\nwith http://www.quarto.org as internal links (and others will be\nconsidered external):",
         },
         {
-          short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
-          long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
+          short:
+            "Controls whether links to other rendered formats are displayed in\nHTML output.",
+          long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown.",
         },
         "The title for this alternative link.",
         "The href for tihs alternative link.",
         "The title for this alternative link.",
         "The href for tihs alternative link.",
         {
-          short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
-          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
+          short:
+            "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
+          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks.",
         },
         "A list of links that should be displayed below the table of contents\nin an <code>Other Links</code> section.",
         "A list of links that should be displayed below the table of contents\nin an <code>Code Links</code> section.",
         {
-          short: "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
-          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output."
+          short:
+            "Controls whether referenced notebooks are embedded in JATS output as\nsubarticles.",
+          long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nDefaults to <code>true</code> - specify <code>false</code> to disable\nembedding Notebook as subarticles with the JATS output.",
         },
         "Configures the HTML viewer for notebooks that provide embedded\ncontent.",
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
@@ -20600,8 +19794,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text to display for the license.",
         "The text to display for the license.",
         {
-          short: "The License for this document, if any. (e.g.&nbsp;<code>CC BY</code>)",
-          long: "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code> will automatically generate\na license link in the document appendix. Other license text will be\nplaced in the appendix verbatim."
+          short:
+            "The License for this document, if any. (e.g.&nbsp;<code>CC BY</code>)",
+          long: "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code> will automatically generate\na license link in the document appendix. Other license text will be\nplaced in the appendix verbatim.",
         },
         "The type of the license.",
         "A URL to the license.",
@@ -20617,29 +19812,32 @@ var require_yaml_intelligence_resources = __commonJS({
         "Sets the date metadata for the document",
         {
           short: "Number section headings",
-          long: "Number section headings rendered output. By default, sections are not\nnumbered. Sections with class <code>.unnumbered</code> will never be\nnumbered, even if <code>number-sections</code> is specified."
+          long: "Number section headings rendered output. By default, sections are not\nnumbered. Sections with class <code>.unnumbered</code> will never be\nnumbered, even if <code>number-sections</code> is specified.",
         },
         {
           short: "The depth to which sections should be numbered.",
-          long: "By default, all headings in your document create a numbered section.\nYou customize numbering depth using the <code>number-depth</code>\noption.\nFor example, to only number sections immediately below the chapter\nlevel, use this:"
+          long: "By default, all headings in your document create a numbered section.\nYou customize numbering depth using the <code>number-depth</code>\noption.\nFor example, to only number sections immediately below the chapter\nlevel, use this:",
         },
         "The numbering depth for sections. (Use <code>number-depth</code>\ninstead).",
         {
-          short: "Offset for section headings in output (offsets are 0 by default)",
-          long: "Offset for section headings in output (offsets are 0 by default) The\nfirst number is added to the section number for top-level headings, the\nsecond for second-level headings, and so on. So, for example, if you\nwant the first top-level heading in your document to be numbered \u201C6\u201D,\nspecify <code>number-offset: 5</code>. If your document starts with a\nlevel-2 heading which you want to be numbered \u201C1.5\u201D, specify\n<code>number-offset: [1,4]</code>. Implies\n<code>number-sections</code>"
+          short:
+            "Offset for section headings in output (offsets are 0 by default)",
+          long: "Offset for section headings in output (offsets are 0 by default) The\nfirst number is added to the section number for top-level headings, the\nsecond for second-level headings, and so on. So, for example, if you\nwant the first top-level heading in your document to be numbered \u201C6\u201D,\nspecify <code>number-offset: 5</code>. If your document starts with a\nlevel-2 heading which you want to be numbered \u201C1.5\u201D, specify\n<code>number-offset: [1,4]</code>. Implies\n<code>number-sections</code>",
         },
         "Schema to use for numbering sections, e.g.&nbsp;<code>1.A.1</code>",
         {
-          short: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
-          long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title."
+          short:
+            "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings.",
+          long: "Shift heading levels by a positive or negative integer. For example,\nwith <code>shift-heading-level-by: -1</code>, level 2 headings become\nlevel 1 headings, and level 3 headings become level 2 headings. Headings\ncannot have a level less than 1, so a heading that would be shifted\nbelow level 1 becomes a regular paragraph. Exception: with a shift of\n-N, a level-N heading at the beginning of the document replaces the\nmetadata title.",
         },
         {
           short: "Sets the page numbering style and location for the document.",
-          long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.'
+          long: 'Sets the page numbering style and location for the document using the\n<code>\\setuppagenumbering</code> command.\nSee <a href="https://wiki.contextgarden.net/Command/setuppagenumbering">ConTeXt\nPage Numbering</a> for additional information.',
         },
         {
-          short: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.",
-          long: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.\nThe default behavior is to determine the best division type via\nheuristics: unless other conditions apply, <code>section</code> is\nchosen. When the <code>documentclass</code> variable is set to\n<code>report</code>, <code>book</code>, or <code>memoir</code> (unless\nthe <code>article</code> option is specified), <code>chapter</code> is\nimplied as the setting for this option. If <code>beamer</code> is the\noutput format, specifying either <code>chapter</code> or\n<code>part</code> will cause top-level headings to become\n<code>\\part{..}</code>, while second-level headings remain as their\ndefault type."
+          short:
+            "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.",
+          long: "Treat top-level headings as the given division type\n(<code>default</code>, <code>section</code>, <code>chapter</code>, or\n<code>part</code>). The hierarchy order is part, chapter, then section;\nall headings are shifted such that the top-level heading becomes the\nspecified type.\nThe default behavior is to determine the best division type via\nheuristics: unless other conditions apply, <code>section</code> is\nchosen. When the <code>documentclass</code> variable is set to\n<code>report</code>, <code>book</code>, or <code>memoir</code> (unless\nthe <code>article</code> option is specified), <code>chapter</code> is\nimplied as the setting for this option. If <code>beamer</code> is the\noutput format, specifying either <code>chapter</code> or\n<code>part</code> will cause top-level headings to become\n<code>\\part{..}</code>, while second-level headings remain as their\ndefault type.",
         },
         "If <code>true</code>, force the presence of the OJS runtime. If\n<code>false</code>, force the absence instead. If unset, the OJS runtime\nis included only if OJS cells are present in the document.",
         "Use the specified file as a style reference in producing a docx,\npptx, or odt file.",
@@ -20655,25 +19853,27 @@ var require_yaml_intelligence_resources = __commonJS({
         "Enables smooth scrolling within the page.",
         {
           short: "Method use to render math in HTML output",
-          long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.'
+          long: 'Method use to render math in HTML output (<code>plain</code>,\n<code>webtex</code>, <code>gladtex</code>, <code>mathml</code>,\n<code>mathjax</code>, <code>katex</code>).\nSee the Pandoc documentation on <a href="https://pandoc.org/MANUAL.html#math-rendering-in-html">Math\nRendering in HTML</a> for additional details.',
         },
         "Wrap sections in <code>&lt;section&gt;</code> tags and attach\nidentifiers to the enclosing <code>&lt;section&gt;</code> rather than\nthe heading itself.",
         {
-          short: "Specify a prefix to be added to all identifiers and internal\nlinks.",
-          long: "Specify a prefix to be added to all identifiers and internal links in\nHTML and DocBook output, and to footnote numbers in Markdown and Haddock\noutput. This is useful for preventing duplicate identifiers when\ngenerating fragments to be included in other pages."
+          short:
+            "Specify a prefix to be added to all identifiers and internal\nlinks.",
+          long: "Specify a prefix to be added to all identifiers and internal links in\nHTML and DocBook output, and to footnote numbers in Markdown and Haddock\noutput. This is useful for preventing duplicate identifiers when\ngenerating fragments to be included in other pages.",
         },
         {
           short: "Method for obfuscating mailto: links in HTML documents.",
-          long: "Specify a method for obfuscating <code>mailto:</code> links in HTML\ndocuments."
+          long: "Specify a method for obfuscating <code>mailto:</code> links in HTML\ndocuments.",
         },
         "Use <code>&lt;q&gt;</code> tags for quotes in HTML.",
         {
           short: "Use the specified engine when producing PDF output.",
-          long: "Use the specified engine when producing PDF output. If the engine is\nnot in your PATH, the full path of the engine may be specified here. If\nthis option is not specified, Quarto uses the following defaults\ndepending on the output format in use:"
+          long: "Use the specified engine when producing PDF output. If the engine is\nnot in your PATH, the full path of the engine may be specified here. If\nthis option is not specified, Quarto uses the following defaults\ndepending on the output format in use:",
         },
         {
-          short: "Use the given string as a command-line argument to the\n<code>pdf-engine</code>.",
-          long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use <code>pdf-engine-opt: -outdir=foo</code>. Note that no check\nfor duplicate options is done."
+          short:
+            "Use the given string as a command-line argument to the\n<code>pdf-engine</code>.",
+          long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use <code>pdf-engine-opt: -outdir=foo</code>. Note that no check\nfor duplicate options is done.",
         },
         "Whether to produce a Beamer article from this presentation.",
         "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
@@ -20692,28 +19892,32 @@ var require_yaml_intelligence_resources = __commonJS({
         "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
         "Preserve the original YAML front matter in rendered markdown",
         {
-          short: "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
-          long: "Determines which ipynb cell output formats are rendered."
+          short:
+            "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
+          long: "Determines which ipynb cell output formats are rendered.",
         },
         {
           short: "semver version range for required quarto version",
-          long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:"
+          long: "A semver version range describing the supported quarto versions for\nthis document or project.\nExamples:",
         },
         {
           short: "The mode to use when previewing this document.",
-          long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
+          long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode.",
         },
         {
-          short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
-          long: 'Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.\nIf the value is set to <code>true</code>, <code>1b:2005</code> will\nbe used as default.\nTo successfully generate PDF/A the required ICC color profiles have\nto be available and the content and all included files (such as images)\nhave to be standard conforming. The ICC profiles and output intent may\nbe specified using the variables <code>pdfaiccprofile</code> and\n<code>pdfaintent</code>. See also <a href="https://wiki.contextgarden.net/PDF/A">ConTeXt PDFA</a> for more\ndetails.'
+          short:
+            "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
+          long: 'Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.\nIf the value is set to <code>true</code>, <code>1b:2005</code> will\nbe used as default.\nTo successfully generate PDF/A the required ICC color profiles have\nto be available and the content and all included files (such as images)\nhave to be standard conforming. The ICC profiles and output intent may\nbe specified using the variables <code>pdfaiccprofile</code> and\n<code>pdfaintent</code>. See also <a href="https://wiki.contextgarden.net/PDF/A">ConTeXt PDFA</a> for more\ndetails.',
         },
         {
-          short: "When used in conjunction with <code>pdfa</code>, specifies the ICC\nprofile to use in the PDF, e.g.&nbsp;<code>default.cmyk</code>.",
-          long: 'When used in conjunction with <code>pdfa</code>, specifies the ICC\nprofile to use in the PDF, e.g.&nbsp;<code>default.cmyk</code>.\nIf left unspecified, <code>sRGB.icc</code> is used as default. May be\nrepeated to include multiple profiles. Note that the profiles have to be\navailable on the system. They can be obtained from <a href="https://wiki.contextgarden.net/PDFX#ICC_profiles">ConTeXt ICC\nProfiles</a>.'
+          short:
+            "When used in conjunction with <code>pdfa</code>, specifies the ICC\nprofile to use in the PDF, e.g.&nbsp;<code>default.cmyk</code>.",
+          long: 'When used in conjunction with <code>pdfa</code>, specifies the ICC\nprofile to use in the PDF, e.g.&nbsp;<code>default.cmyk</code>.\nIf left unspecified, <code>sRGB.icc</code> is used as default. May be\nrepeated to include multiple profiles. Note that the profiles have to be\navailable on the system. They can be obtained from <a href="https://wiki.contextgarden.net/PDFX#ICC_profiles">ConTeXt ICC\nProfiles</a>.',
         },
         {
-          short: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
-          long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault."
+          short:
+            "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors.",
+          long: "When used in conjunction with <code>pdfa</code>, specifies the output\nintent for the colors, for example\n<code>ISO coated v2 300\\letterpercent\\space (ECI)</code>\nIf left unspecified, <code>sRGB IEC61966-2.1</code> is used as\ndefault.",
         },
         "Document bibliography (BibTeX or CSL). May be a single file or a list\nof files",
         "Citation Style Language file to use for formatting references.",
@@ -20722,7 +19926,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Method used to format citations (<code>citeproc</code>,\n<code>natbib</code>, or <code>biblatex</code>).",
         {
           short: "Turn on built-in citation processing",
-          long: "Turn on built-in citation processing. To use this feature, you will\nneed to have a document containing citations and a source of\nbibliographic data: either an external bibliography file or a list of\n<code>references</code> in the document\u2019s YAML metadata. You can\noptionally also include a <code>csl</code> citation style file."
+          long: "Turn on built-in citation processing. To use this feature, you will\nneed to have a document containing citations and a source of\nbibliographic data: either an external bibliography file or a list of\n<code>references</code> in the document\u2019s YAML metadata. You can\noptionally also include a <code>csl</code> citation style file.",
         },
         "A list of options for BibLaTeX.",
         "One or more options to provide for <code>natbib</code> when\ngenerating a bibliography.",
@@ -20731,25 +19935,28 @@ var require_yaml_intelligence_resources = __commonJS({
         "The bibliography title to use when using <code>natbib</code> or\n<code>biblatex</code>.",
         "Controls whether to output bibliography configuration for\n<code>natbib</code> or <code>biblatex</code> when cite method is not\n<code>citeproc</code>.",
         {
-          short: "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies.",
-          long: 'JSON file containing abbreviations of journals that should be used in\nformatted bibliographies when <code>form="short"</code> is specified.\nThe format of the file can be illustrated with an example:'
+          short:
+            "JSON file containing abbreviations of journals that should be used in\nformatted bibliographies.",
+          long: 'JSON file containing abbreviations of journals that should be used in\nformatted bibliographies when <code>form="short"</code> is specified.\nThe format of the file can be illustrated with an example:',
         },
         "If true, citations will be hyperlinked to the corresponding\nbibliography entries (for author-date and numerical styles only).\nDefaults to false.",
         {
-          short: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks.",
-          long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true."
+          short:
+            "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks.",
+          long: "If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will be\nrendered as hyperlinks. (If an entry contains a DOI, PMCID, PMID, or\nURL, but none of these fields are rendered by the style, then the title,\nor in the absence of a title the whole entry, will be hyperlinked.)\nDefaults to true.",
         },
         {
-          short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
-          long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
+          short:
+            "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
+          long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).',
         },
         {
           short: "Format to read from",
-          long: "Format to read from. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;markdown+emoji)."
+          long: "Format to read from. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;markdown+emoji).",
         },
         {
           short: "Format to read from",
-          long: "Format to read from. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;markdown+emoji)."
+          long: "Format to read from. Extensions can be individually enabled or\ndisabled by appending +EXTENSION or -EXTENSION to the format name\n(e.g.&nbsp;markdown+emoji).",
         },
         "Output file to write to",
         "Extension to use for generated output file",
@@ -20758,15 +19965,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Produce output with an appropriate header and footer (e.g.&nbsp;a\nstandalone HTML, LaTeX, TEI, or RTF file, not a fragment)",
         {
           short: "Produce a standalone HTML file with no external dependencies",
-          long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document. Limitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some advanced features\n(e.g.&nbsp;zoom or speaker notes) may not work in an offline \u201Cself-contained\u201D\n<code>reveal.js</code> slide show.'
+          long: 'Produce a standalone HTML file with no external dependencies, using\n<code>data:</code> URIs to incorporate the contents of linked scripts,\nstylesheets, images, and videos. The resulting file should be\n\u201Cself-contained,\u201D in the sense that it needs no external files and no\nnet access to be displayed properly by a browser. This option works only\nwith HTML output formats, including <code>html4</code>,\n<code>html5</code>, <code>html+lhs</code>, <code>html5+lhs</code>,\n<code>s5</code>, <code>slidy</code>, <code>slideous</code>,\n<code>dzslides</code>, and <code>revealjs</code>. Scripts, images, and\nstylesheets at absolute URLs will be downloaded; those at relative URLs\nwill be sought relative to the working directory (if the first source\nfile is local) or relative to the base URL (if the first source file is\nremote). Elements with the attribute <code>data-external="1"</code> will\nbe left alone; the documents they link to will not be incorporated in\nthe document. Limitation: resources that are loaded dynamically through\nJavaScript cannot be incorporated; as a result, some advanced features\n(e.g.&nbsp;zoom or speaker notes) may not work in an offline \u201Cself-contained\u201D\n<code>reveal.js</code> slide show.',
         },
         {
           short: "Produce a standalone HTML file with no external dependencies",
-          long: "Produce a standalone HTML file with no external dependencies. Note\nthat this option has been deprecated in favor of\n<code>embed-resources</code>."
+          long: "Produce a standalone HTML file with no external dependencies. Note\nthat this option has been deprecated in favor of\n<code>embed-resources</code>.",
         },
         {
-          short: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output.",
-          long: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output. Note that math libraries are not\nembedded by default because they are quite large and often time\nconsuming to download."
+          short:
+            "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output.",
+          long: "Embed math libraries (e.g.&nbsp;MathJax) within\n<code>self-contained</code> output. Note that math libraries are not\nembedded by default because they are quite large and often time\nconsuming to download.",
         },
         "Specify executables or Lua scripts to be used as a filter\ntransforming the pandoc AST after the input is parsed and before the\noutput is written.",
         "Specify Lua scripts that implement shortcode handlers",
@@ -20776,49 +19984,54 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
-          short: "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
-          long: "Extract images and other media contained in or linked from the source\ndocument to the path DIR, creating it if necessary, and adjust the\nimages references in the document so they point to the extracted files.\nMedia are downloaded, read from the file system, or extracted from a\nbinary container (e.g.&nbsp;docx), as needed. The original file paths are\nused if they are relative paths not containing \u2026 Otherwise filenames are\nconstructed from the SHA1 hash of the contents."
+          short:
+            "Extract images and other media contained in or linked from the source\ndocument to the path DIR.",
+          long: "Extract images and other media contained in or linked from the source\ndocument to the path DIR, creating it if necessary, and adjust the\nimages references in the document so they point to the extracted files.\nMedia are downloaded, read from the file system, or extracted from a\nbinary container (e.g.&nbsp;docx), as needed. The original file paths are\nused if they are relative paths not containing \u2026 Otherwise filenames are\nconstructed from the SHA1 hash of the contents.",
         },
         "List of paths to search for images and other resources.",
         {
-          short: "Specify a default extension to use when image paths/URLs have no\nextension.",
-          long: "Specify a default extension to use when image paths/URLs have no\nextension. This allows you to use the same source for formats that\nrequire different kinds of images. Currently this option only affects\nthe Markdown and LaTeX readers."
+          short:
+            "Specify a default extension to use when image paths/URLs have no\nextension.",
+          long: "Specify a default extension to use when image paths/URLs have no\nextension. This allows you to use the same source for formats that\nrequire different kinds of images. Currently this option only affects\nthe Markdown and LaTeX readers.",
         },
         {
-          short: "Specifies a custom abbreviations file, with abbreviations one to a\nline.",
-          long: "Specifies a custom abbreviations file, with abbreviations one to a\nline. This list is used when reading Markdown input: strings found in\nthis list will be followed by a nonbreaking space, and the period will\nnot produce sentence-ending space in formats like LaTeX. The strings may\nnot contain spaces."
+          short:
+            "Specifies a custom abbreviations file, with abbreviations one to a\nline.",
+          long: "Specifies a custom abbreviations file, with abbreviations one to a\nline. This list is used when reading Markdown input: strings found in\nthis list will be followed by a nonbreaking space, and the period will\nnot produce sentence-ending space in formats like LaTeX. The strings may\nnot contain spaces.",
         },
         {
-          short: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa.",
-          long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
+          short:
+            "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa.",
+          long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option.",
         },
         "Logo image (placed in bottom right corner of slides)",
         {
           short: "Footer to include on all slides",
-          long: "Footer to include on all slides. Can also be set per-slide by\nincluding a div with class <code>.footer</code> on the slide."
+          long: "Footer to include on all slides. Can also be set per-slide by\nincluding a div with class <code>.footer</code> on the slide.",
         },
         {
           short: "Allow content that overflows slides vertically to scroll",
-          long: "<code>true</code> to allow content that overflows slides vertically\nto scroll. This can also be set per-slide by including the\n<code>.scrollable</code> class on the slide title."
+          long: "<code>true</code> to allow content that overflows slides vertically\nto scroll. This can also be set per-slide by including the\n<code>.scrollable</code> class on the slide title.",
         },
         {
           short: "Use a smaller default font for slide content",
-          long: "<code>true</code> to use a smaller default font for slide content.\nThis can also be set per-slide by including the <code>.smaller</code>\nclass on the slide title."
+          long: "<code>true</code> to use a smaller default font for slide content.\nThis can also be set per-slide by including the <code>.smaller</code>\nclass on the slide title.",
         },
         {
-          short: "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
-          long: "Location of output relative to the code that generated it. The\npossible values are as follows:"
+          short:
+            "Location of output relative to the code that generated it\n(<code>default</code>, <code>fragment</code>, <code>slide</code>,\n<code>column</code>, or <code>column-location</code>)",
+          long: "Location of output relative to the code that generated it. The\npossible values are as follows:",
         },
         "Flags if the presentation is running in an embedded mode",
         "The display mode that will be used to show slides",
         "For slides with a single top-level image, automatically stretch it to\nfill the slide.",
         {
           short: "The \u2018normal\u2019 width of the presentation",
-          long: "The \u201Cnormal\u201D width of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
+          long: "The \u201Cnormal\u201D width of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units.",
         },
         {
           short: "The \u2018normal\u2019 height of the presentation",
-          long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units."
+          long: "The \u201Cnormal\u201D height of the presentation, aspect ratio will be\npreserved when the presentation is scaled to fit different resolutions.\nCan be specified using percentage units.",
         },
         "For <code>revealjs</code>, the factor of the display size that should\nremain empty around the content (e.g.&nbsp;0.1).\nFor <code>typst</code>, a dictionary with the fields defined in the\nTypst documentation: <code>x</code>, <code>y</code>, <code>top</code>,\n<code>bottom</code>, <code>left</code>, <code>right</code> (margins are\nspecified in <code>cm</code> units, e.g.&nbsp;<code>5cm</code>).",
         "Horizontal margin (e.g.&nbsp;5cm)",
@@ -20832,13 +20045,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "Vertical centering of slides",
         "Disables the default reveal.js slide layout (scaling and\ncentering)",
         {
-          short: "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
-          long: "Open links in an iframe preview overlay."
+          short:
+            "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
+          long: "Open links in an iframe preview overlay.",
         },
         "Autoplay embedded media (<code>null</code>, <code>true</code>, or\n<code>false</code>). Default is <code>null</code> (only when\n<code>autoplay</code> attribute is specified)",
         {
-          short: "Global override for preloading lazy-loaded iframes\n(<code>null</code>, <code>true</code>, or <code>false</code>).",
-          long: "Global override for preloading lazy-loaded iframes"
+          short:
+            "Global override for preloading lazy-loaded iframes\n(<code>null</code>, <code>true</code>, or <code>false</code>).",
+          long: "Global override for preloading lazy-loaded iframes",
         },
         "Number of slides away from the current slide to pre-load resources\nfor",
         "Number of slides away from the current slide to pre-load resources\nfor (on mobile devices).",
@@ -20849,8 +20064,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Display a presentation progress bar",
         "Push each slide change to the browser history",
         {
-          short: "Navigation progression (<code>linear</code>, <code>vertical</code>,\nor <code>grid</code>)",
-          long: "Changes the behavior of navigation directions."
+          short:
+            "Navigation progression (<code>linear</code>, <code>vertical</code>,\nor <code>grid</code>)",
+          long: "Changes the behavior of navigation directions.",
         },
         "Enable touch navigation on devices with touch input",
         "Enable keyboard shortcuts for navigation",
@@ -20860,8 +20076,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "Loop the presentation",
         "Randomize the order of slides each time the presentation loads",
         {
-          short: "Show arrow controls for navigating through slides (<code>true</code>,\n<code>false</code>, or <code>auto</code>).",
-          long: "Show arrow controls for navigating through slides."
+          short:
+            "Show arrow controls for navigating through slides (<code>true</code>,\n<code>false</code>, or <code>auto</code>).",
+          long: "Show arrow controls for navigating through slides.",
         },
         "Location for navigation controls (<code>edges</code> or\n<code>bottom-right</code>)",
         "Help the user learn the controls by providing visual hints.",
@@ -20879,13 +20096,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "Include the current fragment in the URL",
         "Play a subtle sound when changing slides",
         {
-          short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-          long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+          short:
+            "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
+          long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D",
         },
         "Prints each fragment on a separate slide",
         {
-          short: "Offset used to reduce the height of content within exported PDF\npages.",
-          long: "Offset used to reduce the height of content within exported PDF\npages. This exists to account for environment differences based on how\nyou print to PDF. CLI printing options, like phantomjs and wkpdf, can\nend on precisely the total height of the document whereas in-browser\nprinting has to end one pixel before."
+          short:
+            "Offset used to reduce the height of content within exported PDF\npages.",
+          long: "Offset used to reduce the height of content within exported PDF\npages. This exists to account for environment differences based on how\nyou print to PDF. CLI printing options, like phantomjs and wkpdf, can\nend on precisely the total height of the document whereas in-browser\nprinting has to end one pixel before.",
         },
         "Enable the slide overview mode",
         "Configuration for revealjs menu.",
@@ -20907,44 +20126,47 @@ var require_yaml_intelligence_resources = __commonJS({
         "Secret provided by multiplex token server",
         {
           short: "Transition style for slides",
-          long: "Transition style for slides backgrounds. (<code>none</code>,\n<code>fade</code>, <code>slide</code>, <code>convex</code>,\n<code>concave</code>, or <code>zoom</code>)"
+          long: "Transition style for slides backgrounds. (<code>none</code>,\n<code>fade</code>, <code>slide</code>, <code>convex</code>,\n<code>concave</code>, or <code>zoom</code>)",
         },
         "Slide transition speed (<code>default</code>, <code>fast</code>, or\n<code>slow</code>)",
         {
           short: "Transition style for full page slide backgrounds",
-          long: "Transition style for full page slide backgrounds. (<code>none</code>,\n<code>fade</code>, <code>slide</code>, <code>convex</code>,\n<code>concave</code>, or <code>zoom</code>)"
+          long: "Transition style for full page slide backgrounds. (<code>none</code>,\n<code>fade</code>, <code>slide</code>, <code>convex</code>,\n<code>concave</code>, or <code>zoom</code>)",
         },
         "Turns fragments on and off globally",
         "Globally enable/disable auto-animate (enabled by default)",
         {
           short: "Default CSS easing function for auto-animation",
-          long: "Default CSS easing function for auto-animation. Can be overridden\nper-slide or per-element via attributes."
+          long: "Default CSS easing function for auto-animation. Can be overridden\nper-slide or per-element via attributes.",
         },
         {
           short: "Duration (in seconds) of auto-animate transition",
-          long: "Duration (in seconds) of auto-animate transition. Can be overridden\nper-slide or per-element via attributes."
+          long: "Duration (in seconds) of auto-animate transition. Can be overridden\nper-slide or per-element via attributes.",
         },
         {
           short: "Auto-animate unmatched elements.",
-          long: "Auto-animate unmatched elements. Can be overridden per-slide or\nper-element via attributes."
+          long: "Auto-animate unmatched elements. Can be overridden per-slide or\nper-element via attributes.",
         },
         {
-          short: "CSS properties that can be auto-animated (positional styles like top,\nleft, etc. are always animated).",
-          long: ""
+          short:
+            "CSS properties that can be auto-animated (positional styles like top,\nleft, etc. are always animated).",
+          long: "",
         },
         "Make list items in slide shows display incrementally (one by one).\nThe default is for lists to be displayed all at once.",
         {
-          short: "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide the slide\nshow into sections.",
-          long: "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide the slide\nshow into sections; headings below this level create subheads within a\nslide. Valid values are 0-6. If a slide level of 0 is specified, slides\nwill not be split automatically on headings, and horizontal rules must\nbe used to indicate slide boundaries. If a slide level is not specified\nexplicitly, the slide level will be set automatically based on the\ncontents of the document"
+          short:
+            "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide the slide\nshow into sections.",
+          long: "Specifies that headings with the specified level create slides.\nHeadings above this level in the hierarchy are used to divide the slide\nshow into sections; headings below this level create subheads within a\nslide. Valid values are 0-6. If a slide level of 0 is specified, slides\nwill not be split automatically on headings, and horizontal rules must\nbe used to indicate slide boundaries. If a slide level is not specified\nexplicitly, the slide level will be set automatically based on the\ncontents of the document",
         },
         {
           short: "Display the page number of the current slide",
-          long: "Display the page number of the current slide"
+          long: "Display the page number of the current slide",
         },
         "Contexts in which the slide number appears (<code>all</code>,\n<code>print</code>, or <code>speaker</code>)",
         {
-          short: "Additional attributes for the title slide of a reveal.js\npresentation.",
-          long: "Additional attributes for the title slide of a reveal.js presentation\nas a map of attribute names and values. For example"
+          short:
+            "Additional attributes for the title slide of a reveal.js\npresentation.",
+          long: "Additional attributes for the title slide of a reveal.js presentation\nas a map of attribute names and values. For example",
         },
         "CSS color for title slide background",
         "URL or path to the background image.",
@@ -20957,49 +20179,56 @@ var require_yaml_intelligence_resources = __commonJS({
         "Make speaker notes visible to all viewers",
         "Change the presentation direction to be RTL",
         {
-          short: "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Uses <code>default</code> if not specified.",
-          long: "Method used to print tables in Knitr engine documents:"
+          short:
+            "Method used to print tables in Knitr engine documents\n(<code>default</code>, <code>kable</code>, <code>tibble</code>, or\n<code>paged</code>). Uses <code>default</code> if not specified.",
+          long: "Method used to print tables in Knitr engine documents:",
         },
         {
-          short: "Determine how text is wrapped in the output (<code>auto</code>,\n<code>none</code>, or <code>preserve</code>).",
-          long: "Determine how text is wrapped in the output (the source code, not the\nrendered version)."
+          short:
+            "Determine how text is wrapped in the output (<code>auto</code>,\n<code>none</code>, or <code>preserve</code>).",
+          long: "Determine how text is wrapped in the output (the source code, not the\nrendered version).",
         },
         {
-          short: "For text formats, specify length of lines in characters. For\n<code>typst</code>, number of columns for body text.",
-          long: "Specify length of lines in characters. This affects text wrapping in\ngenerated source code (see <code>wrap</code>). It also affects\ncalculation of column widths for plain text tables.\nFor <code>typst</code>, number of columns for body text."
+          short:
+            "For text formats, specify length of lines in characters. For\n<code>typst</code>, number of columns for body text.",
+          long: "Specify length of lines in characters. This affects text wrapping in\ngenerated source code (see <code>wrap</code>). It also affects\ncalculation of column widths for plain text tables.\nFor <code>typst</code>, number of columns for body text.",
         },
         {
           short: "Specify the number of spaces per tab (default is 4).",
-          long: "Specify the number of spaces per tab (default is 4). Note that tabs\nwithin normal textual input are always converted to spaces. Tabs within\ncode are also converted, however this can be disabled with\n<code>preserve-tabs: false</code>."
+          long: "Specify the number of spaces per tab (default is 4). Note that tabs\nwithin normal textual input are always converted to spaces. Tabs within\ncode are also converted, however this can be disabled with\n<code>preserve-tabs: false</code>.",
         },
         {
-          short: "Preserve tabs within code instead of converting them to spaces.",
-          long: "Preserve tabs within code instead of converting them to spaces. (By\ndefault, pandoc converts tabs to spaces before parsing its input.) Note\nthat this will only affect tabs in literal code spans and code blocks.\nTabs in regular text are always treated as spaces."
+          short:
+            "Preserve tabs within code instead of converting them to spaces.",
+          long: "Preserve tabs within code instead of converting them to spaces. (By\ndefault, pandoc converts tabs to spaces before parsing its input.) Note\nthat this will only affect tabs in literal code spans and code blocks.\nTabs in regular text are always treated as spaces.",
         },
         {
-          short: "Manually specify line endings (<code>lf</code>, <code>crlf</code>, or\n<code>native</code>).",
-          long: "Manually specify line endings:"
+          short:
+            "Manually specify line endings (<code>lf</code>, <code>crlf</code>, or\n<code>native</code>).",
+          long: "Manually specify line endings:",
         },
         {
-          short: "Strip out HTML comments in source, rather than passing them on to\noutput.",
-          long: "Strip out HTML comments in the Markdown source, rather than passing\nthem on to Markdown, Textile or HTML output as raw HTML. This does not\napply to HTML comments inside raw HTML blocks when the\n<code>markdown_in_html_blocks</code> extension is not set."
+          short:
+            "Strip out HTML comments in source, rather than passing them on to\noutput.",
+          long: "Strip out HTML comments in the Markdown source, rather than passing\nthem on to Markdown, Textile or HTML output as raw HTML. This does not\napply to HTML comments inside raw HTML blocks when the\n<code>markdown_in_html_blocks</code> extension is not set.",
         },
         {
           short: "Use only ASCII characters in output.",
-          long: "Use only ASCII characters in output. Currently supported for XML and\nHTML formats (which use entities instead of UTF-8 when this option is\nselected), CommonMark, gfm, and Markdown (which use entities), roff ms\n(which use hexadecimal escapes), and to a limited degree LaTeX (which\nuses standard commands for accented characters when possible). roff man\noutput uses ASCII by default."
+          long: "Use only ASCII characters in output. Currently supported for XML and\nHTML formats (which use entities instead of UTF-8 when this option is\nselected), CommonMark, gfm, and Markdown (which use entities), roff ms\n(which use hexadecimal escapes), and to a limited degree LaTeX (which\nuses standard commands for accented characters when possible). roff man\noutput uses ASCII by default.",
         },
         {
           short: "Include an automatically generated table of contents",
-          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>.",
         },
         {
           short: "Include an automatically generated table of contents",
-          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>."
+          long: "Include an automatically generated table of contents (or, in the case\nof <code>latex</code>, <code>context</code>, <code>docx</code>,\n<code>odt</code>, <code>opendocument</code>, <code>rst</code>, or\n<code>ms</code>, an instruction to create one) in the output document.\nThis option has no effect if <code>standalone</code> is\n<code>false</code>.\nNote that if you are producing a PDF via <code>ms</code>, the table\nof contents will appear at the beginning of the document, before the\ntitle. If you would prefer it to be at the end of the document, use the\noption <code>pdf-engine-opt: --no-toc-relocation</code>.",
         },
         "Specify the number of section levels to include in the table of\ncontents. The default is 3",
         {
-          short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+          short:
+            "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
+          long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document.",
         },
         "The title used for the table of contents.",
         "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -21009,16 +20238,16 @@ var require_yaml_intelligence_resources = __commonJS({
         "Setting this to false prevents the <code>repo-actions</code> from\nappearing on this page.",
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         "URLs that alias this document, when included in a website.",
         {
           short: "The path to a preview image for this document.",
-          long: "The path to a preview image for this content. By default, Quarto will\nuse the image value from the site: metadata. If you provide an image,\nyou may also optionally provide an image-width and image-height to\nimprove the appearance of your Twitter Card.\nIf image is not provided, Quarto will automatically attempt to locate\na preview image."
+          long: "The path to a preview image for this content. By default, Quarto will\nuse the image value from the site: metadata. If you provide an image,\nyou may also optionally provide an image-width and image-height to\nimprove the appearance of your Twitter Card.\nIf image is not provided, Quarto will automatically attempt to locate\na preview image.",
         },
         "The height of the preview image for this document.",
         "The width of the preview image for this document.",
@@ -21028,7 +20257,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
-          long: "Control the working directory for computations."
+          long: "Control the working directory for computations.",
         },
         "Output directory",
         "HTML library (JS/CSS/etc.) directory",
@@ -21051,48 +20280,51 @@ var require_yaml_intelligence_resources = __commonJS({
         "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.',
         },
         {
           short: "Anonymize the user ip address.",
-          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.',
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use."
+          long: "The version number of Google Analytics to use.",
         },
         {
-          short: "Request cookie consent before enabling scripts that set cookies",
-          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+          short:
+            "Request cookie consent before enabling scripts that set cookies",
+          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.',
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:"
+          long: "The type of consent that should be requested, using one of these two\nvalues:",
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:"
+          long: "The style of the consent banner that is displayed:",
         },
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
-          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
-          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          short:
+            "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used.",
         },
         {
-          short: "The text to display for the cookie preferences link in the website\nfooter.",
-          long: ""
+          short:
+            "The text to display for the cookie preferences link in the website\nfooter.",
+          long: "",
         },
         "Provide full text search for website",
         "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
@@ -21192,8 +20424,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
-          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          short:
+            "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead",
         },
         "Archive storing the item",
         "Collection the item is part of within an archive.",
@@ -21202,18 +20435,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
-          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing).",
         },
         "Call number (to locate the item in a library).",
         "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
         "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
         {
-          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          short:
+            "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead",
         },
         {
-          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          short:
+            "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead",
         },
         "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
         "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
@@ -21224,7 +20459,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
         {
           short: "Title of the container holding the item.",
-          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)",
         },
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
@@ -21237,20 +20472,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
         {
           short: "Combined editor and translator of a work.",
-          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data.",
         },
         "Date the event related to an item took place.",
         "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
         "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
         "Executive producer of the item (e.g.&nbsp;of a television series).",
         {
-          short: "Number of a preceding note containing the first reference to the\nitem.",
-          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          short:
+            "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document",
         },
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)",
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -21261,22 +20497,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "International Standard Serial Number.",
         {
           short: "Issue number of the item or container holding the item",
-          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any.",
         },
         "Date the item was issued/published.",
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item (used only for citation of the item).",
-          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          short:
+            "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item).",
         },
         {
           short: "The license information applicable to an item.",
-          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)",
         },
         {
           short: "A cite-specific pinpointer within the item.",
-          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list).",
         },
         "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
         "Narrator (e.g.&nbsp;of an audio book).",
@@ -21287,7 +20524,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
         {
           short: "The original creator of a work.",
-          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)",
         },
         "Issue date of the original version.",
         "Original publisher, for items that have been republished by a\ndifferent publisher.",
@@ -21297,8 +20534,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         {
-          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          short:
+            "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any.",
         },
         "Title of the specific part of an item being cited.",
         "A url to the pdf for this item.",
@@ -21328,12 +20566,14 @@ var require_yaml_intelligence_resources = __commonJS({
         "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
         "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
         {
-          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          short:
+            "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany.",
         },
         {
-          short: "Title of the volume of the item or container holding the item.",
-          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          short:
+            "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like.",
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
@@ -21343,7 +20583,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Files to render (defaults to all files)",
         {
           short: "Working directory for computations",
-          long: "Control the working directory for computations."
+          long: "Control the working directory for computations.",
         },
         "Output directory",
         "HTML library (JS/CSS/etc.) directory",
@@ -21366,48 +20606,51 @@ var require_yaml_intelligence_resources = __commonJS({
         "URL to use for the \u2018report an issue\u2019 repository action.",
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         {
           short: "Links to source repository actions",
-          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)"
+          long: "Links to source repository actions (<code>none</code> or one or more\nof <code>edit</code>, <code>source</code>, <code>issue</code>)",
         },
         "Displays a \u2018reader-mode\u2019 tool which allows users to hide the sidebar\nand table of contents when viewing a page.",
         "Enable Google Analytics for this website",
         "The Google tracking Id or measurement Id of this website.",
         {
           short: "Storage options for Google Analytics data",
-          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.'
+          long: 'Storage option for Google Analytics data using on of these two\nvalues:\n<code>cookies</code>: Use cookies to store unique user and session\nidentification (default).\n<code>none</code>: Do not use cookies to store unique user and\nsession identification.\nFor more about choosing storage options see <a href="https://quarto.org/docs/websites/website-tools.html#storage">Storage</a>.',
         },
         {
           short: "Anonymize the user ip address.",
-          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.'
+          long: 'Anonymize the user ip address. For more about this feature, see <a href="https://support.google.com/analytics/answer/2763052?hl=en">IP\nAnonymization (or IP masking) in Google Analytics</a>.',
         },
         {
           short: "The version number of Google Analytics to use.",
-          long: "The version number of Google Analytics to use."
+          long: "The version number of Google Analytics to use.",
         },
         {
-          short: "Request cookie consent before enabling scripts that set cookies",
-          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
+          short:
+            "Request cookie consent before enabling scripts that set cookies",
+          long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.',
         },
         {
           short: "The type of consent that should be requested",
-          long: "The type of consent that should be requested, using one of these two\nvalues:"
+          long: "The type of consent that should be requested, using one of these two\nvalues:",
         },
         {
           short: "The style of the consent banner that is displayed",
-          long: "The style of the consent banner that is displayed:"
+          long: "The style of the consent banner that is displayed:",
         },
         "Whether to use a dark or light appearance for the consent banner\n(<code>light</code> or <code>dark</code>).",
         "The url to the website\u2019s cookie or privacy policy.",
         {
-          short: "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
-          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used."
+          short:
+            "The language to be used when diplaying the cookie consent prompt\n(defaults to document language).",
+          long: "The language to be used when diplaying the cookie consent prompt\nspecified using an IETF language tag.\nIf not specified, the document language will be used.",
         },
         {
-          short: "The text to display for the cookie preferences link in the website\nfooter.",
-          long: ""
+          short:
+            "The text to display for the cookie preferences link in the website\nfooter.",
+          long: "",
         },
         "Provide full text search for website",
         "Location for search widget (<code>navbar</code> or\n<code>sidebar</code>)",
@@ -21507,8 +20750,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "A url to the abstract for this item.",
         "Date the item has been accessed.",
         {
-          short: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
-          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead"
+          short:
+            "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review).",
+          long: "Short markup, decoration, or annotation to the item (e.g., to\nindicate items included in a review);\nFor descriptive text (e.g., in an annotated bibliography), use\n<code>note</code> instead",
         },
         "Archive storing the item",
         "Collection the item is part of within an archive.",
@@ -21517,18 +20761,20 @@ var require_yaml_intelligence_resources = __commonJS({
         "Issuing or judicial authority (e.g.&nbsp;\u201CUSPTO\u201D for a patent, \u201CFairfax\nCircuit Court\u201D for a legal case).",
         {
           short: "Date the item was initially available",
-          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing)."
+          long: "Date the item was initially available (e.g.&nbsp;the online publication\ndate of a journal article before its formal publication date; the date a\ntreaty was made available for signing).",
         },
         "Call number (to locate the item in a library).",
         "The person leading the session containing a presentation (e.g.&nbsp;the\norganizer of the <code>container-title</code> of a\n<code>speech</code>).",
         "Chapter number (e.g.&nbsp;chapter number in a book; track number on an\nalbum).",
         {
-          short: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
-          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead"
+          short:
+            "Identifier of the item in the input data file (analogous to BiTeX\nentrykey).",
+          long: "Identifier of the item in the input data file (analogous to BiTeX\nentrykey);\nUse this variable to facilitate conversion between word-processor and\nplain-text writing systems; For an identifer intended as formatted\noutput label for a citation (e.g.&nbsp;\u201CFerr78\u201D), use\n<code>citation-label</code> instead",
         },
         {
-          short: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
-          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead"
+          short:
+            "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D).",
+          long: "Label identifying the item in in-text citations of label styles\n(e.g.&nbsp;\u201CFerr78\u201D);\nMay be assigned by the CSL processor based on item metadata; For the\nidentifier of the item in the input data file, use\n<code>citation-key</code> instead",
         },
         "Index (starting at 1) of the cited reference in the bibliography\n(generated by the CSL processor).",
         "Editor of the collection holding the item (e.g.&nbsp;the series editor for\na book).",
@@ -21539,7 +20785,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Author of the container holding the item (e.g.&nbsp;the book author for a\nbook chapter).",
         {
           short: "Title of the container holding the item.",
-          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)"
+          long: "Title of the container holding the item (e.g.&nbsp;the book title for a\nbook chapter, the journal title for a journal article; the album title\nfor a recording; the session title for multi-part presentation at a\nconference)",
         },
         "Short/abbreviated form of container-title;",
         "A minor contributor to the item; typically cited using \u201Cwith\u201D before\nthe name when listed in a bibliography.",
@@ -21552,20 +20798,21 @@ var require_yaml_intelligence_resources = __commonJS({
         "Managing editor (\u201CDirecteur de la Publication\u201D in French).",
         {
           short: "Combined editor and translator of a work.",
-          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data."
+          long: "Combined editor and translator of a work.\nThe citation processory must be automatically generate if editor and\ntranslator variables are identical; May also be provided directly in\nitem data.",
         },
         "Date the event related to an item took place.",
         "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
         "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
         "Executive producer of the item (e.g.&nbsp;of a television series).",
         {
-          short: "Number of a preceding note containing the first reference to the\nitem.",
-          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document"
+          short:
+            "Number of a preceding note containing the first reference to the\nitem.",
+          long: "Number of a preceding note containing the first reference to the\nitem\nAssigned by the CSL processor; Empty in non-note-based styles or when\nthe item hasn\u2019t been cited in any preceding notes in a document",
         },
         "A url to the full text for this item.",
         {
           short: "Type, class, or subtype of the item",
-          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)"
+          long: "Type, class, or subtype of the item (e.g.&nbsp;\u201CDoctoral dissertation\u201D for\na PhD thesis; \u201CNIH Publication\u201D for an NIH technical report);\nDo not use for topical descriptions or categories (e.g.&nbsp;\u201Cadventure\u201D\nfor an adventure movie)",
         },
         "Guest (e.g.&nbsp;on a TV show or podcast).",
         "Host of the item (e.g.&nbsp;of a TV show or podcast).",
@@ -21576,22 +20823,23 @@ var require_yaml_intelligence_resources = __commonJS({
         "International Standard Serial Number.",
         {
           short: "Issue number of the item or container holding the item",
-          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any."
+          long: "Issue number of the item or container holding the item (e.g.&nbsp;\u201C5\u201D when\nciting a journal article from journal volume 2, issue 5);\nUse <code>volume-title</code> for the title of the issue, if any.",
         },
         "Date the item was issued/published.",
         "Geographic scope of relevance (e.g.&nbsp;\u201CUS\u201D for a US patent; the court\nhearing a legal case).",
         "Keyword(s) or tag(s) attached to the item.",
         {
-          short: "The language of the item (used only for citation of the item).",
-          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item)."
+          short:
+            "The language of the item (used only for citation of the item).",
+          long: "The language of the item (used only for citation of the item).\nShould be entered as an ISO 639-1 two-letter language code\n(e.g.&nbsp;\u201Cen\u201D, \u201Czh\u201D), optionally with a two-letter locale code\n(e.g.&nbsp;\u201Cde-DE\u201D, \u201Cde-AT\u201D).\nThis does not change the language of the item, instead it documents\nwhat language the item uses (which may be used in citing the item).",
         },
         {
           short: "The license information applicable to an item.",
-          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)"
+          long: "The license information applicable to an item (e.g.&nbsp;the license an\narticle or software is released under; the copyright information for an\nitem; the classification status of a document)",
         },
         {
           short: "A cite-specific pinpointer within the item.",
-          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list)."
+          long: "A cite-specific pinpointer within the item (e.g.&nbsp;a page number within\na book, or a volume in a multi-volume work).\nMust be accompanied in the input data by a label indicating the\nlocator type (see the Locators term list).",
         },
         "Description of the item\u2019s format or medium (e.g.&nbsp;\u201CCD\u201D, \u201CDVD\u201D,\n\u201CAlbum\u201D, etc.)",
         "Narrator (e.g.&nbsp;of an audio book).",
@@ -21602,7 +20850,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Organizer of an event (e.g.&nbsp;organizer of a workshop or\nconference).",
         {
           short: "The original creator of a work.",
-          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)"
+          long: "The original creator of a work (e.g.&nbsp;the form of the author name\nlisted on the original version of a book; the historical author of a\nwork; the original songwriter or performer for a musical piece; the\noriginal developer or programmer for a piece of software; the original\nauthor of an adapted work such as a book adapted into a screenplay)",
         },
         "Issue date of the original version.",
         "Original publisher, for items that have been republished by a\ndifferent publisher.",
@@ -21612,8 +20860,9 @@ var require_yaml_intelligence_resources = __commonJS({
         "First page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         "Last page of the range of pages the item (e.g.&nbsp;a journal article)\ncovers in a container (e.g.&nbsp;a journal issue).",
         {
-          short: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
-          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any."
+          short:
+            "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).",
+          long: "Number of the specific part of the item being cited (e.g.&nbsp;part 2 of a\njournal article).\nUse <code>part-title</code> for the title of the part, if any.",
         },
         "Title of the specific part of an item being cited.",
         "A url to the pdf for this item.",
@@ -21643,16 +20892,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "Uniform Resource Locator\n(e.g.&nbsp;\u201Chttps://aem.asm.org/cgi/content/full/74/9/2766\u201D)",
         "Version of the item (e.g.&nbsp;\u201C2.0.9\u201D for a software program).",
         {
-          short: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
-          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany."
+          short:
+            "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item.",
+          long: "Volume number of the item (e.g.&nbsp;\u201C2\u201D when citing volume 2 of a book)\nor the container holding the item (e.g.&nbsp;\u201C2\u201D when citing a chapter from\nvolume 2 of a book).\nUse <code>volume-title</code> for the title of the volume, if\nany.",
         },
         {
-          short: "Title of the volume of the item or container holding the item.",
-          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like."
+          short:
+            "Title of the volume of the item or container holding the item.",
+          long: "Title of the volume of the item or container holding the item.\nAlso use for titles of periodical special issues, special sections,\nand the like.",
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
       ],
       "schema/external-schemas.yml": [
         {
@@ -21662,20 +20913,17 @@ var require_yaml_intelligence_resources = __commonJS({
           properties: {
             path: {
               type: "string",
-              description: "be a string"
+              description: "be a string",
             },
             name: {
               type: "string",
-              description: "be a string"
+              description: "be a string",
             },
             register: {
               type: "boolean",
               description: "be `true` or `false`",
-              completions: [
-                "true",
-                "false"
-              ],
-              exhaustiveCompletions: true
+              completions: ["true", "false"],
+              exhaustiveCompletions: true,
             },
             script: {
               _internalId: 4,
@@ -21687,7 +20935,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   anyOf: [
                     {
                       type: "string",
-                      description: "be a string"
+                      description: "be a string",
                     },
                     {
                       _internalId: 1,
@@ -21696,37 +20944,33 @@ var require_yaml_intelligence_resources = __commonJS({
                       properties: {
                         path: {
                           type: "string",
-                          description: "be a string"
+                          description: "be a string",
                         },
                         async: {
                           type: "boolean",
                           description: "be `true` or `false`",
-                          completions: [
-                            "true",
-                            "false"
-                          ],
-                          exhaustiveCompletions: true
-                        }
+                          completions: ["true", "false"],
+                          exhaustiveCompletions: true,
+                        },
                       },
                       patternProperties: {},
-                      required: [
-                        "path"
-                      ]
-                    }
+                      required: ["path"],
+                    },
                   ],
-                  description: "be at least one of: a string, an object"
+                  description: "be at least one of: a string, an object",
                 },
                 {
                   _internalId: 3,
                   type: "array",
-                  description: "be an array of values, where each element must be at least one of: a string, an object",
+                  description:
+                    "be an array of values, where each element must be at least one of: a string, an object",
                   items: {
                     _internalId: 2,
                     type: "anyOf",
                     anyOf: [
                       {
                         type: "string",
-                        description: "be a string"
+                        description: "be a string",
                       },
                       {
                         _internalId: 1,
@@ -21735,29 +20979,25 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           path: {
                             type: "string",
-                            description: "be a string"
+                            description: "be a string",
                           },
                           async: {
                             type: "boolean",
                             description: "be `true` or `false`",
-                            completions: [
-                              "true",
-                              "false"
-                            ],
-                            exhaustiveCompletions: true
-                          }
+                            completions: ["true", "false"],
+                            exhaustiveCompletions: true,
+                          },
                         },
                         patternProperties: {},
-                        required: [
-                          "path"
-                        ]
-                      }
+                        required: ["path"],
+                      },
                     ],
-                    description: "be at least one of: a string, an object"
-                  }
-                }
+                    description: "be at least one of: a string, an object",
+                  },
+                },
               ],
-              description: "be at least one of: at least one of: a string, an object, an array of values, where each element must be at least one of: a string, an object"
+              description:
+                "be at least one of: at least one of: a string, an object, an array of values, where each element must be at least one of: a string, an object",
             },
             stylesheet: {
               _internalId: 6,
@@ -21765,60 +21005,51 @@ var require_yaml_intelligence_resources = __commonJS({
               anyOf: [
                 {
                   type: "string",
-                  description: "be a string"
+                  description: "be a string",
                 },
                 {
                   _internalId: 5,
                   type: "array",
-                  description: "be an array of values, where each element must be a string",
+                  description:
+                    "be an array of values, where each element must be a string",
                   items: {
                     type: "string",
-                    description: "be a string"
-                  }
-                }
+                    description: "be a string",
+                  },
+                },
               ],
-              description: "be at least one of: a string, an array of values, where each element must be a string"
+              description:
+                "be at least one of: a string, an array of values, where each element must be a string",
             },
             "self-contained": {
               type: "boolean",
               description: "be `true` or `false`",
-              completions: [
-                "true",
-                "false"
-              ],
-              exhaustiveCompletions: true
-            }
+              completions: ["true", "false"],
+              exhaustiveCompletions: true,
+            },
           },
           patternProperties: {},
-          required: [
-            "name"
-          ],
+          required: ["name"],
           propertyNames: {
-            errorMessage: "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
+            errorMessage:
+              "property ${value} does not match case convention path,name,register,script,stylesheet,self-contained",
             type: "string",
             pattern: "(?!(^self_contained$|^selfContained$))",
             tags: {
-              "case-convention": [
-                "dash-case"
-              ],
+              "case-convention": ["dash-case"],
               "error-importance": -5,
-              "case-detection": true
-            }
+              "case-detection": true,
+            },
           },
           tags: {
-            "case-convention": [
-              "dash-case"
-            ],
+            "case-convention": ["dash-case"],
             "error-importance": -5,
-            "case-detection": true
+            "case-detection": true,
           },
-          $id: "plugin-reveal"
-        }
+          $id: "plugin-reveal",
+        },
       ],
-      "handlers/languages.yml": [
-        "mermaid",
-        "dot"
-      ],
+      "handlers/languages.yml": ["mermaid", "dot"],
       "handlers/lang-comment-chars.yml": {
         r: "#",
         python: "#",
@@ -21827,18 +21058,9 @@ var require_yaml_intelligence_resources = __commonJS({
         matlab: "%",
         csharp: "//",
         fsharp: "//",
-        c: [
-          "/*",
-          "*/"
-        ],
-        css: [
-          "/*",
-          "*/"
-        ],
-        sas: [
-          "*",
-          ";"
-        ],
+        c: ["/*", "*/"],
+        css: ["/*", "*/"],
+        sas: ["*", ";"],
         powershell: "#",
         bash: "#",
         sql: "--",
@@ -21873,7 +21095,7 @@ var require_yaml_intelligence_resources = __commonJS({
         dot: "//",
         ojs: "//",
         apl: "\u235D",
-        mermaid: "%%"
+        mermaid: "%%",
       },
       "handlers/mermaid/schema.yml": {
         _internalId: 163250,
@@ -21883,18 +21105,10 @@ var require_yaml_intelligence_resources = __commonJS({
           "mermaid-format": {
             _internalId: 163242,
             type: "enum",
-            enum: [
-              "png",
-              "svg",
-              "js"
-            ],
+            enum: ["png", "svg", "js"],
             description: "be one of: `png`, `svg`, `js`",
-            completions: [
-              "png",
-              "svg",
-              "js"
-            ],
-            exhaustiveCompletions: true
+            completions: ["png", "svg", "js"],
+            exhaustiveCompletions: true,
           },
           theme: {
             _internalId: 163249,
@@ -21903,41 +21117,36 @@ var require_yaml_intelligence_resources = __commonJS({
               {
                 type: "null",
                 description: "be the null value",
-                completions: [
-                  "null"
-                ],
-                exhaustiveCompletions: true
+                completions: ["null"],
+                exhaustiveCompletions: true,
               },
               {
                 type: "string",
-                description: "be a string"
-              }
+                description: "be a string",
+              },
             ],
-            description: "be at least one of: the null value, a string"
-          }
+            description: "be at least one of: the null value, a string",
+          },
         },
         patternProperties: {},
         propertyNames: {
-          errorMessage: "property ${value} does not match case convention mermaid-format,theme",
+          errorMessage:
+            "property ${value} does not match case convention mermaid-format,theme",
           type: "string",
           pattern: "(?!(^mermaid_format$|^mermaidFormat$))",
           tags: {
-            "case-convention": [
-              "dash-case"
-            ],
+            "case-convention": ["dash-case"],
             "error-importance": -5,
-            "case-detection": true
-          }
+            "case-detection": true,
+          },
         },
         tags: {
-          "case-convention": [
-            "dash-case"
-          ],
+          "case-convention": ["dash-case"],
           "error-importance": -5,
-          "case-detection": true
+          "case-detection": true,
         },
-        $id: "handlers/mermaid"
-      }
+        $id: "handlers/mermaid",
+      },
     };
   }
 });
