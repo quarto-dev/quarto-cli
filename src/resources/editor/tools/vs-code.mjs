@@ -19760,12 +19760,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "The text describing the source of the funding.",
         {
           short: "Abbreviation for country where source of grant is located.",
-          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used.",
         },
         "The text describing the source of the funding.",
         {
           short: "Abbreviation for country where source of grant is located.",
-          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used.",
         },
         "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
         "The id of an author or affiliation in the document metadata.",
