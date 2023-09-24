@@ -936,11 +936,19 @@ samp  {
     background-color: $code-bg;
   }
 
+  @if variable-exists(mono-foreground-color) {
+    color: $mono-foreground-color;
+  } @else if variable-exists(code-color) {
+    color: $code-color;
+  }
+
   @if variable-exists(code-padding) {
     padding: $code-padding;
   } @else if variable-exists(code-bg) {
     padding: 0.2em;
   } @else if variable-exists(mono-background-color) {
+    padding: 0.2em;
+  } @else if variable-exists(mono-foreground-color) {
     padding: 0.2em;
   }
 }
