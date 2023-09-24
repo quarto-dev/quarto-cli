@@ -441,6 +441,7 @@ function pandocVariablesToThemeDefaults(
   add(explicitVars, "font-family-base", metadata["mainfont"], asCssFont);
   add(explicitVars, "font-family-code", metadata["monofont"], asCssFont);
   add(explicitVars, "mono-background-color", metadata["monobackgroundcolor"]);
+  add(explicitVars, "mono-foreground-color", metadata["monoforegroundcolor"]);
 
   // Deal with sizes
   const explicitSizes = [
