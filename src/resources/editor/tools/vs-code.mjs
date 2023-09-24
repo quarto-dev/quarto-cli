@@ -11583,7 +11583,7 @@ var require_yaml_intelligence_resources = __commonJS({
           default: false,
           description: {
             short: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n",
-            long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit prevents code linking \nif `code-line-numbers` and/or `code-annotations` are set to `true`.\nFor `code-link` to work properly, `code-line-numbers` and `code-annotations`\nrequire to be set to `false`.\n"
+            long: "Enables hyper-linking of functions within code blocks \nto their online documentation.\n\nCode linking is currently implemented only for the knitr engine \n(via the [downlit](https://downlit.r-lib.org/) package). \nA limitation of downlit currently prevents code linking \nif `code-line-numbers` is also `true`.\n"
           }
         },
         {
@@ -19740,7 +19740,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
-          long: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>). Limitation: does not work properly with\n<code>code-link</code> set to <code>true</code>.\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
+          long: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
         },
         "Unique label for code listing (used in cross references)",
         "Caption for code listing",
@@ -19906,11 +19906,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "Enables hyper-linking of functions within code blocks to their online\ndocumentation.",
-          long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code> and proper\ndisplay of code annotations if <code>code-annotations</code> is also set\nto <code>true</code>. For <code>code-line-numbers</code> and\n<code>code-annotations</code> to work properly, it is recommended to set\n<code>code-link</code> to <code>false</code>.'
+          long: 'Enables hyper-linking of functions within code blocks to their online\ndocumentation.\nCode linking is currently implemented only for the knitr engine (via\nthe <a href="https://downlit.r-lib.org/">downlit</a> package). A\nlimitation of downlit currently prevents code linking if\n<code>code-line-numbers</code> is also <code>true</code>.'
         },
         {
           short: "The style to use when displaying code annotations",
-          long: "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations. Limitation: does not work properly with\n<code>code-link</code> set to <code>true</code>."
+          long: "The style to use when displaying code annotations. Set this value to\nfalse to hide code annotations."
         },
         {
           short: "Include a code tools menu (for hiding and showing code).",
@@ -21733,12 +21733,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 161289,
+        _internalId: 161290,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 161281,
+            _internalId: 161282,
             type: "enum",
             enum: [
               "png",
@@ -21754,7 +21754,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 161288,
+            _internalId: 161289,
             type: "anyOf",
             anyOf: [
               {
@@ -28349,7 +28349,7 @@ function buildJsYamlAnnotation(mappedYaml) {
   function listener(what, state) {
     const { result, position, kind } = state;
     if (what === "close") {
-      const { position: openPosition, kind: openKind } = stack.pop();
+      const { position: openPosition } = stack.pop();
       if (results.length > 0) {
         const last = results[results.length - 1];
         if (last.start === openPosition && last.end === position) {
@@ -28366,10 +28366,9 @@ function buildJsYamlAnnotation(mappedYaml) {
       }
       components.reverse();
       const rawRange = yml.substring(openPosition, position);
-      const leftTrim = rawRange.length - rawRange.trimStart().length;
-      const rightTrim = rawRange.length - rawRange.trimEnd().length;
-      if (openKind === null && kind === null) {
-      } else if (rawRange.trim().length === 0) {
+      const leftTrim = rawRange.length - rawRange.trimLeft().length;
+      const rightTrim = rawRange.length - rawRange.trimRight().length;
+      if (rawRange.trim().length === 0) {
         results.push({
           start: position - rightTrim,
           end: position - rightTrim,
@@ -28389,7 +28388,7 @@ function buildJsYamlAnnotation(mappedYaml) {
         });
       }
     } else {
-      stack.push({ position, kind });
+      stack.push({ position });
     }
   }
   load(yml, { listener, schema: QuartoJSONSchema });
