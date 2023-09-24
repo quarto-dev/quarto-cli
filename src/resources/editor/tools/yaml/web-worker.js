@@ -11955,6 +11955,22 @@ try {
             description: "Sets the CSS `background-color` property on code elements and adds extra padding."
           },
           {
+            name: "monoforegroundcolor",
+            schema: "string",
+            tags: {
+              formats: [
+                "html",
+                "html4",
+                "html5",
+                "slidy",
+                "slideous",
+                "s5",
+                "dzslides"
+              ]
+            },
+            description: "Sets the CSS `color` property on code elements and adds extra padding."
+          },
+          {
             name: "backgroundcolor",
             schema: "string",
             tags: {
@@ -21861,7 +21877,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Sets the CSS <code>color</code> property on code elements and adds\nextra padding."
         ],
         "schema/external-schemas.yml": [
           {
@@ -22085,12 +22102,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 167847,
+          _internalId: 167856,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 167839,
+              _internalId: 167848,
               type: "enum",
               enum: [
                 "png",
@@ -22106,7 +22123,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 167846,
+              _internalId: 167855,
               type: "anyOf",
               anyOf: [
                 {
