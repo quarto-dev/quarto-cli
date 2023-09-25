@@ -1,0 +1,14 @@
+---
+title: code filename with underscore in LaTeX
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "my\_example.r"
+---
+
+```{.r filename="my_example.r"}
+replicate(sample(1:10), 10)
+```
