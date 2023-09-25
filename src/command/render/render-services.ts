@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
+import { kRenderServicesLifetime } from "../../config/constants.ts";
 import { createNamedLifetime, getNamedLifetime } from "../../core/lifetimes.ts";
 import { createTempContext } from "../../core/temp.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
@@ -18,16 +19,16 @@ export function renderServices(
   const extension = createExtensionContext();
   const notebook = notebookCtx || notebookContext();
 
-  if (getNamedLifetime("render-services")) {
+  if (getNamedLifetime(kRenderServicesLifetime)) {
     return {
       temp,
       extension,
       notebook,
-      lifetime: getNamedLifetime("render-services"),
+      lifetime: getNamedLifetime(kRenderServicesLifetime),
       cleanup: () => {},
     };
   } else {
-    const lifetime = createNamedLifetime("render-services");
+    const lifetime = createNamedLifetime(kRenderServicesLifetime);
     lifetime.attach(temp);
     lifetime.attach(notebook);
     return {

@@ -14,6 +14,7 @@ import { findOpenPort } from "../port.ts";
 import { getNamedLifetime, ObjectWithLifetime } from "../lifetimes.ts";
 import { sleep } from "../async.ts";
 import { InternalError } from "../lib/error.ts";
+import { kRenderFileLifetime } from "../../config/constants.ts";
 
 async function waitForServer(port: number, timeout = 3000) {
   const interval = 50;
@@ -48,7 +49,7 @@ export function withCriClient<T>(
   }
 
   return criSemaphore.runExclusive(async () => {
-    const lifetime = getNamedLifetime("render-file");
+    const lifetime = getNamedLifetime(kRenderFileLifetime);
     if (lifetime === undefined) {
       throw new InternalError("named lifetime render-file not found");
     }
