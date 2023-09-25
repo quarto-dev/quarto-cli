@@ -408,6 +408,28 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     stripColumnClz(note)
 
+    const typesetMath = (el) => {
+      if (window.MathJax) {
+        // MathJax Typeset
+        window.MathJax.typeset([el]);
+      } else if (window.katex) {
+        // KaTeX Render
+        var mathElements = el.getElementsByClassName("math");
+        var macros = [];
+        for (var i = 0; i < mathElements.length; i++) {
+          var texText = mathElements[i].firstChild;
+          if (mathElements[i].tagName == "SPAN") {
+            window.katex.render(texText.data, mathElements[i], {
+              displayMode: mathElements[i].classList.contains('display'),
+              throwOnError: false,
+              macros: macros,
+              fleqn: false
+            });
+          }
+        }
+      }
+    }
+
     if (id === null || id.startsWith('sec-')) {
       // Special case sections, only their first couple elements
       const container = document.createElement("div");
@@ -415,17 +437,22 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         for (let i = 0; i < 2; i++) {
           container.appendChild(note.children[i].cloneNode(true));
         }
+        typesetMath(container);
         return container.innerHTML
       } else {
+        typesetMath(note);
         return note.innerHTML;
       }
     } else {
 
+    
       // Remove any anchor links if they are present
       const anchorLink = note.querySelector('a.anchorjs-link');
       if (anchorLink) {
         anchorLink.remove();
       }
+
+      typesetMath(note);
       return note.innerHTML;
     }
   }
@@ -485,7 +512,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           if (note !== null) {
             // This should only happen for chapter cross references
             // (since there is no id in the URL)
-            
+
             // remove the first header
             if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
               note.children[0].remove();
