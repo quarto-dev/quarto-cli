@@ -365,7 +365,7 @@ function shortcodeResultAsInlines(result, name)
 end
   
 function shortcodeResultAsBlocks(result, name)
-  if result == nil then
+  if result == nil and name ~= 'include' then
     warn("Shortcode '" .. name .. "' not found")
     return {}
   end
