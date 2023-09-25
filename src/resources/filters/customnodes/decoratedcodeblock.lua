@@ -57,7 +57,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     if node.filename then
       -- if we have a filename, add it as a header
       return pandoc.Div(
-        { pandoc.Plain{pandoc.Strong{pandoc.Str(node.filename)}}, el },
+        { pandoc.Plain{pandoc.Strong{pandoc.Str(stringEscape(node.filename, "latex"))}}, el },
         pandoc.Attr("", {"code-with-filename"})
       )
     else
