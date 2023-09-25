@@ -1,0 +1,85 @@
+---
+title: Layout test
+_quarto:
+  tests:
+    html:
+      # TODO decide the correct behavior in all cases
+      ensureFileRegexMatches:
+        - 
+          - "\\(a\\) Cars"
+          - "\\(b\\) Pressure"
+          - "\\(c\\) Mtcars"
+        - []
+      ensureHtmlElements:
+        -
+          - "a[href='#fig-1']"
+          - "a[href='#fig-1-1']"
+          - "a[href='#fig-1-2']"
+          - "a[href='#fig-2']"
+        - []
+---
+
+```{r}
+#| label: fig-1
+#| fig-cap: "Charts"
+#| fig-subcap: 
+#|   - "Cars"
+#|   - "Pressure"
+#| layout: "[1, 1]"
+
+plot(cars)
+plot(pressure)
+```
+
+See @fig-1, @fig-1-1, @fig-1-2.
+
+```{r}
+#| label: fig-2
+#| fig-cap: "Charts"
+#| layout: "[1, 1]"
+
+plot(cars)
+plot(pressure)
+```
+
+See @fig-2, @fig-2-1, @fig-2-2.
+
+```{r}
+#| label: fig-3
+#| fig-subcap: 
+#|   - "Cars"
+#|   - "Pressure"
+#| layout: "[1, 1]"
+
+plot(cars)
+plot(pressure)
+```
+
+see @fig-3, @fig-3-1, @fig-3-2.
+
+```{r}
+#| label: fig-4
+#| layout: "[1, 1]"
+
+plot(cars)
+plot(pressure)
+```
+
+See @fig-4, @fig-4-1, @fig-4-1.
+
+
+```{r}
+#| label: fig-5
+#| fig-cap: "Charts"
+#| fig-subcap: 
+#|   - "Cars"
+#|   - "Pressure"
+#|   - "Mtcars"
+#| layout: "[[3, 7], [1]]"
+
+plot(cars)
+plot(pressure)
+plot(mtcars)
+```
+
+See @fig-5, @fig-5-1, @fig-5-2, @fig-5-3.

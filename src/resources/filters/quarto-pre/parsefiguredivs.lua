@@ -192,7 +192,7 @@ function parse_floats()
       local reftarget = quarto.FloatRefTarget({
         attr = attr,
         type = category.name,
-        content = final_content,
+        content = final_content.content,
         caption_long = {pandoc.Plain(caption.content)},
       })
       -- need to reference as a local variable because of the
