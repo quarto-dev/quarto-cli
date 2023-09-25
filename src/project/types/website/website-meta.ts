@@ -41,7 +41,7 @@ import { computePageTitle } from "./website-shared.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
-} from "./website-pipeline-md.ts";
+} from "../../../core/markdown-pipeline.ts";
 import { findDescription, findPreviewImg } from "./util/discover-meta.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";

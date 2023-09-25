@@ -23,7 +23,7 @@ import { ProjectContext } from "../../../types.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
-} from "../website-pipeline-md.ts";
+} from "../../../../core/markdown-pipeline.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sassLayer } from "../../../../core/sass.ts";
@@ -178,6 +178,7 @@ export async function listingHtmlDependencies(
     );
   });
 
+  // This force math dependencies to be injected into the page.
   markdownHandlers.push({
     getUnrendered: () => {
       return {
