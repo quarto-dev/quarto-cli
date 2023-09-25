@@ -739,3 +739,7 @@ export const kSourceMappingRegexes = [
 ];
 
 export const kFormatIdentifier = "format-identifier";
+
+// named lifetimes
+export const kRenderFileLifetime = "render-file";
+export const kRenderServicesLifetime = "render-services";

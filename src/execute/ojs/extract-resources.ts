@@ -28,6 +28,7 @@ import { error } from "log/mod.ts";
 import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
 import { InternalError } from "../../core/lib/error.ts";
+import { kRenderServicesLifetime } from "../../config/constants.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -558,7 +559,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
     result.push(...resolvedImport.createdResources);
     // if we're in a project, then we need to clean up at end of render-files lifetime
     if (projectRoot) {
-      getNamedLifetime("render-services", true)!.attach({
+      getNamedLifetime(kRenderServicesLifetime, true)!.attach({
         cleanup() {
           for (const res of resolvedImport.createdResources) {
             // it's possible to include a createdResource more than once if it's used
