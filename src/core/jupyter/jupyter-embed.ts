@@ -738,7 +738,7 @@ function cellForId(id: string, cells: JupyterCellOutput[]) {
 {#fig-coo .car class="cool" height="20 and I {hate you}"}
 {#fig-coo .car .foo}
       */
-      if (cell.markdown.match(new RegExp(`.*{#${id}(\s+\S*)*}$`, "gm"))) {
+      if (cell.markdown.match(new RegExp(`.*{#${id}(\\s+[^}]*)*}$`, "gm"))) {
         return cell;
       }
     }
