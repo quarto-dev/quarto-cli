@@ -558,7 +558,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
     result.push(...resolvedImport.createdResources);
     // if we're in a project, then we need to clean up at end of render-files lifetime
     if (projectRoot) {
-      getNamedLifetime("render-services")!.attach({
+      getNamedLifetime("render-services", true)!.attach({
         cleanup() {
           for (const res of resolvedImport.createdResources) {
             // it's possible to include a createdResource more than once if it's used
