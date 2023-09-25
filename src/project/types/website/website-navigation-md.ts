@@ -25,7 +25,7 @@ import {
   PageMargin,
 } from "./website-shared.ts";
 import { removeChapterNumber } from "./website-utils.ts";
-import { MarkdownPipelineHandler } from "./website-pipeline-md.ts";
+import { MarkdownPipelineHandler } from "../../../core/markdown-pipeline.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 import { md5Hash } from "../../../core/hash.ts";
 

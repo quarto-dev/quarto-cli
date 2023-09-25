@@ -1,10 +1,9 @@
 /*
-* website-pipeline-md.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
-import { Document, Element, Node } from "../../../core/deno-dom.ts";
+ * markdown-pipeline.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+import { Document, Element, Node } from "./deno-dom.ts";
 
 export interface PipelineMarkdown {
   blocks?: Record<string, string>;

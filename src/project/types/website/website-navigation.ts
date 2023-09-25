@@ -126,7 +126,7 @@ import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
-} from "./website-pipeline-md.ts";
+} from "../../../core/markdown-pipeline.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
