@@ -1404,7 +1404,9 @@ function uniqueMenuId(navItem: NavigationItemObject) {
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
-async function resolveItem<T extends { href?: string; text?: string }>(
+async function resolveItem<
+  T extends { href?: string; text?: string; icon?: string },
+>(
   project: ProjectContext,
   href: string,
   item: T,
@@ -1438,6 +1440,9 @@ async function resolveItem<T extends { href?: string; text?: string }>(
       };
     }
   } else {
+    if (!item.text && !item.icon) {
+      item.text = item.href;
+    }
     return item;
   }
 }
