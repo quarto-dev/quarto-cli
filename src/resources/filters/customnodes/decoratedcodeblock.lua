@@ -12,8 +12,10 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "DecoratedCodeBlock",
 
-  -- callouts will be rendered as blocks
+  -- DecoratedCodeblocks will be rendered as blocks
   kind = "Block",
+
+  slots = { "code_block" },
 
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
