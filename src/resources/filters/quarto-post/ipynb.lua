@@ -85,7 +85,7 @@ function ipynb()
         if produceSourceNotebook and (imgAttr.identifier ~= "" or #imgAttr.classes > 0 or #imgAttr.attributes > 0) then
           -- process identifier
           local idStr = ''
-          if imgAttr.identifier then 
+          if imgAttr.identifier ~= "" then 
             idStr = '#' .. imgAttr.identifier
           end
 

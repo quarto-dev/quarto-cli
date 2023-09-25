@@ -600,12 +600,11 @@ end, function(float)
     -- replicate pre-reftarget behavior because it'll be used in embedding
     -- and needs precisely the same AST output
     float.content.content[1].caption = quarto.utils.as_inlines(float.caption_long)
-    return pandoc.Div({
-      pandoc.Para({
-        float.content.content[1],
-        float.content.content[2]
-      })
+    local result = pandoc.Para({
+      float.content.content[1],
+      float.content.content[2]
     })
+    return result
   else
     -- we're not sure how to handle this directly, so we'll just embed the caption
     -- as a paragraph after the content
