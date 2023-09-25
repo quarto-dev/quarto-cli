@@ -77,7 +77,6 @@ function ipynb()
         -- remove image classes/attributes (as this causes Pandoc to write raw html, which in turn
         -- prevents correct handling of attachments in some environments including VS Code)
         Image = function(el)
-          print(el)
           -- If we are in source mode, we should produce a markdown image with all the additional attributes and data
           -- but we can't let Pandoc do that (or it will produce an HTML image), so we do this 
           -- little hack
