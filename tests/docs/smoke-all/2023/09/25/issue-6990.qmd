@@ -1,12 +1,16 @@
 ---
 title: code filename with underscore in LaTeX
-format: latex
+format:
+  html: default
+  latex: default
 _quarto:
   tests:
+    html:
+      ensureFileRegexMatches:
+        - ["my_example.r"]
     latex:
       ensureFileRegexMatches:
-        - 
-          - "my\_example.r"
+        - ["my\\\\_example.r"]
 ---
 
 ```{.r filename="my_example.r"}
