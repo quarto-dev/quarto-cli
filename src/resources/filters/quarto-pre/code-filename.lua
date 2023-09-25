@@ -10,6 +10,9 @@
 
 function code_filename()
   local function codeBlockWithFilename(el, filename)
+    if quarto.doc.is_format("latex") then
+      filename = string.gsub(filename, "_", "\\_")
+    end
     return quarto.DecoratedCodeBlock({
       filename = filename,
       code_block = el:clone()
