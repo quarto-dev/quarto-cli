@@ -583,38 +583,17 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
   return _quarto.format.isIpynbOutput() and not param("enable-crossref", true)
 end, function(float)
   if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
-    -- replicate pre-reftarget behavior because it'll be used in embedding
-    -- and needs precisely the same AST output
-    float.content.content[1].caption = quarto.utils.as_inlines(float.caption_long)
-    return pandoc.Div({
-      pandoc.Para({
-        float.content.content[1]
-      })
-    })
-  elseif (float.content.t == "Plain" and #float.content.content == 2 
-    and float.content.content[1].t == "Image" 
-    and float.content.content[2].t == "RawInline" 
-    and float.content.content[2].format == "markdown") then
-    -- we assume this is the ipynb-specific which we need to manage here.
-
-    -- replicate pre-reftarget behavior because it'll be used in embedding
-    -- and needs precisely the same AST output
-    float.content.content[1].caption = quarto.utils.as_inlines(float.caption_long)
-    return pandoc.Div({
-      pandoc.Para({
-        float.content.content[1],
-        float.content.content[2]
-      })
-    })
-  else
-    -- we're not sure how to handle this directly, so we'll just embed the caption
-    -- as a paragraph after the content
-    local result = pandoc.Div({})
-    result.content:insert(float.content)
-    if float.caption_long then
-      result.content:insert(pandoc.Para(quarto.utils.as_inlines(float.caption_long) or {}))
+    local imgEl = float.content.content[1]
+    if not float.in_code_cell_output then
+      imgEl.identifier = float.identifier
+      imgEl.caption =  quarto.utils.as_inlines(float.caption_long) or {}
     end
-    return result
+    return pandoc.Para({imgEl})
+  else
+    return pandoc.Figure(
+      {float.content},
+      {float.caption_long},
+      float.identifier)
   end
 end)
 
