@@ -7,6 +7,8 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
+import { quartoRules } from "../src/format/html/format-html-shared.ts";
+import { quarto } from "../src/quarto.ts";
 
 // caller is responsible for cleanup!
 export function inTempDirectory(fn: (dir: string) => unknown): unknown {
@@ -61,6 +63,9 @@ export function outputForInput(
     }
     if (baseFormat === "typst") {
       outputExt = "pdf";
+    }
+    if (baseFormat === "dashboard") {
+      outputExt = "html";
     }
   }
 

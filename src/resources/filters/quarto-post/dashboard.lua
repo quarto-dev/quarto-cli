@@ -27,7 +27,6 @@ function render_dashboard()
   if not _quarto.format.isDashboardOutput() then
     return {}
   end
-
   return {
     {
       Pandoc = function(el)
