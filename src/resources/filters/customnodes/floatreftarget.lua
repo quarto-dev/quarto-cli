@@ -591,20 +591,6 @@ end, function(float)
         float.content.content[1]
       })
     })
-  elseif (float.content.t == "Plain" and #float.content.content == 2 
-    and float.content.content[1].t == "Image" 
-    and float.content.content[2].t == "RawInline" 
-    and float.content.content[2].format == "markdown") then
-    -- we assume this is the ipynb-specific which we need to manage here.
-
-    -- replicate pre-reftarget behavior because it'll be used in embedding
-    -- and needs precisely the same AST output
-    float.content.content[1].caption = quarto.utils.as_inlines(float.caption_long)
-    local result = pandoc.Para({
-      float.content.content[1],
-      float.content.content[2]
-    })
-    return result
   else
     -- we're not sure how to handle this directly, so we'll just embed the caption
     -- as a paragraph after the content

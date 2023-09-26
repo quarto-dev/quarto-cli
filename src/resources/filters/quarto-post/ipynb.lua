@@ -3,6 +3,66 @@
 
 local produceSourceNotebook = param('produce-source-notebook', false)
 
+
+function render_ipynb_fixups()
+  if not _quarto.format.isIpynbOutput() then 
+    return {} 
+  end
+
+  return {
+    Image = function(imgEl)
+
+      -- remove image classes/attributes (as this causes Pandoc to write raw html, which in turn
+      -- prevents correct handling of attachments in some environments including VS Code)
+
+      -- If we are in source mode, we should produce a markdown image with all the additional attributes and data
+      -- but we can't let Pandoc do that (or it will produce an HTML image), so we do this 
+      -- little hack
+      local imgAttr = imgEl.attr
+      imgEl.attr = pandoc.Attr()
+
+      -- the content that will be output
+      local outputList = pandoc.List({imgEl})
+
+      -- if we're producing a source notebook, try to preserve image attributes
+      -- this is important for things like mermaid and graphviz
+      if produceSourceNotebook and (imgAttr.identifier ~= "" or #imgAttr.classes > 0 or #imgAttr.attributes > 0) then
+        -- process identifier
+        local idStr = ''
+        if imgAttr.identifier ~= "" then 
+          idStr = '#' .. imgAttr.identifier 
+        end
+
+        -- process classes
+        local clzStr = ''
+        if imgAttr.classes and #imgAttr.classes > 0 then
+          local clzTbl = {}
+          for i, v in ipairs(imgAttr.classes) do
+            clzTbl[i] = '.' .. v
+          end
+          clzStr = ' ' .. table.concat(clzTbl, ' ')
+        end
+
+        -- process atrributes
+        local attrStr = ''
+        if imgAttr.attributes then
+          local attrTbl = {}
+          for k, v in pairs(imgAttr.attributes) do
+            table.insert(attrTbl, k .. '=' .. '"' .. v .. '"')
+          end
+          attrStr = ' ' .. table.concat(attrTbl, ' ')
+        end
+
+        -- return an markdown identifier directly adjacent to the image (tricking pandoc ;-) )
+        outputList:insert(pandoc.RawInline("markdown", '{' .. idStr .. clzStr .. attrStr .. '}'))
+      end
+
+      return outputList
+
+      end,
+  }
+end
+
 function ipynb()
   if FORMAT == "ipynb" then
     return {
@@ -77,46 +137,6 @@ function ipynb()
         -- remove image classes/attributes (as this causes Pandoc to write raw html, which in turn
         -- prevents correct handling of attachments in some environments including VS Code)
         Image = function(el)
-          -- If we are in source mode, we should produce a markdown image with all the additional attributes and data
-          -- but we can't let Pandoc do that (or it will produce an HTML image), so we do this 
-          -- little hack
-          local imgAttr = el.attr
-          el.attr = pandoc.Attr()
-          -- if we're producing a source notebook, try to preserve image attributes
-          -- this is important for things like mermaid and graphviz
-          if produceSourceNotebook and (imgAttr.identifier ~= "" or #imgAttr.classes > 0 or #imgAttr.attributes > 0) then
-            -- process identifier
-            local idStr = ''
-            if imgAttr.identifier ~= "" then 
-              idStr = '#' .. imgAttr.identifier
-            end
-
-            -- process classes
-            local clzStr = ''
-            if imgAttr.classes and #imgAttr.classes > 0 then
-              local clzTbl = {}
-              for i, v in ipairs(imgAttr.classes) do
-                clzTbl[i] = '.' .. v
-              end
-              clzStr = ' ' .. table.concat(clzTbl, ' ')
-            end
-
-            -- process atrributes
-            local attrStr = ''
-            if imgAttr.attributes then
-              local attrTbl = {}
-              for k, v in pairs(imgAttr.attributes) do
-                table.insert(attrTbl, k .. '=' .. '"' .. v .. '"')
-              end
-              attrStr = ' ' .. table.concat(attrTbl, ' ')
-            end
-
-            -- return an markdown identifier directly adjacent to the image (tricking pandoc ;-) )
-            idInline = pandoc.RawInline("markdown", '{' .. idStr .. clzStr .. attrStr .. '}')
-            return {el, idInline}  
-          else 
-            return el
-          end        
         end,
 
         -- note that this also catches raw blocks inside display_data 
