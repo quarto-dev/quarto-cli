@@ -34,6 +34,28 @@ const pkgVersRequirement = {
   },
 };
 
+export async function checkRBinary() {
+  const rBin = await rBinaryPath("Rscript");
+  try {
+    const result = await execProcess({
+      cmd: [rBin, "--version"],
+      stdout: "piped",
+    });
+    if (result.success && result.stdout) {
+      debug(`\n++R found at ${rBin} is working.`);
+      return rBin;
+    } else {
+      debug(`\n++R found at ${rBin} is not working properly.`);
+      return undefined;
+    }
+  } catch {
+    debug(
+      `\n++ Error while checking R binary found at ${rBin}`,
+    );
+    return undefined;
+  }
+}
+
 export async function knitrCapabilities(rBin: string | undefined) {
   if (!rBin) return undefined;
   try {
