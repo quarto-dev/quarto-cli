@@ -1,0 +1,16 @@
+---
+format: typst
+# FIXME no _quarto tests support yet
+---
+
+This is a paragraph with an inline image ![](./page-menu-icon.jpg){height="1em"}.
+
+::: {#fig-1}
+
+![](./page-menu-icon.jpg)
+
+A caption
+
+:::
+
+See @fig-1.

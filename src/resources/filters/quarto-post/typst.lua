@@ -33,3 +33,22 @@ function render_typst()
     end
   }
 end
+
+function render_typst_fixups()
+  return {
+    Para = function(para)
+      return para:walk({
+        Image = function(image)
+          if image.attributes["width"] == nil and image.attributes["height"] == nil then
+            return nil
+          end
+          return pandoc.Inlines({
+            pandoc.RawInline("typst", "#box(["),
+            image,
+            pandoc.RawInline("typst", "])"),
+          })
+        end
+      })
+    end
+  }
+end
