@@ -1,0 +1,77 @@
+---
+format: html
+engine: knitr
+_quarto:
+  tests:
+    html:
+      # echo: false has been set and nothing should be including 
+      ensureHtmlElements:
+        - 
+          - "#valign-bottom div.cell.quarto-layout-panel div.quarto-layout-row.quarto-layout-valign-bottom"
+          - "#valign-top div.cell.quarto-layout-panel div.quarto-layout-row.quarto-layout-valign-top"
+          - "#valign-center div.cell.quarto-layout-panel div.quarto-layout-row.quarto-layout-valign-center"
+          - "#valign-default div.cell.quarto-layout-panel div.quarto-layout-row.quarto-layout-valign-top"
+        - []
+      ensureFileRegexMatches:
+        - []
+        - []
+
+---
+
+## valign-bottom
+
+```{r}
+#| label: fig-charts1
+#| fig-cap: 
+#|   - "Speed and Stopping Distances of Cars"
+#|   - "Vapor Pressure of Mercury as a Function of Temperature"
+#| layout: "[1, 1]"
+#| layout-valign: bottom
+
+plot(cars)
+plot(pressure)
+```
+
+## valign-top
+
+```{r}
+#| label: fig-charts2
+#| fig-cap: 
+#|   - "Speed and Stopping Distances of Cars"
+#|   - "Vapor Pressure of Mercury as a Function of Temperature"
+#| layout: "[1, 1]"
+#| layout-valign: top
+
+plot(cars)
+plot(pressure)
+```
+
+## valign-center
+
+```{r}
+#| label: fig-charts3
+#| fig-cap: 
+#|   - "Speed and Stopping Distances of Cars"
+#|   - "Vapor Pressure of Mercury as a Function of Temperature"
+#| layout: "[1, 1]"
+#| layout-valign: center
+
+plot(cars)
+plot(pressure)
+```
+
+## valign-default
+
+```{r}
+#| label: fig-charts4
+#| fig-cap: 
+#|   - "Speed and Stopping Distances of Cars"
+#|   - "Vapor Pressure of Mercury as a Function of Temperature"
+#| layout: "[1, 1]"
+#| layout-valign: default
+
+plot(cars)
+plot(pressure)
+```
+
+
