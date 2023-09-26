@@ -9,3 +9,4 @@
 import "./html/format-html.ts";
 import "./reveal/format-reveal.ts";
 import "./asciidoc/format-asciidoc.ts";
+import "./dashboard/format-dashboard.ts";

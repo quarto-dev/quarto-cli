@@ -75,6 +75,7 @@ import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
 import("./quarto-post/code.lua")
 import("./quarto-post/html.lua")
+import("./quarto-post/dashboard.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -333,6 +334,7 @@ local quarto_post_filters = {
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
   { name = "post-render-typst", filter = render_typst() },
+  { name = "post-render-dashboard", filters = render_dashboard()},
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },

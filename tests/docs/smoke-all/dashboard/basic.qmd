@@ -1,0 +1,29 @@
+---
+title: My First Dashboard
+format: html
+theme: lux
+---
+
+## Cool Section
+
+This is the content of this section it can be anything
+
+## Hello World
+
+```{r}
+plot(cars)
+```
+
+## Section 2
+
+```{r}
+plot(mtcars)
+```
+
+:::{.card}
+
+## Hi there
+
+This is a section
+
+:::
