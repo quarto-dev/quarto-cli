@@ -143,7 +143,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
         "InstallPath",
       );
       if (installPath) {
-        debug(`Found in PATH at ${join(installPath, "bin")}`);
+        debug(`Found in Windows Registry at ${join(installPath, "bin")}`);
         return join(installPath, "bin", binary);
       }
     }

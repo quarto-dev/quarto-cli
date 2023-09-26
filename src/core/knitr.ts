@@ -10,6 +10,7 @@ import { execProcess } from "./process.ts";
 import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
+import { debug } from "log/mod.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;
@@ -33,18 +34,18 @@ const pkgVersRequirement = {
   },
 };
 
-export async function knitrCapabilities() {
+export async function knitrCapabilities(rBin: string | undefined) {
+  if (!rBin) return undefined;
   try {
     debug(`-- Checking knitr engine capabilities --`);
     const result = await execProcess({
-      cmd: [
-        await rBinaryPath("Rscript"),
-        resourcePath("capabilities/knitr.R"),
-      ],
+      cmd: [rBin, resourcePath("capabilities/knitr.R")],
       stdout: "piped",
     });
     if (result.success && result.stdout) {
-      debug("\n++Parsing results to get informations about knitr capabilities");
+      debug(
+        "\n++ Parsing results to get informations about knitr capabilities",
+      );
       const jsonLines = result.stdout
         .replace(/^.*--- YAML_START ---/sm, "")
         .replace(/--- YAML_END ---.*$/sm, "");
@@ -60,14 +61,10 @@ export async function knitrCapabilities() {
           Object.values(pkgVersRequirement["knitr"]).join(" "),
         )
         : false;
-      debug(
-        `knitr version: ${knitrVersion} - ${
-          caps.packages.knitrVersOk ? "OK" : "NOT OK"
-        }`,
       );
       return caps;
     } else {
-      debug("\n++Problem with results of knitr capabilities check.");
+      debug("\n++ Problem with results of knitr capabilities check.");
       return undefined;
     }
   } catch {

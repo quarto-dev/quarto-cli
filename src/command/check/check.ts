@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { debug, info } from "log/mod.ts";
 
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
@@ -30,7 +30,7 @@ import { readCodePage } from "../../core/windows.ts";
 import { RenderServices } from "../render/types.ts";
 import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 import { execProcess } from "../../core/process.ts";
-import { pandocBinaryPath } from "../../core/resources.ts";
+import { pandocBinaryPath, rBinaryPath } from "../../core/resources.ts";
 import { lines } from "../../core/text.ts";
 import { satisfies } from "semver/mod.ts";
 import { dartCommand } from "../../core/dart-sass.ts";
@@ -283,16 +283,40 @@ title: "Title"
   }
 }
 
+async function checkRBinary() {
+  const rBin = await rBinaryPath("Rscript");
+  try {
+    const result = await execProcess({
+      cmd: [rBin, "--version"],
+      stdout: "piped",
+    });
+    if (result.success && result.stdout) {
+      debug(`\n++R found at ${rBin} is working.`);
+      return rBin;
+    } else {
+      debug(`\n++R found at ${rBin} is not working properly.`);
+      return undefined;
+    }
+  } catch {
+    debug(
+      `\n++ Error while checking R binary found at ${rBin}`,
+    );
+    return undefined;
+  }
+}
+
 async function checkKnitrInstallation(services: RenderServices) {
   const kMessage = "Checking R installation...........";
   let caps: KnitrCapabilities | undefined;
+  let rBin: string | undefined;
   await withSpinner({
     message: kMessage,
     doneMessage: false,
   }, async () => {
-    caps = await knitrCapabilities();
+    rBin = await checkRBinary();
+    caps = await knitrCapabilities(rBin);
   });
-  if (caps) {
+  if (rBin && caps) {
     completeMessage(kMessage + "OK");
     info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
@@ -316,9 +340,16 @@ async function checkKnitrInstallation(services: RenderServices) {
       );
       info("");
     }
-  } else {
+  } else if (!rBin) {
     completeMessage(kMessage + "(None)\n");
     info(rInstallationMessage(kIndent));
+    info("");
+  } else if (!caps) {
+    completeMessage(kMessage + "(None)\n");
+    info(
+      `Problem with running R found at ${rBin} to check environment configurations.`,
+    );
+    info("Please check your installation of R.");
     info("");
   }
 }
