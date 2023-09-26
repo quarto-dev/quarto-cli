@@ -33,17 +33,22 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
       end
       -- luacov: enable
 
-      doc = run_emulated_filter(doc, v.filter)
+      if v.print_ast then
+        print(pandoc.write(doc, "native"))
+      else
 
-      add_trace(doc, v.name)
+        doc = run_emulated_filter(doc, v.filter)
 
-      -- luacov: disable
-      if profiling then
-        profiler.category = ""
+        add_trace(doc, v.name)
+
+        -- luacov: disable
+        if profiling then
+          profiler.category = ""
+        end
+        -- luacov: enable
       end
-      -- luacov: enable
     end
-    if v.filter.scriptFile then
+    if v.filter and v.filter.scriptFile then
       _quarto.withScriptFile(v.filter.scriptFile, callback)
     else
       callback()
@@ -108,7 +113,7 @@ function run_as_extended_ast(specTable)
     local finalResult = {}
   
     for i, v in ipairs(filterList) do
-      if v.filter ~= nil then
+      if v.filter ~= nil or v.print_ast then
         -- v.filter._filter_name = v.name
         table.insert(finalResult, v)
       elseif v.filters ~= nil then

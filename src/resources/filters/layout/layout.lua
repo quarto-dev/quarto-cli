@@ -16,6 +16,17 @@ function layout_panels()
       if not attr_requires_panel_layout(div.attr) then
         return nil
       end
+      local nested_layout = false
+      _quarto.ast.walk(div, {
+        PanelLayout = function()
+          nested_layout = true
+        end
+      })
+      -- if we are nested then we assume the layout
+      -- has been handled by the child
+      if nested_layout then
+        return nil
+      end
       local preamble, cells = partition_cells(div)
       local layout = layout_cells(div, cells)
       return quarto.PanelLayout({
@@ -29,10 +40,20 @@ function layout_panels()
       if not attr_requires_panel_layout(attr) then
         return nil
       end
+      local nested_layout = false
+      _quarto.ast.walk(div, {
+        PanelLayout = function()
+          nested_layout = true
+        end
+      })
+      -- if we are nested then we assume the layout
+      -- has been handled by the child
+      if nested_layout then
+        return nil
+      end
 
       local preamble, cells = partition_cells(float)
       local layout = layout_cells(float, cells)
-      
       return quarto.PanelLayout({
         float = float,
         preamble = preamble,
