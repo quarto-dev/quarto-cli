@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
+import { debug, warning } from "log/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
@@ -15,7 +15,6 @@ import {
   kHKeyLocalMachine,
   registryReadString,
 } from "./registry.ts";
-import { debug } from "log/mod.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
