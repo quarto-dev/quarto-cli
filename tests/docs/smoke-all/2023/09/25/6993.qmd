@@ -15,7 +15,8 @@ _quarto:
           - "a[href='#fig-1']"
           - "a[href='#fig-1-1']"
           - "a[href='#fig-1-2']"
-          - "a[href='#fig-2']"
+          - "a[href='#fig-2-1']"
+          - "a[href='#fig-2-2']"
         - []
 ---
 
