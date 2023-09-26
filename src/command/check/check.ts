@@ -340,11 +340,11 @@ async function checkKnitrInstallation(services: RenderServices) {
       );
       info("");
     }
-  } else if (!rBin) {
+  } else if (rBin === undefined) {
     completeMessage(kMessage + "(None)\n");
     info(rInstallationMessage(kIndent));
     info("");
-  } else if (!caps) {
+  } else if (caps === undefined) {
     completeMessage(kMessage + "(None)\n");
     info(
       `Problem with running R found at ${rBin} to check environment configurations.`,
