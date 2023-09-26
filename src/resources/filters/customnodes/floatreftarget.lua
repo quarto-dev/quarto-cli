@@ -584,9 +584,11 @@ _quarto.ast.add_renderer("FloatRefTarget", function(_)
 end, function(float)
   if float.content.t == "Plain" and #float.content.content == 1 and float.content.content[1].t == "Image" then
     local imgEl = float.content.content[1]
-    imgEl.identifier = float.identifier
-    imgEl.caption =  quarto.utils.as_inlines(float.caption_long) or {}
-    return imgEl
+    if not float.in_code_cell_output then
+      imgEl.identifier = float.identifier
+      imgEl.caption =  quarto.utils.as_inlines(float.caption_long) or {}
+    end
+    return pandoc.Para({imgEl})
   else
     return pandoc.Figure(
       {float.content},
