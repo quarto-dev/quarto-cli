@@ -61,7 +61,6 @@ export async function knitrCapabilities(rBin: string | undefined) {
           Object.values(pkgVersRequirement["knitr"]).join(" "),
         )
         : false;
-      );
       return caps;
     } else {
       debug("\n++ Problem with results of knitr capabilities check.");
