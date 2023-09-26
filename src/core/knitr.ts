@@ -35,6 +35,7 @@ const pkgVersRequirement = {
 
 export async function knitrCapabilities() {
   try {
+    debug(`-- Checking knitr engine capabilities --`);
     const result = await execProcess({
       cmd: [
         await rBinaryPath("Rscript"),
@@ -43,6 +44,7 @@ export async function knitrCapabilities() {
       stdout: "piped",
     });
     if (result.success && result.stdout) {
+      debug("\n++Parsing results to get informations about knitr capabilities");
       const jsonLines = result.stdout
         .replace(/^.*--- YAML_START ---/sm, "")
         .replace(/--- YAML_END ---.*$/sm, "");
@@ -58,11 +60,22 @@ export async function knitrCapabilities() {
           Object.values(pkgVersRequirement["knitr"]).join(" "),
         )
         : false;
+      debug(
+        `knitr version: ${knitrVersion} - ${
+          caps.packages.knitrVersOk ? "OK" : "NOT OK"
+        }`,
+      );
       return caps;
     } else {
+      debug("\n++Problem with results of knitr capabilities check.");
       return undefined;
     }
   } catch {
+    debug(
+      `\n++ Error while running 'capabilities/knitr.R' ${
+        rBin ? "with " + rBin : ""
+      }`,
+    );
     return undefined;
   }
 }
