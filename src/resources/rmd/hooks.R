@@ -283,7 +283,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # forward selected attributes
-    forward <- c("layout", "layout-nrow", "layout-ncol", "layout-align")
+    forward <- c("layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign")
     forwardAttr <- character()
     for (attr in forward) {
       value = options[[attr]]
