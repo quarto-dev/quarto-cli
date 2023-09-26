@@ -279,7 +279,8 @@ function withinActiveRenv() {
 }
 
 async function printCallRDiagnostics() {
-  const caps = await knitrCapabilities();
+  const rBin = await rBinaryPath("Rscript");
+  const caps = await knitrCapabilities(rBin);
   if (!caps) {
     info("");
     info(rInstallationMessage());
