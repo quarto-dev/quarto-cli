@@ -59,7 +59,7 @@ function render_ipynb_fixups()
 
       return outputList
 
-      end,
+    end,
   }
 end
 
