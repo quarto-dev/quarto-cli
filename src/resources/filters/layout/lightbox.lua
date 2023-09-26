@@ -282,7 +282,7 @@ function lightbox()
           --   class: <class-name>
           local effect = "zoom"
           local descPosition = "bottom" 
-          local loop = true
+          local loop = false
           local skin = nil
           
           -- The selector controls which elements are targeted.
