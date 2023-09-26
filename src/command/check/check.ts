@@ -325,8 +325,9 @@ async function checkKnitrInstallation(services: RenderServices) {
     info("");
   } else if (caps === undefined) {
     completeMessage(kMessage + "(None)\n");
+    info(`R succesfully found at ${rBin}.`);
     info(
-      `Problem with running R found at ${rBin} to check environment configurations.`,
+      "However, a problem was encountered when checking configurations of packages.",
     );
     info("Please check your installation of R.");
     info("");
