@@ -714,7 +714,12 @@ aside,
   margin-bottom: 0;
 }
 
-.column-margin.column-container > *:not(.collapse) {
+.column-margin.column-container > *:not(.collapse):first-child {
+  padding-bottom: 0.5em;
+  display: block;
+}
+
+.column-margin.column-container > *:not(.collapse):not(:first-child) {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
   display: block;
