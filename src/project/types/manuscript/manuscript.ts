@@ -670,7 +670,7 @@ export const manuscriptProjectType: ProjectType = {
       );
       if (mecaBundle) {
         const target = projectOutputDir(context);
-        Deno.renameSync(
+        Deno.copyFileSync(
           mecaBundle,
           join(target, mecaFileName),
         );
