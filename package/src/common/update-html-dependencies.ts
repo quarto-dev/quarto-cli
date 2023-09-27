@@ -675,6 +675,21 @@ async function updateBootstrapFromBslib(
       info(`Copying ${utilsFrom} to ${utilsTo}`);
       copySync(utilsFrom, utilsTo);
 
+
+      // Copy bslib
+      info("Copying BSLIB scss files");
+      const bslibScssFrom = join(repo.dir, "inst", "bslib-scss");
+      const bslibScssTo = join(distDir, "bslib-scss");
+      info(`Copying ${bslibScssFrom} to ${bslibScssTo}`);
+      copySync(bslibScssFrom, bslibScssTo);
+
+      // Copy componennts
+      info("Copying BSLIB component scss files");
+      const componentFrom = join(repo.dir, "inst", "components", "scss");
+      const componentTo = join(distDir, "components", "scss");
+      info(`Copying ${componentFrom} to ${componentTo}`);
+      copySync(componentFrom, componentTo);
+
       // Grab the js file that we need
       info("Copying dist files");
       [

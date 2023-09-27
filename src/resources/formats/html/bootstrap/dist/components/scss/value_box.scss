@@ -1,0 +1,91 @@
+.bslib-value-box {
+  --bslib-value-box-separator-color: rgba(var(--bs-white-rgb, 255,255,255), 0.175);
+
+  .value-box-grid {
+    grid-template-columns: var(--bslib-value-box-widths);
+  }
+
+  // Should also be fillable/fill (i.e., d-flex; flex: 1)
+  .value-box-showcase {
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 1rem;
+    overflow: hidden;
+
+    .bi, .fa {
+      opacity: .85;
+      min-width: 50px;
+      max-width: 125%;
+    }
+    // We set font size because {bsicons}/{fontawesome} both
+    // set height/width to 1em by default (as an inline style)
+    .bi { font-size: 5rem; }
+    .fa { font-size: 4rem; }
+
+    max-height: var(--bslib-value-box-max-height);
+
+    &.showcase-top-right {
+      align-items: end;
+      padding-left: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  // Should also be fillable/fill (i.e., d-flex; flex: 1)
+  .value-box-area {
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    font-size: .9rem;
+    font-weight: 500;
+    * {
+      color: inherit;
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+    // value_box(title = )
+    > :first-child {
+      @include bootstrap-heading($h6-font-size);
+      color: inherit;
+      // add a non-breaking space to ensure it's not 0 height
+      &::after {
+        content: '\00a0 '
+      }
+    }
+    // value_box(value = )
+    > :nth-child(2) {
+      @include bootstrap-heading($h2-font-size);
+      color: inherit;
+      // add a non-breaking space to ensure it's not 0 height
+      &::after {
+        content: '\00a0 '
+      }
+    }
+    &.border-start {
+      border-color: var(--bslib-value-box-separator-color) !important;
+    }
+  }
+
+  &[data-full-screen="true"] {
+    .value-box-grid {
+      grid-template-columns: var(--bslib-value-box-widths-full-screen);
+    }
+    .value-box-showcase {
+      max-height: var(--bslib-value-box-max-height-full-screen);
+    }
+  }
+
+  &:not([data-full-screen="true"]) {
+    .value-box-showcase.showcase-top-right {
+      margin-top: 0;
+    }
+  }
+}
+
+// Override layout_inline_grid()'s preference to collapse to full-width on mobile (inside the value box)
+@include media-breakpoint-down(sm) {
+  .bslib-value-box .value-box-grid {
+    grid-template-columns: var(--bslib-value-box-widths) !important;
+  }
+}

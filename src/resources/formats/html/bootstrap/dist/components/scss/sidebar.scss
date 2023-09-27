@@ -1,0 +1,325 @@
+$bslib-sidebar-bg: mix($body-color, $body-bg, 3.66%) !default;
+$bslib-sidebar-fg: color-contrast($bslib-sidebar-bg) !default;
+$bslib-sidebar-border: var(--bs-card-border-width, #{$card-border-width}) solid var(--bs-card-border-color, #{$card-border-color}) !default;
+$bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), var(--bslib-sidebar-width, 250px));
+
+.bslib-sidebar-layout {
+  --bslib-sidebar-transition-duration: 500ms;
+  --bslib-sidebar-border: #{$bslib-sidebar-border};
+  --bslib-sidebar-border-radius: var(--bs-border-radius);
+  --bslib-sidebar-vert-border: #{$bslib-sidebar-border};
+  --bslib-sidebar-bg: #{$bslib-sidebar-bg};
+  --bslib-sidebar-fg: #{$bslib-sidebar-fg};
+  --bslib-sidebar-padding: calc(var(--bslib-spacer) * 1.5);
+  --bslib-sidebar-icon-size: var(--bslib-spacer, 1rem);
+  --bslib-collapse-toggle-border: #{$bslib-sidebar-border};
+  --bslib-collapse-toggle-transform: 90deg;
+  --bslib-collapse-toggle-right-transform: -90deg;
+  --bslib-sidebar-column-main: minmax(0, 1fr);
+
+
+  display: grid !important;
+  grid-template-columns: $bslib-sidebar-column-sidebar var(--bslib-sidebar-column-main);
+  position: relative;
+
+  @include transition(grid-template-columns ease-in-out var(--bslib-sidebar-transition-duration));
+
+  border: var(--bslib-sidebar-border);
+  border-radius: var(--bslib-sidebar-border-radius);
+
+  &[data-bslib-sidebar-border="false"] {
+    border: none;
+  }
+  &[data-bslib-sidebar-border-radius="false"] {
+    border-radius: initial;
+  }
+
+  > .main, > .sidebar {
+    grid-row: 1 / 2;
+    border-radius: inherit;
+    overflow: auto;
+  }
+
+  > .main {
+    grid-column: 2 / 3;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: var(--bslib-sidebar-padding);
+  }
+
+  > .sidebar {
+    grid-column: 1 / 2;
+    width: 100%;
+    height: 100%;
+    border-right: var(--bslib-sidebar-vert-border);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    background-color: var(--bslib-sidebar-bg);
+    color: var(--bslib-sidebar-fg);
+
+    > .sidebar-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--bslib-spacer, 1rem);
+      padding: var(--bslib-sidebar-padding);
+
+      > :last-child:not(.sidebar-title) {
+        // Remove margin-bottom from the last item because sidebar has padding.
+        // We make an exception for .sidebar-title because it might be common to
+        // have a title and bare text nodes (that don't count as children).
+        margin-bottom: 0;
+      }
+
+      > .accordion {
+        margin-left: calc(-1 * var(--bslib-sidebar-padding));
+        margin-right: calc(-1 * var(--bslib-sidebar-padding));
+        &:first-child {
+          margin-top: calc(-1 * var(--bslib-sidebar-padding));
+        }
+        &:last-child {
+            margin-bottom: calc(-1 * var(--bslib-sidebar-padding));
+        }
+        &:not(:last-child) {
+          margin-bottom: $spacer;
+        }
+        .accordion-body {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+
+      // Accordions in sidebars are made flush with `.accordion-flush`, which
+      // removes the top and bottom border of the first or last accordion item.
+      // But in our usage, the accordions might not be the first or last item in
+      // the sidebar. In that case, it's better to keep the top/bottom borders.
+      > .accordion:not(:first-child) .accordion-item:first-child {
+        border-top: var(--#{$prefix}accordion-border-width) solid var(--#{$prefix}accordion-border-color);
+      }
+      > .accordion:not(:last-child) .accordion-item:last-child {
+        border-bottom: var(--#{$prefix}accordion-border-width) solid var(--#{$prefix}accordion-border-color);
+      }
+
+      // When a sidebar title appears just above an accordion, we use the
+      // accordion's top border as the "underline". The fiddly margin-top bit
+      // adjusts the accordion to cover the title bottom border in browsers
+      // that don't yet support :has().
+      // TODO: this can be removed once :has() has better browser support
+      > .sidebar-title + .accordion {
+        margin-top: calc(-#{$spacer} - var(--bs-card-border-width, #{$card-border-width}));
+      }
+
+      > .sidebar-title:has(+ .accordion) {
+        border-bottom: none;
+      }
+    }
+
+    .shiny-input-container {
+      width: 100%;
+    }
+  }
+
+  > .collapse-toggle {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    display: inline-flex;
+    align-items: center;
+    position: absolute;
+    right: calc(-1 * var(--bslib-sidebar-icon-size));
+    // The CSS variable (set via JS) is here to help avoid overlapping toggles
+    bottom: calc(var(--bslib-sidebar-padding) + var(--bslib-sidebar-overlap-counter, 0) * calc(var(--bslib-sidebar-icon-size) + var(--bslib-sidebar-padding)));
+    border: var(--bslib-collapse-toggle-border);
+    border-left: none;
+    border-radius: 0 var(--bs-border-radius) var(--bs-border-radius) 0;
+    padding: 7px 0;
+    background-color: var(--bslib-sidebar-bg);
+    color: var(--bslib-sidebar-fg);
+
+    > .collapse-icon {
+      opacity: 0.8;
+      width: var(--bslib-sidebar-icon-size);
+      height: var(--bslib-sidebar-icon-size);
+      transform: rotate(var(--bslib-collapse-toggle-transform));
+      // N.B. since mobile view won't trigger a transition of grid-template-columns,
+      // we transition this toggle to ensure _some_ transition event always happens.
+      transition: transform cubic-bezier(0.68, -0.55, 0.27, 1.55) var(--bslib-sidebar-transition-duration);
+    }
+
+    &:hover > .collapse-icon {
+      opacity: 1;
+    }
+  }
+
+  .sidebar-title {
+    font-size: $font-size-base * 1.25;
+    line-height: $line-height-sm;
+    margin-top: 0;
+    margin-bottom: $spacer;
+    padding-bottom: $spacer;
+    border-bottom: var(--bslib-sidebar-border);
+  }
+
+  &.sidebar-right {
+    grid-template-columns: var(--bslib-sidebar-column-main) $bslib-sidebar-column-sidebar;
+
+    > .main {
+      grid-column: 1 / 2;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      border-top-left-radius: inherit;
+      border-bottom-left-radius: inherit;
+    }
+
+    > .sidebar {
+      grid-column: 2 / 3;
+      border-right: none;
+      border-left: var(--bslib-sidebar-vert-border);
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    > .collapse-toggle {
+      grid-column: 2 / 3;
+      left: calc(-1 * var(--bslib-sidebar-icon-size));
+      right: unset;
+      border-radius: var(--bs-border-radius) 0 0 var(--bs-border-radius);
+      border-right: none;
+      border-left: var(--bslib-collapse-toggle-border);
+      > .collapse-icon {
+        transform: rotate(var(--bslib-collapse-toggle-right-transform));
+      }
+    }
+  }
+
+  &.sidebar-collapsed {
+    --bslib-collapse-toggle-transform: -90deg;
+    --bslib-collapse-toggle-right-transform: 90deg;
+    --bslib-sidebar-vert-border: none;
+
+    grid-template-columns: 0 minmax(0, 1fr);
+
+    &.sidebar-right {
+      grid-template-columns: minmax(0, 1fr) 0;
+    }
+
+    // Hide the sidebar contents after it's done transitioning so that
+    // those contents don't impact the overall layout (i.e., height)
+    &:not(.transitioning) {
+      // Putting `display:none` on .sidebar would change the number of columns
+      // in the grid, and I don't think we can transition between those states
+      > .sidebar > * {
+        display: none;
+      }
+    }
+
+    > .main {
+      border-radius: inherit;
+    }
+
+    > .collapse-toggle {
+      right: calc(-1 * var(--bslib-sidebar-icon-size) - var(--bs-card-border-width, 1px));
+    }
+
+    &.sidebar-right > .collapse-toggle {
+      left: calc(-1 * var(--bslib-sidebar-icon-size) - var(--bs-card-border-width, 1px));
+      right: unset;
+    }
+  }
+}
+
+@include media-breakpoint-up(sm) {
+  // hide sidebar content while we transition the parent .sidebar on desktop
+  // (on mobile the reveal happens immediately)
+  .bslib-sidebar-layout.transitioning > .sidebar > .sidebar-content {
+    display: none;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .bslib-sidebar-layout, .bslib-sidebar-layout.sidebar-right {
+    --bslib-sidebar-vert-border: none;
+    --bslib-sidebar-horiz-border: #{$bslib-sidebar-border};
+    --bslib-collapse-toggle-transform: -180deg;
+    --bslib-collapse-toggle-right-transform: -180deg;
+
+    // required by sidebar init js when `sidebar(open = "desktop")`
+    &[data-bslib-sidebar-open="desktop"] {
+      --bslib-sidebar-js-init-collapsed: true;
+    }
+
+    grid-template-columns: 1fr !important;
+    // Sidebar height is constrained on mobile where upper bound is determined
+    // by bslib UI functions. The minimax() is important to ensure the main main
+    // content is allowed to grow/shrink.
+    grid-template-rows:
+      fit-content(var(--bslib-sidebar-max-height-mobile, auto))
+      minmax(0, 1fr);
+
+    > .sidebar {
+      grid-row: 1 / 2;
+      grid-column: 1 / 2;
+      width: 100%;
+      border: none;
+      border-bottom: var(--bslib-sidebar-horiz-border);
+      border-radius: 0;
+    }
+
+    > .main {
+      grid-row: 2 / 3;
+      grid-column: 1 / 2;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: inherit;
+      border-bottom-left-radius: inherit;
+    }
+
+    > .collapse-toggle {
+      grid-row: 2 / 3;
+      grid-column: 1 / 2;
+      border-top: none !important;
+      border: var(--bslib-collapse-toggle-border);
+      border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
+      padding: 0 4px;
+      > .collapse-icon {
+        // On mobile we can transition the icon orientation immediately and quickly
+        transition-duration: calc(var(--bslib-sidebar-transition-duration) * 0.33);
+      }
+    }
+
+    // Apply same collapse-toggle position adjustment to all states and layouts
+    &, &.sidebar-right {
+      > .collapse-toggle {
+        top: calc(-1 * var(--bs-card-border-width, 1px));
+      }
+      &.sidebar-collapsed > .collapse-toggle {
+        top: 0;
+      }
+      &, &.sidebar-collapsed {
+        > .collapse-toggle {
+          // The CSS variable (set via JS) is here to help avoid overlapping toggles
+          right: calc(var(--bslib-sidebar-padding) + var(--bslib-sidebar-counter, 0) * calc(var(--bslib-sidebar-icon-size) + var(--bslib-sidebar-padding)));
+          bottom: initial;
+          left: initial;
+        }
+      }
+    }
+
+    &.sidebar-collapsed {
+      --bslib-collapse-toggle-transform: 0deg;
+      --bslib-collapse-toggle-right-transform: 0deg;
+
+      grid-template-rows: 0 minmax(0, 1fr);
+      // TODO: according to the spec, grid-template-rows should be animatable,
+      // but this doesn't behave quite right, and I'm not sure why
+      // transition: grid-template-rows ease-in-out var(--bslib-sidebar-transition-duration);
+
+      > .main {
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+      }
+
+      > .sidebar {
+        border-bottom: none;
+      }
+    }
+  }
+}
