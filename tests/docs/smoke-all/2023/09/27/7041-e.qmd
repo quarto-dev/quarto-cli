@@ -1,0 +1,25 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "10em"
+          - "30em"
+          - "\\{marginfigure\\}"
+        - 
+          - "\\{figure\\}"
+---
+
+::: {#fig-2 .column-margin offset="10em"}
+
+![](elephant.jpg)
+
+In div style
+
+:::
+
+![Another figure.](elephant.jpg){#fig-1 .column-margin offset="30em"}
+
+See @fig-1 and @fig-2.
