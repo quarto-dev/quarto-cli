@@ -508,13 +508,13 @@ function latexRemoveTableDelims(el)
 end
 
 local kMarginFigureEnv = "marginfigure"
+local kOffset = "offset"
 
 -- Computes the figure position for a figure environment
--- (margin figures, for example, don't support position since 
--- they're already in the margin)
+-- margin figures use offset instead of position
 function latexFigurePosition(el, env) 
   if env == kMarginFigureEnv then
-    return nil
+    return attribute(el, kOffset, nil)
   else
     return attribute(el, kFigPos, nil)
   end
