@@ -310,6 +310,9 @@ function parse_floats()
     Para = function(para)
       local img = discoverFigure(para, false)
       if img ~= nil then
+        if img.identifier == "" and #img.caption == 0 then
+          return nil
+        end
         if img.identifier == "" then
           img.identifier = autoRefLabel("fig")
         end
