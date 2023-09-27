@@ -735,8 +735,15 @@ async function updateBootstrapFromBslib(
       const componentFrom = join(repo.dir, "inst", "components", "scss");
       const componentTo = join(bsLibDir, "components", "scss");
       info(`Copying ${componentFrom} to ${componentTo}`);
-      Deno.removeSync(componentTo, { recursive: true});
-      copySync(componentFrom, componentTo);
+      copySync(componentFrom, componentTo, {overwrite: true});
+
+      info("Copying BSLIB dist files");
+      const componentDistFrom = join(repo.dir, "inst", "components", "dist");
+      const componentDistTo = join(bsLibDir, "components", "dist");
+      info(`Copying ${componentDistFrom} to ${componentDistTo}`);
+      ensureDirSync(componentDistTo);
+      copySync(componentDistFrom, componentDistTo, {overwrite: true});
+      
 
       // Grab the js file that we need
       info("Copying dist files");
