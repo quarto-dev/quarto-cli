@@ -126,7 +126,7 @@ import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
-} from "./website-pipeline-md.ts";
+} from "../../../core/markdown-pipeline.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
@@ -1404,7 +1404,9 @@ function uniqueMenuId(navItem: NavigationItemObject) {
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
-async function resolveItem<T extends { href?: string; text?: string }>(
+async function resolveItem<
+  T extends { href?: string; text?: string; icon?: string },
+>(
   project: ProjectContext,
   href: string,
   item: T,
@@ -1438,7 +1440,9 @@ async function resolveItem<T extends { href?: string; text?: string }>(
       };
     }
   } else {
-    item.text = item.text || item.href;
+    if (!item.text && !item.icon) {
+      item.text = item.href;
+    }
     return item;
   }
 }

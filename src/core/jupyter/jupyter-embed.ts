@@ -21,6 +21,7 @@ import {
   kFigFormat,
   kFigPos,
   kKeepHidden,
+  kRenderFileLifetime,
 } from "../../config/constants.ts";
 import {
   isHtmlCompatible,
@@ -96,7 +97,6 @@ const placeholderRegex = () => {
 };
 
 const kNotebookCache = "notebook-cache";
-const kRenderFileLifeTime = "render-file";
 
 // Parses a notebook address string into a file path with
 // an optional list of ids or list of cell indexes.
@@ -501,9 +501,9 @@ async function getCachedNotebookInfo(
 ) {
   // We can cache outputs on a per rendered file basis to
   // improve performance
-  const lifetime = getNamedLifetime(kRenderFileLifeTime);
+  const lifetime = getNamedLifetime(kRenderFileLifetime);
   if (lifetime === undefined) {
-    throw new InternalError(`named lifetime ${kRenderFileLifeTime} not found`);
+    throw new InternalError(`named lifetime ${kRenderFileLifetime} not found`);
   }
   const nbCache =
     lifetime.get(kNotebookCache) as unknown as JupyterNotebookOutputCache ||
@@ -728,7 +728,17 @@ function cellForId(id: string, cells: JupyterCellOutput[]) {
     // Check contents of the cell itself
     if (cell.markdown && cell.markdown.includes(id)) {
       // Now look more carefully to see if id is indeed an attr
-      if (cell.markdown.match(new RegExp(`.*{#${id}((\s\S*\})|\})$`, "gm"))) {
+
+      /*
+{#fig-coo}
+{#fig-coo-1}
+{#fig-coo .bar}
+{#fig-coo }
+{#fig-coo .car class="cool"}
+{#fig-coo .car class="cool" height="20 and I {hate you}"}
+{#fig-coo .car .foo}
+      */
+      if (cell.markdown.match(new RegExp(`.*{#${id}(\\s+[^}]*)*}$`, "gm"))) {
         return cell;
       }
     }

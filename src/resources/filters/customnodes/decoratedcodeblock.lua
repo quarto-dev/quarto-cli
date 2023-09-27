@@ -12,8 +12,10 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "DecoratedCodeBlock",
 
-  -- callouts will be rendered as blocks
+  -- DecoratedCodeblocks will be rendered as blocks
   kind = "Block",
+
+  slots = { "code_block" },
 
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
@@ -90,7 +92,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         -- with both filename and captionContent we need to add a colon
         local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
         listingCaption.content:insert(
-          pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}: ")
+          pandoc.RawInline("latex", "\\texttt{" .. stringEscape(node.filename, "latex") .. "}: ")
         )
         listingCaption.content:extend(captionContent)
         listingCaption.content:insert(pandoc.RawInline("latex", "}"))
@@ -99,7 +101,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
         -- with just filename we don't add a colon
         listingCaption.content:insert(
-          pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}")
+          pandoc.RawInline("latex", "\\texttt{" .. stringEscape(node.filename, "latex") .. "}")
         )
         listingCaption.content:insert(pandoc.RawInline("latex", "}"))
         listingDiv.content:insert(listingCaption)

@@ -1,9 +1,8 @@
 /*
-* website-about.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-about.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { dirname, join } from "path/mod.ts";
 import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
@@ -32,7 +31,7 @@ import {
   MarkdownPipeline,
   MarkdownPipelineHandler,
   PipelineMarkdown,
-} from "../website-pipeline-md.ts";
+} from "../../../../core/markdown-pipeline.ts";
 
 const kAbout = "about";
 const kTemplate = "template";

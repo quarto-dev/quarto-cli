@@ -366,7 +366,9 @@ end
   
 function shortcodeResultAsBlocks(result, name)
   if result == nil then
-    warn("Shortcode '" .. name .. "' not found")
+    if name ~= 'include' then
+      warn("Shortcode '" .. name .. "' not found")
+    end
     return {}
   end
   local type = quarto.utils.type(result)

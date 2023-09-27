@@ -29,9 +29,9 @@ function code_filename()
     Div = function(div)
       local filename = div.attributes["filename"]
       if filename and div.content[1].t == "CodeBlock" then
-        local decorated_block = codeBlockWithFilename(div, filename)
+        local decorated_block = codeBlockWithFilename(div.content[1], filename)
         div.attributes["filename"] = nil
-        div.convent[1] = decorated_block
+        div.content[1] = decorated_block
         return div
       end
     end,

@@ -62,6 +62,7 @@ import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
+import("./quarto-post/typst.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
@@ -298,7 +299,7 @@ local quarto_post_filters = {
   { name = "post-cites", filter = indexCites() },
   { name = "post-foldCode", filter = foldCode() },
   { name = "post-bibliography", filter = bibliography() },
-  { name = "post-ipynb", filter = ipynb()},
+  { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
@@ -328,12 +329,18 @@ local quarto_post_filters = {
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
   { name = "post-render-docx", filter = render_docx() },
+  { name = "post-render-typst", filter = render_typst() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
+  -- inject required packages post-rendering
+  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
+
   -- format fixups post rendering
   { name = "post-render-html-fixups", filter = render_html_fixups() },
+  { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
+  { name = "post-render-typst-fixups", filter = render_typst_fixups() },
 
   { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
 }
@@ -367,7 +374,6 @@ local quarto_layout_filters = {
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
   { name = "layout-panels", filter = layout_panels() },
-  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
 }
 
 local quarto_crossref_filters = {

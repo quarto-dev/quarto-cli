@@ -18,25 +18,12 @@ const layoutMarginEls = () => {
       // clear the top margin so we recompute it
       marginChild.style.marginTop = null;
       const top = marginChild.getBoundingClientRect().top + window.scrollY;
-      console.log({
-        childtop: marginChild.getBoundingClientRect().top,
-        scroll: window.scrollY,
-        top,
-        lastBottom,
-      });
       if (top < lastBottom) {
         const margin = lastBottom - top;
         marginChild.style.marginTop = `${margin}px`;
       }
       const styles = window.getComputedStyle(marginChild);
       const marginTop = parseFloat(styles["marginTop"]);
-
-      console.log({
-        top,
-        height: marginChild.getBoundingClientRect().height,
-        marginTop,
-        total: top + marginChild.getBoundingClientRect().height + marginTop,
-      });
       lastBottom = top + marginChild.getBoundingClientRect().height + marginTop;
     }
   }

@@ -324,6 +324,10 @@ ul.task-list {
   display: none;
 }
 
+.tippy-content {
+  overflow-x: scroll;
+}
+
 // embedded source code
 .quarto-embedded-source-code {
   display: none;

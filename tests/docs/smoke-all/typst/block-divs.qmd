@@ -1,0 +1,10 @@
+---
+title: "typst blocks"
+format: typst
+---
+
+::: {.block fill="rgb(\"ff0000\")"}
+
+This is a block with red background (yuck.)
+
+:::

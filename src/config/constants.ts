@@ -55,6 +55,8 @@ export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 export const kLightbox = "lightbox";
 
+export const kMath = "math";
+
 export const kNotebookPreviewOptions = "notebook-preview-options";
 export const kNotebookPreviewOptionBack = "back";
 
@@ -737,3 +739,9 @@ export const kSourceMappingRegexes = [
   /^\/\/#\s*sourceMappingURL\=.*\.map$/gm,
   /\/\*\# sourceMappingURL=.* \*\//g,
 ];
+
+export const kFormatIdentifier = "format-identifier";
+
+// named lifetimes
+export const kRenderFileLifetime = "render-file";
+export const kRenderServicesLifetime = "render-services";

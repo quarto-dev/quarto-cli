@@ -68,16 +68,17 @@ end, function(panel_layout)
   local rendered_panel
 
   if panel_layout.is_float_reftarget then
-    rendered_panel = float_reftarget_render_html_figure(
-      decorate_caption_with_crossref(quarto.FloatRefTarget({
-        identifier = panel_layout.identifier,
-        classes = panel_layout.classes,
-        attributes = panel_layout.attributes,
-        order = panel_layout.order,
-        type = panel_layout.type,
-        content = panel.content,
-        caption_long = pandoc.List({panel_layout.caption_long}),
-      })))
+    local float_node, float_tbl = quarto.FloatRefTarget({
+      identifier = panel_layout.identifier,
+      classes = panel_layout.classes,
+      attributes = panel_layout.attributes,
+      order = panel_layout.order,
+      type = panel_layout.type,
+      content = panel.content,
+      caption_long = pandoc.List({panel_layout.caption_long}),
+    })
+    decorate_caption_with_crossref(float_tbl)
+    rendered_panel = float_reftarget_render_html_figure(float_tbl)
     rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
   else
     rendered_panel = panel

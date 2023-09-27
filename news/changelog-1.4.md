@@ -34,6 +34,7 @@
 - ([#5955](https://github.com/quarto-dev/quarto-cli/issues/5955)): Correct HTML callout appearance when title isn't present.
 - ([#6833](https://github.com/quarto-dev/quarto-cli/issues/6833)): Handle partially-specified aspect ratio, width, and height attributes in `video` shortcode.
 - ([#6714](https://github.com/quarto-dev/quarto-cli/issues/6714)): Display title block for HTML when other (non-title/author/subtitle) metadata is present.
+- ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 
 ## Appendix
 
@@ -44,12 +45,13 @@
 - ([#5546](https://github.com/quarto-dev/quarto-cli/issues/5546)): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
 - ([#5783](https://github.com/quarto-dev/quarto-cli/issues/5783)): Ensure fenced code blocks work with line numbers.
 - ([#6120](https://github.com/quarto-dev/quarto-cli/issues/6120)): `pdf-max-pages-per-slide` is now correctly setting [`pdfMaxPagesPerSlide` config](https://revealjs.com/pdf-export/#page-size) for RevealJS.
-- ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
+- ([#6827](https://github.com/quarto-dev/quarto-cli/issues/6120)): Correctly layout callout in revealjs slides when changing appearance.
 
 ## PDF Format
 
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
 - ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
+- ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
 
 ## Docusaurus Format
 
@@ -79,9 +81,9 @@
 - ([#5742](https://github.com/quarto-dev/quarto-cli/issues/5742)): Use any element to compute a description for the listing, even when there are no paragraphs.
 - ([#4800](https://github.com/quarto-dev/quarto-cli/issues/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.
 - ([#6777](https://github.com/quarto-dev/quarto-cli/issues/6777)): Add support for complex fields like `citaiton.container-title` when includes custom fields in listings.
-- ([#6706](https://github.com/quarto-dev/quarto-cli/issues/6706)): If there is no text displayed for external links in navigation items (navbar, sidebar), display the href value as the text.
 - ([#6903](https://github.com/quarto-dev/quarto-cli/issues/6903)): Don't display the `path` field for external paths provided in metadata files.
 - ([#5463](https://github.com/quarto-dev/quarto-cli/issues/5463)): Error if the `contents` of a listing match no items.
+- ([#6904](https://github.com/quarto-dev/quarto-cli/issues/6904)): Within feeds, remove `index.html` from urls which shouldn't include it.
 
 ## Websites
 
@@ -133,6 +135,7 @@
 - ([#4735](https://github.com/quarto-dev/quarto-cli/pull/4735)): Special `verbatim` and `embed` language engine for knitr's chunk are now better supported, including with special quarto cell option like `echo: fenced`.
 - ([#6775](https://github.com/quarto-dev/quarto-cli/pull/6775)): Avoid duplicating special internal `tools:quarto` R environment used for making `ojs_define()` accessible during knitting.
 - ([#6792](https://github.com/quarto-dev/quarto-cli/issues/6792)): `fig-asp` provided at YAML config level now correctly work to set `fig.asp` chunk option in **knitr**.
+- ([[#7002](https://github.com/quarto-dev/quarto-cli/issues/7002)): `layout-valign` is correctly forwarded to HTML to tweak vertical figure layout alignment for computational figures.
 
 ## OJS engine
 
@@ -161,6 +164,8 @@
 - ([#6211](https://github.com/quarto-dev/quarto-cli/pull/6211)): Improve error message when a JSON filter (or a potentially misspelled Lua filter from an extension) is not found.
 - ([#6215](https://github.com/quarto-dev/quarto-cli/issues/6215)): Add `quarto.utils.string_to_inlines` and `quarto.utils.string_to_blocks` to Lua API to convert a string to a list of inlines or blocks taking into account quarto's AST structure.
 - ([#6289](https://github.com/quarto-dev/quarto-cli/issues/6289)): allow `markdownToInlines` to take empty string.
+- ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): render callouts to `gfm` using GitHub's syntax.
+- ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): Add isGithubMarkdownOutput() to quarto.format API.
 
 ## Debian Installer
 
@@ -203,3 +208,4 @@
 - ([#6807](https://github.com/quarto-dev/quarto-cli/pull/6807)): Improve sourcemapping reference cleanup in generated CSS files.
 - ([#6825](https://github.com/quarto-dev/quarto-cli/issues/6825)): Show filename when YAML parsing error occurs.
 - ([#6836](https://github.com/quarto-dev/quarto-cli/issues/6836)): Fix missing `docx` format for `abstract` key in reference schema.
+- ([#7032](https://github.com/quarto-dev/quarto-cli/issues/7032)): `quarto` is now correctly working when installed in a folder with spaces in path.
