@@ -334,6 +334,9 @@ local quarto_post_filters = {
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
+  -- inject required packages post-rendering
+  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
+
   -- format fixups post rendering
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
@@ -371,7 +374,6 @@ local quarto_layout_filters = {
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
   { name = "layout-panels", filter = layout_panels() },
-  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
 }
 
 local quarto_crossref_filters = {
