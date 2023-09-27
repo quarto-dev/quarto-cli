@@ -13,7 +13,7 @@ end
 local function makeCard(title, contents, classes)
   local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
   local contentDiv = pandoc.Div(contents, pandoc.Attr("", {"card-body"}))
-  local clz = pandoc.List({"card", "bslib-grid-item"})
+  local clz = pandoc.List({"card"})
   if classes then
     clz:extend(classes)
   end

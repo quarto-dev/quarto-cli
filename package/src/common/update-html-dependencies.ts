@@ -16,7 +16,6 @@ import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
 import { copyMinimal } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
-import { execProcess } from "../../../src/core/process.ts";
 
 export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
@@ -32,8 +31,14 @@ export async function updateHtmlDependencies(config: Configuration) {
   if (!bsIconVersion) {
     throw new Error(`BOOTSTRAP_FONT is not defined`);
   }
+  const htmlToolsVersion = Deno.env.get("HTMLTOOLS");
+  if (!htmlToolsVersion) {
+    throw new Error("HTMLTOOLS is not defined");
+  }
+
   info(`Boostrap: ${bsCommit}`);
   info(`Boostrap Icon: ${bsIconVersion}`);
+  info(`Html Tools: ${htmlToolsVersion}`);
 
   // the bootstrap and dist/themes dir
   const formatDir = join(
@@ -48,6 +53,9 @@ export async function updateHtmlDependencies(config: Configuration) {
   const bsThemesDir = join(bsDir, "themes");
 
   const bsDistDir = join(bsDir, "dist");
+
+  const htmlToolsDir = join(formatDir, "htmltools");
+  const bslibDir = join(formatDir, "bslib");
 
   // For applying git patch to what we retreive
   const patchesDir = join(config.directoryInfo.pkg, "src", "common", "patches");
@@ -500,8 +508,18 @@ export async function updateHtmlDependencies(config: Configuration) {
     bsCommit,
     workingSubDir("bsdist"),
     bsDistDir,
-    bsThemesDir
+    bsThemesDir,
+    bslibDir
   );
+
+  // Update Html Tools
+  await updateHtmlTools(
+    htmlToolsVersion,
+    workingSubDir("htmltools"),
+    htmlToolsDir
+  )
+
+  // Update Bootstrap icons
   await updateBoostrapIcons(bsIconVersion, workingSubDir("bsicons"), bsDistDir);
 
   // Update Pandoc themes
@@ -573,13 +591,42 @@ async function updateCookieConsent(
   await ensureDir(targetDir);
 
   await Deno.copyFile(tempPath, join(targetDir, fileName));
+  info("Done\n");
+}
+
+async function updateHtmlTools(
+  version: string,
+  working: string,
+  distDir: string
+) {
+  // https://github.com/rstudio/htmltools/archive/refs/tags/v0.5.6.zip
+  info("Updating Html Tools...");
+  const dirName = `htmltools-${version}`;
+  const fileName = `v${version}.zip`;
+  const distUrl = `https://github.com/rstudio/htmltools/archive/refs/tags/${fileName}`;
+  const zipFile = join(working, fileName);
+
+  // Download and unzip the release
+  info(`Downloading ${distUrl}`);
+  await download(distUrl, zipFile);
+  await unzip(zipFile, working);
+
+  // Copy the fill css file
+  ensureDirSync(distDir);
+  Deno.copyFileSync(
+    join(working, dirName, "inst", "fill", "fill.css"),
+    join(distDir, "fill.css")
+  );
+
+  info("Done\n");
 }
 
 async function updateBootstrapFromBslib(
   commit: string,
   working: string,
   distDir: string,
-  themesDir: string
+  themesDir: string,
+  bsLibDir: string
 ) {
   info("Updating Bootstrap Scss Files...");
   await withRepo(
@@ -675,19 +722,20 @@ async function updateBootstrapFromBslib(
       info(`Copying ${utilsFrom} to ${utilsTo}`);
       copySync(utilsFrom, utilsTo);
 
-
       // Copy bslib
       info("Copying BSLIB scss files");
       const bslibScssFrom = join(repo.dir, "inst", "bslib-scss");
-      const bslibScssTo = join(distDir, "bslib-scss");
+      const bslibScssTo = join(bsLibDir, "bslib-scss");
       info(`Copying ${bslibScssFrom} to ${bslibScssTo}`);
+      Deno.removeSync(bslibScssTo, { recursive: true});
       copySync(bslibScssFrom, bslibScssTo);
 
       // Copy componennts
       info("Copying BSLIB component scss files");
       const componentFrom = join(repo.dir, "inst", "components", "scss");
-      const componentTo = join(distDir, "components", "scss");
+      const componentTo = join(bsLibDir, "components", "scss");
       info(`Copying ${componentFrom} to ${componentTo}`);
+      Deno.removeSync(componentTo, { recursive: true});
       copySync(componentFrom, componentTo);
 
       // Grab the js file that we need

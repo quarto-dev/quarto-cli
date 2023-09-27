@@ -1,6 +1,6 @@
 ---
 title: My First Dashboard
-format: html
+format: dashboard
 theme: lux
 _quarto:
   tests:
