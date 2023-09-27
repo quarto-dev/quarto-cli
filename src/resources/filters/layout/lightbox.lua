@@ -140,6 +140,7 @@ function lightbox()
   end
 
   if quarto.doc.is_format("html:js") then
+
     return {{
       traverse = "topdown",
 
@@ -200,13 +201,29 @@ function lightbox()
         end
         return div
       end,
+
+      -- this catches images in paragraphs by themselves
+      -- without captions, since Pandoc doesn't convert those to Figures
+      Para = function(para)
+        local image = discoverFigure(para, false)
+        if image ~= nil then
+          return pandoc.Para({processImg(image, { automatic = true })}), false
+        end
+      end,
+
+      -- This catches inline images
       Image = function(imgEl)
         -- look only for explicitly targeted images
         return processImg(imgEl, { automatic = false } ), false
       end,
+
+      -- figures are "Block images" with captions: images in a para
+      -- by themselves with a caption
       Figure = function(figEl)
         return processFigure(figEl), false
       end,
+
+      -- these are ref targets
       FloatRefTarget = function(floatEl)
 
         if floatEl.parent_id == nil then
