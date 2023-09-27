@@ -1,6 +1,8 @@
 -- floatreftarget.lua
 -- Copyright (C) 2023 Posit Software, PBC
 
+local drop_class = require("modules/filters").drop_class
+
 _quarto.ast.add_handler({
 
   -- empty table so this handler is only called programmatically
@@ -317,7 +319,9 @@ end, function(float)
     return quarto.LatexEnvironment({
       name = figEnv,
       pos = figPos,
-      content = figure_content
+      content = _quarto.ast.walk(figure_content, {
+        Image = drop_class("column-margin")
+      })
     })
   end
 end)
