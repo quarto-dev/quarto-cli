@@ -8,7 +8,7 @@ import { docs } from "../../utils.ts";
 import { renderVerifyLatexOutput } from "./render.ts";
 
 renderVerifyLatexOutput(docs("latex-output/captionless-margin-image.qmd"), [
-  /\\begin{marginfigure}/,
+  /{\\marginnote{\\begin{footnotesize}\\includegraphics{/,
 ]);
 renderVerifyLatexOutput(docs("latex-output/figure-div.qmd"), [
   /\\centering{/,
