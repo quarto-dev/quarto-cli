@@ -122,7 +122,46 @@ function render_latex()
     return {}
   end
 
+  -- renders the outermost element with .column-margin inside
+  -- as a marginnote environment, but don't nest marginnote environments
+  -- This works because it's a topdown traversal
+  local function column_margin(el)
+    local function strip_class(el)
+      if el.classes == nil then
+        return nil
+      end
+      el.classes = el.classes:filter(function(clz)
+        return clz ~= "column-margin"
+      end)
+      return el
+    end
+    if el.classes:includes("column-margin") then
+      noteHasColumns()
+      local is_block = pandoc.utils.type(el) == "Block"
+      el.content = _quarto.ast.walk(el.content, {
+        Block = strip_class,
+        Inline = strip_class
+      })      
+      tprepend(el.content, {latexBeginSidenote(is_block)})
+      tappend(el.content, {latexEndSidenote(el, is_block)})
+      return el, false
+    end
+  end
+
   return {
+    traverse = "topdown",
+    Div = column_margin,
+    Span = column_margin,
+    
+    -- don't look inside floats, they get their own rendering.
+    FloatRefTarget = function(float)
+      return nil, false
+    end,
+    Image = function(img)
+      if img.classes:includes("column-margin") then
+        return column_margin(pandoc.Span(img, img.attr))
+      end
+    end,
     Callout = function(node)
       -- read and clear attributes
       local lua_type = type
