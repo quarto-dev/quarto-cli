@@ -63,39 +63,62 @@ function render_pandoc3_figure()
       end
     }
   elseif _quarto.format.isLatexOutput() then
-    return {
-      traverse = "topdown",
-      FloatRefTarget = function(float)
-        local count = 0
-        _quarto.ast.walk(float.content, {
-          Figure = function()
-            count = count + 1
+    -- split local declaration because Lua's local is not
+    -- a letrec
+    local filter
+    filter = function(state)
+      state = state or {}
+      return {
+        traverse = "topdown",
+        FloatRefTarget = function(float)
+          local count = 0
+          _quarto.ast.walk(float.content, {
+            Figure = function()
+              count = count + 1
+            end
+          })
+          if count > 0 then
+            return nil, false
           end
-        })
-        if count > 0 then
-          return nil, false
-        end
-      end,
-      Figure = function(figure)
-        local image
-        _quarto.ast.walk(figure, {
-          Image = function(img)
-            image = img
+        end,
+        Div = function(div)
+          if div.classes:includes("column-margin") then
+            local new_state = {}
+            for k, v in pairs(state) do
+              new_state[k] = v
+            end
+            new_state.in_column_margin = true
+            
+            div.content = _quarto.ast.walk(div.content, filter(new_state))
+            div.classes = div.classes:filter(function(x) return x ~= "column-margin" end)
+            return div
           end
-        })
-        if image == nil then
-          return figure
+        end,
+        Figure = function(figure)
+          local image
+          _quarto.ast.walk(figure, {
+            Image = function(img)
+              image = img
+            end
+          })
+          if image == nil then
+            return figure
+          end
+          if figure.caption.long ~= nil then
+            image.caption = quarto.utils.as_inlines(figure.caption.long)
+          end
+          for k, v in pairs(figure.attributes) do
+            image.attributes[k] = v
+          end
+          image.classes:extend(figure.classes)
+          if state.in_column_margin then
+            image.classes:insert("column-margin")
+          end
+          return latexImageFigure(image)
         end
-        if figure.caption.long ~= nil then
-          image.caption = quarto.utils.as_inlines(figure.caption.long)
-        end
-        for k, v in pairs(figure.attributes) do
-          image.attributes[k] = v
-        end
-        image.classes:extend(figure.classes)
-        return latexImageFigure(image)
-      end
-    }
+      }
+    end
+    return filter()
   elseif _quarto.format.isTypstOutput() then
     return {
       traverse = "topdown",
