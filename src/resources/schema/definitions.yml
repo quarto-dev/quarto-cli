@@ -38,7 +38,7 @@
             type: string
             path: path
             entry-point:
-              enum: [before-quarto, after-quarto]
+              enum: [before-quarto, after-quarto, before-render, after-render]
           required: [path, entry-point]
       - record:
           type:
