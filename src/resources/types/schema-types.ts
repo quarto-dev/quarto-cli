@@ -22,8 +22,11 @@ export type PandocFormatRequestHeaders = ((string)[])[];
 
 export type PandocFormatOutputFile = string | null;
 
-export type PandocFormatFilters =
-  ((string | { type: string; path: string } | { type: "citeproc" }))[];
+export type PandocFormatFilters = ((string | { path: string; type?: string } | {
+  "entry-point": "before-quarto" | "after-quarto";
+  path: string;
+  type?: string;
+} | { type: "citeproc" }))[];
 
 export type PandocShortcodes = (string)[];
 

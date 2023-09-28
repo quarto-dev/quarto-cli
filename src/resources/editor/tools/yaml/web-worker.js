@@ -8244,9 +8244,32 @@ try {
               anyOf: [
                 "path",
                 {
-                  record: {
-                    type: "string",
-                    path: "path"
+                  object: {
+                    properties: {
+                      type: "string",
+                      path: "path"
+                    },
+                    required: [
+                      "path"
+                    ]
+                  }
+                },
+                {
+                  object: {
+                    properties: {
+                      type: "string",
+                      path: "path",
+                      "entry-point": {
+                        enum: [
+                          "before-quarto",
+                          "after-quarto"
+                        ]
+                      }
+                    },
+                    required: [
+                      "path",
+                      "entry-point"
+                    ]
                   }
                 },
                 {
@@ -22085,12 +22108,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 167847,
+          _internalId: 167874,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 167839,
+              _internalId: 167866,
               type: "enum",
               enum: [
                 "png",
@@ -22106,7 +22129,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 167846,
+              _internalId: 167873,
               type: "anyOf",
               anyOf: [
                 {

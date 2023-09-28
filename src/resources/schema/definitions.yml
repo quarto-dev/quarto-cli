@@ -28,9 +28,18 @@
   arrayOf:
     anyOf:
       - path
-      - record:
-          type: string
-          path: path
+      - object:
+          properties:
+            type: string
+            path: path
+          required: [path]
+      - object:
+          properties:
+            type: string
+            path: path
+            entry-point:
+              enum: [before-quarto, after-quarto]
+          required: [path, entry-point]
       - record:
           type:
             enum: [citeproc]
