@@ -396,21 +396,21 @@ local quarto_crossref_filters = {
 
 local quarto_filter_list = {}
 
-table.insert(quarto_filter_list, { name = "before-ast", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-ast", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_init_filters)
 tappend(quarto_filter_list, quarto_normalize_filters)
-table.insert(quarto_filter_list, { name = "after-ast", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-ast", filter = {} }) -- entry point for user filters
 
-table.insert(quarto_filter_list, { name = "before-quarto", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-quarto", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then
   tappend(quarto_filter_list, quarto_crossref_filters)
 end
-table.insert(quarto_filter_list, { name = "after-quarto", filter = {} }) -- entry point for user filters
-table.insert(quarto_filter_list, { name = "before-render", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-quarto", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-render", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_layout_filters)
 tappend(quarto_filter_list, quarto_post_filters)
-table.insert(quarto_filter_list, { name = "after-render", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "post-render", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_finalize_filters)
 
 -- now inject user-defined filters on appropriate positions

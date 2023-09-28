@@ -691,12 +691,12 @@ export async function resolveFilters(
       const at = quartoLoc > i ? kQuartoPre : kQuartoPost;
       const result: QuartoFilterEntryPoint = typeof filter === "string"
         ? {
-          "entry-point": at,
+          "at": at,
           "type": filter.endsWith(".lua") ? "lua" : "json",
           "path": filter,
         }
         : {
-          "entry-point": at,
+          "at": at,
           ...filter,
         };
       return result;

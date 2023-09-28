@@ -746,6 +746,6 @@ export const kFormatIdentifier = "format-identifier";
 export const kRenderFileLifetime = "render-file";
 export const kRenderServicesLifetime = "render-services";
 
-// quarto entry point names
-export const kQuartoPre = "before-quarto";
-export const kQuartoPost = "after-quarto";
+// quarto entry point names for old-style filter declarations
+export const kQuartoPre = "pre-quarto";
+export const kQuartoPost = "post-render";

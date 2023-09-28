@@ -8258,20 +8258,20 @@ var require_yaml_intelligence_resources = __commonJS({
                   properties: {
                     type: "string",
                     path: "path",
-                    "entry-point": {
+                    at: {
                       enum: [
-                        "before-ast",
-                        "after-ast",
-                        "before-quarto",
-                        "after-quarto",
-                        "before-render",
-                        "after-render"
+                        "pre-ast",
+                        "post-ast",
+                        "pre-quarto",
+                        "post-quarto",
+                        "pre-render",
+                        "post-render"
                       ]
                     }
                   },
                   required: [
                     "path",
-                    "entry-point"
+                    "at"
                   ]
                 }
               },
