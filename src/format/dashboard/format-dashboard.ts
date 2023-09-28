@@ -191,7 +191,6 @@ function dashboardHtmlPostProcessor(
       while (shellEl.children.length > 0) {
         cardEl.appendChild(shellEl.children[0]);
       }
-      console.log(cardEl.innerHTML);
     }
 
     // Process fill images to include proper fill behavior
