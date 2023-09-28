@@ -1,9 +1,9 @@
 ---
 title: test
 filters:
-  - entry-point: before-quarto
+  - at: pre-quarto
     path: pre.lua
-  - entry-point: after-quarto
+  - at: post-quarto
     path: post.lua
   - pre2.lua
   - quarto
