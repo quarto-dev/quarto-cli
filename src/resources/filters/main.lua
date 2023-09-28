@@ -396,8 +396,11 @@ local quarto_crossref_filters = {
 
 local quarto_filter_list = {}
 
+table.insert(quarto_filter_list, { name = "before-ast", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_init_filters)
 tappend(quarto_filter_list, quarto_normalize_filters)
+table.insert(quarto_filter_list, { name = "after-ast", filter = {} }) -- entry point for user filters
+
 table.insert(quarto_filter_list, { name = "before-quarto", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then

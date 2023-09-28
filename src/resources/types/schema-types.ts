@@ -23,7 +23,13 @@ export type PandocFormatRequestHeaders = ((string)[])[];
 export type PandocFormatOutputFile = string | null;
 
 export type PandocFormatFilters = ((string | { path: string; type?: string } | {
-  "entry-point": "before-quarto" | "after-quarto";
+  "entry-point":
+    | "before-ast"
+    | "after-ast"
+    | "before-quarto"
+    | "after-quarto"
+    | "before-render"
+    | "after-render";
   path: string;
   type?: string;
 } | { type: "citeproc" }))[];

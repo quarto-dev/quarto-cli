@@ -8261,8 +8261,12 @@ try {
                       path: "path",
                       "entry-point": {
                         enum: [
+                          "before-ast",
+                          "after-ast",
                           "before-quarto",
-                          "after-quarto"
+                          "after-quarto",
+                          "before-render",
+                          "after-render"
                         ]
                       }
                     },
