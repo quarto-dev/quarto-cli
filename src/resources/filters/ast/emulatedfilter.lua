@@ -47,7 +47,7 @@ inject_user_filters_at_entry_points = function(filter_list)
   end
   local entry_point_counts = {}
   for _, v in ipairs(param("quarto-filters").entryPoints) do
-    local entry_point = v["entry-point"] -- FIXME entry_point or entryPoint
+    local entry_point = v["at"] -- FIXME entry_point or entryPoint
     if entry_point_counts[entry_point] == nil then
       entry_point_counts[entry_point] = 0
     end
@@ -59,8 +59,8 @@ inject_user_filters_at_entry_points = function(filter_list)
     local index = find_index_of_entry_point(entry_point)
     if index == nil then
       warn("filter entry point " .. entry_point .. " not found in filter list")
-      warn("Will use before-quarto entry point instead")
-      index = find_index_of_entry_point("before-quarto")
+      warn("Will use pre-quarto entry point instead")
+      index = find_index_of_entry_point("pre-quarto")
       if index == nil then
         internal_error()
         return

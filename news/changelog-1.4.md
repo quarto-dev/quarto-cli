@@ -166,6 +166,7 @@
 - ([#6289](https://github.com/quarto-dev/quarto-cli/issues/6289)): allow `markdownToInlines` to take empty string.
 - ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): render callouts to `gfm` using GitHub's syntax.
 - ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): Add isGithubMarkdownOutput() to quarto.format API.
+- ([#7067](https://github.com/quarto-dev/quarto-cli/issues/7067)): Add new entry points to user Lua filters. See <https://quarto.org/docs/prerelease/1.4/lua_changes.html>.
 
 ## Debian Installer
 

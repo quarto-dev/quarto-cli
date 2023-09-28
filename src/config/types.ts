@@ -312,7 +312,7 @@ export type PandocFilter = {
   path: string;
 };
 
-export type QuartoFilterEntryPoint = PandocFilter & { "entry-point": string };
+export type QuartoFilterEntryPoint = PandocFilter & { "at": string };
 
 export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
 
@@ -326,7 +326,7 @@ export function isFilterEntryPoint(
   if (typeof filter === "string") {
     return false;
   }
-  return (<QuartoFilterEntryPoint> filter)["entry-point"] !== undefined;
+  return (<QuartoFilterEntryPoint> filter).at !== undefined;
 }
 
 export interface NotebookPreviewDescriptor {
