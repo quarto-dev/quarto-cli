@@ -745,3 +745,7 @@ export const kFormatIdentifier = "format-identifier";
 // named lifetimes
 export const kRenderFileLifetime = "render-file";
 export const kRenderServicesLifetime = "render-services";
+
+// quarto entry point names
+export const kQuartoPre = "before-quarto";
+export const kQuartoPost = "after-quarto";

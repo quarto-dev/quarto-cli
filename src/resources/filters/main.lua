@@ -218,8 +218,7 @@ tappend(quarto_normalize_filters, quarto_ast_pipeline())
 local quarto_pre_filters = {
   -- quarto-pre
 
-  -- TODO we need to compute flags on the results of the user filters
-  { name = "pre-run-user-filters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
+  { name = "before-quarto", filter = {} }, -- entry point for "pre" user filters
 
   { name = "flags", filter = compute_flags() },
 
@@ -342,7 +341,7 @@ local quarto_post_filters = {
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
 
-  { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
+  { name = "after-quarto", filter = {} }, -- entry point for "post" user filters
 }
 
 local quarto_finalize_filters = {
@@ -401,17 +400,20 @@ local quarto_crossref_filters = {
   { name = "crossref-writeIndex", filter = writeIndex() },
 }
 
-local filterList = {}
+local quarto_filter_list = {}
 
-tappend(filterList, quarto_init_filters)
-tappend(filterList, quarto_normalize_filters)
-tappend(filterList, quarto_pre_filters)
+tappend(quarto_filter_list, quarto_init_filters)
+tappend(quarto_filter_list, quarto_normalize_filters)
+tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then
-  tappend(filterList, quarto_crossref_filters)
+  tappend(quarto_filter_list, quarto_crossref_filters)
 end
-tappend(filterList, quarto_layout_filters)
-tappend(filterList, quarto_post_filters)
-tappend(filterList, quarto_finalize_filters)
+tappend(quarto_filter_list, quarto_layout_filters)
+tappend(quarto_filter_list, quarto_post_filters)
+tappend(quarto_filter_list, quarto_finalize_filters)
+
+-- now inject user-defined filters on appropriate positions
+inject_user_filters_at_entry_points(quarto_filter_list)
 
 local result = run_as_extended_ast({
   pre = {
@@ -422,7 +424,7 @@ local result = run_as_extended_ast({
     -- allowing state or other items to be handled
     resetFileMetadata()
   end,
-  filters = filterList,
+  filters = quarto_filter_list,
 })
 
 return result
