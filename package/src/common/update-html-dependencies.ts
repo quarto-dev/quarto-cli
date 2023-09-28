@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
@@ -742,8 +742,13 @@ async function updateBootstrapFromBslib(
       const componentDistTo = join(bsLibDir, "components", "dist");
       info(`Copying ${componentDistFrom} to ${componentDistTo}`);
       ensureDirSync(componentDistTo);
-      copySync(componentDistFrom, componentDistTo, {overwrite: true});
-      
+      copySync(componentDistFrom, componentDistTo, {overwrite: true});      
+      // Clean map references
+      for (const entry of walkSync(componentDistTo)) {
+        if (entry.isFile) {
+          cleanSourceMap(entry.path);
+        }
+      }
 
       // Grab the js file that we need
       info("Copying dist files");

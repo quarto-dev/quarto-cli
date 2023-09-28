@@ -173,4 +173,4 @@
   };
   registerBinding(AccordionInputBinding, "accordion");
 })();
-//# sourceMappingURL=accordion.js.map
+

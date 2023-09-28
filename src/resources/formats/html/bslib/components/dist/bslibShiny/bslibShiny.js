@@ -23,4 +23,4 @@
     binding.receiveMessage(el, { value });
   });
 })();
-//# sourceMappingURL=bslibShiny.js.map
+
