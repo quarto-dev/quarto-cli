@@ -52,7 +52,6 @@ import {
   FormatLanguage,
   FormatPandoc,
   isFilterEntryPoint,
-  isPandocFilter,
   QuartoFilter,
   QuartoFilterEntryPoint,
 } from "../../config/types.ts";

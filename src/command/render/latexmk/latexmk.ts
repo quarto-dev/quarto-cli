@@ -2,7 +2,6 @@
  * latexmk.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 
 import {
@@ -89,12 +88,11 @@ export function quartoLatexmkOutputRecipe(
     return generatePdf(mkOptions);
   };
 
-  const computePath = (input: string, format: Format) => {
-    const [cwd, stem] = dirAndStem(input);
+  const computePath = (texStem: string, inputDir: string, format: Format) => {
     const mkOutputdir = format.render[kLatexOutputDir];
     return mkOutputdir
-      ? join(mkOutputdir, stem + ".pdf")
-      : join(cwd, stem + ".pdf");
+      ? join(mkOutputdir, texStem + ".pdf")
+      : join(inputDir, texStem + ".pdf");
   };
 
   return texToPdfOutputRecipe(
