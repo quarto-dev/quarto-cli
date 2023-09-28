@@ -17,6 +17,7 @@ local function makeCard(title, contents, classes)
   if classes then
     clz:extend(classes)
   end
+  
   return pandoc.Div({titleDiv, contentDiv}, pandoc.Attr("", clz))
 end
 
@@ -48,8 +49,19 @@ function render_dashboard()
             return makeCard(header, contents)
           else
           end
-        elseif el.classes:includes('card') and not el.classes:includes('bslib-grid-item') then
-          -- Support explicit cards as divs
+        elseif el.classes:includes('card') then
+
+          -- see if the card is already in the correct structure (a single header and body)
+          -- exit early, not processing if it is already processed in this way
+          local cardHeader = el.content[1]
+          local cardBody = el.content[2]
+          local hasHeader = cardHeader ~= nil and cardHeader.classes:includes('card-header')
+          local hasBody = cardBody ~= nil and cardBody.classes:includes('card-body')
+          if hasHeader and hasBody then
+            return nil
+          end
+
+          -- Support explicit cards as divs (without the proper nested structure)
           -- First element as a header will be used as the title, if present
           -- otherwise just use the contents as the card body
           local header = el.content[1]

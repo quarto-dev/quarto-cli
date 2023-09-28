@@ -2086,3 +2086,24 @@ code.sourceCode a.code-annotation-anchor {
 .quarto-dashboard {
   height: 100%;
 }
+
+.quarto-dashboard-img-contain {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.quarto-dashboard {
+  .html-fill-container figure {
+    overflow: hidden;
+  }
+
+  bslib-tooltip {
+    .rounded-pill {
+      .svg {
+        fill: $body-color;
+      }
+      border: solid $text-muted 1px;
+    }
+  }
+}
