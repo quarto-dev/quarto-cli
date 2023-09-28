@@ -217,9 +217,6 @@ tappend(quarto_normalize_filters, quarto_ast_pipeline())
 
 local quarto_pre_filters = {
   -- quarto-pre
-
-  { name = "before-quarto", filter = {} }, -- entry point for "pre" user filters
-
   { name = "flags", filter = compute_flags() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
@@ -291,7 +288,6 @@ local quarto_pre_filters = {
 }
 
 local quarto_post_filters = {
-  -- quarto-post
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
     flags = { "has_output_cells" } },
@@ -340,8 +336,6 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
-
-  { name = "after-quarto", filter = {} }, -- entry point for "post" user filters
 }
 
 local quarto_finalize_filters = {
@@ -404,12 +398,16 @@ local quarto_filter_list = {}
 
 tappend(quarto_filter_list, quarto_init_filters)
 tappend(quarto_filter_list, quarto_normalize_filters)
+table.insert(quarto_filter_list, { name = "before-quarto", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then
   tappend(quarto_filter_list, quarto_crossref_filters)
 end
+table.insert(quarto_filter_list, { name = "after-quarto", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "before-render", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_layout_filters)
 tappend(quarto_filter_list, quarto_post_filters)
+table.insert(quarto_filter_list, { name = "after-render", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_finalize_filters)
 
 -- now inject user-defined filters on appropriate positions
