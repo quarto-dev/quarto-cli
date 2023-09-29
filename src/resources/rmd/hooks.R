@@ -340,16 +340,24 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       classes <- c(classes, paste0("panel-", options[["panel"]]))
      if (is.character(options[["column"]]))
       classes <- c(classes, paste0("column-", options[["column"]]))
-     if (is.character(options[["fig.column"]]))
+    if (is.character(options[["fig-column"]])) {
+      classes <- c(classes, paste0("fig-column-", options[["fig-column"]]))
+    } else if (is.character(options[["fig.column"]])) {
+      # knitr < 1.44 compatibility where fig- -> fig.
       classes <- c(classes, paste0("fig-column-", options[["fig.column"]]))
-     if (is.character(options[["tbl-column"]]))
+    }
+    if (is.character(options[["tbl-column"]]))
       classes <- c(classes, paste0("tbl-column-", options[["tbl-column"]]))
-     if (is.character(options[["cap-location"]])) 
-      classes <- c(classes, paste0("caption-", options[["cap-location"]]))      
-     if (is.character(options[["fig.cap-location"]])) 
-      classes <- c(classes, paste0("fig-cap-location-", options[["fig.cap-location"]]))      
-     if (is.character(options[["tbl-cap-location"]])) 
-      classes <- c(classes, paste0("tbl-cap-location-", options[["tbl-cap-location"]]))      
+    if (is.character(options[["cap-location"]]))
+      classes <- c(classes, paste0("caption-", options[["cap-location"]]))
+    if (is.character(options[["fig-cap-location"]])) {
+      classes <- c(classes, paste0("fig-cap-location-", options[["fig-cap-location"]]))
+    } else if (is.character(options[["fig.cap-location"]])) {
+      # knitr < 1.44 compatibility where fig- -> fig.
+      classes <- c(classes, paste0("fig-cap-location-", options[["fig.cap-location"]]))
+    }
+    if (is.character(options[["tbl-cap-location"]]))
+      classes <- c(classes, paste0("tbl-cap-location-", options[["tbl-cap-location"]]))
 
     if (isTRUE(options[["include.hidden"]])) {
       classes <- c(classes, "hidden")
