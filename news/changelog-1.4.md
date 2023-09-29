@@ -210,3 +210,4 @@
 - ([#6825](https://github.com/quarto-dev/quarto-cli/issues/6825)): Show filename when YAML parsing error occurs.
 - ([#6836](https://github.com/quarto-dev/quarto-cli/issues/6836)): Fix missing `docx` format for `abstract` key in reference schema.
 - ([#7032](https://github.com/quarto-dev/quarto-cli/issues/7032)): `quarto` is now correctly working when installed in a folder with spaces in path.
+- ([#7013](https://github.com/quarto-dev/quarto-cli/issues/7013)): Improve error message when there is an issue finding or running R and add more verbosity in [verbose mode](https://quarto.org/docs/troubleshooting/#verbose-mode).
