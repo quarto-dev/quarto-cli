@@ -40,7 +40,7 @@ function run_emulated_filter(doc, filter)
     if (k == "Custom" or 
         k == "CustomInline" or 
         k == "CustomBlock" or
-        state.namedHandlers[k] ~= nil or
+        state.handlers.by_ast_name[k] ~= nil or
         -- we need custom handling to _avoid_ custom nodes as well.
         k == "Div" or
         k == "Span") then
@@ -363,10 +363,10 @@ _quarto.ast = {
       fatal("handler must define class_name")
       -- luacov: enable
     elseif type(handler.class_name) == "string" then
-      state.namedHandlers[handler.class_name] = handler
+      state.handlers[handler.kind][handler.class_name] = handler
     elseif type(handler.class_name) == "table" then
       for _, name in ipairs(handler.class_name) do
-        state.namedHandlers[name] = handler
+        state.handlers[handler.kind][name] = handler
       end
     else
       -- luacov: disable
@@ -397,7 +397,7 @@ _quarto.ast = {
     end
 
     -- we also register them under the ast_name so that we can render it back
-    state.namedHandlers[handler.ast_name] = handler
+    state.handlers.by_ast_name[handler.ast_name] = handler
   end,
 
   add_renderer = function(name, condition, renderer)
@@ -415,10 +415,13 @@ _quarto.ast = {
     table.insert(handler.renderers, 1, { condition = condition, render = renderer })
   end,
 
-  resolve_handler = function(name)
+  -- find handler by name in given table, or in the by_ast_name table if no table
+  -- is specified.
+  resolve_handler = function(name, table)
     local state = quarto_global_state.extended_ast_handlers
-    if state.namedHandlers ~= nil then
-      return state.namedHandlers[name]
+    local handlers = state.handlers[table or 'by_ast_name']
+    if handlers ~= nil then
+      return handlers[name]
     end
     -- TODO: should we just fail here? We seem to be failing downstream of every nil
     -- result anyway.
@@ -460,7 +463,11 @@ quarto._quarto = _quarto
 
 function construct_extended_ast_handler_state()
   local state = {
-    namedHandlers = {},
+    handlers = {
+      Inline = {},      -- Inline handlers by class name
+      Block = {},       -- Block handlers by class name
+      by_ast_name = {}, -- All handlers by Ast name
+    },
   }
 
   if quarto_global_state ~= nil then
