@@ -16,7 +16,10 @@ function columns_preprocess()
       if el.classes:includes('cell') then      
         -- for code chunks that aren't layout panels, forward the column classes to the output
         -- figures or tables (otherwise, the column class should be used to layout the whole panel)
+        print("HERE")
+        print(el)
         resolveColumnClassesForCodeCell(el)
+        print(el)
       else
         resolveColumnClassesForEl(el)
       end
@@ -55,7 +58,7 @@ function resolveColumnClassesForCodeCell(el)
     local ref_type = v.ref_type
     float_classes[ref_type] = computeClassesForScopedColumns(el, ref_type)
     float_caption_classes[ref_type] = computeClassesForScopedCaption(el, ref_type)
-    found = #float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0
+    found = found or (#float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0)
   end
 
   -- read the classes that should be forwarded
