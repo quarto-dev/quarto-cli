@@ -55,7 +55,7 @@ function resolveColumnClassesForCodeCell(el)
     local ref_type = v.ref_type
     float_classes[ref_type] = computeClassesForScopedColumns(el, ref_type)
     float_caption_classes[ref_type] = computeClassesForScopedCaption(el, ref_type)
-    found = #float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0
+    found = found or (#float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0)
   end
 
   -- read the classes that should be forwarded
