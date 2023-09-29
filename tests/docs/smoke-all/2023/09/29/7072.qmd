@@ -1,0 +1,16 @@
+---
+title: Test
+filters:
+  - at: post-quarto  
+    path: checkcolwidth.lua
+---
+
+See @tbl-Fruit
+
+| fruit  | price  |
+|--------|--------|
+| apple  | 2.05   |
+| pear   | 1.37   |
+| orange | 3.09   |
+
+: Fruit prices {#tbl-Fruit tbl-colwidths="[75,25]"}

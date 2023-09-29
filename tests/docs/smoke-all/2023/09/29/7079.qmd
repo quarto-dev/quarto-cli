@@ -1,0 +1,35 @@
+---
+title: test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "table.table-striped"
+          - "table.table-hover"
+          - "table.unknown"
+        - 
+          - "table.striped"
+          - "table.hover"
+          - "table.table-unknown"
+---
+
+```{=html}
+<table class="unknown striped hover">
+  <thead>
+    <tr>
+      <th>Column 1</th>
+      <th>Column 2</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Row 1, Column 1</td>
+      <td>Row 1, Column 2</td>
+    </tr>
+    <tr>
+      <td>Row 2, Column 1</td>
+      <td>Row 2, Column 2</td>
+    </tr>
+</table>
+```

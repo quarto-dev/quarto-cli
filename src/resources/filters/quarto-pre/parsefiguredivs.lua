@@ -265,7 +265,7 @@ function parse_floats()
         label = attr.identifier
         attr.identifier = ""
         el.caption.long = pandoc.List({})
-        caption = createTableCaption(caption, attr)
+        caption = createTableCaption(caption, pandoc.Attr())
       end
 
       if label == "" then
@@ -279,7 +279,7 @@ function parse_floats()
         classes = combined.classes,
         attributes = as_plain_table(combined.attributes),
         type = "Table",
-        content = { el },
+        content = pandoc.Blocks({ el }),
         caption_long = caption,
       }), false
     end,
