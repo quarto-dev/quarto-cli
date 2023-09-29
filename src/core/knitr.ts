@@ -68,11 +68,11 @@ export async function knitrCapabilities(rBin: string | undefined) {
       debug(
         "\n++ Parsing results to get informations about knitr capabilities",
       );
-      const jsonLines = result.stdout
+      const yamlLines = result.stdout
         .replace(/^.*--- YAML_START ---/sm, "")
         .replace(/--- YAML_END ---.*$/sm, "");
 
-      const caps = readYamlFromString(jsonLines) as KnitrCapabilities;
+      const caps = readYamlFromString(yamlLines) as KnitrCapabilities;
       // check knitr requirement
       const knitrVersion = caps.packages.knitr
         ? coerce(caps.packages.knitr)
