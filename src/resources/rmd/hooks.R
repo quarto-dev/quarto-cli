@@ -382,7 +382,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
     classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
 
-    # allow table lable through
+    # allow table label through
     if (is_table_label(options[["label"]])) {
       label <- options[["label"]]
     } 
@@ -709,7 +709,7 @@ knitr_options_hook <- function(options) {
   }
 
   # some aliases not normalized
-  # from knitr 1.44, `fig.format` and `fig.dpi` are now alias 
+  # from knitr 1.44, `fig.format` and `fig.dpi` are now aliased
   # to `dev` and `dpi`
   # TODO: remove below in a few years when 1.44 is widely used version
   if (!is.null(options[["fig-format"]])) {
