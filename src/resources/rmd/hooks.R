@@ -300,25 +300,43 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # forward any other unknown attributes
+    # From knitr 1.44, knitr:::opts_chunk_attr and knitr::opts_chunk$get()
+    # should cover all options and knitr will only normalize 
+    # to their . version the known knitr options. 
+    # Other options (like quarto specific ones) will keep there original values
+    # with - separator.
     knitr_default_opts <- unique(c(names(knitr:::opts_chunk_attr), names(knitr::opts_chunk$get())))
-    quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
-                     "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
-                     "lst-label", "classes", "panel", "column", "fig.column", "tbl.column", "fig.cap-location", 
-                     "tbl-cap-location", "cap-location", "code-fold", "code-summary", "code-overflow",
-                     "code-line-numbers",
-                     "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
-                     "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
-    other_opts <- c("eval", "out.width", "yaml.code", "code", "file", "params.src", "original.params.src", 
-                    "fenced.echo", "chunk.echo", "lang",
-                    "out.width.px", "out.height.px", "indent", "class.source", 
-                    "class.output", "class.message", "class.warning", "class.error", "attr.source", 
-                    "attr.output", "attr.message", "attr.warning", "attr.error", "connection")
-    known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
+    # quarto options common with knitr and that will be normalized to .
+    quarto_knitr_opts <- c(
+      "fig.cap", "fig.subcap", "fig.scap", "fig.link", "fig.alt",
+      "fig.align", "fig.env", "fig.pos", "fig.num", "out.width"
+    )
+    quarto_opts <- c(
+      "label", "lst-cap", "lst-label", "classes", "panel", "column",
+      "tbl-column", "tbl-cap-location", "cap-location", "code-fold",
+      "code-summary", "code-overflow", "code-line-numbers",
+      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign",
+      "output",
+      # duplicating options as they were normalized in knitr < 1.44
+      "fig-column", "fig.column", "fig-cap-location", "fig.cap-location",
+      # option created by quarto when `keep-hidden`
+      "include.hidden", "source.hidden", "plot.hidden",
+      "output.hidden", "warning.hidden", "message.hidden"
+    )
+    # Other knitr option possibly not in knitr_default_opts
+    other_opts <- c(
+      "eval", "yaml.code", "code", "file", "params.src", "original.params.src",
+      "fenced.echo", "chunk.echo", "lang", "out.width.px", "out.height.px",
+      "indent", "class.source", "class.output", "class.message",
+      "class.warning", "class.error", "attr.source", "attr.output",
+      "attr.message", "attr.warning", "attr.error", "connection"
+    )
+    known_opts <- c(knitr_default_opts, quarto_knitr_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
     unknown_opts <- Filter(function(opt) !startsWith(opt, "."), unknown_opts)
     # json encode if necessary
-    unknown_values <- lapply(options[unknown_opts], 
+    unknown_values <- lapply(options[unknown_opts],
                              function(value) {
                                if (!is.character(value) || length(value) > 1) {
                                  value <- jsonlite::toJSON(value, auto_unbox = TRUE)
@@ -335,10 +353,10 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       forwardAttr <- ""
    
     # handle classes
-    classes <- c("cell",options[["classes"]] )
+    classes <- c("cell", options[["classes"]])
     if (is.character(options[["panel"]]))
       classes <- c(classes, paste0("panel-", options[["panel"]]))
-     if (is.character(options[["column"]]))
+    if (is.character(options[["column"]]))
       classes <- c(classes, paste0("column-", options[["column"]]))
     if (is.character(options[["fig-column"]])) {
       classes <- c(classes, paste0("fig-column-", options[["fig-column"]]))
