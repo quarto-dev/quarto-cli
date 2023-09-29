@@ -18,6 +18,7 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { kCodeLink } from "../config/constants.ts";
 
 import {
+  checkRBinary,
   knitrCapabilities,
   knitrCapabilitiesMessage,
   knitrInstallationMessage,
@@ -279,30 +280,39 @@ function withinActiveRenv() {
 }
 
 async function printCallRDiagnostics() {
-  const caps = await knitrCapabilities();
-  if (!caps) {
+  const rBin = await checkRBinary();
+  if (rBin === undefined) {
     info("");
     info(rInstallationMessage());
     info("");
   } else {
-    if (
-      !caps?.packages.rmarkdown || !caps?.packages.knitr ||
-      !caps?.packages.knitrVersOk
-    ) {
-      info("");
-      info("R installation:");
-      info(knitrCapabilitiesMessage(caps, "  "));
-      info("");
+    const caps = await knitrCapabilities(rBin);
+    if (caps === undefined) {
       info(
-        knitrInstallationMessage(
-          "",
-          caps.packages.knitr && !caps?.packages.knitrVersOk
-            ? "knitr"
-            : "rmarkdown",
-          !!caps.packages.knitr && !caps.packages.knitrVersOk,
-        ),
+        `Problem with running R found at ${rBin} to check environment configurations.`,
       );
+      info("Please check your installation of R.");
       info("");
+    } else {
+      if (
+        !caps?.packages.rmarkdown || !caps?.packages.knitr ||
+        !caps?.packages.knitrVersOk
+      ) {
+        info("");
+        info("R installation:");
+        info(knitrCapabilitiesMessage(caps, "  "));
+        info("");
+        info(
+          knitrInstallationMessage(
+            "",
+            caps.packages.knitr && !caps?.packages.knitrVersOk
+              ? "knitr"
+              : "rmarkdown",
+            !!caps.packages.knitr && !caps.packages.knitrVersOk,
+          ),
+        );
+        info("");
+      }
     }
   }
 }
