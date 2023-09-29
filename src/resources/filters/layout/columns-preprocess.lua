@@ -16,10 +16,7 @@ function columns_preprocess()
       if el.classes:includes('cell') then      
         -- for code chunks that aren't layout panels, forward the column classes to the output
         -- figures or tables (otherwise, the column class should be used to layout the whole panel)
-        print("HERE")
-        print(el)
         resolveColumnClassesForCodeCell(el)
-        print(el)
       else
         resolveColumnClassesForEl(el)
       end
