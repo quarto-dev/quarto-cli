@@ -10,15 +10,49 @@ local function tslice(t, first, last, step)
 end
 
 
-local function makeCard(title, contents, classes)
-  local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
+local function makeCard(title, contents, classes)  
+  
+  -- compute the card contents
+  local cardContents = pandoc.List({})
+  if title ~= nil then
+    local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
+    cardContents:insert(titleDiv)
+  end
   local contentDiv = pandoc.Div(contents, pandoc.Attr("", {"card-body"}))
+  cardContents:insert(contentDiv)
+
+
+  -- add outer classes
   local clz = pandoc.List({"card"})
   if classes then
     clz:extend(classes)
   end
-  
-  return pandoc.Div({titleDiv, contentDiv}, pandoc.Attr("", clz))
+
+  return pandoc.Div(cardContents, pandoc.Attr("", clz))
+end
+
+local function makeValueBox(title, value, icon, content) 
+  if value == nil then
+    error("Value boxes must have a value")
+  end
+  local vbDiv = pandoc.Div({}, pandoc.Atrr("value-box-grid", {}))
+
+  -- The valuebox icon
+  if icon ~= nil then
+    local vbShowcase = pandoc.Div({pandoc.RawInline("html", '<i class="bi bi-' .. icon .. '"></i>')}, pandoc.Attr("value-box-showcase", {}))
+    vbDiv.content:insert(vbShowcase)
+  end
+
+  -- The valuebox value
+  local vbValue = pandoc.Div(value, pandoc.Attr("value-box-title", {}))
+  vbDiv.content:insert(vbValue)
+
+  -- The rest of the contents
+  if content ~= nil then
+    tappend(vbDiv.content, content)
+  end
+
+  return makeCard(nil, vbDiv)
 end
 
 
