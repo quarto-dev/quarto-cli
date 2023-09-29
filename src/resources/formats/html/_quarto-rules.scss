@@ -637,6 +637,12 @@ code.sourceCode .code-annotation-anchor {
   background-color: transparent;
 }
 
+// Add a bit of margin to the right of a checkbox
+// https://github.com/quarto-dev/quarto-cli/issues/6627
+input[type="checkbox"] {
+  margin-right: 0.5ch;
+}
+
 // Mermaid Theming
 // if none come from theme, we need these
 $body-color: #222 !default;

@@ -18,6 +18,7 @@
 
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
 - ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
+- ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 - ([#5700](https://github.com/quarto-dev/quarto-cli/issues/5700)): Don't show scrollbars on Windows when hovering over hover code annotations.
@@ -32,9 +33,9 @@
 - Add support for `body-right` and `body-left` layouts for Website Table of Contents ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473))
 - ([#6430](https://github.com/quarto-dev/quarto-cli/issues/6430)): Fix layout issue with banner style title block authors when `page-layout:
 - ([#5955](https://github.com/quarto-dev/quarto-cli/issues/5955)): Correct HTML callout appearance when title isn't present.
+- ([#6627](https://github.com/quarto-dev/quarto-cli/issues/6627)): Add a bit of margin-right to checkbox inputs.
 - ([#6833](https://github.com/quarto-dev/quarto-cli/issues/6833)): Handle partially-specified aspect ratio, width, and height attributes in `video` shortcode.
 - ([#6714](https://github.com/quarto-dev/quarto-cli/issues/6714)): Display title block for HTML when other (non-title/author/subtitle) metadata is present.
-- ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 
 ## Appendix
 
