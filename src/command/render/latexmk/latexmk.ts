@@ -24,7 +24,6 @@ import { generatePdf } from "./pdf.ts";
 import { LatexmkOptions } from "./types.ts";
 import { texToPdfOutputRecipe } from "../output-tex.ts";
 import { join } from "path/mod.ts";
-import { dirAndStem } from "../../../core/path.ts";
 
 export function useQuartoLatexmk(
   format: Format,
