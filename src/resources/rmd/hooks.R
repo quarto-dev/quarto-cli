@@ -319,7 +319,9 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "output",
       # duplicating options as they were normalized in knitr < 1.44
       "fig-column", "fig.column", "fig-cap-location", "fig.cap-location",
-      # option created by quarto when `keep-hidden`
+      # those options have been aliased in knitr 1.44
+      "fig-format", "fig.format", "fig-dpi", "fig.dpi",
+      # options created by quarto when `keep-hidden`
       "include.hidden", "source.hidden", "plot.hidden",
       "output.hidden", "warning.hidden", "message.hidden"
     )
