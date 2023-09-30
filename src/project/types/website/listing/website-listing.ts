@@ -67,6 +67,7 @@ import {
 } from "./website-listing-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { formatHasBootstrap } from "../../../../format/html/format-html-info.ts";
+import { debug } from "https://deno.land/std@0.185.0/log/mod.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
@@ -295,12 +296,15 @@ export function completeListingGeneration(
   incremental: boolean,
 ) {
   // Complete any staged feeds
+  debug(`[listing] Completing staged feeds in ${context.dir}`);
   completeStagedFeeds(context, outputFiles, incremental);
 
   // Ensure any listing items have their rendered descriptions populated
+  debug(`[listing] Completing listing items in ${context.dir}`);
   completeListingItems(context, outputFiles, incremental);
 
   // Write a global listing index
+  debug(`[listing] Writing global listing index for ${context.dir}`);
   updateGlobalListingIndex(context, outputFiles, incremental);
 }
 
@@ -367,6 +371,7 @@ function listingPostProcess(
   options: ListingSharedOptions,
   format: Format,
 ) {
+  debug(`[listing] Post processing ${listingDescriptors.length} listings`);
   // Render categories, if necessary
   const categories = options[kFieldCategories];
   if (categories) {
