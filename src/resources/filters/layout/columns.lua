@@ -108,6 +108,7 @@ function renderDivColumn(el)
       if el.classes:includes('cell-output-display') and #el.content > 0 then
         -- this could be a code-display-cell
         local figOrTable = false
+        local floatRefTarget = false
         for j=1,#el.content do
           local contentEl = el.content[j]
 
@@ -130,10 +131,21 @@ function renderDivColumn(el)
             latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
             el.content[j] = tableDiv
             figOrTable = true
+          elseif contentEl.t == 'Div' then
+            -- forward the columns class from the output div
+            -- onto the float ref target, which prevents
+            -- the general purpose `sidenote` processing from capturing this
+            -- element (since floats know how to deal with margin positioning)
+            local custom = _quarto.ast.resolve_custom_data(contentEl)
+            if custom ~= nil then  
+              floatRefTarget = true
+              removeColumnClasses(el)
+              addColumnClasses(columnClasses, custom)
+            end
           end 
         end
 
-        if not figOrTable then
+        if not figOrTable and not floatRefTarget then
           processOtherContent(el.content)
         end
       else

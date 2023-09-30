@@ -1,0 +1,64 @@
+---
+title: Example
+format:
+  pdf:
+    papersize: a4
+    fontsize: 9pt
+    geometry:
+     - showframe
+---
+
+Hello world!
+
+```{python}
+# | label: fig-test
+# | fig-cap: Beautiful blue bars.
+# | column: margin
+# | echo: false
+
+import matplotlib.pyplot as plt
+
+categories = ["A", "B", "C", "D"]
+values = [10, 20, 15, 25]
+plt.figure(figsize=(6, 3))
+plt.barh(categories, values)
+plt.show()
+```
+
+```{dot}
+// | label: fig-causal-graph-1
+// | fig-cap: Causal graph for observational analysis.
+// | fig-width: 100px
+// | fig-height: 100px
+// | column: margin
+
+digraph D {
+  {W,X} -> {Y} [color=blue]
+}
+```
+
+```{dot}
+// | label: fig-causal-graph-2
+// | fig-cap: Causal graph for observational analysis.
+// | fig-width: 100px
+// | fig-height: 100px
+// | column: page
+
+digraph D {
+  {W,X} -> {Y} [color=blue]
+}
+```
+
+```{dot}
+// | label: fig-causal-graph-3
+// | fig-cap: Causal graph for observational analysis.
+// | fig-width: 100px
+// | fig-height: 100px
+// | column: body
+
+digraph D {
+  {W,X} -> {Y} [color=blue]
+}
+```
+
+Have a look at @fig-causal-graph-3 and at @fig-test!
