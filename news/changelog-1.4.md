@@ -47,7 +47,8 @@
 - ([#5783](https://github.com/quarto-dev/quarto-cli/issues/5783)): Ensure fenced code blocks work with line numbers.
 - ([#6120](https://github.com/quarto-dev/quarto-cli/issues/6120)): `pdf-max-pages-per-slide` is now correctly setting [`pdfMaxPagesPerSlide` config](https://revealjs.com/pdf-export/#page-size) for RevealJS.
 - ([#6827](https://github.com/quarto-dev/quarto-cli/issues/6120)): Correctly layout callout in revealjs slides when changing appearance.
-- ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now work correctly with code annotation.
+- ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now works correctly with code annotation.
+- ([#7104](https://github.com/quarto-dev/quarto-cli/issues/7104)): Line highlighting progressive reveal now correctly has code annotation anchor on the right.
 
 ## PDF Format
 

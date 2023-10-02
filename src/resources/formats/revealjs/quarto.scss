@@ -610,6 +610,10 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   width: 1.2em;
 }
 
+.reveal code.sourceCode.fragment a.code-annotation-anchor {
+  left: auto;
+}
+
 .reveal #code-annotation-line-highlight-gutter {
   width: 100%;
   border-top: solid var(--quarto-hl-co-color) 1px;
