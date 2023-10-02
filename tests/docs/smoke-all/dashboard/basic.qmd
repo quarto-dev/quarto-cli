@@ -29,10 +29,25 @@ plot(cars)
 plot(mtcars)
 ```
 
+
 :::{.card}
 
 ## Hi there
 
 This is a section
+
+:::
+
+
+
+
+
+:::{.valuebox icon="bar-chart"}
+
+## This is my value below
+
+423
+
+this is other content
 
 :::

@@ -35,7 +35,7 @@ local function makeValueBox(title, value, icon, content)
   if value == nil then
     error("Value boxes must have a value")
   end
-  local vbDiv = pandoc.Div({}, pandoc.Atrr("value-box-grid", {}))
+  local vbDiv = pandoc.Div({}, pandoc.Attr("value-box-grid", {}))
 
   -- The valuebox icon
   if icon ~= nil then
@@ -43,9 +43,21 @@ local function makeValueBox(title, value, icon, content)
     vbDiv.content:insert(vbShowcase)
   end
 
+  -- value-box-area
+    -- title
+    -- value
+    -- other stuff
+
+  local vbArea = pandoc.Div({}, pandoc.Attr("", {"value-box-area"}))
+  vbDiv.content:insert(vbArea)
+
+  -- The valuebox title
+  local vbTitle = pandoc.Div(title, pandoc.Attr("", {"value-box-title"}))
+  vbArea.content:insert(vbTitle)
+
   -- The valuebox value
-  local vbValue = pandoc.Div(value, pandoc.Attr("value-box-title", {}))
-  vbDiv.content:insert(vbValue)
+  local vbValue = pandoc.Div(value, pandoc.Attr("", {"value-box-value"}))
+  vbArea.content:insert(vbValue)
 
   -- The rest of the contents
   if content ~= nil then
@@ -74,23 +86,16 @@ function render_dashboard()
     },
     {
       Div = function(el) 
-        if el.classes:includes('section') then
-          -- Allow sections to be 'cards'
-          local header = el.content[1]
-          if header.t == "Header" then
-            
-            local contents = tslice(el.content, 2)
-            return makeCard(header, contents)
-          else
-          end
-        elseif el.classes:includes('card') then
+
+        if el.classes:includes('card') then
+          quarto.log.output("CARD")
 
           -- see if the card is already in the correct structure (a single header and body)
           -- exit early, not processing if it is already processed in this way
           local cardHeader = el.content[1]
           local cardBody = el.content[2]
-          local hasHeader = cardHeader ~= nil and cardHeader.classes:includes('card-header')
-          local hasBody = cardBody ~= nil and cardBody.classes:includes('card-body')
+          local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes('card-header')
+          local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes('card-body')
           if hasHeader and hasBody then
             return nil
           end
@@ -106,6 +111,38 @@ function render_dashboard()
             contents = tslice(el.content, 2)
           end
           return makeCard(title, contents)        
+        elseif el.classes:includes('valuebox') then
+
+          quarto.log.output("VALUEBOX")
+
+          local header = el.content[1]
+          local title = {}
+          local value = el.content
+          local content = {}
+          local icon = el.attributes['icon']
+          if header.t == "Header" then
+            title = header.content
+            value = tslice(el.content, 2)
+          end
+          
+
+
+          if #value > 1 then
+            content = tslice(value, 2)
+            value = value[1]
+          end
+          quarto.log.output(value)
+
+          return makeValueBox(title, value, icon, content)
+        
+        elseif el.classes:includes('section') then
+          quarto.log.output("SECTION")
+          -- Allow sections to be 'cards'
+          local header = el.content[1]
+          if header.t == "Header" then            
+            local contents = tslice(el.content, 2)
+            return makeCard(header, contents)
+          end
         end
       end,
     }
