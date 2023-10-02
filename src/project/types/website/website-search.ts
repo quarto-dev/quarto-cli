@@ -434,7 +434,7 @@ function searchInputLimit(
       return limit;
     }
   }
-  return 20;
+  return 50;
 }
 
 function searchKbdShortcut(

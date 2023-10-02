@@ -105,6 +105,10 @@
 - Add support for setting `repo-actions: false` in a document to prevent the display of repository actions on a specific page.
 - Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
 
+## Website Search
+
+- ([#7105](https://github.com/quarto-dev/quarto-cli/issues/7105)): Improve search results by raising default limit and fixing and removing warning that would appear for Algolia when limit was more than 20.
+
 ## Books
 
 - ([#5630](https://github.com/quarto-dev/quarto-cli/issues/5630)): Properly form sharing URL for books
