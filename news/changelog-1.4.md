@@ -210,6 +210,7 @@
 - ([#6487](https://github.com/quarto-dev/quarto-cli/discussions/6487)): Fix `serviceworkers` check in `htmlDependency` to look at the correct key.
 - ([#6178](https://github.com/quarto-dev/quarto-cli/pull/6178)): When `QUARTO_LOG_LEVEL=DEBUG`, information about search for a R binary will be shown.
 - ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
+- ([#6568](https://github.com/quarto-dev/quarto-cli/issues/6568)): Trim file extension in data URI that might have been inadvertently added by Pandoc.
 - ([#6620](https://github.com/quarto-dev/quarto-cli/pull/6620)): Rewrite Crossreferenceable figure support. See the [prerelease documentation](https://quarto.org/docs/prerelease/1.4/) for more information.
 - ([#6697](https://github.com/quarto-dev/quarto-cli/pull/6697)): Fix issue with outputing to stdout (`quarto render <file> -o -`) on Windows.
 - ([#6705](https://github.com/quarto-dev/quarto-cli/pull/6705)): Fix issue with gfm output being removed when rendered with other formats.
