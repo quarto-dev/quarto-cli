@@ -417,9 +417,9 @@ _quarto.ast = {
 
   -- find handler by name in given table, or in the by_ast_name table if no table
   -- is specified.
-  resolve_handler = function(name, table)
+  resolve_handler = function(name, key)
     local state = quarto_global_state.extended_ast_handlers
-    local handlers = state.handlers[table or 'by_ast_name']
+    local handlers = state.handlers[key or 'by_ast_name']
     if handlers ~= nil then
       return handlers[name]
     end
