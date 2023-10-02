@@ -625,17 +625,6 @@ export function websiteSearchDependency(
           "Algolia search is misconfigured. Please ensure that you provide an application-id, search-only-api-key, and index-name.",
         );
       }
-
-      // See limit imposed at
-      // https://www.algolia.com/doc/rest-api/insights/#method-param-objectids
-      const limit = options[kLimit];
-      if (limit) {
-        if (typeof (limit) === "number" && limit > 20) {
-          warning(
-            "Algolia Insights is limited to 20 objectIds when recording the `Items Viewed` event. Please reduce the limit for your search to avoid a truncated event.",
-          );
-        }
-      }
     }
 
     searchDependencies.push(clipboardDependency());
