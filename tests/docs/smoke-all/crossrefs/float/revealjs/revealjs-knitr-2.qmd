@@ -1,0 +1,30 @@
+---
+title: Knitr Crossref Test
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - # note these are missing the figure element because this is in autostretch and we need to butcher the DOM for it
+          - "em" # markdown test
+          - "span.math" # math processing test
+          - "img" # image
+
+---
+
+
+This tests:
+
+- float figures from knitr
+- Markdown support for captions from knitr
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Fancy _caption_ with math: $e=mc^2$"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

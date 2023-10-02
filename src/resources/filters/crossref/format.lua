@@ -14,12 +14,18 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, order)
+function titlePrefix(type, default, order, with_delimiter)
+  if with_delimiter == nil then
+    with_delimiter = true
+  end
+
   local prefix = title(type, default)
   table.insert(prefix, nbspString())
   tappend(prefix, numberOption(type, order))
-  tappend(prefix, titleDelim())
-  table.insert(prefix, pandoc.Space())
+  if with_delimiter then
+    tappend(prefix, titleDelim())
+    table.insert(prefix, pandoc.Space())
+  end
   return prefix
 end
 
@@ -56,7 +62,17 @@ end
 
 function refPrefix(type, upper)
   local opt = type .. "-prefix"
-  local default = stringToInlines(param("crossref-" .. type .. "-prefix", type .. "."))
+  local default = param("crossref-" .. type .. "-prefix")
+  if default == nil then
+    default = crossref.categories.by_ref_type[type]
+    if default ~= nil then
+      default = default.prefix
+    end
+  end
+  if default == nil then
+    default = type .. "."
+  end
+  default = stringToInlines(default)
   local prefix = crossrefOption(opt, default)
   if upper then
     local el = pandoc.Plain(prefix)
@@ -141,7 +157,7 @@ function formatNumberOption(type, order, default)
       end
       num = sectionIndex .. "." .. num
     end
-    return { pandoc.Str(num) }
+    return pandoc.Inlines({ pandoc.Str(num) })
   end
   
   -- Compute option name and default value
@@ -191,7 +207,7 @@ function formatNumberOption(type, order, default)
     if section then
       tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
-    return { option }
+    return pandoc.Inlines({ option })
   end
 
 end

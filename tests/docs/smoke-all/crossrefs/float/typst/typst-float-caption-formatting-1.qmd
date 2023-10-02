@@ -1,0 +1,18 @@
+---
+title: caption-formatting-test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "Customers #emph\\[query\\]"
+
+---
+
+```{#lst-customers .sql lst-cap="Customers _query_"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

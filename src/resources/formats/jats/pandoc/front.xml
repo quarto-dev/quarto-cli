@@ -156,19 +156,23 @@ $endif$
 
 $for(funding)$
 <funding-group>
+$for(funding.awards)$
 <award-group>
-$for(funding.source)$
-<funding-source$if(it.country)$ country="$it.country$"$endif$>
+$for(it.source)$
+<funding-source$if(it.country)$ country="$it.country$"$endif$$if(it.type)$ source-type="$it.type$"$endif$>
 $if(it.text)$
 $it.text$
+$elseif(it.institution)$
+$it.institution:institution.xml()$
 $endif$
 </funding-source>
 $endfor$
-$if(funding.award-id)$
-<award-id>$award-id$</award-id>
-$endif$
-$for(funding.recipient)$
 
+$if(it.id)$
+<award-id>$it.id$</award-id>
+$endif$
+
+$for(it.recipient)$
 <principal-award-recipient>
 $if(it.name)$
 $it:name.xml()$
@@ -178,9 +182,9 @@ $elseif(it.institution)$
 $it.institution:institution.xml()$
 $endif$
 </principal-award-recipient>
-
 $endfor$
-$for(funding.investigator)$
+
+$for(it.investigator)$
 <principal-investigator>
 $if(it.name)$
 $it:name.xml()$
@@ -192,11 +196,12 @@ $endif$
 </principal-investigator>
 $endfor$
 </award-group>
+$endfor$
 $if(funding.statement)$
 <funding-statement>$funding.statement$</funding-statement>
 $endif$
 $if(funding.open-access)$
-<open-access><p>$funding.open-access$</p></open-access>
+<open-access>$funding.open-access$</open-access>
 $endif$
 </funding-group>
 $endfor$

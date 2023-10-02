@@ -23,12 +23,12 @@ function columns()
         return el
       else 
         -- convert the aside class to a column-margin class
-        if el.attr.classes and tcontains(el.attr.classes, 'aside') then
+        if el.classes and tcontains(el.classes, 'aside') then
           noteHasColumns()
-          el.attr.classes = el.attr.classes:filter(function(attr) 
+          el.classes = el.classes:filter(function(attr) 
             return attr ~= "aside"
           end)
-          tappend(el.attr.classes, {'column-margin'})
+          tappend(el.classes, {'column-margin'})
           return el
         end
       end
@@ -61,12 +61,12 @@ function renderDivColumn(el)
     -- be marked a column-margin element (so that it is processed 
     -- by post processors). 
     -- For example: https://github.com/quarto-dev/quarto-cli/issues/2701
-    if el.attr.classes and tcontains(el.attr.classes, 'aside') then
+    if el.classes and tcontains(el.classes, 'aside') then
       noteHasColumns()
-      el.attr.classes = el.attr.classes:filter(function(attr) 
+      el.classes = el.classes:filter(function(attr) 
         return attr ~= "aside"
       end)
-      tappend(el.attr.classes, {'column-margin'})
+      tappend(el.classes, {'column-margin'})
       return el
     end
 
@@ -92,7 +92,7 @@ function renderDivColumn(el)
             el.content[2] = captionContainer    
           else
             -- move to container
-            el.attr.classes:insert(clz)
+            el.classes:insert(clz)
           end
         end
       end
@@ -105,9 +105,10 @@ function renderDivColumn(el)
     if #columnClasses > 0 then
       noteHasColumns() 
       
-      if el.attr.classes:includes('cell-output-display') and #el.content > 0 then
+      if el.classes:includes('cell-output-display') and #el.content > 0 then
         -- this could be a code-display-cell
         local figOrTable = false
+        local floatRefTarget = false
         for j=1,#el.content do
           local contentEl = el.content[j]
 
@@ -130,10 +131,21 @@ function renderDivColumn(el)
             latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
             el.content[j] = tableDiv
             figOrTable = true
+          elseif contentEl.t == 'Div' then
+            -- forward the columns class from the output div
+            -- onto the float ref target, which prevents
+            -- the general purpose `sidenote` processing from capturing this
+            -- element (since floats know how to deal with margin positioning)
+            local custom = _quarto.ast.resolve_custom_data(contentEl)
+            if custom ~= nil then  
+              floatRefTarget = true
+              removeColumnClasses(el)
+              addColumnClasses(columnClasses, custom)
+            end
           end 
         end
 
-        if not figOrTable then
+        if not figOrTable and not floatRefTarget then
           processOtherContent(el.content)
         end
       else
@@ -197,20 +209,20 @@ end
   
 
 function hasColumnClasses(el) 
-  return tcontains(el.attr.classes, isColumnClass) or hasMarginColumn(el)
+  return tcontains(el.classes, isColumnClass) or hasMarginColumn(el)
 end
 
 function hasMarginColumn(el)
-  if el.attr ~= nil and el.attr.classes ~= nil then
-    return tcontains(el.attr.classes, 'column-margin') or tcontains(el.attr.classes, 'aside')
+  if el.classes ~= nil then
+    return tcontains(el.classes, 'column-margin') or tcontains(el.classes, 'aside')
   else
     return false
   end
 end
 
 function hasMarginCaption(el)
-  if el.attr ~= nil and el.attr.classes ~= nil then
-    return tcontains(el.attr.classes, 'margin-caption')
+  if el.classes ~= nil then
+    return tcontains(el.classes, 'margin-caption')
   else
     return false
   end
@@ -225,7 +237,7 @@ function notColumnClass(clz)
 end
 
 function resolveColumnClasses(el) 
-  return el.attr.classes:filter(isColumnClass)
+  return el.classes:filter(isColumnClass)
 end
 
 function columnToClass(column)
@@ -237,10 +249,10 @@ function columnToClass(column)
 end
 
 function removeColumnClasses(el)
-  if el.attr and el.attr.classes then
-    for i, clz in ipairs(el.attr.classes) do 
+  if el.classes then
+    for i, clz in ipairs(el.classes) do 
       if isColumnClass(clz) then
-        el.attr.classes:remove(i)
+        el.classes:remove(i)
       end
     end  
   end
@@ -250,26 +262,26 @@ function addColumnClasses(classes, toEl)
   removeColumnClasses(toEl)
   for i, clz in ipairs(classes) do 
     if isColumnClass(clz) then
-      toEl.attr.classes:insert(clz)
+      toEl.classes:insert(clz)
     end
   end  
 end
 
 function removeCaptionClasses(el)
-  for i, clz in ipairs(el.attr.classes) do 
+  for i, clz in ipairs(el.classes) do 
     if isCaptionClass(clz) then
-      el.attr.classes:remove(i)
+      el.classes:remove(i)
     end
   end
 end
 
 function resolveCaptionClasses(el)
-  local filtered = el.attr.classes:filter(isCaptionClass)
+  local filtered = el.classes:filter(isCaptionClass)
   if #filtered > 0 then
     return {'margin-caption'}
   else
     -- try looking for attributes
-    if el.attr.attributes['cap-location'] == "margin" then
+    if el.attributes ~= nil and el.attributes['cap-location'] == "margin" then
       return {'margin-caption'}
     else
       return {}

@@ -26,11 +26,11 @@ const isWide = toolCount > 2; %>
     <% toolDropdownId = 'quarto-navigation-tool-dropdown-' + toolCount %>
     <% toolCount = toolCount + 1 %>
     <div class="dropdown">
-      <a href="<%- tool.href %>" title="<%- tool.text %>" id="<%- toolDropdownId %>" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="<%- tool['aria-label'] || tool.text %>"><i class="bi bi-<%- tool.icon %>"></i></a>
+      <a href="<%- tool.href %>" title="<%- tool.text %>" id="<%- toolDropdownId %>" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" aria-label="<%- tool['aria-label'] || tool.text %>"<%= tool.target ? ` target="${tool.target}"` : "" %>><i class="bi bi-<%- tool.icon %>"></i></a>
       <ul class="dropdown-menu<%- dropDownAlignClz %>" aria-labelledby="<%- toolDropdownId %>">
         <% tool.menu.forEach(item => { %> 
           <li>
-            <a class="dropdown-item <%- className %>-item" href="<%- item.href %>">
+            <a class="dropdown-item <%- className %>-item" href="<%- item.href %>"<%= item.target ? ` target="${item.target}"` : "" %>>
             <% if (item.icon) { %> 
               <i class="bi bi-<%- item.icon %> pe-1"></i>
             <% } %>
@@ -41,7 +41,7 @@ const isWide = toolCount > 2; %>
       </ul>
     </div>
   <% } else { %>
-    <a href="<%- tool.href %>" <%- tool.rel ? `rel="${tool.rel}"` : "" %> title="<%- tool.text %>" class="quarto-navigation-tool px-1" aria-label="<%- tool['aria-label'] || tool.text %>"><i class="bi bi-<%- tool.icon %>"></i></a>
+    <a href="<%- tool.href %>" <%- tool.rel ? `rel="${tool.rel}"` : "" %> title="<%- tool.text %>" class="quarto-navigation-tool px-1" aria-label="<%- tool['aria-label'] || tool.text %>"<%= tool.target ? ` target="${tool.target}"` : "" %>><i class="bi bi-<%- tool.icon %>"></i></a>
   <% } %>
 <% }) %>
 

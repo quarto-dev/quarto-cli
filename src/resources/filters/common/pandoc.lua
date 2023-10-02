@@ -1,21 +1,16 @@
 -- pandoc.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+local readqmd = require("readqmd")
+
 function hasBootstrap() 
   local hasBootstrap = param("has-bootstrap", false)
   return hasBootstrap
 end
 
-
 -- read attribute w/ default
 function attribute(el, name, default)
-  -- FIXME: Doesn't attributes respond to __index?
-  for k,v in pairs(el.attributes) do
-    if k == name then
-      return v
-    end
-  end
-  return default
+  return el.attributes[name] or default
 end
 
 function removeClass(classes, remove)
@@ -71,18 +66,26 @@ function combineFilters(filters)
 end
 
 function inlinesToString(inlines)
+  local pt = pandoc.utils.type(inlines)
+  if pt ~= "Inlines" then
+    -- luacov: disable
+    fail("inlinesToString: expected Inlines, got " .. pt)
+    return ""
+    -- luacov: enable
+  end
   return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then
-    return pandoc.List({pandoc.Str(str)})
+    return pandoc.Inlines({pandoc.Str(str)})
   else
-    return pandoc.List({})
+    return pandoc.Inlines({})
   end
 end
 
+-- FIXME we should no longer be using this.
 -- lua string with markdown to pandoc inlines
 function markdownToInlines(str)
   if str then
@@ -170,20 +173,48 @@ function compileTemplate(template, meta)
 
     return renderedDoc.blocks
   else
+    -- luacov: disable
     fail('Error compiling template: ' .. template)
+    -- luacov: enable
   end
 end
 
-local md_shortcode = require("lpegshortcode")
 
--- FIXME pick a better name for this.
-function string_to_quarto_ast_blocks(text)
-  local after_shortcodes = md_shortcode.md_shortcode:match(text) or ""
-  local after_reading = pandoc.read(after_shortcodes, "markdown")
+function merge_attrs(attr, ...)
+  local result = pandoc.Attr(attr.identifier, attr.classes, attr.attributes)
+  for _, a in ipairs({...}) do
+    if a ~= nil then
+      result.identifier = result.identifier or a.identifier
+      result.classes:extend(a.classes)
+      for k, v in pairs(a.attributes) do
+        result.attributes[k] = v
+      end
+    end
+  end
+  return result
+end
+
+-- used to convert metatable, attributetable, etc
+-- to plain tables that can be serialized to JSON
+function as_plain_table(value)
+  local result = {}
+  for k, v in pairs(value) do
+    result[k] = v
+  end
+  return result
+end
+
+function string_to_quarto_ast_blocks(text, opts)
+  local doc = readqmd.readqmd(text, opts or quarto_global_state.reader_options)
   
-  -- FIXME we should run the whole normalization pipeline here
-  local after_parsing = after_reading:walk(parse_extended_nodes()):walk(compute_flags())
-  return after_parsing.blocks
+  -- run the whole normalization pipeline here to get extended AST nodes, etc.
+  for _, filter in ipairs(quarto_ast_pipeline()) do
+    doc = doc:walk(filter.filter)
+  end
+
+  -- compute flags so we don't skip filters that depend on them
+  doc:walk(compute_flags())
+  return doc.blocks
 end
 
 function string_to_quarto_ast_inlines(text, sep)

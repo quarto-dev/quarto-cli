@@ -1,0 +1,15 @@
+---
+title: "margin captions"
+---
+
+::: {#fig-cap-margin cap-location="margin"}
+
+![](img/abbas.jpg)
+
+A caption
+
+:::
+
+![Another caption](img/abbas.jpg){#fig-cap-margin-2 cap-location="margin"}
+
+See @fig-cap-margin and @fig-cap-margin-2.

@@ -108,6 +108,10 @@ local function is_docusaurus_output()
   return string.match(param("custom-writer", ""), "docusaurus_writer.lua$")
 end
 
+local function is_confluence_output()
+  return param("quarto-custom-format", "") == "confluence"
+end
+
 -- check for markdown output
 local function isMarkdownOutput()
   local formats = {
@@ -122,6 +126,10 @@ local function isMarkdownOutput()
     "markua"
   }
   return tcontains(formats, FORMAT) or is_docusaurus_output()
+end
+
+local function isGithubMarkdownOutput()
+  return param("format-identifier", {})["base-format"] == "gfm"
 end
 
 -- check for markdown with raw_html enabled
@@ -236,7 +244,6 @@ local function isTypstOutput()
   return FORMAT == "typst"
 end
 
-
 return {
   isAsciiDocOutput = isAsciiDocOutput,
   isRawHtml = isRawHtml,
@@ -252,6 +259,7 @@ return {
   isRevealJsOutput = isRevealJsOutput,
   isSlideOutput = isSlideOutput,
   isEpubOutput = isEpubOutput,
+  isGithubMarkdownOutput = isGithubMarkdownOutput,
   isMarkdownOutput = isMarkdownOutput,
   isMarkdownWithHtmlOutput = isMarkdownWithHtmlOutput,
   isIpynbOutput = isIpynbOutput, 
@@ -263,5 +271,6 @@ return {
   isAstOutput = isAstOutput,
   isJatsOutput = isJatsOutput,
   isTypstOutput = isTypstOutput,
+  isConfluenceOutput = is_confluence_output,
   parse_format = parse_format
 }

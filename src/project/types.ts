@@ -13,6 +13,7 @@ import {
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
+import { ProjectEnvironment } from "./project-environment.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -53,6 +54,7 @@ export interface ProjectContext {
   ) => Promise<Record<string, Format>>;
 
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
+  environment: (project: ProjectContext) => Promise<ProjectEnvironment>;
 }
 
 export interface ProjectFiles {

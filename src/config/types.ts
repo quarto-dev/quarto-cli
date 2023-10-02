@@ -72,6 +72,7 @@ import {
   kExecuteIpynb,
   kExtensionName,
   kFigAlign,
+  kFigAsp,
   kFigDpi,
   kFigEnv,
   kFigFormat,
@@ -311,10 +312,21 @@ export type PandocFilter = {
   path: string;
 };
 
-export type QuartoFilter = string | PandocFilter;
+export type QuartoFilterEntryPoint = PandocFilter & { "at": string };
+
+export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
 
 export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
+}
+
+export function isFilterEntryPoint(
+  filter: QuartoFilter,
+): filter is QuartoFilterEntryPoint {
+  if (typeof filter === "string") {
+    return false;
+  }
+  return (<QuartoFilterEntryPoint> filter).at !== undefined;
 }
 
 export interface NotebookPreviewDescriptor {
@@ -466,6 +478,7 @@ export interface FormatExecute {
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
+  [kFigAsp]?: number;
   [kMermaidFormat]?: "png" | "svg" | "js";
   [kDfPrint]?: "default" | "kable" | "tibble" | "paged";
   [kCache]?: true | false | "refresh" | null;

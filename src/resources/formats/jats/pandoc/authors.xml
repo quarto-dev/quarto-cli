@@ -36,7 +36,7 @@ $endfor$
 $endif$
 $for(affiliations)$
 <aff id="$it.id$">
-$it:institution.xml()$
+$it:affiliation.xml()$
 </aff>
 $endfor$
 $if(quarto-internal.has-author-notes)$

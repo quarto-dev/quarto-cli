@@ -1,0 +1,59 @@
+---
+format: latex
+title: "Long Table kable fixups etc"
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "\\label{tbl-test}"
+          - "\\label{tbl-test-two-tables}"
+          - "\\label{tbl-test-two-tables-1}"
+          - "\\label{tbl-test-two-tables-2}"
+        - []
+---
+
+```{r}
+#| warning: false
+#| output: false
+#| echo: false
+library(knitr)
+library(tidyverse)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-test
+df <- tibble(
+  x = 1:20,
+  y = rnorm(20),
+  z = rnorm(20)
+)
+kable(df, 
+  format = "latex", 
+  longtable = TRUE, 
+  booktabs = TRUE, 
+  caption = "A long table with a caption")
+```
+
+See @tbl-test.
+
+```{r}
+#| echo: false
+#| label: tbl-test-two-tables
+#| tbl-cap: Overall caption
+
+kable(df, 
+  format = "latex", 
+  longtable = TRUE, 
+  booktabs = TRUE, 
+  caption = "Table one")
+
+kable(df, 
+  format = "latex", 
+  longtable = TRUE, 
+  booktabs = TRUE, 
+  caption = "Table two because screw you, that's why")
+```
+
+See @tbl-test-two-tables, @tbl-test-two-tables-1, and @tbl-test-two-tables-2.

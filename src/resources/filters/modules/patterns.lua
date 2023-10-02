@@ -15,6 +15,13 @@ local html_paged_table = "<script data[-]pagedtable[-]source type=\"application/
 local html_gt_table = "<table class=\"gt_table\">"
 local engine_escape = "{({+([^}]+)}+)}"
 local shortcode = "{{+<[^>]+>}+}"
+local latex_label = "(\\label{([^}]+)})"
+local latex_caption = "(\\caption{([^}]+)})"
+
+-- this will catch two longtables in a single rawblock
+-- but I'm willing to call that a bug in the source document
+local latex_long_table = "(\\begin{longtable}.*\\end{longtable})" 
+local latex_tabular = "(\\begin{tabular}.*\\end{tabular})"
 
 return {
   engine_escape = engine_escape,
@@ -25,4 +32,8 @@ return {
   html_table = html_table,
   shortcode = shortcode,
   tag = tag,
+  latex_label = latex_label,
+  latex_caption = latex_caption,
+  latex_long_table = latex_long_table,
+  latex_tabular = latex_tabular
 }

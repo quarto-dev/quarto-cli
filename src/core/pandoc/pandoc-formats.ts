@@ -2,7 +2,6 @@
  * pandoc-formats.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 import { extname } from "path/mod.ts";
 import { FormatPandoc } from "../../config/types.ts";
@@ -169,7 +168,7 @@ class FormatAliases {
   static pandoc: string[];
 }
 
-function isBuiltInFormat(format: string) {
+function ensureFormats() {
   if (!FormatAliases.pandoc) {
     const formatAliases = readYaml(
       resourcePath("schema/format-aliases.yml"),
@@ -179,8 +178,16 @@ function isBuiltInFormat(format: string) {
     ] as string[];
     FormatAliases.pandoc = pandocFormats;
   }
+}
 
+export function pandocBuiltInFormats() {
+  ensureFormats();
+  return FormatAliases.pandoc;
+}
+
+function isBuiltInFormat(format: string) {
   // Allow either a built in format or a path to a LUA file
+  ensureFormats();
   return FormatAliases.pandoc.includes(format) ||
     extname(format) === ".lua";
 }

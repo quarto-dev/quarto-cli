@@ -3,7 +3,8 @@
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
   "[r]": {
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "REditorSupport.r"
   },
   "[html]": {
     "editor.formatOnSave": false

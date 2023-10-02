@@ -7213,7 +7213,7 @@ try {
             },
             description: {
               short: "Include cell source code in rendered output.",
-              long: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+              long: "Include cell source code in rendered output.\n\n- `true` (default in most formats): include source code in output\n- `false` (default in presentation formats like `beamer`, `revealjs`, and `pptx`): do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
             }
           },
           {
@@ -7321,7 +7321,17 @@ try {
             tags: {
               engine: "knitr"
             },
-            schema: "boolean",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "styler",
+                    "formatR"
+                  ]
+                }
+              ]
+            },
             default: false,
             description: "Whether to reformat R code."
           },
@@ -8234,9 +8244,36 @@ try {
               anyOf: [
                 "path",
                 {
-                  record: {
-                    type: "string",
-                    path: "path"
+                  object: {
+                    properties: {
+                      type: "string",
+                      path: "path"
+                    },
+                    required: [
+                      "path"
+                    ]
+                  }
+                },
+                {
+                  object: {
+                    properties: {
+                      type: "string",
+                      path: "path",
+                      at: {
+                        enum: [
+                          "pre-ast",
+                          "post-ast",
+                          "pre-quarto",
+                          "post-quarto",
+                          "pre-render",
+                          "post-render"
+                        ]
+                      }
+                    },
+                    required: [
+                      "path",
+                      "at"
+                    ]
                   }
                 },
                 {
@@ -9279,6 +9316,21 @@ try {
                               }
                             }
                           },
+                          "show-item-context": {
+                            schema: {
+                              anyOf: [
+                                {
+                                  enum: [
+                                    "tree",
+                                    "parent",
+                                    "root"
+                                  ]
+                                },
+                                "boolean"
+                              ]
+                            },
+                            description: "Whether to include search result parents when displaying items in search results (when possible)."
+                          },
                           algolia: {
                             object: {
                               properties: {
@@ -9662,7 +9714,7 @@ try {
                     anyOf: [
                       "boolean",
                       {
-                        ref: "other-links"
+                        ref: "code-links-schema"
                       }
                     ]
                   },
@@ -10648,6 +10700,13 @@ try {
                   ref: "csl-person",
                   description: "Host of the item (e.g. of a TV show or podcast)."
                 },
+                id: {
+                  anyOf: [
+                    "string",
+                    "number"
+                  ],
+                  description: "A value which uniquely identifies this item."
+                },
                 illustrator: {
                   ref: "csl-person",
                   description: "Illustrator (e.g. of a children\u2019s book or graphic novel)."
@@ -11273,6 +11332,58 @@ try {
             }
           },
           {
+            id: "code-links-schema",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  maybeArrayOf: {
+                    anyOf: [
+                      {
+                        object: {
+                          properties: {
+                            icon: {
+                              string: {
+                                description: "The bootstrap icon for this code link."
+                              }
+                            },
+                            text: {
+                              string: {
+                                description: "The text for this code link."
+                              }
+                            },
+                            href: {
+                              string: {
+                                description: "The href for this code link."
+                              }
+                            },
+                            rel: {
+                              string: {
+                                description: "The rel used in the `a` tag for this code link."
+                              }
+                            },
+                            target: {
+                              string: {
+                                description: "The target used in the `a` tag for this code link."
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        enum: [
+                          "repo",
+                          "binder",
+                          "devcontainer"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
             id: "manuscript-schema",
             schema: {
               object: {
@@ -11284,17 +11395,10 @@ try {
                     }
                   },
                   "code-links": {
-                    anyOf: [
-                      "boolean",
-                      {
-                        maybeArrayOf: {
-                          anyOf: [
-                            "object",
-                            "string"
-                          ]
-                        }
-                      }
-                    ]
+                    schema: {
+                      ref: "code-links-schema"
+                    },
+                    description: "Code links to display for this manuscript."
                   },
                   "manuscript-url": {
                     string: {
@@ -11380,7 +11484,8 @@ try {
                 "$html-all",
                 "context",
                 "muse",
-                "odt"
+                "odt",
+                "docx"
               ]
             },
             description: "Identifies the subtitle of the document."
@@ -11505,7 +11610,8 @@ try {
                 "$jats-all",
                 "context",
                 "ms",
-                "odt"
+                "odt",
+                "docx"
               ]
             },
             description: "Summary of document"
@@ -11516,7 +11622,8 @@ try {
             tags: {
               formats: [
                 "$html-doc",
-                "$epub-all"
+                "$epub-all",
+                "docx"
               ]
             },
             description: "Title used to label document abstract"
@@ -11990,6 +12097,47 @@ try {
                   object: {
                     closed: true,
                     properties: {
+                      custom: {
+                        arrayOf: {
+                          object: {
+                            description: "A custom cross reference type.",
+                            closed: true,
+                            properties: {
+                              kind: {
+                                enum: [
+                                  "float"
+                                ],
+                                description: 'The kind of cross reference (currently only "float" is supported).'
+                              },
+                              prefix: {
+                                string: {
+                                  description: "The prefix used in rendered citations when referencing this type."
+                                }
+                              },
+                              name: {
+                                string: {
+                                  description: "The prefix used in captions when referencing this type."
+                                }
+                              },
+                              "ref-type": {
+                                string: {
+                                  description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                                }
+                              },
+                              "latex-env": {
+                                string: {
+                                  description: "The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output."
+                                }
+                              },
+                              "latex-list-of-name": {
+                                string: {
+                                  description: 'The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.'
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
                       chapters: {
                         boolean: {
                           description: "Use top level sections (H1) in this document as chapters.",
@@ -13363,11 +13511,6 @@ try {
                     object: {
                       closed: true,
                       properties: {
-                        id: {
-                          string: {
-                            description: "Unique identifier assigned to an award, contract, or grant."
-                          }
-                        },
                         statement: {
                           string: {
                             description: "Displayable prose statement that describes the funding for the research on which a work was based."
@@ -13378,125 +13521,148 @@ try {
                             description: "Open access provisions that apply to a work or the funding information that provided the open access provisions."
                           }
                         },
-                        source: {
+                        awards: {
                           maybeArrayOf: {
-                            anyOf: [
-                              "string",
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    text: {
-                                      string: {
-                                        description: "The text describing the source of the funding."
-                                      }
-                                    },
-                                    country: {
-                                      string: {
-                                        description: {
-                                          short: "Abbreviation for country where source of grant is located.",
-                                          long: "Abbreviation for country where source of grant is located.\nWhenever possible, ISO 3166-1 2-letter alphabetic codes should be used.\n"
+                            object: {
+                              properties: {
+                                id: {
+                                  string: {
+                                    description: "Unique identifier assigned to an award, contract, or grant."
+                                  }
+                                },
+                                name: {
+                                  string: {
+                                    description: "The name of this award"
+                                  }
+                                },
+                                description: {
+                                  string: {
+                                    description: "The description for this award."
+                                  }
+                                },
+                                source: {
+                                  maybeArrayOf: {
+                                    anyOf: [
+                                      "string",
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            text: {
+                                              string: {
+                                                description: "The text describing the source of the funding."
+                                              }
+                                            },
+                                            country: {
+                                              string: {
+                                                description: {
+                                                  short: "Abbreviation for country where source of grant is located.",
+                                                  long: "Abbreviation for country where source of grant is located.\nWhenever possible, ISO 3166-1 2-letter alphabetic codes should be used.\n"
+                                                }
+                                              }
+                                            }
+                                          }
                                         }
                                       }
-                                    }
-                                  }
+                                    ]
+                                  },
+                                  description: "Agency or organization that funded the research on which a work was based."
+                                },
+                                recipient: {
+                                  maybeArrayOf: {
+                                    anyOf: [
+                                      "string",
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            ref: {
+                                              string: {
+                                                description: "The id of an author or affiliation in the document metadata."
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            name: {
+                                              string: {
+                                                description: "The name of an individual that was the recipient of the funding."
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            institution: {
+                                              anyOf: [
+                                                "string",
+                                                "object"
+                                              ],
+                                              description: "The institution that was the recipient of the funding."
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  description: "Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual)."
+                                },
+                                investigator: {
+                                  maybeArrayOf: {
+                                    anyOf: [
+                                      "string",
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            ref: {
+                                              string: {
+                                                description: "The id of an author or affiliation in the document metadata."
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            name: {
+                                              string: {
+                                                description: "The name of an individual that was responsible for the intellectual content of the work reported in the document."
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        object: {
+                                          closed: true,
+                                          properties: {
+                                            institution: {
+                                              anyOf: [
+                                                "string",
+                                                "object"
+                                              ],
+                                              description: "The institution that was responsible for the intellectual content of the work reported in the document."
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  description: "Individual(s) responsible for the intellectual content of the work reported in the document."
                                 }
                               }
-                            ]
-                          },
-                          description: "Agency or organization that funded the research on which a work was based."
-                        },
-                        recipient: {
-                          maybeArrayOf: {
-                            anyOf: [
-                              "string",
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    ref: {
-                                      string: {
-                                        description: "The id of an author or affiliation in the document metadata."
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    name: {
-                                      string: {
-                                        description: "The name of an individual that was the recipient of the funding."
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    institution: {
-                                      anyOf: [
-                                        "string",
-                                        "object"
-                                      ],
-                                      description: "The institution that was the recipient of the funding."
-                                    }
-                                  }
-                                }
-                              }
-                            ]
-                          },
-                          description: "Individual(s) or institution(s) to whom the award was given (for example, the principal grant holder or the sponsored individual)."
-                        },
-                        investigator: {
-                          maybeArrayOf: {
-                            anyOf: [
-                              "string",
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    ref: {
-                                      string: {
-                                        description: "The id of an author or affiliation in the document metadata."
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    name: {
-                                      string: {
-                                        description: "The name of an individual that was responsible for the intellectual content of the work reported in the document."
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              {
-                                object: {
-                                  closed: true,
-                                  properties: {
-                                    institution: {
-                                      anyOf: [
-                                        "string",
-                                        "object"
-                                      ],
-                                      description: "The institution that was responsible for the intellectual content of the work reported in the document."
-                                    }
-                                  }
-                                }
-                              }
-                            ]
-                          },
-                          description: "Individual(s) responsible for the intellectual content of the work reported in the document."
+                            }
+                          }
                         }
                       }
                     }
@@ -14651,7 +14817,7 @@ try {
                   ]
                 },
                 {
-                  ref: "other-links"
+                  ref: "code-links-schema"
                 }
               ]
             },
@@ -14794,7 +14960,9 @@ try {
                 "$asciidoc-all",
                 "$html-files",
                 "$pdf-all",
-                "context"
+                "context",
+                "odt",
+                "$office-all"
               ]
             },
             description: "List of keywords to be included in the document metadata."
@@ -14805,7 +14973,8 @@ try {
             tags: {
               formats: [
                 "$pdf-all",
-                "$office-all"
+                "$office-all",
+                "odt"
               ]
             },
             description: "The document subject"
@@ -14815,6 +14984,7 @@ try {
             schema: "string",
             tags: {
               formats: [
+                "odt",
                 "$office-all"
               ]
             },
@@ -14912,7 +15082,7 @@ try {
             },
             description: {
               short: "The License for this document, if any. (e.g. `CC BY`)",
-              long: "The license for this document, if any. \n\nCreative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC` will automatically generate a license link\nin the document appendix. Other license text will be placed in the appendix verbatim.\n"
+              long: "The license for this document, if any. \n\nCreative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC`, `CC BY-NC-SA`, and `CC BY-NC-ND` will automatically generate a license link\nin the document appendix. Other license text will be placed in the appendix verbatim.\n"
             }
           },
           {
@@ -18925,6 +19095,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -19055,6 +19226,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -19362,6 +19534,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19508,6 +19681,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19662,6 +19836,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -19783,7 +19958,18 @@ try {
           "The title of the notebook when viewed.",
           "The url to use when viewing this notebook.",
           "The url to use when downloading the notebook from the preview",
+          "The bootstrap icon for this code link.",
+          "The text for this code link.",
+          "The href for this code link.",
+          "The rel used in the <code>a</code> tag for this code link.",
+          "The target used in the <code>a</code> tag for this code link.",
+          "The bootstrap icon for this code link.",
+          "The text for this code link.",
+          "The href for this code link.",
+          "The rel used in the <code>a</code> tag for this code link.",
+          "The target used in the <code>a</code> tag for this code link.",
           "The input document that will serve as the root document for this\nmanuscript",
+          "Code links to display for this manuscript.",
           "The deployed url for this manuscript",
           "Whether to generate a MECA bundle for this manuscript",
           "Additional file resources to be copied to output directory",
@@ -20066,6 +20252,13 @@ try {
           },
           "Configuration for document commenting.",
           "Configuration for crossref labels and prefixes.",
+          "A custom cross reference type.",
+          "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
+          "The prefix used in rendered citations when referencing this type.",
+          "The prefix used in captions when referencing this type.",
+          "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+          "The name of the custom LaTeX environment that quarto will use to\ncreate this type of crossreferenceable object in LaTeX output.",
+          "The name of the custom LaTeX \u201Clist of\u201D command that quarto will use\nto create this type of crossreferenceable object in LaTeX output.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
           "The title prefix used for figure captions.",
@@ -20304,9 +20497,11 @@ try {
             long: "Specify the heading level at which to split the EPUB into separate\nchapter files. The default is to split into chapters at level-1\nheadings. This option only affects the internal composition of the EPUB,\nnot the way chapters and sections are displayed to users. Some readers\nmay be slow if the chapter files are too large, so for large documents\nwith few level-1 headings, one might want to use a chapter level of 2 or\n3."
           },
           "Information about the funding of the research reported in the article\n(for example, grants, contracts, sponsors) and any open access fees for\nthe article itself",
-          "Unique identifier assigned to an award, contract, or grant.",
           "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
           "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
+          "Unique identifier assigned to an award, contract, or grant.",
+          "The name of this award",
+          "The description for this award.",
           "Agency or organization that funded the research on which a work was\nbased.",
           "The text describing the source of the funding.",
           {
@@ -20333,8 +20528,66 @@ try {
           "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
           "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
           "Unique identifier assigned to an award, contract, or grant.",
+          "The name of this award",
+          "The description for this award.",
+          "Agency or organization that funded the research on which a work was\nbased.",
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "The institution that was the recipient of the funding.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "The institution that was the recipient of the funding.",
+          "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
           "Displayable prose statement that describes the funding for the\nresearch on which a work was based.",
           "Open access provisions that apply to a work or the funding\ninformation that provided the open access provisions.",
+          "Unique identifier assigned to an award, contract, or grant.",
+          "The name of this award",
+          "The description for this award.",
+          "Agency or organization that funded the research on which a work was\nbased.",
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "The text describing the source of the funding.",
+          {
+            short: "Abbreviation for country where source of grant is located.",
+            long: "Abbreviation for country where source of grant is located. Whenever\npossible, ISO 3166-1 2-letter alphabetic codes should be used."
+          },
+          "Individual(s) or institution(s) to whom the award was given (for\nexample, the principal grant holder or the sponsored individual).",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "The institution that was the recipient of the funding.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was the recipient of the funding.",
+          "The institution that was the recipient of the funding.",
+          "Individual(s) responsible for the intellectual content of the work\nreported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+          "The id of an author or affiliation in the document metadata.",
+          "The name of an individual that was responsible for the intellectual\ncontent of the work reported in the document.",
+          "The institution that was responsible for the intellectual content of\nthe work reported in the document.",
+          "Unique identifier assigned to an award, contract, or grant.",
+          "The name of this award",
+          "The description for this award.",
           "Agency or organization that funded the research on which a work was\nbased.",
           "The text describing the source of the funding.",
           {
@@ -20575,7 +20828,7 @@ try {
           "The text to display for the license.",
           {
             short: "The License for this document, if any. (e.g.&nbsp;<code>CC BY</code>)",
-            long: "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code> will automatically generate\na license link in the document appendix. Other license text will be\nplaced in the appendix verbatim."
+            long: "The license for this document, if any.\nCreative Commons licenses <code>CC BY</code>, <code>CC BY-SA</code>,\n<code>CC BY-ND</code>, <code>CC BY-NC</code>, <code>CC BY-NC-SA</code>,\nand <code>CC BY-NC-ND</code> will automatically generate a license link\nin the document appendix. Other license text will be placed in the\nappendix verbatim."
           },
           "The type of the license.",
           "A URL to the license.",
@@ -21076,6 +21329,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21227,6 +21481,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21310,6 +21565,15 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
+          "Enable or disable lightbox treatment for images in this document.",
+          {
+            short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+            long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+          },
+          "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+          "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+          "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+          "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -21389,6 +21653,7 @@ try {
           "Provide button for copying search link",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
           "One or more keys that will act as a shortcut to launch search (single\ncharacters)",
+          "Whether to include search result parents when displaying items in\nsearch results (when possible).",
           "Use external Algolia search index",
           "The name of the index to use when performing a search",
           "The unique ID used by Algolia to identify your application",
@@ -21540,6 +21805,7 @@ try {
           },
           "Guest (e.g.&nbsp;on a TV show or podcast).",
           "Host of the item (e.g.&nbsp;of a TV show or podcast).",
+          "A value which uniquely identifies this item.",
           "Illustrator (e.g.&nbsp;of a children\u2019s book or graphic novel).",
           "Interviewer (e.g.&nbsp;of an interview).",
           "International Standard Book Number (e.g.&nbsp;\u201C978-3-8474-1017-1\u201D).",
@@ -21846,12 +22112,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 163216,
+          _internalId: 167874,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 163208,
+              _internalId: 167866,
               type: "enum",
               enum: [
                 "png",
@@ -21867,7 +22133,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 163215,
+              _internalId: 167873,
               type: "anyOf",
               anyOf: [
                 {
@@ -21907,7 +22173,77 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        }
+        },
+        "schema/document-lightbox.yml": [
+          {
+            name: "lightbox",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "auto"
+                  ]
+                },
+                {
+                  object: {
+                    closed: true,
+                    properties: {
+                      match: {
+                        schema: {
+                          enum: [
+                            "auto"
+                          ]
+                        },
+                        description: {
+                          short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
+                          long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
+                        }
+                      },
+                      effect: {
+                        schema: {
+                          enum: [
+                            "fade",
+                            "zoom",
+                            "none"
+                          ]
+                        },
+                        description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
+                      },
+                      "desc-position": {
+                        schema: {
+                          enum: [
+                            "top",
+                            "bottom",
+                            "left",
+                            "right"
+                          ]
+                        },
+                        description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
+                      },
+                      loop: {
+                        boolean: {
+                          description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
+                        }
+                      },
+                      "css-class": {
+                        string: {
+                          description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Enable or disable lightbox treatment for images in this document."
+          }
+        ]
       };
     }
   });

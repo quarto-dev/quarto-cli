@@ -1,0 +1,29 @@
+---
+title: "matplotlib demo"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["\\marginnote{\\\\begin{"] # captionless figures live inside marginnotes
+        - []
+---
+
+Demo
+
+```{python}
+#| echo: false
+#| column: margin
+
+import matplotlib.pyplot as plt
+
+plot = plt.figure()
+plot.set_figwidth(2)
+plot.set_figheight(3)
+
+x = [1, 2]
+y = [2, 3]
+
+plt.plot(x,y)
+
+```

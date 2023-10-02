@@ -12,11 +12,9 @@ import { Document } from "../../core/deno-dom.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sassLayer } from "../../core/sass.ts";
 import { TempContext } from "../../core/temp-types.ts";
-import {
-  MarkdownPipeline,
-} from "../../project/types/website/website-pipeline-md.ts";
+import { MarkdownPipeline } from "../../core/markdown-pipeline.ts";
 
-const kTitleBlockStyle = "title-block-style";
+export const kTitleBlockStyle = "title-block-style";
 const kTitleBlockBanner = "title-block-banner";
 const ktitleBlockColor = "title-block-banner-color";
 const kTitleBlockCategories = "title-block-categories";

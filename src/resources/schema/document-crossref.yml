@@ -6,6 +6,30 @@
       - object:
           closed: true
           properties:
+            custom:
+              arrayOf:
+                object:
+                  description: A custom cross reference type.
+                  closed: true
+                  properties:
+                    kind:
+                      enum: [float]
+                      description: The kind of cross reference (currently only "float" is supported).
+                    prefix:
+                      string:
+                        description: The prefix used in rendered citations when referencing this type.
+                    name:
+                      string:
+                        description: The prefix used in captions when referencing this type.
+                    ref-type:
+                      string:
+                        description: The prefix string used in references ("dia-", etc.) when referencing this type.
+                    latex-env:
+                      string:
+                        description: The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output.
+                    latex-list-of-name:
+                      string:
+                        description: The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.
             chapters:
               boolean:
                 description: Use top level sections (H1) in this document as chapters.

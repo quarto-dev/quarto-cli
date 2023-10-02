@@ -20,7 +20,7 @@ else
 fi
 
 # Check if we are running 'Dev Mode' and if so, override values for devs
-SCRIPT_BASENAME=$(basename $SCRIPT_PATH)
+SCRIPT_BASENAME=$(basename "$SCRIPT_PATH")
 if [ "${SCRIPT_BASENAME}" == "bin" ]; then
   # we can be running dev mode with a symlink to the package/dist/bin folder. In this case, our relative path is two levels up.
   export QUARTO_ROOT="`cd "$SCRIPT_PATH/../../.." > /dev/null 2>&1 && pwd`"

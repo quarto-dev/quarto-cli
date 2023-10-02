@@ -1,0 +1,18 @@
+---
+title: test simple figure crossref
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"fig-simple\"]//caption"
+          - "//fig[@id=\"fig-simple\"]//graphic[@xlink:href=\"img/surus.jpg\"]"
+          - "//xref[@rid=\"fig-simple\"]"
+        - []
+---
+
+![A simple figure](img/surus.jpg){#fig-simple}
+
+See @fig-simple.
+

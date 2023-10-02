@@ -20,6 +20,14 @@ function option(name, def)
   return parseOption(name, allOptions, def)
 end
 
+function option_as_string(name)
+  local result = option(name)
+  if result == nil then
+    return nil
+  end
+  return inlinesToString(result)
+end
+
 local kVarNamespace = "_quarto-vars"
 function var(name, def)
   local vars = allOptions[kVarNamespace]

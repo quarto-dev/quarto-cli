@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { walkSync } from "../vendor/deno.land/std@0.185.0/fs/walk.ts";
+import { walkSync } from "fs/walk.ts";
 
 import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";

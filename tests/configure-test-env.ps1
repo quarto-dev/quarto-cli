@@ -5,7 +5,11 @@ try { $null = gcm Rscript -ea stop; $r=$true} catch {
 }
 
 If ($r) {
-  Rscript -e "renv::restore()"
+  Write-Host -ForegroundColor green "   > Restoring renv project"
+  Rscript -e 'renv::restore()'
+  Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
+  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev'))"
+  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev'))"
 }
 
 # Check python test environment ---

@@ -1,0 +1,10 @@
+---
+format: html
+title: test
+---
+
+```{#lst-dummy .r lst-cap="Hello." filename="dummy.R"}
+1 + 1
+```
+
+See @lst-dummy.

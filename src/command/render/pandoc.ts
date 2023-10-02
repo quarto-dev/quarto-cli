@@ -104,6 +104,7 @@ import {
   kInstitutes,
   kKeepSource,
   kLinkColor,
+  kMath,
   kMetadataFormat,
   kNotebooks,
   kNotebookView,
@@ -191,6 +192,11 @@ import {
 import { kRevealJSPlugins } from "../../extension/constants.ts";
 import { kCitation } from "../../format/html/format-html-shared.ts";
 import { cslDate } from "../../core/csl.ts";
+import {
+  createMarkdownPipeline,
+  MarkdownPipelineHandler,
+} from "../../core/markdown-pipeline.ts";
+import { quarto } from "../../quarto.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -274,6 +280,11 @@ export async function runPandoc(
 
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
+
+  // Note whether we should be forcing math on for this render
+
+  const forceMath = options.format.metadata[kMath];
+  delete options.format.metadata[kMath];
 
   // the "ojs" filter is a special value that results in us
   // just signaling our standard filter chain that the ojs
@@ -409,6 +420,44 @@ export async function runPandoc(
         // isn't necessary.
 
         htmlPostprocessors.push(fixEmptyHrefs);
+      }
+
+      // Include Math, if explicitly requested (this will result
+      // in math dependencies being injected into the page)
+      if (forceMath) {
+        const htmlMarkdownHandlers: MarkdownPipelineHandler[] = [];
+        htmlMarkdownHandlers.push({
+          getUnrendered: () => {
+            return {
+              inlines: {
+                "quarto-enable-math-inline": "$e = mC^2$",
+              },
+            };
+          },
+          processRendered: (
+            _rendered: unknown,
+            _doc: Document,
+          ) => {
+          },
+        });
+
+        const htmlMarkdownPipeline = createMarkdownPipeline(
+          "quarto-book-math",
+          htmlMarkdownHandlers,
+        );
+
+        const htmlPipelinePostProcessor = (
+          doc: Document,
+        ): Promise<HtmlPostProcessResult> => {
+          htmlMarkdownPipeline.processRenderedMarkdown(doc);
+          return Promise.resolve({
+            resources: [],
+            supporting: [],
+          });
+        };
+
+        htmlRenderAfterBody.push(htmlMarkdownPipeline.markdownAfterBody());
+        htmlPostprocessors.push(htmlPipelinePostProcessor);
       }
     }
 

@@ -1,0 +1,23 @@
+---
+title: "MWE"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "\\\\subcaption\\{.*Surus\\}"
+          - "\\\\subcaption\\{.*Hanno\\}"
+        - []
+---
+
+Figures
+
+::: {#fig-elephants layout-ncol="2"}
+
+![Surus](elephant.jpg)
+
+![Hanno](elephant.jpg)
+
+Famous Elephants
+:::

@@ -1,0 +1,25 @@
+.unsplash-container {
+  overflow: hidden;
+  margin-bottom: 1em;
+}
+
+.unsplash-container img {
+  object-fit: cover;
+  width: 100%;
+}
+
+.unsplash-container.float-right {
+  float: right;
+  padding-left: 0.75em;
+}
+
+.unsplash-container.float-left {
+  float: left;
+  padding-right: 0.75em;
+}
+
+.unsplash-container.float-center {
+  float: center;
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+}

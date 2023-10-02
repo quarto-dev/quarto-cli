@@ -20,6 +20,7 @@ import {
   kFigEnv,
   kFigPos,
   kFigResponsive,
+  kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
   kIncludeAfter,
@@ -36,6 +37,8 @@ import {
   kOutputLocation,
   kPdfEngine,
   kQuartoFilters,
+  kQuartoPost,
+  kQuartoPre,
   kReferenceLocation,
   kReferences,
   kRemoveHidden,
@@ -48,7 +51,9 @@ import { PandocOptions } from "./types.ts";
 import {
   FormatLanguage,
   FormatPandoc,
+  isFilterEntryPoint,
   QuartoFilter,
+  QuartoFilterEntryPoint,
 } from "../../config/types.ts";
 import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -97,6 +102,8 @@ const kQuartoVersion = "quarto-version";
 
 const kQuartoSource = "quarto-source";
 
+const kQuartoCustomFormat = "quarto-custom-format";
+
 export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
@@ -127,6 +134,10 @@ export async function filterParamsJson(
     defaults,
   );
 
+  const customFormatParams = extractCustomFormatParams(
+    options.format.metadata,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -141,6 +152,7 @@ export async function filterParamsJson(
     ...jatsFilterParams(options),
     ...notebookContextFilterParams(options),
     ...filterParams,
+    ...customFormatParams,
     [kResultsFile]: pandocMetadataPath(resultsFile),
     [kTimingFile]: pandocMetadataPath(timingFile),
     [kQuartoFilters]: filterSpec,
@@ -149,6 +161,7 @@ export async function filterParamsJson(
       crossref: crossrefFilterActive(options),
       jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
+    [kFormatIdentifier]: options.format.identifier,
   };
   return JSON.stringify(params);
 }
@@ -159,6 +172,21 @@ export function removeFilterParams(metadata: Metadata) {
 
 export function quartoMainFilter() {
   return resourcePath("filters/main.lua");
+}
+
+function extractCustomFormatParams(
+  metadata: Metadata,
+) {
+  // pull out custom format spec if provided
+  const customFormatParams = metadata[kQuartoCustomFormat];
+  if (customFormatParams) {
+    delete metadata[kQuartoCustomFormat];
+    return {
+      [kQuartoCustomFormat]: customFormatParams,
+    };
+  } else {
+    return {};
+  }
 }
 
 function extractFilterSpecParams(
@@ -633,29 +661,45 @@ export async function resolveFilters(
 ): Promise<QuartoFilterSpec | undefined> {
   // build list of quarto filters
 
-  const beforeQuartoFilters: QuartoFilter[] = [];
-  const afterQuartoFilters: QuartoFilter[] = [];
+  // const beforeQuartoFilters: QuartoFilter[] = [];
+  // const afterQuartoFilters: QuartoFilter[] = [];
 
   const quartoFilters: string[] = [];
   quartoFilters.push(quartoMainFilter());
 
   // Resolve any filters that are provided by an extension
   filters = await resolveFilterExtension(options, filters);
-
-  // if 'quarto' is in the filters, inject our filters at that spot,
-  // otherwise inject them at the beginning so user filters can take
-  // advantage of e.g. resourceeRef resolution (note that citeproc
-  // will in all cases run last)
-  const quartoLoc = filters.findIndex((filter) =>
-    filter === kQuartoFilterMarker
-  );
-  if (quartoLoc !== -1) {
-    beforeQuartoFilters.push(...filters.slice(0, quartoLoc));
-    afterQuartoFilters.push(...filters.slice(quartoLoc + 1));
-  } else {
-    beforeQuartoFilters.push(...filters);
-    // afterQuartoFilters remains empty.
+  let quartoLoc = filters.findIndex((filter) => filter === kQuartoFilterMarker);
+  if (quartoLoc === -1) {
+    quartoLoc = Infinity; // if no quarto marker, put our filters at the beginning
   }
+
+  // if 'quarto' is in the filters, old-style filter declarations
+  // before 'quarto' go to the kQuartoPre entry point, and old-style
+  // filter declarations after 'quarto' go to the kQuartoPost entry point.
+  //
+  // if 'quarto' is not in the filter, all declarations go to the kQuartoPre entry point
+  //
+  // (note that citeproc will in all cases run last)
+  const entryPoints: QuartoFilterEntryPoint[] = filters
+    .filter((f) => f !== "quarto") // remove quarto marker
+    .map((filter, i) => {
+      if (isFilterEntryPoint(filter)) {
+        return filter; // send entry-point-style filters unchanged
+      }
+      const at = quartoLoc > i ? kQuartoPre : kQuartoPost;
+      const result: QuartoFilterEntryPoint = typeof filter === "string"
+        ? {
+          "at": at,
+          "type": filter.endsWith(".lua") ? "lua" : "json",
+          "path": filter,
+        }
+        : {
+          "at": at,
+          ...filter,
+        };
+      return result;
+    });
 
   // citeproc at the very end so all other filters can interact with citations
   filters = filters.filter((filter) => filter !== kQuartoCiteProcMarker);
@@ -675,14 +719,15 @@ export async function resolveFilters(
   if (
     [
       quartoFilters,
-      beforeQuartoFilters,
-      afterQuartoFilters,
     ].some((x) => x.length)
   ) {
+    // temporarily return empty before/after filters
+    // until we refactor them out entirely.
     return {
       quartoFilters,
-      beforeQuartoFilters,
-      afterQuartoFilters,
+      beforeQuartoFilters: [],
+      afterQuartoFilters: [],
+      entryPoints,
     };
   } else {
     return undefined;
@@ -752,7 +797,7 @@ async function resolveFilterExtension(
       typeof (filter) === "string" &&
       !existsSync(filter)
     ) {
-      let extensions = await options.services.extension?.find(
+      const extensions = await options.services.extension?.find(
         filter,
         options.source,
         "filters",
@@ -761,16 +806,27 @@ async function resolveFilterExtension(
       ) || [];
 
       // Filter this list of extensions
-      extensions = filterExtensions(extensions || [], filter, "filter");
+      const filteredExtensions = filterExtensions(
+        extensions || [],
+        filter,
+        "filter",
+      );
       // Return any contributed plugins
-      if (extensions.length > 0) {
+      if (filteredExtensions.length > 0) {
+        // This matches an extension, use the contributed filters
         const filters = extensions[0].contributes.filters;
         if (filters) {
           return filters;
         } else {
           return filter;
         }
+      } else if (extensions.length > 0) {
+        // There was a matching extension with this name, but
+        // it was filtered out, just hide the filter altogether
+        return [];
       } else {
+        // There were no extensions matching this name, just allow it
+        // through
         return filter;
       }
     } else {

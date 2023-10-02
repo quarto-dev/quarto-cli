@@ -13,6 +13,9 @@ import {
 } from "../project/types/manuscript/manuscript-types.ts";
 import { isPdfOutput } from "../config/format.ts";
 import { ProjectContext } from "../project/types.ts";
+import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
+import { SemVer } from "semver/mod.ts";
+import { GitHubContext, gitHubContext } from "../core/github.ts";
 
 export interface ProjectEnvironment {
   title: string;
@@ -23,10 +26,11 @@ export interface ProjectEnvironment {
   environments: string[];
   openFiles: string[];
   envVars: Record<string, string>;
+  github: GitHubContext;
 }
 
 export type QuartoEditor = "vscode" | "rstudio" | "jupyterlab";
-export type QuartoVersion = "release" | "prerelease";
+export type QuartoVersion = "release" | "prerelease" | SemVer;
 export type QuartoTool = "tinytex" | "chromium";
 
 const kDefaultContainerTitle = "Default Container";
@@ -34,15 +38,25 @@ const kDefaultContainerTitle = "Default Container";
 export const computeProjectEnvironment = async (
   context: ProjectContext,
 ) => {
+  // Get the quarto version
+  const version = quartoConfig.version();
+  const quarto = version === kLocalDevelopment
+    ? "prerelease"
+    : new SemVer(version);
+
+  // Compute the GitHub Context
+  const github = await gitHubContext(context.dir);
+
   const containerCtx: ProjectEnvironment = {
     title: kDefaultContainerTitle,
     engines: context.engines,
     tools: [],
     codeEnvironment: "vscode",
-    quarto: "release",
+    quarto,
     environments: [],
     openFiles: [],
     envVars: {},
+    github,
   };
 
   // Figure out the editor
@@ -85,6 +99,12 @@ const environmentCommands: Record<string, EnvironmentOptions> = {
   "requirements.txt": {
     restore: `python3 -m pip install -r requirements.txt`,
   },
+  "DESCRIPTION": {
+    restore: `Rscript -e 'devtools::install_local(getwd())'`,
+  },
+  "install.R": {
+    restore: `Rscript install.R`,
+  },
   "environment.yml": {
     restore: "conda env create -f environment.yml",
     features: {
@@ -93,6 +113,11 @@ const environmentCommands: Record<string, EnvironmentOptions> = {
       },
     },
   },
+  "PipFile": {},
+  "PipFile.lock": {},
+  "setup.py": {},
+  "Project.toml": {},
+  "REQUIRE": {},
 };
 
 // Regex used to determine whether file contents will require the installation of Chromium

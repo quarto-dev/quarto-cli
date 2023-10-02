@@ -1,0 +1,9 @@
+$-- wrap affiliation if it has a known institution identifier
+$institution.xml()$
+$if(it.address)$<addr-line>${it.address}</addr-line>$endif$
+$if(it.city)$<city>$it.city$</city>$endif$
+$if(it.region)$<state>$it.region$</state>$endif$
+$if(it.country)$<country>$it.country$</country>$endif$
+$if(it.postal-code)$<postal-code>$it.postal-code$</postal-code>$endif$
+
+$if(it.url)$<ext-link ext-link-type="uri" xlink:href="$it.url$">$it.url$</ext-link>$endif$

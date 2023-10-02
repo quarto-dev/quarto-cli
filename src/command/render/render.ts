@@ -13,7 +13,11 @@ import { Document, parseHtml } from "../../core/deno-dom.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { normalizePath, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  normalizePath,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../core/path.ts";
 
 import { FormatPandoc } from "../../config/types.ts";
 import {
@@ -360,7 +364,7 @@ export async function renderPandoc(
             finalOutput!,
             format,
             cleanupSelfContained,
-            executionEngineKeepMd(context.target.input),
+            executionEngineKeepMd(context),
           ));
       }
 
@@ -469,7 +473,7 @@ export function renderResultFinalOutput(
 
   // if the final output doesn't exist then we must have been targetin stdout,
   // so return undefined
-  if (!existsSync(finalOutput)) {
+  if (!safeExistsSync(finalOutput)) {
     return undefined;
   }
 

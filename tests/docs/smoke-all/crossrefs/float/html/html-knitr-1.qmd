@@ -1,0 +1,20 @@
+---
+title: Knitr Crossref Test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "figure.quarto-float-fig figcaption.quarto-float-caption"
+---
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

@@ -2,19 +2,19 @@
   schema:
     maybeArrayOf: string
   tags:
-    formats: [$asciidoc-all, $html-files, $pdf-all, context]
+    formats: [$asciidoc-all, $html-files, $pdf-all, context, odt, $office-all]
   description: "List of keywords to be included in the document metadata."
 
 - name: subject
   schema: string
   tags:
-    formats: [$pdf-all, $office-all]
+    formats: [$pdf-all, $office-all, odt]
   description: "The document subject"
 
 - name: description
   schema: string
   tags:
-    formats: [$office-all]
+    formats: [odt, $office-all]
   description: "The document description. Some applications show this as `Comments` metadata."
 
 - name: category
@@ -69,7 +69,7 @@
     long: |
       The license for this document, if any. 
 
-      Creative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC` will automatically generate a license link
+      Creative Commons licenses `CC BY`, `CC BY-SA`, `CC BY-ND`, `CC BY-NC`, `CC BY-NC-SA`, and `CC BY-NC-ND` will automatically generate a license link
       in the document appendix. Other license text will be placed in the appendix verbatim.
 
 - name: title-meta

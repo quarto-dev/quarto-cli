@@ -1,0 +1,24 @@
+---
+title: Knitr Crossref Test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "<<fig-plot>>"
+          - "\\[#fig-plot\\]"
+          - "\\.Plot"
+          - "image:.*fig-plot-1.png"
+---
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

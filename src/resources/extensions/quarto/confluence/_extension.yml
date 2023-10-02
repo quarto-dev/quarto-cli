@@ -16,6 +16,7 @@ contributes:
     publish:
       writer: publish.lua
       output-ext: xml
+      quarto-custom-format: confluence
     html:
       theme: [default, theme.scss]
       code-line-numbers: true

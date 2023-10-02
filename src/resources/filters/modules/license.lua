@@ -45,6 +45,18 @@ local licenses = {
       return ccLicenseUrl("by-nc", lang, version)
     end
   },
+  ["cc by-nc-sa"] = {
+    type = "creative-commons",
+    licenseUrl = function (lang, version) 
+      return ccLicenseUrl("by-nc-sa", lang, version)
+    end
+  },
+  ["cc by-nc-nd"] = {
+    type = "creative-commons",
+    licenseUrl = function (lang, version) 
+      return ccLicenseUrl("by-nc-nd", lang, version)
+    end
+  },
 }
 
 local function parseCCLicense(license) 
@@ -168,4 +180,3 @@ return {
     copyright = constants.kCopyright
   }
 }
-

@@ -12,28 +12,21 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "DecoratedCodeBlock",
 
-  -- callouts will be rendered as blocks
+  -- DecoratedCodeblocks will be rendered as blocks
   kind = "Block",
+
+  slots = { "code_block" },
 
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
   parse = function(div)
     -- luacov: disable
-    fatal("internal error, DecoratedCodeBlock has no native parser")
+    internal_error()
     -- luacov: enable
   end,
 
   constructor = function(tbl)
-    local caption = tbl.caption
-    if tbl.code_block.attributes["lst-cap"] ~= nil then
-      caption = pandoc.read(tbl.code_block.attributes["lst-cap"], "markdown").blocks[1].content
-    end
-    return {
-      filename = tbl.filename,
-      order = tbl.order,
-      caption = caption,
-      code_block = tbl.code_block
-    }
+    return tbl
   end
 })
 
@@ -72,7 +65,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     end
   end)
 
--- latex renderer
+  -- latex renderer
 _quarto.ast.add_renderer("DecoratedCodeBlock",
   function(_)
     return _quarto.format.isLatexOutput()    
@@ -84,7 +77,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
 
     -- if we are use the listings package we don't need to do anything
     -- further, otherwise generate the listing div and return it
-    if not latexListings() then
+    if not param("listings", false) then
       local listingDiv = pandoc.Div({})
       local position = ""
       if _quarto.format.isBeamerOutput() then
@@ -99,7 +92,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         -- with both filename and captionContent we need to add a colon
         local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
         listingCaption.content:insert(
-          pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}: ")
+          pandoc.RawInline("latex", "\\texttt{" .. stringEscape(node.filename, "latex") .. "}: ")
         )
         listingCaption.content:extend(captionContent)
         listingCaption.content:insert(pandoc.RawInline("latex", "}"))
@@ -108,7 +101,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
         -- with just filename we don't add a colon
         listingCaption.content:insert(
-          pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}")
+          pandoc.RawInline("latex", "\\texttt{" .. stringEscape(node.filename, "latex") .. "}")
         )
         listingCaption.content:insert(pandoc.RawInline("latex", "}"))
         listingDiv.content:insert(listingCaption)
@@ -146,20 +139,6 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
       classes:insert("code-with-filename")
       fancy_output = true
     end
-    if node.caption ~= nil then
-      local order = node.order
-      if order == nil then
-        warn("Node with caption " .. pandoc.utils.stringify(node.caption) .. " is missing a listing id (lst-*).")
-        warn("This usage is unsupported in HTML formats.")
-        return el
-      end
-      local captionContent = node.caption
-      tprepend(captionContent, listingTitlePrefix(order))
-      caption = pandoc.Para(captionContent)
-      classes:insert("listing")
-      fancy_output = true
-    end
-
     if not fancy_output then
       return el
     end

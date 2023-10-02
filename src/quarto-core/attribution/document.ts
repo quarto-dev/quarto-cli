@@ -1,9 +1,8 @@
 /*
-* document.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * document.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import {
@@ -129,8 +128,8 @@ export function documentCSL(
   }
 
   // Categories
-  const categories =
-    (citationMetadata[kCategories] || inputMetadata[kCategories]);
+  const categories = citationMetadata[kCategories] ||
+    inputMetadata[kCategories];
   if (categories) {
     csl.categories = Array.isArray(categories) ? categories : [categories];
   }
@@ -466,7 +465,7 @@ function synthesizeCitationUrl(
 function pages(citationMetadata: Metadata): PageRange {
   let firstPage = citationMetadata[kFirstPage];
   let lastPage = citationMetadata[kLastPage];
-  let pages = citationMetadata[kPage] as string;
+  let pages = `${citationMetadata[kPage] as string}`; // Force pages to string in case user writes `page: 7`
   if (pages && pages.includes("-")) {
     const pagesSplit = pages.split("-");
     if (!firstPage) {

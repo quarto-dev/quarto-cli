@@ -28,7 +28,7 @@ export interface ExecutionEngine {
   defaultYaml: (kernel?: string) => string[];
   defaultContent: (kernel?: string) => string[];
   validExtensions: () => string[];
-  claimsExtension: (ext: string) => boolean;
+  claimsFile: (file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
   target: (
     file: string,
@@ -52,7 +52,7 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   generatesFigures: boolean;
   canKeepSource?: (target: ExecutionTarget) => boolean;
-  keepFiles?: (input: string) => string[] | undefined;
+  intermediateFiles?: (input: string) => string[] | undefined;
   ignoreDirs?: () => string[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
 }

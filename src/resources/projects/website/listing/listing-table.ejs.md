@@ -32,8 +32,21 @@ return "";
 }
 }
 
-const outputValue = (itemNumber, field) => {
+const readField = (item, field) => {
 let value = item[field];
+if (field.includes(".") && !field.endsWith(".") && !field.startsWith(".")) {
+const fields = field.split(".");
+value = item;
+for (const deref of fields) {
+value = value[deref];
+}
+}
+return value;
+}
+
+const outputValue = (itemNumber, field) => {
+let value = readField(item, field);
+
 if (field === "image") {
 if (item.image) {
 value = listing.utilities.img(itemNumber, item[field], "", item['image-alt']);

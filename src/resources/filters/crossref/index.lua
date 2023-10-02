@@ -115,7 +115,11 @@ function writeKeysIndex(indexFile)
     }
     -- add caption if we have one
     if v.caption ~= nil then
-      entry.caption = inlinesToString(v.caption)
+      if v.caption[1].t == "Str" then
+        entry.caption = v.caption[1].text
+      else
+        entry.caption = inlinesToString(pandoc.Inlines(v.caption[1].content))
+      end
     else
       entry.caption = ""
     end
@@ -192,7 +196,11 @@ function writeFullIndex(indexFile)
     }
     -- add caption if we have one
     if v.caption ~= nil then
-      entry.caption = inlinesToString(v.caption)
+      if pandoc.utils.type(v.caption[1]) == "Inline" then
+        entry.caption = inlinesToString(pandoc.Inlines({v.caption[1]}))
+      else
+        entry.caption = inlinesToString(pandoc.Inlines(v.caption[1].content))
+      end
     else
       entry.caption = ""
     end

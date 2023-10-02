@@ -1,0 +1,31 @@
+---
+title: "Hello"
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "\\\\captionsetup\\{labelsep=none\\}"
+          - "\\\\caption\\{\\\\label\\{fig-chapter-2\\}One with a caption\\}"
+        - []
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#fig-chapter figcaption.quarto-uncaptioned"
+        - []
+# TODO: typst smoke-all support
+---
+
+```{r}
+#| label: fig-chapter
+plot(cars)
+```
+
+```{r}
+#| label: fig-chapter-2
+#| fig-cap: One with a caption
+plot(mtcars)
+```
+
+
+See @fig-chapter and @fig-chapter-2.

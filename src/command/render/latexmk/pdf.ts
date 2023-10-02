@@ -156,6 +156,7 @@ async function initialCompileLatex(
   quiet?: boolean,
 ) {
   let packagesUpdated = false;
+  let tlmgrUpdated = false;
   while (true) {
     // Run the pdf engine
     const response = await runPdfEngine(
@@ -196,6 +197,7 @@ async function initialCompileLatex(
           logProgress("updating tlmgr");
         }
         await pkgMgr.updatePackages(false, true);
+        tlmgrUpdated = true;
         info("");
 
         if (!quiet) {
@@ -203,6 +205,25 @@ async function initialCompileLatex(
         }
         await pkgMgr.updatePackages(true, false);
         packagesUpdated = true;
+      }
+
+      const logText = Deno.readTextFileSync(response.log);
+      // See if tlmgr just needs to be updated
+      // https://github.com/rstudio/tinytex/commit/5946a2a1bf3c6ecefbd1213178a4e473ff4c26dc
+      // https://github.com/quarto-dev/quarto-cli/issues/7087
+      if (logText.match(/.* Loading '([^']+)' aborted!/)) {
+        if (!tlmgrUpdated) {
+          continue;
+        } else {
+          // We've already tried updating, just need to throw and die
+          // We failed to install packages (but there are missing packages), give up
+          displayError(
+            "tlmgr needs to be updated, but the update failed",
+            response.log,
+            response.result,
+          );
+          return Promise.reject();
+        }
       }
 
       // Try to find and install packages

@@ -1,9 +1,8 @@
 /*
-* output-tex.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * output-tex.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join, normalize, relative } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
@@ -29,7 +28,7 @@ export interface PdfGenerator {
     format: Format,
     pandocOptions: PandocOptions,
   ) => Promise<string>;
-  computePath: (input: string, format: Format) => string;
+  computePath: (texStem: string, inputDir: string, format: Format) => string;
 }
 
 export function texToPdfOutputRecipe(
@@ -120,7 +119,10 @@ export function texToPdfOutputRecipe(
     ? finalOutput === kStdOut
       ? undefined
       : normalizeOutputPath(input, finalOutput)
-    : normalizeOutputPath(input, pdfGenerator.computePath(input, format));
+    : normalizeOutputPath(
+      input,
+      pdfGenerator.computePath(texStem, dirname(input), format),
+    );
 
   // tweak writer if it's pdf
   const to = format.pandoc.to === "pdf" ? pdfIntermediateTo : format.pandoc.to;
@@ -163,8 +165,7 @@ export function contextPdfOutputRecipe(
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
-  const computePath = (input: string, _format: Format) => {
-    const [dir, stem] = dirAndStem(input);
+  const computePath = (stem: string, dir: string, _format: Format) => {
     return join(dir, stem + ".pdf");
   };
 
@@ -194,7 +195,8 @@ export function contextPdfOutputRecipe(
     // run context
     const result = await execProcess({ cmd });
     if (result.success) {
-      return computePath(input, format);
+      const [dir, stem] = dirAndStem(input);
+      return computePath(stem, dir, format);
     } else {
       throw new Error();
     }

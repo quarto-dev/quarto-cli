@@ -1,0 +1,50 @@
+---
+format: html
+engine: knitr
+_quarto:
+  tests:
+    html:
+      # echo: false has been set and nothing should be including 
+      ensureHtmlElements:
+        - 
+          - "#verbatim div.sourceCode pre code.default"
+          - "#embed div.sourceCode pre code.r"
+          - "#fenced-echo div.sourceCode pre code.markdown"
+        - []
+      ensureFileRegexMatches:
+        - 
+          - "this is code\\.R"
+          - "`{3}\\{verbatim\\}"
+        - []
+    latex: 
+      ensureFileRegexMatches:
+        - 
+          - "\\\\NormalTok\\{Some content\\}"
+          - "\\\\FunctionTok\\{cat\\}"
+          - "(\\\\textasciigrave\\{\\}){3}\\\\{verbatim\\\\}"
+
+---
+
+## Verbatim {#verbatim}
+
+```{verbatim}
+Some content
+```
+
+## Embed {#embed}
+
+```{embed, file = "code.R"}
+```
+
+## Verbatim fenced-echo {#fenced-echo}
+
+````{verbatim}
+#| echo: fenced
+#| lang: markdown
+# Title
+
+```{r}
+1 + 1
+```
+````
+

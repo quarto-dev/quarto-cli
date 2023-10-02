@@ -10,15 +10,15 @@
 # Binary dependencies
 export DENO=v1.33.4
 export DENO_DOM=v0.1.35-alpha-artifacts
-export PANDOC=3.1.6.2
+export PANDOC=3.1.8
 export DARTSASS=1.55.0
 export ESBUILD=0.18.15
-export TYPST=0.7.0
+export TYPST=0.8.0
 
 # Bootstrap dependencies from bslib
 # (use commit hash from bslib repo)
-export BOOTSTRAP=ff3e498179a066043ceb8f2cb3188f10d0d6ebc4
-export BOOTSTRAP_FONT=1.10.5
+export BOOTSTRAP=dba137ff7fa0b4ee9dfcd77d8982ce5dd7e7214d # 0.5.1
+export BOOTSTRAP_FONT=1.11.1
 export BOOTSWATCH=5.3.1
 
 # javascript HTML dependencies
@@ -36,6 +36,7 @@ export LIST_JS=2.3.1
 export DAY_JS=1.11.7
 export ZENSCROLL_JS=4.0.2
 export GITHUB_MARKDOWN_CSS=5.2.0
+export GLIGHTBOX_JS=3.2.0
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.9.2

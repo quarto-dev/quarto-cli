@@ -1,0 +1,18 @@
+---
+title: "margin captions"
+---
+
+```{r}
+#| label: fig-cap-margin
+#| fig-cap: "MPG vs horsepower, colored by transmission."
+
+library(ggplot2)
+mtcars2 <- mtcars
+mtcars2$am <- factor(
+  mtcars$am, labels = c('automatic', 'manual')
+)
+ggplot(mtcars2, aes(hp, mpg, color = am)) +
+  geom_point() +
+  geom_smooth(formula = y ~ x, method = "loess") +
+  theme(legend.position = 'bottom')
+```

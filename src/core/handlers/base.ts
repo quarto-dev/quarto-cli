@@ -1,9 +1,8 @@
 /*
-* base.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * base.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import {
   HandlerContextResults,
@@ -717,7 +716,7 @@ export function getDivAttributes(
     }
   }
   if (options?.[kCellLstCap]) {
-    attrs.push(`caption="${options?.[kCellLstCap]}"`);
+    attrs.push(`lst-cap="${options?.[kCellLstCap]}"`);
   }
   const classStr = (options?.classes as (string | undefined)) || "";
 

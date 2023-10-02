@@ -21,6 +21,8 @@ import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { compileSass } from "../../core/sass.ts";
 
+import { kSourceMappingRegexes } from "../../config/constants.ts";
+
 import { kQuartoHtmlDependency } from "../../format/html/format-html-constants.ts";
 import {
   kAbbrevs,
@@ -411,7 +413,10 @@ function processCssIntoExtras(
 ): CSSResult {
   extras.html = extras.html || {};
   const css = Deno.readTextFileSync(cssPath).replaceAll(
-    kSourceMappingRegex,
+    kSourceMappingRegexes[0],
+    "",
+  ).replaceAll(
+    kSourceMappingRegexes[1],
     "",
   );
 
@@ -473,7 +478,6 @@ function processCssIntoExtras(
 }
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
-const kSourceMappingRegex = /\/\*\# sourceMappingURL=.* \*\//g;
 
 // Attributes for the style tag
 // Note that we default disable the dark mode and rely on JS to enable it
