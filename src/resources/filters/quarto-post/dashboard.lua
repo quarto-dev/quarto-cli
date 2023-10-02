@@ -31,25 +31,20 @@ local function makeCard(title, contents, classes)
   return pandoc.Div(cardContents, pandoc.Attr("", clz))
 end
 
-local function makeValueBox(title, value, icon, content) 
+local function makeValueBox(title, value, icon, content, classes) 
   if value == nil then
     error("Value boxes must have a value")
   end
-  local vbDiv = pandoc.Div({}, pandoc.Attr("value-box-grid", {}))
+  local vbDiv = pandoc.Div({}, pandoc.Attr("", {"value-box-grid"}))
 
   -- The valuebox icon
   if icon ~= nil then
-    local vbShowcase = pandoc.Div({pandoc.RawInline("html", '<i class="bi bi-' .. icon .. '"></i>')}, pandoc.Attr("value-box-showcase", {}))
+    local vbShowcase = pandoc.Div({pandoc.RawInline("html", '<i class="bi bi-' .. icon .. '"></i>')}, pandoc.Attr("", {"value-box-showcase"}))
     vbDiv.content:insert(vbShowcase)
   end
 
-  -- value-box-area
-    -- title
-    -- value
-    -- other stuff
-
   local vbArea = pandoc.Div({}, pandoc.Attr("", {"value-box-area"}))
-  vbDiv.content:insert(vbArea)
+  
 
   -- The valuebox title
   local vbTitle = pandoc.Div(title, pandoc.Attr("", {"value-box-title"}))
@@ -61,10 +56,11 @@ local function makeValueBox(title, value, icon, content)
 
   -- The rest of the contents
   if content ~= nil then
-    tappend(vbDiv.content, content)
+    vbArea.content:extend(content)
   end
 
-  return makeCard(nil, vbDiv)
+  vbDiv.content:insert(vbArea)
+  return makeCard(nil, vbDiv, classes)
 end
 
 
@@ -88,7 +84,6 @@ function render_dashboard()
       Div = function(el) 
 
         if el.classes:includes('card') then
-          quarto.log.output("CARD")
 
           -- see if the card is already in the correct structure (a single header and body)
           -- exit early, not processing if it is already processed in this way
@@ -113,30 +108,39 @@ function render_dashboard()
           return makeCard(title, contents)        
         elseif el.classes:includes('valuebox') then
 
-          quarto.log.output("VALUEBOX")
 
           local header = el.content[1]
           local title = {}
           local value = el.content
           local content = {}
           local icon = el.attributes['icon']
+          local showcase = el.attributes['showcase'] or 'left-center'
+
           if header.t == "Header" then
             title = header.content
             value = tslice(el.content, 2)
           end
           
+          local function showcaseClz(showcase)
+            -- top-right
+            -- left-center
+            -- bottom
+            return 'showcase-' .. showcase
+          end
+          
+
+          -- TODO disable zoom on valuebox (or make it behave cooler?)
+          -- TODO valuebox formatting
 
 
           if #value > 1 then
             content = tslice(value, 2)
             value = value[1]
           end
-          quarto.log.output(value)
 
-          return makeValueBox(title, value, icon, content)
+          return makeValueBox(title, pandoc.utils.blocks_to_inlines({value}), icon, content, {'bslib-value-box', showcaseClz(showcase)})
         
         elseif el.classes:includes('section') then
-          quarto.log.output("SECTION")
           -- Allow sections to be 'cards'
           local header = el.content[1]
           if header.t == "Header" then            

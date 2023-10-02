@@ -2110,4 +2110,52 @@ code.sourceCode a.code-annotation-anchor {
       border: solid $text-muted 1px;
     }
   }
+
+  .card.bslib-value-box {
+    min-height: 9rem;
+    .card-body {
+      padding: 0;
+    }
+  }
+
+  .showcase-left-center .value-box-grid {
+    display: grid;
+    grid-template-columns: 30% auto;
+    grid-template-areas: "left" "right";
+
+    .value-box-showcase {
+      grid-area: left;
+    }
+  }
+
+  .showcase-top-right .value-box-grid {
+    display: grid;
+    grid-template-columns: 1fr minmax(30%, 75px);
+    grid-template-areas: "left" "right";
+
+    .value-box-showcase {
+      grid-area: right;
+      margin-top: 0;
+      margin-left: auto;
+      align-items: end;
+    }
+  }
+
+  .showcase-bottom {
+    .value-box-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+      grid-template-areas: "top" "bottom";
+
+      .value-box-showcase {
+        grid-area: bottom;
+        padding: 0;
+        margin: 0;
+        i.bi {
+          font-size: 4rem;
+        }
+      }
+    }
+  }
 }

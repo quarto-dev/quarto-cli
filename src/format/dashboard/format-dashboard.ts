@@ -164,8 +164,21 @@ function dashboardHtmlPostProcessor(
     }
 
     const recursiveFill = (el: Element) => {
-      el.classList.add("html-fill-item");
-      el.classList.add("html-fill-container");
+      const skipFill = kSkipFillClz.some((clz) => {
+        return el.classList.contains(clz) || kSkipFillTagz.includes(el.tagName);
+      });
+      if (!skipFill) {
+        el.classList.add("html-fill-item");
+      }
+
+      const skipContainer = kSkipContainerClz.some((clz) => {
+        return el.classList.contains(clz) ||
+          kSkipContainerTagz.includes(el.tagName);
+      });
+      if (!skipContainer) {
+        el.classList.add("html-fill-container");
+      }
+
       for (const childEl of el.children) {
         recursiveFill(childEl);
       }
@@ -181,6 +194,7 @@ function dashboardHtmlPostProcessor(
       cardEl.setAttribute("data-full-screen", "false");
       cardEl.setAttribute("data-require-bs-caller", "card()");
 
+      // Recursively make contents of card fill items / containers
       const cardBodyEl = cardEl.querySelector(".card-body");
       if (cardBodyEl) {
         recursiveFill(cardBodyEl);
@@ -213,3 +227,14 @@ const expandBtnHtml = `
     </span>
 </bslib-tooltip>
 `;
+
+const kSkipContainerTagz = ["P"];
+const kSkipContainerClz: string[] = [
+  "bi",
+  "value-box-grid",
+  "value-box-area",
+  "value-box-title",
+  "value-box-value",
+];
+const kSkipFillClz: string[] = ["bi"];
+const kSkipFillTagz = ["P"];
