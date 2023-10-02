@@ -9,6 +9,7 @@ function quarto_ast_pipeline()
         parse_html_tables(),
         parse_extended_nodes(),
         code_filename(),
+        normalize_fixup_data_uri_image_extension(),
       })
     },
     { 

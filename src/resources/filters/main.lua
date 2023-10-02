@@ -90,6 +90,7 @@ import("./normalize/parsehtml.lua")
 import("./normalize/extractquartodom.lua")
 import("./normalize/astpipeline.lua")
 import("./normalize/capturereaderstate.lua")
+import("./normalize/fixupdatauri.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
