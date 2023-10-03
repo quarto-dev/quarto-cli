@@ -1,0 +1,42 @@
+---
+title: No Headers
+format: 
+  dashboard:
+    scrolling: true
+---
+
+:::{.card}
+### This is a card
+
+```{r}
+#| label: fig-cars
+#| fig-cap: |
+#|   Embarking on a data-driven road trip through the 'cars' dataset in R! 🚗📊 Buckle up as we explore the fascinating world of speed and #|   #|   stopping distances. 🏁
+
+plot(cars)
+```
+:::
+
+:::{.card}
+### This is a card
+
+```{r}
+#| label: fig-cars2
+#| fig-cap: |
+#|   Embarking on a data-driven road trip through the 'cars' dataset in R! 🚗📊 Buckle up as we explore the fascinating world of speed and #|   #|   stopping distances. 🏁
+
+plot(cars)
+```
+:::
+
+:::{.card}
+### This is a card
+
+```{r}
+#| label: fig-cars3
+#| fig-cap: |
+#|   Embarking on a data-driven road trip through the 'cars' dataset in R! 🚗📊 Buckle up as we explore the fascinating world of speed and #|   #|   stopping distances. 🏁
+
+plot(cars)
+```
+:::

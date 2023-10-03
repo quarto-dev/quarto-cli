@@ -9,6 +9,7 @@ export const kDashboard = "dashboard";
 
 export interface DashboardMeta {
   orientation: "rows" | "columns";
+  scrolling: boolean;
 }
 
 export function dashboardMeta(format: Format): DashboardMeta {
@@ -16,8 +17,12 @@ export function dashboardMeta(format: Format): DashboardMeta {
   const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
     ? "columns"
     : "rows";
+  const scrolling = dashboardRaw && dashboardRaw.scrolling === true
+    ? true
+    : false;
 
   return {
     orientation,
+    scrolling,
   };
 }

@@ -2149,6 +2149,18 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
+  .card figure.quarto-float {
+    display: flex;
+  }
+
+  .dashboard-scrolling {
+    padding: 1em;
+  }
+
+  .full-height {
+    height: 100%;
+  }
+
   .showcase-bottom {
     .value-box-grid {
       display: grid;

@@ -160,14 +160,22 @@ function dashboardHtmlPostProcessor(
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
       const containerClz = [
-        "bslib-page-fill",
         "bslib-gap-spacing",
         "html-fill-container",
       ];
-      if (dashboard && dashboard.orientation === "columns") {
+
+      // The baseline page layout
+      if (dashboard.orientation === "columns") {
         containerClz.push("orientation-rows");
       } else {
         containerClz.push("orientation-columns");
+      }
+
+      // The scrolling behavior
+      if (dashboard.scrolling) {
+        containerClz.push("dashboard-scrolling"); // only apply this if we aren't scrolling
+      } else {
+        containerClz.push("bslib-page-fill"); // only apply this if we aren't scrolling
       }
 
       containerClz.forEach(
@@ -297,7 +305,7 @@ const applyFillContainerClasses = (el: Element) => {
   }
 };
 
-const kSkipContainerTagz = ["P"];
+const kSkipContainerTagz = ["P", "FIGCAPTION"];
 const kSkipContainerClz: string[] = [
   "bi",
   "value-box-grid",
@@ -306,4 +314,4 @@ const kSkipContainerClz: string[] = [
   "value-box-value",
 ];
 const kSkipFillClz: string[] = ["bi"];
-const kSkipFillTagz = ["P"];
+const kSkipFillTagz = ["P", "FIGCAPTION"];
