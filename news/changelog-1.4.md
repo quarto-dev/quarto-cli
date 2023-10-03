@@ -140,6 +140,7 @@
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - Improved detection/exclusion of spurious matplotlib plain text output
 - Correctly exclude `id` fields when converting Colab notebooks to qmd.
+- More thorough cleaning out of text artifacts created by matplotlib intermediate statements.
 
 ## Knitr
 
