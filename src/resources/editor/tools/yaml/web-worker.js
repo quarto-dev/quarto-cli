@@ -16134,7 +16134,7 @@ try {
               ],
               engine: "jupyter"
             },
-            description: "Speicfy which nodes should be run interactively (displaying output from expressions)\n"
+            description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
           },
           {
             name: "keep-typ",
