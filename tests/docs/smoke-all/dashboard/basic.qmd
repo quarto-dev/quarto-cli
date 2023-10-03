@@ -13,17 +13,17 @@ _quarto:
         - ['div.card.bslib-grid-item']
 ---
 
-## Cool Section
+### Cool Section
 
 This is the content of this section it can be anything
 
-## Hello World
+### Hello World
 
 ```{r}
 plot(cars)
 ```
 
-## Section 2
+### Section 2
 
 ```{r}
 plot(mtcars)
@@ -32,7 +32,7 @@ plot(mtcars)
 
 :::{.card}
 
-## Hi there
+### Hi there
 
 This is a section
 
@@ -44,7 +44,7 @@ This is a section
 
 :::{.valuebox icon="bar-chart"}
 
-## This is my value below
+### This is my value below
 
 423
 
