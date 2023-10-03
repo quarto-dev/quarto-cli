@@ -61,18 +61,18 @@ function normalize_filter()
       return normalized
     end,
     Div = function(div)
-      -- Don't allow footnotes in the markdown pipeline
+      -- Don't allow footnotes in the hidden element (markdown pipeline)
       -- since that will result in duplicate footnotes
       -- in the rendered output
-      if div.classes:includes('markdown-pipeline') then
+      if div.classes:includes('hidden') then
         return stripNotes(div)
       end
     end,
     Span = function(span)
-      -- Don't allow footnotes in the markdown pipeline
+      -- Don't allow footnotes in the hidden element (markdown pipeline)
       -- since that will result in duplicate footnotes
       -- in the rendered output      
-      if span.classes:includes('markdown-pipeline') then
+      if span.classes:includes('hidden') then
         return stripNotes(span)
       end
     end

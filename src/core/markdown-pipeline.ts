@@ -98,11 +98,11 @@ export function processMarkdownRenderEnvelope(
 const markdownEnvelopeWriter = (envelopeId: string) => {
   const renderList: string[] = [];
   const hiddenSpan = (id: string, contents: string) => {
-    return `[${contents}]{.hidden .markdown-pipeline render-id="${id}"}`;
+    return `[${contents}]{.hidden render-id="${id}"}`;
   };
 
   const hiddenDiv = (id: string, contents: string) => {
-    return `\n:::{.hidden .markdown-pipeline render-id="${id}"}\n${contents}\n:::\n`;
+    return `\n:::{.hidden render-id="${id}"}\n${contents}\n:::\n`;
   };
 
   return {
