@@ -14,9 +14,9 @@ export interface DashboardMeta {
 
 export function dashboardMeta(format: Format): DashboardMeta {
   const dashboardRaw = format.metadata as Metadata;
-  const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
-    ? "columns"
-    : "rows";
+  const orientation = dashboardRaw && dashboardRaw.orientation === "rows"
+    ? "rows"
+    : "columns";
   const scrolling = dashboardRaw && dashboardRaw.scrolling === true
     ? true
     : false;
