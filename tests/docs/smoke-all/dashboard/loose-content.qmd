@@ -6,13 +6,23 @@ format:
     orientation: rows
 ---
 
-Here is some loose content
+:::{.callout-note}
+
+## This is a note about the dashboard
+
+Here is some loose content. Watch out!
+
+:::
 
 ## Cool Section
 
-### Card
+:::{.valuebox}
 
-This is the content of this section it can be anything
+## Title
+
+1,203
+
+:::
 
 ### Another
 
