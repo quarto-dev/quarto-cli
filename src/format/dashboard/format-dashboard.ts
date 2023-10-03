@@ -1,9 +1,16 @@
+/*
+ * format-dashboard.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+
 import {
   HtmlPostProcessResult,
   RenderServices,
 } from "../../command/render/types.ts";
 import {
   kEcho,
+  kFilterParams,
   kIncludeAfterBody,
   kTemplate,
   kWarning,
@@ -26,6 +33,7 @@ import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
+import { dashboardMeta } from "./format-dashboard-shared.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -78,6 +86,12 @@ export function dashboardFormat() {
           dashboardHtmlPostProcessor(format),
         );
 
+        const dashboard = dashboardMeta(format);
+        extras[kFilterParams] = extras[kFilterParams] || {};
+        extras[kFilterParams]["dashboard"] = {
+          orientation: dashboard.orientation,
+        };
+
         const scripts: DependencyFile[] = [];
         ["accordion", "card", "sidebar", "webcomponents"].forEach(
           (name) => {
@@ -129,7 +143,7 @@ registerWriterFormatHandler((format) => {
 });
 
 function dashboardHtmlPostProcessor(
-  _format: Format,
+  format: Format,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -137,13 +151,27 @@ function dashboardHtmlPostProcessor(
       supporting: [],
     };
 
+    const dashboard = dashboardMeta(format);
+
     // Mark the body as a quarto dashboard
     doc.body.classList.add(kDashboardClz);
 
     // Mark the page container with layout instructions
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
-      ["bslib-page-fill", "bslib-gap-spacing", "html-fill-container"].forEach(
+      const containerClz = [
+        "bslib-page-fill",
+        "bslib-gap-spacing",
+        "html-fill-container",
+      ];
+      console.log({ dashboard });
+      if (dashboard && dashboard.orientation === "columns") {
+        containerClz.push("orientation-columns");
+      } else {
+        containerClz.push("orientation-rows");
+      }
+
+      containerClz.forEach(
         (clz) => {
           containerEl.classList.add(clz);
         },
@@ -194,6 +222,7 @@ function dashboardHtmlPostProcessor(
         // fill children
         if (!childEl.classList.contains("quarto-title-block")) {
           childEl.classList.add("bslib-grid-item");
+          childEl.classList.add("html-fill-item");
         }
       }
     }
@@ -224,7 +253,6 @@ function dashboardHtmlPostProcessor(
     for (const cardNode of cardNodes) {
       const cardEl = cardNode as Element;
       cardEl.classList.add("bslib-card");
-      cardEl.classList.add("html-fill-item");
       cardEl.classList.add("html-fill-container");
       cardEl.setAttribute("data-bslib-card-init", "");
       cardEl.setAttribute("data-full-screen", "false");

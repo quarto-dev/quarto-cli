@@ -22,6 +22,19 @@ local function popImagePara(el)
 
 end
 
+local function makeRows(content)
+  return pandoc.Div(content, pandoc.Attr("", {"rows"}))
+end
+
+local function makeCols(content) 
+  return pandoc.Div(content, pandoc.Attr("", {"columns"}))
+end
+
+local function dashboardParam(name, default) 
+  local dashboard = param("dashboard", {})
+  return dashboard[name] or default
+end
+
 -- title: string
 -- contents: table
 -- classes: table
@@ -166,20 +179,10 @@ function render_dashboard()
             return 'showcase-' .. showcase
           end
           
-
-          -- TODO disable zoom on valuebox (or make it behave cooler?)
-          -- TODO valuebox formatting
-
-
           if #value > 1 then
             content = tslice(value, 2)
             value = value[1]
           end
-
-          -- TODO: valuebox should just have a value-box class
-          -- bslib-value-box should be added
-          -- make showcase an attribute that is resolved in post processor
-
           return makeValueBox(title, pandoc.utils.blocks_to_inlines({value}), icon, content, {'bslib-value-box', showcaseClz(showcase)})
         
         elseif el.classes:includes('section') then
@@ -187,10 +190,15 @@ function render_dashboard()
           local header = el.content[1]
           if header.t == "Header" then            
             local level = header.level
-
             if level == 2 then
-              -- this means columns
-
+              local orientation = dashboardParam('orientation', 'columns')
+              -- this means columns or rows (depending upon orientation)
+              local contents = tslice(el.content, 2)
+              if orientation == "columns" then
+                return makeCols(contents)
+              else
+                return makeRows(contents)
+              end
             else
               local contents = tslice(el.content, 2)
               return makeCard(header, contents)  
