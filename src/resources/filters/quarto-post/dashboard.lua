@@ -132,6 +132,7 @@ function render_dashboard()
       end
     },
     {
+      traverse = 'topdown',
       Div = function(el) 
 
         if el.classes:includes('card') then
@@ -156,9 +157,8 @@ function render_dashboard()
             title = header
             contents = tslice(el.content, 2)
           end
-          return makeCard(title, contents)        
+          return makeCard(title, contents), false
         elseif el.classes:includes('valuebox') then
-
 
           local header = el.content[1]
           local title = {}
@@ -183,7 +183,12 @@ function render_dashboard()
             content = tslice(value, 2)
             value = value[1]
           end
-          return makeValueBox(title, pandoc.utils.blocks_to_inlines({value}), icon, content, {'bslib-value-box', showcaseClz(showcase)})
+
+
+          if pandoc.utils.type(value) ~= "table" then
+            value = {value}
+          end
+          return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, {'bslib-value-box', showcaseClz(showcase)}), false
         
         elseif el.classes:includes('section') then
           -- Allow sections to be 'cards'
@@ -195,13 +200,13 @@ function render_dashboard()
               -- this means columns or rows (depending upon orientation)
               local contents = tslice(el.content, 2)
               if orientation == "columns" then
-                return makeRows(contents)
+                return makeRows(contents), true
               else
-                return makeCols(contents)
+                return makeCols(contents), true
               end
             else
               local contents = tslice(el.content, 2)
-              return makeCard(header, contents)  
+              return makeCard(header, contents), true
             end
           end
         end
