@@ -3,6 +3,7 @@ title: "Column Orientation"
 format:
   dashboard:
     orientation: columns
+    theme: sketchy
 ---
     
 Column
