@@ -1,0 +1,27 @@
+---
+title: My First Dashboard
+format: 
+  dashboard:
+    theme: lux
+    orientation: rows
+---
+
+Here is some loose content
+
+## Cool Section
+
+### Card
+
+This is the content of this section it can be anything
+
+### Another
+
+This is another card
+
+## Hello World
+
+### Card
+
+```{r}
+plot(cars)
+```

@@ -83,11 +83,7 @@ import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { AlternateLink, otherFormatLinks } from "./format-html-links.ts";
 import { warning } from "log/mod.ts";
-import {
-  binderUrl,
-  hasBinderCompatibleEnvironment,
-  hasDevContainer,
-} from "../../core/container.ts";
+import { binderUrl } from "../../core/container.ts";
 import { codeSpacesUrl } from "../../core/container.ts";
 
 export function bootstrapFormatDependency() {

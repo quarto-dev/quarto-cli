@@ -195,9 +195,9 @@ function render_dashboard()
               -- this means columns or rows (depending upon orientation)
               local contents = tslice(el.content, 2)
               if orientation == "columns" then
-                return makeCols(contents)
-              else
                 return makeRows(contents)
+              else
+                return makeCols(contents)
               end
             else
               local contents = tslice(el.content, 2)

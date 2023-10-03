@@ -1,0 +1,28 @@
+---
+title: "Column Orientation"
+format: dashboard
+---
+    
+Column
+-------------------------------------
+    
+### Chart 1
+    
+```{r}
+plot(cars)
+```
+   
+Column
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+plot(mtcars)
+```   
+ 
+### Chart 3
+    
+```{r}
+plot(iris)
+```

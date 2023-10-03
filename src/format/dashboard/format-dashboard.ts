@@ -164,11 +164,10 @@ function dashboardHtmlPostProcessor(
         "bslib-gap-spacing",
         "html-fill-container",
       ];
-      console.log({ dashboard });
       if (dashboard && dashboard.orientation === "columns") {
-        containerClz.push("orientation-columns");
-      } else {
         containerClz.push("orientation-rows");
+      } else {
+        containerClz.push("orientation-columns");
       }
 
       containerClz.forEach(
@@ -222,31 +221,10 @@ function dashboardHtmlPostProcessor(
         // fill children
         if (!childEl.classList.contains("quarto-title-block")) {
           childEl.classList.add("bslib-grid-item");
-          childEl.classList.add("html-fill-item");
+          applyFillItemClasses(childEl);
         }
       }
     }
-
-    const recursiveFill = (el: Element) => {
-      const skipFill = kSkipFillClz.some((clz) => {
-        return el.classList.contains(clz) || kSkipFillTagz.includes(el.tagName);
-      });
-      if (!skipFill) {
-        el.classList.add("html-fill-item");
-      }
-
-      const skipContainer = kSkipContainerClz.some((clz) => {
-        return el.classList.contains(clz) ||
-          kSkipContainerTagz.includes(el.tagName);
-      });
-      if (!skipContainer) {
-        el.classList.add("html-fill-container");
-      }
-
-      for (const childEl of el.children) {
-        recursiveFill(childEl);
-      }
-    };
 
     // We need to process cards specially
     const cardNodes = doc.body.querySelectorAll(".card");
@@ -261,7 +239,7 @@ function dashboardHtmlPostProcessor(
       // Recursively make contents of card fill items / containers
       const cardBodyEl = cardEl.querySelector(".card-body");
       if (cardBodyEl) {
-        recursiveFill(cardBodyEl);
+        recursiveApplyFillClasses(cardBodyEl);
       }
 
       const shellEl = doc.createElement("div");
@@ -291,6 +269,33 @@ const expandBtnHtml = `
     </span>
 </bslib-tooltip>
 `;
+
+const recursiveApplyFillClasses = (el: Element) => {
+  applyFillItemClasses(el);
+  applyFillContainerClasses(el);
+  for (const childEl of el.children) {
+    recursiveApplyFillClasses(childEl);
+  }
+};
+
+const applyFillItemClasses = (el: Element) => {
+  const skipFill = kSkipFillClz.some((clz) => {
+    return el.classList.contains(clz) || kSkipFillTagz.includes(el.tagName);
+  });
+  if (!skipFill) {
+    el.classList.add("html-fill-item");
+  }
+};
+
+const applyFillContainerClasses = (el: Element) => {
+  const skipContainer = kSkipContainerClz.some((clz) => {
+    return el.classList.contains(clz) ||
+      kSkipContainerTagz.includes(el.tagName);
+  });
+  if (!skipContainer) {
+    el.classList.add("html-fill-container");
+  }
+};
 
 const kSkipContainerTagz = ["P"];
 const kSkipContainerClz: string[] = [
