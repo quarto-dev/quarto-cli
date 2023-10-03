@@ -1,0 +1,60 @@
+---
+title: "Column Orientation"
+format:
+  dashboard:
+    orientation: columns
+---
+    
+Column
+-------------------------------------
+
+:::{.valuebox showcase="top-right" icon="twitter"}
+
+### The value for foo
+
+1,425
+
+This is a bunch of text about that value that is so great enjoy it!
+
+:::
+    
+:::{.valuebox showcase="top-right" icon="twitter"}
+
+### The value for foo
+
+1,425
+
+This is a bunch of text about that value that is so great enjoy it!
+
+```{r}
+plot(cars)
+```
+
+:::
+
+
+:::{.valuebox showcase="top-right" icon="twitter"}
+
+### The value for foo
+
+1,425
+
+This is a bunch of text about that value that is so great enjoy it!
+
+:::
+
+   
+Column
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+plot(mtcars)
+```   
+ 
+### Chart 3
+    
+```{r}
+plot(iris)
+```
