@@ -1,0 +1,67 @@
+---
+title: knitr float md format
+keep-md: true
+---
+
+## Easy cases
+
+
+```{r}
+#| label: fig-1-echo
+#| fig-cap: A caption
+plot(c(4,5,6))
+```
+
+See @fig-1-echo.
+
+```{r}
+#| label: fig-1
+#| fig-cap: A caption
+#| echo: false
+plot(c(1,2,3))
+```
+
+```{r}
+#| label: fig-2
+#| fig-cap: A caption
+#| fig-subcap: 
+#|   - Subcap 1
+#|   - Subcap 2
+#| echo: false
+plot(c(4,5,6))
+plot(c(1,2,3))
+```
+
+```{r}
+#| label: fig-3
+#| fig-cap: A caption (with echo)
+plot(c(1,2,3))
+```
+
+```{r}
+#| label: fig-4
+#| fig-cap: A caption (with echo)
+#| fig-subcap: 
+#|   - Subcap 1
+#|   - Subcap 2
+plot(c(4,5,6))
+plot(c(1,2,3))
+```
+
+## Not-so-easy cases
+
+```{r}
+#| label: fig-5
+#| echo: false
+plot(c(4,5,6))
+```
+
+See @fig-5.
+
+```{r}
+#| echo: false
+#| label: fig-6
+#| fig-cap: A caption (no subcaptions)
+plot(c(1,2,3))
+plot(c(4,5,6))
+```

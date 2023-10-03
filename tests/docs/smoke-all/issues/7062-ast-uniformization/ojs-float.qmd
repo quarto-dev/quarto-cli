@@ -1,0 +1,12 @@
+---
+title: ojs float md format
+keep-md: true
+---
+
+```{ojs}
+//| label: fig-1
+//| fig-cap: A caption
+"123."
+```
+
+See @fig-1.

@@ -1,0 +1,15 @@
+---
+title: dot float md format
+keep-md: true
+---
+
+```{dot}
+//| label: fig-1
+//| fig-cap: A caption.
+digraph G {
+    a -> b;
+    b -> c;
+}
+```
+
+See @fig-1.

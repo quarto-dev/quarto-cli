@@ -1,0 +1,73 @@
+---
+title: jupyter float md format
+keep-md: true
+---
+
+## Easy cases
+
+```{python}
+#| label: fig-1-echo
+#| fig-cap: A caption
+import pylab
+pylab.figure()
+pylab.plot([1,2,3])
+pylab.show()
+```
+
+
+```{python}
+#| label: fig-1
+#| fig-cap: A caption
+#| echo: false
+pylab.plot([1,2,3])
+```
+
+```{python}
+#| label: fig-2
+#| fig-cap: A caption
+#| fig-subcap: 
+#|   - Subcap 1
+#|   - Subcap 2
+#| echo: false
+pylab.figure()
+pylab.plot([4,5,6])
+pylab.show()
+pylab.figure()
+pylab.plot([1,2,3])
+pylab.show()
+```
+
+
+```{python}
+#| label: fig-3
+#| fig-cap: A caption (with echo)
+#| echo: false
+import pylab
+pylab.plot([1,2,3])
+```
+
+```{python}
+#| label: fig-4
+#| fig-cap: A caption (with echo)
+#| fig-subcap: 
+#|   - Subcap 1
+#|   - Subcap 2
+#| echo: false
+pylab.figure()
+pylab.plot([4,5,6])
+pylab.show()
+pylab.figure()
+pylab.plot([1,2,3])
+pylab.show()
+```
+
+## Not-so-easy cases
+
+```{python}
+#| label: fig-5
+#| echo: false
+import pylab
+pylab.plot([1,2,3])
+```
+
+See @fig-5.

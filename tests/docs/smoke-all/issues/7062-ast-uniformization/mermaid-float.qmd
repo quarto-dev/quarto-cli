@@ -1,0 +1,16 @@
+---
+title: mermaid float md format
+keep-md: true
+---
+
+```{mermaid}
+%%| label: fig-1
+%%| fig-cap: A caption.
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
+See @fig-1.
