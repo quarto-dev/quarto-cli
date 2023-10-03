@@ -150,6 +150,42 @@ function dashboardHtmlPostProcessor(
       );
     }
 
+    // Adjust the appearance of row  elements
+    const rowNodes = doc.querySelectorAll("div.rows");
+    if (rowNodes !== null) {
+      for (const rowNode of rowNodes) {
+        const rowEl = rowNode as Element;
+        rowEl.classList.add("bslib-grid");
+        rowEl.classList.remove("rows");
+        const rowCount = rowEl.childElementCount;
+        const currentStyle = rowEl.getAttribute("style");
+        const template =
+          `display: grid; grid-template-rows:repeat(${rowCount}, minmax(0, 1fr));\ngrid-auto-columns:1fr;`;
+        rowEl.setAttribute(
+          "style",
+          currentStyle === null ? template : `${currentStyle}\n${template}`,
+        );
+      }
+    }
+
+    // Adjust the appearance of column element
+    const colNodes = doc.querySelectorAll("div.columns");
+    if (colNodes !== null) {
+      for (const colNode of colNodes) {
+        const colEl = colNode as Element;
+        colEl.classList.add("bslib-grid");
+        colEl.classList.remove("columns");
+        const colCount = colEl.childElementCount;
+        const currentStyle = colEl.getAttribute("style");
+        const template =
+          `display: grid; grid-template-columns:repeat(${colCount}, minmax(0, 1fr));\ngrid-auto-rows:1fr;`;
+        colEl.setAttribute(
+          "style",
+          currentStyle === null ? template : `${currentStyle}\n${template}`,
+        );
+      }
+    }
+
     // Mark the children with layout instructions
     const children = containerEl?.children;
     if (children) {
@@ -157,7 +193,6 @@ function dashboardHtmlPostProcessor(
         // All the children of the dashboard container at the root level become
         // fill children
         if (!childEl.classList.contains("quarto-title-block")) {
-          childEl.classList.add("html-fill-item");
           childEl.classList.add("bslib-grid-item");
         }
       }
@@ -189,6 +224,7 @@ function dashboardHtmlPostProcessor(
     for (const cardNode of cardNodes) {
       const cardEl = cardNode as Element;
       cardEl.classList.add("bslib-card");
+      cardEl.classList.add("html-fill-item");
       cardEl.classList.add("html-fill-container");
       cardEl.setAttribute("data-bslib-card-init", "");
       cardEl.setAttribute("data-full-screen", "false");

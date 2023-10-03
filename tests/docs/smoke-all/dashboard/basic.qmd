@@ -38,9 +38,9 @@ This is a section
 
 :::
 
+::::{.columns}
 
-
-
+:::{.rows}
 
 :::{.valuebox icon="bar-chart"}
 
@@ -51,3 +51,38 @@ This is a section
 this is other content
 
 :::
+
+:::{.valuebox icon="bar-chart"}
+
+### This is another value below
+
+1230
+
+this is other content
+
+:::
+
+:::
+
+:::{.valuebox icon="bar-chart"}
+
+### This is my value below
+
+423
+
+this is other content
+
+:::
+
+:::{.valuebox icon="bar-chart"}
+
+### This is another value below
+
+1230
+
+this is other content
+
+:::
+
+::::
+

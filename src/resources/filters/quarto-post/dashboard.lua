@@ -9,7 +9,22 @@ local function tslice(t, first, last, step)
   return sliced
 end
 
+local function popImagePara(el)
 
+  return _quarto.ast.walk(el, {
+    Para = function(para)
+      if #para.content == 1 then
+        return para.content[1]
+      end
+      return para
+    end
+  })
+
+end
+
+-- title: string
+-- contents: table
+-- classes: table
 local function makeCard(title, contents, classes)  
   -- Card DOM structure
   -- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
@@ -22,7 +37,17 @@ local function makeCard(title, contents, classes)
     local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
     cardContents:insert(titleDiv)
   end
-  local contentDiv = pandoc.Div(contents, pandoc.Attr("", {"card-body"}))
+
+  -- pop paragraphs with only figures to the top
+  -- cell-output-display
+  -- or root level paras
+  local result = pandoc.List()
+  for i,v in ipairs(contents) do
+    local popped = popImagePara(v);
+    result:insert(popped)
+  end
+  
+  local contentDiv = pandoc.Div(result, pandoc.Attr("", {"card-body"}))
   cardContents:insert(contentDiv)
 
 
@@ -74,7 +99,7 @@ local function makeValueBox(title, value, icon, content, classes)
   end
 
   vbDiv.content:insert(vbArea)
-  return makeCard(nil, vbDiv, classes)
+  return makeCard(nil, {vbDiv}, classes)
 end
 
 
@@ -162,7 +187,6 @@ function render_dashboard()
           local header = el.content[1]
           if header.t == "Header" then            
             local level = header.level
-            quarto.log.output(level)
 
             if level == 2 then
               -- this means columns
