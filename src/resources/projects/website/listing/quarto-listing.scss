@@ -615,13 +615,7 @@ div.quarto-post {
 
   a {
     color: $body-color;
-    display: flex;
-    flex-direction: column;
     text-decoration: none;
-
-    div.description {
-      flex-shrink: 0;
-    }
   }
 
   .metadata {
