@@ -10,6 +10,7 @@ fig_width = {0}
 fig_height = {1}
 fig_format = '{2}'
 fig_dpi = {3}
+interactivity = '{5}'
 
 # matplotlib defaults / format
 try:
@@ -37,7 +38,10 @@ try:
 except Exception:
   pass
 
-
+# interactivity
+if interactivity:
+  from IPython.core.interactiveshell import InteractiveShell
+  InteractiveShell.ast_node_interactivity = interactivity
 
 # output kernel dependencies
 kernel_deps = dict()

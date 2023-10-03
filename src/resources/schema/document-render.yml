@@ -120,6 +120,15 @@
     contexts: [document-execute]
   description: "Filters to pre-process ipynb files before rendering to markdown"
 
+- name: ipynb-shell-interactivity
+  schema:
+    enum: [null, all, last, last_expr, none, last_expr_or_assign]
+  tags:
+    contexts: [document-execute]
+    engine: jupyter
+  description: |
+    Speicfy which nodes should be run interactively (displaying output from expressions)
+
 - name: keep-typ
   tags:
     formats: [typst]

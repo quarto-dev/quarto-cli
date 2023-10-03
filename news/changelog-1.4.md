@@ -141,6 +141,7 @@
 - Improved detection/exclusion of spurious matplotlib plain text output
 - Correctly exclude `id` fields when converting Colab notebooks to qmd.
 - More thorough cleaning out of text artifacts created by matplotlib intermediate statements.
+- Added `ipynb-shell-interactivity` option (enables specification of IPython [`InteractiveShell.ast_node_interactivity`](https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-InteractiveShell.ast_node_interactivity) option)
 
 ## Knitr
 

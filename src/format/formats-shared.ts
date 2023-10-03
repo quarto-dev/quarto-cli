@@ -39,6 +39,7 @@ import {
   kIncludeInHeader,
   kInlineIncludes,
   kIpynbFilters,
+  kIpynbShellInteractivity,
   kKeepHidden,
   kKeepIpynb,
   kKeepMd,
@@ -221,6 +222,7 @@ function defaultFormat(displayName: string): Format {
       [kExecuteDaemonRestart]: false,
       [kExecuteDebug]: false,
       [kIpynbFilters]: [],
+      [kIpynbShellInteractivity]: null,
     },
     render: {
       [kKeepTex]: false,
