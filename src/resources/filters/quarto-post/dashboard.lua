@@ -11,7 +11,11 @@ end
 
 
 local function makeCard(title, contents, classes)  
-  
+  -- Card DOM structure
+  -- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
+  --   .card-header
+  --   .card-body[max-height, min-height]
+
   -- compute the card contents
   local cardContents = pandoc.List({})
   if title ~= nil then
@@ -35,6 +39,16 @@ local function makeValueBox(title, value, icon, content, classes)
   if value == nil then
     error("Value boxes must have a value")
   end
+
+  -- ValueBox DOM structure
+  -- .card .value-box[showcase(left-center,top-right,bottom), color(scss name, actual value)]
+  --   .value-box-grid
+  --     .value-box-showcase
+  --     .value-box-area
+  --       .value-box-title
+  --       .value-box-value
+  --        other content
+
   local vbDiv = pandoc.Div({}, pandoc.Attr("", {"value-box-grid"}))
 
   -- The valuebox icon
@@ -70,8 +84,7 @@ function render_dashboard()
   if not _quarto.format.isDashboardOutput() then
     return {}
   end
-  return {
-    {
+  return {    {
       Pandoc = function(el)
         -- Make sections based upon the headings and use that for the 
         -- document structure
@@ -138,14 +151,26 @@ function render_dashboard()
             value = value[1]
           end
 
+          -- TODO: valuebox should just have a value-box class
+          -- bslib-value-box should be added
+          -- make showcase an attribute that is resolved in post processor
+
           return makeValueBox(title, pandoc.utils.blocks_to_inlines({value}), icon, content, {'bslib-value-box', showcaseClz(showcase)})
         
         elseif el.classes:includes('section') then
           -- Allow sections to be 'cards'
           local header = el.content[1]
           if header.t == "Header" then            
-            local contents = tslice(el.content, 2)
-            return makeCard(header, contents)
+            local level = header.level
+            quarto.log.output(level)
+
+            if level == 2 then
+              -- this means columns
+
+            else
+              local contents = tslice(el.content, 2)
+              return makeCard(header, contents)  
+            end
           end
         end
       end,
