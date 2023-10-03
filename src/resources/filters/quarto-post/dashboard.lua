@@ -184,8 +184,7 @@ function render_dashboard()
             value = value[1]
           end
 
-
-          if pandoc.utils.type(value) ~= "table" then
+          if pandoc.utils.type(value) ~= "table" and pandoc.utils.type(value) ~= "Blocks" then
             value = {value}
           end
           return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, {'bslib-value-box', showcaseClz(showcase)}), false

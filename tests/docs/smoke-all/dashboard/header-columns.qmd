@@ -1,6 +1,8 @@
 ---
 title: "Column Orientation"
-format: dashboard
+format: 
+  dashboard:
+    orientation: columns
 ---
     
 Column
