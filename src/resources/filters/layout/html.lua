@@ -68,6 +68,10 @@ end, function(panel_layout)
   local rendered_panel
 
   if panel_layout.is_float_reftarget then
+    if #panel.content == 0 then
+      warn("Panel layout for " .. (panel_layout.identifier or "(unnamed panel)") .. " has no content")
+      return pandoc.Blocks({})
+    end
     local float_node, float_tbl = quarto.FloatRefTarget({
       identifier = panel_layout.identifier,
       classes = panel_layout.classes,
