@@ -1,0 +1,34 @@
+---
+title: Dashboard
+format: 
+  dashboard:
+    fill: true
+---
+
+## Row {.flow}
+
+:::{.valuebox icon="facebook" showcase="top-right"}
+
+### Hello World
+
+1,452
+
+This is some text
+
+:::
+
+:::{.valuebox icon="airplane" showcase="bottom"}
+
+### Hello World
+
+1,252
+
+This is some text
+
+:::
+
+:::{.valuebox showcase="bottom"}
+1,902,021
+:::
+
+

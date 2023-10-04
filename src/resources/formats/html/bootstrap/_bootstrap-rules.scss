@@ -1347,7 +1347,6 @@ kbd,
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
-
   overflow-wrap: break-word;
 }
 
@@ -2139,6 +2138,9 @@ code.sourceCode a.code-annotation-anchor {
     .value-box-showcase {
       grid-area: left;
     }
+    .value-box-area {
+      grid-area: right;
+    }
   }
 
   .showcase-top-right .value-box-grid {
@@ -2151,6 +2153,9 @@ code.sourceCode a.code-annotation-anchor {
       margin-top: 0;
       margin-left: auto;
       align-items: end;
+    }
+    .value-box-area {
+      grid-area: left;
     }
   }
 
@@ -2180,6 +2185,9 @@ code.sourceCode a.code-annotation-anchor {
         i.bi {
           font-size: 4rem;
         }
+      }
+      .value-box-area {
+        grid-area: top;
       }
     }
   }

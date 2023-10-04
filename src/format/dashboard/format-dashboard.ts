@@ -274,7 +274,9 @@ function dashboardHtmlPostProcessor(
     }
 
     // Process value boxes
-    const valueboxNodes = doc.body.querySelectorAll(".valuebox");
+    const valueboxNodes = doc.body.querySelectorAll(
+      ".valuebox > .card-body > div",
+    );
     for (const valueboxNode of valueboxNodes) {
       const valueboxEl = valueboxNode as Element;
       valueboxEl.classList.add("bslib-value-box");

@@ -13,7 +13,6 @@ local kCardBodyClz = "card-body"
 
 -- Valuebox classes
 local kValueBoxClz = "valuebox"
-local kValueBoxGridClz = "value-box-grid"
 local kValueBoxShowcaseClz = "value-box-showcase"
 local kValueBoxAreaClz = "value-box-area"
 local kValueBoxTitleClz = "value-box-title"
@@ -64,6 +63,9 @@ local function showcaseClz(showcase)
   -- top-right
   -- left-center
   -- bottom
+  if showcase == nil then
+    showcase = 'left-center'
+  end
   return 'showcase-' .. showcase
 end
 
@@ -118,6 +120,13 @@ local function makeCard(title, contents, classes)
   return pandoc.Div(cardContents, pandoc.Attr("", clz))
 end
 
+
+local function wrapValueBox(box, showcase)
+  local valueBoxClz = {kValueBoxClz, showcaseClz(showcase)}
+  return makeCard(nil, {box}, valueBoxClz)
+end
+
+
 -- Make a valuebox
 -- ValueBox DOM structure
 -- .card .value-box[showcase(left-center,top-right,bottom), color(scss name, actual value)]
@@ -132,7 +141,7 @@ local function makeValueBox(title, value, icon, content, showcase)
     error("Value boxes must have a value")
   end
 
-  local vbDiv = pandoc.Div({}, pandoc.Attr("", {kValueBoxGridClz}))
+  local vbDiv = pandoc.Div({}, pandoc.Attr("", {}))
 
   -- The valuebox icon
   if icon ~= nil then
@@ -158,11 +167,8 @@ local function makeValueBox(title, value, icon, content, showcase)
   end
 
   vbDiv.content:insert(vbArea)
-
-  local valueBoxClz = {kValueBoxClz, showcaseClz(showcase)}
-  return makeCard(nil, {vbDiv}, valueBoxClz)
+  return wrapValueBox(vbDiv, showcase)
 end
-
 
 function render_dashboard() 
 
@@ -223,8 +229,7 @@ function render_dashboard()
 
         elseif el.classes:includes(kValueBoxClz) then
 
-          -- look to see if the value-box appears to be valid, and if so, allow it pass-through
-          -- unscathed
+          -- We need to actually pull apart the box
           local header = el.content[1]
           local title = {}
           local value = el.content
@@ -232,7 +237,7 @@ function render_dashboard()
           local icon = el.attributes[kValueBoxIconAttr]          
           local showcase = el.attributes[kValueBoxShowcaseAttr] or kValueBoxDefaultShowcasePosition
 
-          if header.t == "Header" then
+          if header ~= nil and header.t == "Header" then
             title = header.content
             value = tslice(el.content, 2)
           end
@@ -245,8 +250,6 @@ function render_dashboard()
           if pandoc.utils.type(value) ~= "table" and pandoc.utils.type(value) ~= "Blocks" then
             value = {value}
           end
-
-
 
           return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase), false
         
