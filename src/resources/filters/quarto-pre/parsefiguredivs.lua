@@ -122,7 +122,7 @@ function parse_floats()
 
     local identifier = div.identifier
     local attr = pandoc.Attr(identifier, div.classes, div.attributes)
-    if (#content >= 1 and #content <= 2 and content[1].t == "Para" and
+    if (#content == 1 and content[1].t == "Para" and
         content[1].content[1].t == "Image") then
       -- if the div contains a single image, then we simply use the image as
       -- the content

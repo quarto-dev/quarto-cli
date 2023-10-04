@@ -121,17 +121,31 @@ function crossref_theorems()
 
           -- output
           if _quarto.format.isLatexOutput() then
-            local preamble = pandoc.Para(pandoc.RawInline("latex", 
-              "\\begin{" .. proof.env .. "}"))
+            local begin_env = "\\begin{" .. proof.env .. "}"
+            local preamble = pandoc.Plain(pandoc.RawInline("latex", begin_env))
             if name ~= nil then
+              env = env .. "[" .. name .. "]"
               preamble.content:insert(pandoc.RawInline("latex", "["))
               tappend(preamble.content, name)
               preamble.content:insert(pandoc.RawInline("latex", "]"))
             end 
-            el.content:insert(1, preamble)
-            el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
-              "\\end{" .. proof.env .. "}"
-            )))
+            -- https://github.com/quarto-dev/quarto-cli/issues/6077
+            if el.content[1].t == "Para" then
+              el.content[1].content:insert(1, pandoc.RawInline("latex", begin_env .. "\n"))
+            elseif el.content[1].t == "RawBlock" and el.content[1].format == "latex" then
+              el.content[1].text = begin_env .. "\n" .. el.content[1].text
+            else
+              el.content:insert(1, preamble)
+            end
+            local end_env = "\\end{" .. proof.env .. "}"
+            -- https://github.com/quarto-dev/quarto-cli/issues/6077
+            if el.content[#el.content].t == "Para" then
+              el.content[#el.content].content:insert(pandoc.RawInline("latex", "\n" .. end_env))
+            elseif el.content[#el.content].t == "RawBlock" and el.content[#el.content].format == "latex" then
+              el.content[#el.content].text = el.content[#el.content].text .. "\n" .. end_env
+            else
+              el.content:insert(pandoc.Plain(pandoc.RawInline("latex", end_env)))
+            end
           elseif _quarto.format.isJatsOutput() then
             el = jatsTheorem(el,  nil, name )
           else
