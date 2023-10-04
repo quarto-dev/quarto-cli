@@ -75,9 +75,12 @@ import {
   kQmdExtensions,
   PandocIncludes,
   PostProcessOptions,
+  RunOptions,
 } from "../types.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import { pythonRunHandler } from "../../core/run/python.ts";
+import { resourcePath } from "../../core/resources.ts";
 
 import {
   jupyterNotebookFiltered,
@@ -412,6 +415,17 @@ export const jupyterEngine: ExecutionEngine = {
     return Promise.resolve({
       includes,
     });
+  },
+
+  run: async (_options: RunOptions): Promise<void> => {
+    const result = await pythonRunHandler.run(
+      resourcePath(join("jupyter", "shiny.py")),
+      [],
+      undefined,
+    );
+    if (!result.success) {
+      throw new Error();
+    }
   },
 
   postprocess: (options: PostProcessOptions) => {

@@ -21,14 +21,17 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
       const services = renderServices();
       try {
         if (options.render) {
-          const result = await render(target.input, {
+          const result = await render(options.input, {
             services,
+            flags: {
+              execute: true,
+            },
           });
           if (result.error) {
             throw result.error;
           }
         }
-        await engine.run({ ...options, input: target.input });
+        await engine.run({ ...options, input: options.input });
         return processSuccessResult();
       } finally {
         services.cleanup();
