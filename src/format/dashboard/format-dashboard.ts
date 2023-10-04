@@ -219,10 +219,9 @@ function dashboardHtmlPostProcessor(
         colEl.classList.add("bslib-grid");
         colEl.classList.remove("columns");
 
-        let colSize = "max-content";
+        const colSize = "1fr";
         if (colEl.classList.contains("fill")) {
           colEl.classList.remove("fill");
-          colSize = "1fr";
           colEl.classList.add("html-fill-container");
         } else {
           colEl.classList.add("no-fill");
@@ -279,6 +278,7 @@ function dashboardHtmlPostProcessor(
     for (const valueboxNode of valueboxNodes) {
       const valueboxEl = valueboxNode as Element;
       valueboxEl.classList.add("bslib-value-box");
+      valueboxEl.classList.add("value-box-grid");
     }
 
     // Process fill images to include proper fill behavior
