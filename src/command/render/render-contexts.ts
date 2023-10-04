@@ -44,6 +44,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kIpynbFilters,
+  kIpynbShellInteractivity,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -529,11 +530,14 @@ async function resolveFormats(
       inputFormat || {},
     );
 
-    // if there is no "echo" set by the user then default
-    // to false for documents with a server
-    if (userFormat.execute[kEcho] === undefined) {
-      if (userFormat.metadata[kServer] !== undefined) {
+    // default 'echo' and 'ipynb-shell-interactivity'
+    // for documents with a server
+    if (userFormat.metadata[kServer] !== undefined) {
+      if (userFormat.execute[kEcho] === undefined) {
         userFormat.execute[kEcho] = false;
+      }
+      if (userFormat.execute[kIpynbShellInteractivity] === undefined) {
+        userFormat.execute[kIpynbShellInteractivity] = "all";
       }
     }
 

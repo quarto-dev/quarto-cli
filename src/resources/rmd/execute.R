@@ -26,7 +26,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
       
   # remove the rmd input on exit
   rmd_input_path <- rmarkdown:::abs_path(rmd_input)
-  on.exit(unlink(rmd_input_path))
+  on.exit(unlink(rmd_input_path), add = TRUE)
 
   # give the input an .Rmd extension if it doesn't already have one
   # (this is a temporary copy which we'll remove before exiting). note
