@@ -1,16 +1,42 @@
+-- dashboard.lua
+-- Copyright (C) 2020-2022 Posit Software, PBC
 
--- slice elements out of a table
--- TODO: Move to _quarto.utils.table.slice
-local function tslice(t, first, last, step)
-  local sliced = {}
-  for i = first or 1, last or #t, step or 1 do
-    sliced[#sliced+1] = t[i]
-  end
-  return sliced
-end
+-- Layout classes
+local kRowsClz = {"rows"}
+local kColumnsClz = {"columns"}
+local kLayoutFillClz = "fill"
 
+-- Card classes
+local kCardClz = "card"
+local kCardHeaderClz = "card-header"
+local kCardBodyClz = "card-body"
+
+-- Valuebox classes
+local kValueBoxClz = "valuebox"
+local kValueBoxGridClz = "value-box-grid"
+local kValueBoxShowcaseClz = "value-box-showcase"
+local kValueBoxAreaClz = "value-box-area"
+local kValueBoxTitleClz = "value-box-title"
+local kValueBoxValueClz = "value-box-value"
+
+-- Valuebox attributes
+local kValueBoxIconAttr = "icon"
+local kValueBoxShowcaseAttr = "showcase"
+local kValueBoxDefaultShowcasePosition = "left-center"
+
+-- Page level data
+local kParamOrientation = "orientation"
+local kOrientationRows = "rows"
+local kOrientationColumns = "columns"
+local kDefaultOrientation = kOrientationRows
+local kLayoutFlow = "flow"
+local kLayoutFill = "fill"
+
+-- pop images out of paragraphs to the top level
+-- this is necessary to ensure things like `object-fit`
+-- will work with images (because they're directly contained)
+-- in a constraining element
 local function popImagePara(el)
-
   if el.t == "Para" and #el.content == 1 then
     return el.content
   else
@@ -25,65 +51,66 @@ local function popImagePara(el)
   end
 end
 
-local function makeRows(content, fill)
-  local clz = pandoc.List({"rows"})
-  if fill ~= false then
-    clz:insert("fill")
-  end
-  return pandoc.Div(content, pandoc.Attr("", clz))
-end
-
-local function makeCols(content, fill) 
-  local clz = pandoc.List({"columns"})
-  if fill ~= false then
-    clz:insert("fill")
-  end
-  return pandoc.Div(content, pandoc.Attr("", clz))
-end
-
 local function dashboardParam(name, default) 
   local dashboard = param("dashboard", {})
   return dashboard[name] or default
 end
 
+local function htmlBsImage(icon)
+  return pandoc.RawInline("html", '<i class="bi bi-' .. icon .. '"></i>')
+end
+
+local function showcaseClz(showcase)           
+  -- top-right
+  -- left-center
+  -- bottom
+  return 'showcase-' .. showcase
+end
+
+local function makeRows(content, fill)
+  local clz = pandoc.List(kRowsClz)
+  if fill ~= false then
+    clz:insert(kLayoutFillClz)
+  end
+  return pandoc.Div(content, pandoc.Attr("", clz))
+end
+
+local function makeCols(content, fill) 
+  local clz = pandoc.List(kColumnsClz)
+  if fill ~= false then
+    clz:insert(kLayoutFillClz)
+  end
+  return pandoc.Div(content, pandoc.Attr("", clz))
+end
+
 -- title: string
 -- contents: table
 -- classes: table
+-- Card DOM structure
+-- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
+--   .card-header
+--   .card-body[max-height, min-height]
 local function makeCard(title, contents, classes)  
-  -- Card DOM structure
-  -- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
-  --   .card-header
-  --   .card-body[max-height, min-height]
 
   -- compute the card contents
   local cardContents = pandoc.List({})
-  if title ~= nil then
-    if pandoc.utils.type(title) == "table" and #title > 0 then
-      local titleDiv = pandoc.Div(title, pandoc.Attr("", {"card-header"}))
-      cardContents:insert(titleDiv)  
-    else
-      local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
-      cardContents:insert(titleDiv)
-    end
-
-
+  if title ~= nil and (pandoc.utils.type(title) ~= "table" or #title > 0) then
+    local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {kCardHeaderClz}))
+    cardContents:insert(titleDiv)
   end
 
   -- pop paragraphs with only figures to the top
-  -- cell-output-display
-  -- or root level paras
   local result = pandoc.List()
-  for i,v in ipairs(contents) do
+  for _i,v in ipairs(contents) do
     local popped = popImagePara(v);
     result:insert(popped)
   end
   
-  local contentDiv = pandoc.Div(result, pandoc.Attr("", {"card-body"}))
+  local contentDiv = pandoc.Div(result, pandoc.Attr("", {kCardBodyClz}))
   cardContents:insert(contentDiv)
 
-
   -- add outer classes
-  local clz = pandoc.List({"card"})
+  local clz = pandoc.List({kCardClz})
   if classes then
     clz:extend(classes)
   end
@@ -91,37 +118,38 @@ local function makeCard(title, contents, classes)
   return pandoc.Div(cardContents, pandoc.Attr("", clz))
 end
 
+-- Make a valuebox
+-- ValueBox DOM structure
+-- .card .value-box[showcase(left-center,top-right,bottom), color(scss name, actual value)]
+--   .value-box-grid
+--     .value-box-showcase
+--     .value-box-area
+--       .value-box-title
+--       .value-box-value
+--        other content
 local function makeValueBox(title, value, icon, content, classes) 
   if value == nil then
     error("Value boxes must have a value")
   end
 
-  -- ValueBox DOM structure
-  -- .card .value-box[showcase(left-center,top-right,bottom), color(scss name, actual value)]
-  --   .value-box-grid
-  --     .value-box-showcase
-  --     .value-box-area
-  --       .value-box-title
-  --       .value-box-value
-  --        other content
-
-  local vbDiv = pandoc.Div({}, pandoc.Attr("", {"value-box-grid"}))
+  local vbDiv = pandoc.Div({}, pandoc.Attr("", {kValueBoxGridClz}))
 
   -- The valuebox icon
   if icon ~= nil then
-    local vbShowcase = pandoc.Div({pandoc.RawInline("html", '<i class="bi bi-' .. icon .. '"></i>')}, pandoc.Attr("", {"value-box-showcase"}))
+    local bsImage = htmlBsImage(icon)
+    local vbShowcase = pandoc.Div({bsImage}, pandoc.Attr("", {kValueBoxShowcaseClz}))
     vbDiv.content:insert(vbShowcase)
   end
 
-  local vbArea = pandoc.Div({}, pandoc.Attr("", {"value-box-area"}))
+  local vbArea = pandoc.Div({}, pandoc.Attr("", {kValueBoxAreaClz}))
   
 
   -- The valuebox title
-  local vbTitle = pandoc.Div(title, pandoc.Attr("", {"value-box-title"}))
+  local vbTitle = pandoc.Div(title, pandoc.Attr("", {kValueBoxTitleClz}))
   vbArea.content:insert(vbTitle)
 
   -- The valuebox value
-  local vbValue = pandoc.Div(value, pandoc.Attr("", {"value-box-value"}))
+  local vbValue = pandoc.Div(value, pandoc.Attr("", {kValueBoxValueClz}))
   vbArea.content:insert(vbValue)
 
   -- The rest of the contents
@@ -167,14 +195,15 @@ function render_dashboard()
       end,
       Div = function(el) 
 
-        if el.classes:includes('card') then
+        if el.classes:includes(kCardClz) then
 
           -- see if the card is already in the correct structure (a single header and body)
           -- exit early, not processing if it is already processed in this way
           local cardHeader = el.content[1]
           local cardBody = el.content[2]
-          local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes('card-header')
-          local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes('card-body')          if hasHeader and hasBody then
+          local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes(kCardHeaderClz)
+          local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes(kCardBodyClz)
+          if hasHeader and hasBody then
             return nil
           end
 
@@ -190,23 +219,20 @@ function render_dashboard()
           end
           return makeCard(title, contents), false
 
-        elseif el.classes:includes('valuebox') then
+        elseif el.classes:includes(kValueBoxClz) then
 
+          -- look to see if the value-box appears to be valid, and if so, allow it pass-through
+          -- unscathed
           local header = el.content[1]
           local title = {}
           local value = el.content
           local content = {}
-          local icon = el.attributes['icon']          local showcase = el.attributes['showcase'] or 'left-center'
+          local icon = el.attributes[kValueBoxIconAttr]          
+          local showcase = el.attributes[kValueBoxShowcaseAttr] or kValueBoxDefaultShowcasePosition
 
           if header.t == "Header" then
             title = header.content
             value = tslice(el.content, 2)
-          end
-          
-          local function showcaseClz(showcase)            -- top-right
-            -- left-center
-            -- bottom
-            return 'showcase-' .. showcase
           end
           
           if #value > 1 then
@@ -225,11 +251,12 @@ function render_dashboard()
           if header.t == "Header" then            
             local level = header.level
             if level == 2 then
-              local orientation = dashboardParam('orientation', 'columns')
-              local fill = header.attr.classes:includes("fill") or not header.attr.classes:includes("flow")
+              -- process a column or row separator
+              local orientation = dashboardParam(kParamOrientation, kDefaultOrientation)
+              local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
               -- this means columns or rows (depending upon orientation)
               local contents = tslice(el.content, 2)
-              if orientation == "columns" then
+              if orientation == kOrientationColumns then
                 return makeRows(contents, fill)
               else
                 return makeCols(contents, fill)
