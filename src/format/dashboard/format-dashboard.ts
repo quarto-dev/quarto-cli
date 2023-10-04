@@ -274,6 +274,13 @@ function dashboardHtmlPostProcessor(
       }
     }
 
+    // Process value boxes
+    const valueboxNodes = doc.body.querySelectorAll(".valuebox");
+    for (const valueboxNode of valueboxNodes) {
+      const valueboxEl = valueboxNode as Element;
+      valueboxEl.classList.add("bslib-value-box");
+    }
+
     // Process fill images to include proper fill behavior
     const fillImgNodes = doc.body.querySelectorAll("img.html-fill-item");
     for (const fillImgNode of fillImgNodes) {

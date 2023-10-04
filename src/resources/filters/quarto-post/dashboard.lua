@@ -127,7 +127,7 @@ end
 --       .value-box-title
 --       .value-box-value
 --        other content
-local function makeValueBox(title, value, icon, content, classes) 
+local function makeValueBox(title, value, icon, content, showcase) 
   if value == nil then
     error("Value boxes must have a value")
   end
@@ -158,7 +158,9 @@ local function makeValueBox(title, value, icon, content, classes)
   end
 
   vbDiv.content:insert(vbArea)
-  return makeCard(nil, {vbDiv}, classes)
+
+  local valueBoxClz = {kValueBoxClz, showcaseClz(showcase)}
+  return makeCard(nil, {vbDiv}, valueBoxClz)
 end
 
 
@@ -243,7 +245,10 @@ function render_dashboard()
           if pandoc.utils.type(value) ~= "table" and pandoc.utils.type(value) ~= "Blocks" then
             value = {value}
           end
-          return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, {'bslib-value-box', showcaseClz(showcase)}), false
+
+
+
+          return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase), false
         
         elseif el.classes:includes('section') then
           -- Allow sections to be 'cards'
