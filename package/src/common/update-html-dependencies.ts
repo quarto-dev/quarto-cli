@@ -700,15 +700,68 @@ async function updateBootstrapFromBslib(
       const varContents = lines(Deno.readTextFileSync(bootstrapVariablesFile));
       const outLines: string[] = [];
       for (let line of varContents) {
-        line = line.replace(
+        line = line.replaceAll(
           "var(--#{$prefix}font-sans-serif)",
           "$font-family-sans-serif"
         );
-        line = line.replace(
+        line = line.replaceAll(
           "var(--#{$prefix}font-monospace)",
           "$font-family-monospace"
         );
-        line = line.replace(/var\(--#\{\$prefix\}(.*)\)/, "$$$1");
+        line = line.replaceAll(
+          "var(--#{$prefix}success-rgb)",
+          "$success"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}danger-rgb)",
+          "$danger"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}body-color-rgb)",
+          "$body-color"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}body-bg-rgb)",
+          "$body-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}emphasis-color-rgb)",
+          "$body-emphasis-color"
+        );
+        line = line.replaceAll(
+          /RGBA?\(var\(--#\{\$prefix\}emphasis-color-rgb,(.*?)\).*?\)/gm,
+          "$body-emphasis-color"
+        );        
+        line = line.replaceAll(
+          "var(--#{$prefix}secondary-color)",
+          "$body-secondary-color"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}secondary-bg)",
+          "$body-secondary-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}tertiary-bg)",
+          "$body-tertiary-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}tertiary-color)",
+          "$body-tertiary-color"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}emphasis-bg)",
+          "$body-emphasis-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}emphasis-color)",
+          "$body-emphasis-color"
+        );
+        line = line.replaceAll(
+          "$emphasis-color-rgb", 
+          "$body-emphasis-color"
+        );
+
+        line = line.replaceAll(/var\(--#\{\$prefix\}(.*?)\)/gm, "$$$1");
         outLines.push(line);
       }
       Deno.writeTextFileSync(bootstrapVariablesFile, outLines.join("\n"));

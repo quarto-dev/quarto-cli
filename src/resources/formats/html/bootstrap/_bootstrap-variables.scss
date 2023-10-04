@@ -226,3 +226,5 @@ $table-group-separator-color-lighter: lighten(
   if(variable-exists(body-color), $body-color, $gray-900),
   70%
 ) !default;
+
+$bootstrap-version: 5;
