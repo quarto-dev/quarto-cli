@@ -1,0 +1,17 @@
+---
+title: No Headers
+format:
+  dashboard:
+    fill: true
+---
+
+
+```{r}
+#| layout: "[[1,1], [1], [1,1]]"
+plot(cars)
+plot(mtcars)
+plot(iris)
+plot(mtcars)
+plot(iris)
+```
+

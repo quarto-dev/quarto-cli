@@ -1,24 +1,31 @@
 ---
-title: My First Dashboard
-format: dashboard
-theme: lux
-_quarto:
-  tests:
-    dashboard:
-      ensureHtmlElements:
-        - ['div.card.bslib-grid-item']
-    html:
-      ensureHtmlElements:
-        - []
-        - ['div.card.bslib-grid-item']
+title: "Column Orientation"
+format: 
+  dashboard:
+    orientation: columns
 ---
 
-### Cool Section
-
-This is the content of this section it can be anything
-
-### Hello World
-
+    
+Column
+-------------------------------------
+    
+### Chart 1
+    
 ```{r}
 plot(cars)
+```
+   
+Column
+-------------------------------------
+   
+### Chart 2
+
+```{r}
+plot(mtcars)
+```   
+ 
+### Chart 3
+    
+```{r}
+plot(iris)
 ```

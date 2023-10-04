@@ -4,11 +4,12 @@ format:
   dashboard:
     theme: lux
     orientation: rows
+    fill: true
 ---
 
 :::{.callout-note}
 
-## This is a note about the dashboard
+### This is a note about the dashboard
 
 Here is some loose content. Watch out!
 
@@ -18,11 +19,19 @@ Here is some loose content. Watch out!
 
 :::{.valuebox}
 
-## Title
+### Title
 
 1,203
 
 :::
+
+## Another
+
+```{r}
+#| layout: "[50,50]"
+plot(iris)
+plot(mtcars)
+```
 
 ### Another
 

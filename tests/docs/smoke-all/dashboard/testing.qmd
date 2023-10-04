@@ -7,7 +7,7 @@ format:
     
 ## Column {.flow}
 
-:::{.valuebox showcase="top-right" icon="arrow-up-right"}
+:::{.valuebox showcase="bottom" icon="arrow-up-right"}
 
 ### The value for foo
 
@@ -17,7 +17,7 @@ This is a bunch of text about that value that is so great enjoy it!
 
 :::
     
-:::{.valuebox showcase="top-right" icon="arrow-up-right"}
+:::{.valuebox showcase="bottom" icon="arrow-up-right"}
 
 ### The value for foo
 
