@@ -22,12 +22,22 @@ local function popImagePara(el)
 
 end
 
-local function makeRows(content)
-  return pandoc.Div(content, pandoc.Attr("", {"rows"}))
+local function makeRows(content, fill)
+  local clz = pandoc.List({"rows"})
+  if fill ~= false then
+    clz:insert("fill")
+  end
+
+  return pandoc.Div(content, pandoc.Attr("", clz))
 end
 
-local function makeCols(content) 
-  return pandoc.Div(content, pandoc.Attr("", {"columns"}))
+local function makeCols(content, fill) 
+  local clz = pandoc.List({"columns"})
+  if fill ~= false then
+    clz:insert("fill")
+  end
+
+  return pandoc.Div(content, pandoc.Attr("", clz))
 end
 
 local function dashboardParam(name, default) 
@@ -196,12 +206,14 @@ function render_dashboard()
             local level = header.level
             if level == 2 then
               local orientation = dashboardParam('orientation', 'columns')
+              local fill = header.attr.classes:includes("fill") or not header.attr.classes:includes("flow")
+              quarto.log.output(fill)
               -- this means columns or rows (depending upon orientation)
               local contents = tslice(el.content, 2)
               if orientation == "columns" then
-                return makeRows(contents), true
+                return makeRows(contents, fill), true
               else
-                return makeCols(contents), true
+                return makeCols(contents, fill), true
               end
             else
               local contents = tslice(el.content, 2)

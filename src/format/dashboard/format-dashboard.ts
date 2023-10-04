@@ -192,10 +192,17 @@ function dashboardHtmlPostProcessor(
         const rowEl = rowNode as Element;
         rowEl.classList.add("bslib-grid");
         rowEl.classList.remove("rows");
+
+        let rowSize = "max-content";
+        if (rowEl.classList.contains("fill")) {
+          rowEl.classList.remove("fill");
+          rowSize = "1fr";
+        }
+
         const rowCount = rowEl.childElementCount;
         const currentStyle = rowEl.getAttribute("style");
         const template =
-          `display: grid; grid-template-rows:repeat(${rowCount}, minmax(0, 1fr));\ngrid-auto-columns:1fr;`;
+          `display: grid; grid-template-rows:repeat(${rowCount}, minmax(0, ${rowSize}));\ngrid-auto-columns:1fr;`;
         rowEl.setAttribute(
           "style",
           currentStyle === null ? template : `${currentStyle}\n${template}`,
@@ -210,10 +217,18 @@ function dashboardHtmlPostProcessor(
         const colEl = colNode as Element;
         colEl.classList.add("bslib-grid");
         colEl.classList.remove("columns");
+
+        let colSize = "max-content";
+        if (colEl.classList.contains("fill")) {
+          colEl.classList.remove("fill");
+          colSize = "1fr";
+        } else {
+          colEl.classList.add("no-fill");
+        }
         const colCount = colEl.childElementCount;
         const currentStyle = colEl.getAttribute("style");
         const template =
-          `display: grid; grid-template-columns:repeat(${colCount}, minmax(0, 1fr));\ngrid-auto-rows:1fr;`;
+          `display: grid; grid-template-columns:repeat(${colCount}, minmax(0, ${colSize}));\ngrid-auto-rows:1fr;`;
         colEl.setAttribute(
           "style",
           currentStyle === null ? template : `${currentStyle}\n${template}`,
@@ -313,5 +328,5 @@ const kSkipContainerClz: string[] = [
   "value-box-title",
   "value-box-value",
 ];
-const kSkipFillClz: string[] = ["bi"];
+const kSkipFillClz: string[] = ["bi", "no-fill"];
 const kSkipFillTagz = ["P", "FIGCAPTION"];
