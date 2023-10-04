@@ -121,8 +121,9 @@ local function makeCard(title, contents, classes)
 end
 
 
-local function wrapValueBox(box, showcase)
-  local valueBoxClz = {kValueBoxClz, showcaseClz(showcase)}
+local function wrapValueBox(box, showcase, classes)
+  local valueBoxClz = pandoc.List({kValueBoxClz, showcaseClz(showcase)})
+  valueBoxClz:extend(classes)
   return makeCard(nil, {box}, valueBoxClz)
 end
 
@@ -136,7 +137,7 @@ end
 --       .value-box-title
 --       .value-box-value
 --        other content
-local function makeValueBox(title, value, icon, content, showcase) 
+local function makeValueBox(title, value, icon, content, showcase, classes) 
   if value == nil then
     error("Value boxes must have a value")
   end
@@ -167,7 +168,7 @@ local function makeValueBox(title, value, icon, content, showcase)
   end
 
   vbDiv.content:insert(vbArea)
-  return wrapValueBox(vbDiv, showcase)
+  return wrapValueBox(vbDiv, showcase, classes)
 end
 
 function render_dashboard() 
@@ -236,6 +237,7 @@ function render_dashboard()
           local content = {}
           local icon = el.attributes[kValueBoxIconAttr]          
           local showcase = el.attributes[kValueBoxShowcaseAttr] or kValueBoxDefaultShowcasePosition
+          local classes = el.classes
 
           if header ~= nil and header.t == "Header" then
             title = header.content
@@ -251,7 +253,7 @@ function render_dashboard()
             value = {value}
           end
 
-          return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase), false
+          return makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase, classes), false
         
         elseif el.classes:includes('section') then
           -- Allow sections to be 'cards'

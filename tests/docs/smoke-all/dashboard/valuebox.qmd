@@ -7,7 +7,7 @@ format:
 
 ## Row {.flow}
 
-:::{.valuebox icon="facebook" showcase="top-right"}
+:::{.valuebox .bg-secondary icon="facebook" showcase="top-right"}
 
 ### Hello World
 
@@ -17,7 +17,7 @@ This is some text
 
 :::
 
-:::{.valuebox icon="airplane" showcase="bottom"}
+:::{.valuebox .bg-primary icon="airplane" showcase="bottom"}
 
 ### Hello World
 
@@ -27,8 +27,13 @@ This is some text
 
 :::
 
-:::{.valuebox showcase="bottom"}
+:::{.valuebox .bg-success showcase="bottom"}
 1,902,021
 :::
 
 
+:::{.valuebox}
+```{r}
+plot(cars)
+```
+:::

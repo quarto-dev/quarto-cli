@@ -7,11 +7,12 @@ format:
 
 
 ```{r}
-#| layout: "[[1,1], [1], [1,1]]"
+#| layout-ncol: 3
 plot(cars)
 plot(mtcars)
 plot(iris)
 plot(mtcars)
 plot(iris)
 ```
+
 
