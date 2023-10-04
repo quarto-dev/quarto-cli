@@ -111,7 +111,7 @@ $endif$</pub-date>$endif$
 
 $if(citation.volume)$<volume>$citation.volume$</volume>$endif$
 $if(citation.issue)$<issue>$citation.issue$</issue>$endif$
-$if(citation.isbn)$<issue>$citation.isbn$</isbn>$endif$
+$if(citation.isbn)$<isbn>$citation.isbn$</isbn>$endif$
 $if(citation.first-page)$<fpage>$citation.first-page$</fpage>$endif$
 $if(citation.last-page)$<lpage>$citation.last-page$</lpage>$endif$
 $if(citation.elocation-id)$<elocation-id>$citation.elocation-id$</elocation-id>$endif$
