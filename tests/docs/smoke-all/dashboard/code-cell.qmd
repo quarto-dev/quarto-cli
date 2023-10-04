@@ -7,7 +7,7 @@ format:
 
 
 ```{r}
-#| layout-ncol: 3
+#| layout-ncol: 2
 plot(cars)
 plot(mtcars)
 plot(iris)
