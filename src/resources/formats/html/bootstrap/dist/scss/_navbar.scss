@@ -118,10 +118,11 @@
   margin-bottom: 0;
   list-style: none;
 
-  .show > .nav-link,
-  .active > .nav-link,
-  .nav-link.active {
-    color: var(--#{$prefix}navbar-active-color);
+  .nav-link {
+    &.active,
+    &.show {
+      color: var(--#{$prefix}navbar-active-color);
+    }
   }
 
   .dropdown-menu {
@@ -291,12 +292,11 @@
 // Styles for switching between navbars with light or dark background.
 
 .navbar-light {
-  background-color: $navbar-light-bg; // not !important so .bg-* utilities can still override
   @include deprecate("`.navbar-light`", "v5.2.0", "v6.0.0", true);
 }
 
-.navbar-dark {
-  background-color: $navbar-dark-bg; // not !important so .bg-* utilities can still override
+.navbar-dark,
+.navbar[data-bs-theme="dark"] {
   // scss-docs-start navbar-dark-css-vars
   --#{$prefix}navbar-color: #{$navbar-dark-color};
   --#{$prefix}navbar-hover-color: #{$navbar-dark-hover-color};
@@ -307,4 +307,12 @@
   --#{$prefix}navbar-toggler-border-color: #{$navbar-dark-toggler-border-color};
   --#{$prefix}navbar-toggler-icon-bg: #{escape-svg($navbar-dark-toggler-icon-bg)};
   // scss-docs-end navbar-dark-css-vars
+}
+
+@if $enable-dark-mode {
+  @include color-mode(dark) {
+    .navbar-toggler-icon {
+      --#{$prefix}navbar-toggler-icon-bg: #{escape-svg($navbar-dark-toggler-icon-bg)};
+    }
+  }
 }

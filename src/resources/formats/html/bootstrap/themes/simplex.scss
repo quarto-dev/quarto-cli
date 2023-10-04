@@ -64,9 +64,6 @@ $nav-tabs-border-color:             mix($white, $black, 93.5%) !default;
 
 // Navbar
 
-$navbar-dark-color:                 rgba($white, .75) !default;
-$navbar-dark-hover-color:           $white !default;
-
 // Pagination
 
 $pagination-border-color:           $nav-tabs-border-color !default;
@@ -116,10 +113,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: light;
-}
-
 // Mixins
 
 @mixin btn-shadow($color){
@@ -145,7 +138,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700
   }
 
   &.bg-primary {
-    background-color: $primary !important;
     border-color: shade-color($primary, 13%) !important;
   }
 

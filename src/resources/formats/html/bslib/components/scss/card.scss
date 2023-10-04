@@ -1,4 +1,7 @@
 .bslib-card {
+  // TODO: allow a way to opt out
+  overflow: auto;
+
   // Avoid "double padding" when two card_body()s are immediate siblings
   .card-body + .card-body {
     padding-top: 0;
@@ -79,17 +82,20 @@
 .bslib-full-screen-enter {
   display: none;
   position: absolute;
-  bottom: 1px;
-  right: 3px;
-  margin: 0.5rem;
+  bottom: var(--bslib-full-screen-enter-bottom, 0.2rem);
+  right: var(--bslib-full-screen-enter-right, 0);
+  top: var(--bslib-full-screen-enter-top);
+  left: var(--bslib-full-screen-enter-left);
+  color: var(--bslib-color-fg, var(--bs-card-color));
+  background-color: var(--bslib-color-bg, var(--bs-card-bg, var(--bs-body-bg)));
+  border: var(--bs-card-border-width) solid var(--bslib-color-fg, var(--bs-card-border-color));
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  margin: 0.2rem 0.4rem;
   padding: 0.55rem !important;
   font-size: .8rem;
   cursor: pointer;
-  opacity: .6;
-  color: rgba(var(--bs-body-bg-rgb), 1);
-  &:hover {
-    opacity: 1;
-  }
+  opacity: 0.7;
+  &:hover { opacity: 1; }
   z-index: $zindex-popover;
 }
 

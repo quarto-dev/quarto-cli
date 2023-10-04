@@ -19,7 +19,7 @@
 
 // Intentionally replicates Bootstrap's %heading placeholder
 // https://github.com/twbs/bootstrap/blob/2c7f88/scss/_reboot.scss#L83-L96
-@mixin bootstrap-heading($font-size) {
+@mixin bootstrap-heading-font-and-spacing($font-size) {
   @include font-size($font-size);
   margin-top: 0; // 1
   margin-bottom: $headings-margin-bottom;
@@ -27,5 +27,10 @@
   font-style: $headings-font-style;
   font-weight: $headings-font-weight;
   line-height: $headings-line-height;
+
+}
+
+@mixin bootstrap-heading($font-size) {
+  @include bootstrap-heading-font-and-spacing($font-size);
   color: var(--#{$prefix}heading-color);
 }

@@ -1,35 +1,95 @@
-.bslib-value-box {
-  --bslib-value-box-separator-color: rgba(var(--bs-white-rgb, 255,255,255), 0.175);
+$bslib-value-box-enable-border: "auto" !default; // "auto" | "never" | "always"
+$bslib-value-box-enable-shadow: $enable-shadows !default;
+$bslib-value-box-horizontal-break-point: 300px;
 
-  .value-box-grid {
-    grid-template-columns: var(--bslib-value-box-widths);
+:root {
+  --bslib-value-box-shadow: #{if($bslib-value-box-enable-shadow, #{$box-shadow}, none)};
+  // value box border width is set to "-auto-yes" when the card has .border-auto
+  // or "-auto-no" by default. These cards all use "-baseline", where the border
+  // can be disabled entirely by setting $bslib-value-box-enable-border: "never"
+  // or --bslib-value-box-border-width-baseline: 0. In "auto" mode, the border
+  // is disabled without the border-auto class, or disabled if shadow is enabled.
+  --bslib-value-box-border-width-auto-yes: #{if($bslib-value-box-enable-shadow, 0, var(--bslib-value-box-border-width-baseline))};
+  --bslib-value-box-border-width-auto-no: #{if($bslib-value-box-enable-border == "auto", 0, var(--bslib-value-box-border-width-baseline))};
+  --bslib-value-box-border-width-baseline: #{if($bslib-value-box-enable-border == "never", 0, $card-border-width)};
+}
+
+// CSS variables that start with --- (3 dashes instead of 2) are private vars
+// that are set by user arguments in the R calls. The CSS properties below only
+// apply to the default value box style; the standard way to theme individual
+// value boxes is with CSS classes on the value box container.
+// :root {
+//   --bslib-value-box-color:;
+//   --bslib-value-box-bg:;
+//   --bslib-value-box-border-color:;
+// }
+
+.bslib-value-box {
+  &.card {
+    // .card also sets box-shadow by default, likely to an empty css variable
+    box-shadow: var(--bslib-value-box-shadow);
   }
 
-  // Should also be fillable/fill (i.e., d-flex; flex: 1)
-  .value-box-showcase {
+  border-width: var(--bslib-value-box-border-width-auto-no, var(--bslib-value-box-border-width-baseline));
+  &.border-auto {
+    border-width: var(--bslib-value-box-border-width-auto-yes, var(--bslib-value-box-border-width-baseline));
+  }
+
+  &.default {
+    --bslib-value-box-bg-default: var(--bs-card-bg, #{$body-bg});
+    --bslib-value-box-border-color-default: var(--bs-card-border-color, #{$card-border-color});
+    color: var(--bslib-value-box-color);
+    background-color: var(--bslib-value-box-bg, var(--bslib-value-box-bg-default));
+    border-color: var(--bslib-value-box-border-color, var(--bslib-value-box-border-color-default));
+  }
+
+  container-name: bslib-value-box;
+  container-type: inline-size;
+
+  .value-box-grid {
+    display: grid;
+    grid-template-areas: "left right";
     align-items: center;
-    justify-content: center;
-    margin-top: auto;
-    margin-bottom: auto;
-    padding: 1rem;
     overflow: hidden;
+  }
 
-    .bi, .fa {
-      opacity: .85;
-      min-width: 50px;
-      max-width: 125%;
+  .value-box-showcase {
+    height: 100%;
+    max-height: var(---bslib-value-box-showcase-max-h, 100%);
+    &, > .html-fill-item {
+      width: 100%;
     }
-    // We set font size because {bsicons}/{fontawesome} both
-    // set height/width to 1em by default (as an inline style)
-    .bi { font-size: 5rem; }
-    .fa { font-size: 4rem; }
+  }
 
-    max-height: var(--bslib-value-box-max-height);
+  &[data-full-screen="true"] {
+    .value-box-showcase {
+      max-height: var(---bslib-value-box-showcase-max-h-fs, 100%);
+    }
+  }
 
-    &.showcase-top-right {
-      align-items: end;
-      padding-left: 0;
-      padding-bottom: 0;
+  // When value boxes get too small, we lay them out vertically using a container query.
+  // But we don't need this for mobile, where we have one box per row. This media query
+  // is the inverse of `@include media-breakpoint-down(sm)` but that mixin doesn't work
+  // inside nested queries.
+  @media screen and (min-width: breakpoint-max(sm, $grid-breakpoints)) {
+    @container bslib-value-box (max-width: #{$bslib-value-box-horizontal-break-point}) {
+      &:not(.showcase-bottom) .value-box-grid {
+        // override specificity of showcase layouts for small value boxes
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+          "top"
+          "bottom";
+
+        .value-box-showcase {
+          grid-area: top !important;
+        }
+
+        .value-box-area {
+          grid-area: bottom !important;
+          justify-content: end;
+        }
+      }
     }
   }
 
@@ -40,52 +100,148 @@
     font-size: .9rem;
     font-weight: 500;
     * {
-      color: inherit;
       margin-bottom: 0;
       margin-top: 0;
     }
-    // value_box(title = )
-    > :first-child {
-      @include bootstrap-heading($h6-font-size);
-      color: inherit;
-      // add a non-breaking space to ensure it's not 0 height
-      &::after {
-        content: '\00a0 '
-      }
-    }
-    // value_box(value = )
-    > :nth-child(2) {
-      @include bootstrap-heading($h2-font-size);
-      color: inherit;
-      // add a non-breaking space to ensure it's not 0 height
-      &::after {
-        content: '\00a0 '
-      }
-    }
-    &.border-start {
-      border-color: var(--bslib-value-box-separator-color) !important;
+  }
+
+  .value-box-title {
+    @include bootstrap-heading-font-and-spacing($h6-font-size);
+    // add a non-breaking space to ensure it's not 0 height
+    &:empty::after {
+      content: '\00a0 '
     }
   }
 
-  &[data-full-screen="true"] {
+  .value-box-value {
+    @include bootstrap-heading-font-and-spacing($h2-font-size);
+    // add a non-breaking space to ensure it's not 0 height
+    &:empty::after {
+      content: '\00a0 '
+    }
+  }
+
+  // Should also be fillable/fill (i.e., d-flex; flex: 1)
+  .value-box-showcase {
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 1rem;
+
+    .bi, .fa, .fab, .fas, .far {
+      opacity: .85;
+      min-width: 50px;
+      max-width: 125%;
+    }
+    // We set font size because {bsicons}/{fontawesome} both
+    // set height/width to 1em by default (as an inline style)
+     .bi, .fa, .fab, .fas, .far { font-size: 4rem; }
+  }
+
+
+  &.showcase-top-right {
     .value-box-grid {
-      grid-template-columns: var(--bslib-value-box-widths-full-screen);
+      grid-template-columns: 1fr var(---bslib-value-box-showcase-w, 50%);
+
+      .value-box-showcase {
+        grid-area: right;
+        margin-left: auto;
+        align-self: start;
+        align-items: end;
+        padding-left: 0;
+        padding-bottom: 0;
+      }
+
+      .value-box-area {
+        grid-area: left;
+        align-self: end;
+      }
     }
-    .value-box-showcase {
-      max-height: var(--bslib-value-box-max-height-full-screen);
+
+    &[data-full-screen="true"] {
+      .value-box-grid {
+        grid-template-columns: auto var(---bslib-value-box-showcase-w-fs, 1fr);
+        > div {
+          align-self: center;
+        }
+      }
+    }
+
+    &:not([data-full-screen="true"]) {
+      .value-box-showcase {
+        margin-top: 0;
+      }
+
+      @container bslib-value-box (max-width: #{$bslib-value-box-horizontal-break-point}) {
+        .value-box-grid {
+          .value-box-showcase { // reset padding on showcase_container
+            padding-left: 1rem;
+          }
+        }
+      }
     }
   }
 
-  &:not([data-full-screen="true"]) {
-    .value-box-showcase.showcase-top-right {
-      margin-top: 0;
+  &.showcase-left-center {
+    .value-box-grid {
+      grid-template-columns: var(---bslib-value-box-showcase-w, 30%) auto;
+    }
+
+    &[data-full-screen="true"] {
+      .value-box-grid {
+        grid-template-columns: var(---bslib-value-box-showcase-w-fs, 1fr) auto;
+      }
+    }
+
+    &:not([data-fill-screen="true"]) {
+      .value-box-grid {
+        .value-box-showcase {
+          grid-area: left;
+        }
+
+        .value-box-area {
+          grid-area: right;
+        }
+      }
+    }
+  }
+
+  &.showcase-bottom {
+    .value-box-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr var(---bslib-value-box-showcase-h, auto);
+      grid-template-areas:
+          "top"
+          "bottom";
+      overflow: hidden;
+
+      .value-box-showcase {
+        grid-area: bottom;
+        padding: 0;
+        margin: 0;
+      }
+
+      .value-box-area {
+        grid-area: top;
+      }
+    }
+
+    &[data-full-screen="true"] {
+      .value-box-grid {
+        grid-template-rows: 1fr var(---bslib-value-box-showcase-h-fs, 2fr);
+
+        .value-box-showcase {
+          padding: 1rem;
+        }
+      }
     }
   }
 }
 
-// Override layout_inline_grid()'s preference to collapse to full-width on mobile (inside the value box)
-@include media-breakpoint-down(sm) {
-  .bslib-value-box .value-box-grid {
-    grid-template-columns: var(--bslib-value-box-widths) !important;
+@include color-mode(dark) {
+  .bslib-value-box {
+    // Bootstrap doesn't have a dark shadow, but the default isn't quite right
+    --bslib-value-box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 50%);
   }
 }

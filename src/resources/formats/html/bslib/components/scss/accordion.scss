@@ -4,7 +4,7 @@
     margin-bottom: 0;
   }
   .accordion-icon:not(:empty) {
-    margin-right: 0.25rem;
+    margin-right: 0.75rem;
     display: flex; /* Without flex, the height/alignment is messed up */
   }
   .accordion-button:not(.collapsed) {
