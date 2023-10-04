@@ -158,7 +158,7 @@ import {
   isIpynbOutput,
   isJatsOutput,
 } from "../../config/format.ts";
-import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import { fixupFrontMatter, fixupJupyterNotebook } from "./jupyter-fixups.ts";
 import {
   resolveUserExpressions,
   userExpressionsFromCell,
@@ -673,11 +673,12 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  const fixups = options.executeOptions.projectType === "book"
-    ? bookFixups
-    : undefined;
+  const notebookSource = isJupyterNotebook(options.executeOptions.target.source);
+  const hasProjectTitle = options.executeOptions.format.metadata.title;
+  const isBook = options.executeOptions.projectType === "book";
+  const excludeFixups = (!notebookSource || hasProjectTitle || isBook) ? [fixupFrontMatter] : undefined;
 
-  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
+  nb = fixupJupyterNotebook(nb, "default", excludeFixups);
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb
@@ -728,10 +729,6 @@ export async function jupyterToMarkdown(
         md.push("\n:::::::::: notes\n\n");
       }
     }
-
-    // find the first yaml metadata block and hold it out
-    // note if it has a title
-    // at the end, if it doesn't have a title, then snip the title out
 
     // markdown from cell
     switch (cell.cell_type) {

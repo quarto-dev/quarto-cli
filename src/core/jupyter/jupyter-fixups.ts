@@ -7,6 +7,8 @@
 import { stringify } from "yaml/mod.ts";
 import { warning } from "log/mod.ts";
 
+import * as ld from "../../core/lodash.ts";
+
 import { kTitle } from "../../config/constants.ts";
 import { Metadata } from "../../config/types.ts";
 import { lines } from "../lib/text.ts";
@@ -227,6 +229,7 @@ const defaultFixups: ((
   fixupStreams,
 ];
 
+// minimal fixups: used e.g. when embedding a notebook
 const minimalFixups: ((
   nb: JupyterNotebook,
 ) => JupyterNotebook)[] = [
@@ -234,19 +237,15 @@ const minimalFixups: ((
   fixupStreams,
 ];
 
-// books can't have the front matter fixup
-export const bookFixups: JupyterFixup[] = [
-  fixupBokehCells,
-];
-
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
   nbFixups: "minimal" | "default",
-  explicitFixups?: JupyterFixup[],
+  excludeFixups?: JupyterFixup[],
 ): JupyterNotebook {
-  const fixups = explicitFixups || nbFixups === "minimal"
-    ? minimalFixups
-    : defaultFixups;
+  let fixups = nbFixups === "minimal" ? minimalFixups : defaultFixups;
+  if (excludeFixups) {
+    fixups = ld.difference(fixups, excludeFixups);
+  }
   for (const fixup of fixups) {
     nb = fixup(nb);
   }

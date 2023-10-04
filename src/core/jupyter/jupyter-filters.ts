@@ -30,9 +30,11 @@ export async function markdownFromNotebookFile(file: string, format?: Format) {
   return markdownFromNotebookJSON(nb);
 }
 
-export function markdownFromNotebookJSON(nb: JupyterNotebook) {
-  // run the front matter fixup
-  nb = fixupFrontMatter(nb);
+export function markdownFromNotebookJSON(nb: JupyterNotebook, hasProjectTitle?: boolean) {
+  if (!hasProjectTitle) {
+    // run the front matter fixup
+    nb = fixupFrontMatter(nb);
+  }
 
   const markdown = nb.cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {

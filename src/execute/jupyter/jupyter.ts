@@ -156,9 +156,10 @@ export const jupyterEngine: ExecutionEngine = {
 
     if (markdown === undefined) {
       if (isJupyterNotebook(file)) {
+        const hasProjectTitle = !!project?.config?.title;
         const nbJSON = Deno.readTextFileSync(file);
         nb = JSON.parse(nbJSON) as JupyterNotebook;
-        markdown = asMappedString(markdownFromNotebookJSON(nb));
+        markdown = asMappedString(markdownFromNotebookJSON(nb, hasProjectTitle));
       } else if (isPercentScript) {
         markdown = asMappedString(markdownFromJupyterPercentScript(file));
       } else {
@@ -327,6 +328,7 @@ export const jupyterEngine: ExecutionEngine = {
       options.target.input,
       options.format.pandoc.to,
     );
+
     // NOTE: for perforance reasons the 'nb' is mutated in place
     // by jupyterToMarkdown (we don't want to make a copy of a
     // potentially very large notebook) so should not be relied
