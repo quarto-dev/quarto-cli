@@ -197,6 +197,7 @@ function dashboardHtmlPostProcessor(
         if (rowEl.classList.contains("fill")) {
           rowEl.classList.remove("fill");
           rowSize = "1fr";
+          rowEl.classList.add("html-fill-container");
         }
 
         const rowCount = rowEl.childElementCount;
@@ -222,6 +223,7 @@ function dashboardHtmlPostProcessor(
         if (colEl.classList.contains("fill")) {
           colEl.classList.remove("fill");
           colSize = "1fr";
+          colEl.classList.add("html-fill-container");
         } else {
           colEl.classList.add("no-fill");
         }
@@ -328,5 +330,5 @@ const kSkipContainerClz: string[] = [
   "value-box-title",
   "value-box-value",
 ];
-const kSkipFillClz: string[] = ["bi", "no-fill"];
+const kSkipFillClz: string[] = ["bi", "no-fill", "callout"];
 const kSkipFillTagz = ["P", "FIGCAPTION"];

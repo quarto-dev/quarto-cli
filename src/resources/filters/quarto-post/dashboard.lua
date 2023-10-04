@@ -11,15 +11,18 @@ end
 
 local function popImagePara(el)
 
-  return _quarto.ast.walk(el, {
-    Para = function(para)
-      if #para.content == 1 then
-        return para.content[1]
+  if el.t == "Para" and #el.content == 1 then
+    return el.content
+  else
+    return _quarto.ast.walk(el, {
+      Para = function(para)
+        if #para.content == 1 then
+          return para.content[1]
+        end
+        return para
       end
-      return para
-    end
-  })
-
+    })  
+  end
 end
 
 local function makeRows(content, fill)
@@ -27,7 +30,6 @@ local function makeRows(content, fill)
   if fill ~= false then
     clz:insert("fill")
   end
-
   return pandoc.Div(content, pandoc.Attr("", clz))
 end
 
@@ -36,7 +38,6 @@ local function makeCols(content, fill)
   if fill ~= false then
     clz:insert("fill")
   end
-
   return pandoc.Div(content, pandoc.Attr("", clz))
 end
 
@@ -57,8 +58,15 @@ local function makeCard(title, contents, classes)
   -- compute the card contents
   local cardContents = pandoc.List({})
   if title ~= nil then
-    local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
-    cardContents:insert(titleDiv)
+    if pandoc.utils.type(title) == "table" and #title > 0 then
+      local titleDiv = pandoc.Div(title, pandoc.Attr("", {"card-header"}))
+      cardContents:insert(titleDiv)  
+    else
+      local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {"card-header"}))
+      cardContents:insert(titleDiv)
+    end
+
+
   end
 
   -- pop paragraphs with only figures to the top
@@ -143,6 +151,20 @@ function render_dashboard()
     },
     {
       traverse = 'topdown',
+      PanelLayout = function(el)
+
+        local result = makeRows({}, true)
+        for i, row in ipairs(el.rows.content) do    
+          
+          local colsEl = makeCols({}, true)
+          for j, cell_div in ipairs(row.content) do
+            colsEl.content:insert(makeCard(nil, cell_div.content))
+          end
+          result.content:insert(colsEl)
+        end
+        return result, false
+        
+      end,
       Div = function(el) 
 
         if el.classes:includes('card') then
@@ -152,8 +174,7 @@ function render_dashboard()
           local cardHeader = el.content[1]
           local cardBody = el.content[2]
           local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes('card-header')
-          local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes('card-body')
-          if hasHeader and hasBody then
+          local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes('card-body')          if hasHeader and hasBody then
             return nil
           end
 
@@ -168,22 +189,21 @@ function render_dashboard()
             contents = tslice(el.content, 2)
           end
           return makeCard(title, contents), false
+
         elseif el.classes:includes('valuebox') then
 
           local header = el.content[1]
           local title = {}
           local value = el.content
           local content = {}
-          local icon = el.attributes['icon']
-          local showcase = el.attributes['showcase'] or 'left-center'
+          local icon = el.attributes['icon']          local showcase = el.attributes['showcase'] or 'left-center'
 
           if header.t == "Header" then
             title = header.content
             value = tslice(el.content, 2)
           end
           
-          local function showcaseClz(showcase)
-            -- top-right
+          local function showcaseClz(showcase)            -- top-right
             -- left-center
             -- bottom
             return 'showcase-' .. showcase
@@ -207,19 +227,20 @@ function render_dashboard()
             if level == 2 then
               local orientation = dashboardParam('orientation', 'columns')
               local fill = header.attr.classes:includes("fill") or not header.attr.classes:includes("flow")
-              quarto.log.output(fill)
               -- this means columns or rows (depending upon orientation)
               local contents = tslice(el.content, 2)
               if orientation == "columns" then
-                return makeRows(contents, fill), true
+                return makeRows(contents, fill)
               else
-                return makeCols(contents, fill), true
+                return makeCols(contents, fill)
               end
             else
               local contents = tslice(el.content, 2)
-              return makeCard(header, contents), true
+              return makeCard(header, contents), false
             end
           end
+        elseif el.classes:includes('cell') then
+          return makeCard(nil, el.content), false
         end
       end,
     }
