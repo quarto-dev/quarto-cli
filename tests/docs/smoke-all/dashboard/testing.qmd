@@ -2,14 +2,12 @@
 title: "Column Orientation"
 format:
   dashboard:
-    orientation: columns
-    theme: sketchy
+    orientation: rows
 ---
     
-Column
--------------------------------------
+## Column {.flow}
 
-:::{.valuebox showcase="top-right" icon="twitter"}
+:::{.valuebox showcase="top-right" icon="arrow-up-right"}
 
 ### The value for foo
 
@@ -19,30 +17,33 @@ This is a bunch of text about that value that is so great enjoy it!
 
 :::
     
-:::{.valuebox showcase="top-right" icon="twitter"}
+:::{.valuebox showcase="top-right" icon="arrow-up-right"}
 
 ### The value for foo
 
 1,425
 
 This is a bunch of text about that value that is so great enjoy it!
+
+:::
+
+### Cool Beans
+
 
 ```{r}
+# collect items with showcase classes? 
+# ensure full structure passes through safely
+# bslib packgedown site for sparkline / zoom
+
+# remote fonts are a possible issue
+
+# move to head, one component bundle instead of many
+
+# bs3 compatiblity layer missing in (shiny emitting bs3 markup)
+
+##| classes: valuebox-showcase
 plot(cars)
 ```
-
-:::
-
-
-:::{.valuebox showcase="top-right" icon="twitter"}
-
-### The value for foo
-
-1,425
-
-This is a bunch of text about that value that is so great enjoy it!
-
-:::
 
    
 Column

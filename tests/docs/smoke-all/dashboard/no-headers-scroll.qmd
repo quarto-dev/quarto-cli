@@ -2,8 +2,9 @@
 title: No Headers
 format: 
   dashboard:
-    orientation: columns
-    scrolling: true
+    orientation: rows
+    scrolling: false
+    theme: lux
 ---
 
 ## Row 1
