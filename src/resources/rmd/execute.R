@@ -20,8 +20,13 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # rmd input filename
   rmd_input <- paste0(xfun::sans_ext(input), ".rmarkdown")
       
-  # swap out the input
-  write(markdown, rmd_input)
+  # swap out the input by reading then writing content.
+  # This handles `\r\n` EOL on windows in `markdown` string
+  # by spliting in lines
+  xfun::write_utf8(
+    xfun::read_utf8(textConnection(markdown, encoding = "UTF-8")),
+    rmd_input
+  )
   input <- rmd_input
       
   # remove the rmd input on exit
