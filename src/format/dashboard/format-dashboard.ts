@@ -172,10 +172,10 @@ function dashboardHtmlPostProcessor(
       }
 
       // The scrolling behavior
-      if (dashboard.scrolling) {
-        containerClz.push("dashboard-scrolling"); // only apply this if we aren't scrolling
-      } else {
+      if (dashboard.fill) {
         containerClz.push("bslib-page-fill"); // only apply this if we aren't scrolling
+      } else {
+        containerClz.push("dashboard-scrolling"); // only apply this if we are scrolling
       }
 
       containerClz.forEach(
