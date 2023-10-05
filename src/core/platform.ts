@@ -1,9 +1,8 @@
 /*
-* platform.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * platform.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 export function isMingw() {
   return isWindows() && !!Deno.env.get("MSYSTEM");
@@ -49,7 +48,7 @@ export function isRStudioTerminal() {
 
 export function isServerSession() {
   return isRStudioServer() || isRStudioWorkbench() || isJupyterServer() ||
-    isJupyterHubServer();
+    isJupyterHubServer() || isVSCodeServer();
 }
 
 export function isRStudioServer() {
