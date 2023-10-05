@@ -19,17 +19,7 @@ import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { RenderFlags, RenderOptions, RenderResult } from "./types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
-import {
-  isJupyterHubServer,
-  isJupyterServer,
-  isRStudioServer,
-  isRStudioWorkbench,
-  isVSCodeServer,
-  isVSCodeTerminal,
-  jupyterHubHttpReferrer,
-  jupyterHubUser,
-  vsCodeServerProxyUri,
-} from "../../core/platform.ts";
+
 import {
   isProjectInputFile,
   projectExcludeDirs,
@@ -41,7 +31,6 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
-import { execProcess } from "../../core/process.ts";
 import { normalizePath } from "../../core/path.ts";
 
 export async function render(
@@ -130,81 +119,6 @@ export async function render(
 
 export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
-}
-
-export function previewURL(host: string, port: number, path: string) {
-  // render 127.0.0.1 as localhost as not to break existing unit tests (see #947)
-  const showHost = host == "127.0.0.1" ? "localhost" : host;
-  const url = `http://${showHost}:${port}/${path}`;
-  return url;
-}
-
-export async function printBrowsePreviewMessage(
-  host: string,
-  port: number,
-  path: string,
-) {
-  if (
-    (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
-  ) {
-    const url = await rswURL(port, path);
-    info(`\nPreview server: ${previewURL(host, port, path = "")}`);
-    info(`\nBrowse at ${url}`, { format: colors.green });
-  } else if (isVSCodeTerminal() && isVSCodeServer()) {
-    const proxyUrl = vsCodeServerProxyUri()!;
-    if (proxyUrl.endsWith("/")) {
-      path = path.startsWith("/") ? path.slice(1) : path;
-    } else {
-      path = path.startsWith("/") ? path : "/" + path;
-    }
-    const browseUrl = proxyUrl.replace("{{port}}", `${port}`) +
-      path;
-    info(`\nBrowse at ${browseUrl}`, { format: colors.green });
-  } else if (isJupyterHubServer()) {
-    const httpReferrer = `${
-      jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
-    }user/${jupyterHubUser()}/`;
-    info(
-      `\nBrowse at ${httpReferrer}proxy/${port}/${path}`,
-      {
-        format: colors.green,
-      },
-    );
-  } else {
-    const url = previewURL(host, port, path);
-    if (!isRStudioServer()) {
-      info(`Browse at `, {
-        newline: false,
-        format: colors.green,
-      });
-    }
-    info(url, { format: (str: string) => colors.underline(colors.green(str)) });
-  }
-}
-
-export async function rswURL(port: number, path: string) {
-  const server = Deno.env.get("RS_SERVER_URL")!;
-  const session = Deno.env.get("RS_SESSION_URL")!;
-  const portToken = await rswPortToken(port);
-  const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
-  return url;
-}
-
-async function rswPortToken(port: number) {
-  const result = await execProcess(
-    {
-      cmd: ["/usr/lib/rstudio-server/bin/rserver-url", String(port)],
-      stdout: "piped",
-      stderr: "piped",
-    },
-  );
-  if (result.success) {
-    return result.stdout;
-  } else {
-    throw new Error(
-      `Failed to map RSW port token (status ${result.code})\n${result.stderr}`,
-    );
-  }
 }
 
 export function previewUnableToRenderResponse() {

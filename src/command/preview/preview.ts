@@ -33,12 +33,9 @@ import { kQuartoRenderCommand } from "../render/constants.ts";
 
 import {
   previewUnableToRenderResponse,
-  previewURL,
-  printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
   renderToken,
-  rswURL,
 } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
 import {
@@ -75,6 +72,7 @@ import {
   isRStudio,
   isRStudioServer,
   isRStudioWorkbench,
+  isServerSession,
   isVSCodeServer,
   vsCodeServerProxyUri,
 } from "../../core/platform.ts";
@@ -97,6 +95,11 @@ import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
 import { projectType } from "../../project/types/project-types.ts";
+import {
+  previewURL,
+  printBrowsePreviewMessage,
+  rswURL,
+} from "../../core/previewurl.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -247,7 +250,7 @@ export async function preview(
     : "";
   if (
     options.browser &&
-    !isRStudioServer() && !isRStudioWorkbench() && !isJupyterHubServer() &&
+    !isServerSession() &&
     isBrowserPreviewable(result.outputFile)
   ) {
     await openUrl(previewURL(options.host!, options.port!, initialPath));

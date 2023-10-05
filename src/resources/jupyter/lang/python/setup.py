@@ -11,6 +11,7 @@ fig_height = {1}
 fig_format = '{2}'
 fig_dpi = {3}
 interactivity = '{5}'
+is_shiny = {6}
 
 # matplotlib defaults / format
 try:
@@ -42,6 +43,15 @@ except Exception:
 if interactivity:
   from IPython.core.interactiveshell import InteractiveShell
   InteractiveShell.ast_node_interactivity = interactivity
+
+
+# shiny
+if is_shiny:
+  try:
+    import htmltools
+    htmltools.html_dependency_render_mode = "json"
+  except:
+    pass
 
 # output kernel dependencies
 kernel_deps = dict()

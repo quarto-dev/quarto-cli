@@ -533,9 +533,11 @@ async function resolveFormats(
     // default 'echo' and 'ipynb-shell-interactivity'
     // for documents with a server
     if (userFormat.metadata[kServer] !== undefined) {
+      // default echo
       if (userFormat.execute[kEcho] === undefined) {
         userFormat.execute[kEcho] = false;
       }
+      // default shell interactivity
       if (userFormat.execute[kIpynbShellInteractivity] === undefined) {
         userFormat.execute[kIpynbShellInteractivity] = "all";
       }

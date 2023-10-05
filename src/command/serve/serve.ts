@@ -12,6 +12,12 @@ import { RunOptions } from "../../execute/types.ts";
 
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
+import {
+  previewURL,
+  printBrowsePreviewMessage,
+} from "../../core/previewurl.ts";
+import { isServerSession } from "../../core/platform.ts";
+import { openUrl } from "../../core/shell.ts";
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
   const engine = await fileExecutionEngine(options.input);
@@ -31,6 +37,21 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
             throw result.error;
           }
         }
+
+        // TODO: actually wait for shiny to be ready and then
+        // print the message / launch the browser
+
+        setTimeout(async () => {
+          printBrowsePreviewMessage(
+            options.host!,
+            options.port!,
+            "",
+          );
+          if (options.browser && !isServerSession()) {
+            await openUrl(previewURL(options.host!, options.port!, ""));
+          }
+        }, 500);
+
         await engine.run({ ...options, input: options.input });
         return processSuccessResult();
       } finally {

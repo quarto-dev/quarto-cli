@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
@@ -97,6 +97,8 @@ import {
   kJupyterPercentScriptExtensions,
   markdownFromJupyterPercentScript,
 } from "./percent.ts";
+import { execProcess } from "../../core/process.ts";
+import { isServerShiny } from "../../core/render.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -336,7 +338,9 @@ export const jupyterEngine: ExecutionEngine = {
         language: nb.metadata.kernelspec.language.toLowerCase(),
         assets,
         execute: options.format.execute,
-        keepHidden: options.format.render[kKeepHidden],
+        // TODO: we should with manucript semantics for 'keep-hidden-but-not-really'
+        keepHidden: options.format.render[kKeepHidden] ||
+          isServerShiny(options.format),
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format),
@@ -417,11 +421,19 @@ export const jupyterEngine: ExecutionEngine = {
     });
   },
 
-  run: async (_options: RunOptions): Promise<void> => {
-    const result = await pythonRunHandler.run(
-      resourcePath(join("jupyter", "shiny.py")),
-      [],
-      undefined,
+  run: async (options: RunOptions): Promise<void> => {
+    const result = await execProcess(
+      {
+        cmd: [
+          "shiny",
+          "run",
+          "--host",
+          options.host,
+          "--port",
+          String(options.port),
+        ],
+        cwd: dirname(options.input),
+      },
     );
     if (!result.success) {
       throw new Error();

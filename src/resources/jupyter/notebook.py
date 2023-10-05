@@ -78,14 +78,28 @@ def notebook_execute(options, status):
    # read variables out of format
    execute = format["execute"]
 
+   # evaluation
    eval = execute["eval"]
    allow_errors = bool(execute["error"])
+
+   # figures
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]
    fig_format = execute["fig-format"]
    fig_dpi = execute["fig-dpi"]
+
+   # shell interactivity
    interactivity = execute["ipynb-shell-interactivity"]
    if interactivity == None: interactivity = ''
+
+   # server: shiny
+   metadata = format["metadata"]
+   if "server" in metadata and "type" in metadata["server"] and metadata["server"]["type"] == "shiny": 
+      is_shiny = True
+   else:
+      is_shiny = False
+
+   # caching
    if "cache" in execute:
       cache = execute["cache"]
    else:
@@ -110,7 +124,7 @@ def notebook_execute(options, status):
       nb_parameterize(nb, params)
 
    # insert setup cell
-   setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity)
+   setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny)
    nb.cells.insert(0, setup_cell)
 
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
@@ -321,8 +335,8 @@ def notebook_init(nb, resources, allow_errors):
 def nb_write(nb, input):
    nbformat.write(nb, input, version = NB_FORMAT_VERSION)
 
-def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity):
-   return nb_language_cell('setup', kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity)
+def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny):
+   return nb_language_cell('setup', kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny)
 
 def nb_cleanup_cell(kernelspec, resource_dir):
    return nb_language_cell('cleanup', kernelspec, resource_dir)
