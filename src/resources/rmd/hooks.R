@@ -209,7 +209,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
     cell.cap <- NULL
-    fig.subcap = options[["fig.subcap"]]
+    fig.subcap <- options[["fig.subcap"]]
 
     # If we're preserving cells, we need provide a cell id
     cellId <- NULL
@@ -267,30 +267,30 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       
     # populate layout-ncol from fig.ncol
     } else if (!is.null(fig.ncol)) {
-      options[["layout-ncol"]] = fig.ncol
+      options[["layout-ncol"]] <- fig.ncol
     }
     
     # alias fig.align to layout-align
-    fig.align = options[["fig.align"]]
+    fig.align <- options[["fig.align"]]
     if (!is.null(fig.align) && !identical(fig.align, "default")) {
-      options["layout-align"] = fig.align
+      options["layout-align"] <- fig.align
     }
 
     # alias fig.valign to layout-valign
-    fig.valign = options[["fig.valign"]]
+    fig.valign <- options[["fig.valign"]]
     if (!is.null(fig.valign) && !identical(fig.valign, "default")) {
-      options["layout-valign"] = fig.valign
+      options["layout-valign"] <- fig.valign
     }
 
     # forward selected attributes
     forward <- c("layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign")
     forwardAttr <- character()
     for (attr in forward) {
-      value = options[[attr]]
+      value <- options[[attr]]
       if (!is.null(value)) {
         if (identical(attr, "layout")) {
           if (!is.character(value)) {
-            value = jsonlite::toJSON(value)
+            value <- jsonlite::toJSON(value)
           }
         }
         if (!is.null(value)) {
@@ -519,9 +519,9 @@ knitr_plot_hook <- function(format) {
     
     # are we using animation (if we are then ignore all but the last fig)
     fig.num <- options[["fig.num"]] %||% 1L
-    fig.cur = options$fig.cur %||% 1L
+    fig.cur <- options$fig.cur %||% 1L
     tikz <- knitr:::is_tikz_dev(options)
-    animate = fig.num > 1 && options$fig.show == 'animate' && !tikz
+    animate <- fig.num > 1 && options$fig.show == 'animate' && !tikz
     if (animate) {
       if (fig.cur < fig.num) {
         return ('')
