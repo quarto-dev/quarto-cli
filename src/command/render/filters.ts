@@ -82,6 +82,7 @@ import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "log/mod.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
+import { isServerShiny } from "../../core/render.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -103,6 +104,8 @@ const kQuartoVersion = "quarto-version";
 const kQuartoSource = "quarto-source";
 
 const kQuartoCustomFormat = "quarto-custom-format";
+
+const kIsShiny = "is-shiny";
 
 export async function filterParamsJson(
   args: string[],
@@ -162,6 +165,7 @@ export async function filterParamsJson(
       jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
     [kFormatIdentifier]: options.format.identifier,
+    [kIsShiny]: isServerShiny(options.format),
   };
   return JSON.stringify(params);
 }

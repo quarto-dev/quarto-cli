@@ -46,7 +46,7 @@ if interactivity:
 
 
 # shiny
-if is_shiny: 
+if is_shiny:
   try:
     import htmltools
     htmltools.html_dependency_render_mode = "json"
