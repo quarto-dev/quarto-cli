@@ -11,6 +11,13 @@ local kCardClz = "card"
 local kCardHeaderClz = "card-header"
 local kCardBodyClz = "card-body"
 
+-- Card Attributes
+local kFullScreen = "full-screen"
+local kFullScreenOut = "data-full-screen"
+local kScrolling = "scrolling"
+local kfullBleed = "full-bleed"
+
+
 -- Valuebox classes
 local kValueBoxClz = "valuebox"
 local kValueBoxShowcaseClz = "value-box-showcase"
@@ -92,7 +99,7 @@ end
 -- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
 --   .card-header
 --   .card-body[max-height, min-height]
-local function makeCard(title, contents, classes)  
+local function makeCard(title, contents, classes, options)  
 
   -- compute the card contents
   local cardContents = pandoc.List({})
@@ -117,7 +124,14 @@ local function makeCard(title, contents, classes)
     clz:extend(classes)
   end
 
-  return pandoc.Div(cardContents, pandoc.Attr("", clz))
+  local cardAttributes = pandoc.Attr("", clz)
+
+  -- add any outer attributes
+  options = options or {}
+  if options[kFullScreen] then
+    cardAttributes.attributes[kFullScreenOut] = "true"
+  end 
+  return pandoc.Div(cardContents, cardAttributes)
 end
 
 
@@ -137,6 +151,11 @@ end
 --       .value-box-title
 --       .value-box-value
 --        other content
+--  attributes
+--    full-screen
+--    scrolling
+--    full-bleed
+
 local function makeValueBox(title, value, icon, content, showcase, classes) 
   if value == nil then
     error("Value boxes must have a value")
@@ -226,7 +245,13 @@ function render_dashboard()
             title = header
             contents = tslice(el.content, 2)
           end
-          return makeCard(title, contents), false
+
+          
+          local options = {}
+          if el.classes:includes(kFullScreen) then
+            options[kFullScreen] = true
+          end
+          return makeCard(title, contents, {}, options), false
 
         elseif el.classes:includes(kValueBoxClz) then
 

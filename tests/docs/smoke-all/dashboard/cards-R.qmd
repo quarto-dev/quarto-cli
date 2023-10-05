@@ -1,0 +1,15 @@
+---
+title: Test R
+format: html
+---
+
+
+
+```{r}
+library(bslib)
+plot_card <- card(
+  full_screen = TRUE,
+  "Hello World"
+)
+plot_card
+```

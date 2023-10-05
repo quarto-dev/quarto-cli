@@ -1,0 +1,16 @@
+---
+title: Card Examples
+format: dashboard
+---
+
+:::{.card .full-screen}
+
+### Title
+
+```{r}
+plot(cars)
+```
+
+:::
+
+

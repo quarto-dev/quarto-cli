@@ -17,6 +17,7 @@ import {
 } from "../../config/constants.ts";
 import {
   DependencyFile,
+  DependencyHtmlFile,
   Format,
   FormatExtras,
   kDependencies,
@@ -92,21 +93,32 @@ export function dashboardFormat() {
           orientation: dashboard.orientation,
         };
 
-        const scripts: DependencyFile[] = [];
+        const scripts: DependencyHtmlFile[] = [];
         const stylesheets: DependencyFile[] = [];
-        ["components", "web-components"].forEach(
-          (name) => {
-            const componentDir = join(
-              "bslib",
-              "components",
-              "dist",
-            );
+
+        const componentDir = join(
+          "bslib",
+          "components",
+          "dist",
+        );
+
+        [{ name: "components", module: false }, {
+          name: "web-components",
+          module: true,
+        }].forEach(
+          (dependency) => {
+            const attribs: Record<string, string> = {};
+            if (dependency.module) {
+              attribs["type"] = "module";
+            }
+
             scripts.push({
-              name: `${name}.js`,
+              name: `${dependency.name}.js`,
               path: formatResourcePath(
                 "html",
-                join(componentDir, `${name}.js`),
+                join(componentDir, `${dependency.name}.js`),
               ),
+              attribs,
             });
           },
         );
@@ -277,9 +289,7 @@ function dashboardHtmlPostProcessor(
       cardEl.classList.add("bslib-card");
       cardEl.classList.add("html-fill-container");
       cardEl.setAttribute("data-bslib-card-init", "");
-      cardEl.setAttribute("data-full-screen", "false");
       cardEl.setAttribute("data-require-bs-caller", "card()");
-      cardEl.setAttribute("data-bslib-card-init", null);
 
       // Recursively make contents of card fill items / containers
       const cardBodyEl = cardEl.querySelector(".card-body");
@@ -287,11 +297,22 @@ function dashboardHtmlPostProcessor(
         recursiveApplyFillClasses(cardBodyEl);
       }
 
-      const shellEl = doc.createElement("div");
-      shellEl.innerHTML = expandBtnHtml;
-      while (shellEl.children.length > 0) {
-        cardEl.appendChild(shellEl.children[0]);
+      // See whether this card is expandable
+      const attrFullScreen = cardEl.getAttribute("data-full-screen");
+      if (attrFullScreen === "true") {
+        const shellEl = doc.createElement("div");
+        shellEl.innerHTML = expandBtnHtml;
+        for (const childEl of shellEl.children) {
+          cardEl.appendChild(childEl);
+        }
+        cardEl.setAttribute("data-full-screen", "false");
       }
+
+      // Initialize the cards
+      const scriptInitEl = doc.createElement("script");
+      scriptInitEl.setAttribute("data-bslib-card-init", "");
+      scriptInitEl.innerText = "bslib.Card.initializeAllCards();";
+      cardEl.appendChild(scriptInitEl);
     }
 
     // Process value boxes
@@ -323,8 +344,6 @@ const expandBtnHtml = `
         <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
     </span>
 </bslib-tooltip>
-<script data-bslib-card-init>bslib.Card.initializeAllCards();</script>
-
 `;
 
 const recursiveApplyFillClasses = (el: Element) => {
