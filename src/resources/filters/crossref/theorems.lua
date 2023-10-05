@@ -3,7 +3,7 @@
 
 -- preprocess theorem to ensure that embedded headings are unnumered
 function crossref_preprocess_theorems()
-  local types = theoremTypes
+  local types = theorem_types
   return {
     Div = function(el)
       local type = refType(el.attr.identifier)
@@ -22,84 +22,22 @@ end
 
 function crossref_theorems()
 
-  local types = theoremTypes
+  local types = theorem_types
 
   return {
+    Theorem = function(thm)
+      local label = thm.identifier
+      local type = refType(label)
+      thm.order = indexNextOrder(type)
+      indexAddEntry(label, nil, thm.order, { thm.name })
+      return thm
+    end,
     Div = function(el)
 
       local type = refType(el.attr.identifier)
       local theoremType = types[type]
       if theoremType then
-
-        -- add class for type
-        el.attr.classes:insert("theorem")
-        if theoremType.env ~= "theorem" then
-          el.attr.classes:insert(theoremType.env)
-        end
-        
-        -- capture then remove name
-        local name = markdownToInlines(el.attr.attributes["name"])
-        if not name or #name == 0 then
-          name = resolveHeadingCaption(el)
-        end
-        el.attr.attributes["name"] = nil 
-        
-        -- add to index
-        local label = el.attr.identifier
-        local order = indexNextOrder(type)
-        indexAddEntry(label, nil, order, name)
-        
-        -- If this theorem has no content, then create a placeholder
-        if #el.content == 0 or el.content[1].t ~= "Para" then
-          tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
-        end
-      
-        if _quarto.format.isLatexOutput() then
-          local preamble = pandoc.Para(pandoc.RawInline("latex", 
-            "\\begin{" .. theoremType.env .. "}"))
-          preamble.content:insert(pandoc.RawInline("latex", "["))
-          if name then
-            tappend(preamble.content, name) 
-          end
-          preamble.content:insert(pandoc.RawInline("latex", "]"))
-          preamble.content:insert(pandoc.RawInline("latex",
-            "\\protect\\hypertarget{" .. label .. "}{}\\label{" .. label .. "}")
-          )
-          el.content:insert(1, preamble)
-          el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
-            "\\end{" .. theoremType.env .. "}"
-          )))
-          -- Remove id on those div to avoid Pandoc inserting \hypertaget #3776
-          el.attr.identifier = ""
-        elseif _quarto.format.isJatsOutput() then
-
-          -- JATS XML theorem
-          local lbl = captionPrefix(nil, type, theoremType, order)
-          el = jatsTheorem(el, lbl, name)          
-          
-        else
-          -- create caption prefix
-          local captionPrefix = captionPrefix(name, type, theoremType, order)
-          local prefix =  { 
-            pandoc.Span(
-              pandoc.Strong(captionPrefix), 
-              pandoc.Attr("", { "theorem-title" })
-            )
-          }
-
-          -- prepend the prefix
-          local caption = el.content[1]
-
-          if caption.content == nil then
-            -- https://github.com/quarto-dev/quarto-cli/issues/2228
-            -- caption doesn't always have a content field; in that case,
-            -- use the parent?
-            tprepend(el.content, prefix)
-          else
-            tprepend(caption.content, prefix)
-          end
-        end
-
+        internal_error()
       else
         -- see if this is a proof, remark, or solution
         local proof = proofType(el)
@@ -237,7 +175,7 @@ end
 function theoremLatexIncludes()
   
   -- determine which theorem types we are using
-  local types = theoremTypes
+  local types = theorem_types
   local refs = tkeys(crossref.index.entries)
   local usingTheorems = crossref.usingTheorems
   for k,v in pairs(crossref.index.entries) do

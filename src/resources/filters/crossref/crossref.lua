@@ -116,6 +116,7 @@ import("../customnodes/decoratedcodeblock.lua")
 import("../customnodes/callout.lua")
 import("../customnodes/panel-tabset.lua")
 import("../customnodes/floatreftarget.lua")
+import("../customnodes/theorem.lua")
 
 import("../quarto-init/metainit.lua")
 
@@ -171,7 +172,7 @@ local quarto_normalize_filters = {
     name = "normalize-combine-2", 
     filter = combineFilters({
       parse_md_in_html_rawblocks(),
-      parse_floats(),
+      parse_reftargets(),
     }),
   },
 }
