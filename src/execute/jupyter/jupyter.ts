@@ -98,6 +98,7 @@ import {
   markdownFromJupyterPercentScript,
 } from "./percent.ts";
 import { execProcess } from "../../core/process.ts";
+import { isServerShiny } from "../../core/render.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -337,7 +338,9 @@ export const jupyterEngine: ExecutionEngine = {
         language: nb.metadata.kernelspec.language.toLowerCase(),
         assets,
         execute: options.format.execute,
-        keepHidden: options.format.render[kKeepHidden],
+        // TODO: we should with manucript semantics for 'keep-hidden-but-not-really'
+        keepHidden: options.format.render[kKeepHidden] ||
+          isServerShiny(options.format),
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format),
