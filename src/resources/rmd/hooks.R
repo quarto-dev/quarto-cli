@@ -228,10 +228,12 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # caption output
-    if (!is.null(fig.cap) && !is.null(fig.subcap)) {
-      cell.cap <- paste0("\n", fig.cap, "\n")
-    }  else {
+    if (is.null(fig.cap)) {
+      # don't use label on cell if no caption
       label <- NULL
+    } else if (!is.null(fig.subcap)) {
+      # put caption in cells div if fig.subcap is non-empty
+      cell.cap <- paste0("\n", fig.cap, "\n")
     }
 
     # synthesize layout if we have fig.sep
