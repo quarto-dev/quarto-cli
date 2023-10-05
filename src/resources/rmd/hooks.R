@@ -223,7 +223,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       figs <- length(regmatches(x, gregexpr(placeholder, x, fixed = TRUE))[[1]])
       for (i in 1:figs) {
         suffix <- ifelse(figs > 1, paste0("-", i), "")
-        x <- sub(placeholder, paste0(label, suffix), fixed = TRUE, x)
+        x <- sub(placeholder, paste0(label, suffix), x, fixed = TRUE)
       }
     }
 
