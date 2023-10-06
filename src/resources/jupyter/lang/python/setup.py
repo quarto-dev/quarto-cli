@@ -44,15 +44,6 @@ if interactivity:
   from IPython.core.interactiveshell import InteractiveShell
   InteractiveShell.ast_node_interactivity = interactivity
 
-
-# shiny
-if is_shiny:
-  try:
-    import htmltools
-    htmltools.html_dependency_render_mode = "json"
-  except:
-    pass
-
 # output kernel dependencies
 kernel_deps = dict()
 for module in list(sys.modules.values()):
@@ -79,6 +70,22 @@ if r'{4}':
 # reset state
 %reset
 
+# shiny
+# Checking for shiny by using {6} directly because we're after the %reset. We don't want
+# to set a variable that stays in global scope.
+if {6}:
+  try:
+    import htmltools
+    htmltools.html_dependency_render_mode = "json"
+    try:
+      # IPython 7.14 preferred import
+      from IPython.display import display
+    except:
+      from IPython.core.display import display
+    output = display
+  except:
+    pass
+
 def ojs_define(**kwargs):
   import json
   try:
@@ -101,7 +108,7 @@ def ojs_define(**kwargs):
       return dict((k,v) for (k,v) in zip(j["index"], j["data"]))
     else:
       return v
-  
+
   v = dict(contents=list(dict(name=key, value=convert(value)) for (key, value) in kwargs.items()))
   display(HTML('<script type="ojs-define">' + json.dumps(v) + '</script>'), metadata=dict(ojs_define = True))
 globals()["ojs_define"] = ojs_define
