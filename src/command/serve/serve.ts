@@ -38,10 +38,8 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
           }
         }
 
-        // TODO: actually wait for shiny to be ready and then
-        // print the message / launch the browser
-
-        setTimeout(async () => {
+        // print message and open browser when ready
+        const onReady = async () => {
           printBrowsePreviewMessage(
             options.host!,
             options.port!,
@@ -50,9 +48,9 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
           if (options.browser && !isServerSession()) {
             await openUrl(previewURL(options.host!, options.port!, ""));
           }
-        }, 500);
+        };
 
-        await engine.run({ ...options, input: options.input });
+        await engine.run({ ...options, input: options.input, onReady });
         return processSuccessResult();
       } finally {
         services.cleanup();

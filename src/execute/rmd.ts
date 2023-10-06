@@ -185,11 +185,28 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   run: (options: RunOptions) => {
+    let running = false;
     return callR<void>(
       "run",
       options,
       options.tempDir,
       options.projectDir,
+      undefined,
+      // wait for 'listening' to call onReady
+      (output) => {
+        const kListeningPattern = /(Listening on) (https?:\/\/[^\n]*)/;
+        if (!running) {
+          const listeningMatch = output.match(kListeningPattern);
+          if (listeningMatch) {
+            running = true;
+            output = output.replace(kListeningPattern, "");
+            if (options.onReady) {
+              options.onReady();
+            }
+          }
+        }
+        return output;
+      },
     );
   },
 };

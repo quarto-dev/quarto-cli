@@ -159,4 +159,5 @@ export interface RunOptions {
   port: number;
   host: string;
   quiet?: boolean;
+  onReady?: () => Promise<void>;
 }

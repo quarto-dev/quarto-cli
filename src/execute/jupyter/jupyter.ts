@@ -421,6 +421,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   run: async (options: RunOptions): Promise<void> => {
+    let running = false;
     const result = await execProcess(
       {
         cmd: [
@@ -432,6 +433,21 @@ export const jupyterEngine: ExecutionEngine = {
           String(options.port),
         ],
         cwd: dirname(options.input),
+      },
+      undefined,
+      undefined,
+      (output) => {
+        if (!running) {
+          const kLocalPreviewRegex =
+            /(http:\/\/(?:localhost|127\.0\.0\.1)\:\d+\/?[^\s]*)/;
+          if (kLocalPreviewRegex.test(output)) {
+            running = true;
+            if (options.onReady) {
+              options.onReady();
+            }
+          }
+        }
+        return output;
       },
     );
     if (!result.success) {
