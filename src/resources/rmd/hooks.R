@@ -228,8 +228,8 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     }
 
     # caption output
-    if (is.null(fig.cap)) {
-      # don't use label on cell if no caption
+    if (is.null(fig.cap) || options[["fig.num"]] == 1) {
+      # don't use label on cell div if no caption or one figure only
       label <- NULL
     } else if (!is.null(fig.subcap)) {
       # put caption in cells div if fig.subcap is non-empty
