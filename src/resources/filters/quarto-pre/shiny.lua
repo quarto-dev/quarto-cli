@@ -6,8 +6,6 @@ function server_shiny()
     return {}
   end
 
-  local hasDoneShinySetup = false
-
   -- Try calling `pandoc.pipe('shiny', ...)` and if it fails, print a message
   -- about installing shiny.
   local function callPythonShiny(args)
@@ -20,7 +18,11 @@ function server_shiny()
 
     if not status then
       print(err)
-      error("Error running 'shiny' command. Perhaps you need to install the 'shiny' Python package?")
+      error(
+        "Error running command 'shiny " ..
+        table.concat(args, " ") ..
+        "'. Please make sure the 'shiny' Python package is installed."
+      )
     end
 
     return res
@@ -28,11 +30,6 @@ function server_shiny()
 
 
   local function getShinyDeps()
-    -- Relative path from the current page to the root of the site. This is needed
-    -- to find out where shinylive-sw.js is, relative to the current page.
-    -- if quarto.project.offset == nil then
-    --   error("The shiny extension must be used in a Quarto project directory (with a _quarto.yml file).")
-    -- end
     local depJson = callPythonShiny(
       { "get-shiny-deps" }
     )
@@ -43,52 +40,56 @@ function server_shiny()
 
 
 
-  -- Do one-time setup.
-  local function ensureShinySetup()
-    if hasDoneShinySetup then
-      return
-    end
-    hasDoneShinySetup = true
-
-
-    local baseDeps = getShinyDeps()
-    for idx, dep in ipairs(baseDeps) do
-      quarto.doc.add_html_dependency(dep)
-    end
-  end
-
-  -- Convert the ipynb file to app.py, by calling `shiny convert`.
-  local function runShinyConvert()
-    filename = pandoc.path.filename(quarto.doc.input_file)
-    nb_filename = pandoc.path.split_extension(filename) .. ".ipynb"
-
-    callPythonShiny(
-      { "convert", nb_filename }
-    )
-  end
-
+  local codeCells = {
+    schema_version = 1,
+    cells = {},
+    html_file = ""
+  }
 
   return {
 
+    CodeBlock = function(el)
+      if el.attr.classes:includes("python") and el.attr.classes:includes("cell-code") then
+        table.insert(codeCells.cells, { classes = el.attr.classes, text = el.text })
+      end
+
+      if el.attr.classes:includes("hidden") then
+        return nil
+      end
+
+      return el
+    end,
+
     Pandoc = function(doc)
-      ensureShinySetup()
-      runShinyConvert()
+      codeCells["html_file"] = pandoc.path.split_extension(
+        pandoc.path.filename(quarto.doc.output_file)
+      ) .. ".html"
+
+      -- Get the shiny dependency placeholder and add it to the document.
+      local baseDeps = getShinyDeps()
+      for idx, dep in ipairs(baseDeps) do
+        quarto.doc.add_html_dependency(dep)
+      end
+
+      -- Write the code cells to a temporary file.
+      codeCellsOutfile = pandoc.path.split_extension(quarto.doc.input_file) .. "-cells.tmp.json"
+      local file = io.open(codeCellsOutfile, "w")
+      if file == nil then
+        error("Error opening file: " .. codeCellsOutfile .. " for writing.")
+      end
+      file:write(quarto.json.encode(codeCells))
+      file:close()
+
+      -- Convert the json file to an app.py by calling `shiny convert-cells`.
+      -- appOutfile = pandoc.path.split_extension(pandoc.path.filename(quarto.doc.output_file)) .. "-app.py"
+      appOutfile = pandoc.path.directory(quarto.doc.output_file) .. "/app.py"
+      callPythonShiny(
+        { "cells-to-app", codeCellsOutfile, appOutfile }
+      )
+
+      os.remove(codeCellsOutfile)
     end
 
-    -- -- Reformat all heading text
-    -- function Header(el)
-    --   el.content = pandoc.Emph(el.content)
-    --   return el
-    -- end
-
-    -- function CodeBlock(el)
-    --   -- el.text = string.upper(el.text)
-    --   el.text = "--- Modified by extension ---\n" .. el.text
-    --   return el
-    -- end
   }
 
 end
-
-
-
