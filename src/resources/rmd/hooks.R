@@ -231,7 +231,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     if (is.null(fig.cap) || options[["fig.num"]] == 1) {
       # don't use label on cell div if no caption or one figure only
       label <- NULL
-    } else if (!is.null(fig.subcap)) {
+    } else {
       # put caption in cells div if fig.subcap is non-empty
       cell.cap <- paste0("\n", fig.cap, "\n")
     }
@@ -998,7 +998,8 @@ figure_cap <- function(options) {
     fig.subcap <- options[["fig.subcap"]]
     if (length(fig.subcap) != 0)
       fig.subcap
-    else if (length(fig.cap) != 0)
+    else if (length(fig.cap) != 0 && options[["fig.num"]] == 1)
+      # don't use fig.cap as subfigure caption when several figures
       fig.cap
     else
       ""
