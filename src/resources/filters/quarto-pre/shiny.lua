@@ -2,7 +2,7 @@
 -- Copyright (C) 2020-2023 Posit Software, PBC
 
 function server_shiny()
-  if not param("is-shiny", false) then
+  if not param("is-shiny-python", false) then
     return {}
   end
 

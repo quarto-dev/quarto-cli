@@ -210,6 +210,9 @@ export interface PandocOptions {
   // extra metadata to merge
   metadata?: Metadata;
 
+  // optional execution engine
+  executionEngine?: string;
+
   // optoinal project context
   project?: ProjectContext;
 

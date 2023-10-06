@@ -388,6 +388,7 @@ export const jupyterEngine: ExecutionEngine = {
 
     // return results
     return {
+      engine: kJupyterEngine,
       markdown: markdown,
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],

@@ -74,6 +74,7 @@ export const markdownEngine: ExecutionEngine = {
     }
 
     return Promise.resolve({
+      engine: kMarkdownEngine,
       markdown,
       supporting: [],
       filters: [],

@@ -92,6 +92,7 @@ export interface ExecuteResult {
   metadata?: Metadata;
   pandoc?: FormatPandoc;
   includes?: PandocIncludes;
+  engine?: string;
   engineDependencies?: Record<string, Array<unknown>>;
   preserve?: Record<string, string>;
   postProcess?: boolean;

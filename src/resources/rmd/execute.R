@@ -215,6 +215,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # results
   list(
+    engine = "knitr",
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),

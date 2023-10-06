@@ -6,6 +6,7 @@
 
 import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
+import { kJupyterEngine } from "../execute/types.ts";
 import { dirAndStem } from "./path.ts";
 import { extname } from "path/mod.ts";
 
@@ -27,6 +28,10 @@ export function figuresDir(pandocTo?: string) {
 export function isServerShiny(format: Format) {
   const server = format.metadata[kServer] as Metadata | undefined;
   return server?.["type"] === "shiny";
+}
+
+export function isServerShinyPython(format: Format, engine?: string) {
+  return isServerShiny(format) && engine === kJupyterEngine;
 }
 
 export function formatOutputFile(format: Format) {
