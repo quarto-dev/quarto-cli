@@ -232,7 +232,6 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       # don't use label on cell div if no caption or one figure only
       label <- NULL
     } else {
-      # put caption in cells div if fig.subcap is non-empty
       cell.cap <- paste0("\n", fig.cap, "\n")
     }
 
