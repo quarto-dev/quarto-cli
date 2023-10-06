@@ -189,7 +189,7 @@ function isValidRefType(type)
 end
 
 function validRefTypes()
-  local types = tkeys(theoremTypes)
+  local types = tkeys(theorem_types)
   for k, _ in pairs(crossref.categories.by_ref_type) do
     table.insert(types, k)
     -- if v.type ~= nil and not tcontains(types, v.type) then

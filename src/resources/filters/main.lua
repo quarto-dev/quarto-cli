@@ -166,6 +166,7 @@ import("./customnodes/decoratedcodeblock.lua")
 import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
 import("./customnodes/floatreftarget.lua")
+import("./customnodes/theorem.lua")
 
 import("./layout/confluence.lua")
 import("./layout/ipynb.lua")

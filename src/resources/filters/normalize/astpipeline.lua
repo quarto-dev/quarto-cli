@@ -16,7 +16,7 @@ function quarto_ast_pipeline()
       name = "normalize-combine-2", 
       filter = combineFilters({
         parse_md_in_html_rawblocks(),
-        parse_floats(),
+        parse_reftargets(),
       }),
     },
   }
