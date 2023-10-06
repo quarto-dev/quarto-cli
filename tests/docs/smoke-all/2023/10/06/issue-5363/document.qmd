@@ -1,0 +1,16 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["section.level2 #my-section-heading"]
+        - ["h1.title #my-section-heading"]
+---
+
+Some paragraph
+
+## [Section title]{#my-section-heading}
+
+```{python}
+2+2
+```

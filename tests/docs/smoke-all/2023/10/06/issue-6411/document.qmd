@@ -1,0 +1,14 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["h1.title #my-doc-title", "section.level2 #my-slide-heading"]
+        - ["h1.title #my-slide-heading"]
+---
+
+## [Slide title]{#my-slide-heading}
+
+```{python}
+2+2
+```

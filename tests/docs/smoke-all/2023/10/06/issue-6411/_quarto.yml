@@ -1,0 +1,4 @@
+project:
+  output-dir: .
+
+title: "[Document title]{#my-doc-title}"
