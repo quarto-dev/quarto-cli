@@ -79,8 +79,6 @@ import {
 } from "../types.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
-import { pythonRunHandler } from "../../core/run/python.ts";
-import { resourcePath } from "../../core/resources.ts";
 
 import {
   jupyterNotebookFiltered,
