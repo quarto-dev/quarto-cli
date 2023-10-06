@@ -64,7 +64,7 @@ import {
   includesForJupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
 
-import { RenderOptions } from "../../command/render/types.ts";
+import { RenderOptions, RenderResultFile } from "../../command/render/types.ts";
 import {
   DependenciesOptions,
   ExecuteOptions,
@@ -96,7 +96,8 @@ import {
   markdownFromJupyterPercentScript,
 } from "./percent.ts";
 import { execProcess } from "../../core/process.ts";
-import { isServerShiny } from "../../core/render.ts";
+import { inputFilesDir, isServerShiny } from "../../core/render.ts";
+import { relative } from "https://deno.land/std@0.185.0/path/posix.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -453,6 +454,23 @@ export const jupyterEngine: ExecutionEngine = {
     if (!result.success) {
       throw new Error();
     }
+  },
+
+  postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {
+    // discover non _files dir resources for server: shiny and ammend app.py with them
+    files.filter((file) => isServerShiny(file.format)).forEach((file) => {
+      const [dir, stem] = dirAndStem(file.input);
+      const filesDir = join(dir, inputFilesDir(file.input));
+      const extraResources = file.resourceFiles
+        .filter((resource) => !resource.startsWith(filesDir))
+        .map((resource) => relative(dir, resource));
+      const appScript = join(dir, "app.py"); // or join(dir, `${stem}-app.py`);
+      if (existsSync(appScript)) {
+        // TODO: extraResoures is an array of relative paths to resources
+        // that are NOT in the _files dir. these should be injected into
+        // the appropriate place in appScript
+      }
+    });
   },
 
   postprocess: (options: PostProcessOptions) => {

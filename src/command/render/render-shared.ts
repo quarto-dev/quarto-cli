@@ -94,8 +94,8 @@ export async function render(
 
   const excludeDirs = context ? projectExcludeDirs(context) : [];
 
-  // return files
-  return {
+  // compute render result
+  const renderResult = {
     context,
     files: await Promise.all(result.files.map(async (file) => {
       const resourceFiles = await resourceFilesFromRenderedFile(
@@ -115,6 +115,14 @@ export async function render(
     })),
     error: result.error,
   };
+
+  // if there was no error then call postRender hook for engine
+  if (!renderResult.error && engine?.postRender) {
+    await engine.postRender(renderResult.files, renderResult.context);
+  }
+
+  // return
+  return renderResult;
 }
 
 export function printWatchingForChangesMessage() {

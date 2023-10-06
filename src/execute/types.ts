@@ -11,7 +11,7 @@ import {
 import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-import { RenderOptions } from "../command/render/types.ts";
+import { RenderOptions, RenderResultFile } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { ProjectContext } from "../project/types.ts";
@@ -55,6 +55,10 @@ export interface ExecutionEngine {
   intermediateFiles?: (input: string) => string[] | undefined;
   ignoreDirs?: () => string[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
+  postRender?: (
+    files: RenderResultFile[],
+    project?: ProjectContext,
+  ) => Promise<void>;
 }
 
 // execution target (filename and context 'cookie')
