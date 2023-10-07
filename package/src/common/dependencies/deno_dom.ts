@@ -13,7 +13,6 @@ import { Dependency } from "./dependencies.ts";
 
 export function deno_dom(version: string): Dependency {
   const deno_dom_release = (filename: string, baseUrl="https://github.com/b-fuze/deno-dom") => {
-    console.log("USING URL " + baseUrl);
     return {
       filename,
       url:
