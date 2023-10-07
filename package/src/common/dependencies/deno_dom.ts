@@ -12,11 +12,12 @@ import { Configuration } from "../config.ts";
 import { Dependency } from "./dependencies.ts";
 
 export function deno_dom(version: string): Dependency {
-  const deno_dom_release = (filename: string) => {
+  const deno_dom_release = (filename: string, baseUrl="https://github.com/b-fuze/deno-dom") => {
+    console.log("USING URL " + baseUrl);
     return {
       filename,
       url:
-        `https://github.com/b-fuze/deno-dom/releases/download/${version}/${filename}`,
+        `${baseUrl}/releases/download/${version}/${filename}`,
       configure: async (config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
@@ -34,6 +35,10 @@ export function deno_dom(version: string): Dependency {
     };
   };
 
+  const deno_dom_release_dragonstyle = (filename: string) => {
+    return deno_dom_release(filename, "https://github.com/dragonstyle/deno-dom")
+  }
+
   return {
     name: "deno_dom",
     bucket: "deno_dom",
@@ -46,6 +51,7 @@ export function deno_dom(version: string): Dependency {
       },
       "aarch64": {
         linux: deno_dom_release("libplugin-linux-aarch64.so"),
+        darwin: deno_dom_release_dragonstyle("libplugin.dylib")
       },
     },
   };
