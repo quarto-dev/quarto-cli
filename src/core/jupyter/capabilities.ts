@@ -25,8 +25,9 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 
   if (!jupyterCapsCache.has(language)) {
     // if we are targeting julia then prefer the julia installed miniconda
+    let juliaCaps: JupyterCapabilities | undefined;
     if (language === "julia") {
-      const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
+      juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
       if (juliaCaps) {
         jupyterCapsCache.set(language, juliaCaps);
         return juliaCaps;
