@@ -1004,7 +1004,7 @@ const codeAnnotationPostProcessor = () => {
   };
 };
 
-const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d)(.*)/g;
+const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d+)(.*)/g;
 const codeListAnnotationPostProcessor = () => {
   return (line: string): string | undefined => {
     return line.replaceAll(
