@@ -83,6 +83,7 @@ import { debug } from "log/mod.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -106,6 +107,7 @@ const kQuartoSource = "quarto-source";
 const kQuartoCustomFormat = "quarto-custom-format";
 
 const kIsShinyPython = "is-shiny-python";
+const kShinyPythonExec = "shiny-python-exec";
 
 export async function filterParamsJson(
   args: string[],
@@ -141,6 +143,11 @@ export async function filterParamsJson(
     options.format.metadata,
   );
 
+  const isShinyPython = isServerShinyPython(
+    options.format,
+    options.executionEngine,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -165,10 +172,8 @@ export async function filterParamsJson(
       jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
     [kFormatIdentifier]: options.format.identifier,
-    [kIsShinyPython]: isServerShinyPython(
-      options.format,
-      options.executionEngine,
-    ),
+    [kIsShinyPython]: isShinyPython,
+    [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
   };
   return JSON.stringify(params);
 }

@@ -6,13 +6,23 @@ function server_shiny()
     return {}
   end
 
+  -- get python exec
+  local pythonExec = param("shiny-python-exec", { "python" })
+
   -- Try calling `pandoc.pipe('shiny', ...)` and if it fails, print a message
   -- about installing shiny.
   local function callPythonShiny(args)
+    -- build command and args
+    local command = pythonExec[1]
+    tprepend(args, { "-m", "shiny" })
+    if #pythonExec > 1 then
+      tprepend(args, tslice(pythonExec, 2, #pythonExec))
+    end
+    
     local res
     local status, err = pcall(
       function()
-        res = pandoc.pipe("shiny", args, "")
+        res = pandoc.pipe(command, args, "")
       end
     )
 
