@@ -49,6 +49,7 @@ import { renderFormats } from "../render/render-contexts.ts";
 import { Format } from "../../config/types.ts";
 import { isServerShiny } from "../../core/render.ts";
 import { serve } from "../serve/serve.ts";
+import { previewShiny } from "./preview-shiny.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -273,12 +274,13 @@ export const previewCommand = new Command()
       // get project and preview format
       const project = await projectContext(dirname(file));
       const format = await previewFormat(file, flags.to, project);
+
+      // see if this is server: shiny document and if it is then forward to previewShiny
       if (isHtmlOutput(format)) {
-        // see if this is server: shiny document and if it is then forward to serve
         const renderFormat = (await renderFormats(file, format, project))
           ?.[format] as Format | undefined;
-        if (isServerShiny(renderFormat)) {
-          const result = await serve({
+        if (renderFormat && isServerShiny(renderFormat)) {
+          const result = await previewShiny({
             input: file,
             render: !!options.render,
             port: typeof (options.port) === "string"
@@ -288,6 +290,7 @@ export const previewCommand = new Command()
             browser: options.browser,
             projectDir: project?.dir,
             tempDir: Deno.makeTempDirSync(),
+            format: renderFormat,
           });
           Deno.exit(result.code);
         }
