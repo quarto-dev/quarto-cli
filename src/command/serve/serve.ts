@@ -15,11 +15,13 @@ import { renderServices } from "../render/render-services.ts";
 import {
   previewURL,
   printBrowsePreviewMessage,
+  resolveHostAndPort,
 } from "../../core/previewurl.ts";
 import { isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
+  const { host, port } = await resolveHostAndPort(options);
   const engine = await fileExecutionEngine(options.input);
   if (engine?.run) {
     const target = await engine.target(options.input, options.quiet);
@@ -40,13 +42,9 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
 
         // print message and open browser when ready
         const onReady = async () => {
-          printBrowsePreviewMessage(
-            options.host!,
-            options.port!,
-            "",
-          );
+          printBrowsePreviewMessage(host, port, "");
           if (options.browser && !isServerSession()) {
-            await openUrl(previewURL(options.host!, options.port!, ""));
+            await openUrl(previewURL(host, port, ""));
           }
         };
 

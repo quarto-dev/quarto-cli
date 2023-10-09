@@ -160,8 +160,8 @@ export interface RunOptions {
   browser: boolean;
   tempDir: string;
   projectDir?: string;
-  port: number;
-  host: string;
+  port?: number;
+  host?: string;
   quiet?: boolean;
   onReady?: () => Promise<void>;
 }
