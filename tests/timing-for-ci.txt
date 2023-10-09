@@ -477,7 +477,6 @@
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/10/02/7108.qmd
         1.86 real 2.23 user 0.19 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/10/02/6568.qmd
-Command exited with non-zero status 1
         2.41 real 2.75 user 0.35 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/10/02/6853.qmd
         3.10 real 2.47 user 0.27 sys
@@ -492,7 +491,6 @@ Command exited with non-zero status 1
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/09/25/issue-6990.qmd
         3.27 real 3.53 user 0.47 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/09/26/6977.qmd
-Command exited with non-zero status 1
         1.90 real 2.19 user 0.26 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/09/21/issue-6935.qmd
         1.81 real 2.17 user 0.22 sys
@@ -501,7 +499,6 @@ Command exited with non-zero status 1
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/09/29/test.qmd
         6.89 real 6.30 user 0.87 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/09/29/7072.qmd
-Command exited with non-zero status 1
         2.27 real 2.59 user 0.30 sys
 ./smoke/smoke-all.test.ts -- docs/smoke-all/2023/09/29/7079.qmd
         2.48 real 2.85 user 0.35 sys
