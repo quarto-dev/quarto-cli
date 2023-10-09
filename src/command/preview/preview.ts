@@ -68,9 +68,7 @@ import {
   safeExistsSync,
 } from "../../core/path.ts";
 import {
-  isJupyterHubServer,
   isRStudio,
-  isRStudioServer,
   isRStudioWorkbench,
   isServerSession,
   isVSCodeServer,
