@@ -432,7 +432,8 @@ export const jupyterEngine: ExecutionEngine = {
 
   run: async (options: RunOptions): Promise<void> => {
     let running = false;
-    const appFile = options.input.replace(".qmd", "-app.py");
+    const [_dir, stem] = dirAndStem(options.input);
+    const appFile = `${stem}-app.py`;
     const result = await execProcess(
       {
         cmd: [
