@@ -23,3 +23,19 @@ Adipiscing pharetra faucibus hac quisque cum consequat, praesent ut ad ac? Velit
 
 
 :::
+
+:::{.card .expandable}
+
+:::{.columns}
+
+```{r}
+plot(cars)
+```
+
+```{r}
+plot(mtcars)
+```
+
+:::
+
+:::
