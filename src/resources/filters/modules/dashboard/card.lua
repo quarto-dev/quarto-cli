@@ -37,6 +37,28 @@ local function popImagePara(el)
   end
 end
 
+local function isCard(el) 
+  return el.classes:includes(kCardClz)
+end
+
+local function isLiteralCard(el)
+  -- it must be a div
+  if el.t ~= "Div" then
+    return false
+  end
+
+  -- it must have a header and body
+  local cardHeader = el.content[1]
+  local cardBody = el.content[2]
+  local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes(kCardHeaderClz)
+  local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes(kCardBodyClz)
+  if hasHeader and hasBody then
+    return true
+  end
+
+  return false
+end
+
 
 local function readCardOptions(el) 
   local options = {}
@@ -103,11 +125,8 @@ local function makeCard(title, contents, classes, options)
 end
 
 return {
+  isCard = isCard,
+  isLiteralCard = isLiteralCard,
   makeCard = makeCard,
   readCardOptions = readCardOptions,
-  classes = {
-    card = kCardClz,
-    body = kCardBodyClz,
-    header = kCardHeaderClz
-  }
 }

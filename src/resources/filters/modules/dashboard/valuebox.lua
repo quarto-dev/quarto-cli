@@ -31,6 +31,10 @@ local function wrapValueBox(box, showcase, classes)
 end
 
 
+local function isValueBox(el) 
+  return el.classes:includes(kValueBoxClz)
+end 
+
 -- Make a valuebox
 -- ValueBox DOM structure
 -- .card .value-box[showcase(left-center,top-right,bottom), color(scss name, actual value)]
@@ -80,10 +84,8 @@ local function makeValueBox(title, value, icon, content, showcase, classes)
 end
 
 return {
+  isValueBox = isValueBox,
   makeValueBox = makeValueBox,
-  classes = {
-    valuebox = kValueBoxClz
-  }
 }
 
 

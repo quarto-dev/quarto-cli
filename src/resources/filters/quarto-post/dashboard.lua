@@ -39,12 +39,12 @@ function render_dashboard()
     {
       traverse = 'topdown',
       PanelLayout = function(el)
-
+        -- Convert panel layouts into rows and columns using the 
+        -- dashboard syntax
         local result = dashboard.layout.makeRows({}, true)
-        for i, row in ipairs(el.rows.content) do    
-          
+        for _i, row in ipairs(el.rows.content) do              
           local colsEl = dashboard.layout.makeCols({}, true)
-          for j, cell_div in ipairs(row.content) do
+          for _j, cell_div in ipairs(row.content) do
             colsEl.content:insert(dashboard.card.makeCard(nil, cell_div.content))
           end
           result.content:insert(colsEl)
@@ -54,15 +54,11 @@ function render_dashboard()
       end,
       Div = function(el) 
 
-        if el.classes:includes(dashboard.card.classes.card) then
+        if dashboard.card.isCard(el)then
 
           -- see if the card is already in the correct structure (a single header and body)
           -- exit early, not processing if it is already processed in this way
-          local cardHeader = el.content[1]
-          local cardBody = el.content[2]
-          local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes(dashboard.card.classes.header)
-          local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes(dashboard.card.classes.body)
-          if hasHeader and hasBody then
+          if dashboard.card.isLiteralCard(el) then
             return nil
           end
 
@@ -76,12 +72,11 @@ function render_dashboard()
             title = header
             contents = tslice(el.content, 2)
           end
-
           
-          local options, userClasses = cardOptions(el)          
+          local options, userClasses = dashboard.card.readCardOptions(el)          
           return dashboard.card.makeCard(title, contents, userClasses, options), false
 
-        elseif el.classes:includes(dashboard.valuebox.classes.valuebox) then
+        elseif dashboard.valuebox.isValueBox(el) then
 
           -- We need to actually pull apart the box
           local header = el.content[1]
@@ -125,7 +120,7 @@ function render_dashboard()
                 return dashboard.layout.makeCols(contents, fill)
               end
             else
-              local options, userClasses = cardOptions(el)
+              local options, userClasses = dashboard.card.readCardOptions(el)
               local contents = tslice(el.content, 2)
               return dashboard.card.makeCard(header, contents, userClasses, options), false
             end
