@@ -43,6 +43,6 @@ src/** text eol=lf
 *.eot binary
 *.wasm binary
 *.bcmap binary
-
+*.otf binary
 
 

@@ -12,6 +12,7 @@ import { satisfies } from "semver/mod.ts";
 
 import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
+import { resourcePath } from "./resources.ts";
 
 export function typstBinaryPath() {
   return Deno.env.get("QUARTO_TYPST") ||
@@ -26,7 +27,15 @@ export async function typstCompile(
   if (!quiet) {
     typstProgress(input, output);
   }
-  const cmd = [typstBinaryPath(), "compile", input, output];
+
+  const cmd = [
+    typstBinaryPath(),
+    "compile",
+    input,
+    "--font-path",
+    resourcePath("formats/typst/fonts"),
+    output,
+  ];
   const result = await execProcess({ cmd });
   if (!quiet && result.success) {
     typstProgressDone();
@@ -58,7 +67,7 @@ export async function validateRequiredTypstVersion() {
   if (Deno.env.get("QUARTO_TYPST")) {
     const version = await typstVersion();
     if (version) {
-      const required = ">=0.5";
+      const required = ">=0.8";
       if (!satisfies(version, required)) {
         error(
           "An updated version of the Typst CLI is required for rendering typst documents.\n",
