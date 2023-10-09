@@ -5,8 +5,8 @@ _quarto:
   tests:
     html:
       ensureFileRegexMatches:
-        - ["AAAAAElFTkSuQmCC\\.png"]
         - []
+        - ["AAAAAElFTkSuQmCC\\.png"]
 ---
 
 Output of `image(volcano)` in Base64:
