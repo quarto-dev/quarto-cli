@@ -1,3 +1,6 @@
+// needed for callout support
+#import "@preview/fontawesome:0.1.0": *
+
 // Some definitions presupposed by pandoc's typst output.
 #let blockquote(body) = [
   #set text( size: 0.92em )
@@ -58,3 +61,11 @@
     it
   }
 })
+
+// 2023-10-09: #fa-icon("fa-info") is not working, so we'll eval "#fa-info()" instead
+#let callout(body: [], title: "Callout", background_color: rgb("#dddddd"), icon: none, icon_color: black) = {
+  block(breakable: false, fill: background_color, stroke: (paint: icon_color, thickness: 0.5pt, cap: "round"), width: 100%, radius: 2pt)[
+    #block(inset: 1pt, width: 100%, below: 0pt)[#block(fill: background_color, width: 100%, inset: 8pt)[#text(icon_color, weight: 900)[#icon] #title]]
+    #block(inset: 1pt, width: 100%)[#block(fill: white, width: 100%, inset: 8pt)[#body]]]
+}
+
