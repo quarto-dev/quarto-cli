@@ -336,14 +336,18 @@ export function previewRenderRequest(
 
 export async function previewRenderRequestIsCompatible(
   request: PreviewRenderRequest,
-  flags: RenderFlags,
+  format?: string,
   project?: ProjectContext,
 ) {
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
   } else {
-    const format = await previewFormat(request.path, request.format, project);
-    return format === flags.to;
+    const reqFormat = await previewFormat(
+      request.path,
+      request.format,
+      project,
+    );
+    return reqFormat === format;
   }
 }
 
@@ -722,7 +726,7 @@ function htmlFileRequestHandlerOptions(
           prevReq &&
           existsSync(prevReq.path) &&
           normalizePath(prevReq.path) === normalizePath(inputFile) &&
-          await previewRenderRequestIsCompatible(prevReq, flags)
+          await previewRenderRequestIsCompatible(prevReq, flags.to)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply

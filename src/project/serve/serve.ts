@@ -769,7 +769,7 @@ function previewControlChannelRequestHandler(
       );
       if (
         prevReq &&
-        (await previewRenderRequestIsCompatible(prevReq, flags, project))
+        (await previewRenderRequestIsCompatible(prevReq, flags.to, project))
       ) {
         if (isProjectInputFile(prevReq.path, project!)) {
           const services = renderServices();

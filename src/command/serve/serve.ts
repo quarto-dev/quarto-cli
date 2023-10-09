@@ -20,18 +20,20 @@ import {
 import { isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 
-export async function renderForServe(file: string) {
+export async function renderForServe(
+  file: string,
+  format?: string,
+) {
   const services = renderServices();
   try {
     const result = await render(file, {
       services,
       flags: {
+        to: format,
         execute: true,
       },
     });
-    if (result.error) {
-      throw result.error;
-    }
+    return result;
   } finally {
     services.cleanup();
   }
@@ -39,13 +41,16 @@ export async function renderForServe(file: string) {
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
   const { host, port } = await resolveHostAndPort(options);
-  const engine = await fileExecutionEngine(options.input);
+  const engine = fileExecutionEngine(options.input);
   if (engine?.run) {
     const target = await engine.target(options.input, options.quiet);
     if (target) {
       // render if requested
       if (options.render) {
-        await renderForServe(options.input);
+        const result = await renderForServe(options.input, options.format);
+        if (result.error) {
+          throw result.error;
+        }
       }
 
       // print message and open browser when ready

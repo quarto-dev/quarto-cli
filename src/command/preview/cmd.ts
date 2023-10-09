@@ -48,7 +48,6 @@ import { warning } from "log/mod.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { Format } from "../../config/types.ts";
 import { isServerShiny } from "../../core/render.ts";
-import { serve } from "../serve/serve.ts";
 import { previewShiny } from "./preview-shiny.ts";
 
 export const previewCommand = new Command()
@@ -290,7 +289,7 @@ export const previewCommand = new Command()
             browser: options.browser,
             projectDir: project?.dir,
             tempDir: Deno.makeTempDirSync(),
-            format: renderFormat,
+            format,
           });
           Deno.exit(result.code);
         }
@@ -376,6 +375,7 @@ export const previewCommand = new Command()
       ) {
         args.push("--to", options.render);
       }
+
       await preview(relative(Deno.cwd(), file), flags, args, {
         port: options.port,
         host: options.host,

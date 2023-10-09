@@ -159,6 +159,8 @@ export interface RunOptions {
   render: boolean;
   browser: boolean;
   tempDir: string;
+  reload?: boolean;
+  format?: string;
   projectDir?: string;
   port?: number;
   host?: string;
