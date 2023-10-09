@@ -297,16 +297,95 @@ function dashboardHtmlPostProcessor(
         recursiveApplyFillClasses(cardBodyEl);
       }
 
-      // See whether this card is expandable
-      const attrFullScreen = cardEl.getAttribute("data-full-screen");
-      if (attrFullScreen === "true") {
-        const shellEl = doc.createElement("div");
-        shellEl.innerHTML = expandBtnHtml;
-        for (const childEl of shellEl.children) {
-          cardEl.appendChild(childEl);
+      const processAndRemoveAttr = (
+        el: Element,
+        attr: string,
+        process: (el: Element, attrValue: string) => void,
+      ) => {
+        // See whether this card is expandable
+        const resolvedAttr = cardEl.getAttribute(attr);
+        if (resolvedAttr !== null) {
+          process(el, resolvedAttr);
+          el.removeAttribute(attr);
         }
-        cardEl.setAttribute("data-full-screen", "false");
+      };
+
+      const attrToStyle = (style: string) => {
+        return (el: Element, attrValue: string) => {
+          const newStyle: string[] = [];
+
+          const currentStyle = el.getAttribute("style");
+          if (currentStyle !== null) {
+            newStyle.push(currentStyle);
+          }
+          newStyle.push(`${style}: ${attrValue};`);
+          el.setAttribute("style", newStyle.join(" "));
+        };
+      };
+
+      const attrToCardBodyStyle = (style: string) => {
+        return (el: Element, attrValue: string) => {
+          const cardBodyNodes = el.querySelectorAll(".card-body");
+          for (const cardBodyNode of cardBodyNodes) {
+            const cardBodyEl = cardBodyNode as Element;
+            const newStyle: string[] = [];
+
+            const currentStyle = el.getAttribute("style");
+            if (currentStyle !== null) {
+              newStyle.push(currentStyle);
+            }
+            newStyle.push(`${style}: ${attrValue};`);
+            cardBodyEl.setAttribute("style", newStyle.join(" "));
+          }
+        };
+      };
+
+      const cardAttrHandlers = [
+        {
+          attr: "data-expandable",
+          handle: (el: Element, attrValue: string) => {
+            if (attrValue === "true") {
+              const shellEl = doc.createElement("div");
+              shellEl.innerHTML = expandBtnHtml;
+              for (const childEl of shellEl.children) {
+                el.appendChild(childEl);
+              }
+              el.setAttribute("data-full-screen", "false");
+            }
+          },
+        },
+        {
+          attr: "data-max-height",
+          handle: attrToStyle("max-height"),
+        },
+        { attr: "data-min-height", handle: attrToStyle("min-height") },
+        { attr: "data-height", handle: attrToStyle("height") },
+        { attr: "data-padding", handle: attrToCardBodyStyle("padding") },
+      ];
+
+      for (const cardAttrHandler of cardAttrHandlers) {
+        processAndRemoveAttr(
+          cardEl,
+          cardAttrHandler.attr,
+          cardAttrHandler.handle,
+        );
       }
+
+      // See whether the card is scrollable
+      processAndRemoveAttr(
+        cardEl,
+        "data-scrolling",
+        (el: Element, attrValue: string) => {
+          if (attrValue === "true") {
+            const shellEl = doc.createElement("div");
+            shellEl.innerHTML = expandBtnHtml;
+            for (const childEl of shellEl.children) {
+              el.appendChild(childEl);
+            }
+            el.setAttribute("data-full-screen", "false");
+          }
+        },
+      );
 
       // Initialize the cards
       const scriptInitEl = doc.createElement("script");
@@ -373,7 +452,7 @@ const applyFillContainerClasses = (el: Element) => {
   }
 };
 
-const kSkipContainerTagz = ["P", "FIGCAPTION"];
+const kSkipContainerTagz = ["P", "FIGCAPTION", "SCRIPT"];
 const kSkipContainerClz: string[] = [
   "bi",
   "value-box-grid",
@@ -382,4 +461,4 @@ const kSkipContainerClz: string[] = [
   "value-box-value",
 ];
 const kSkipFillClz: string[] = ["bi", "no-fill", "callout"];
-const kSkipFillTagz = ["P", "FIGCAPTION"];
+const kSkipFillTagz = ["P", "FIGCAPTION", "SCRIPT"];
