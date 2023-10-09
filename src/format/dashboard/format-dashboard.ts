@@ -291,55 +291,6 @@ function dashboardHtmlPostProcessor(
       cardEl.setAttribute("data-bslib-card-init", "");
       cardEl.setAttribute("data-require-bs-caller", "card()");
 
-      // Recursively make contents of card fill items / containers
-      const cardBodyEl = cardEl.querySelector(".card-body");
-      if (cardBodyEl) {
-        recursiveApplyFillClasses(cardBodyEl);
-      }
-
-      const processAndRemoveAttr = (
-        el: Element,
-        attr: string,
-        process: (el: Element, attrValue: string) => void,
-      ) => {
-        // See whether this card is expandable
-        const resolvedAttr = cardEl.getAttribute(attr);
-        if (resolvedAttr !== null) {
-          process(el, resolvedAttr);
-          el.removeAttribute(attr);
-        }
-      };
-
-      const attrToStyle = (style: string) => {
-        return (el: Element, attrValue: string) => {
-          const newStyle: string[] = [];
-
-          const currentStyle = el.getAttribute("style");
-          if (currentStyle !== null) {
-            newStyle.push(currentStyle);
-          }
-          newStyle.push(`${style}: ${attrValue};`);
-          el.setAttribute("style", newStyle.join(" "));
-        };
-      };
-
-      const attrToCardBodyStyle = (style: string) => {
-        return (el: Element, attrValue: string) => {
-          const cardBodyNodes = el.querySelectorAll(".card-body");
-          for (const cardBodyNode of cardBodyNodes) {
-            const cardBodyEl = cardBodyNode as Element;
-            const newStyle: string[] = [];
-
-            const currentStyle = el.getAttribute("style");
-            if (currentStyle !== null) {
-              newStyle.push(currentStyle);
-            }
-            newStyle.push(`${style}: ${attrValue};`);
-            cardBodyEl.setAttribute("style", newStyle.join(" "));
-          }
-        };
-      };
-
       const cardAttrHandlers = [
         {
           attr: "data-expandable",
@@ -371,21 +322,29 @@ function dashboardHtmlPostProcessor(
         );
       }
 
-      // See whether the card is scrollable
-      processAndRemoveAttr(
-        cardEl,
-        "data-scrolling",
-        (el: Element, attrValue: string) => {
-          if (attrValue === "true") {
-            const shellEl = doc.createElement("div");
-            shellEl.innerHTML = expandBtnHtml;
-            for (const childEl of shellEl.children) {
-              el.appendChild(childEl);
-            }
-            el.setAttribute("data-full-screen", "false");
-          }
+      const cardBodyAttrHandlers = [
+        {
+          attr: "data-max-height",
+          handle: attrToStyle("max-height"),
         },
-      );
+        { attr: "data-min-height", handle: attrToStyle("min-height") },
+        { attr: "data-height", handle: attrToStyle("height") },
+      ];
+
+      // Process card body elements (dealing with fill, attributes, etc...)
+      const cardBodyNodes = cardEl.querySelectorAll(".card-body");
+      for (const cardBodyNode of cardBodyNodes) {
+        const cardBodyEl = cardBodyNode as Element;
+        recursiveApplyFillClasses(cardBodyEl);
+
+        for (const cardBodyAttrHandler of cardBodyAttrHandlers) {
+          processAndRemoveAttr(
+            cardBodyEl,
+            cardBodyAttrHandler.attr,
+            cardBodyAttrHandler.handle,
+          );
+        }
+      }
 
       // Initialize the cards
       const scriptInitEl = doc.createElement("script");
@@ -416,6 +375,50 @@ function dashboardHtmlPostProcessor(
     return Promise.resolve(result);
   };
 }
+
+const processAndRemoveAttr = (
+  el: Element,
+  attr: string,
+  process: (el: Element, attrValue: string) => void,
+) => {
+  // See whether this card is expandable
+  const resolvedAttr = el.getAttribute(attr);
+  if (resolvedAttr !== null) {
+    process(el, resolvedAttr);
+    el.removeAttribute(attr);
+  }
+};
+
+const attrToStyle = (style: string) => {
+  return (el: Element, attrValue: string) => {
+    const newStyle: string[] = [];
+
+    const currentStyle = el.getAttribute("style");
+    if (currentStyle !== null) {
+      newStyle.push(currentStyle);
+    }
+    newStyle.push(`${style}: ${attrValue};`);
+    el.setAttribute("style", newStyle.join(" "));
+  };
+};
+
+const attrToCardBodyStyle = (style: string) => {
+  return (el: Element, attrValue: string) => {
+    const cardBodyNodes = el.querySelectorAll(".card-body");
+    for (const cardBodyNode of cardBodyNodes) {
+      const cardBodyEl = cardBodyNode as Element;
+      const newStyle: string[] = [];
+
+      const currentStyle = el.getAttribute("style");
+      if (currentStyle !== null) {
+        newStyle.push(currentStyle);
+      }
+      newStyle.push(`${style}: ${attrValue};`);
+      cardBodyEl.setAttribute("style", newStyle.join(" "));
+    }
+  };
+};
+
 const expandBtnHtml = `
 <bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
     <template>Expand</template>

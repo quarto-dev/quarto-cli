@@ -5,22 +5,18 @@ format: dashboard
 
 
 
-```{r}
-library(bslib)
-card(
-  card_header(
-    class = "bg-dark",
-    "A header"
-  ),
-  "YO dawg"
-)
-```
 
-:::{.card .full-screen}
+
+### What up dog{padding=0 max-height=500px}
 
 ```{r}
-#| echo: false
-plot(mtcars)
+library(leaflet)
+leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
 ```
 
-:::
+
+
+
+

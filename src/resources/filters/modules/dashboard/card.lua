@@ -18,6 +18,8 @@ local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kCardAttributes = pandoc.List({kPadding, kHeight, kMinHeight, kMaxHeight})
 
+local kCardBodyAttributes = pandoc.List({kHeight, kMinHeight, kMaxHeight})
+
 -- pop images out of paragraphs to the top level
 -- this is necessary to ensure things like `object-fit`
 -- will work with images (because they're directly contained)
@@ -38,7 +40,11 @@ local function popImagePara(el)
 end
 
 local function isCard(el) 
-  return el.classes:includes(kCardClz)
+  return el.t == "Div" and el.classes:includes(kCardClz)
+end
+
+local function isCardBody(el) 
+  return el.t == "Div" and el.classes:includes(kCardBodyClz)
 end
 
 local function isLiteralCard(el)
@@ -100,14 +106,40 @@ local function makeCard(title, contents, classes, options)
 
   -- pop paragraphs with only figures to the top
   local result = pandoc.List()
-  for _i,v in ipairs(contents) do
-    local popped = popImagePara(v);
-    result:insert(popped)
-  end
-  
-  local contentDiv = pandoc.Div(result, pandoc.Attr("", {kCardBodyClz}))
-  cardContents:insert(contentDiv)
 
+  local bodyContentEls = pandoc.List()
+  local function flushBodyContentEls()
+    if #bodyContentEls > 0 then
+      local contentDiv = pandoc.Div(bodyContentEls, pandoc.Attr("", {kCardBodyClz}))
+      result:insert(contentDiv)
+    end
+    bodyContentEls = pandoc.List()
+  end
+  local function addBodyContentEl(el)
+    local popped = popImagePara(el)
+    bodyContentEls:insert(popped)
+  end
+
+  for _i,v in ipairs(contents) do
+    if isCardBody(v) then
+      flushBodyContentEls()
+
+      -- forward our know attributes into data attributes
+      for k, v in ipairs(v.attr.attributes) do
+        if kCardBodyAttributes:includes(k) then
+          v.attr.attributes["data-" .. k] = pandoc.utils.stringify(v)
+          v.attr.attributes[k] = nil
+        end
+      end
+      local popped = popImagePara(v);
+      result:insert(popped)
+    else
+      addBodyContentEl(v)
+    end    
+  end
+  flushBodyContentEls()
+  cardContents:extend(result)
+  
   -- add outer classes
   local clz = pandoc.List({kCardClz})
   if classes then
@@ -117,10 +149,12 @@ local function makeCard(title, contents, classes, options)
   local cardAttributes = pandoc.Attr("", clz)
 
   -- forward options onto attributes
-  options = options or {}
+  options = options or {}  
   for k,v in pairs(options) do
-    cardAttributes.attributes['data-' .. k] = v
+    cardAttributes.attributes['data-' .. k] = pandoc.utils.stringify(v)
   end
+
+  
   return pandoc.Div(cardContents, cardAttributes)
 end
 
