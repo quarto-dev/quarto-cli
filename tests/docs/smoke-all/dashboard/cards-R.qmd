@@ -1,15 +1,26 @@
 ---
 title: Test R
-format: html
+format: dashboard
 ---
 
 
 
 ```{r}
 library(bslib)
-plot_card <- card(
-  full_screen = TRUE,
-  "Hello World"
+card(
+  card_header(
+    class = "bg-dark",
+    "A header"
+  ),
+  "YO dawg"
 )
-plot_card
 ```
+
+:::{.card .full-screen}
+
+```{r}
+#| echo: false
+plot(mtcars)
+```
+
+:::

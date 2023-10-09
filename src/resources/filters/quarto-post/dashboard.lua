@@ -302,7 +302,23 @@ function render_dashboard()
             end
           end
         elseif el.classes:includes('cell') then
-          return makeCard(nil, el.content), false
+          -- See if this cell has bslib output already
+          local hasBsLibOutput = _quarto.ast.walk(el,  {
+            Div = function(childDiv)  
+              if childDiv.classes:includes('cell-output-display') then
+                local outputStr = pandoc.utils.stringify(childDiv.content)
+                -- TODO: We probably should be a little more careful about
+                -- this check
+                hasBsLibOutput = outputStr:match('bslib-')
+              end
+            end
+          })
+
+          if hasBsLibOutput then
+            return el
+          else
+            return makeCard(nil, el.content), false
+          end
         end
       end,
     }
