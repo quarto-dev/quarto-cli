@@ -114,9 +114,16 @@ export async function archiveBinaryDependency(
     ];
     for (const platformDep of platformDeps) {
       if (platformDep) {
+        
         const dependencyAwsPath =
           `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
+        info(`Checking ${dependencyAwsPath}`);
         const response = await s3cmd("ls", [dependencyAwsPath]);
+        if (response?.includes('Unable to locate credentials')) {
+          throw new Error("Unable to locate S3 credentials, please try again.");
+        }
+        
+
         if (!response) {
           // This dependency doesn't exist, archive it
           info(
