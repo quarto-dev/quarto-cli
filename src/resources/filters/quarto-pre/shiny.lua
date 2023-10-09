@@ -80,9 +80,8 @@ function server_shiny()
       file:write(quarto.json.encode(codeCells))
       file:close()
 
-      -- Convert the json file to an app.py by calling `shiny convert-cells`.
-      -- appOutfile = pandoc.path.split_extension(pandoc.path.filename(quarto.doc.output_file)) .. "-app.py"
-      appOutfile = pandoc.path.directory(quarto.doc.output_file) .. "/app.py"
+      -- Convert the json file to myfile-app.py by calling `shiny convert-cells`.
+      appOutfile = pandoc.path.split_extension(quarto.doc.output_file) .. "-app.py"
       callPythonShiny(
         { "cells-to-app", codeCellsOutfile, appOutfile }
       )

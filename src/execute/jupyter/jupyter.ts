@@ -423,11 +423,13 @@ export const jupyterEngine: ExecutionEngine = {
 
   run: async (options: RunOptions): Promise<void> => {
     let running = false;
+    const appFile = options.input.replace(".qmd", "-app.py");
     const result = await execProcess(
       {
         cmd: [
           "shiny",
           "run",
+          appFile,
           "--host",
           options.host,
           "--port",
