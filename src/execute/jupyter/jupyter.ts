@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
@@ -40,6 +40,7 @@ import {
   kKeepHidden,
   kKeepIpynb,
   kNotebookPreserveCells,
+  kRemoveHidden,
 } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 import {
@@ -96,8 +97,7 @@ import {
   markdownFromJupyterPercentScript,
 } from "./percent.ts";
 import { execProcess } from "../../core/process.ts";
-import { inputFilesDir, isServerShiny } from "../../core/render.ts";
-import { relative } from "https://deno.land/std@0.185.0/path/posix.ts";
+import { inputFilesDir, isServerShinyPython } from "../../core/render.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -211,6 +211,17 @@ export const jupyterEngine: ExecutionEngine = {
     options: RenderOptions,
     format: Format,
   ) => {
+    // if this is shiny server and the user hasn't set keep-hidden then
+    // set it as well as the attibutes required to remove the hidden blocks
+    if (
+      isServerShinyPython(format, kJupyterEngine) &&
+      format.render[kKeepHidden] !== true
+    ) {
+      format = ld.cloneDeep(format);
+      format.render[kKeepHidden] = true;
+      format.metadata[kRemoveHidden] = "all";
+    }
+
     if (isJupyterNotebook(source)) {
       // see if we want to override execute enabled
       let executeEnabled: boolean | null | undefined;
@@ -337,9 +348,7 @@ export const jupyterEngine: ExecutionEngine = {
         language: nb.metadata.kernelspec.language.toLowerCase(),
         assets,
         execute: options.format.execute,
-        // TODO: we should with manucript semantics for 'keep-hidden-but-not-really'
-        keepHidden: options.format.render[kKeepHidden] ||
-          isServerShiny(options.format),
+        keepHidden: options.format.render[kKeepHidden],
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format),
@@ -460,13 +469,13 @@ export const jupyterEngine: ExecutionEngine = {
 
   postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {
     // discover non _files dir resources for server: shiny and ammend app.py with them
-    files.filter((file) => isServerShiny(file.format)).forEach((file) => {
+    files.filter((file) => isServerShinyPython(file.format)).forEach((file) => {
       const [dir, stem] = dirAndStem(file.input);
       const filesDir = join(dir, inputFilesDir(file.input));
       const extraResources = file.resourceFiles
         .filter((resource) => !resource.startsWith(filesDir))
         .map((resource) => relative(dir, resource));
-      const appScript = join(dir, "app.py"); // or join(dir, `${stem}-app.py`);
+      const appScript = join(dir, `${stem}-app.py`);
       if (existsSync(appScript)) {
         // TODO: extraResoures is an array of relative paths to resources
         // that are NOT in the _files dir. these should be injected into

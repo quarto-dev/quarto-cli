@@ -52,11 +52,6 @@ function server_shiny()
       if el.attr.classes:includes("python") and el.attr.classes:includes("cell-code") then
         table.insert(codeCells.cells, { classes = el.attr.classes, text = el.text })
       end
-
-      if el.attr.classes:includes("hidden") then
-        return nil
-      end
-
       return el
     end,
 
