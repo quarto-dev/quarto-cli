@@ -1,11 +1,19 @@
 -- card.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-
 -- Card classes
-local kCardClz = "card"
-local kCardHeaderClz = "card-header"
-local kCardBodyClz = "card-body"
+local kCardClass = "card"
+local kCardHeaderClass = "card-header"
+local kCardBodyClass = "card-body"
+
+-- Tabset classes
+local kTabsetClass = "tabset"
+local kTabClass = "tab"
+
+-- Implicit Card classes, these mean that this is a card
+-- even if it isn't specified
+local kCardClz = pandoc.List({kCardClass, kTabsetClass})
+local kCardBodyClz = pandoc.List({kCardBodyClass, kTabClass})
 
 -- Card classes that are forwarded to attributes
 local kExpandable = "expandable"
@@ -18,7 +26,9 @@ local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kCardAttributes = pandoc.List({kPadding, kHeight, kMinHeight, kMaxHeight})
 
-local kCardBodyAttributes = pandoc.List({kHeight, kMinHeight, kMaxHeight})
+-- Card Body Explicit Attributes
+local kBodyTitle = "title"
+local kCardBodyAttributes = pandoc.List({kBodyTitle, kHeight, kMinHeight, kMaxHeight})
 
 -- pop images out of paragraphs to the top level
 -- this is necessary to ensure things like `object-fit`
@@ -40,11 +50,15 @@ local function popImagePara(el)
 end
 
 local function isCard(el) 
-  return el.t == "Div" and el.classes:includes(kCardClz)
+  return el.t == "Div" and el.classes:find_if(function(class) 
+    return kCardClz:includes(class)
+  end) 
 end
 
 local function isCardBody(el) 
-  return el.t == "Div" and el.classes:includes(kCardBodyClz)
+  return el.t == "Div" and el.classes:find_if(function(class) 
+    return kCardBodyClz:includes(class)
+  end) 
 end
 
 local function isLiteralCard(el)
@@ -56,8 +70,8 @@ local function isLiteralCard(el)
   -- it must have a header and body
   local cardHeader = el.content[1]
   local cardBody = el.content[2]
-  local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes(kCardHeaderClz)
-  local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes(kCardBodyClz)
+  local hasHeader = cardHeader ~= nil and cardHeader.classes ~= nil and cardHeader.classes:includes(kCardHeaderClass)
+  local hasBody = cardBody ~= nil and cardBody.classes ~= nil and cardBody.classes:includes(kCardBodyClass)
   if hasHeader and hasBody then
     return true
   end
@@ -100,7 +114,7 @@ local function makeCard(title, contents, classes, options)
   -- compute the card contents
   local cardContents = pandoc.List({})
   if title ~= nil and (pandoc.utils.type(title) ~= "table" or #title > 0) then
-    local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {kCardHeaderClz}))
+    local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {kCardHeaderClass}))
     cardContents:insert(titleDiv)
   end
 
@@ -110,7 +124,7 @@ local function makeCard(title, contents, classes, options)
   local bodyContentEls = pandoc.List()
   local function flushBodyContentEls()
     if #bodyContentEls > 0 then
-      local contentDiv = pandoc.Div(bodyContentEls, pandoc.Attr("", {kCardBodyClz}))
+      local contentDiv = pandoc.Div(bodyContentEls, pandoc.Attr("", {kCardBodyClass}))
       result:insert(contentDiv)
     end
     bodyContentEls = pandoc.List()
@@ -133,6 +147,7 @@ local function makeCard(title, contents, classes, options)
       end
       local popped = popImagePara(v);
       result:insert(popped)
+
     else
       addBodyContentEl(v)
     end    
@@ -141,7 +156,7 @@ local function makeCard(title, contents, classes, options)
   cardContents:extend(result)
   
   -- add outer classes
-  local clz = pandoc.List({kCardClz})
+  local clz = pandoc.List({kCardClass})
   if classes then
     clz:extend(classes)
   end

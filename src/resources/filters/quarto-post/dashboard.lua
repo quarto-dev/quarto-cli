@@ -16,9 +16,12 @@ local kDefaultOrientation = kOrientationRows
 local kLayoutFlow = "flow"
 local kLayoutFill = "fill"
 
+-- param name
+local kParamKey = "dashboard"
+
 local function dashboardParam(name, default) 
-  local dashboard = param("dashboard", {})
-  return dashboard[name] or default
+  local dashboardParams = param(kParamKey, {})
+  return dashboardParams[name] or default
 end
 
 function render_dashboard() 
@@ -31,8 +34,7 @@ function render_dashboard()
       Pandoc = function(el)
         -- Make sections based upon the headings and use that for the 
         -- document structure
-        local opts = PANDOC_WRITER_OPTIONS
-        local result =  pandoc.structure.make_sections(el.blocks, opts)
+        local result =  pandoc.structure.make_sections(el.blocks, {})
         return pandoc.Pandoc(result, el.meta)
       end
     },

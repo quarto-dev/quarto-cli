@@ -1,0 +1,30 @@
+---
+title: Card Advanced
+format: dashboard
+---
+
+
+
+### Here It Is 
+
+```{r}
+plot(cars)
+```
+
+```{r}
+plot(mtcars)
+```
+
+### A Card {.tabset}
+
+#### Tab 1
+
+```{r}
+plot(cars)
+```
+
+#### Tab 2
+
+```{r}
+plot(mtcars)
+```
