@@ -39,20 +39,25 @@ function server_shiny()
   end
 
 
-
   local codeCells = {
     schema_version = 1,
+    setupCells = {},
     cells = {},
     html_file = ""
   }
 
   return {
-
-    CodeBlock = function(el)
-      if el.attr.classes:includes("python") and el.attr.classes:includes("cell-code") then
-        table.insert(codeCells.cells, { classes = el.attr.classes, text = el.text })
-      end
-      return el
+    Div = function(el)
+      local context = el.attr.attributes["context"]
+      local isSetup = context == "setup"
+      pandoc.walk_block(el, {
+        CodeBlock = function(el)
+          if el.attr.classes:includes("python") and el.attr.classes:includes("cell-code") then
+            local cells = isSetup and codeCells.setupCells or codeCells.cells
+            table.insert(cells, { classes = el.attr.classes, text = el.text })
+          end
+        end,
+      })
     end,
 
     Pandoc = function(doc)
