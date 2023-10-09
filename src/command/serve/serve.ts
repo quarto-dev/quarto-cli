@@ -48,7 +48,13 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
           }
         };
 
-        await engine.run({ ...options, input: options.input, onReady });
+        await engine.run({
+          ...options,
+          input: options.input,
+          host,
+          port,
+          onReady,
+        });
         return processSuccessResult();
       } finally {
         services.cleanup();

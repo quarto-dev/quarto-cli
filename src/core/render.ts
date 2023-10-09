@@ -25,12 +25,12 @@ export function figuresDir(pandocTo?: string) {
   return "figure-" + pandocTo;
 }
 
-export function isServerShiny(format: Format) {
-  const server = format.metadata[kServer] as Metadata | undefined;
+export function isServerShiny(format?: Format) {
+  const server = format?.metadata[kServer] as Metadata | undefined;
   return server?.["type"] === "shiny";
 }
 
-export function isServerShinyPython(format: Format, engine?: string) {
+export function isServerShinyPython(format?: Format, engine?: string) {
   return isServerShiny(format) && engine === kJupyterEngine;
 }
 
