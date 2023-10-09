@@ -27,23 +27,11 @@ export async function configure(
 ) {
   // Download dependencies
   for (const dependency of kDependencies) {
-    try {
-      const targetDir = join(
-        config.directoryInfo.bin,
-        "tools",
-      );
-      await configureDependency(dependency, targetDir, config);
-    } catch (e) {
-      if (
-        e.message ===
-          "The architecture aarch64 is missing the dependency deno_dom"
-      ) {
-        info("\nIgnoring deno_dom dependency on Apple Silicon");
-        continue;
-      } else {
-        throw e;
-      }
-    }
+    const targetDir = join(
+      config.directoryInfo.bin,
+      "tools",
+    );
+    await configureDependency(dependency, targetDir, config);
   }
 
   info("Building quarto-preview.js...");
