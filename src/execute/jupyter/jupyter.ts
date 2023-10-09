@@ -434,17 +434,23 @@ export const jupyterEngine: ExecutionEngine = {
     let running = false;
     const [_dir, stem] = dirAndStem(options.input);
     const appFile = `${stem}-app.py`;
+    const cmd = [
+      ...await pythonExec(),
+      "-m",
+      "shiny",
+      "run",
+      appFile,
+      "--host",
+      options.host!,
+      "--port",
+      String(options.port!),
+    ];
+    if (options.reload) {
+      cmd.push("--reload");
+    }
     const result = await execProcess(
       {
-        cmd: [
-          "shiny",
-          "run",
-          appFile,
-          "--host",
-          options.host!,
-          "--port",
-          String(options.port!),
-        ],
+        cmd,
         cwd: dirname(options.input),
       },
       undefined,
