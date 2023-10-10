@@ -65,6 +65,7 @@ local kIncludeInHeader = "include-in-header"
 
 local kCopyright = "copyright"
 local kLicense = "license"
+local kHtmlTableProcessing = "html-table-processing"
 
 -- for a given language, the comment character(s)
 local kLangCommentChars = {
@@ -187,5 +188,6 @@ return {
   kCopyright = kCopyright,
   kLicense = kLicense,
 
-  kLangCommentChars = kLangCommentChars
+  kLangCommentChars = kLangCommentChars,
+  kHtmlTableProcessing = kHtmlTableProcessing
 }

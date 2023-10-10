@@ -198,3 +198,8 @@
       centimeters and vice versa. (Technically, the correct term would be ppi: pixels per
       inch.) The default is `96`. When images contain information about dpi internally, the
       encoded value is used instead of the default specified by this option.
+
+- name: html-table-processing
+  schema:
+    enum: [none]
+  description: If `none`, do not process tables in HTML input.
