@@ -5,8 +5,11 @@
  */
 
 import { dirname, join, relative } from "path/mod.ts";
+import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
+
+import { error, info } from "log/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -98,6 +101,7 @@ import {
 } from "./percent.ts";
 import { execProcess } from "../../core/process.ts";
 import { inputFilesDir, isServerShinyPython } from "../../core/render.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -431,6 +435,36 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   run: async (options: RunOptions): Promise<void> => {
+    // semver doesn't support 4th component
+    const asSemVer = (version: string) => {
+      const v = version.split(".");
+      if (v.length > 3) {
+        return `${v[0]}.${v[1]}.${v.slice(2).join("")}`;
+      } else {
+        return version;
+      }
+    };
+
+    // confirm required version of shiny
+    const kShinyVersion = ">=0.5.1.9002";
+    let shinyError: string | undefined;
+    const caps = await jupyterCapabilities();
+    if (!caps?.shiny) {
+      shinyError =
+        "The shiny package is required for documents with server: shiny";
+    } else if (!satisfies(asSemVer(caps.shiny), asSemVer(kShinyVersion))) {
+      shinyError =
+        `The shiny package version must be ${kShinyVersion} for documents with server: shiny`;
+    }
+    if (shinyError) {
+      shinyError +=
+        "\n\nInstall the development version of the shiny package with: \n\n" +
+        "pip install git+https://github.com/posit-dev/py-htmltools.git@html-text-doc#egg=htmltools\n" +
+        "pip install git+https://github.com/posit-dev/py-shiny.git@quarto-ext#egg=shiny\n";
+      error(shinyError);
+      throw new Error();
+    }
+
     let running = false;
     const [_dir, stem] = dirAndStem(options.input);
     const appFile = `${stem}-app.py`;
