@@ -447,6 +447,8 @@ export const jupyterEngine: ExecutionEngine = {
     ];
     if (options.reload) {
       cmd.push("--reload");
+      cmd.push(`--reload-includes`);
+      cmd.push(`*.py`);
     }
     const result = await execProcess(
       {

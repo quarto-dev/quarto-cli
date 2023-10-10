@@ -290,6 +290,8 @@ export const previewCommand = new Command()
             projectDir: project?.dir,
             tempDir: Deno.makeTempDirSync(),
             format,
+            pandocArgs: args,
+            watchInputs: options.watchInputs!,
           });
           Deno.exit(result.code);
         }

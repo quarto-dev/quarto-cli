@@ -403,7 +403,7 @@ export function handleRenderResult(
   return finalOutput;
 }
 
-interface RenderForPreviewResult {
+export interface RenderForPreviewResult {
   file: string;
   format: Format;
   outputFile: string;
@@ -411,7 +411,7 @@ interface RenderForPreviewResult {
   resourceFiles: string[];
 }
 
-async function renderForPreview(
+export async function renderForPreview(
   file: string,
   services: RenderServices,
   flags: RenderFlags,
@@ -488,15 +488,16 @@ async function renderForPreview(
   };
 }
 
-interface ChangeHandler {
+export interface ChangeHandler {
   render: () => Promise<RenderForPreviewResult | undefined>;
 }
 
-function createChangeHandler(
+export function createChangeHandler(
   result: RenderForPreviewResult,
-  reloader: HttpDevServer,
+  reloader: { reloadClients: (reloadTarget?: string) => Promise<void> },
   render: (to?: string) => Promise<RenderForPreviewResult | undefined>,
   renderOnChange: boolean,
+  reloadFileFilter: (file: string) => boolean = () => true,
 ): ChangeHandler {
   const renderQueue = new PromiseQueue<RenderForPreviewResult | undefined>();
   let watcher: Watcher | undefined;
@@ -570,7 +571,7 @@ function createChangeHandler(
         : "";
 
       watches.push({
-        files: reloadFiles,
+        files: reloadFiles.filter(reloadFileFilter),
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);
