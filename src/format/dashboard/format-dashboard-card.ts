@@ -1,0 +1,197 @@
+/*
+ * format-dashboard-card.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+
+import { Document, Element } from "../../core/deno-dom.ts";
+import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
+import {
+  attrToCardBodyStyle,
+  attrToStyle,
+  processAndRemoveAttr,
+} from "./format-dashboard-shared.ts";
+
+// The html to generate the expand button
+const kExpandBtnHtml = `
+<bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
+    <template>Expand</template>
+    <span class="bslib-full-screen-enter badge rounded-pill">
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
+    </span>
+</bslib-tooltip>
+`;
+
+// How to process card attributes (card attributes express options that the
+// user has provided via markdown) - this converts them into their final rendered
+// form (e.g. turn a height attribute into a css style enforcing height)
+const cardAttrHandlers = (doc: Document) => {
+  return [
+    {
+      attr: "data-expandable",
+      handle: (el: Element, attrValue: string) => {
+        if (attrValue === "true") {
+          const shellEl = doc.createElement("div");
+          shellEl.innerHTML = kExpandBtnHtml;
+          for (const childEl of shellEl.children) {
+            el.appendChild(childEl);
+          }
+          el.setAttribute("data-full-screen", "false");
+        }
+      },
+    },
+    {
+      attr: "data-max-height",
+      handle: attrToStyle("max-height"),
+    },
+    { attr: "data-min-height", handle: attrToStyle("min-height") },
+    { attr: "data-height", handle: attrToStyle("height") },
+    { attr: "data-padding", handle: attrToCardBodyStyle("padding") },
+  ];
+};
+
+// How to process card body attributes (card attributes express options that the
+// user has provided via markdown) - this converts them into their final rendered
+// form (e.g. turn a height attribute into a css style enforcing height)
+const cardBodyAttrHandlers = () => {
+  return [
+    {
+      attr: "data-max-height",
+      handle: attrToStyle("max-height"),
+    },
+    { attr: "data-min-height", handle: attrToStyle("min-height") },
+    { attr: "data-height", handle: attrToStyle("height") },
+  ];
+};
+
+export function processCards(doc: Document) {
+  // We need to process cards specially
+  const cardNodes = doc.body.querySelectorAll(".card");
+  let cardCount = 0;
+  for (const cardNode of cardNodes) {
+    cardCount++;
+    const cardEl = cardNode as Element;
+    const cardBodyNodes = cardEl.querySelectorAll(".card-body");
+
+    // Add card attributes
+    cardEl.classList.add("bslib-card");
+    cardEl.classList.add("html-fill-container");
+    cardEl.setAttribute("data-bslib-card-init", "");
+    cardEl.setAttribute("data-require-bs-caller", "card()");
+
+    // If this is a tabset, we need to do more
+    const tabSetId = cardEl.classList.contains("tabset")
+      ? `card-tabset-${cardCount}`
+      : undefined;
+
+    if (tabSetId) {
+      // Fix up the header
+      const cardHeaderEl = cardEl.querySelector(".card-header");
+      if (cardHeaderEl) {
+        // Decorate it
+        cardHeaderEl.classList.add("bslib-navs-card-title");
+
+        // Add the tab nav element
+        const ulEl = doc.createElement("UL");
+        ["nav", "nav-tabs", "card-header-tabs"].forEach((clz) => {
+          ulEl.classList.add(clz);
+        });
+        ulEl.setAttribute("role", "tablist");
+        ulEl.setAttribute("data-tabsetid", tabSetId);
+
+        let cardBodyCount = 0;
+        for (const cardBodyNode of cardBodyNodes) {
+          cardBodyCount++;
+          const cardBodyEl = cardBodyNode as Element;
+          let cardBodyTitle = cardBodyEl.getAttribute("data-title");
+          if (cardBodyTitle == null) {
+            cardBodyTitle = `Tab ${cardBodyCount}`;
+          }
+
+          // Add the liEls for each tab
+          const liEl = doc.createElement("LI");
+          liEl.classList.add("nav-item");
+          liEl.setAttribute("role", "presentation");
+
+          const aEl = doc.createElement("A");
+          aEl.setAttribute("href", `#${tabSetId}-${cardBodyCount}`);
+          aEl.classList.add("nav-link");
+          if (cardBodyCount === 1) {
+            aEl.classList.add("active");
+          }
+
+          aEl.setAttribute("role", "tab");
+          aEl.setAttribute("data-toggle", "tab");
+          aEl.setAttribute("data-bs-toggle", "tab");
+          aEl.setAttribute(
+            "data-value",
+            cardBodyTitle,
+          );
+          aEl.setAttribute("aria-selected", "true");
+          aEl.innerText = cardBodyTitle;
+          liEl.appendChild(aEl);
+
+          // Add the li
+          ulEl.appendChild(liEl);
+        }
+
+        cardHeaderEl.appendChild(ulEl);
+      }
+    }
+
+    for (const cardAttrHandler of cardAttrHandlers(doc)) {
+      processAndRemoveAttr(
+        cardEl,
+        cardAttrHandler.attr,
+        cardAttrHandler.handle,
+      );
+    }
+
+    const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
+    if (tabContainerEl) {
+      tabContainerEl.classList.add("tab-content");
+      tabContainerEl.setAttribute("data-tabset-id", tabSetId);
+      cardEl.appendChild(tabContainerEl);
+    }
+
+    let cardBodyCount = 0;
+    for (const cardBodyNode of cardBodyNodes) {
+      cardBodyCount++;
+      const cardBodyEl = cardBodyNode as Element;
+
+      for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
+        processAndRemoveAttr(
+          cardBodyEl,
+          cardBodyAttrHandler.attr,
+          cardBodyAttrHandler.handle,
+        );
+      }
+
+      // Deal with tabs
+      if (tabContainerEl) {
+        const tabPaneEl = doc.createElement("DIV");
+        tabPaneEl.classList.add("tab-pane");
+        if (cardBodyCount === 1) {
+          tabPaneEl.classList.add("active");
+          tabPaneEl.classList.add("show");
+        }
+        tabPaneEl.setAttribute("role", "tabpanel");
+        tabPaneEl.id = `${tabSetId}-${cardBodyCount}`;
+        tabPaneEl.appendChild(cardBodyEl);
+        tabContainerEl.appendChild(tabPaneEl);
+      } else {
+        recursiveApplyFillClasses(cardBodyEl);
+      }
+    }
+
+    if (tabContainerEl) {
+      recursiveApplyFillClasses(tabContainerEl);
+    }
+
+    // Initialize the cards
+    const scriptInitEl = doc.createElement("script");
+    scriptInitEl.setAttribute("data-bslib-card-init", "");
+    scriptInitEl.innerText = "bslib.Card.initializeAllCards();";
+    cardEl.appendChild(scriptInitEl);
+  }
+}
