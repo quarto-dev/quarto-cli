@@ -1,21 +1,22 @@
 --[[
 Extension for generating email components needed for Posit Connect
 
-1. extracts the subject line of the email from a div with the class `subject`
-2. takes a div from a Quarto HTML document that has the class `email`, places that in
+1. Extracts the subject line of the email from a div with the class `subject`
+2. Takes a div from a Quarto HTML document that has the class `email`, places that in
    a specially-crafted HTML-email template
-3. takes all references to images (i.e, image tags) and replaces them with CID
+3. Takes all references to images (i.e, image tags) and replaces them with CID
    (Content-ID) tags. When embedding an image in an HTML email, rather than linking
    to the image file on a server, the image is encoded and included directly in the
    message.
-4. identifies all associated images (e.g., PNGs) in the email portion of the document
+4. Identifies all associated images (e.g., PNGs) in the email portion of the document
    (as some may exist outside of the email context/div and creates Base64 encoded strings;
-   we must also include mime-type information
-5. generates a JSON file which contains specific email message components that Posit
-   Connect is expecting for its own email generation code
+   we must also include mime type information
+5. Generates a JSON file (.output_metadata.json) which contains specific email message
+   components that Posit Connect expects for its own email generation code
+6. Produces a local `email-preview.html` file for previewing the HTML email
 --]]
 
--- Define function for Base64-encoding of an image file
+-- Define a function for the Base64-encoding of an image file
 function base64_encode(data)
   local b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
   return ((data:gsub(".", function(x)
@@ -30,16 +31,19 @@ function base64_encode(data)
   end) .. ({ "", "==", "=" })[#data % 3 + 1])
 end
 
+-- Get the file extension of any file residing on disk
 function get_file_extension(file_path)
   local pattern = "%.([^%.]+)$"
   local ext = file_path:match(pattern)
   return ext
 end
 
+-- Determine whether a Lua table is completely empty
 function is_empty_table(table)
   return next(table) == nil
 end
 
+-- Determine whether a file exists at a specific path
 function file_exists(path)
   local file = io.open(path, "r")
   if file then
@@ -49,12 +53,14 @@ function file_exists(path)
   return false
 end
 
+-- Trim surrounding whitespace for a string and truncate to a maximum length
 function str_trunc_trim(str, max_length)
   local str_trimmed = str:match("^%s*(.-)%s*$")
   local str_formatted = string.sub(str_trimmed, 1, max_length)
   return str_formatted
 end
 
+-- Determine whether a single string is truthy or falsy
 function str_truthy_falsy(str)
   local truthy_terms = {"true", "yes"}
   local falsy_terms = {"false", "no"}
@@ -151,6 +157,53 @@ local html_email_template_4 = [[
 </html>
 ]]
 
+-- Function to generate an HTML email message body using HTML email
+-- template fragments, the rendered and extracted email component from
+-- the document (`email_html`), and data specific to Connect custom emails
+function generate_html_email_from_template(
+  email_html,
+  connect_date_time,
+  connect_report_rendering_url,
+  connect_report_url,
+  connect_report_subscription_url
+)
+
+  -- Use the Connect email template components along with the `email_html`
+  -- fragment to generate the email message body as HTML
+  if connect_report_rendering_url == nil or 
+     connect_report_url == nil or
+     connect_report_subscription_url == nil then
+
+    html_str =
+      html_email_template_1 ..
+      "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
+      html_email_template_2 ..
+      html_email_template_3 ..
+      "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
+      html_email_template_4
+
+      else
+
+    html_str =
+      html_email_template_1 ..
+      "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
+      html_email_template_2 ..
+      html_email_template_3 ..
+      "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
+      "<p>This Version: <a href=\"" .. connect_report_rendering_url .. "\">" .. connect_report_rendering_url .. "</a></p>\n\n" .. 
+      "Latest Version: <a href=\"" .. connect_report_url .. "\">" .. connect_report_url .. "</a></p>\n\n" ..
+      "<p>If you wish to stop receiving emails for this document, you may <a href=\"" .. connect_report_subscription_url .. "\">unsubscribe here</a>.</p>\n\n" .. 
+      html_email_template_4
+  end
+
+  return html_str
+end
+
+-- Function to extract the rendered HTML from a Div of class 'email'
+function extract_email_div_str(doc)
+  return pandoc.write(pandoc.Pandoc({ doc }), "html") -- use quarto._quarto.ast_render()
+end
+
 local subject = nil
 local email_images = {}
 local image_tbl = {}
@@ -160,10 +213,11 @@ function Meta(meta)
 
   attachments = {}
 
-  local meta_attachments = meta.attachments
+  local meta_email_attachments = meta["email-attachments"]
+  meta_email_preview = meta["email-preview"]
   
-  if meta_attachments ~= nil then
-    for _, v in pairs(meta_attachments) do
+  if meta_email_attachments ~= nil then
+    for _, v in pairs(meta_email_attachments) do
       if (file_exists(pandoc.utils.stringify(v))) then
         table.insert(attachments, pandoc.utils.stringify(v))
       end
@@ -195,6 +249,8 @@ function Div(div)
   elseif div.classes:includes("email") then
 
     --[[
+    Render of HTML email message body for Connect: `email_html`
+
     For each of the <img> tags found we need to modify the tag so that it contains a
     reference to the Base64 string; this reference is that of the Content-ID (or CID) tag;
     the basic form is `<img src="cid:image-id"/>` (the `image-id` will be written as
@@ -203,26 +259,50 @@ function Div(div)
 
     local count = 1
 
-    local renderDiv = quarto._quarto.ast.walk(div, {Image = function(imgEl)
+    local render_div_cid = quarto._quarto.ast.walk(div, {Image = function(img_el)
 
-      local file_extension = get_file_extension(imgEl.src)
+      local file_extension = get_file_extension(img_el.src)
       local cid = "img" .. tostring(count) .. "." .. file_extension
-      image_tbl[cid] = imgEl.src
-      imgEl.src = "cid:" .. cid
+      image_tbl[cid] = img_el.src
+      img_el.src = "cid:" .. cid
       count = count + 1
-      return imgEl
+      return img_el
 
     end})
 
-    email_html = extract_div_html(renderDiv)
+    email_html = extract_email_div_str(render_div_cid)
 
+    --[[
+    Render of HTML email message body for Connect: `email_html_preview`
+
+    We are keeping a render of the email HTML for previewing purposes (if the option
+    is taken to do so); here, the HTML is self-contained where the image tags contain
+    base64-encoded data
+    ]]
+
+    local render_div_base64 = quarto._quarto.ast.walk(div, {Image = function(img_el)
+
+      local image_file = io.open(img_el.src, "rb")
+
+      if type(image_file) == "userdata" then
+        image_data = image_file:read("*all")
+        image_file:close()
+      end
+
+      local encoded_data = base64_encode(image_data)
+      local file_extension = get_file_extension(img_el.src)
+      local base64_str = "data:image/" .. file_extension .. ";base64," .. encoded_data
+      img_el.src = base64_str
+      return img_el
+
+    end})
+
+    email_html_preview = extract_email_div_str(render_div_base64)
+
+    -- Remove the the `.email` div so it doesn't appear in the main report document
     return {}
-  end
-end
 
--- function to extract the rendered HTML from a Div of class 'email'
-function extract_div_html(doc)
-  return pandoc.write(pandoc.Pandoc({ doc }), "html") -- use quarto._quarto.ast_render()
+  end
 end
 
 function process_document(doc)
@@ -232,44 +312,37 @@ function process_document(doc)
 
   -- Use Connect environment variables to get URLs for the email footer section
   -- If any of these are nil, a portion of the email footer won't be rendered
-  local connect_report_rendering_url = os.getenv("RSC_REPORT_RENDERING_URL") -- "https://connect.example.com/content/1234/_rev5678"
-  local connect_report_url = os.getenv("RSC_REPORT_URL") -- "https://connect.example.com/content/1234/"
-  local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL") -- "https://connect.example.com/connect/#/apps/1234/subscriptions"
+  local connect_report_rendering_url = os.getenv("RSC_REPORT_RENDERING_URL")
+  local connect_report_url = os.getenv("RSC_REPORT_URL")
+  local connect_report_subscription_url = os.getenv("RSC_REPORT_SUBSCRIPTION_URL")
 
   -- The following regexes remove the surrounding <div> from the HTML text
   email_html = string.gsub(email_html, "^<div class=\"email\">", '')
   email_html = string.gsub(email_html, "</div>$", '')
 
-  -- Use the Connect email template components along with the `email_html`
-  -- fragment to generate the email message body as HTML
-  if connect_report_rendering_url == nil or 
-     connect_report_url == nil or
-     connect_report_subscription_url == nil then
+  -- Use the Connect email template components along with the `email_html` and
+  -- `email_html_preview` objects to generate the email message body for Connect
+  -- and the email HTML file (as a local preview)
+  
+  html_email_body = generate_html_email_from_template(
+    email_html,
+    connect_date_time,
+    connect_report_rendering_url,
+    connect_report_url,
+    connect_report_subscription_url
+  )
 
-    html_email_body =
-      html_email_template_1 ..
-      "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
-      html_email_template_2 ..
-      html_email_template_3 ..
-      "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
-      html_email_template_4
-
-      else
-
-    html_email_body =
-      html_email_template_1 ..
-      "<td style=\"padding:12px;\">" .. email_html .. "</td>" ..
-      html_email_template_2 ..
-      html_email_template_3 ..
-      "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
-      "<p>This Version: <a href=\"" .. connect_report_rendering_url .. "\">" .. connect_report_rendering_url .. "</a></p>\n\n" .. 
-      "Latest Version: <a href=\"" .. connect_report_url .. "\">" .. connect_report_url .. "</a></p>\n\n" ..
-      "<p>If you wish to stop receiving emails for this document, you may <a href=\"" .. connect_report_subscription_url .. "\">unsubscribe here</a>.</p>\n\n" .. 
-      html_email_template_4
-  end
+  html_preview_body = generate_html_email_from_template(
+    email_html_preview,
+    connect_date_time,
+    connect_report_rendering_url,
+    connect_report_url,
+    connect_report_subscription_url
+  )
 
   -- For each of the <img> tags we need to create a Base64-encoded representation
   -- of the image and place that into the table `email_images` (keyed by `cid`)
+
   local image_data = nil
 
   for cid, img in pairs(image_tbl) do
@@ -289,8 +362,9 @@ function process_document(doc)
     end
   end
 
-  -- Encode all of the strings and tables of strings into a JSON file that's
-  -- needed for Connect's email feature
+  -- Encode all of the strings and tables of strings into the JSON file
+  -- (`.output_metadata.json`) that's needed for Connect's email feature
+
   if (is_empty_table(email_images)) then
 
     metadata_str = quarto.json.encode({
@@ -343,10 +417,13 @@ function process_document(doc)
   -- Write the `.output_metadata.json` file to the project directory
   local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
   io.open(metadata_path_file, "w"):write(metadata_str):close()
+
+  -- Write the `.email-preview.html` file to the working directory if the option is taken
+  if (meta_email_preview) then
+    quarto._quarto.file.write(pandoc.path.join({dir, "email-preview/email-preview.html"}), html_preview_body)
+  end
 end
 
 function Pandoc(doc)
-
   process_document(doc)
-
 end
