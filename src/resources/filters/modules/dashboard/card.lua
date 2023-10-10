@@ -24,11 +24,13 @@ local kPadding = "padding"
 local kHeight = "height"
 local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
-local kCardAttributes = pandoc.List({kPadding, kHeight, kMinHeight, kMaxHeight})
+local kTitle = "title"
+
+-- Card explicit attributes
+local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kMinHeight, kMaxHeight})
 
 -- Card Body Explicit Attributes
-local kBodyTitle = "title"
-local kCardBodyAttributes = pandoc.List({kBodyTitle, kHeight, kMinHeight, kMaxHeight})
+local kCardBodyAttributes = pandoc.List({kTitle, kHeight, kMinHeight, kMaxHeight})
 
 -- pop images out of paragraphs to the top level
 -- this is necessary to ensure things like `object-fit`
@@ -101,26 +103,31 @@ local function readCardOptions(el)
   return options, clz
 end
 
-
--- title: string
--- contents: table
--- classes: table
--- Card DOM structure
--- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
---   .card-header
---   .card-body[max-height, min-height]
-local function makeCard(title, contents, classes, options)  
-
-  -- compute the card contents
-  local cardContents = pandoc.List({})
-  if title ~= nil and (pandoc.utils.type(title) ~= "table" or #title > 0) then
-    local titleDiv = pandoc.Div(title.content, pandoc.Attr("", {kCardHeaderClass}))
-    cardContents:insert(titleDiv)
+local function resolveCardHeader(title, options) 
+  if title ~= nil then
+    if pandoc.utils.type(title) == "table" and #title > 0 then
+      return pandoc.Div(title, pandoc.Attr("", {kCardHeaderClass}))
+    elseif title.t == "Header" then
+      local titleText = title.content
+      if #titleText == 0 then
+        titleText = title.attr.attributes[kTitle] 
+      end
+      return pandoc.Div(titleText, pandoc.Attr("", {kCardHeaderClass}))
+    elseif options[kTitle] ~= nil then
+      return pandoc.Div(options[kTitle], pandoc.Attr("", {kCardHeaderClass}))
+    end
+  else
+    if options[kTitle] ~= nil then
+      return pandoc.Div(pandoc.Plain(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
+    end
   end
+end
 
-  -- pop paragraphs with only figures to the top
+-- Group the contents of the card into a body
+-- (anything not in an explicit card-body will be grouped in 
+--  an card-body with other contiguous non-card-body elements)
+local function resolveCardBodies(contents)
   local result = pandoc.List()
-
   local bodyContentEls = pandoc.List()
   local function flushBodyContentEls()
     if #bodyContentEls > 0 then
@@ -138,6 +145,14 @@ local function makeCard(title, contents, classes, options)
     if isCardBody(v) then
       flushBodyContentEls()
 
+      -- ensure this is marked as a card
+      if not v.classes:includes(kCardBodyClass) then
+        v.classes:insert(kCardBodyClass)
+      end
+
+      -- remove the tab class as this is now a resolved card body
+      v.classes = v.classes:filter(function(class) return class ~= kTabClass end)
+
       -- forward our know attributes into data attributes
       for k, v in ipairs(v.attr.attributes) do
         if kCardBodyAttributes:includes(k) then
@@ -153,7 +168,31 @@ local function makeCard(title, contents, classes, options)
     end    
   end
   flushBodyContentEls()
-  cardContents:extend(result)
+  
+  return result
+end
+
+-- title: string
+-- contents: table
+-- classes: table
+-- Card DOM structure
+-- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
+--   .card-header
+--   .card-body[max-height, min-height]
+local function makeCard(title, contents, classes, options)  
+
+  -- compute the card contents
+  local cardContents = pandoc.List({})
+
+  -- the card header
+  local cardHeader = resolveCardHeader(title, options)
+  if cardHeader ~= nil then
+    cardContents:insert(cardHeader)  
+  end
+
+  -- compute the card body(ies)
+  local cardBodies = resolveCardBodies(contents)
+  cardContents:extend(cardBodies)
   
   -- add outer classes
   local clz = pandoc.List({kCardClass})
@@ -161,16 +200,14 @@ local function makeCard(title, contents, classes, options)
     clz:extend(classes)
   end
 
-  local cardAttributes = pandoc.Attr("", clz)
-
   -- forward options onto attributes
+  local attributes = {}
   options = options or {}  
   for k,v in pairs(options) do
-    cardAttributes.attributes['data-' .. k] = pandoc.utils.stringify(v)
+    attributes['data-' .. k] = pandoc.utils.stringify(v)
   end
-
   
-  return pandoc.Div(cardContents, cardAttributes)
+  return pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
 end
 
 return {

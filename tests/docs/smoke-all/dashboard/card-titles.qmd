@@ -1,0 +1,28 @@
+---
+title: Card Advanced
+format: dashboard
+---
+
+:::{.card}
+
+#### Title for the card
+
+What is up dog
+
+:::
+
+
+:::{.card title="what up"}
+
+Hello
+
+:::
+
+
+### {.card title="What is going down"}
+
+:::{.card-body}
+
+Explicit card body
+
+:::

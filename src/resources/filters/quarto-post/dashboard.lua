@@ -70,7 +70,7 @@ function render_dashboard()
           local header = el.content[1]
           local title = {}
           local contents = el.content
-          if header.t == "Header" then
+          if header ~= nil and header.t == "Header" then
             title = header
             contents = tslice(el.content, 2)
           end
