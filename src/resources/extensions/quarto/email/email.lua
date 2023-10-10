@@ -36,6 +36,41 @@ function get_file_extension(file_path)
   return ext
 end
 
+function is_empty_table(table)
+  return next(table) == nil
+end
+
+function file_exists(path)
+  local file = io.open(path, "r")
+  if file then
+    file:close()
+    return true
+  end
+  return false
+end
+
+function str_trunc_trim(str, max_length)
+  local str_trimmed = str:match("^%s*(.-)%s*$")
+  local str_formatted = string.sub(str_trimmed, 1, max_length)
+  return str_formatted
+end
+
+function str_truthy_falsy(str)
+  local truthy_terms = {"true", "yes"}
+  local falsy_terms = {"false", "no"}
+  for _, term in ipairs(truthy_terms) do
+    if string.match(str, term) then
+      return true
+    end
+  end
+  for _, term in ipairs(falsy_terms) do
+    if string.match(str, term) then
+      return false
+    end
+  end
+  return false
+end
+
 local html_email_template_1 = [[
 <!DOCTYPE html>
 <html>
@@ -119,6 +154,7 @@ local html_email_template_4 = [[
 local subject = nil
 local email_images = {}
 local image_tbl = {}
+local suppress_scheduled_email = false
 
 function Meta(meta)
 
@@ -128,7 +164,9 @@ function Meta(meta)
   
   if meta_attachments ~= nil then
     for _, v in pairs(meta_attachments) do
-      table.insert(attachments, pandoc.utils.stringify(v))
+      if (file_exists(pandoc.utils.stringify(v))) then
+        table.insert(attachments, pandoc.utils.stringify(v))
+      end
     end
   end
 end
@@ -138,6 +176,20 @@ function Div(div)
   if div.classes:includes("subject") then
 
     subject = pandoc.utils.stringify(div)
+    return {}
+
+  elseif div.classes:includes("email-text") then
+
+    email_text = pandoc.write(pandoc.Pandoc({ div }), "plain")
+    return {}
+
+  elseif div.classes:includes("email-scheduled") then
+
+    local email_scheduled_str = str_trunc_trim(string.lower(pandoc.utils.stringify(div)), 10)
+    local scheduled_email = str_truthy_falsy(email_scheduled_str)
+
+    suppress_scheduled_email = not scheduled_email
+
     return {}
   
   elseif div.classes:includes("email") then
@@ -154,16 +206,12 @@ function Div(div)
     local renderDiv = quarto._quarto.ast.walk(div, {Image = function(imgEl)
 
       local file_extension = get_file_extension(imgEl.src)
-
       local cid = "img" .. tostring(count) .. "." .. file_extension
-
       image_tbl[cid] = imgEl.src
-
       imgEl.src = "cid:" .. cid
-
       count = count + 1
-
       return imgEl
+
     end})
 
     email_html = extract_div_html(renderDiv)
@@ -174,7 +222,7 @@ end
 
 -- function to extract the rendered HTML from a Div of class 'email'
 function extract_div_html(doc)
-  return pandoc.write(pandoc.Pandoc({ doc }), "html")
+  return pandoc.write(pandoc.Pandoc({ doc }), "html") -- use quarto._quarto.ast_render()
 end
 
 function process_document(doc)
@@ -214,10 +262,9 @@ function process_document(doc)
       html_email_template_2 ..
       html_email_template_3 ..
       "<p>This message was generated on " .. connect_date_time .. ".</p>\n\n" ..
-      "<p>This Version: <a href=\"" .. connect_report_rendering_url .. "\">" .. connect_report_rendering_url .. "</a>\n\n" .. 
+      "<p>This Version: <a href=\"" .. connect_report_rendering_url .. "\">" .. connect_report_rendering_url .. "</a></p>\n\n" .. 
       "Latest Version: <a href=\"" .. connect_report_url .. "\">" .. connect_report_url .. "</a></p>\n\n" ..
-      "<p>If you wish to stop receiving emails for this document, you may <a href=\"" .. connect_report_subscription_url .. "\">unsubscribe here</a>.</p>" .. 
-      "<br/>" ..
+      "<p>If you wish to stop receiving emails for this document, you may <a href=\"" .. connect_report_subscription_url .. "\">unsubscribe here</a>.</p>\n\n" .. 
       html_email_template_4
   end
 
@@ -244,14 +291,29 @@ function process_document(doc)
 
   -- Encode all of the strings and tables of strings into a JSON file that's
   -- needed for Connect's email feature
-  local metadata_str = quarto.json.encode({
-    rsc_email_subject = subject,
-    rsc_email_attachments = attachments,
-    rsc_email_body_html = html_email_body,
-    rsc_email_images = email_images,
-    rsc_email_suppress_report_attachment = true,
-    rsc_email_suppress_scheduled = false
-  })
+  if (is_empty_table(email_images)) then
+
+    metadata_str = quarto.json.encode({
+      rsc_email_subject = subject,
+      rsc_email_attachments = attachments,
+      rsc_email_body_html = html_email_body,
+      rsc_email_body_text = email_text,
+      rsc_email_suppress_report_attachment = true,
+      rsc_email_suppress_scheduled = suppress_scheduled_email
+    })
+
+  else
+
+    metadata_str = quarto.json.encode({
+      rsc_email_subject = subject,
+      rsc_email_attachments = attachments,
+      rsc_email_body_html = html_email_body,
+      rsc_email_body_text = email_text,
+      rsc_email_images = email_images,
+      rsc_email_suppress_report_attachment = true,
+      rsc_email_suppress_scheduled = suppress_scheduled_email
+    })
+  end
 
   -- Determine the location of the Quarto project directory; if not defined
   -- by the user then set to the location of the input file
@@ -265,12 +327,17 @@ function process_document(doc)
   end
 
   -- For all file attachments declared by the user, ensure they copied over
-  -- to the project directory (`dir`) 
+  -- to the project directory (`dir`)
   for _, v in pairs(attachments) do
+    
     local source_attachment_file = pandoc.utils.stringify(v)
     local dest_attachment_path_file = pandoc.path.join({dir, pandoc.utils.stringify(v)})
-    local attachment_text = io.open(source_attachment_file):read("*a")
-    io.open(dest_attachment_path_file, "w"):write(attachment_text):close()
+
+    -- Only if the file exists should it be copied into the project directory
+    if (file_exists(source_attachment_file)) then
+      local attachment_text = io.open(source_attachment_file):read("*a")
+      io.open(dest_attachment_path_file, "w"):write(attachment_text):close()
+    end
   end
   
   -- Write the `.output_metadata.json` file to the project directory
