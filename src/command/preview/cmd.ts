@@ -47,8 +47,9 @@ import { kCliffyImplicitCwd } from "../../config/constants.ts";
 import { warning } from "log/mod.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { Format } from "../../config/types.ts";
-import { isServerShiny } from "../../core/render.ts";
+import { isServerShiny, isServerShinyPython } from "../../core/render.ts";
 import { previewShiny } from "./preview-shiny.ts";
+import { serve } from "../serve/serve.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -279,21 +280,36 @@ export const previewCommand = new Command()
         const renderFormat = (await renderFormats(file, format, project))
           ?.[format] as Format | undefined;
         if (renderFormat && isServerShiny(renderFormat)) {
-          const result = await previewShiny({
-            input: file,
-            render: !!options.render,
-            port: typeof (options.port) === "string"
-              ? parseInt(options.port)
-              : options.port,
-            host: options.host,
-            browser: options.browser,
-            projectDir: project?.dir,
-            tempDir: Deno.makeTempDirSync(),
-            format,
-            pandocArgs: args,
-            watchInputs: options.watchInputs!,
-          });
-          Deno.exit(result.code);
+          if (isServerShinyPython(renderFormat)) {
+            const result = await previewShiny({
+              input: file,
+              render: !!options.render,
+              port: typeof (options.port) === "string"
+                ? parseInt(options.port)
+                : options.port,
+              host: options.host,
+              browser: options.browser,
+              projectDir: project?.dir,
+              tempDir: Deno.makeTempDirSync(),
+              format,
+              pandocArgs: args,
+              watchInputs: options.watchInputs!,
+            });
+            Deno.exit(result.code);
+          } else {
+            const result = await serve({
+              input: file,
+              render: !!options.render,
+              port: typeof (options.port) === "string"
+                ? parseInt(options.port)
+                : options.port,
+              host: options.host,
+              browser: options.browser,
+              projectDir: project?.dir,
+              tempDir: Deno.makeTempDirSync(),
+            });
+            Deno.exit(result.code);
+          }
         }
       }
 
