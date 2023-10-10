@@ -87,7 +87,7 @@ if (profit < 0) {
   subject <- "No email. This won't be sent"
   send_email <- FALSE
 }
-````
+```
 
 The email body follows.
 
@@ -105,7 +105,7 @@ Our profit was `{r} profit` this quarter and we felt you should know.
 
 :::
 
-```
+````
 
 As can be seen, the condition for sending or not was handled in the first code cell. The main email div is set up with child divs to handle the email subject (`.subject`) and whether the email should be sent (`.email-scheduled`). Inline R code injects those divs with values stored in variables; since `send_email` will either be `TRUE` or `FALSE` the email will be sent (or not) depending on the value of `profit`.
 
@@ -134,4 +134,3 @@ render = "server"
 Once the render succeeds, you'll be given the option to navigate to the report in your Connect instance. In the rendered view of the report, the email portion is not visible. Given you are the author of the report you can send yourself the email by clicking on the email icon on the top navigation bar and selecting the option to send the email to yourself. Given the email looks satisfactory, you can use various Connect options for the given report to regularly send the email upon render (at a frequency of your choosing) to authorized individuals added to this document.
 
 If using a Python-based workflow, all principles for formatting the document still apply. The method of deploying is a bit different: one should use the `rsconnect-python` library for deployment. It offers a CLI for deployment and many examples are available in the [project README](https://github.com/rstudio/rsconnect-python).
-```
