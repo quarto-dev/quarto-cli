@@ -30,7 +30,10 @@ export function isServerShiny(format?: Format) {
   return server?.["type"] === "shiny";
 }
 
-export function isServerShinyPython(format?: Format, engine?: string) {
+export function isServerShinyPython(
+  format: Format,
+  engine: string | undefined,
+) {
   return isServerShiny(format) && engine === kJupyterEngine;
 }
 

@@ -50,6 +50,7 @@ import { Format } from "../../config/types.ts";
 import { isServerShiny, isServerShinyPython } from "../../core/render.ts";
 import { previewShiny } from "./preview-shiny.ts";
 import { serve } from "../serve/serve.ts";
+import { fileExecutionEngine } from "../../execute/engine.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -280,7 +281,8 @@ export const previewCommand = new Command()
         const renderFormat = (await renderFormats(file, format, project))
           ?.[format] as Format | undefined;
         if (renderFormat && isServerShiny(renderFormat)) {
-          if (isServerShinyPython(renderFormat)) {
+          const engine = fileExecutionEngine(file, flags);
+          if (isServerShinyPython(renderFormat, engine?.name)) {
             const result = await previewShiny({
               input: file,
               render: !!options.render,

@@ -100,7 +100,11 @@ import {
   markdownFromJupyterPercentScript,
 } from "./percent.ts";
 import { execProcess } from "../../core/process.ts";
-import { inputFilesDir, isServerShinyPython } from "../../core/render.ts";
+import {
+  inputFilesDir,
+  isServerShiny,
+  isServerShinyPython,
+} from "../../core/render.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 
 export const jupyterEngine: ExecutionEngine = {
@@ -512,19 +516,20 @@ export const jupyterEngine: ExecutionEngine = {
 
   postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {
     // discover non _files dir resources for server: shiny and ammend app.py with them
-    files.filter((file) => isServerShinyPython(file.format)).forEach((file) => {
-      const [dir, stem] = dirAndStem(file.input);
-      const filesDir = join(dir, inputFilesDir(file.input));
-      const extraResources = file.resourceFiles
-        .filter((resource) => !resource.startsWith(filesDir))
-        .map((resource) => relative(dir, resource));
-      const appScript = join(dir, `${stem}-app.py`);
-      if (existsSync(appScript)) {
-        // TODO: extraResoures is an array of relative paths to resources
-        // that are NOT in the _files dir. these should be injected into
-        // the appropriate place in appScript
-      }
-    });
+    files.filter((file) => isServerShiny(file.format))
+      .forEach((file) => {
+        const [dir, stem] = dirAndStem(file.input);
+        const filesDir = join(dir, inputFilesDir(file.input));
+        const extraResources = file.resourceFiles
+          .filter((resource) => !resource.startsWith(filesDir))
+          .map((resource) => relative(dir, resource));
+        const appScript = join(dir, `${stem}-app.py`);
+        if (existsSync(appScript)) {
+          // TODO: extraResoures is an array of relative paths to resources
+          // that are NOT in the _files dir. these should be injected into
+          // the appropriate place in appScript
+        }
+      });
   },
 
   postprocess: (options: PostProcessOptions) => {
