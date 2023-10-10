@@ -409,11 +409,30 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   }
 
+  function throttle(func, wait) {
+    let waiting = false;
+    return function () {
+      if (!waiting) {
+        func.apply(this, arguments);
+        waiting = true;
+        setTimeout(function () {
+          waiting = false;
+        }, wait);
+      }
+    };
+  }
+
   // If the main document scrolls dismiss the search results
   // (otherwise, since they're floating in the document they can scroll with the document)
-  window.document.body.onscroll = () => {
-    setIsOpen(false);
-  };
+  window.document.body.onscroll = throttle(() => {
+    // Only do this if we're not detached
+    // Bug #7117
+    // This will happen when the keyboard is shown on ios (resulting in a scroll)
+    // which then closed the search UI
+    if (!window.matchMedia(detachedMediaQuery).matches) {
+      setIsOpen(false);
+    }
+  }, 50);
 
   if (showSearchResults) {
     setIsOpen(true);
