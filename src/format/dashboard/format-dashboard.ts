@@ -435,6 +435,9 @@ function dashboardHtmlPostProcessor(
   };
 }
 
+// How to process card attributes (card attributes express options that the
+// user has provided via markdown) - this converts them into their final rendered
+// form (e.g. turn a height attribute into a css style enforcing height)
 const cardAttrHandlers = (doc: Document) => {
   return [
     {
@@ -442,7 +445,7 @@ const cardAttrHandlers = (doc: Document) => {
       handle: (el: Element, attrValue: string) => {
         if (attrValue === "true") {
           const shellEl = doc.createElement("div");
-          shellEl.innerHTML = expandBtnHtml;
+          shellEl.innerHTML = kExpandBtnHtml;
           for (const childEl of shellEl.children) {
             el.appendChild(childEl);
           }
@@ -460,6 +463,9 @@ const cardAttrHandlers = (doc: Document) => {
   ];
 };
 
+// How to process card body attributes (card attributes express options that the
+// user has provided via markdown) - this converts them into their final rendered
+// form (e.g. turn a height attribute into a css style enforcing height)
 const cardBodyAttrHandlers = () => {
   return [
     {
@@ -471,6 +477,7 @@ const cardBodyAttrHandlers = () => {
   ];
 };
 
+// Processes an attribute, then remove it
 const processAndRemoveAttr = (
   el: Element,
   attr: string,
@@ -484,6 +491,8 @@ const processAndRemoveAttr = (
   }
 };
 
+// Converts the value of an attribute to a style on the
+// element itself
 const attrToStyle = (style: string) => {
   return (el: Element, attrValue: string) => {
     const newStyle: string[] = [];
@@ -497,6 +506,8 @@ const attrToStyle = (style: string) => {
   };
 };
 
+// Converts an attribute on a card to a style applied to
+// the card body(ies)
 const attrToCardBodyStyle = (style: string) => {
   return (el: Element, attrValue: string) => {
     const cardBodyNodes = el.querySelectorAll(".card-body");
@@ -514,7 +525,7 @@ const attrToCardBodyStyle = (style: string) => {
   };
 };
 
-const expandBtnHtml = `
+const kExpandBtnHtml = `
 <bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
     <template>Expand</template>
     <span class="bslib-full-screen-enter badge rounded-pill">
@@ -523,6 +534,8 @@ const expandBtnHtml = `
 </bslib-tooltip>
 `;
 
+// Recursively applies fill classes, skipping elements that
+// should be skipped
 const recursiveApplyFillClasses = (el: Element) => {
   applyFillItemClasses(el);
   applyFillContainerClasses(el);
