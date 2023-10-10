@@ -284,37 +284,79 @@ function dashboardHtmlPostProcessor(
 
     // We need to process cards specially
     const cardNodes = doc.body.querySelectorAll(".card");
+    let cardCount = 0;
     for (const cardNode of cardNodes) {
+      cardCount++;
       const cardEl = cardNode as Element;
+      const cardBodyNodes = cardEl.querySelectorAll(".card-body");
+
+      // Add card attributes
       cardEl.classList.add("bslib-card");
       cardEl.classList.add("html-fill-container");
       cardEl.setAttribute("data-bslib-card-init", "");
       cardEl.setAttribute("data-require-bs-caller", "card()");
 
-      const cardAttrHandlers = [
-        {
-          attr: "data-expandable",
-          handle: (el: Element, attrValue: string) => {
-            if (attrValue === "true") {
-              const shellEl = doc.createElement("div");
-              shellEl.innerHTML = expandBtnHtml;
-              for (const childEl of shellEl.children) {
-                el.appendChild(childEl);
-              }
-              el.setAttribute("data-full-screen", "false");
-            }
-          },
-        },
-        {
-          attr: "data-max-height",
-          handle: attrToStyle("max-height"),
-        },
-        { attr: "data-min-height", handle: attrToStyle("min-height") },
-        { attr: "data-height", handle: attrToStyle("height") },
-        { attr: "data-padding", handle: attrToCardBodyStyle("padding") },
-      ];
+      // If this is a tabset, we need to do more
+      const tabSetId = cardEl.classList.contains("tabset")
+        ? `card-tabset-${cardCount}`
+        : undefined;
 
-      for (const cardAttrHandler of cardAttrHandlers) {
+      if (tabSetId) {
+        // Fix up the header
+        const cardHeaderEl = cardEl.querySelector(".card-header");
+        if (cardHeaderEl) {
+          // Decorate it
+          cardHeaderEl.classList.add("bslib-navs-card-title");
+
+          // Add the tab nav element
+          const ulEl = doc.createElement("UL");
+          ["nav", "nav-tabs", "card-header-tabs"].forEach((clz) => {
+            ulEl.classList.add(clz);
+          });
+          ulEl.setAttribute("role", "tablist");
+          ulEl.setAttribute("data-tabsetid", tabSetId);
+
+          let cardBodyCount = 0;
+          for (const cardBodyNode of cardBodyNodes) {
+            cardBodyCount++;
+            const cardBodyEl = cardBodyNode as Element;
+            let cardBodyTitle = cardBodyEl.getAttribute("data-title");
+            if (cardBodyTitle == null) {
+              cardBodyTitle = `Tab ${cardBodyCount}`;
+            }
+
+            // Add the liEls for each tab
+            const liEl = doc.createElement("LI");
+            liEl.classList.add("nav-item");
+            liEl.setAttribute("role", "presentation");
+
+            const aEl = doc.createElement("A");
+            aEl.setAttribute("href", `#${tabSetId}-${cardBodyCount}`);
+            aEl.classList.add("nav-link");
+            if (cardBodyCount === 1) {
+              aEl.classList.add("active");
+            }
+
+            aEl.setAttribute("role", "tab");
+            aEl.setAttribute("data-toggle", "tab");
+            aEl.setAttribute("data-bs-toggle", "tab");
+            aEl.setAttribute(
+              "data-value",
+              cardBodyTitle,
+            );
+            aEl.setAttribute("aria-selected", "true");
+            aEl.innerText = cardBodyTitle;
+            liEl.appendChild(aEl);
+
+            // Add the li
+            ulEl.appendChild(liEl);
+          }
+
+          cardHeaderEl.appendChild(ulEl);
+        }
+      }
+
+      for (const cardAttrHandler of cardAttrHandlers(doc)) {
         processAndRemoveAttr(
           cardEl,
           cardAttrHandler.attr,
@@ -322,28 +364,45 @@ function dashboardHtmlPostProcessor(
         );
       }
 
-      const cardBodyAttrHandlers = [
-        {
-          attr: "data-max-height",
-          handle: attrToStyle("max-height"),
-        },
-        { attr: "data-min-height", handle: attrToStyle("min-height") },
-        { attr: "data-height", handle: attrToStyle("height") },
-      ];
+      const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
+      if (tabContainerEl) {
+        tabContainerEl.classList.add("tab-content");
+        tabContainerEl.setAttribute("data-tabset-id", tabSetId);
+        cardEl.appendChild(tabContainerEl);
+      }
 
-      // Process card body elements (dealing with fill, attributes, etc...)
-      const cardBodyNodes = cardEl.querySelectorAll(".card-body");
+      let cardBodyCount = 0;
       for (const cardBodyNode of cardBodyNodes) {
+        cardBodyCount++;
         const cardBodyEl = cardBodyNode as Element;
-        recursiveApplyFillClasses(cardBodyEl);
 
-        for (const cardBodyAttrHandler of cardBodyAttrHandlers) {
+        for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
           processAndRemoveAttr(
             cardBodyEl,
             cardBodyAttrHandler.attr,
             cardBodyAttrHandler.handle,
           );
         }
+
+        // Deal with tabs
+        if (tabContainerEl) {
+          const tabPaneEl = doc.createElement("DIV");
+          tabPaneEl.classList.add("tab-pane");
+          if (cardBodyCount === 1) {
+            tabPaneEl.classList.add("active");
+            tabPaneEl.classList.add("show");
+          }
+          tabPaneEl.setAttribute("role", "tabpanel");
+          tabPaneEl.id = `${tabSetId}-${cardBodyCount}`;
+          tabPaneEl.appendChild(cardBodyEl);
+          tabContainerEl.appendChild(tabPaneEl);
+        } else {
+          recursiveApplyFillClasses(cardBodyEl);
+        }
+      }
+
+      if (tabContainerEl) {
+        recursiveApplyFillClasses(tabContainerEl);
       }
 
       // Initialize the cards
@@ -375,6 +434,42 @@ function dashboardHtmlPostProcessor(
     return Promise.resolve(result);
   };
 }
+
+const cardAttrHandlers = (doc: Document) => {
+  return [
+    {
+      attr: "data-expandable",
+      handle: (el: Element, attrValue: string) => {
+        if (attrValue === "true") {
+          const shellEl = doc.createElement("div");
+          shellEl.innerHTML = expandBtnHtml;
+          for (const childEl of shellEl.children) {
+            el.appendChild(childEl);
+          }
+          el.setAttribute("data-full-screen", "false");
+        }
+      },
+    },
+    {
+      attr: "data-max-height",
+      handle: attrToStyle("max-height"),
+    },
+    { attr: "data-min-height", handle: attrToStyle("min-height") },
+    { attr: "data-height", handle: attrToStyle("height") },
+    { attr: "data-padding", handle: attrToCardBodyStyle("padding") },
+  ];
+};
+
+const cardBodyAttrHandlers = () => {
+  return [
+    {
+      attr: "data-max-height",
+      handle: attrToStyle("max-height"),
+    },
+    { attr: "data-min-height", handle: attrToStyle("min-height") },
+    { attr: "data-height", handle: attrToStyle("height") },
+  ];
+};
 
 const processAndRemoveAttr = (
   el: Element,

@@ -5,26 +5,16 @@ format: dashboard
 
 
 
-### Here It Is 
+### {.tabset title="Yo Dawg"}
 
 ```{r}
+#| title: my tab
 plot(cars)
 ```
 
-```{r}
-plot(mtcars)
-```
+:::{.tab title="adkajldkjasd"}
 
-### A Card {.tabset}
+This is another tab
 
-#### Tab 1
+:::
 
-```{r}
-plot(cars)
-```
-
-#### Tab 2
-
-```{r}
-plot(mtcars)
-```
