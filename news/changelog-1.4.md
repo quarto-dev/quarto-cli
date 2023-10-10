@@ -114,6 +114,7 @@
 ## Website Search
 
 - ([#7105](https://github.com/quarto-dev/quarto-cli/issues/7105)): Improve search results by raising default limit and fixing and removing warning that would appear for Algolia when limit was more than 20.
+- ([#7150](https://github.com/quarto-dev/quarto-cli/issues/7150)): Search keyboard shortcut will not intercept keys directed at inputs.
 
 ## Books
 
