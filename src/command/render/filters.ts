@@ -23,6 +23,7 @@ import {
   kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kIncludeAfter,
   kIncludeAfterBody,
   kIncludeBefore,
@@ -552,6 +553,10 @@ async function quartoFilterParams(
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
+  }
+  const htmlTableProcessing = format.render[kHtmlTableProcessing];
+  if (htmlTableProcessing) {
+    params[kHtmlTableProcessing] = htmlTableProcessing;
   }
   const tblColwidths = format.render[kTblColwidths];
   if (tblColwidths !== undefined) {

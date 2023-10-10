@@ -130,6 +130,8 @@ export const kQuartoRequired = "quarto-required";
 export const kPreviewMode = "preview-mode";
 export const kPreviewModeRaw = "raw";
 
+export const kHtmlTableProcessing = "html-table-processing";
+
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
   kDisplayName,
@@ -214,6 +216,7 @@ export const kRenderDefaultsKeys = [
   kNotebookViewStyle,
   kNotebookPreserveCells,
   kClearCellOptions,
+  kHtmlTableProcessing,
 ];
 
 // language fields

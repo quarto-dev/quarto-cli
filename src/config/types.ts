@@ -87,6 +87,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -471,6 +472,7 @@ export interface FormatRender {
   [kNotebookPreserveCells]?: boolean;
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
+  [kHtmlTableProcessing]?: "none";
 }
 
 export interface FormatExecute {

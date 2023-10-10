@@ -21,7 +21,16 @@ end
 
 function parse_html_tables()
   local filter
+  if param(constants.kHtmlTableProcessing) == "none" then
+    return {}
+  end
   filter = {
+    traverse = "topdown",
+    Div = function(div)
+      if div.attributes[constants.kHtmlTableProcessing] == "none" then
+        return div.contents, false
+      end
+    end,
     RawBlock = function(el)
       if _quarto.format.isRawHtml(el) then
         -- if we have a raw html table in a format that doesn't handle raw_html
