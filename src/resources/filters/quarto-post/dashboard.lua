@@ -106,6 +106,9 @@ function render_dashboard()
           return dashboard.valuebox.makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase, classes), false
         
         elseif el.classes:includes('section') then
+
+          -- Allow arbitrary nesting of sections / heading levels to perform layouts
+
           -- Allow sections to be 'cards'
           local header = el.content[1]
           if header.t == "Header" then            
@@ -128,8 +131,10 @@ function render_dashboard()
             end
           end
         elseif el.classes:includes('cell') then
+          
           -- See if this cell has bslib output already
-          local hasBsLibOutput = _quarto.ast.walk(el,  {
+          local hasBsLibOutput = false
+          _quarto.ast.walk(el,  {
             Div = function(childDiv)  
               if childDiv.classes:includes('cell-output-display') then
                 local outputStr = pandoc.utils.stringify(childDiv.content)
@@ -139,11 +144,17 @@ function render_dashboard()
               end
             end
           })
+          
+          local options = {}
+          if el.attributes['title'] then
+            options['title'] = el.attributes['title']
+          end
+          
 
           if hasBsLibOutput then
             return el
           else
-            return dashboard.card.makeCard(title, el.content), false
+            return dashboard.card.makeCard(nil, el.content, {}, options), false
           end
         end
       end,
