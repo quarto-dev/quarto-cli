@@ -4,9 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document, Element, NodeList } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
 import {
+  applyAttributes,
+  applyClasses,
   attrToCardBodyStyle,
   attrToStyle,
   processAndRemoveAttr,
@@ -22,31 +24,65 @@ const kExpandBtnHtml = `
 </bslib-tooltip>
 `;
 
+// Card classes
+const kCardClass = "card";
+const kCardBodyClass = "card-body";
+const kCardHeaderClass = "card-header";
+
+// Tabset classes
+const kTabsetClass = "tabset";
+
+// Tabset BS values
+const kTabsetIdPrefix = "card-tabset-";
+
+// Card attributes (our options are expressed using these attributes)
+const kAttrTitle = "data-title";
+const kAttrExpandable = "data-expandable";
+const kAttrMaxHeight = "data-max-height";
+const kAttrMinHeight = "data-min-height";
+const kAttrHeight = "data-height";
+const kAttrPadding = "data-padding";
+
+// BSLib Attributes
+const kAttrFullScreen = "data-full-screen";
+
+// BSLib Card Classes
+const kBsCardClasses = ["bslib-card", "html-fill-container"];
+const kBsCardScriptInitAttrs = { ["data-bslib-card-init"]: "" };
+
+const kBsTabsetCardHeaderClasses = ["bslib-navs-card-title"];
+
+// BSLib Card Attributes
+const kBsCardAttributes: Record<string, string> = {
+  ["data-bslib-card-init"]: "",
+  ["data-require-bs-caller"]: "card()",
+};
+
 // How to process card attributes (card attributes express options that the
 // user has provided via markdown) - this converts them into their final rendered
 // form (e.g. turn a height attribute into a css style enforcing height)
 const cardAttrHandlers = (doc: Document) => {
   return [
     {
-      attr: "data-expandable",
+      attr: kAttrExpandable,
       handle: (el: Element, attrValue: string) => {
         if (attrValue === "true") {
-          const shellEl = doc.createElement("div");
+          const shellEl = doc.createElement("DIV");
           shellEl.innerHTML = kExpandBtnHtml;
           for (const childEl of shellEl.children) {
             el.appendChild(childEl);
           }
-          el.setAttribute("data-full-screen", "false");
+          el.setAttribute(kAttrFullScreen, "false");
         }
       },
     },
     {
-      attr: "data-max-height",
+      attr: kAttrMaxHeight,
       handle: attrToStyle("max-height"),
     },
-    { attr: "data-min-height", handle: attrToStyle("min-height") },
-    { attr: "data-height", handle: attrToStyle("height") },
-    { attr: "data-padding", handle: attrToCardBodyStyle("padding") },
+    { attr: kAttrMinHeight, handle: attrToStyle("min-height") },
+    { attr: kAttrHeight, handle: attrToStyle("height") },
+    { attr: kAttrPadding, handle: attrToCardBodyStyle("padding") },
   ];
 };
 
@@ -56,89 +92,42 @@ const cardAttrHandlers = (doc: Document) => {
 const cardBodyAttrHandlers = () => {
   return [
     {
-      attr: "data-max-height",
+      attr: kAttrMaxHeight,
       handle: attrToStyle("max-height"),
     },
-    { attr: "data-min-height", handle: attrToStyle("min-height") },
-    { attr: "data-height", handle: attrToStyle("height") },
+    { attr: kAttrMinHeight, handle: attrToStyle("min-height") },
+    { attr: kAttrHeight, handle: attrToStyle("height") },
   ];
 };
 
 export function processCards(doc: Document) {
   // We need to process cards specially
-  const cardNodes = doc.body.querySelectorAll(".card");
+  const cardNodes = doc.body.querySelectorAll(`.${kCardClass}`);
   let cardCount = 0;
   for (const cardNode of cardNodes) {
     cardCount++;
     const cardEl = cardNode as Element;
-    const cardBodyNodes = cardEl.querySelectorAll(".card-body");
+    const cardBodyNodes = cardEl.querySelectorAll(`.${kCardBodyClass}`);
 
     // Add card attributes
-    cardEl.classList.add("bslib-card");
-    cardEl.classList.add("html-fill-container");
-    cardEl.setAttribute("data-bslib-card-init", "");
-    cardEl.setAttribute("data-require-bs-caller", "card()");
+    applyClasses(cardEl, kBsCardClasses);
+    applyAttributes(cardEl, kBsCardAttributes);
 
     // If this is a tabset, we need to do more
-    const tabSetId = cardEl.classList.contains("tabset")
-      ? `card-tabset-${cardCount}`
+    const tabSetId = cardEl.classList.contains(kTabsetClass)
+      ? `${kTabsetIdPrefix}${cardCount}`
       : undefined;
-
     if (tabSetId) {
       // Fix up the header
-      const cardHeaderEl = cardEl.querySelector(".card-header");
+      const cardHeaderEl = cardEl.querySelector(`.${kCardHeaderClass}`);
       if (cardHeaderEl) {
-        // Decorate it
-        cardHeaderEl.classList.add("bslib-navs-card-title");
-
-        // Add the tab nav element
-        const ulEl = doc.createElement("UL");
-        ["nav", "nav-tabs", "card-header-tabs"].forEach((clz) => {
-          ulEl.classList.add(clz);
-        });
-        ulEl.setAttribute("role", "tablist");
-        ulEl.setAttribute("data-tabsetid", tabSetId);
-
-        let cardBodyCount = 0;
-        for (const cardBodyNode of cardBodyNodes) {
-          cardBodyCount++;
-          const cardBodyEl = cardBodyNode as Element;
-          let cardBodyTitle = cardBodyEl.getAttribute("data-title");
-          if (cardBodyTitle == null) {
-            cardBodyTitle = `Tab ${cardBodyCount}`;
-          }
-
-          // Add the liEls for each tab
-          const liEl = doc.createElement("LI");
-          liEl.classList.add("nav-item");
-          liEl.setAttribute("role", "presentation");
-
-          const aEl = doc.createElement("A");
-          aEl.setAttribute("href", `#${tabSetId}-${cardBodyCount}`);
-          aEl.classList.add("nav-link");
-          if (cardBodyCount === 1) {
-            aEl.classList.add("active");
-          }
-
-          aEl.setAttribute("role", "tab");
-          aEl.setAttribute("data-toggle", "tab");
-          aEl.setAttribute("data-bs-toggle", "tab");
-          aEl.setAttribute(
-            "data-value",
-            cardBodyTitle,
-          );
-          aEl.setAttribute("aria-selected", "true");
-          aEl.innerText = cardBodyTitle;
-          liEl.appendChild(aEl);
-
-          // Add the li
-          ulEl.appendChild(liEl);
-        }
-
-        cardHeaderEl.appendChild(ulEl);
+        convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyNodes, doc);
       }
+      // Convert the body to tabs
+      convertToTabs(tabSetId, cardEl, cardBodyNodes, doc);
     }
 
+    // Process card attributes
     for (const cardAttrHandler of cardAttrHandlers(doc)) {
       processAndRemoveAttr(
         cardEl,
@@ -147,51 +136,134 @@ export function processCards(doc: Document) {
       );
     }
 
-    const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
-    if (tabContainerEl) {
-      tabContainerEl.classList.add("tab-content");
-      tabContainerEl.setAttribute("data-tabset-id", tabSetId);
-      cardEl.appendChild(tabContainerEl);
-    }
-
-    let cardBodyCount = 0;
+    // Process card body attributes
     for (const cardBodyNode of cardBodyNodes) {
-      cardBodyCount++;
       const cardBodyEl = cardBodyNode as Element;
-
       for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
         processAndRemoveAttr(
           cardBodyEl,
           cardBodyAttrHandler.attr,
           cardBodyAttrHandler.handle,
         );
-      }
-
-      // Deal with tabs
-      if (tabContainerEl) {
-        const tabPaneEl = doc.createElement("DIV");
-        tabPaneEl.classList.add("tab-pane");
-        if (cardBodyCount === 1) {
-          tabPaneEl.classList.add("active");
-          tabPaneEl.classList.add("show");
+        if (!tabSetId) {
+          // If this was converted to tab, this will already be taken care of
+          recursiveApplyFillClasses(cardBodyEl);
         }
-        tabPaneEl.setAttribute("role", "tabpanel");
-        tabPaneEl.id = `${tabSetId}-${cardBodyCount}`;
-        tabPaneEl.appendChild(cardBodyEl);
-        tabContainerEl.appendChild(tabPaneEl);
-      } else {
-        recursiveApplyFillClasses(cardBodyEl);
       }
-    }
-
-    if (tabContainerEl) {
-      recursiveApplyFillClasses(tabContainerEl);
     }
 
     // Initialize the cards
-    const scriptInitEl = doc.createElement("script");
-    scriptInitEl.setAttribute("data-bslib-card-init", "");
-    scriptInitEl.innerText = "bslib.Card.initializeAllCards();";
-    cardEl.appendChild(scriptInitEl);
+    cardEl.appendChild(initCardScript(doc));
+  }
+}
+
+function initCardScript(doc: Document) {
+  const scriptInitEl = doc.createElement("SCRIPT");
+  applyAttributes(scriptInitEl, kBsCardScriptInitAttrs);
+  scriptInitEl.innerText = "bslib.Card.initializeAllCards();";
+  return scriptInitEl;
+}
+
+function convertToTabsetHeader(
+  tabSetId: string,
+  cardHeaderEl: Element,
+  cardBodyNodes: NodeList,
+  doc: Document,
+) {
+  // Decorate it
+  applyClasses(cardHeaderEl, kBsTabsetCardHeaderClasses);
+
+  // Add the tab nav element
+  const ulEl = doc.createElement("UL");
+  applyClasses(ulEl, ["nav", "nav-tabs", "card-header-tabs"]);
+  applyAttributes(ulEl, {
+    role: "tablist",
+    ["data-tabsetid"]: tabSetId,
+  });
+
+  let cardBodyCount = 0;
+  for (const cardBodyNode of cardBodyNodes) {
+    cardBodyCount++;
+    const cardBodyEl = cardBodyNode as Element;
+
+    // If the user has provided a title, use that
+    let cardBodyTitle = cardBodyEl.getAttribute(kAttrTitle);
+    if (cardBodyTitle == null) {
+      cardBodyTitle = `Tab ${cardBodyCount}`;
+    }
+
+    // Add the liEls for each tab
+    const liEl = doc.createElement("LI");
+    applyClasses(liEl, ["nav-item"]);
+    applyAttributes(liEl, { role: "presentation" });
+
+    const aEl = doc.createElement("A");
+    applyAttributes(aEl, {
+      href: `#${tabSetId}-${cardBodyCount}`,
+      role: "tab",
+      ["data-toggle"]: "tab",
+      ["data-bs-toggle"]: "tab",
+      ["data-value"]: cardBodyTitle,
+      ["aria-selected"]: cardBodyCount === 1 ? "true" : "false",
+    });
+
+    const clz = ["nav-link"];
+    if (cardBodyCount === 1) {
+      clz.push("active");
+    }
+    applyClasses(aEl, clz);
+
+    aEl.innerText = cardBodyTitle;
+    liEl.appendChild(aEl);
+
+    // Add the li
+    ulEl.appendChild(liEl);
+  }
+  cardHeaderEl.appendChild(ulEl);
+}
+
+function convertToTabs(
+  tabSetId: string,
+  cardEl: Element,
+  cardBodyNodes: NodeList,
+  doc: Document,
+) {
+  const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
+  if (tabContainerEl) {
+    tabContainerEl.classList.add("tab-content");
+    tabContainerEl.setAttribute("data-tabset-id", tabSetId);
+    cardEl.appendChild(tabContainerEl);
+  }
+
+  let cardBodyCount = 0;
+  for (const cardBodyNode of cardBodyNodes) {
+    cardBodyCount++;
+    const cardBodyEl = cardBodyNode as Element;
+
+    for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
+      processAndRemoveAttr(
+        cardBodyEl,
+        cardBodyAttrHandler.attr,
+        cardBodyAttrHandler.handle,
+      );
+    }
+
+    // Deal with tabs
+    if (tabContainerEl) {
+      const tabPaneEl = doc.createElement("DIV");
+      tabPaneEl.classList.add("tab-pane");
+      if (cardBodyCount === 1) {
+        tabPaneEl.classList.add("active");
+        tabPaneEl.classList.add("show");
+      }
+      tabPaneEl.setAttribute("role", "tabpanel");
+      tabPaneEl.id = `${tabSetId}-${cardBodyCount}`;
+      tabPaneEl.appendChild(cardBodyEl);
+      tabContainerEl.appendChild(tabPaneEl);
+    }
+  }
+
+  if (tabContainerEl) {
+    recursiveApplyFillClasses(tabContainerEl);
   }
 }

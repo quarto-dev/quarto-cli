@@ -56,7 +56,7 @@ function render_dashboard()
       end,
       Div = function(el) 
 
-        if dashboard.card.isCard(el)then
+        if dashboard.card.isCard(el) then
 
           -- see if the card is already in the correct structure (a single header and body)
           -- exit early, not processing if it is already processed in this way
@@ -143,7 +143,7 @@ function render_dashboard()
           if hasBsLibOutput then
             return el
           else
-            return dashboard.card.makeCard(nil, el.content), false
+            return dashboard.card.makeCard(title, el.content), false
           end
         end
       end,

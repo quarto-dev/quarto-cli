@@ -131,7 +131,17 @@ local function resolveCardBodies(contents)
   local bodyContentEls = pandoc.List()
   local function flushBodyContentEls()
     if #bodyContentEls > 0 then
-      local contentDiv = pandoc.Div(bodyContentEls, pandoc.Attr("", {kCardBodyClass}))
+
+      local contentDiv = pandoc.Div({}, pandoc.Attr("", {kCardBodyClass}))
+
+      -- forward attributes from the first child into the parent body
+      for k, v in pairs(bodyContentEls[1].attributes) do
+        if kCardBodyAttributes:includes(k) then
+          contentDiv.attr.attributes["data-" .. k] = pandoc.utils.stringify(v)
+          bodyContentEls[1].attributes[k] = nil
+        end
+      end
+      contentDiv.content:extend(bodyContentEls)
       result:insert(contentDiv)
     end
     bodyContentEls = pandoc.List()
@@ -153,10 +163,10 @@ local function resolveCardBodies(contents)
       -- remove the tab class as this is now a resolved card body
       v.classes = v.classes:filter(function(class) return class ~= kTabClass end)
 
-      -- forward our know attributes into data attributes
-      for k, v in ipairs(v.attr.attributes) do
+      -- forward our known attributes into data attributes
+      for k, val in pairs(v.attr.attributes) do
         if kCardBodyAttributes:includes(k) then
-          v.attr.attributes["data-" .. k] = pandoc.utils.stringify(v)
+          v.attr.attributes["data-" .. k] = pandoc.utils.stringify(val)
           v.attr.attributes[k] = nil
         end
       end

@@ -1,6 +1,9 @@
 ---
 title: Card Advanced
-format: dashboard
+format: 
+  dashboard:
+    orientation: columns
+    fill: true
 ---
 
 
@@ -18,3 +21,21 @@ This is another tab
 
 :::
 
+:::{.rows .fill}
+
+### What up trey
+
+```{r}
+plot(iris)
+```
+
+### Hello World
+
+```{r}
+#| label: fig-mtcars
+#| fig-cap: This is a picture of mtcars
+plot(mtcars)
+```
+
+
+:::

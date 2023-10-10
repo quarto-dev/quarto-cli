@@ -73,3 +73,15 @@ export const attrToCardBodyStyle = (style: string) => {
     }
   };
 };
+
+export const applyClasses = (el: Element, clz: string[]) => {
+  for (const cls of clz) {
+    el.classList.add(cls);
+  }
+};
+
+export const applyAttributes = (el: Element, attr: Record<string, string>) => {
+  for (const key of Object.keys(attr)) {
+    el.setAttribute(key, attr[key]);
+  }
+};
