@@ -471,7 +471,7 @@ export const jupyterEngine: ExecutionEngine = {
 
     let running = false;
     const [_dir, stem] = dirAndStem(options.input);
-    const appFile = `${stem}-app.py`;
+    const appFile = `${stem}-qmd-app.py`;
     const cmd = [
       ...await pythonExec(),
       "-m",
