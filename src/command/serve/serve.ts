@@ -19,7 +19,6 @@ import {
 } from "../../core/previewurl.ts";
 import { isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
-import { previewMonitorResources } from "../../core/quarto.ts";
 
 export async function renderForServe(
   file: string,
@@ -41,9 +40,6 @@ export async function renderForServe(
 }
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
-  // monitor resources
-  previewMonitorResources();
-
   const { host, port } = await resolveHostAndPort(options);
   const engine = fileExecutionEngine(options.input);
   if (engine?.run) {

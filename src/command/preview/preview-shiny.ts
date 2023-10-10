@@ -35,12 +35,16 @@ import { kLocalhost } from "../../core/port-consts.ts";
 import { logError } from "../../core/log.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { normalizePath } from "../../core/path.ts";
+import { previewMonitorResources } from "../../core/quarto.ts";
 
 export interface PreviewShinyOptions extends RunOptions {
   project?: ProjectContext;
 }
 
 export async function previewShiny(options: PreviewShinyOptions) {
+  // monitor dev resources
+  previewMonitorResources();
+
   // if a render token was provided then run a control channel
   // where render requests can be fulfilled
   if (renderToken()) {
