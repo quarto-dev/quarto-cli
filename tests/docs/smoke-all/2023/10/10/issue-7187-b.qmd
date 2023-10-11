@@ -5,7 +5,7 @@ _quarto:
     html:
       ensureHtmlElements:
         - []
-        - ["table.table"]
+        - ["table.table", "div[data-html-table-processing]"]
 ---
 
 ::: {html-table-processing="none"}

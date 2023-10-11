@@ -28,7 +28,7 @@ function parse_html_tables()
     traverse = "topdown",
     Div = function(div)
       if div.attributes[constants.kHtmlTableProcessing] == "none" then
-        return div.contents, false
+        return div.content, false
       end
     end,
     RawBlock = function(el)
