@@ -42,6 +42,7 @@ local kCodeAnnotationStyleNone = "none"
 local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 local kCellAnnotationClass = "cell-annotation"
+local kCodeLineNumbers = "code-line-numbers"
 
 local kContentVisible = "content-visible"
 local kContentHidden = "content-hidden"
@@ -165,6 +166,7 @@ return {
   kCodeLine = kCodeLine,
   kCodeLines = kCodeLines,
   kCellAnnotationClass = kCellAnnotationClass,
+  kCodeLineNumbers = kCodeLineNumbers,
   kContentVisible = kContentVisible,
   kContentHidden = kContentHidden,
   kWhenFormat = kWhenFormat,
