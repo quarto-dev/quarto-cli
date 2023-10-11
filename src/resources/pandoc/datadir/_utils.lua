@@ -322,17 +322,51 @@ end
 local function match(str)
   local vs = split(str, "/")
   local result = {}
+  local captures = {}
+  local capture_id = function(v) return v end
+  local capture_add = function(v) 
+    table.insert(captures, v) 
+    return v 
+  end
+  local captured = false
+
   for _, v in ipairs(vs) do
     local first = v:sub(1, 1)
+    local last = v:sub(-1)
+    local capture_fun = capture_id
+    if first == "{" then -- capture
+      v = v:sub(2, -2)
+      if last ~= "}" then
+        fail("invalid match token: " .. v .. "(in " .. str .. ")")
+        return match_fun({})
+      end
+      first = v:sub(1, 1)
+      capture_fun = capture_add
+      captured = true
+    end
+    -- close over capture_fun in all cases
     if first == "[" then -- [1]
       local n = tonumber(v:sub(2, -2))
-      table.insert(result, function(node) return node.content ~= nil and node.content[n] end)
+      table.insert(result, (function(capture_fun)
+        return function(node) return node.content ~= nil and node.content[n] and capture_fun(node.content[n]) end
+      end)(capture_fun))
     elseif first:upper() == first then -- Plain
-      table.insert(result, function(node) return node.t == v end)
+      table.insert(result, (function(capture_fun)
+        return function(node) return node.t == v and capture_fun(node) end
+      end)(capture_fun))
     else
       fail("invalid match token: " .. v .. "(in " .. str .. ")")
       return match_fun({})
     end
+  end
+  if captured then
+    local function send_capture(v)
+      if v then 
+        return captures
+      end
+      return v
+    end
+    table.insert(result, send_capture)
   end
   return match_fun(table.unpack(result))
 end
