@@ -91,7 +91,16 @@ const applyFillContainerClasses = (el: Element) => {
   }
 };
 
-const kSkipContainerTagz = ["P", "FIGCAPTION", "SCRIPT"];
+const kSkipContainerTagz = [
+  "P",
+  "FIGCAPTION",
+  "SCRIPT",
+  "SPAN",
+  "A",
+  "PRE",
+  "CODE",
+  "BUTTON",
+];
 const kSkipContainerClz: string[] = [
   "bi",
   "value-box-grid",
@@ -100,4 +109,13 @@ const kSkipContainerClz: string[] = [
   "value-box-value",
 ];
 const kSkipFillClz: string[] = ["bi", "no-fill", "callout"];
-const kSkipFillTagz = ["P", "FIGCAPTION", "SCRIPT"];
+const kSkipFillTagz = [
+  "P",
+  "FIGCAPTION",
+  "SCRIPT",
+  "SPAN",
+  "A",
+  "PRE",
+  "CODE",
+  "BUTTON",
+];
