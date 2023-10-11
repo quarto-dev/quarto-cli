@@ -5,7 +5,7 @@ _quarto:
     html:
       ensureHtmlElements:
         - []
-        - ["table[data-quarto-postprocess]"]
+        - ["table[data-quarto-postprocess]", "div[data-html-table-processing]"]
 ---
 
 ```{python}
