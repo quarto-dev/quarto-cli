@@ -117,6 +117,7 @@ import("../customnodes/callout.lua")
 import("../customnodes/panel-tabset.lua")
 import("../customnodes/floatreftarget.lua")
 import("../customnodes/theorem.lua")
+import("../customnodes/panellayout.lua")
 
 import("../quarto-init/metainit.lua")
 

@@ -1,0 +1,25 @@
+---
+title: float crossref test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<img src=\"img/surus.jpg\" id=\"fig-foo\""
+          - "alt=\"Figure 1: This is a figure\""
+          - "<a href=\"#fig-foo\" class=\"quarto-xref\">"
+          - "<img src=\"img/surus.jpg\" id=\"tbl-foo\""
+          - "alt=\"Table 1: This is a table\""
+          - "<a href=\"#tbl-foo\" class=\"quarto-xref\">"
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as images with identifiers
+
+![This is a figure](img/surus.jpg){#fig-foo}
+
+![This is a table](img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.
