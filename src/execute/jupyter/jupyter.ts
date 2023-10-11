@@ -9,7 +9,7 @@ import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
-import { error, info } from "log/mod.ts";
+import { error } from "log/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -99,13 +99,14 @@ import {
   kJupyterPercentScriptExtensions,
   markdownFromJupyterPercentScript,
 } from "./percent.ts";
-import { execProcess } from "../../core/process.ts";
 import {
   inputFilesDir,
   isServerShiny,
   isServerShinyPython,
 } from "../../core/render.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
+import { runExternalPreviewServer } from "../../preview/preview-server.ts";
+import { onCleanup } from "../../core/cleanup.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -469,9 +470,8 @@ export const jupyterEngine: ExecutionEngine = {
       throw new Error();
     }
 
-    let running = false;
     const [_dir, stem] = dirAndStem(options.input);
-    const appFile = `${stem}-qmd-app.py`;
+    const appFile = `${stem}-app.py`;
     const cmd = [
       ...await pythonExec(),
       "-m",
@@ -488,30 +488,28 @@ export const jupyterEngine: ExecutionEngine = {
       cmd.push(`--reload-includes`);
       cmd.push(`*.py`);
     }
-    const result = await execProcess(
-      {
-        cmd,
-        cwd: dirname(options.input),
-      },
-      undefined,
-      undefined,
-      (output) => {
-        if (!running) {
-          const kLocalPreviewRegex =
-            /(http:\/\/(?:localhost|127\.0\.0\.1)\:\d+\/?[^\s]*)/;
-          if (kLocalPreviewRegex.test(output)) {
-            running = true;
-            if (options.onReady) {
-              options.onReady();
-            }
-          }
-        }
-        return output;
-      },
-    );
-    if (!result.success) {
-      throw new Error();
+
+    // start server
+    const readyPattern = /(http:\/\/(?:localhost|127\.0\.0\.1)\:\d+\/?[^\s]*)/;
+    const server = runExternalPreviewServer({
+      cmd,
+      readyPattern,
+      cwd: dirname(options.input),
+    });
+    await server.start();
+
+    // stop the server onCleanup
+    onCleanup(async () => {
+      await server.stop();
+    });
+
+    // notify when ready
+    if (options.onReady) {
+      options.onReady();
     }
+
+    // run the server
+    return server.serve();
   },
 
   postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {

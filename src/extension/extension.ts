@@ -947,12 +947,22 @@ function resolveFilterPath(
       return join(extensionDir, filter);
     }
   } else {
-    return {
+    // deno-lint-ignore no-explicit-any
+    const filterAt = ((filter as any).at) as string | undefined;
+    const result: QuartoFilter = {
       type: filter.type,
       path: isAbsolute(filter.path)
         ? filter.path
         : join(extensionDir, filter.path),
     };
+    if (filterAt === undefined) {
+      return result;
+    } else {
+      return {
+        ...result,
+        at: filterAt,
+      };
+    }
   }
 }
 

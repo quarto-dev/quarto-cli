@@ -182,12 +182,18 @@ function formatNumberOption(type, order, default)
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
     -- to start the numbering with (e.g. alpha a vs. alpha A)
-    local startIndexChar = string.sub(numberStyle, -1)
-    if (startIndexChar == " ") then
+    local s = split(numberStyle, " ") 
+    local startIndexChar = s[2]
+    if (startIndexChar == nil or startIndexChar == " ") then
       startIndexChar = "a"
     end
+    -- local startIndexChar = string.sub(numberStyle, -1)
+    -- if (startIndexChar == " ") then
+    --   startIndexChar = "a"
+    -- end
+    -- print(numberStyle)
     local startIndex = utf8.codepoint(startIndexChar)
-    return resolve(string.char(startIndex + num - 1))
+    return resolve(utf8.char(startIndex + num - 1))
   elseif (string.match(numberStyle, "^roman")) then
     -- permits the user to express `roman` or `roman i` or `roman I` to
     -- use lower / uppper case roman numerals

@@ -138,6 +138,7 @@
 - Ability to cancel an executing preview from within the progress UI
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
+- Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
 
 ## Jupyter
 
@@ -204,6 +205,7 @@
 
 - ([#2551](https://github.com/quarto-dev/quarto-cli/issues/2551)): Support crossreferenceable figures without captions.
 - ([#6620](https://github.com/quarto-dev/quarto-cli/issues/6620)): Introduce `FloatRefTarget` AST nodes that generalize crossref targets to include figures, tables, and custom floating elements.
+- ([#7200](https://github.com/quarto-dev/quarto-cli/issues/7200)): Support Unicode in subref labels.
 
 ## Other Fixes and Improvements
 
