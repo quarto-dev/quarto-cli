@@ -173,10 +173,10 @@ function render_dashboard()
             -- The first time we see a level, we should emit the rows and 
 
             if level > 1 then
-              if level ~= lastLevel then
+              -- Compute the fill
+              local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
 
-                -- Compute the fill
-                local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
+              if level ~= lastLevel then
 
                 -- Note the new level
                 lastLevel = level

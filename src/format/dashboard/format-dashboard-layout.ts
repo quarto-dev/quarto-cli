@@ -16,6 +16,7 @@ export function processRows(doc: Document) {
       // Compute the grid sizes
       const gridSizes: string[] = [];
       for (const childEl of rowEl.children) {
+        console.log(childEl.classList);
         if (childEl.classList.contains("fill")) {
           rowEl.classList.remove("fill");
           rowEl.classList.add("html-fill-container");
