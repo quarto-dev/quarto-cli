@@ -10,9 +10,7 @@ A typical HTML document with an associated Connect email might look something li
 
 ```
 ---
-format:
-  html: default
-  email: default
+format: email-html
 ---
 
 The report content. Anything that is here is not part of the email message.
@@ -44,9 +42,7 @@ Your reporting may sometimes create data files (like CSVs or Excel files), and, 
 
 ```
 ---
-format:
-  html: default
-  email: default
+format: email-html
 email-attachments:
   - raw_data.csv
   - summary.csv
@@ -61,9 +57,7 @@ Emails on Connect can be set up to be regularly sent upon render. We could suppr
 
 ````
 ---
-format:
-  html: default
-  email: default
+format: email-html
 ---
 
 ```{r}
