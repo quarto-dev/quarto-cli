@@ -23,6 +23,7 @@ import {
   kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kIncludeAfter,
   kIncludeAfterBody,
   kIncludeBefore,
@@ -82,6 +83,8 @@ import { citeIndexFilterParams } from "../../project/project-cites.ts";
 import { debug } from "log/mod.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
+import { isServerShinyPython } from "../../core/render.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -103,6 +106,9 @@ const kQuartoVersion = "quarto-version";
 const kQuartoSource = "quarto-source";
 
 const kQuartoCustomFormat = "quarto-custom-format";
+
+const kIsShinyPython = "is-shiny-python";
+const kShinyPythonExec = "shiny-python-exec";
 
 export async function filterParamsJson(
   args: string[],
@@ -138,6 +144,11 @@ export async function filterParamsJson(
     options.format.metadata,
   );
 
+  const isShinyPython = isServerShinyPython(
+    options.format,
+    options.executionEngine,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -162,6 +173,8 @@ export async function filterParamsJson(
       jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
     [kFormatIdentifier]: options.format.identifier,
+    [kIsShinyPython]: isShinyPython,
+    [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
   };
   return JSON.stringify(params);
 }
@@ -540,6 +553,10 @@ async function quartoFilterParams(
   const foldCode = format.render[kCodeFold];
   if (foldCode) {
     params[kCodeFold] = foldCode;
+  }
+  const htmlTableProcessing = format.render[kHtmlTableProcessing];
+  if (htmlTableProcessing) {
+    params[kHtmlTableProcessing] = htmlTableProcessing;
   }
   const tblColwidths = format.render[kTblColwidths];
   if (tblColwidths !== undefined) {

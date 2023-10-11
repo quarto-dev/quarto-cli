@@ -1,4 +1,4 @@
-// quarto-ojs-runtime v0.0.15 Copyright 2023 undefined
+// quarto-ojs-runtime v0.0.16 Copyright 2023 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -19712,6 +19712,7 @@ function displayOJSWarning(warning)
 
     cell.appendChild(
       calloutBlock({
+        heading: "Error",
         type: "error",
         message
       })

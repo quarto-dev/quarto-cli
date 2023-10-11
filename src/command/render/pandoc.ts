@@ -196,7 +196,6 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
-import { quarto } from "../../quarto.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files

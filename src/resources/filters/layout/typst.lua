@@ -34,12 +34,40 @@ function make_typst_figure(tbl)
   })
 end
 
+local function render_floatless_typst_layout(panel)
+  local result = pandoc.Blocks({})
+  if panel.preamble then
+    result:insert(panel.preamble)
+  end
+
+  -- render a grid per row of the layout
+  -- https://typst.app/docs/reference/layout/grid/
+
+  for i, row in ipairs(panel.layout) do
+    -- synthesize column spec from row
+    local col_spec = {}
+    for j, col in ipairs(row) do
+      table.insert(col_spec, col.attributes["width"])
+    end
+    -- TODO allow configurable gutter
+    local col_spec_str = "columns: (" .. table.concat(col_spec, ", ") .. "), gutter: 1em, rows: 1,"
+    result:insert(pandoc.RawBlock("typst", "#grid("))
+    result:insert(pandoc.RawBlock("typst", col_spec_str))
+    for j, col in ipairs(row) do
+      result:insert(pandoc.RawBlock("typst", "  rect(stroke: none, width: 100%)["))
+      result:extend(col.content)
+      result:insert(pandoc.RawBlock("typst", "],"))
+    end
+    result:insert(pandoc.RawBlock("typst", ")\n"))
+  end
+  return result
+end
+
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isTypstOutput()
 end, function(layout)
   if layout.float == nil then
-    fail_and_ask_for_bug_report("PanelLayout renderer requires a float in typst output")
-    return pandoc.Div({})
+    return render_floatless_typst_layout(layout)
   end
 
   local ref = refType(layout.float.identifier)

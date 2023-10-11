@@ -78,6 +78,8 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
     echo $i >> "$QUARTO_TEST_TIMING"
     /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $i
   done
+  # exit the script with an error code if the timing file shows error
+  grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
 else
   # RUN WHEN NO TIMING (GENERIC CASE)
 
@@ -112,9 +114,8 @@ else
     fi
   fi
   "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" $TESTS_TO_RUN
+  SUCCESS=$?
 fi
-
-SUCCESS=$?
 
 if [[ $quarto_venv_activated == "true" ]] 
 then

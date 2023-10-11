@@ -1203,6 +1203,9 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // check if we have any image output
+  const haveImage = !!cell.outputs?.some((output) => isImage(output, options));
+
   // filter and transform outputs as needed
   const outputs = (cell.outputs || []).filter((output) => {
     // filter warnings if requested
@@ -1215,7 +1218,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output)) {
+    if (isDiscadableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1621,18 +1624,25 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(output: JupyterOutput) {
+function isDiscadableTextExecuteResult(
+  output: JupyterOutput,
+  haveImage: boolean,
+) {
   if (output.output_type === "execute_result") {
     const data = (output as JupyterOutputDisplayData).data;
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        return [
-          "[<matplotlib",
-          "<matplotlib",
-          "<seaborn.",
-          "<ggplot:",
-        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        if (haveImage && textPlain.length === 1) {
+          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        } else {
+          return [
+            "[<matplotlib",
+            "<matplotlib",
+            "<seaborn.",
+            "<ggplot:",
+          ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        }
       }
     }
   }

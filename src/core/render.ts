@@ -1,12 +1,12 @@
 /*
-* render.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { kOutputExt, kOutputFile } from "../config/constants.ts";
-import { Format } from "../config/types.ts";
+import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
+import { Format, Metadata } from "../config/types.ts";
+import { kJupyterEngine } from "../execute/types.ts";
 import { dirAndStem } from "./path.ts";
 import { extname } from "path/mod.ts";
 
@@ -23,6 +23,18 @@ export function figuresDir(pandocTo?: string) {
   }
   pandocTo = (pandocTo || "html").replace(/[\+\-].*$/, "");
   return "figure-" + pandocTo;
+}
+
+export function isServerShiny(format?: Format) {
+  const server = format?.metadata[kServer] as Metadata | undefined;
+  return server?.["type"] === "shiny";
+}
+
+export function isServerShinyPython(
+  format: Format,
+  engine: string | undefined,
+) {
+  return isServerShiny(format) && engine === kJupyterEngine;
 }
 
 export function formatOutputFile(format: Format) {

@@ -45,6 +45,12 @@ import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
 import { warning } from "log/mod.ts";
+import { renderFormats } from "../render/render-contexts.ts";
+import { Format } from "../../config/types.ts";
+import { isServerShiny, isServerShinyPython } from "../../core/render.ts";
+import { previewShiny } from "./preview-shiny.ts";
+import { serve } from "../serve/serve.ts";
+import { fileExecutionEngine } from "../../execute/engine.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -266,12 +272,53 @@ export const previewCommand = new Command()
     let touchPath: string | undefined;
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
+      // get project and preview format
       const project = await projectContext(dirname(file));
+      const format = await previewFormat(file, flags.to, project);
+
+      // see if this is server: shiny document and if it is then forward to previewShiny
+      if (isHtmlOutput(format)) {
+        const renderFormat = (await renderFormats(file, format, project))
+          ?.[format] as Format | undefined;
+        if (renderFormat && isServerShiny(renderFormat)) {
+          const engine = fileExecutionEngine(file, flags);
+          if (isServerShinyPython(renderFormat, engine?.name)) {
+            const result = await previewShiny({
+              input: file,
+              render: !!options.render,
+              port: typeof (options.port) === "string"
+                ? parseInt(options.port)
+                : options.port,
+              host: options.host,
+              browser: options.browser,
+              projectDir: project?.dir,
+              tempDir: Deno.makeTempDirSync(),
+              format,
+              pandocArgs: args,
+              watchInputs: options.watchInputs!,
+            });
+            Deno.exit(result.code);
+          } else {
+            const result = await serve({
+              input: file,
+              render: !!options.render,
+              port: typeof (options.port) === "string"
+                ? parseInt(options.port)
+                : options.port,
+              host: options.host,
+              browser: options.browser,
+              projectDir: project?.dir,
+              tempDir: Deno.makeTempDirSync(),
+            });
+            Deno.exit(result.code);
+          }
+        }
+      }
+
       if (project && projectIsServeable(project)) {
         // special case: plain markdown file w/ an external previewer that is NOT
         // in the project input list -- in this case allow things to proceed
         // without a render
-        const format = await previewFormat(file, flags.to, project);
         const filePath = normalizePath(file);
         if (!project.files.input.includes(filePath)) {
           if (extname(file) === ".md" && projectPreviewServe(project)) {
@@ -348,6 +395,7 @@ export const previewCommand = new Command()
       ) {
         args.push("--to", options.render);
       }
+
       await preview(relative(Deno.cwd(), file), flags, args, {
         port: options.port,
         host: options.host,

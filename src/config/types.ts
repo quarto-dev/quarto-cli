@@ -87,6 +87,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -94,6 +95,7 @@ import {
   kInlineIncludes,
   kIpynbFilters,
   kIpynbProduceSourceNotebook,
+  kIpynbShellInteractivity,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -470,6 +472,7 @@ export interface FormatRender {
   [kNotebookPreserveCells]?: boolean;
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
+  [kHtmlTableProcessing]?: "none";
 }
 
 export interface FormatExecute {
@@ -498,6 +501,13 @@ export interface FormatExecute {
   [kKeepMd]?: boolean;
   [kKeepIpynb]?: boolean;
   [kIpynbFilters]?: string[];
+  [kIpynbShellInteractivity]?:
+    | null
+    | "all"
+    | "last"
+    | "last_expr"
+    | "none"
+    | "last_expr_or_assign";
 }
 
 export interface FormatPandoc {

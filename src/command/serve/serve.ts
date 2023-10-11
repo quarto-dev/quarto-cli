@@ -12,27 +12,64 @@ import { RunOptions } from "../../execute/types.ts";
 
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
+import {
+  previewURL,
+  printBrowsePreviewMessage,
+  resolveHostAndPort,
+} from "../../core/previewurl.ts";
+import { isServerSession } from "../../core/platform.ts";
+import { openUrl } from "../../core/shell.ts";
+
+export async function renderForServe(
+  file: string,
+  format?: string,
+) {
+  const services = renderServices();
+  try {
+    const result = await render(file, {
+      services,
+      flags: {
+        to: format,
+        execute: true,
+      },
+    });
+    return result;
+  } finally {
+    services.cleanup();
+  }
+}
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
-  const engine = await fileExecutionEngine(options.input);
+  const { host, port } = await resolveHostAndPort(options);
+  const engine = fileExecutionEngine(options.input);
   if (engine?.run) {
     const target = await engine.target(options.input, options.quiet);
     if (target) {
-      const services = renderServices();
-      try {
-        if (options.render) {
-          const result = await render(target.input, {
-            services,
-          });
-          if (result.error) {
-            throw result.error;
-          }
+      // render if requested
+      if (options.render) {
+        const result = await renderForServe(options.input, options.format);
+        if (result.error) {
+          throw result.error;
         }
-        await engine.run({ ...options, input: target.input });
-        return processSuccessResult();
-      } finally {
-        services.cleanup();
       }
+
+      // print message and open browser when ready
+      const onReady = async () => {
+        printBrowsePreviewMessage(host, port, "");
+        if (options.browser && !isServerSession()) {
+          await openUrl(previewURL(host, port, ""));
+        }
+      };
+
+      // run using engine
+      await engine.run({
+        ...options,
+        input: options.input,
+        host,
+        port,
+        onReady,
+      });
+      return processSuccessResult();
     }
   }
 

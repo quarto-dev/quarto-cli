@@ -74,6 +74,7 @@ export const kExecuteDebug = "debug";
 
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
+export const kIpynbShellInteractivity = "ipynb-shell-interactivity";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
 
 export const kJatsSubarticleId = "jats-subarticle-id";
@@ -129,6 +130,8 @@ export const kQuartoRequired = "quarto-required";
 export const kPreviewMode = "preview-mode";
 export const kPreviewModeRaw = "raw";
 
+export const kHtmlTableProcessing = "html-table-processing";
+
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
   kDisplayName,
@@ -161,6 +164,7 @@ export const kExecuteDefaultsKeys = [
   kExecuteDebug,
   kIpynbFilter,
   kIpynbFilters,
+  kIpynbShellInteractivity,
 ];
 
 export const kRenderDefaultsKeys = [
@@ -212,6 +216,7 @@ export const kRenderDefaultsKeys = [
   kNotebookViewStyle,
   kNotebookPreserveCells,
   kClearCellOptions,
+  kHtmlTableProcessing,
 ];
 
 // language fields

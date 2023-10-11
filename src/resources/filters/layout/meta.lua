@@ -57,11 +57,11 @@ function layout_meta_inject_latex_packages()
         metaInjectLatex(meta, function(inject)
           if (shadeColor ~= nil) then
             inject(
-              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}" .. shadeColor .. "}"
+              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}" .. shadeColor .. "}{}"
             )  
           else
             inject(
-              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}{rgb}{.97, .97, .97}}"
+              "\\@ifundefined{shadecolor}{\\definecolor{shadecolor}{rgb}{.97, .97, .97}}{}"
             )  
           end
         end)
@@ -69,7 +69,7 @@ function layout_meta_inject_latex_packages()
         metaInjectLatex(meta, function(inject)
           if (bgColor ~= nil) then
             inject(
-              "\\@ifundefined{codebgcolor}{\\definecolor{codebgcolor}" .. bgColor .. "}"
+              "\\@ifundefined{codebgcolor}{\\definecolor{codebgcolor}" .. bgColor .. "}{}"
             )  
           end
         end)

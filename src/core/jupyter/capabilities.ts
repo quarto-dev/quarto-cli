@@ -25,10 +25,13 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 
   if (!jupyterCapsCache.has(language)) {
     // if we are targeting julia then prefer the julia installed miniconda
-    const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
-    if (language === "julia" && juliaCaps) {
-      jupyterCapsCache.set(language, juliaCaps);
-      return juliaCaps;
+    let juliaCaps: JupyterCapabilities | undefined;
+    if (language === "julia") {
+      juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
+      if (juliaCaps) {
+        jupyterCapsCache.set(language, juliaCaps);
+        return juliaCaps;
+      }
     }
 
     // if there is an explicit python requested then use it
@@ -79,7 +82,9 @@ const S_IXUSR = 0o100;
 async function getVerifiedJuliaCondaJupyterCapabilities() {
   let juliaHome = Deno.env.get("JULIA_HOME");
   if (!juliaHome) {
-    const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
+    const home = isWindows()
+      ? Deno.env.get("USERPROFILE")
+      : Deno.env.get("HOME");
     if (home) {
       juliaHome = join(home, ".julia");
     }

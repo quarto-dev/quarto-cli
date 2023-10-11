@@ -40,6 +40,7 @@ import {
   kPandocMetadata,
   kRenderDefaults,
   kRenderDefaultsKeys,
+  kServer,
   kTblColwidths,
   kVariant,
 } from "./constants.ts";
@@ -209,6 +210,13 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     }
   });
+
+  // normalize server type
+  if (typeof (format.metadata[kServer]) === "string") {
+    format.metadata[kServer] = {
+      type: format.metadata[kServer],
+    };
+  }
 
   // coalese ipynb-filter to ipynb-filters
   const filter = format.execute[kIpynbFilter];

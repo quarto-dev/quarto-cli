@@ -86,6 +86,13 @@ export async function knitrCapabilities(rBin: string | undefined) {
       return caps;
     } else {
       debug("\n++ Problem with results of knitr capabilities check.");
+      debug(`    Return Code: ${result.code} (success is ${result.success})`);
+      result.stdout
+        ? debug(`    with stdout from R:\n${result.stdout}`)
+        : debug("    with no stdout");
+      if (result.stderr) {
+        debug(`    with stderr from R:\n${result.stderr}`);
+      }
       return undefined;
     }
   } catch {

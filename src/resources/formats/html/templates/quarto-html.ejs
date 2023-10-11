@@ -806,6 +806,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         <% if (linkExternalNewwindow) { %> 
           // target, if specified
           link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
         <% } %>
 
         

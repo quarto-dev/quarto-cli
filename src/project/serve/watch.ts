@@ -127,7 +127,7 @@ export function watchProject(
           // get inputs (filter by whether the last time we rendered
           // this input had the exact same content hash)
           const inputs = paths.filter(isInputFile).filter(existsSync1).filter(
-            (input) => {
+            (input: string) => {
               return !rendered.has(input) ||
                 rendered.get(input) !== md5Hash(Deno.readTextFileSync(input));
             },
@@ -200,13 +200,13 @@ export function watchProject(
           }
         }
 
-        const configFile = paths.some((path) =>
+        const configFile = paths.some((path: string) =>
           (project.files.config || []).includes(path)
         );
         const inputFileRemoved = project.files.input.some((file) =>
           !existsSync(file)
         );
-        const configResourceFile = paths.some((path) =>
+        const configResourceFile = paths.some((path: string) =>
           (project.files.configResources || []).includes(path) &&
           !project.files.input.includes(path)
         );

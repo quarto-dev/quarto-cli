@@ -16,7 +16,7 @@ function process_equations(blockEl)
 
   -- do nothing if there is no math herein
   if inlines:find_if(isDisplayMath) == nil then
-    return blockEl
+    return nil
   end
 
   local mathInlines = nil

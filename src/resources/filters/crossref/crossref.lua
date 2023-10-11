@@ -59,6 +59,9 @@ import("../normalize/flags.lua")
 import("../normalize/normalize.lua")
 import("../normalize/parsehtml.lua")
 import("../normalize/extractquartodom.lua")
+import("../normalize/astpipeline.lua")
+import("../normalize/capturereaderstate.lua")
+import("../normalize/fixupdatauri.lua")
 
 import("../crossref/custom.lua")
 import("../crossref/index.lua")
@@ -96,6 +99,7 @@ import("../quarto-pre/parsefiguredivs.lua")
 import("../quarto-pre/project-paths.lua")
 import("../quarto-pre/resourcefiles.lua")
 import("../quarto-pre/results.lua")
+import("../quarto-pre/shiny.lua")
 import("../quarto-pre/shortcodes-handlers.lua")
 import("../quarto-pre/table-classes.lua")
 import("../quarto-pre/table-captions.lua")
@@ -112,6 +116,7 @@ import("../customnodes/decoratedcodeblock.lua")
 import("../customnodes/callout.lua")
 import("../customnodes/panel-tabset.lua")
 import("../customnodes/floatreftarget.lua")
+import("../customnodes/theorem.lua")
 
 import("../quarto-init/metainit.lua")
 
@@ -167,7 +172,7 @@ local quarto_normalize_filters = {
     name = "normalize-combine-2", 
     filter = combineFilters({
       parse_md_in_html_rawblocks(),
-      parse_floats(),
+      parse_reftargets(),
     }),
   },
 }

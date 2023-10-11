@@ -72,8 +72,6 @@ import {
 } from "../../command/preview/preview.ts";
 import {
   previewUnableToRenderResponse,
-  previewURL,
-  printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
   renderToken,
@@ -95,11 +93,7 @@ import {
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-shared.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
-import {
-  isJupyterHubServer,
-  isRStudioServer,
-  isRStudioWorkbench,
-} from "../../core/platform.ts";
+import { isRStudioServer, isServerSession } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import {
@@ -116,6 +110,10 @@ import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
 import { kManuscriptType } from "../types/manuscript/manuscript-types.ts";
+import {
+  previewURL,
+  printBrowsePreviewMessage,
+} from "../../core/previewurl.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -306,12 +304,7 @@ export async function serveProject(
       path,
     );
 
-    if (
-      options.browser &&
-      !isRStudioServer() &&
-      !isRStudioWorkbench() &&
-      !isJupyterHubServer()
-    ) {
+    if (options.browser && !isServerSession()) {
       await openUrl(previewURL(options.host!, options.port!, path));
     }
   }
@@ -776,7 +769,7 @@ function previewControlChannelRequestHandler(
       );
       if (
         prevReq &&
-        (await previewRenderRequestIsCompatible(prevReq, flags, project))
+        (await previewRenderRequestIsCompatible(prevReq, flags.to, project))
       ) {
         if (isProjectInputFile(prevReq.path, project!)) {
           const services = renderServices();

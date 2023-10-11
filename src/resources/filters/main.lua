@@ -90,6 +90,7 @@ import("./normalize/parsehtml.lua")
 import("./normalize/extractquartodom.lua")
 import("./normalize/astpipeline.lua")
 import("./normalize/capturereaderstate.lua")
+import("./normalize/fixupdatauri.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
@@ -142,6 +143,7 @@ import("./quarto-pre/parsefiguredivs.lua")
 import("./quarto-pre/project-paths.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
+import("./quarto-pre/shiny.lua")
 import("./quarto-pre/shortcodes-handlers.lua")
 import("./quarto-pre/table-classes.lua")
 import("./quarto-pre/table-captions.lua")
@@ -164,6 +166,7 @@ import("./customnodes/decoratedcodeblock.lua")
 import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
 import("./customnodes/floatreftarget.lua")
+import("./customnodes/theorem.lua")
 
 import("./layout/confluence.lua")
 import("./layout/ipynb.lua")
@@ -218,6 +221,8 @@ tappend(quarto_normalize_filters, quarto_ast_pipeline())
 local quarto_pre_filters = {
   -- quarto-pre
   { name = "flags", filter = compute_flags() },
+
+  { name = "pre-server-shiny", filter = server_shiny() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta

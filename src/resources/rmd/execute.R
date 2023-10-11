@@ -20,13 +20,18 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # rmd input filename
   rmd_input <- paste0(xfun::sans_ext(input), ".rmarkdown")
       
-  # swap out the input
-  write(markdown, rmd_input)
+  # swap out the input by reading then writing content.
+  # This handles `\r\n` EOL on windows in `markdown` string
+  # by spliting in lines
+  xfun::write_utf8(
+    xfun::read_utf8(textConnection(markdown, encoding = "UTF-8")),
+    rmd_input
+  )
   input <- rmd_input
       
   # remove the rmd input on exit
   rmd_input_path <- rmarkdown:::abs_path(rmd_input)
-  on.exit(unlink(rmd_input_path))
+  on.exit(unlink(rmd_input_path), add = TRUE)
 
   # give the input an .Rmd extension if it doesn't already have one
   # (this is a temporary copy which we'll remove before exiting). note
@@ -210,6 +215,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # results
   list(
+    engine = "knitr",
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),

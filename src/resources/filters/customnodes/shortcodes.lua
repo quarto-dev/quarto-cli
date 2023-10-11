@@ -84,6 +84,7 @@ _quarto.ast.add_handler({
     local tbl = {
       __quarto_custom_node = node,
       name = name,
+      unparsed_content = span.attributes["data-raw"],
       params = shortcode_content
     }
     
@@ -186,7 +187,8 @@ local function handle_shortcode(shortcode_tbl, node)
   local shortcode_struct = {
     args = args,
     raw_args = raw_args,
-    name = name
+    name = name,
+    unparsed_content = shortcode_tbl.unparsed_content
   }
 
   local handler = handlerForShortcode(shortcode_struct)
@@ -236,12 +238,12 @@ function shortcodes_filter()
       return nil
     end
     local result, struct = handle_shortcode(custom_data, node)
-    return shortcodeResultAsBlocks(result, struct.name)
+    return shortcodeResultAsBlocks(result, struct.name, custom_data)
   end
 
   local inline_handler = function(custom_data, node)
     local result, struct = handle_shortcode(custom_data, node)
-    return shortcodeResultAsInlines(result, struct.name)
+    return shortcodeResultAsInlines(result, struct.name, custom_data)
   end
 
   local code_handler = function(el)
@@ -330,10 +332,10 @@ function callShortcodeHandler(handler, shortCode)
   end
 end
 
-function shortcodeResultAsInlines(result, name)
+function shortcodeResultAsInlines(result, name, shortcode_tbl)
   if result == nil then
     warn("Shortcode '" .. name .. "' not found")
-    return {}
+    return pandoc.RawInline(FORMAT, shortcode_tbl.unparsed_content)
   end
   local type = quarto.utils.type(result)
   if type == "Inlines" then
@@ -364,12 +366,12 @@ function shortcodeResultAsInlines(result, name)
   end
 end
   
-function shortcodeResultAsBlocks(result, name)
+function shortcodeResultAsBlocks(result, name, shortcode_tbl)
   if result == nil then
     if name ~= 'include' then
       warn("Shortcode '" .. name .. "' not found")
     end
-    return {}
+    return pandoc.Blocks({pandoc.RawBlock(FORMAT, shortcode_tbl.unparsed_content)})
   end
   local type = quarto.utils.type(result)
   if type == "Blocks" then

@@ -66,6 +66,7 @@ export interface JupyterCapabilities {
   nbformat: string | null;
   nbclient: string | null;
   ipykernel: string | null;
+  shiny: string | null;
 }
 
 export interface JupyterCapabilitiesEx extends JupyterCapabilities {

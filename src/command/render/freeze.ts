@@ -1,9 +1,8 @@
 /*
-* freeze.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * freeze.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
   basename,
@@ -13,7 +12,7 @@ import {
   join,
   relative,
 } from "path/mod.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDirSync, EOL, existsSync, format } from "fs/mod.ts";
 
 import { cloneDeep } from "../../core/lodash.ts";
 
@@ -39,6 +38,7 @@ import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
 import { warning } from "log/mod.ts";
+import { isWindows } from "../../core/platform.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";
@@ -57,7 +57,8 @@ export function freezeExecuteResult(
     if (result.includes) {
       if (result.includes[name]) {
         result.includes[name] = result.includes[name]!.map((file) =>
-          Deno.readTextFileSync(file)
+          // Storing file content using LF line ending
+          format(Deno.readTextFileSync(file), EOL.LF)
         );
       }
     }
@@ -140,6 +141,8 @@ export function defrostExecuteResult(
           if (result.includes[name]) {
             result.includes[name] = result.includes[name]!.map((content) => {
               const includeFile = temp.createFile();
+              // Restoring content in file using the OS line ending character
+              content = format(content, isWindows() ? EOL.CRLF : EOL.LF);
               Deno.writeTextFileSync(includeFile, content);
               return includeFile;
             });
@@ -300,7 +303,9 @@ export function removeFreezeResults(filesDir: string) {
 }
 
 function freezeInputHash(input: string) {
-  return md5Hash(Deno.readTextFileSync(input));
+  // Calculate the hash on a content with LF line ending to avoid
+  // different hash on different OS (#3599)
+  return md5Hash(format(Deno.readTextFileSync(input), EOL.LF));
 }
 
 // don't use _files suffix in freezer

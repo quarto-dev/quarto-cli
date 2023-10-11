@@ -381,7 +381,15 @@ function epubCallout(node)
   end
   attributes:insert("callout-style-" .. calloutAppearance)
 
-  return pandoc.Div({calloutBody}, pandoc.Attr(node.id or "", attributes))
+  local result = pandoc.Div({calloutBody}, pandoc.Attr(node.id or "", attributes))
+  -- in revealjs or epub, if the leftover attr is non-trivial, 
+  -- then we need to wrap the callout in a div (#5208, #6853)
+  if node.attr.identifier ~= "" or #node.attr.classes > 0 or #node.attr.attributes > 0 then
+    return pandoc.Div({ result }, node.attr)
+  else
+    return result
+  end
+
 end
 
 function simpleCallout(node) 
@@ -488,35 +496,40 @@ local callout_attrs = {
     background_color = kBackgroundColorNote,
     latex_color = "quarto-callout-note-color",
     latex_frame_color = "quarto-callout-note-color-frame",
-    fa_icon = "faInfo"
+    fa_icon = "faInfo",
+    fa_icon_typst = "fa-info"
   },
   warning = {
     color = kColorWarning,
     background_color = kBackgroundColorWarning,
     latex_color = "quarto-callout-warning-color",
     latex_frame_color = "quarto-callout-warning-color-frame",
-    fa_icon = "faExclamationTriangle"
+    fa_icon = "faExclamationTriangle",
+    fa_icon_typst = "fa-exclamation-triangle"
   },
   important = {
     color = kColorImportant,
     background_color = kBackgroundColorImportant,
     latex_color = "quarto-callout-important-color",
     latex_frame_color = "quarto-callout-important-color-frame",
-    fa_icon = "faExclamation"
+    fa_icon = "faExclamation",
+    fa_icon_typst = "fa-exclamation"
   },
   caution = {
     color = kColorCaution,
     background_color = kBackgroundColorCaution,
     latex_color = "quarto-callout-caution-color",
     latex_frame_color = "quarto-callout-caution-color-frame",
-    fa_icon = "faFire"
+    fa_icon = "faFire",
+    fa_icon_typst = "fa-fire"
   },
   tip = {
     color = kColorTip,
     background_color = kBackgroundColorTip,
     latex_color = "quarto-callout-tip-color",
     latex_frame_color = "quarto-callout-tip-color-frame",
-    fa_icon = "faLightbulb"
+    fa_icon = "faLightbulb",
+    fa_icon_typst = "fa-lightbulb"
   },
 
   __other = {
@@ -524,7 +537,8 @@ local callout_attrs = {
     background_color = kColorUnknown,
     latex_color = "quarto-callout-color",
     latex_color_frame = "quarto-callout-color-frame",
-    fa_icon = nil
+    fa_icon = nil,
+    fa_icon_typst = nil
   }
 }
 
@@ -594,4 +608,67 @@ end, function(callout)
     internal_error()
   end
   return pandoc.BlockQuote(result)
+end)
+
+local function typst_function_call(name, params)
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
+  -- needs to be array of pairs because order matters for typst
+  for i, pair in ipairs(params) do
+    local k = pair[1]
+    local v = pair[2]
+    result:insert(pandoc.RawInline("typst", k .. ": "))
+    result:extend(quarto.utils.as_blocks(v) or {})
+    result:insert(pandoc.RawInline("typst", ", "))
+  end
+  result:insert(pandoc.RawInline("typst", ")"))
+  return pandoc.Div(result)
+end
+
+local function as_typst_content(content)
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawInline("typst", "[\n"))
+  result:extend(quarto.utils.as_blocks(content) or {})
+  result:insert(pandoc.RawInline("typst", "]\n"))
+  return result
+end
+
+local included_font_awesome = false
+local function ensure_typst_font_awesome()
+  if included_font_awesome then
+    return
+  end
+  included_font_awesome = true
+  quarto.doc.include_text("in-header", "#import \"@preview/fontawesome:0.1.0\": *")
+end
+
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isTypstOutput()
+end, function(callout)
+  ensure_typst_font_awesome()
+
+  local attrs = callout_attrs[callout.type]
+  local background_color, icon_color, icon
+  if attrs == nil then
+    background_color = "white"
+    icon_color = "black"
+    icon = "fa-info"
+  else
+    background_color = "rgb(\"#" .. attrs.background_color .. "\")";
+    icon_color = "rgb(\"#" .. attrs.color .. "\")";
+    icon = attrs.fa_icon_typst
+  end
+
+  local title = callout.title
+  if title == nil then
+    title = pandoc.Plain(displayName(callout.type))
+  end
+
+  return typst_function_call("callout", { 
+    { "body", as_typst_content(callout.content) },
+    { "title", as_typst_content(title) },
+    { "background_color", pandoc.RawInline("typst", background_color) },
+    { "icon_color", pandoc.RawInline("typst", icon_color) },
+    { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}
+  })
 end)
