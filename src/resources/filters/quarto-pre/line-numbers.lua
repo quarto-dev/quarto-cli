@@ -14,8 +14,10 @@ function line_numbers()
           el.attr.classes:insert("number-lines")
           -- remove for all formats except reveal and docusaurus
           if type(lineNumbers) == "string" and (_quarto.format.isRevealJsOutput() or _quarto.format.isDocusaurusOutput()) then
-          if not _quarto.format.isRevealJsOutput() and not _quarto.format.isDocusaurusOutput() then
-            el.attr.attributes["code-line-numbers"] = nil
+            if _quarto.format.isDocusaurusOutput() and lineNumbers:match("|") then
+              -- docusaurus does not support step separator like revealjs
+              lineNumbers = lineNumbers:gsub("|", ",")
+            end
             el.attr.attributes[constants.kCodeLineNumbers] = lineNumbers
           end
         end
