@@ -44,3 +44,10 @@
       - `false`: Never apply markdown table widths.
 
       - An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.
+
+- name: html-table-processing
+  tags:
+    engine: knitr
+  schema: boolean
+  default: false
+  description: If `false`, do not process raw HTML table and leave it as-is

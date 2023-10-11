@@ -1,0 +1,16 @@
+---
+title: issue-7187
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["table[data-quarto-postprocess]"]
+---
+
+```{r}
+#| html-table-processing: false
+#| echo: false
+knitr::kable(cars, format = "html")
+```
+

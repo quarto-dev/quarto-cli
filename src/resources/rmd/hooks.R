@@ -968,7 +968,7 @@ output_div <- function(x, label, classes, attr = NULL) {
   }
   paste0(
     div,
-    paste(paste0(".", classes), collapse = " ") ,
+    paste(paste0(".", classes), collapse = " "),
     ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",
     x,
