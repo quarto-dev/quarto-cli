@@ -64,7 +64,7 @@
 ## Docusaurus Format
 
 - ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152)): Support for `code-line-numbers: true` in Docusaurus output.
-- ([#7199](https://github.com/quarto-dev/quarto-cli/issues/7199)): Support for [line highlighting](https://docusaurus.io/docs/markdown-features/code-blocks#highlighting-with-metadata-string) using `code-line-numbers`, as raw block attributes or code cell options.
+- ([#7201](https://github.com/quarto-dev/quarto-cli/issues/7201)): Support for [line highlighting](https://docusaurus.io/docs/markdown-features/code-blocks#highlighting-with-metadata-string) using `code-line-numbers`, as raw block attributes or code cell options.
 
 ## Beamer Format
 
