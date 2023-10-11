@@ -64,6 +64,10 @@ function render_dashboard()
     return {    
     {
       traverse = 'topdown',
+      PanelLayout = function(el)
+        local options, userClasses = dashboard.card.readCardOptions(el)          
+        return dashboard.card.makeCard(nil, el, userClasses, options), false
+      end,
       Div = function(el) 
 
         if dashboard.card.isCard(el) then
@@ -160,20 +164,6 @@ function render_dashboard()
         el.blocks = orientContents(el.blocks, orientation(), fill)
         return el
 
-      end,
-      PanelLayout = function(el)
-        -- Convert panel layouts into rows and columns using the 
-        -- dashboard syntax
-        local result = dashboard.layout.makeRows({}, true)
-        for _i, row in ipairs(el.rows.content) do              
-          local colsEl = dashboard.layout.makeCols({}, true)
-          for _j, cell_div in ipairs(row.content) do
-            colsEl.content:insert(dashboard.card.makeCard(nil, cell_div.content))
-          end
-          result.content:insert(colsEl)
-        end
-        return result, false
-        
       end,
       Div = function(el) 
 

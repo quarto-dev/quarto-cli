@@ -101,8 +101,8 @@ local function readCardOptions(el)
   end
 
   for _i, v in ipairs(kCardAttributes) do
-    if el.attr.attributes[v] ~= nil then
-      options[v] = el.attr.attributes[v]
+    if el.attributes[v] ~= nil then
+      options[v] = el.attributes[v]
     end
   end
 
@@ -147,6 +147,7 @@ end
 -- (anything not in an explicit card-body will be grouped in 
 --  an card-body with other contiguous non-card-body elements)
 local function resolveCardBodies(contents)
+
   local result = pandoc.List()
   local bodyContentEls = pandoc.List()
   local function flushBodyContentEls()
@@ -171,6 +172,11 @@ local function resolveCardBodies(contents)
   local function addBodyContentEl(el)
     local popped = popImagePara(el)
     bodyContentEls:insert(popped)
+  end
+
+  -- ensure that contents is a list
+  if pandoc.utils.type(contents) == "table" and contents[1] == nil then
+    contents = {contents}
   end
 
   for _i,v in ipairs(contents) do
