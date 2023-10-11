@@ -1,72 +1,77 @@
 ---
-title: Dashboard
+title: ValueBoxes
 format: 
   dashboard:
-    fill: true
+    orientation: rows
+    theme: spacelab
 ---
 
-Row {.flow}
-------------------------
-
-:::{.valuebox .bg-secondary icon="facebook" showcase="top-right"}
-
-### Hello World
-
-1,452
-
-This is some text
-
-:::
-
-:::{.valuebox .bg-primary icon="airplane" showcase="bottom"}
-
-### Hello World
-
-1,252
-
-This is some text
-
-:::
-
-:::{.valuebox .bg-success showcase="bottom"}
-1,902,021
-:::
-
-
-:::{.valuebox}
-```{r}
-plot(cars)
-```
-:::
-
-Row {.flow}
-------------------------
-
-:::{.valuebox .bg-primary icon="airplane" max-height=550px}
-
-### Hello World
-
-1,252
-
-This is some text
-
-:::
-
-:::{.card}
-
-### this is cool
-
-What up?
-
-> I'm loving it
-
-:::
-
-
 Row
-------------------------
+--------------------
 
-```{r}
-plot(cars)
-```
+:::{.callout-note}
 
+### TODOS
+
+- Review the base syntax for valueboxes
+- Create some computational examples
+- How should we specify colors - are classes ok?
+    - bslib uses 'theme' which appears to be a color
+    - differentiate 
+        bg color
+        fg color
+        gradient
+        perhaps allow bs var name or literal color
+- set title as attribute?
+- review showcase attribute, appearance, etc...
+- bslib allows specifying showcase content separately from icon (useful for sparkline stuff)
+- bslib supports expandable, should we (useful for sparkline stuff)
+
+:::
+
+
+Row {.flow}
+--------------------
+
+:::{.valuebox .bg-primary icon="hand-thumbs-up"}
+
+## Number of Times I Kick Ass
+
+4,789.18
+
+It is what it is.
+
+:::
+
+:::{.valuebox .bg-secondary icon="hand-thumbs-down"}
+
+## Number of Times You Kick Ass
+
+2.3
+
+So it is.
+
+:::
+
+Row {.flow}
+--------------------
+
+:::{.valuebox .bg-secondary icon="hand-thumbs-down" showcase="bottom"}
+
+## Number of Times You Kick Ass
+
+2.3
+
+So it is.
+
+:::
+
+:::{.valuebox .bg-secondary icon="hand-thumbs-down" showcase="top-right"}
+
+## Number of Times You Kick Ass
+
+2.3
+
+So it is.
+
+:::
