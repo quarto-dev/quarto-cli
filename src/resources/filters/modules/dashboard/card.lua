@@ -5,6 +5,7 @@
 local kCardClass = "card"
 local kCardHeaderClass = "card-header"
 local kCardBodyClass = "card-body"
+local kCardFooterClass = "card-footer"
 
 -- Tabset classes
 local kTabsetClass = "tabset"
@@ -69,6 +70,10 @@ local function isCardBody(el)
   end) 
 end
 
+local function isCardFooter(el)
+  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
+end
+
 local function isTabset(el)
   return el.t == "Div" and el.classes:includes(kTabsetClass)
 end
@@ -118,7 +123,6 @@ end
 
 local function resolveCardHeader(title, options) 
   if title ~= nil then
-    
     if pandoc.utils.type(title) == "table" and #title > 0 then
       --- The title is a table with value
       return pandoc.Div(title, pandoc.Attr("", {kCardHeaderClass}))
@@ -143,35 +147,43 @@ local function resolveCardHeader(title, options)
   end
 end
 
+local function resolveCardFooter(cardFooterEls) 
+  if cardFooterEls and #cardFooterEls > 0 then
+    return pandoc.Div(cardFooterEls, pandoc.Attr("", {kCardFooterClass}))
+  end
+end
+
 -- Group the contents of the card into a body
 -- (anything not in an explicit card-body will be grouped in 
 --  an card-body with other contiguous non-card-body elements)
 local function resolveCardBodies(contents)
 
-  local result = pandoc.List()
   local bodyContentEls = pandoc.List()
-  local function flushBodyContentEls()
-    if #bodyContentEls > 0 then
+  local footerContentEls = pandoc.List()
+
+  local collectedBodyEls = pandoc.List() 
+  local function flushCollectedBodyContentEls()
+    if #collectedBodyEls > 0 then
 
       local contentDiv = pandoc.Div({}, pandoc.Attr("", {kCardBodyClass}))
 
       -- forward attributes from the first child into the parent body
-      if bodyContentEls[1].attributes then
-        for k, v in pairs(bodyContentEls[1].attributes) do
+      if collectedBodyEls[1].attributes then
+        for k, v in pairs(collectedBodyEls[1].attributes) do
           if kCardBodyAttributes:includes(k) then
             contentDiv.attr.attributes["data-" .. k] = pandoc.utils.stringify(v)
-            bodyContentEls[1].attributes[k] = nil
+            collectedBodyEls[1].attributes[k] = nil
           end
         end
       end
-      contentDiv.content:extend(bodyContentEls)
-      result:insert(contentDiv)
+      contentDiv.content:extend(collectedBodyEls)
+      bodyContentEls:insert(contentDiv)
     end
-    bodyContentEls = pandoc.List()
+    collectedBodyEls = pandoc.List()
   end
-  local function addBodyContentEl(el)
+  local function collectBodyContentEl(el)
     local popped = popImagePara(el)
-    bodyContentEls:insert(popped)
+    collectedBodyEls:insert(popped)
   end
 
   -- ensure that contents is a list
@@ -181,7 +193,7 @@ local function resolveCardBodies(contents)
 
   for _i,v in ipairs(contents) do
     if isCardBody(v) then
-      flushBodyContentEls()
+      flushCollectedBodyContentEls()
 
       -- ensure this is marked as a card
       if not v.classes:includes(kCardBodyClass) then
@@ -199,15 +211,17 @@ local function resolveCardBodies(contents)
         end
       end
       local popped = popImagePara(v);
-      result:insert(popped)
+      bodyContentEls:insert(popped)
 
+    elseif isCardFooter(v) then
+      footerContentEls:extend(v.content)
     else
-      addBodyContentEl(v)
+      collectBodyContentEl(v)
     end    
   end
-  flushBodyContentEls()
+  flushCollectedBodyContentEls()
   
-  return result
+  return bodyContentEls, footerContentEls
 end
 
 -- title: string
@@ -229,9 +243,15 @@ local function makeCard(title, contents, classes, options)
   end
 
   -- compute the card body(ies)
-  local cardBodies = resolveCardBodies(contents)
-  cardContents:extend(cardBodies)
-  
+  local cardBodyEls, cardFooterEls = resolveCardBodies(contents)
+  cardContents:extend(cardBodyEls)
+
+  -- compute any card footers
+  local cardFooter = resolveCardFooter(cardFooterEls)
+  if cardFooter ~= nil then
+    cardContents:insert(cardFooter)
+  end
+
   -- add outer classes
   local clz = pandoc.List({kCardClass})
   if classes then
