@@ -9,7 +9,7 @@ import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
-import { error, info } from "log/mod.ts";
+import { error } from "log/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
