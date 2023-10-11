@@ -3,7 +3,8 @@ title: Card Examples
 format: dashboard
 ---
 
-## Row
+Row (Cards with Title)
+---------------------------------
 
 ```{r}
 #| title: Hello World
@@ -17,10 +18,9 @@ plot(cars)
 ```{r}
 plot(cars)
 ```
-
+ 
 :::
 
-## Row
 
 :::{.card title="Hello World"}
 
@@ -30,3 +30,27 @@ plot(cars)
 
 :::
 
+Row (Cards with no title)
+---------------------------------
+
+
+```{r}
+plot(cars)
+```
+
+:::{.card}
+
+```{r}
+plot(cars)
+```
+ 
+:::
+
+
+:::{.card}
+
+```{r}
+plot(cars)
+```
+
+:::
