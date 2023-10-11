@@ -3,20 +3,13 @@ title: Test R
 format: dashboard
 ---
 
-
-
-
-
-### What up dog{padding=0 max-height=500px}
-
 ```{r}
+#| title: Hello World
+#| padding: 0
+#| max-height: 500px
 library(leaflet)
 leaflet() %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
   addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
 ```
-
-
-
-
 

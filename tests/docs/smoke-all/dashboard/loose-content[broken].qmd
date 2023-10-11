@@ -7,15 +7,19 @@ format:
     fill: true
 ---
 
+
 :::{.callout-note}
 
 ### This is a note about the dashboard
 
-Here is some loose content. Watch out!
+Here is some loose content. Watch out! This should escape the layout and just pop above
 
 :::
 
-## Cool Section
+Row
+---------------------------
+
+### Column
 
 :::{.valuebox}
 
@@ -25,7 +29,7 @@ Here is some loose content. Watch out!
 
 :::
 
-## Another
+### Column
 
 ```{r}
 #| layout: "[50,50]"
@@ -33,14 +37,14 @@ plot(iris)
 plot(mtcars)
 ```
 
-### Another
+### Column
 
 This is another card
 
 ## Hello World
 
-### Card
 
 ```{r}
+#| title: card
 plot(cars)
 ```

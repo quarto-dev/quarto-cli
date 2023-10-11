@@ -7,7 +7,8 @@ format:
     theme: lux
 ---
 
-## Row 1
+Row
+--------------------------
 
 :::{.card}
 ### This is a card
@@ -34,7 +35,8 @@ plot(cars)
 :::
 
 
-## Row 2
+Row
+--------------------------
 
 :::{.valuebox icon="cloud-rain"}
 

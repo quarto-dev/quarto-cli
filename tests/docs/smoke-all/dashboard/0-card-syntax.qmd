@@ -1,6 +1,8 @@
 ---
 title: Card Types
-format: dashboard
+format: 
+  dashboard:
+    theme: lux
 ---
 
 ::: card

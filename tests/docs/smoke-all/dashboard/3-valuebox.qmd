@@ -5,7 +5,8 @@ format:
     fill: true
 ---
 
-## Row {.flow}
+Row{.flow}
+-----------------------
 
 :::{.valuebox .bg-secondary icon="facebook" showcase="top-right"}
 
@@ -37,3 +38,10 @@ This is some text
 plot(cars)
 ```
 :::
+
+Row
+------------------------
+
+```{r}
+plot(cars)
+```
