@@ -1,8 +1,9 @@
-title: Email
+title: Posit Connect Email
 author: Posit, PBC
 organization: quarto
 contributes:
   formats:
     html:
       filters:
-        - email.lua
+        - at: post-render
+          path: email.lua
