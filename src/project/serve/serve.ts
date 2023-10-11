@@ -8,8 +8,6 @@ import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
-import { MuxAsyncIterator } from "async/mod.ts";
-import { iterateReader } from "streams/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -114,6 +112,11 @@ import {
   previewURL,
   printBrowsePreviewMessage,
 } from "../../core/previewurl.ts";
+import {
+  noPreviewServer,
+  PreviewServer,
+  runExternalPreviewServer,
+} from "../../preview/preview-server.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -321,26 +324,6 @@ export async function serveProject(
   await previewServer.serve();
 }
 
-interface PreviewServer {
-  // returns path to browse to
-  start: () => Promise<string | undefined>;
-  serve: () => Promise<void>;
-  stop: () => Promise<void>;
-}
-
-function noPreviewServer(): Promise<PreviewServer> {
-  return Promise.resolve({
-    start: () => Promise.resolve(undefined),
-    serve: () => {
-      return new Promise(() => {
-      });
-    },
-    stop: () => {
-      return Promise.resolve();
-    },
-  });
-}
-
 function externalPreviewServer(
   project: ProjectContext,
   serve: ProjectServe,
@@ -402,49 +385,26 @@ function externalPreviewServer(
     cmd.push(...serve.args);
   }
 
-  // start the process
-  const process = Deno.run({
+  const readyPattern = new RegExp(serve.ready);
+  const server = runExternalPreviewServer({
     cmd,
+    readyPattern,
     env: serve.env,
     cwd: projectOutputDir(project),
-    stdout: "piped",
-    stderr: "piped",
   });
 
-  // merge and stream stdout and stderr
-  const readyPattern = new RegExp(serve.ready);
-  const multiplexIterator = new MuxAsyncIterator<
-    Uint8Array
-  >();
-  multiplexIterator.add(iterateReader(process.stdout));
-  multiplexIterator.add(iterateReader(process.stderr));
-
-  // wait for ready and then return from 'start'
-  const decoder = new TextDecoder();
   return Promise.resolve({
     start: async () => {
-      for await (const chunk of multiplexIterator) {
-        const text = decoder.decode(chunk);
-        if (readyPattern.test(text)) {
-          break;
-        }
-        Deno.stderr.writeSync(chunk);
-      }
-      return "";
+      return server.start();
     },
     serve: async () => {
-      for await (const chunk of multiplexIterator) {
-        Deno.stderr.writeSync(chunk);
-      }
-      await process.status();
+      return server.serve();
     },
     stop: () => {
-      process.kill("SIGTERM");
-      process.close();
       if (controlListener) {
         controlListener.close();
       }
-      return Promise.resolve();
+      return server.stop();
     },
   });
 }
