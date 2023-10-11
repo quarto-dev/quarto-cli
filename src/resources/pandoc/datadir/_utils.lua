@@ -346,6 +346,22 @@ return {
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
-  match = match
+  match = match,
+  add_to_blocks = function(blocks, block)
+    if pandoc.utils.type(blocks) ~= "Blocks" then
+      fatal("add_to_blocks: invalid type " .. pandoc.utils.type(blocks))
+    end
+    if block == nil then
+      return
+    end
+    local t = pandoc.utils.type(block)
+    if t == "Blocks" or t == "Inlines" then
+      blocks:extend(block)
+    elseif t == "Block" then
+      table.insert(blocks, block)
+    else
+      fatal("add_to_blocks: invalid type " .. t)
+    end
+  end,
 }
 

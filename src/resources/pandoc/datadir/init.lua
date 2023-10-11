@@ -2077,6 +2077,7 @@ quarto = {
    string_to_inlines = utils.string_to_inlines,
    render = utils.render,
    match = utils.match,
+   add_to_blocks = utils.add_to_blocks
   },
   json = json,
   base64 = base64,
