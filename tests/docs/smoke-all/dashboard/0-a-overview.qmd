@@ -3,29 +3,28 @@ title: "Column Orientation"
 format: 
   dashboard:
     orientation: columns
+    fill: true
 ---
 
     
 Column
 -------------------------------------
-    
-### Chart 1
-    
+      
 ```{r}
+#| title: Chart 1
 plot(cars)
 ```
    
 Column
 -------------------------------------
-   
-### Chart 2
 
 ```{r}
+#| title: Chart 2
 plot(mtcars)
 ```   
  
-### Chart 3
     
 ```{r}
+#| title: Chart 3
 plot(iris)
 ```

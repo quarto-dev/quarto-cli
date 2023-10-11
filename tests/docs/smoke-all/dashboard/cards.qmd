@@ -1,16 +1,12 @@
 ---
 title: Card Examples
-format: dashboard
+format: 
+  dashboard:
+    fill: false
 ---
 
-:::{.card .full-screen}
-
-### Title
-
 ```{r}
-plot(cars)
+#| title: Foobar 123
+#| classes: expandable
+plot(mtcars)
 ```
-
-:::
-
-
