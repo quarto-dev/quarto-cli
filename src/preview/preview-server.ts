@@ -6,6 +6,7 @@
 
 import { MuxAsyncIterator } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
+import { isWindows } from "../core/platform.ts";
 
 export interface PreviewServer {
   // returns path to browse to
@@ -67,7 +68,11 @@ export function runExternalPreviewServer(options: {
       await process.status();
     },
     stop: () => {
-      process.kill("SIGTERM");
+      if (!isWindows()) {
+        Deno.kill(-process.pid, "SIGTERM");
+      } else {
+        process.kill();
+      }
       process.close();
       return Promise.resolve();
     },
