@@ -1,0 +1,38 @@
+---
+title: Layout
+format: 
+  dashboard:
+    orientation: columns
+    fill: false
+---
+
+
+:::{.valuebox icon="facebook"}
+
+### Measurement
+
+9450
+
+:::
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+:::{.my-div}
+
+
+This is just a div
+
+
+:::
+
+
+:::{.callout-note}
+
+### Note
+
+This is just a note callout
+
+:::

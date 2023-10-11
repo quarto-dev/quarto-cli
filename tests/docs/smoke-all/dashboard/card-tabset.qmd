@@ -7,35 +7,32 @@ format:
 ---
 
 
-
-### {.tabset title="Yo Dawg"}
+:::{.tabset title="Reports on the set of cool stuff"}
 
 ```{r}
-#| title: my tab
+#| title: Historical Cars
 plot(cars)
 ```
 
-:::{.tab title="adkajldkjasd"}
-
-This is another tab
-
-:::
-
-:::{.rows .fill}
-
-### What up trey
-
 ```{r}
+#| title: Summary Iris
 plot(iris)
-```
-
-### Hello World
-
-```{r}
-#| label: fig-mtcars
-#| fig-cap: This is a picture of mtcars
 plot(mtcars)
 ```
 
+:::{.columns title="Test"}
+
+```{r}
+#| title: Historical Cars
+plot(cars)
+```
+
+```{r}
+#| title: Summary Iris
+plot(iris)
+plot(mtcars)
+```
+
+:::
 
 :::

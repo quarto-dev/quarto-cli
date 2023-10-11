@@ -10,10 +10,13 @@ local kCardBodyClass = "card-body"
 local kTabsetClass = "tabset"
 local kTabClass = "tab"
 
+-- Cell classes
+local kCellClass = "cell"
+
 -- Implicit Card classes, these mean that this is a card
 -- even if it isn't specified
 local kCardClz = pandoc.List({kCardClass, kTabsetClass})
-local kCardBodyClz = pandoc.List({kCardBodyClass, kTabClass})
+local kCardBodyClz = pandoc.List({kCardBodyClass, kTabClass, kCellClass})
 
 -- Card classes that are forwarded to attributes
 local kExpandable = "expandable"
@@ -31,6 +34,9 @@ local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kMinHeight, kMax
 
 -- Card Body Explicit Attributes
 local kCardBodyAttributes = pandoc.List({kTitle, kHeight, kMinHeight, kMaxHeight})
+
+-- Card Options
+local kForceHeader = "force-header";
 
 -- pop images out of paragraphs to the top level
 -- this is necessary to ensure things like `object-fit`
@@ -61,6 +67,10 @@ local function isCardBody(el)
   return el.t == "Div" and el.classes:find_if(function(class) 
     return kCardBodyClz:includes(class)
   end) 
+end
+
+local function isTabset(el)
+  return el.t == "Div" and el.classes:includes(kTabsetClass)
 end
 
 local function isLiteralCard(el)
@@ -96,6 +106,9 @@ local function readCardOptions(el)
     end
   end
 
+  -- note whether this card should force the header on
+  options[kForceHeader] = isTabset(el)
+
   local clz = el.classes:filter(function(class)
     return not kCardClzToAttr:includes(class)
   end)
@@ -105,9 +118,12 @@ end
 
 local function resolveCardHeader(title, options) 
   if title ~= nil then
+    
     if pandoc.utils.type(title) == "table" and #title > 0 then
+      --- The title is a table with value
       return pandoc.Div(title, pandoc.Attr("", {kCardHeaderClass}))
     elseif title.t == "Header" then
+      -- The title is being provided by a header
       local titleText = title.content
       if #titleText == 0 then
         titleText = title.attr.attributes[kTitle] 
@@ -115,11 +131,15 @@ local function resolveCardHeader(title, options)
       return pandoc.Div(titleText, pandoc.Attr("", {kCardHeaderClass}))
     elseif options[kTitle] ~= nil then
       return pandoc.Div(options[kTitle], pandoc.Attr("", {kCardHeaderClass}))
+    elseif options[kForceHeader] then
+      return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))  
     end
-  else
-    if options[kTitle] ~= nil then
-      return pandoc.Div(pandoc.Plain(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
-    end
+  elseif options and options[kTitle] ~= nil then
+    -- The title is being provided as option
+    return pandoc.Div(pandoc.Plain(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
+  elseif options and options[kForceHeader] then
+    -- Couldn't find a title, but force the header into place
+    return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))
   end
 end
 
@@ -135,10 +155,12 @@ local function resolveCardBodies(contents)
       local contentDiv = pandoc.Div({}, pandoc.Attr("", {kCardBodyClass}))
 
       -- forward attributes from the first child into the parent body
-      for k, v in pairs(bodyContentEls[1].attributes) do
-        if kCardBodyAttributes:includes(k) then
-          contentDiv.attr.attributes["data-" .. k] = pandoc.utils.stringify(v)
-          bodyContentEls[1].attributes[k] = nil
+      if bodyContentEls[1].attributes then
+        for k, v in pairs(bodyContentEls[1].attributes) do
+          if kCardBodyAttributes:includes(k) then
+            contentDiv.attr.attributes["data-" .. k] = pandoc.utils.stringify(v)
+            bodyContentEls[1].attributes[k] = nil
+          end
         end
       end
       contentDiv.content:extend(bodyContentEls)
