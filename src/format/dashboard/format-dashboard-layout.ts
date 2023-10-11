@@ -12,20 +12,29 @@ export function processRows(doc: Document) {
   if (rowNodes !== null) {
     for (const rowNode of rowNodes) {
       const rowEl = rowNode as Element;
+
+      // Compute the grid sizes
+      const gridSizes: string[] = [];
+      for (const childEl of rowEl.children) {
+        if (childEl.classList.contains("fill")) {
+          rowEl.classList.remove("fill");
+          rowEl.classList.add("html-fill-container");
+          gridSizes.push("1fr");
+        } else {
+          gridSizes.push("max-content");
+        }
+      }
+
+      // Decorate the row element
       rowEl.classList.add("bslib-grid");
       rowEl.classList.remove("rows");
 
-      let rowSize = "max-content";
-      if (rowEl.classList.contains("fill")) {
-        rowEl.classList.remove("fill");
-        rowSize = "1fr";
-        rowEl.classList.add("html-fill-container");
-      }
+      // Create the grid-template-rows value
+      const gridTemplRowsVal = `${gridSizes.join(" ")}`;
 
-      const rowCount = rowEl.childElementCount;
       const currentStyle = rowEl.getAttribute("style");
       const template =
-        `display: grid; grid-template-rows:repeat(${rowCount}, minmax(0, ${rowSize}));\ngrid-auto-columns:1fr;`;
+        `display: grid; grid-template-rows: ${gridTemplRowsVal}; grid-auto-columns:1fr;`;
       rowEl.setAttribute(
         "style",
         currentStyle === null ? template : `${currentStyle}\n${template}`,
