@@ -1,0 +1,37 @@
+---
+title: float crossref test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<img src=\"img/surus.jpg\" id=\"fig-foo\""
+          - "alt=\"Figure 1: This is the figure\""
+          - "<a href=\"#fig-foo\" class=\"quarto-xref\">"
+          - "<img src=\"img/surus.jpg\" id=\"tbl-foo\""
+          - "alt=\"Table 1: This is the table\""
+          - "<a href=\"#tbl-foo\" class=\"quarto-xref\">"
+---
+
+This tests:
+
+- div float with image element as payload.
+- div float with image element as payload for non-figure floats.
+
+
+::: {#fig-foo}
+![](img/surus.jpg)
+
+This is the figure
+:::
+See @fig-foo for more.
+
+
+::: {#tbl-foo}
+![](img/surus.jpg)
+
+This is the table
+:::
+See @tbl-foo for more.
+

@@ -132,6 +132,10 @@ local function isGithubMarkdownOutput()
   return param("format-identifier", {})["base-format"] == "gfm"
 end
 
+local function isHugoMarkdownOutput()
+  return param("format-identifier", {})["target-format"] == "hugo-md"
+end
+
 -- check for markdown with raw_html enabled
 local function isMarkdownWithHtmlOutput()
   return (isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")) or is_docusaurus_output()
@@ -260,6 +264,7 @@ return {
   isSlideOutput = isSlideOutput,
   isEpubOutput = isEpubOutput,
   isGithubMarkdownOutput = isGithubMarkdownOutput,
+  isHugoMarkdownOutput = isHugoMarkdownOutput,
   isMarkdownOutput = isMarkdownOutput,
   isMarkdownWithHtmlOutput = isMarkdownWithHtmlOutput,
   isIpynbOutput = isIpynbOutput, 
