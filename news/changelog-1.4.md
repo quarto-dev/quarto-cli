@@ -138,6 +138,7 @@
 - Ability to cancel an executing preview from within the progress UI
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
+- Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
 
 ## Jupyter
 
