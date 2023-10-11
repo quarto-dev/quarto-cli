@@ -303,6 +303,40 @@ local function as_blocks(v)
   -- luacov: enable
 end
 
+local function match_fun(...)
+  local args = {...}
+  return function(v)
+    for _, f in ipairs(args) do
+      local r = f(v)
+      if r == false or r == nil then
+        return r
+      end
+      if r ~= true then
+        v = r
+      end
+    end
+    return v
+  end
+end
+
+local function match(str)
+  local vs = split(str, "/")
+  local result = {}
+  for _, v in ipairs(vs) do
+    local first = v:sub(1, 1)
+    if first == "[" then -- [1]
+      local n = tonumber(v:sub(2, -2))
+      table.insert(result, function(node) return node.content ~= nil and node.content[n] end)
+    elseif first:upper() == first then -- Plain
+      table.insert(result, function(node) return node.t == v end)
+    else
+      fail("invalid match token: " .. v .. "(in " .. str .. ")")
+      return match_fun({})
+    end
+  end
+  return match_fun(table.unpack(result))
+end
+
 return {
   dump = dump,
   type = get_type,
@@ -312,5 +346,6 @@ return {
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
+  match = match
 }
 
