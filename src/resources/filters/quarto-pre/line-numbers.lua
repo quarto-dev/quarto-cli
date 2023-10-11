@@ -10,8 +10,8 @@ function line_numbers()
         if lineNumbers ~= false then
           -- use the pandoc line numbering class
           el.attr.classes:insert("number-lines")
-          -- remove for all formats except reveal
-          if not _quarto.format.isRevealJsOutput() then
+          -- remove for all formats except reveal and docusaurus
+          if not _quarto.format.isRevealJsOutput() and not _quarto.format.isDocusaurusOutput() then
             el.attr.attributes["code-line-numbers"] = nil
           end
           return el
