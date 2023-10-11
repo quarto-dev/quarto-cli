@@ -24,10 +24,10 @@ local function dashboardParam(name, default)
   return dashboardParams[name] or default
 end
 
-
-
-
 function render_dashboard() 
+
+  -- Track the orientation that is used to perform heading based layout
+  -- the basic idea is to alternate the orientation at new heading levels
   local lastLevel = 0
   local currentOrientation = dashboardParam(kParamOrientation, kDefaultOrientation)
 
@@ -57,40 +57,13 @@ function render_dashboard()
   if not _quarto.format.isDashboardOutput() then
     return {}
   end
-  return {    {
-      Pandoc = function(el)
-        -- Make sections based upon the headings and use that for the 
-        -- document structure
-        local result =  pandoc.structure.make_sections(el.blocks, {})
-        return pandoc.Pandoc(result, el.meta)
-      end
-    },
+
+  -- This happens in 2 passes:
+  -- The first pass will resolve cards, valueboxes, etc...
+  -- The second pass will layout the dashboard
+    return {    
     {
       traverse = 'topdown',
-      Pandoc = function(el)
-        
-        -- Look for global fill setting
-        local fill = dashboardParam(kLayoutFill, false)
-
-        -- Layout the root element with a specific orientation
-        el.blocks = orientContents(el.blocks, alternateOrientation(), fill)
-        return el
-
-      end,
-      PanelLayout = function(el)
-        -- Convert panel layouts into rows and columns using the 
-        -- dashboard syntax
-        local result = dashboard.layout.makeRows({}, true)
-        for _i, row in ipairs(el.rows.content) do              
-          local colsEl = dashboard.layout.makeCols({}, true)
-          for _j, cell_div in ipairs(row.content) do
-            colsEl.content:insert(dashboard.card.makeCard(nil, cell_div.content))
-          end
-          result.content:insert(colsEl)
-        end
-        return result, false
-        
-      end,
       Div = function(el) 
 
         if dashboard.card.isCard(el) then
@@ -141,37 +114,7 @@ function render_dashboard()
           end
 
           return dashboard.valuebox.makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase, classes), false
-        
-        elseif el.classes:includes('section') then
-          
-
-          -- Allow arbitrary nesting of sections / heading levels to perform layouts
-          local header = el.content[1]
-          if header.t == "Header" then            
-            local level = header.level
-
-            -- The first time we see a level, we should emit the rows and 
-
-            if level > 1 then
-              if level ~= lastLevel then
-
-                -- Compute the fill
-                local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
-
-                -- Note the new level
-                lastLevel = level
-                              
-                local contents = tslice(el.content, 2)
-                return orientContents(contents, alternateOrientation(), fill)
-              else 
-               
-                local contents = tslice(el.content, 2)
-                return orientContents(contents, orientation(), fill)
-              end
-            end
-          end
-              
-          
+                  
         elseif el.classes:includes('cell') then
           
           -- See if this cell has bslib output already
@@ -199,6 +142,69 @@ function render_dashboard()
             return dashboard.card.makeCard(nil, el.content, {}, options), false
           end
         end
+      end,      
+
+    },
+    {
+      traverse = 'topdown',
+      Pandoc = function(el)
+        
+        -- Look for global fill setting
+        local fill = dashboardParam(kLayoutFill, false)
+
+        -- Make sections based upon the headings and use that for the 
+        -- document structure
+        el.blocks = pandoc.structure.make_sections(el.blocks, {})
+
+        -- Layout the root element with a specific orientation
+        el.blocks = orientContents(el.blocks, orientation(), fill)
+        return el
+
+      end,
+      PanelLayout = function(el)
+        -- Convert panel layouts into rows and columns using the 
+        -- dashboard syntax
+        local result = dashboard.layout.makeRows({}, true)
+        for _i, row in ipairs(el.rows.content) do              
+          local colsEl = dashboard.layout.makeCols({}, true)
+          for _j, cell_div in ipairs(row.content) do
+            colsEl.content:insert(dashboard.card.makeCard(nil, cell_div.content))
+          end
+          result.content:insert(colsEl)
+        end
+        return result, false
+        
+      end,
+      Div = function(el) 
+
+        if el.classes:includes('section') then
+
+          -- Allow arbitrary nesting of sections / heading levels to perform layouts
+          local header = el.content[1]
+          if header.t == "Header" then            
+            local level = header.level
+
+            -- The first time we see a level, we should emit the rows and 
+
+            if level > 1 then
+              if level ~= lastLevel then
+
+                -- Compute the fill
+                local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
+
+                -- Note the new level
+                lastLevel = level
+                              
+                local contents = tslice(el.content, 2)
+                return orientContents(contents, alternateOrientation(), fill)
+              else 
+               
+                local contents = tslice(el.content, 2)
+                return orientContents(contents, orientation(), fill)
+              end
+            end
+          end
+        end      
       end,
     }
   }
