@@ -133,17 +133,13 @@ function render_dashboard()
               end
             end
           })
-          
-          local options = {}
-          if el.attributes['title'] then
-            options['title'] = el.attributes['title']
-          end
-          
+                  
 
           if hasBsLibOutput then
             return el
           else
-            return dashboard.card.makeCard(nil, el.content, {}, options), false
+            local options, userClasses = dashboard.card.readCardOptions(el)
+            return dashboard.card.makeCard(nil, el.content, userClasses, options), false
           end
         end
       end,      
