@@ -34,7 +34,7 @@ import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
-import { dashboardMeta } from "./format-dashboard-shared.ts";
+import { dashboardMeta, kDashboard } from "./format-dashboard-shared.ts";
 import { processCards } from "./format-dashboard-card.ts";
 import { processValueBoxes } from "./format-dashboard-valuebox.ts";
 import {
@@ -96,8 +96,9 @@ export function dashboardFormat() {
 
         const dashboard = dashboardMeta(format);
         extras[kFilterParams] = extras[kFilterParams] || {};
-        extras[kFilterParams]["dashboard"] = {
+        extras[kFilterParams][kDashboard] = {
           orientation: dashboard.orientation,
+          fill: dashboard.fill,
         };
 
         const scripts: DependencyHtmlFile[] = [];
@@ -203,13 +204,6 @@ function dashboardHtmlPostProcessor(
         "bslib-gap-spacing",
         "html-fill-container",
       ];
-
-      // The baseline page layout
-      if (dashboard.orientation === "columns") {
-        containerClz.push("orientation-rows");
-      } else {
-        containerClz.push("orientation-columns");
-      }
 
       // The scrolling behavior
       if (dashboard.fill) {

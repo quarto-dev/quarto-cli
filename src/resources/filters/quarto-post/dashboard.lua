@@ -24,7 +24,34 @@ local function dashboardParam(name, default)
   return dashboardParams[name] or default
 end
 
+
+
+
 function render_dashboard() 
+  local lastLevel = 0
+  local currentOrientation = dashboardParam(kParamOrientation, kDefaultOrientation)
+
+  local function alternateOrientation() 
+    if currentOrientation == kOrientationRows then
+      currentOrientation = kOrientationColumns
+    else
+      currentOrientation = kOrientationRows
+    end 
+    return currentOrientation
+  end
+
+  local function orientation() 
+    return currentOrientation
+  end
+
+  local function orientContents(contents, orientation, fill)
+    if orientation == kOrientationColumns then
+      return dashboard.layout.makeCols(contents, fill)
+    else
+      return dashboard.layout.makeRows(contents, fill)
+    end
+  end
+
 
   -- only do this for dashboad output
   if not _quarto.format.isDashboardOutput() then
@@ -40,6 +67,16 @@ function render_dashboard()
     },
     {
       traverse = 'topdown',
+      Pandoc = function(el)
+        
+        -- Look for global fill setting
+        local fill = dashboardParam(kLayoutFill, false)
+
+        -- Layout the root element with a specific orientation
+        el.blocks = orientContents(el.blocks, alternateOrientation(), fill)
+        return el
+
+      end,
       PanelLayout = function(el)
         -- Convert panel layouts into rows and columns using the 
         -- dashboard syntax
@@ -106,30 +143,35 @@ function render_dashboard()
           return dashboard.valuebox.makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase, classes), false
         
         elseif el.classes:includes('section') then
+          
 
           -- Allow arbitrary nesting of sections / heading levels to perform layouts
-
-          -- Allow sections to be 'cards'
           local header = el.content[1]
           if header.t == "Header" then            
             local level = header.level
-            if level == 2 then
-              -- process a column or row separator
-              local orientation = dashboardParam(kParamOrientation, kDefaultOrientation)
-              local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
-              -- this means columns or rows (depending upon orientation)
-              local contents = tslice(el.content, 2)
-              if orientation == kOrientationColumns then
-                return dashboard.layout.makeRows(contents, fill)
-              else
-                return dashboard.layout.makeCols(contents, fill)
+
+            -- The first time we see a level, we should emit the rows and 
+
+            if level > 1 then
+              if level ~= lastLevel then
+
+                -- Compute the fill
+                local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
+
+                -- Note the new level
+                lastLevel = level
+                              
+                local contents = tslice(el.content, 2)
+                return orientContents(contents, alternateOrientation(), fill)
+              else 
+               
+                local contents = tslice(el.content, 2)
+                return orientContents(contents, orientation(), fill)
               end
-            else
-              local options, userClasses = dashboard.card.readCardOptions(el)
-              local contents = tslice(el.content, 2)
-              return dashboard.card.makeCard(header, contents, userClasses, options), false
             end
           end
+              
+          
         elseif el.classes:includes('cell') then
           
           -- See if this cell has bslib output already
