@@ -6,7 +6,6 @@ format:
     fill: true
 ---
 
-
 :::{.tabset title="Reports on the set of cool stuff"}
 
 ```{r}
@@ -20,19 +19,14 @@ plot(iris)
 plot(mtcars)
 ```
 
-:::{.columns title="Test"}
 
 ```{r}
-#| title: Historical Cars
+#| title: Text
+#| layout: [[100],[50,50]]
+
 plot(cars)
-```
-
-```{r}
-#| title: Summary Iris
 plot(iris)
 plot(mtcars)
 ```
-
-:::
 
 :::

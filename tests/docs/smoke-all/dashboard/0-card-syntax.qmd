@@ -35,7 +35,7 @@ This is a markdown card with a footer
 
 ```{r}
 #| title: A Cell Is A Card
-#| classes: .expandable
+#| classes: expandable
 plot(cars)
 ```
 

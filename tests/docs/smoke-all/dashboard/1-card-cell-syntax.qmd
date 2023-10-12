@@ -1,6 +1,7 @@
 ---
 title: Test R
 format: dashboard
+theme: lux
 ---
 
 ```{r}
