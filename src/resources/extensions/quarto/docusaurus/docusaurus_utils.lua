@@ -1,12 +1,16 @@
 function codeBlock(el, filename)
   local lang = el.attr.classes[1]
-  local title = filename or el.attr.attributes["filename"] or el.attr.attributes["title"]  
+  local title = filename or el.attr.attributes["filename"] or el.attr.attributes["title"]
   local showLineNumbers = el.attr.classes:includes('number-lines')
+  local codeLineNumbers = el.attr.attributes["code-line-numbers"]
   if lang or title or showLineNumbers then
     if not lang then
       lang = 'text'
     end
     local code = "\n```" .. lang
+    if codeLineNumbers then
+      code = code .. " {" .. codeLineNumbers .. "}"
+    end
     if showLineNumbers then
       code = code .. " showLineNumbers"
     end
