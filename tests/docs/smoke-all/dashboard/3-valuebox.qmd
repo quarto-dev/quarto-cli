@@ -65,7 +65,7 @@ So it is.
 
 
 
-Row {.flow color="primary"}
+Row {.flow}
 --------------------
 
 :::{.valuebox icon="backpack-fill"}
@@ -74,7 +74,7 @@ Row {.flow color="primary"}
 
 `{r} numberOfTimesCat`
 
-So it is.
+This is the way.
 
 :::
 
@@ -84,6 +84,6 @@ So it is.
 
 `{r} numberOfTimesDog`
 
-So it is.
+That is the way.
 
 :::
