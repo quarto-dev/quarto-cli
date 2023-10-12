@@ -33,6 +33,7 @@ function server_shiny()
         table.concat(args, " ") ..
         "'. Please make sure the 'shiny' Python package is installed."
       )
+      os.exit(1)
     end
 
     return res
