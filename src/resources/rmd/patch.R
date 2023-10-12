@@ -94,8 +94,13 @@ wrap_asis_output <- function(options, x) {
     x <- paste0(x, "\n\n", caption)
   }
   classes <- paste0("cell-output-display")
+  attrs <- NULL
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
+
+  if (identical(options[["html-table-processing"]], "none")) {
+    attrs <- paste(attrs, "html-table-processing=none")
+  }
   
   # if this is an html table then wrap it further in ```{=html}
   # (necessary b/c we no longer do this by overriding kable_html,
@@ -106,8 +111,9 @@ wrap_asis_output <- function(options, x) {
     x <- paste0("`````{=html}\n", x, "\n`````")
   }
   
-  output_div(x, output_label_placeholder(options), classes)
+  output_div(x, output_label_placeholder(options), classes, attrs)
 }
+
 add_html_caption <- function(options, x, ...) {
   if (inherits(x, 'knit_asis_htmlwidget')) {
     wrap_asis_output(options, x)

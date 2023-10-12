@@ -1,0 +1,24 @@
+---
+title: issue-7187
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["table[data-quarto-postprocess]", "div[data-html-table-processing]"]
+---
+
+```{python}
+#| html-table-processing: none
+#| echo: false
+import pandas as pd
+
+df = pd.DataFrame({
+    "strings": ["Adam", "Mike"],
+    "ints": [1, 3],
+    "floats": [1.123, 1000.23]
+})
+df
+```
+
+
