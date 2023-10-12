@@ -98,7 +98,7 @@ wrap_asis_output <- function(options, x) {
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
 
-  if (isFALSE(options[["html-table-processing"]])) {
+  if (options[["html-table-processing"]] == "none") {
     attrs <- paste(attrs, "html-table-processing=none")
   }
   

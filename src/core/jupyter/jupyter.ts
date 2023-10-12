@@ -1493,7 +1493,7 @@ async function mdFromCodeCell(
           md.push(` execution_count=${output.execution_count}`);
         }
 
-        if (cell.options[kHtmlTableProcessing] === false) {
+        if (cell.options[kHtmlTableProcessing] === "none") {
           md.push(" html-table-processing=none");
         }
 

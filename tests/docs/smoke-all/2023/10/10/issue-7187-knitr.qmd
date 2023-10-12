@@ -9,7 +9,7 @@ _quarto:
 ---
 
 ```{r}
-#| html-table-processing: false
+#| html-table-processing: none
 #| echo: false
 knitr::kable(cars, format = "html")
 ```
