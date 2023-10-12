@@ -48,5 +48,4 @@
 - name: html-table-processing
   schema:
     enum: [none]
-  default: false
   description: If `none`, do not process raw HTML table in cell output and leave it as-is
