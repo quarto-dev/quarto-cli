@@ -90,14 +90,17 @@ function ipynb()
                 imgEl.attr = pandoc.Attr()
                 return imgEl
               end,
-              FloatRefTarget = function(float)
-                float.in_code_cell_output = true
-                return float
-              end,
               Table = function(tbl)
                 local rendered = pandoc.write(pandoc.Pandoc(tbl), "markdown")
                 return pandoc.RawBlock("markdown", rendered)      
               end,      
+            })
+          elseif produceSourceNotebook then
+            el = _quarto.ast.walk(el, {
+              FloatRefTarget = function(float)
+                float.in_code_cell_output = true
+                return float
+              end,
             })
           end
 

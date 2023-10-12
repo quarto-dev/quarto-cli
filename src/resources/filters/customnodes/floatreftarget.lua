@@ -614,6 +614,10 @@ end, function(float)
       imgEl.caption =  quarto.utils.as_inlines(float.caption_long) or {}
     end
     return pandoc.Para({imgEl})
+  elseif float.in_code_cell_output then
+    -- If the float is in a code_cell_output, it is ok to drop the identifier
+    -- and caption, because that infdormation is still carried by the cell itself
+    return float.content
   else
     return pandoc.Figure(
       {float.content},
