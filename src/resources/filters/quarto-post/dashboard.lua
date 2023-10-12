@@ -93,31 +93,8 @@ function render_dashboard()
           return dashboard.card.makeCard(title, contents, userClasses, options), false
 
         elseif dashboard.valuebox.isValueBox(el) then
-
-          -- We need to actually pull apart the box
-          local header = el.content[1]
-          local title = {}
-          local value = el.content
-          local content = {}
-          local icon = el.attributes[kValueBoxIconAttr]          
-          local showcase = el.attributes[kValueBoxShowcaseAttr] or kValueBoxDefaultShowcasePosition
-          local classes = el.classes
-
-          if header ~= nil and header.t == "Header" then
-            title = header.content
-            value = tslice(el.content, 2)
-          end
           
-          if #value > 1 then
-            content = tslice(value, 2)
-            value = value[1]
-          end
-
-          if pandoc.utils.type(value) ~= "table" and pandoc.utils.type(value) ~= "Blocks" then
-            value = {value}
-          end
-
-          return dashboard.valuebox.makeValueBox(title, pandoc.utils.blocks_to_inlines(value), icon, content, showcase, classes), false
+          return dashboard.valuebox.makeValueBox(el), false
                   
         elseif el.classes:includes('cell') then
           

@@ -3,8 +3,17 @@ title: ValueBoxes
 format: 
   dashboard:
     orientation: rows
-    theme: spacelab
+    theme: minty
 ---
+
+
+```{r}
+numberOfTimesMe <- sample(1:1000, 1)
+numberOfTimesYou <- sample(1:23, 1)
+numberOfTimesCat <- sample(1:500, 1)
+numberOfTimesDog <- sample(1:500, 1)
+```
+
 
 Row
 --------------------
@@ -33,44 +42,47 @@ Row
 Row {.flow}
 --------------------
 
-:::{.valuebox .bg-primary icon="hand-thumbs-up"}
+
+:::{.valuebox icon="hand-thumbs-up" showcase-position="bottom"}
 
 ## Number of Times I Kick Ass
 
-4,789.18
+`{r} numberOfTimesMe`
 
 It is what it is.
 
 :::
 
-:::{.valuebox .bg-secondary icon="hand-thumbs-down"}
+:::{.valuebox icon="hand-thumbs-down"}
 
 ## Number of Times You Kick Ass
 
-2.3
+`{r} numberOfTimesYou`
 
 So it is.
 
 :::
 
-Row {.flow}
+
+
+Row {.flow color="primary"}
 --------------------
 
-:::{.valuebox .bg-secondary icon="hand-thumbs-down" showcase="bottom"}
+:::{.valuebox icon="backpack-fill"}
 
-## Number of Times You Kick Ass
+## Number of Times Cats Kick Ass
 
-2.3
+`{r} numberOfTimesCat`
 
 So it is.
 
 :::
 
-:::{.valuebox .bg-secondary icon="hand-thumbs-down" showcase="top-right"}
+:::{.valuebox icon="send-fill" showcase-position="top-right"}
 
-## Number of Times You Kick Ass
+## Number of Times Dogs Kick Ass
 
-2.3
+`{r} numberOfTimesDog`
 
 So it is.
 

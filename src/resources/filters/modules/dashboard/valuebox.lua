@@ -10,22 +10,18 @@ local kValueBoxAreaClz = "value-box-area"
 local kValueBoxTitleClz = "value-box-title"
 local kValueBoxValueClz = "value-box-value"
 
-local function htmlBsImage(icon)
-  return pandoc.RawInline("html", '<i class="bi bi-' .. icon .. '"></i>')
-end
+-- Valuebox attributes
+local kValueBoxColor = "color"
+local kValueBoxBgColor = "bg-color"
+local kValueBoxFgColor = "fg-color"
+local kValueBoxShowcasePosition= "showcase-position"
+local kValueBoxIcon = "icon"
+local kValueBoxDataAttr = {kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor}
+local kValueBoxShowcaseDataAttr = {kValueBoxIcon, kValueBoxShowcasePosition}
 
-local function showcaseClz(showcase)           
-  -- top-right
-  -- left-center
-  -- bottom
-  if showcase == nil then
-    showcase = 'left-center'
-  end
-  return 'showcase-' .. showcase
-end
 
-local function wrapValueBox(box, showcase, classes)
-  local valueBoxClz = pandoc.List({kValueBoxClz, showcaseClz(showcase)})
+local function wrapValueBox(box, classes)
+  local valueBoxClz = pandoc.List({kValueBoxClz})
   valueBoxClz:extend(classes)
   return card.makeCard(nil, {box}, valueBoxClz)
 end
@@ -45,29 +41,64 @@ end
 --       .value-box-value
 --        other content
 --  attributes
---    full-screen
---    scrolling
---    full-bleed
+local function makeValueBox(el) 
 
-local function makeValueBox(title, value, icon, content, showcase, classes) 
-  if value == nil then
-    error("Value boxes must have a value")
+  -- We need to actually pull apart the valuebox content
+  local header = el.content[1]
+  local classes = el.classes
+  
+  local title = {}
+  local value = el.content
+  local content = {}
+
+  if header ~= nil and header.t == "Header" then
+    title = header.content
+    value = tslice(el.content, 2)
+  end
+  
+  if #value > 1 then
+    content = tslice(value, 2)
+    value = value[1]
   end
 
-  local vbDiv = pandoc.Div({}, pandoc.Attr("", {}))
+  if pandoc.utils.type(value) ~= "table" and pandoc.utils.type(value) ~= "Blocks" then
+    value = {value}
+  end
+
+  if value == nil then
+    error("Value boxes must have a value -  the structure of this valuebox appears malformed.")
+  end
+
+  -- Forward attributes
+  local attrs = {}
+  for _i,attrName in ipairs(kValueBoxDataAttr) do
+    local attrValue = el.attributes[attrName]
+    if attrValue ~= nil then
+      attrs['data-' .. attrName] = attrValue
+    end
+  end
+  
+  local vbDiv = pandoc.Div({}, pandoc.Attr("", {}, attrs))
 
   -- The valuebox icon
-  if icon ~= nil then
-    local bsImage = htmlBsImage(icon)
-    local vbShowcase = pandoc.Div({bsImage}, pandoc.Attr("", {kValueBoxShowcaseClz}))
-    vbDiv.content:insert(vbShowcase)
+  local showcaseAttr = {}
+  for _i,attrName in ipairs(kValueBoxShowcaseDataAttr) do
+    local attrValue = el.attributes[attrName]
+    if attrValue ~= nil then
+      showcaseAttr['data-' .. attrName] = attrValue
+    end
   end
+  
+  -- add the showcase
+  if next(showcaseAttr) ~= nil then
+    local vbShowcase = pandoc.Div({}, pandoc.Attr("", {kValueBoxShowcaseClz}, showcaseAttr))
+    vbDiv.content:insert(vbShowcase)
+  end  
 
   local vbArea = pandoc.Div({}, pandoc.Attr("", {kValueBoxAreaClz}))
-  
 
   -- The valuebox title
-  local vbTitle = pandoc.Div(title, pandoc.Attr("", {kValueBoxTitleClz}))
+  local vbTitle = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {kValueBoxTitleClz}))
   vbArea.content:insert(vbTitle)
 
   -- The valuebox value
@@ -80,7 +111,7 @@ local function makeValueBox(title, value, icon, content, showcase, classes)
   end
 
   vbDiv.content:insert(vbArea)
-  return wrapValueBox(vbDiv, showcase, classes)
+  return wrapValueBox(vbDiv, classes)
 end
 
 return {

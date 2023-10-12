@@ -31,12 +31,15 @@ export const processAndRemoveAttr = (
   el: Element,
   attr: string,
   process: (el: Element, attrValue: string) => void,
+  defaultValue?: string,
 ) => {
   // See whether this card is expandable
   const resolvedAttr = el.getAttribute(attr);
   if (resolvedAttr !== null) {
     process(el, resolvedAttr);
     el.removeAttribute(attr);
+  } else if (defaultValue) {
+    process(el, defaultValue);
   }
 };
 
