@@ -29,9 +29,9 @@ function render_dashboard()
 
   local function orientContents(contents, orientation, options)
     if orientation == kOrientationColumns then
-      return dashboard.layout.makeCols(contents, options)
+      return dashboard.layout.makeRowContainer(contents, options)
     else
-      return dashboard.layout.makeRows(contents, options)
+      return dashboard.layout.makeColumnContainer(contents, options)
     end
   end
 

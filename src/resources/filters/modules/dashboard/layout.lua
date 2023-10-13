@@ -52,12 +52,12 @@ local function makeOptions(filling)
   return options;
 end
 
-local function makeRows(content, options)
+local function makeColumnContainer(content, options)
 
-  -- rows can't have width
+  -- cols can't have height
   validateLayout(options)
-  if options[kLayoutWidth] ~= nil then
-    error("Rows are not allowed to specify their width - they always fill their container.")
+  if options[kLayoutHeight] ~= nil then
+    fail("Columns are not allowed to specify their height - they always fill their container.")
   end
 
   -- forward the options onto attributes
@@ -69,12 +69,12 @@ local function makeRows(content, options)
   return pandoc.Div(content, pandoc.Attr("", {kRowsClass}, attributes))
 end
 
-local function makeCols(content, options) 
+local function makeRowContainer(content, options) 
   
-  -- cols can't have height
+  -- rows can't have width
   validateLayout(options)
-  if options[kLayoutHeight] ~= nil then
-    error("Rows are not allowed to specify their width - they always fill their container.")
+  if options[kLayoutWidth] ~= nil then
+    fail("Rows are not allowed to specify their width - they always fill their container.")
   end
 
   -- forward attributes along
@@ -88,8 +88,8 @@ end
 
 
 return {
-  makeRows = makeRows,
-  makeCols = makeCols,
+  makeColumnContainer = makeColumnContainer,
+  makeRowContainer = makeRowContainer,
   readOptions = readOptions,
   makeOptions = makeOptions
 }
