@@ -114,10 +114,38 @@ function render_dashboard()
 
         -- Make sections based upon the headings and use that for the 
         -- document structure
-        el.blocks = pandoc.structure.make_sections(el.blocks, {})
+        -- el is a 'Pandoc' object which has blocks which is Blocks, not a list, I can't explain this warning
+        el.blocks = pandoc.structure.make_sections(el.blocks, {}) 
 
-        -- Layout the root element with a specific orientation
-        el.blocks = orientContents(el.blocks, orientation(), options)
+        -- Now that the document has been re-organized, gather any
+        -- loose elements that appear before the first section and cleave them
+        -- out for use later
+
+        local nonSectionEls = pandoc.List()
+        local sectionEls = pandoc.List()
+        for _i, v in ipairs(el.blocks) do
+          if v.classes ~= nil and v.classes:includes('section') then
+            sectionEls:insert(v)
+          else
+            nonSectionEls:insert(v)
+          end
+        end
+
+        -- Sort out whether we're snagging loose content above
+        -- sections (e.g. if there is a section)
+        local layoutEls = nonSectionEls
+        local finalEls = pandoc.List()
+        if #sectionEls > 0 then
+          layoutEls = sectionEls
+          finalEls = nonSectionEls
+        end
+
+        -- Layout the proper elements with a specific orientation
+        local cardsWithLayoutEl = orientContents(layoutEls, orientation(), options)
+        finalEls:insert(cardsWithLayoutEl)
+
+        -- return the newly restructured document
+        el.blocks = finalEls
         return el
 
       end,
