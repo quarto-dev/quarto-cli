@@ -162,7 +162,7 @@ function render_dashboard()
             local contents = tslice(el.content, 2)
 
             -- Make sure everything is in a card
-            local organizer = dashboard.layoutContainer.organizer(contents)
+            local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List({'section'}))
             local layoutContentEls = organizer.ensureInLayoutContainers()
             
             -- The first time we see a level, we should emit the rows and 
