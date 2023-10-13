@@ -4,8 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { number } from "https://deno.land/x/cliffy@v0.25.4/flags/types/number.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { isValueBox } from "./format-dashboard-valuebox.ts";
+import { asCssSize } from "../../core/css.ts";
 
 // Container type classes
 const kRowsClass = "rows";
@@ -17,8 +19,50 @@ const kLayoutFill = "fill";
 const kLayoutFlow = "flow";
 type Layout = "fill" | "flow" | string;
 
+// Explicit size attributes
 const kHeightAttr = "data-height";
 const kWidthAttr = "data-width";
+
+// bslib classes
+const kBsLibGridClass = "bslib-grid";
+const kHtmlFillItemClass = "html-fill-item";
+const kHtmlFillContainerClass = "html-fill-container";
+
+// Configuration for skipping elements when applying container classes
+// (we skip applying container classes to the following):
+const kSkipFillContainerElements = {
+  tags: [
+    "P",
+    "FIGCAPTION",
+    "SCRIPT",
+    "SPAN",
+    "A",
+    "PRE",
+    "CODE",
+    "BUTTON",
+  ],
+  classes: [
+    "bi",
+    "value-box-grid",
+    "value-box-area",
+    "value-box-title",
+    "value-box-value",
+  ],
+};
+
+const kSkipFillItemElements = {
+  tags: [
+    "P",
+    "FIGCAPTION",
+    "SCRIPT",
+    "SPAN",
+    "A",
+    "PRE",
+    "CODE",
+    "BUTTON",
+  ],
+  classes: ["bi", "no-fill", "callout"],
+};
 
 // Process row Elements (computing the grid heights for the
 // row and applying bslib style classes)
@@ -27,7 +71,25 @@ export function processRows(doc: Document) {
   const rowNodes = doc.querySelectorAll(`div.${kRowsClass}`);
   if (rowNodes !== null) {
     for (const rowNode of rowNodes) {
-      processRow(rowNode as Element);
+      const rowEl = rowNode as Element;
+      // Decorate the row element
+      rowEl.classList.add(kBsLibGridClass);
+      rowEl.classList.remove(kRowsClass);
+
+      // Compute the layouts for ths rows in this rowEl
+      const rowLayouts = computeRowLayouts(rowEl);
+
+      // Create the grid-template-rows value based upon the layouts
+      const gridTemplRowsVal = `${rowLayouts.map(toGridSize).join(" ")}`;
+
+      // Apply the grid styles
+      const currentStyle = rowEl.getAttribute("style");
+      const template =
+        `display: grid; grid-template-rows: ${gridTemplRowsVal}; grid-auto-columns: minmax(0, 1fr);`;
+      rowEl.setAttribute(
+        "style",
+        currentStyle === null ? template : `${currentStyle}\n${template}`,
+      );
     }
   }
 }
@@ -39,20 +101,21 @@ export function processColumns(doc: Document) {
   if (colNodes !== null) {
     for (const colNode of colNodes) {
       const colEl = colNode as Element;
-      colEl.classList.add("bslib-grid");
+
+      // Decorate the column
+      colEl.classList.add(kBsLibGridClass);
       colEl.classList.remove(kColumnsClass);
 
-      const colSize = "1fr";
-      if (colEl.classList.contains("fill")) {
-        colEl.classList.remove("fill");
-        colEl.classList.add("html-fill-container");
-      } else {
-        colEl.classList.add("no-fill");
-      }
-      const colCount = colEl.childElementCount;
+      // Compute the column sizes
+      const colLayouts = computeColumnLayouts(colEl);
+
+      // Create the grid-template-rows value based upon the layouts
+      const gridTemplColVal = `${colLayouts.map(toGridSize).join(" ")}`;
+
+      // Apply the grid styles
       const currentStyle = colEl.getAttribute("style");
       const template =
-        `display: grid; grid-template-columns:repeat(${colCount}, minmax(0, ${colSize}));\ngrid-auto-rows: minmax(0, 1fr);`;
+        `display: grid; grid-template-columns: ${gridTemplColVal};\ngrid-auto-rows: minmax(0, 1fr);`;
       colEl.setAttribute(
         "style",
         currentStyle === null ? template : `${currentStyle}\n${template}`,
@@ -61,53 +124,18 @@ export function processColumns(doc: Document) {
   }
 }
 
-function processRow(rowEl: Element) {
-  // Decorate the row element
-  rowEl.classList.add("bslib-grid");
-  rowEl.classList.remove(kRowsClass);
-
-  // Compute the layouts for ths rows in this rowEl
-  const rowLayouts = computeRowLayouts(rowEl);
-
-  // Create the grid-template-rows value based upon the layouts
-  const gridTemplRowsVal = `${rowLayouts.map(toGridHeight).join(" ")}`;
-
-  // Apply the grid styles
-  const currentStyle = rowEl.getAttribute("style");
-  const template =
-    `display: grid; grid-template-rows: ${gridTemplRowsVal}; grid-auto-columns: minmax(0, 1fr);`;
-  rowEl.setAttribute(
-    "style",
-    currentStyle === null ? template : `${currentStyle}\n${template}`,
-  );
-}
-
-function toGridHeight(layout: Layout) {
-  if (layout === kLayoutFill) {
-    return `minmax(0, 1fr)`;
-  } else if (layout === kLayoutFlow) {
-    return `minmax(0, max-content)`;
-  } else {
-    return `minmax(0, ${layout})`;
+function computeColumnLayouts(colEl: Element) {
+  const layouts: Layout[] = [];
+  for (const childEl of colEl.children) {
+    const explicitWidth = childEl.getAttribute(kWidthAttr);
+    if (explicitWidth !== null) {
+      childEl.removeAttribute(kWidthAttr);
+      layouts.push(explicitWidth);
+    } else {
+      layouts.push(kLayoutFill);
+    }
   }
-}
-
-// Coerce the layout to value valid
-function asLayout(layout: string): Layout {
-  if (layout === kLayoutFill) {
-    return kLayoutFill;
-  } else {
-    return kLayoutFlow;
-  }
-}
-
-// Suggest a layout for an element
-function suggestLayout(el: Element) {
-  if (isValueBox(el)) {
-    return kLayoutFlow;
-  } else {
-    return kLayoutFill;
-  }
+  return layouts;
 }
 
 // TODO: We could improve this by pre-computing the row layouts
@@ -128,6 +156,7 @@ function computeRowLayouts(rowEl: Element) {
     // If the child has an explicitly set height, just use that
     const explicitHeight = childEl.getAttribute(kHeightAttr);
     if (explicitHeight !== null) {
+      childEl.removeAttribute(kHeightAttr);
       layouts.push(explicitHeight);
     } else {
       // The child height isn't explicitly set, figure out the layout
@@ -153,7 +182,7 @@ function computeRowLayouts(rowEl: Element) {
         } else if (childEl.classList.contains(kColumnsClass)) {
           // This child is a column, allow it to provide a layout
           // based upon its own contents
-          const layout = columnLayout(childEl, parentLayout);
+          const layout = rowLayoutForColumn(childEl, parentLayout);
           layouts.push(layout);
         } else {
           // This isn't a row or column, if possible, just use
@@ -171,8 +200,38 @@ function computeRowLayouts(rowEl: Element) {
   return layouts;
 }
 
+function toGridSize(layout: Layout) {
+  if (layout === kLayoutFill) {
+    return `minmax(0, 1fr)`;
+  } else if (layout === kLayoutFlow) {
+    return `minmax(0, max-content)`;
+  } else {
+    // A number with no units will be assumed to be pixels
+    console.log({ size: asCssSize(layout) });
+    return `minmax(0, ${asCssSize(layout)})`;
+  }
+}
+
+// Coerce the layout to value valid
+function asLayout(layout: string): Layout {
+  if (layout === kLayoutFill) {
+    return kLayoutFill;
+  } else {
+    return kLayoutFlow;
+  }
+}
+
+// Suggest a layout for an element
+function suggestLayout(el: Element) {
+  if (isValueBox(el)) {
+    return kLayoutFlow;
+  } else {
+    return kLayoutFill;
+  }
+}
+
 // Suggest a layout for a column (using a default value)
-function columnLayout(colEl: Element, defaultLayout: Layout | null) {
+function rowLayoutForColumn(colEl: Element, defaultLayout: Layout | null) {
   const layouts: Layout[] = [];
   for (const childEl of colEl.children) {
     layouts.push(suggestLayout(childEl));
@@ -193,49 +252,21 @@ export const recursiveApplyFillClasses = (el: Element) => {
 };
 
 export const applyFillItemClasses = (el: Element) => {
-  const skipFill = kSkipFillClz.some((clz) => {
-    return el.classList.contains(clz) || kSkipFillTagz.includes(el.tagName);
+  const skipFill = kSkipFillItemElements.classes.some((clz) => {
+    return el.classList.contains(clz) ||
+      kSkipFillItemElements.tags.includes(el.tagName);
   });
   if (!skipFill) {
-    el.classList.add("html-fill-item");
+    el.classList.add(kHtmlFillItemClass);
   }
 };
 
 const applyFillContainerClasses = (el: Element) => {
-  const skipContainer = kSkipContainerClz.some((clz) => {
+  const skipContainer = kSkipFillContainerElements.classes.some((clz) => {
     return el.classList.contains(clz) ||
-      kSkipContainerTagz.includes(el.tagName);
+      kSkipFillContainerElements.tags.includes(el.tagName);
   });
   if (!skipContainer) {
-    el.classList.add("html-fill-container");
+    el.classList.add(kHtmlFillContainerClass);
   }
 };
-
-const kSkipContainerTagz = [
-  "P",
-  "FIGCAPTION",
-  "SCRIPT",
-  "SPAN",
-  "A",
-  "PRE",
-  "CODE",
-  "BUTTON",
-];
-const kSkipContainerClz: string[] = [
-  "bi",
-  "value-box-grid",
-  "value-box-area",
-  "value-box-title",
-  "value-box-value",
-];
-const kSkipFillClz: string[] = ["bi", "no-fill", "callout"];
-const kSkipFillTagz = [
-  "P",
-  "FIGCAPTION",
-  "SCRIPT",
-  "SPAN",
-  "A",
-  "PRE",
-  "CODE",
-  "BUTTON",
-];
