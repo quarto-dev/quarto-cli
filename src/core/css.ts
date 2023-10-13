@@ -1,9 +1,8 @@
 /*
-* css.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * css.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
@@ -129,7 +128,7 @@ export function asCssSize(value: unknown): string | undefined {
     return undefined;
   } else {
     const str = String(value);
-    if (str !== "0" && !str.match(/\w$/)) {
+    if (str !== "0" && str.match(/\w$/)) {
       return str + "px";
     } else {
       return str;
