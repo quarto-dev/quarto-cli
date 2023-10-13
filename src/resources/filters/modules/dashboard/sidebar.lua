@@ -8,7 +8,7 @@ local kSidebarClass = "sidebar"
 local kSidebarContentsClass = "contents"
 
 local function isSidebar(el) 
-  return el.classes:includes(kSidebarPanelClass)
+  return el.classes ~= nil and el.classes:includes(kSidebarPanelClass)
 end 
 
 local function makeSidebar(title, sidebar, content) 

@@ -14,6 +14,9 @@ local kLayout = "layout"         -- fill, flow, nil
 local kLayoutFill = "fill"
 local kLayoutFlow = "flow"
 
+local function isRowOrColContainer(el) 
+  return el.classes ~= nil and (el.classes:includes(kRowsClass) or el.classes:includes(kColumnsClass))
+end
 
 local function validateLayout(options)
   if options[kLayout] ~= nil then
@@ -88,6 +91,7 @@ end
 
 
 return {
+  isRowOrColContainer = isRowOrColContainer,
   makeColumnContainer = makeColumnContainer,
   makeRowContainer = makeRowContainer,
   readOptions = readOptions,

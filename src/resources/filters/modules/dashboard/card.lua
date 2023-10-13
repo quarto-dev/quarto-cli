@@ -59,13 +59,13 @@ local function popImagePara(el)
 end
 
 local function isCard(el) 
-  return el.t == "Div" and el.classes:find_if(function(class) 
+  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardClz:includes(class)
   end) 
 end
 
 local function isCardBody(el) 
-  return el.t == "Div" and el.classes:find_if(function(class) 
+  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardBodyClz:includes(class)
   end) 
 end
@@ -99,25 +99,33 @@ end
 
 local function readCardOptions(el) 
   local options = {}
-  for _i, v in ipairs(kCardClzToAttr) do
-    if el.classes:includes(v) then
-      options[v] = true
+  
+  if el.classes ~= nil then
+    for _i, v in ipairs(kCardClzToAttr) do
+      if el.classes:includes(v) then
+        options[v] = true
+      end
     end
   end
 
-  for _i, v in ipairs(kCardAttributes) do
-    if el.attributes[v] ~= nil then
-      options[v] = el.attributes[v]
+  if el.attributes ~= nil then
+    for _i, v in ipairs(kCardAttributes) do
+      if el.attributes[v] ~= nil then
+        options[v] = el.attributes[v]
+      end
     end
   end
 
   -- note whether this card should force the header on
   options[kForceHeader] = isTabset(el)
 
-  local clz = el.classes:filter(function(class)
-    return not kCardClzToAttr:includes(class)
-  end)
-
+  local clz = pandoc.List()
+  if el.classes ~= nil then
+    clz = el.classes:filter(function(class)
+      return not kCardClzToAttr:includes(class)
+    end)  
+  end
+  
   return options, clz
 end
 

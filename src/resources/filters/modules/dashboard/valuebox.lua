@@ -28,7 +28,7 @@ end
 
 
 local function isValueBox(el) 
-  return el.classes:includes(kValueBoxClz)
+  return el.classes ~= nil and el.classes:includes(kValueBoxClz)
 end 
 
 -- Make a valuebox

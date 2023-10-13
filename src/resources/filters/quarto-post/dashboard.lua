@@ -120,7 +120,6 @@ function render_dashboard()
         -- Now that the document has been re-organized, gather any
         -- loose elements that appear before the first section and cleave them
         -- out for use later
-
         local nonSectionEls = pandoc.List()
         local sectionEls = pandoc.List()
         for _i, v in ipairs(el.blocks) do
@@ -140,8 +139,12 @@ function render_dashboard()
           finalEls = nonSectionEls
         end
 
+        -- ensure that root level elements are containers
+        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List({'section'}))
+        local layoutContentEls = organizer.ensureInLayoutContainers()
+        
         -- Layout the proper elements with a specific orientation
-        local cardsWithLayoutEl = orientContents(layoutEls, orientation(), options)
+        local cardsWithLayoutEl = orientContents(layoutContentEls, orientation(), options)
         finalEls:insert(cardsWithLayoutEl)
 
         -- return the newly restructured document
@@ -150,31 +153,30 @@ function render_dashboard()
 
       end,
       Div = function(el) 
-
         if el.classes:includes('section') then
 
           -- Allow arbitrary nesting of sections / heading levels to perform layouts
           local header = el.content[1]
           if header.t == "Header" then            
             local level = header.level
+            local contents = tslice(el.content, 2)
 
+            -- Make sure everything is in a card
+            local organizer = dashboard.layoutContainer.organizer(contents)
+            local layoutContentEls = organizer.ensureInLayoutContainers()
+            
             -- The first time we see a level, we should emit the rows and 
-
+            -- flip the orientation
             if level > 1 then
               -- Compute the options
               local options = dashboard.layout.readOptions(header)
 
               if level ~= lastLevel then
-
                 -- Note the new level
                 lastLevel = level
-                              
-                local contents = tslice(el.content, 2)
-                return orientContents(contents, alternateOrientation(), options)
+                return orientContents(layoutContentEls, alternateOrientation(), options)
               else 
-               
-                local contents = tslice(el.content, 2)
-                return orientContents(contents, orientation(), options)
+                return orientContents(layoutContentEls, orientation(), options)
               end
             end
           end
