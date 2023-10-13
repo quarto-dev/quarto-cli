@@ -15,7 +15,10 @@ const kColumnsClass = "columns";
 const kLayoutAttr = "data-layout";
 const kLayoutFill = "fill";
 const kLayoutFlow = "flow";
-type Layout = "fill" | "flow" | "auto";
+type Layout = "fill" | "flow" | string;
+
+const kHeightAttr = "data-height";
+const kWidthAttr = "data-width";
 
 // Process row Elements (computing the grid heights for the
 // row and applying bslib style classes)
@@ -49,7 +52,7 @@ export function processColumns(doc: Document) {
       const colCount = colEl.childElementCount;
       const currentStyle = colEl.getAttribute("style");
       const template =
-        `display: grid; grid-template-columns:repeat(${colCount}, minmax(0, ${colSize}));\ngrid-auto-rows:1fr;`;
+        `display: grid; grid-template-columns:repeat(${colCount}, minmax(0, ${colSize}));\ngrid-auto-rows: minmax(0, 1fr);`;
       colEl.setAttribute(
         "style",
         currentStyle === null ? template : `${currentStyle}\n${template}`,
@@ -64,33 +67,28 @@ function processRow(rowEl: Element) {
   rowEl.classList.remove(kRowsClass);
 
   // Compute the layouts for ths rows in this rowEl
-  const layouts = computeLayouts(rowEl);
+  const rowLayouts = computeRowLayouts(rowEl);
 
   // Create the grid-template-rows value based upon the layouts
-  const gridTemplRowsVal = `${layouts.map(toGridHeight).join(" ")}`;
+  const gridTemplRowsVal = `${rowLayouts.map(toGridHeight).join(" ")}`;
 
   // Apply the grid styles
   const currentStyle = rowEl.getAttribute("style");
   const template =
-    `display: grid; grid-template-rows: ${gridTemplRowsVal}; grid-auto-columns:1fr;`;
+    `display: grid; grid-template-rows: ${gridTemplRowsVal}; grid-auto-columns: minmax(0, 1fr);`;
   rowEl.setAttribute(
     "style",
     currentStyle === null ? template : `${currentStyle}\n${template}`,
   );
-
-  // If any children are fill children, then this layout is a fill layout
-  if (layouts.some((layout) => layout === kLayoutFill)) {
-    return kLayoutFill;
-  } else {
-    return kLayoutFlow;
-  }
 }
 
 function toGridHeight(layout: Layout) {
   if (layout === kLayoutFill) {
     return `minmax(0, 1fr)`;
-  } else {
+  } else if (layout === kLayoutFlow) {
     return `minmax(0, max-content)`;
+  } else {
+    return `minmax(0, ${layout})`;
   }
 }
 
@@ -112,39 +110,60 @@ function suggestLayout(el: Element) {
   }
 }
 
-function computeLayouts(rowEl: Element) {
+// TODO: We could improve this by pre-computing the row layouts
+// and sharing them so we aren't re-recursing through the document
+// rows to compute heights
+function computeRowLayouts(rowEl: Element) {
+  // Capture the parent's fill setting. This will be used
+  // to cascade to the child, when needed
   const parentLayoutRaw = rowEl.getAttribute(kLayoutAttr);
-  const parentFill = parentLayoutRaw !== null
+  const parentLayout = parentLayoutRaw !== null
     ? asLayout(parentLayoutRaw)
     : null;
 
-  // First determine this row's children layouts
+  // Build a set of layouts for this row by looking at the children of
+  // the row
   const layouts: Layout[] = [];
   for (const childEl of rowEl.children) {
-    const layout = childEl.getAttribute(kLayoutAttr);
-    if (layout !== null) {
-      // Does the child have an explicitly set layout
-      layouts.push(asLayout(layout));
+    // If the child has an explicitly set height, just use that
+    const explicitHeight = childEl.getAttribute(kHeightAttr);
+    if (explicitHeight !== null) {
+      layouts.push(explicitHeight);
     } else {
-      // Consider the child element and determine the layout
-      if (childEl.classList.contains(kRowsClass)) {
-        // Process a child row and use that to compute the
-        // layout
-        const layout = processRow(childEl);
-        layouts.push(layout);
-      } else if (childEl.classList.contains(kColumnsClass)) {
-        // Process a column layout and suggest a layout based
-        // upon the contents of the layout
-        const layout = columnLayout(childEl, parentFill);
-        layouts.push(layout);
+      // The child height isn't explicitly set, figure out the layout
+      const layout = childEl.getAttribute(kLayoutAttr);
+      if (layout !== null) {
+        // That child has either an explicitly set `fill` or `flow` layout
+        // attribute, so just use that explicit value
+        layouts.push(asLayout(layout));
       } else {
-        if (parentFill !== null) {
-          // Use the explicit fill for this child
-          layouts.push(parentFill);
-        } else {
-          // Just make a fill
-          const layout = kLayoutFill;
+        // This is `auto` mode - no explicit size information is
+        // being provided, so we need to figure out what size
+        // this child would like
+        if (childEl.classList.contains(kRowsClass)) {
+          // This child is a row, so process that row and use it's computed
+          // layout
+          // If any children are fill children, then this layout is a fill layout
+          const rowLayouts = computeRowLayouts(childEl);
+          if (rowLayouts.some((layout) => layout === kLayoutFill)) {
+            layouts.push(kLayoutFill);
+          } else {
+            layouts.push(kLayoutFlow);
+          }
+        } else if (childEl.classList.contains(kColumnsClass)) {
+          // This child is a column, allow it to provide a layout
+          // based upon its own contents
+          const layout = columnLayout(childEl, parentLayout);
           layouts.push(layout);
+        } else {
+          // This isn't a row or column, if possible, just use
+          // the parent layout. Otherwise, just make it fill
+          if (parentLayout !== null) {
+            layouts.push(parentLayout);
+          } else {
+            // Just make a fill
+            layouts.push(kLayoutFill);
+          }
         }
       }
     }
