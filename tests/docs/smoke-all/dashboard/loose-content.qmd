@@ -3,7 +3,7 @@ title: My First Dashboard
 format: 
   dashboard:
     theme: lux
-    orientation: rows
+    orientation: cols
     fill: true
 ---
 
@@ -23,7 +23,7 @@ Row
 
 :::{.valuebox}
 
-### Title
+#### Title
 
 1,203
 
@@ -42,7 +42,6 @@ plot(mtcars)
 This is another card
 
 ## Hello World
-
 
 ```{r}
 #| title: card
