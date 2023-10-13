@@ -66,7 +66,7 @@ import { error, info } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
-import { figuresDir, inputFilesDir } from "../../core/render.ts";
+import { figuresDir, inputFilesDir, isServerShiny } from "../../core/render.ts";
 import {
   normalizePath,
   removeIfEmptyDir,
@@ -103,6 +103,7 @@ import {
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { ensureNotebookContext } from "../../core/jupyter/jupyter-embed.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -481,6 +482,20 @@ async function renderFileInternal(
   for (const format of Object.keys(contexts)) {
     pushTiming("render-context");
     const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
+
+    // confirm there are no server: shiny documents in a website
+    if (projectIsWebsite(context.project)) {
+      if (isServerShiny(context.format)) {
+        error(
+          `${
+            relative(context.project?.dir!, context.target.source)
+          } uses server: shiny so cannot be included in a website project ` +
+            `(shiny documents require a backend server and so can't be published as static web content).`,
+        );
+
+        throw new Error();
+      }
+    }
 
     // get output recipe
     const recipe = outputRecipe(context);

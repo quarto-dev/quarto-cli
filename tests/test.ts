@@ -76,7 +76,13 @@ export async function testQuartoCmd(
   test({
     name,
     execute: async () => {
-      await quarto([cmd, ...args]);
+      const timeout = new Promise((_resolve, reject) => {
+        setTimeout(reject, 300000, "timed out after 5 minutes");
+      });
+      await Promise.race([
+        quarto([cmd, ...args]),
+        timeout,
+      ]);
     },
     verify,
     context: context || {},
