@@ -1,9 +1,8 @@
 /*
-* flags.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * flags.ts
+ *
+ * Copyright (C) 2020-2023 Posit Software, PBC
+ */
 import { existsSync } from "fs/mod.ts";
 
 import { readYaml, readYamlFromString } from "../../core/yaml.ts";
@@ -339,6 +338,19 @@ export async function parseRenderFlags(args: string[]) {
         }
         break;
 
+      case "--env":
+        arg = argsStack.shift();
+        if (arg) {
+          const metadata = parseMetadataFlagValue(arg);
+          if (metadata) {
+            if (flags["env"] === undefined) {
+              flags["env"] = {};
+            }
+            flags["env"][metadata.name] = String(metadata.value);
+          }
+        }
+        break;
+
       default:
         arg = argsStack.shift();
         break;
@@ -443,6 +455,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--quiet", false);
   removeArgs.set("--q", false);
   removeArgs.set("--profile", true);
+  removeArgs.set("--env", true);
 
   // Remove un-needed pandoc args (including -M/--metadata as appropriate)
   pandocArgs = removePandocArgs(pandocArgs, removeArgs);

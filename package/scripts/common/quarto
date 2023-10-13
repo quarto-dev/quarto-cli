@@ -158,7 +158,6 @@ else
   export DENO_DOM_PLUGIN=$QUARTO_BIN_PATH/tools/${ARCH_DIR}/deno_dom/libplugin.so
 fi
 
-
 if [ "$QUARTO_DENO" == "" ]; then
   DENO_DIR=$ARCH_DIR
   export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_DIR}/deno"
@@ -172,6 +171,14 @@ QUARTO_DENO_OPTIONS="--unstable --no-config ${QUARTO_CACHE_OPTIONS} --allow-read
 if [ "$QUARTO_TS_PROFILE" != "" ]; then
   QUARTO_DENO_EXTRA_OPTIONS="--inspect-brk ${QUARTO_DENO_EXTRA_OPTIONS}"
   QUARTO_TS_PROFILE=true "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" "${QUARTO_TARGET}" "$@"
+elif [ -f "$DEV_PATH" -a "$1" == "deno" ]; then
+  shift;
+  QUARTO_ACTION="$1"
+  shift
+  "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} "$@"
+elif [ -f "$DEV_PATH" -a "$1" == "repl" ]; then
+  shift;
+  "${QUARTO_DENO}" repl ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} "$@" 
 else
   "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} "${QUARTO_TARGET}" "$@" 
 fi

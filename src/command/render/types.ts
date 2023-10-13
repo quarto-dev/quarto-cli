@@ -1,7 +1,7 @@
 /*
  * types.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
 import { Document } from "../../core/deno-dom.ts";
@@ -247,6 +247,7 @@ export interface RenderFlags extends PandocFlags {
   debug?: boolean;
   quiet?: boolean;
   version?: string;
+  env?: Record<string, string>;
 }
 
 export interface OutputRecipe {

@@ -1,7 +1,7 @@
 /*
  * render-files.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
 // ensures cell handlers are installed
@@ -215,6 +215,7 @@ export async function renderExecute(
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
     projectType: context.project?.config?.project?.[kProjectType],
+    env: context.options.flags?.env,
   });
   popTiming();
 
