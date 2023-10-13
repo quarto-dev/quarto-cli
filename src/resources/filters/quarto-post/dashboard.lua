@@ -44,11 +44,11 @@ function render_dashboard()
     return currentOrientation
   end
 
-  local function orientContents(contents, orientation, fill)
+  local function orientContents(contents, orientation, options)
     if orientation == kOrientationColumns then
-      return dashboard.layout.makeCols(contents, fill)
+      return dashboard.layout.makeCols(contents, options)
     else
-      return dashboard.layout.makeRows(contents, fill)
+      return dashboard.layout.makeRows(contents, options)
     end
   end
 
@@ -128,13 +128,14 @@ function render_dashboard()
         
         -- Look for global fill setting
         local fill = dashboardParam(kLayoutFill, false)
+        local options = dashboard.layout.makeOptions(fill)
 
         -- Make sections based upon the headings and use that for the 
         -- document structure
         el.blocks = pandoc.structure.make_sections(el.blocks, {})
 
         -- Layout the root element with a specific orientation
-        el.blocks = orientContents(el.blocks, orientation(), fill)
+        el.blocks = orientContents(el.blocks, orientation(), options)
         return el
 
       end,
@@ -150,8 +151,8 @@ function render_dashboard()
             -- The first time we see a level, we should emit the rows and 
 
             if level > 1 then
-              -- Compute the fill
-              local fill = header.attr.classes:includes(kLayoutFill) or not header.attr.classes:includes(kLayoutFlow)
+              -- Compute the options
+              local options = dashboard.layout.readOptions(header)
 
               if level ~= lastLevel then
 
@@ -159,11 +160,11 @@ function render_dashboard()
                 lastLevel = level
                               
                 local contents = tslice(el.content, 2)
-                return orientContents(contents, alternateOrientation(), fill)
+                return orientContents(contents, alternateOrientation(), options)
               else 
                
                 local contents = tslice(el.content, 2)
-                return orientContents(contents, orientation(), fill)
+                return orientContents(contents, orientation(), options)
               end
             end
           end

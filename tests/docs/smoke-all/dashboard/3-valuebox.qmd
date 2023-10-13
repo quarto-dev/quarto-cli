@@ -3,6 +3,7 @@ title: ValueBoxes
 format: 
   dashboard:
     orientation: rows
+    fill: false
     theme: minty
 ---
 
@@ -23,7 +24,6 @@ Row
 ### TODOS
 
 - Review the base syntax for valueboxes
-- Create some computational examples
 - How should we specify colors - are classes ok?
     - bslib uses 'theme' which appears to be a color
     - differentiate 
@@ -33,6 +33,7 @@ Row
         perhaps allow bs var name or literal color
 - set title as attribute?
 - review showcase attribute, appearance, etc...
+- test showcase with a plotly plot
 - bslib allows specifying showcase content separately from icon (useful for sparkline stuff)
 - bslib supports expandable, should we (useful for sparkline stuff)
 
@@ -41,7 +42,6 @@ Row
 
 Row {.flow}
 --------------------
-
 
 :::{.valuebox icon="hand-thumbs-up" showcase-position="bottom"}
 
@@ -68,13 +68,9 @@ So it is.
 Row {.flow}
 --------------------
 
-:::{.valuebox icon="backpack-fill"}
-
-## Number of Times Cats Kick Ass
+:::{.valuebox title="Number of Times Cats Kick Ass " icon="backpack-fill"}
 
 `{r} numberOfTimesCat`
-
-This is the way.
 
 :::
 
@@ -85,5 +81,11 @@ This is the way.
 `{r} numberOfTimesDog`
 
 That is the way.
+
+:::{.showcase-content}
+
+plot(cars)
+
+:::
 
 :::

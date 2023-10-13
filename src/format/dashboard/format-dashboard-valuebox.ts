@@ -26,6 +26,10 @@ const bsLibValueBoxClz = ["bslib-value-box", "value-box-grid"];
 
 const kDefaultColors = ["primary", "secondary", "light", "dark"];
 
+export function isValueBox(el: Element) {
+  return el.classList.contains(kValueboxClass);
+}
+
 export function processValueBoxes(doc: Document) {
   // Process value boxes
   const valueboxNodes = doc.body.querySelectorAll(`.${kValueboxClass}`);
