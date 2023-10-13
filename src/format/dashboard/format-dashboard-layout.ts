@@ -121,7 +121,13 @@ export function processColumns(doc: Document) {
       const colLayouts = computeColumnLayouts(colEl);
 
       // Create the grid-template-rows value based upon the layouts
-      const gridTemplColVal = `${colLayouts.map(toGridSize).join(" ")}`;
+      const totalExplicitSize = totalExplicitLayoutUnits(colLayouts);
+      const gridTemplColVal = `${
+        colLayouts.map((layout) => {
+          return toGridSize(layout, totalExplicitSize);
+        }).join(" ")
+      }`;
+      console.log({ gridTemplColVal });
 
       // Apply the grid styles
       const currentStyle = colEl.getAttribute("style");
@@ -211,16 +217,42 @@ function computeRowLayouts(rowEl: Element) {
   return layouts;
 }
 
-function toGridSize(layout: Layout) {
+function toGridSize(layout: Layout, totalExplicitUnits: number) {
   if (layout === kLayoutFill) {
     return `minmax(0, 1fr)`;
   } else if (layout === kLayoutFlow) {
     return `minmax(0, max-content)`;
   } else {
-    // A number with no units will be assumed to be pixels
-    console.log({ size: asCssSize(layout) });
-    return `minmax(0, ${asCssSize(layout)})`;
+    if (layout.match(kHasUnitsRegex)) {
+      // It has units, just let it through
+      return `minmax(0, ${asCssSize(layout)})`;
+    } else {
+      // No units, try to compute `fr` units
+      const units = parseFloat(layout);
+      if (isNaN(units)) {
+        return `minmax(0, 1fr)`;
+      } else {
+        const frUnits = units / totalExplicitUnits;
+        return `minmax(0, ${frUnits.toFixed(3)}fr)`;
+      }
+    }
   }
+}
+const kHasUnitsRegex = /[a-zA-Z%]$/;
+
+function totalExplicitLayoutUnits(layouts: Layout[]) {
+  let total = 0;
+  for (const layout of layouts) {
+    if (layout !== kLayoutFill && layout !== kLayoutFlow) {
+      if (!layout.match(kHasUnitsRegex)) {
+        const units = parseFloat(layout);
+        if (!isNaN(units)) {
+          total += units;
+        }
+      }
+    }
+  }
+  return total;
 }
 
 // Coerce the layout to value valid
