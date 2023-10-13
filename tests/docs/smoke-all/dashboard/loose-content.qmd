@@ -3,18 +3,12 @@ title: My First Dashboard
 format: 
   dashboard:
     theme: lux
-    orientation: cols
+    orientation: columns
     fill: true
 ---
 
 
-:::{.callout-note}
-
-### This is a note about the dashboard
-
-Here is some loose content. Watch out! This should escape the layout and just pop above
-
-:::
+This is loose content above the fold
 
 Row
 ---------------------------
