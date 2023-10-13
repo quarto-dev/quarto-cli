@@ -35,6 +35,10 @@ local function readOptions(el)
     options[kLayout] = kLayoutFlow;
   end
 
+  -- Read explicit height or width
+  options[kLayoutHeight] = el.attributes[kLayoutHeight];  
+  options[kLayoutWidth] = el.attributes[kLayoutWidth];
+
   return options;
 end
 

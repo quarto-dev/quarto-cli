@@ -3,33 +3,16 @@
 
 local dashboard = require 'modules/dashboard'
 
--- Valuebox attributes
-local kValueBoxIconAttr = "icon"
-local kValueBoxShowcaseAttr = "showcase"
-local kValueBoxDefaultShowcasePosition = "left-center"
-
 -- Page level data
-local kParamOrientation = "orientation"
 local kOrientationRows = "rows"
 local kOrientationColumns = "columns"
-local kDefaultOrientation = kOrientationRows
-local kLayoutFlow = "flow"
-local kLayoutFill = "fill"
-
--- param name
-local kParamKey = "dashboard"
-
-local function dashboardParam(name, default) 
-  local dashboardParams = param(kParamKey, {})
-  return dashboardParams[name] or default
-end
 
 function render_dashboard() 
 
   -- Track the orientation that is used to perform heading based layout
   -- the basic idea is to alternate the orientation at new heading levels
   local lastLevel = 0
-  local currentOrientation = dashboardParam(kParamOrientation, kDefaultOrientation)
+  local currentOrientation = dashboard.document.orientation
 
   local function alternateOrientation() 
     if currentOrientation == kOrientationRows then
@@ -127,8 +110,7 @@ function render_dashboard()
       Pandoc = function(el)
         
         -- Look for global fill setting
-        local fill = dashboardParam(kLayoutFill, false)
-        local options = dashboard.layout.makeOptions(fill)
+        local options = dashboard.layout.makeOptions(dashboard.document.fill)
 
         -- Make sections based upon the headings and use that for the 
         -- document structure
