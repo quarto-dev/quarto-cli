@@ -4,7 +4,6 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { number } from "https://deno.land/x/cliffy@v0.25.4/flags/types/number.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { isValueBox } from "./format-dashboard-valuebox.ts";
 import { asCssSize } from "../../core/css.ts";
@@ -40,6 +39,12 @@ const kSkipFillContainerElements = {
     "PRE",
     "CODE",
     "BUTTON",
+    "TABLE",
+    "THEAD",
+    "TBODY",
+    "TR",
+    "TH",
+    "TD",
   ],
   classes: [
     "bi",
@@ -60,6 +65,12 @@ const kSkipFillItemElements = {
     "PRE",
     "CODE",
     "BUTTON",
+    "TABLE",
+    "THEAD",
+    "TBODY",
+    "TR",
+    "TH",
+    "TD",
   ],
   classes: ["bi", "no-fill", "callout"],
 };
