@@ -1,0 +1,37 @@
+---
+title: "Notebook"
+format:
+  ipynb: 
+    notebook-preserve-cells: true
+    produce-source-notebook: true
+    citeproc: false
+---
+
+```{r}
+#| label: tbl-one
+#| tbl-cap: This is a kable table
+
+library(knitr)
+kable(head(mtcars))
+```
+
+```{r}
+#| label: tbl-two
+#| tbl-cap: This is a gt table
+
+library(gt)
+gt(head(mtcars))
+```
+
+
+```{r}
+#| label: tbl-three
+#| tbl-cap: This is a flextable table
+
+library(flextable)
+flextable(head(mtcars))
+```
+
+
+
+
