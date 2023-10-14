@@ -116,9 +116,10 @@ export async function render(
     error: result.error,
   };
 
-  // if there was no error then call postRender hook for engine
   if (!renderResult.error && engine?.postRender) {
-    await engine.postRender(renderResult.files, renderResult.context);
+    for (const file of renderResult.files) {
+      await engine.postRender(file, renderResult.context);
+    }
   }
 
   // return

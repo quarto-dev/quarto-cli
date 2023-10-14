@@ -56,7 +56,7 @@ export interface ExecutionEngine {
   ignoreDirs?: () => string[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
   postRender?: (
-    files: RenderResultFile[],
+    file: RenderResultFile,
     project?: ProjectContext,
   ) => Promise<void>;
 }

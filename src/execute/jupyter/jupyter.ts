@@ -512,32 +512,31 @@ export const jupyterEngine: ExecutionEngine = {
     return server.serve();
   },
 
-  postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {
+  postRender: async (file: RenderResultFile, _context?: ProjectContext) => {
     // discover non _files dir resources for server: shiny and amend app.py with them
-    files.filter((file) => isServerShiny(file.format))
-      .forEach((file) => {
-        const [dir, stem] = dirAndStem(file.input);
-        const filesDir = join(dir, inputFilesDir(file.input));
-        const extraResources = file.resourceFiles
-          .filter((resource) => !resource.startsWith(filesDir))
-          .map((resource) => relative(dir, resource));
-        const appScript = join(dir, `${stem}-app.py`);
-        if (existsSync(appScript)) {
-          const staticAssets = [
-            inputFilesDir(file.input),
-            ...extraResources,
-          ];
+    if (isServerShiny(file.format)) {
+      const [dir, stem] = dirAndStem(file.input);
+      const filesDir = join(dir, inputFilesDir(file.input));
+      const extraResources = file.resourceFiles
+        .filter((resource) => !resource.startsWith(filesDir))
+        .map((resource) => relative(dir, resource));
+      const appScript = join(dir, `${stem}-app.py`);
+      if (existsSync(appScript)) {
+        const staticAssets = [
+          inputFilesDir(file.input),
+          ...extraResources,
+        ];
 
-          // In the app.py file, replace the placeholder with the list of static
-          // assets.
-          let appContents = Deno.readTextFileSync(appScript);
-          appContents = appContents.replace(
-            "##STATIC_ASSETS_PLACEHOLDER##",
-            JSON.stringify(staticAssets),
-          );
-          Deno.writeTextFileSync(appScript, appContents);
-        }
-      });
+        // In the app.py file, replace the placeholder with the list of static
+        // assets.
+        let appContents = Deno.readTextFileSync(appScript);
+        appContents = appContents.replace(
+          "##STATIC_ASSETS_PLACEHOLDER##",
+          JSON.stringify(staticAssets),
+        );
+        Deno.writeTextFileSync(appScript, appContents);
+      }
+    }
   },
 
   postprocess: (options: PostProcessOptions) => {
