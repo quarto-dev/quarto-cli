@@ -109,9 +109,6 @@ function ipynb()
                 imgEl.attr = pandoc.Attr()
                 return imgEl
               end,
-              FloatRefTarget = function(float)
-
-              end,
               Table = function(tbl)
                 local rendered = pandoc.write(pandoc.Pandoc(tbl), "markdown")
                 return pandoc.RawBlock("markdown", rendered)      

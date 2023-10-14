@@ -615,14 +615,12 @@ end, function(float)
     end
     return pandoc.Para({imgEl})
   elseif float.in_code_cell_output then
-
     -- If the float is in a code_cell_output, it is ok to drop the identifier
     -- and caption, because that infdormation is still carried by the cell itself
     return float.content
-
   else
-    -- TODO: Consider just putting together list of paragraphs
-    -- 
+    -- TODO: Need to deal with other cases, such as flextable, which results in a 
+    -- Table which contains a FloatRefTarget (with an image/figure) inside of it.
     return float.content
   end
 end)
