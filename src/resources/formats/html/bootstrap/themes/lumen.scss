@@ -64,7 +64,7 @@ $dropdown-link-color:         var(--#{$prefix}tertiary-color) !default;
 
 // Navs
 
-$nav-link-color:                    var(--#{$prefix}link-color) !default;
+$nav-link-color:                    $primary !default;
 
 // Pagination
 

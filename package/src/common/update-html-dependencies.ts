@@ -1133,7 +1133,11 @@ const themePatches: Record<string, ThemePatch[]> = {
     {
       from: ".navbar {\n  @include shadow();",
       to: ".navbar {\n  @include shadow();\n  border-color: shade-color($navbar-bg, 10%);",
-    },
+    }, 
+    {
+      from: "$nav-link-color:                    var(--#{$prefix}link-color) !default;",
+      to: "$nav-link-color:                    $primary !default;"
+    }
   ],
   simplex: [
     {
