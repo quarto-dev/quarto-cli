@@ -155,5 +155,14 @@ function run_as_extended_ast(specTable)
     end
   end
 
+  if luacov_runner ~= nil then
+    table.insert(pandocFilterList, {
+      Pandoc = function(doc)
+        luacov_runner.shutdown()
+        return nil
+      end
+    })
+  end
+
   return pandocFilterList
 end

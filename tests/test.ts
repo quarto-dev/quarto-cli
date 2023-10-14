@@ -63,7 +63,7 @@ export async function testQuartoCmd(
   verify: Verify[],
   context?: TestContext,
 ) {
-  if (Deno.env.get("QUARTO_FINE_GRAINED_LUACOV")) {
+  if (cmd === "render" && Deno.env.get("QUARTO_FINE_GRAINED_LUACOV")) {
     const testCovFilename = await requestIncomingCovFilename(
       [cmd, ...args].join(" "),
     );
