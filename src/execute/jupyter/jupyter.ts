@@ -513,7 +513,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {
-    // discover non _files dir resources for server: shiny and ammend app.py with them
+    // discover non _files dir resources for server: shiny and amend app.py with them
     files.filter((file) => isServerShiny(file.format))
       .forEach((file) => {
         const [dir, stem] = dirAndStem(file.input);
@@ -523,9 +523,19 @@ export const jupyterEngine: ExecutionEngine = {
           .map((resource) => relative(dir, resource));
         const appScript = join(dir, `${stem}-app.py`);
         if (existsSync(appScript)) {
-          // TODO: extraResoures is an array of relative paths to resources
-          // that are NOT in the _files dir. these should be injected into
-          // the appropriate place in appScript
+          const staticAssets = [
+            inputFilesDir(file.input),
+            ...extraResources,
+          ];
+
+          // In the app.py file, replace the placeholder with the list of static
+          // assets.
+          let appContents = Deno.readTextFileSync(appScript);
+          appContents = appContents.replace(
+            "##STATIC_ASSETS_PLACEHOLDER##",
+            JSON.stringify(staticAssets),
+          );
+          Deno.writeTextFileSync(appScript, appContents);
         }
       });
   },
