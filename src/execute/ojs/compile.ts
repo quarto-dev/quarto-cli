@@ -435,10 +435,15 @@ export async function ojsCompile(
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
 
+      const ojsCellClasses = ["cell"];
+      if (!outputVal) {
+        ojsCellClasses.push("hidden");
+      }
+
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
         classes: [
-          "cell",
+          ...ojsCellClasses,
           ...classes,
         ],
         attrs,

@@ -79,10 +79,11 @@ function render_dashboard()
           
           return dashboard.valuebox.makeValueBox(el), false
                   
-        elseif el.classes:includes('cell') then
+        elseif el.classes:includes('cell')  then
           
           -- See if this cell has bslib output already
           local hasBsLibOutput = false
+          local isHidden = false
           _quarto.ast.walk(el,  {
             Div = function(childDiv)  
               if childDiv.classes:includes('cell-output-display') then
@@ -90,12 +91,13 @@ function render_dashboard()
                 -- TODO: We probably should be a little more careful about
                 -- this check
                 hasBsLibOutput = outputStr:match('bslib-')
+                isHidden = childDiv.classes:includes('hidden')
               end
             end
           })
                   
 
-          if hasBsLibOutput then
+          if hasBsLibOutput or isHidden then
             return el
           else
             local options, userClasses = dashboard.card.readCardOptions(el)
@@ -140,7 +142,7 @@ function render_dashboard()
         end
 
         -- ensure that root level elements are containers
-        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List({'section'}))
+        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List({'section', 'hidden'}))
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
         -- Layout the proper elements with a specific orientation
@@ -162,7 +164,7 @@ function render_dashboard()
             local contents = tslice(el.content, 2)
 
             -- Make sure everything is in a card
-            local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List({'section'}))
+            local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List({'section', 'hidden'}))
             local layoutContentEls = organizer.ensureInLayoutContainers()
             
             -- The first time we see a level, we should emit the rows and 

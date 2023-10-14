@@ -27,6 +27,8 @@ const kBsLibGridClass = "bslib-grid";
 const kHtmlFillItemClass = "html-fill-item";
 const kHtmlFillContainerClass = "html-fill-container";
 
+const kHiddenClass = "hidden";
+
 // Configuration for skipping elements when applying container classes
 // (we skip applying container classes to the following):
 const kSkipFillContainerElements = {
@@ -127,7 +129,6 @@ export function processColumns(doc: Document) {
           return toGridSize(layout, totalExplicitSize);
         }).join(" ")
       }`;
-      console.log({ gridTemplColVal });
 
       // Apply the grid styles
       const currentStyle = colEl.getAttribute("style");
@@ -144,12 +145,16 @@ export function processColumns(doc: Document) {
 function computeColumnLayouts(colEl: Element) {
   const layouts: Layout[] = [];
   for (const childEl of colEl.children) {
-    const explicitWidth = childEl.getAttribute(kWidthAttr);
-    if (explicitWidth !== null) {
-      childEl.removeAttribute(kWidthAttr);
-      layouts.push(explicitWidth);
+    if (childEl.classList.contains(kHiddenClass)) {
+      // Skip this, it is hidden
     } else {
-      layouts.push(kLayoutFill);
+      const explicitWidth = childEl.getAttribute(kWidthAttr);
+      if (explicitWidth !== null) {
+        childEl.removeAttribute(kWidthAttr);
+        layouts.push(explicitWidth);
+      } else {
+        layouts.push(kLayoutFill);
+      }
     }
   }
   return layouts;
@@ -172,7 +177,9 @@ function computeRowLayouts(rowEl: Element) {
   for (const childEl of rowEl.children) {
     // If the child has an explicitly set height, just use that
     const explicitHeight = childEl.getAttribute(kHeightAttr);
-    if (explicitHeight !== null) {
+    if (childEl.classList.contains(kHiddenClass)) {
+      // Skip this, it is hidden
+    } else if (explicitHeight !== null) {
       childEl.removeAttribute(kHeightAttr);
       layouts.push(explicitHeight);
     } else {
