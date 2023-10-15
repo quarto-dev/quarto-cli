@@ -12,6 +12,7 @@ import {
   kEcho,
   kFilterParams,
   kIncludeAfterBody,
+  kIpynbShellInteractivity,
   kTemplate,
   kWarning,
 } from "../../config/constants.ts";
@@ -53,6 +54,7 @@ export function dashboardFormat() {
       execute: {
         [kEcho]: false,
         [kWarning]: false,
+        [kIpynbShellInteractivity]: "all",
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
