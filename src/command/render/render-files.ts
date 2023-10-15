@@ -103,7 +103,10 @@ import {
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { ensureNotebookContext } from "../../core/jupyter/jupyter-embed.ts";
-import { projectIsWebsite } from "../../project/project-shared.ts";
+import {
+  projectIsWebsite,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -482,16 +485,22 @@ async function renderFileInternal(
     pushTiming("render-context");
     const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
 
-    // confirm there are no server: shiny documents in a website
-    if (projectIsWebsite(context.project)) {
-      if (isServerShiny(context.format)) {
+    // disquality some documents from server: shiny
+    if (isServerShiny(context.format) && context.project) {
+      const src = relative(context.project?.dir!, context.target.source);
+      if (projectIsWebsite(context.project)) {
         error(
-          `${
-            relative(context.project?.dir!, context.target.source)
-          } uses server: shiny so cannot be included in a website project ` +
+          `${src} uses server: shiny so cannot be included in a website project ` +
             `(shiny documents require a backend server and so can't be published as static web content).`,
         );
-
+        throw new Error();
+      } else if (
+        projectOutputDir(context.project) !== normalizePath(context.project.dir)
+      ) {
+        error(
+          `${src} uses server: shiny so cannot be included in a project with an output-dir ` +
+            `(shiny document output must be rendered alongside its source document).`,
+        );
         throw new Error();
       }
     }

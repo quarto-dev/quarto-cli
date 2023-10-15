@@ -107,6 +107,7 @@ import {
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
+import { basename } from "https://deno.land/std@0.185.0/path/win32.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -522,13 +523,25 @@ export const jupyterEngine: ExecutionEngine = {
         .map((resource) => relative(dir, resource));
       const appScript = join(dir, `${stem}-app.py`);
       if (existsSync(appScript)) {
-        const staticAssets = [
-          inputFilesDir(file.input),
-          ...extraResources,
-        ];
+        // compute static assets
+        const staticAssets = [inputFilesDir(file.input), ...extraResources];
 
-        // In the app.py file, replace the placeholder with the list of static
-        // assets.
+        // check for (illegal) parent dir assets
+        const parentDirAssets = staticAssets.filter((asset) =>
+          asset.startsWith("..")
+        );
+        if (parentDirAssets.length > 0) {
+          error(
+            `References to files in parent directories found in document with server: shiny ` +
+              `(${basename(file.input)}): ${
+                JSON.stringify(parentDirAssets)
+              }. All resource files referenced ` +
+              `by Shiny documents must exist in the same directory as the source file.`,
+          );
+          throw new Error();
+        }
+
+        // In the app.py file, replace the placeholder with the list of static assets.
         let appContents = Deno.readTextFileSync(appScript);
         appContents = appContents.replace(
           "##STATIC_ASSETS_PLACEHOLDER##",
