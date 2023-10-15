@@ -47,7 +47,8 @@ import {
 const kDashboardClz = "quarto-dashboard";
 
 export function dashboardFormat() {
-  const baseHtmlFormat = htmlFormat(7, 5);
+  // use ~ the golden ratio
+  const baseHtmlFormat = htmlFormat(8, 5);
   const dashboardFormat = mergeConfigs(
     baseHtmlFormat,
     {
