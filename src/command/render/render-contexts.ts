@@ -293,10 +293,19 @@ export async function renderContexts(
 
       // if a markdown detected engine changed then re-scan
       if (engineClaimReason === "markdown") {
-        const detectedEngine = fileExecutionEngine(file.path, options.flags, markdown);
+        const detectedEngine = fileExecutionEngine(
+          file.path,
+          options.flags,
+          markdown,
+        );
         if (detectedEngine && (context.engine.name !== detectedEngine.name)) {
           context.engine = detectedEngine;
-          const target = await detectedEngine.target(file.path, options.flags?.quiet, markdown, project);
+          const target = await detectedEngine.target(
+            file.path,
+            options.flags?.quiet,
+            markdown,
+            project,
+          );
           if (!target) {
             throw new Error("Unable to render " + file);
           }
