@@ -170,6 +170,13 @@ function render_dashboard()
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level > 1 then
+
+              -- see if this heading is marked as a component
+              if header.classes:includes('tabset') then
+                local options, userClasses = dashboard.card.readCardOptions(header)
+                return dashboard.card.makeCard(header, contents, userClasses, options)
+              end
+
               -- Compute the options
               local options = dashboard.layout.readOptions(header)
 

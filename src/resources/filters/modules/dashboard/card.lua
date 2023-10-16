@@ -18,6 +18,7 @@ local kCellClass = "cell"
 -- even if it isn't specified
 local kCardClz = pandoc.List({kCardClass, kTabsetClass})
 local kCardBodyClz = pandoc.List({kCardBodyClass, kTabClass, kCellClass})
+local kCardHeaderClz = pandoc.List({kCardHeaderClass})
 
 -- Card classes that are forwarded to attributes
 local kExpandable = "expandable"
@@ -73,6 +74,12 @@ end
 
 local function isCardFooter(el)
   return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
+end
+
+local function isCardHeader(el)
+  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+    return kCardHeaderClz:includes(class)
+  end) 
 end
 
 local function isTabset(el)
@@ -138,8 +145,8 @@ local function resolveCardHeader(title, options)
     elseif title.t == "Header" then
       -- The title is being provided by a header
       local titleText = title.content
-      if #titleText == 0 then
-        titleText = title.attr.attributes[kTitle] 
+      if next(titleText) == nil then
+        titleText = title.attr.attributes[kTitle]  or ""
       end
       return pandoc.Div(titleText, pandoc.Attr("", {kCardHeaderClass}))
     elseif options[kTitle] ~= nil then
@@ -167,7 +174,6 @@ end
 -- (anything not in an explicit card-body will be grouped in 
 --  an card-body with other contiguous non-card-body elements)
 local function resolveCardBodies(contents)
-
   local bodyContentEls = pandoc.List()
   local footerContentEls = pandoc.List()
 
@@ -202,7 +208,33 @@ local function resolveCardBodies(contents)
   end
 
   for _i,v in ipairs(contents) do
-    if isCardBody(v) then
+    
+     if isCard(v) then
+      flushCollectedBodyContentEls()
+
+      -- this is a card that is nested inside a card. Turn it into a card
+      local cardContentEls = v.content
+      local title = nil
+      if v.content[1] ~= nil and isCardHeader(v.content[1]) then
+        cardContentEls = tslice(v.content, 2)
+        title = pandoc.utils.stringify(v.content[1].content) or ""
+      end
+      
+
+      local cardBodyEls, cardFooterEls = resolveCardBodies(cardContentEls)
+      if title ~= nil and next(cardBodyEls) ~= nil then
+        cardBodyEls[1].attributes['data-title'] = title
+      end
+      
+      if cardBodyEls ~= nil then 
+        bodyContentEls:extend(cardBodyEls)
+      end
+
+      if cardFooterEls ~= nil then
+        footerContentEls:extend(cardFooterEls)
+      end
+
+    elseif isCardBody(v) then
       flushCollectedBodyContentEls()
 
       -- ensure this is marked as a card

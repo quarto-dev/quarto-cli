@@ -28,6 +28,7 @@ const kExpandBtnHtml = `
 const kCardClass = "card";
 const kCardBodyClass = "card-body";
 const kCardHeaderClass = "card-header";
+const kCardFooterClass = "card-footer";
 
 // Tabset classes
 const kTabsetClass = "tabset";
@@ -236,7 +237,14 @@ function convertToTabs(
   if (tabContainerEl) {
     tabContainerEl.classList.add("tab-content");
     tabContainerEl.setAttribute("data-tabset-id", tabSetId);
-    cardEl.appendChild(tabContainerEl);
+
+    // Make sure we place this above the card footer
+    const cardFooterEl = cardEl.querySelector(`.${kCardFooterClass}`);
+    if (cardFooterEl) {
+      cardEl.insertBefore(tabContainerEl, cardFooterEl);
+    } else {
+      cardEl.appendChild(tabContainerEl);
+    }
   }
 
   let cardBodyCount = 0;
