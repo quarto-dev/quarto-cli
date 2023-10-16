@@ -46,7 +46,7 @@ local kForceHeader = "force-header";
 -- in a constraining element
 local function popImagePara(el)
   if el.t == "Para" and #el.content == 1 then
-    return el.content
+    return pandoc.Plain(el.content)
   else
     return _quarto.ast.walk(el, {
       Para = function(para)
