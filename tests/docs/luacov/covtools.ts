@@ -68,8 +68,12 @@ export async function processIncomingQueue() {
       await db.delete(entry.key);
       await Deno.remove(luacovFilename);
     } catch (e) {
-      console.log(e);
-      // do nothing
+      if (e.name === "NotFound") {
+        console.log(`file ${luacovFilename} not found, skipping`);
+        await db.delete(entry.key);
+      } else {
+        console.log(e);
+      }
     }
   }
 }
