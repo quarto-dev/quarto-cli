@@ -1,0 +1,45 @@
+---
+title: "Raw TeX cross referencing"
+format: 
+  pdf: default
+---
+
+See @tbl-tex, @tbl-2, @tbl-3.
+
+```{=latex}
+\begin{tabular}{@{}lll@{}}
+\label{tbl-tex}
+\caption{Some letters with LaTeX}
+\toprule
+Column 1 & Column 2 & Column 3 \\ \midrule
+A        & B        & C        \\
+D        & E        & F        \\
+G        & H        & I        \\ \bottomrule
+\end{tabular}
+```
+
+```{=latex}
+\begin{tabular}{@{}lll@{}}
+\caption{Some letters with LaTeX {#tbl-2}}
+\toprule
+Column 1 & Column 2 & Column 3 \\ \midrule
+A        & B        & C        \\
+D        & E        & F        \\
+G        & H        & I        \\ \bottomrule
+\end{tabular}
+```
+
+As best effort, we try to remove `\begin{table}` as well:
+
+```{=latex}
+\begin{table}
+\begin{tabular}{@{}lll@{}}
+\caption{Some letters with LaTeX {#tbl-3}}
+\toprule
+Column 1 & Column 2 & Column 3 \\ \midrule
+A        & B        & C        \\
+D        & E        & F        \\
+G        & H        & I        \\ \bottomrule
+\end{tabular}
+\end{table}
+```
