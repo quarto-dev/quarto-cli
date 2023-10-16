@@ -122,7 +122,7 @@ end
 -- the first heading in a div is sometimes the caption
 function resolveHeadingCaption(div) 
   local capEl = div.content[1]
-  if capEl ~= nil and capEl.t == 'Header' then
+  if capEl ~= nil and is_regular_node(capEl, "Header") then
     div.content:remove(1)
     return capEl.content
   else 
