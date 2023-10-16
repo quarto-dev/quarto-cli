@@ -197,9 +197,8 @@ function basic_panel_layout(layout)
     result.content:insert(pandoc.Para(quarto.utils.as_inlines(layout.float.caption_long) or {}))
   end
 
-  if layout.preamble then
-    return pandoc.Blocks({ layout.preamble, result })
-  else
-    return result
-  end
+  local res = pandoc.Blocks({})
+  panel_insert_preamble(res, layout.preamble)
+  res:insert(result)
+  
 end
