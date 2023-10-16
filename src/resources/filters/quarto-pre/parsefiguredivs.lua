@@ -481,7 +481,7 @@ function parse_reftargets()
 
       -- knitr can emit a label that starts with "tab:"
       -- we don't handle those as floats
-      local ref = refType(label_identifier)
+      local ref = refType(identifier)
       if ref == nil then
         return nil
       end
