@@ -479,6 +479,13 @@ function parse_reftargets()
         end
       end
 
+      -- knitr can emit a label that starts with "tab:"
+      -- we don't handle those as floats
+      local ref = refType(label_identifier)
+      if ref == nil then
+        return nil
+      end
+
       local caption
       local b, e, match3, caption_content = raw.text:find(patterns.latex_caption)
       if b ~= nil then
