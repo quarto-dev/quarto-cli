@@ -45,7 +45,7 @@ const currentTests = new Set(
 // Get all smoke-all documents (Only resolve glob when it will be needed)
 const currentSmokeFiles = new Set<string>(
   detailedSmokeAll
-    ? [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", { globstar: true })]
+    ? [...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}", { globstar: true })]
       .map((entry) => `${relative(Deno.cwd(), entry.path)}`)
     : [],
 );
