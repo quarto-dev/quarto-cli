@@ -235,9 +235,9 @@ function computeRowLayouts(rowEl: Element) {
 function toGridSize(layout: Layout, fillFr: number) {
   if (layout === kLayoutFill) {
     // Use the fillFr units (which have been calculated)
-    return `minmax(0, ${fillFr}fr)`;
+    return `minmax(${kMinSizeRow}, ${fillFr}fr)`;
   } else if (layout === kLayoutFlow) {
-    return `minmax(0, max-content)`;
+    return `minmax(${kMinSizeRow}, max-content)`;
   } else {
     if (layout.endsWith("px")) {
       // Explicit pixels should specify the exact size
@@ -248,15 +248,16 @@ function toGridSize(layout: Layout, fillFr: number) {
     } else if (layout.endsWith("%")) {
       // Convert percentages to fr units (just strip the percent and use fr)
       const percentRaw = parseFloat(layout.slice(0, -1));
-      const layoutSize = `minmax(0, ${percentRaw}fr)`;
+      const layoutSize = `minmax(${kMinSizeRow}, ${percentRaw}fr)`;
       return layoutSize;
     } else {
       // It has units, pass it through as is
-      return `minmax(0, ${asCssSize(layout)})`;
+      return `minmax(${kMinSizeRow}, ${asCssSize(layout)})`;
     }
   }
 }
 const kEndsWithNumber = /[0-9]$/;
+const kMinSizeRow = "6em";
 
 function computeFillFr(layouts: Layout[]) {
   const percents: number[] = [];
