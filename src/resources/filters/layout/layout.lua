@@ -95,7 +95,7 @@ function partition_cells(float)
 
       -- if we were given a scaffolding div like cell-output-display, etc,
       -- we use it.
-      if subfloat == nil and block.t == "Div" then
+      if subfloat == nil and is_regular_node(block, "Div") then
         cellDiv = block
       else
         cellDiv = pandoc.Div(block)
@@ -103,10 +103,10 @@ function partition_cells(float)
 
       -- -- ensure we are dealing with a div
       -- local cellDiv = nil
-      -- if block.t == "Div" then
+      -- if is_regular_node(block, "Div") then
       --   -- if this has a single figure div then unwrap it
       --   if #block.content == 1 and 
-      --      block.content[#block.content].t == "Div" and
+      --      is_regular_node(block.content[#block.content], "Div") and
       --      hasFigureOrTableRef(block.content[#block.content]) then
       --     cellDiv = block.content[#block.content]
       --   else
@@ -144,7 +144,7 @@ function partition_cells(float)
       })
       if cellDiv.attr.classes:find("cell-output-display") and is_subfloat == nil then
         for _,outputBlock in ipairs(cellDiv.content) do
-          if outputBlock.t == "Div" then
+          if is_regular_node(outputBlock, "Div") then
             cells:insert(outputBlock)
           else
             cells:insert(pandoc.Div(outputBlock))
@@ -161,7 +161,7 @@ function partition_cells(float)
       --    #cellDiv.content > 1 and 
       --    not hasFigureOrTableRef(cellDiv) then
       --   for _,outputBlock in ipairs(cellDiv.content) do
-      --     if outputBlock.t == "Div" then
+      --     if is_regular_node(outputBlock, "Div") then
       --       cells:insert(outputBlock)
       --     else
       --       cells:insert(pandoc.Div(outputBlock))
@@ -298,5 +298,5 @@ end
 
 function isPreambleBlock(el)
   return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
-         (el.t == "Div" and el.attr.classes:includes("cell-output-stderr"))
+         (is_regular_node(el, "Div") and el.attr.classes:includes("cell-output-stderr"))
 end

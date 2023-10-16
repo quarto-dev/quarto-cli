@@ -59,7 +59,7 @@ function manuscript()
         -- labeling divs marked as `cells` more than once
         local blocks = pandoc.List()
         for _, childBlock in ipairs(divEl.content) do
-          if childBlock.t == "Div" then
+          if is_regular_node(childBlock, "Div") then
               tappend(blocks, childBlock.content)
           else
             blocks:insert(childBlock)
