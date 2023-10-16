@@ -202,6 +202,11 @@ function dashboardHtmlPostProcessor(
     // Mark the body as a quarto dashboard
     doc.body.classList.add(kDashboardClz);
 
+    // Note the orientation as fill if needed
+    if (dashboard.fill) {
+      doc.body.classList.add("dashboard-fill");
+    }
+
     // Mark the page container with layout instructions
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
