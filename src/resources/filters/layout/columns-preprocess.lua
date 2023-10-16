@@ -95,7 +95,7 @@ function resolveColumnClassesForCodeCell(el)
                 -- forward to figure divs
                 applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
                 forwarded = true
-              elseif (is_regular_node(figOrTableEl, "Div") and hasTableRef(figOrTableEl)) then
+              elseif (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
                 -- for a table div, apply the classes to the figOrTableEl itself
                 applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
                 forwarded = true

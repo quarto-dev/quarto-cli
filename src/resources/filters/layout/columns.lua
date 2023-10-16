@@ -117,7 +117,7 @@ function renderDivColumn(el)
           if figure ~= nil then
             applyFigureColumns(columnClasses, figure)
             figOrTable = true
-          elseif is_regular_node(contentEl, "Div") and hasTableRef(contentEl) then
+          elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
             -- wrap table divs
             latexWrapEnvironment(contentEl, latexTableEnv(el), false)
             figOrTable = true
@@ -131,7 +131,7 @@ function renderDivColumn(el)
             latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
             el.content[j] = tableDiv
             figOrTable = true
-          elseif is_regular_node(contentEl, "Div") then
+          elseif contentEl.t == 'Div' then
             -- forward the columns class from the output div
             -- onto the float ref target, which prevents
             -- the general purpose `sidenote` processing from capturing this
