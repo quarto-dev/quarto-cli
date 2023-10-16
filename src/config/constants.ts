@@ -76,6 +76,7 @@ export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
 export const kIpynbShellInteractivity = "ipynb-shell-interactivity";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
+export const kPlotlyConnected = "plotly-connected";
 
 export const kJatsSubarticleId = "jats-subarticle-id";
 
@@ -165,6 +166,7 @@ export const kExecuteDefaultsKeys = [
   kIpynbFilter,
   kIpynbFilters,
   kIpynbShellInteractivity,
+  kPlotlyConnected,
 ];
 
 export const kRenderDefaultsKeys = [

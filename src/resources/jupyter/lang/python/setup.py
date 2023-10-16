@@ -12,6 +12,7 @@ fig_format = '{2}'
 fig_dpi = {3}
 interactivity = '{5}'
 is_shiny = {6}
+plotly_connected = {7}
 
 # matplotlib defaults / format
 try:
@@ -27,7 +28,10 @@ except Exception:
 # plotly use connected mode
 try:
   import plotly.io as pio
-  pio.renderers.default = "notebook_connected"
+  if plotly_connected:
+    pio.renderers.default = "notebook_connected"
+  else:
+    pio.renderers.default = "notebook"
 except Exception:
   pass
 

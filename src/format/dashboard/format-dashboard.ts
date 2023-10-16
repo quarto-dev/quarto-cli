@@ -13,6 +13,7 @@ import {
   kFilterParams,
   kIncludeAfterBody,
   kIpynbShellInteractivity,
+  kPlotlyConnected,
   kTemplate,
   kWarning,
 } from "../../config/constants.ts";
@@ -56,6 +57,7 @@ export function dashboardFormat() {
         [kEcho]: false,
         [kWarning]: false,
         [kIpynbShellInteractivity]: "all",
+        [kPlotlyConnected]: false,
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
