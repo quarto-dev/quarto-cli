@@ -16,7 +16,7 @@ function forward_widths_to_subfloats(layout)
   for i, row in ipairs(layout.layout) do
     for j, cell in ipairs(row) do
       local width = cell.attributes["width"]
-      if cell.t == "Div" and width then
+      if is_regular_node(cell, "Div") and width then
         local data = _quarto.ast.resolve_custom_data(cell)
         _quarto.ast.walk(cell, {
           FloatRefTarget = function(float)

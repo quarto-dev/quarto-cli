@@ -53,7 +53,7 @@ function has_theorem_ref(el)
 end
 
 function is_theorem_div(div)
-  return div.t == "Div" and has_theorem_ref(div)
+  return is_regular_node(div, "Div") and has_theorem_ref(div)
 end
 
 _quarto.ast.add_handler({

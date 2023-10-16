@@ -8,13 +8,13 @@ function bootstrap_panel_sidebar()
 
         -- functions to determine if an element has a layout class
         local function isSidebar(el)
-          return el ~= nil and el.t == "Div" and el.attr.classes:includes("panel-sidebar")
+          return el ~= nil and is_regular_node(el, "Div") and el.attr.classes:includes("panel-sidebar")
         end
         local function isTabset(el) return is_custom_node(el, "Tabset") end
         local function fillPanel(el) return pandoc.Div({ el }, pandoc.Attr("", {"panel-fill"})) end
         local function isContainer(el)
           return el ~= nil and
-                 el.t == "Div" and 
+                 is_regular_node(el, "Div") and 
                  (el.attr.classes:includes("panel-fill") or 
                   el.attr.classes:includes("panel-center") or
                   isTabset(el))
@@ -23,7 +23,7 @@ function bootstrap_panel_sidebar()
           return el ~= nil and el.t == "Header"
         end
         local function isQuartoHiddenDiv(el)
-          return el ~= nil and el.t == "Div" and
+          return el ~= nil and is_regular_node(el, "Div") and
                  string.find(el.attr.identifier, "^quarto%-") and
                  el.attr.classes:includes("hidden")
         end

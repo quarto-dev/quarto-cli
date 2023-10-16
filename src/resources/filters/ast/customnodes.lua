@@ -29,6 +29,21 @@ function is_custom_node(node, name)
   return false
 end
 
+-- use this instead of node.t == "Div" so that custom nodes
+-- are not considered Divs
+function is_regular_node(node, name)
+  if type(node) ~= "userdata" then
+    return false
+  end
+  if is_custom_node(node) then
+    return false
+  end
+  if name ~= nil and node.t ~= name then
+    return false
+  end
+  return node
+end
+
 function run_emulated_filter(doc, filter)
   if doc == nil then
     return nil

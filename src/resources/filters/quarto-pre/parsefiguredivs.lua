@@ -202,7 +202,7 @@ function parse_reftargets()
       local final_content = pandoc.Div({})
       local found_cell_output_display = false
       for i, element in ipairs(content or {}) do
-        if element.t == "Div" and element.classes:includes("cell-output-display") then
+        if is_regular_node(element, "Div") and element.classes:includes("cell-output-display") then
           found_cell_output_display = true
         end
         if found_cell_output_display then
