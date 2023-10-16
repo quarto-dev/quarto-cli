@@ -92,8 +92,14 @@ export function processRows(doc: Document) {
       // Compute the layouts for ths rows in this rowEl
       const rowLayouts = computeRowLayouts(rowEl);
 
+      // Compute the percent conversion factor
+      const fillFr = computeFillFr(rowLayouts);
+
       // Create the grid-template-rows value based upon the layouts
-      const gridTemplRowsVal = `${rowLayouts.map(toGridSize).join(" ")}`;
+      const rowGridSizes = rowLayouts.map((layout) => {
+        return toGridSize(layout, fillFr);
+      });
+      const gridTemplRowsVal = `${rowGridSizes.join(" ")}`;
 
       // Apply the grid styles
       const currentStyle = rowEl.getAttribute("style");
@@ -122,11 +128,13 @@ export function processColumns(doc: Document) {
       // Compute the column sizes
       const colLayouts = computeColumnLayouts(colEl);
 
+      // Compute the percent conversion factor
+      const fillFr = computeFillFr(colLayouts);
+
       // Create the grid-template-rows value based upon the layouts
-      const totalExplicitSize = totalExplicitLayoutUnits(colLayouts);
       const gridTemplColVal = `${
         colLayouts.map((layout) => {
-          return toGridSize(layout, totalExplicitSize);
+          return toGridSize(layout, fillFr);
         }).join(" ")
       }`;
 
@@ -224,42 +232,61 @@ function computeRowLayouts(rowEl: Element) {
   return layouts;
 }
 
-function toGridSize(layout: Layout, totalExplicitUnits: number) {
+function toGridSize(layout: Layout, fillFr: number) {
   if (layout === kLayoutFill) {
-    return `minmax(0, 1fr)`;
+    // Use the fillFr units (which have been calculated)
+    return `minmax(0, ${fillFr}fr)`;
   } else if (layout === kLayoutFlow) {
     return `minmax(0, max-content)`;
   } else {
-    if (layout.match(kHasUnitsRegex)) {
-      // It has units, just let it through
-      return `minmax(0, ${asCssSize(layout)})`;
+    if (layout.endsWith("px")) {
+      // Explicit pixels should specify the exact size
+      return layout;
+    } else if (layout.match(kEndsWithNumber)) {
+      //  Not including units means pixels
+      return `${layout}px`;
+    } else if (layout.endsWith("%")) {
+      // Convert percentages to fr units (just strip the percent and use fr)
+      const percentRaw = parseFloat(layout.slice(0, -1));
+      const layoutSize = `minmax(0, ${percentRaw}fr)`;
+      return layoutSize;
     } else {
-      // No units, try to compute `fr` units
-      const units = parseFloat(layout);
-      if (isNaN(units)) {
-        return `minmax(0, 1fr)`;
-      } else {
-        const frUnits = units / totalExplicitUnits;
-        return `minmax(0, ${frUnits.toFixed(3)}fr)`;
-      }
+      // It has units, pass it through as is
+      return `minmax(0, ${asCssSize(layout)})`;
     }
   }
 }
-const kHasUnitsRegex = /[a-zA-Z%]$/;
+const kEndsWithNumber = /[0-9]$/;
 
-function totalExplicitLayoutUnits(layouts: Layout[]) {
-  let total = 0;
+function computeFillFr(layouts: Layout[]) {
+  const percents: number[] = [];
+  let unallocatedFills = 0;
   for (const layout of layouts) {
-    if (layout !== kLayoutFill && layout !== kLayoutFlow) {
-      if (!layout.match(kHasUnitsRegex)) {
-        const units = parseFloat(layout);
-        if (!isNaN(units)) {
-          total += units;
-        }
-      }
+    if (layout === kLayoutFill) {
+      unallocatedFills++;
+    } else if (layout.endsWith("%")) {
+      const unitless = layout.slice(0, -1);
+      percents.push(parseFloat(unitless));
     }
   }
-  return total;
+
+  const allocatedPercent = percents.reduce((prev, current) => {
+    return prev + current;
+  }, 0);
+
+  // By default, we'll just use a 1 fr baseline
+  // If the user has provided some percentage based
+  // measures, we'll use those to compute a new baseline
+  // fr (which is scaled to use the remain unallocated percentage)
+  let fillFr = 1;
+  if (allocatedPercent > 0) {
+    if (allocatedPercent < 100) {
+      fillFr = (100 - allocatedPercent) / unallocatedFills;
+    } else {
+      fillFr = percents[percents.length - 1];
+    }
+  }
+  return fillFr;
 }
 
 // Coerce the layout to value valid
