@@ -26,12 +26,13 @@ local kCardClzToAttr = pandoc.List({kExpandable})
 -- Card Attributes 
 local kPadding = "padding"
 local kHeight = "height"
+local kWidth = "width"
 local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kTitle = "title"
 
 -- Card explicit attributes
-local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kMinHeight, kMaxHeight})
+local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight})
 
 -- Card Body Explicit Attributes
 local kCardBodyAttributes = pandoc.List({kTitle, kHeight, kMinHeight, kMaxHeight})
