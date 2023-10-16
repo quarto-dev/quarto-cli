@@ -60,7 +60,9 @@ function table_classes()
         return nil
       end
 
-      if float.caption_long == nil or (#float.caption_long.content and #float.caption_long.content < 1) then
+      if (float.caption_long == nil or 
+          float.caption_long.content == nil or 
+          #float.caption_long.content < 1) then
         return nil
       end
 
