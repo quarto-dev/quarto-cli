@@ -1,0 +1,9 @@
+---
+title: "Test of embedding tables"
+format:
+  html:
+    toc: true
+---
+
+{{< embed inset-table.qmd#tbl-three >}}
+
