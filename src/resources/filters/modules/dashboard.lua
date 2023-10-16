@@ -85,7 +85,7 @@ return {
   valuebox = valuebox,
   sidebar = sidebar,
   document = {
-    fill = dashboardParam(kLayoutFill, false),
+    fill = dashboardParam(kLayoutFill, true),
     orientation = dashboardParam(kParamOrientation, kDefaultOrientation)
   },
   layoutContainer = {

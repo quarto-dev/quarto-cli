@@ -18,7 +18,7 @@ export function dashboardMeta(format: Format): DashboardMeta {
   const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
     ? "columns"
     : "rows";
-  const fill = dashboardRaw && dashboardRaw.fill === true;
+  const fill = !dashboardRaw || dashboardRaw.fill !== false;
 
   return {
     orientation,
