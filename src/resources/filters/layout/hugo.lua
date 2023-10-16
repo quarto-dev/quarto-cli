@@ -65,11 +65,12 @@ end, function(layout)
   end
   result.content:insert(pandoc.RawBlock("html", "</div>"))
 
-  if layout.preamble then
-    return pandoc.Blocks({ layout.preamble, result })
-  else
-    return result
-  end
+
+  local res = pandoc.Blocks({})
+  panel_insert_preamble(res, layout.preamble)
+  res:insert(result)
+  
+  return res
 
 end)
 
