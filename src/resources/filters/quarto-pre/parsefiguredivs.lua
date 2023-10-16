@@ -434,6 +434,83 @@ function parse_reftargets()
         content = { content },
         caption_long = caption_inlines,
       }), false
+    end,
+
+    RawBlock = function(raw)
+      if not (_quarto.format.isLatexOutput() and 
+              _quarto.format.isRawLatex(raw)) then
+        return nil
+      end
+
+      -- first we check if all of the expected bits are present
+
+      -- check for {#...} or \label{...}
+      if raw.text:find(patterns.latex_label) == nil and 
+         raw.text:find(patterns.attr_identifier) == nil then
+        return nil
+      end
+
+      -- check for \caption{...}
+      if raw.text:find(patterns.latex_caption) == nil then
+        return nil
+      end
+
+      -- check for tabular or longtable
+      if raw.text:find(patterns.latex_long_table) == nil and
+         raw.text:find(patterns.latex_tabular) == nil then
+        return nil
+      end
+      
+      -- if we're here, then we're going to parse this as a FloatRefTarget
+      -- and we need to remove the label and caption from the raw block
+      local identifier = ""
+      local b, e, match1, label_identifier = raw.text:find(patterns.latex_label)
+      if b ~= nil then
+        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+        identifier = label_identifier
+      else
+        local b, e, match2, attr_identifier = raw.text:find(patterns.attr_identifier)
+        if b ~= nil then
+          raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+          identifier = attr_identifier
+        else
+          internal_error()
+          return nil
+        end
+      end
+
+      -- knitr can emit a label that starts with "tab:"
+      -- we don't handle those as floats
+      local ref = refType(identifier)
+      if ref == nil then
+        return nil
+      end
+
+      local caption
+      local b, e, match3, caption_content = raw.text:find(patterns.latex_caption)
+      if b ~= nil then
+        raw.text = raw.text:sub(1, b - 1) .. raw.text:sub(e + 1)
+        caption = pandoc.RawBlock("latex", caption_content)
+      else
+        internal_error()
+        return nil
+      end
+
+      -- finally, if the user passed a \\begin{table} float environment
+      -- we just remove it because we'll re-emit later ourselves
+
+      local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
+      if b ~= nil then
+        raw.text = table_body
+      end
+
+      return quarto.FloatRefTarget({
+        attr = pandoc.Attr(identifier, {}, {}),
+        type = "Table",
+        content = { raw },
+        caption_long = quarto.utils.as_blocks(caption)
+      }), false
     end
+    
   }
 end
