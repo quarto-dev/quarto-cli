@@ -164,7 +164,7 @@ await initYamlIntelligenceResourcesFromFilesystem();
 // be silently ignored.)
 const files: WalkEntry[] = [];
 if (Deno.args.length === 0) {
-  files.push(...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}"));
+  files.push(...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}"));
 } else {
   for (const arg of Deno.args) {
     files.push(...expandGlobSync(arg));
