@@ -2142,6 +2142,11 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
+  .tabset .dashboard-card-no-title .nav-tabs {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
   .card.bslib-value-box {
     min-height: 9rem;
     .card-body {

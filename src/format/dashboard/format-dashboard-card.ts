@@ -51,6 +51,7 @@ const kBsCardClasses = ["bslib-card", "html-fill-container"];
 const kBsCardScriptInitAttrs = { ["data-bslib-card-init"]: "" };
 
 const kBsTabsetCardHeaderClasses = ["bslib-navs-card-title"];
+const kQuartoHideTitleClass = "dashboard-card-no-title";
 
 // BSLib Card Attributes
 const kBsCardAttributes: Record<string, string> = {
@@ -121,6 +122,9 @@ export function processCards(doc: Document) {
       // Fix up the header
       const cardHeaderEl = cardEl.querySelector(`.${kCardHeaderClass}`);
       if (cardHeaderEl) {
+        if (cardHeaderEl.innerText.trim() === "") {
+          cardHeaderEl.classList.add(kQuartoHideTitleClass);
+        }
         convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyNodes, doc);
       }
       // Convert the body to tabs
