@@ -5,7 +5,7 @@ function bootstrap_panel_layout()
 
   return {
     Div = function(el)
-      if (hasBootstrap() and el.t == "Div") then
+      if (hasBootstrap() and is_regular_node(el, "Div")) then
         local fill = el.attr.classes:find("panel-fill")
         local center = el.attr.classes:find("panel-center")
         if fill or center then

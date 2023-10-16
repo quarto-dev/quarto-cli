@@ -29,7 +29,7 @@ end
 
 -- is this a Div containing a figure
 function isFigureDiv(el, captionRequired)
-  if el.t == "Div" and hasFigureRef(el) then
+  if is_regular_node(el, "Div") and hasFigureRef(el) then
     if captionRequired == nil then
       captionRequired = true
     end
@@ -80,7 +80,7 @@ function discoverLinkedFigure(el, captionRequired)
 end
 
 function discoverLinkedFigureDiv(el, captionRequired)
-  if el.t == "Div" and 
+  if is_regular_node(el, "Div") and 
      hasFigureRef(el) and
      #el.content == 2 and 
      el.content[1].t == "Para" and 

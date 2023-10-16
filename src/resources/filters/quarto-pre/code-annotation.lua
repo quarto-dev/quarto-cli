@@ -7,7 +7,7 @@ local constants = require("modules/constants")
 local hasAnnotations = false
 
 function isAnnotationCell(el) 
-  return el and el.t == "Div" and el.attr.classes:includes(constants.kCellAnnotationClass)
+  return el and is_regular_node(el, "Div") and el.attr.classes:includes(constants.kCellAnnotationClass)
 end
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
