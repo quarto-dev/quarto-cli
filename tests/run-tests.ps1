@@ -98,13 +98,14 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=@()
 
   ForEach ($file in $customArgs) {
-    If ($file -Like "*.qmd" -Or $file -Like "*.ipynb" -Or $file -Like "*.md") {
+    $filename=$(Split-Path -Path $file -Leaf)
+    If ($filename -match "^^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file
     } else {
       Write-Host -ForegroundColor red "#### ERROR"
-      Write-Host -ForegroundColor red "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted"
+      Write-Host -ForegroundColor red "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
       Write-Host -ForegroundColor red "####"
       Exit 1
     }

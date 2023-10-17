@@ -107,7 +107,7 @@ $env:QUARTO_TESTS_NO_CONFIG=$true
 
 #### About smoke-all tests
 
-`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file.
+`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd`, `.md` or `.ipynb` files (but files starting with `_` will be ignored). They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd`, `.md` or `.ipynb` file, not starting with `_`.
 
 ```bash
 # run tests for all documents in docs/smoke-all/
@@ -272,7 +272,7 @@ QUARTO_TEST_TIMING='timing.txt' ./run-tests.sh
 When this is done, any other argument will be ignored, and the following happens
 
 - All the `*.test.ts` file are found and run individually using `/usr/bin/time` to store timing in the file
-- When `smoke-all.test.ts` is found, all the `*.qmd` and `*.ipynb` in `docs/smoke-all/` are found and run individually using same logic. This means each `smoke-all` test is timed.
+- When `smoke-all.test.ts` is found, all the `*.qmd`, `*.md` and `*.ipynb` in `docs/smoke-all/` not starting with `_` are found and run individually using same logic. This means each `smoke-all` test is timed.
 
 The results is written in the `$QUARTO_TEST_TIMING` file. Here is an example:
 
