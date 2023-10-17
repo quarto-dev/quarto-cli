@@ -47,7 +47,7 @@ export const publishCommand =
   new Command<any>()
     .name("publish")
     .description(
-      "Publish a document or project. Available providers include:\n\n" +
+      "Publish a document or project to a provider.\n\nAvailable providers include:\n\n" +
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
