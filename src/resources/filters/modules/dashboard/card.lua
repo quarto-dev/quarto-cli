@@ -61,7 +61,7 @@ local function popImagePara(el)
 end
 
 local function isCard(el) 
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return (el.t == "Div" or el.t == "Header") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardClz:includes(class)
   end) 
 end
@@ -83,7 +83,7 @@ local function isCardHeader(el)
 end
 
 local function isTabset(el)
-  return el.t == "Div" and el.classes:includes(kTabsetClass)
+  return (el.t == "Div" or el.t == "Header") and el.classes:includes(kTabsetClass)
 end
 
 local function isLiteralCard(el)
@@ -158,7 +158,7 @@ local function resolveCardHeader(title, options)
   elseif options and options[kTitle] ~= nil then
     -- The title is being provided as option
     return pandoc.Div(pandoc.Plain(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
-  elseif options and options[kForceHeader] then
+  elseif options ~= nil and options[kForceHeader] then
     -- Couldn't find a title, but force the header into place
     return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))
   end

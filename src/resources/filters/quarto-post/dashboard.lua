@@ -174,7 +174,8 @@ function render_dashboard()
               -- see if this heading is marked as a component
               if header.classes:includes('tabset') then
                 local options, userClasses = dashboard.card.readCardOptions(header)
-                return dashboard.card.makeCard(header, contents, userClasses, options)
+                -- don't pass an explicit title - any title will come from the card options
+                return dashboard.card.makeCard(nil, contents, userClasses, options)
               end
 
               -- Compute the options
