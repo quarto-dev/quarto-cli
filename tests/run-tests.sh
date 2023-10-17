@@ -67,7 +67,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
     # For smoke-all.test.ts, each smoke-all document test needs to be timed.
     if [ "$i" == "$SMOKE_ALL_TEST_FILE" ]; then
       echo "> Timing smoke-all tests"
-      SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -name "*.qmd" -o -name "*.ipynb"`
+      SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -name "*.qmd" -o -name "*.ipynb" -o -name "*.md"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
         /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${DENO_DIR}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" ${SMOKE_ALL_TEST_FILE} -- ${j}
@@ -92,13 +92,13 @@ else
     SMOKE_ALL_FILES=""
     TESTS_TO_RUN=""
     for file in $*; do
-      if [[ "$file" == *.qmd ]] || [[ "$file" == *.ipynb ]]; then
+      if [[ "$file" == *.qmd ]] || [[ "$file" == *.ipynb ]] || [[ "$file" == *.md ]]; then
         SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
       elif [[ "$file" == *.ts ]]; then
         TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
       else
         echo "#### WARNING"
-        echo "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+        echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted"
         echo "####"
         exit 1
       fi
@@ -106,7 +106,7 @@ else
     if [ "$SMOKE_ALL_FILES" != "" ]; then
       if [ "$TESTS_TO_RUN" != "" ]; then
         echo "#### WARNING"
-        echo "When passing .qmd and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
+        echo "When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
         echo "Ignoring ${TESTS_TO_RUN}."
         echo "####"
       fi

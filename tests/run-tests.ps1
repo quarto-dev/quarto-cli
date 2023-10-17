@@ -98,13 +98,13 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=@()
 
   ForEach ($file in $customArgs) {
-    If ($file -Like "*.qmd" -Or $file -Like "*.ipynb") {
+    If ($file -Like "*.qmd" -Or $file -Like "*.ipynb" -Or $file -Like "*.md") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file
     } else {
       Write-Host -ForegroundColor red "#### ERROR"
-      Write-Host -ForegroundColor red "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+      Write-Host -ForegroundColor red "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted"
       Write-Host -ForegroundColor red "####"
       Exit 1
     }
@@ -113,7 +113,7 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   If ($SMOKE_ALL_FILES.count -ne 0) {
     if ($TESTS_TO_RUN.count -ne 0) {
       Write-Host "#### WARNING"
-      Write-Host "  When passing .qmd and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
+      Write-Host "  When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
       Write-Host "  Ignoring $($TESTS_TO_RUN -join ' ')"
       Write-Host "####"
     }
