@@ -91,8 +91,8 @@ else
     # Check file argument
     SMOKE_ALL_FILES=""
     TESTS_TO_RUN=""
-    for file in $*; do
-      if [[ "$file" == *.qmd ]] || [[ "$file" == *.ipynb ]] || [[ "$file" == *.md ]]; then
+    for file in "$*"; do
+      if [[ $file == *.qmd ]] || [[ $file == *.ipynb ]] || [[ $file == *.md ]]; then
         SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
       elif [[ "$file" == *.ts ]]; then
         TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
