@@ -153,6 +153,7 @@
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - Only search for Julia conda installation when the engine language is Julia
 - Support for `plotly-connected` option to determine where Plotly is embedded or loaded from CDN
+- Reduce default margins for Plotly figures (t=30,r=0,b=0,l=0)
 
 ## Knitr
 
