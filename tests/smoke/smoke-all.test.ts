@@ -164,7 +164,12 @@ await initYamlIntelligenceResourcesFromFilesystem();
 // be silently ignored.)
 const files: WalkEntry[] = [];
 if (Deno.args.length === 0) {
-  files.push(...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}"));
+  if (Deno.env.get("QUARTO_FAST_SMOKE_ALL") === "true") {
+    files.push(...expandGlobSync("docs/smoke-all/**/*.md"));
+  } else {
+    files.push(...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}"));
+  }
+
 } else {
   for (const arg of Deno.args) {
     files.push(...expandGlobSync(arg));
@@ -174,10 +179,10 @@ if (Deno.args.length === 0) {
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
 
-  const metadata = input.endsWith("qmd")
+  const metadata = (input.endsWith("qmd") || input.endsWith(".md"))
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
-  const testSpecs = [];
+  let testSpecs = [];
 
   if (hasTestSpecs(metadata)) {
     testSpecs.push(...resolveTestSpecs(input, metadata));
@@ -189,6 +194,15 @@ for (const { path: fileName } of files) {
     }
     for (const format of formats) {
       testSpecs.push({ format: format, verifyFns: [noErrorsOrWarnings] });
+    }
+  }
+
+  // the fast smoke tests are only run for a single format
+  // since we make one of these for each format
+  if (Deno.env.get("QUARTO_FAST_SMOKE_ALL") === "true") {
+    let m = input.match(/([^.]*)\.md/);
+    if (m !== null) {
+      testSpecs = testSpecs.filter((spec) => spec.format === (m as any)[1]);
     }
   }
 
