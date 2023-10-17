@@ -44,6 +44,7 @@ import {
   processColumns,
   processRows,
 } from "./format-dashboard-layout.ts";
+import { processSidebars } from "./format-dashboard-sidebar.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -115,10 +116,10 @@ export function dashboardFormat() {
           "dist",
         );
 
-        [{ name: "components", module: false }, {
+        [{
           name: "web-components",
           module: true,
-        }].forEach(
+        }, { name: "components", module: false }].forEach(
           (dependency) => {
             const attribs: Record<string, string> = {};
             if (dependency.module) {
@@ -136,6 +137,7 @@ export function dashboardFormat() {
           },
         );
 
+        /*
         stylesheets.push({
           name: `components.css`,
           path: formatResourcePath(
@@ -143,7 +145,6 @@ export function dashboardFormat() {
             join("bslib", "components", "dist", "components.css"),
           ),
         });
-
         stylesheets.push({
           name: `sidebar.css`,
           path: formatResourcePath(
@@ -151,6 +152,7 @@ export function dashboardFormat() {
             join("bslib", "components", "dist", "sidebar", "sidebar.css"),
           ),
         });
+        */
 
         extras.html[kDependencies] = extras.html[kDependencies] || [];
         extras.html[kDependencies].push({
@@ -253,6 +255,9 @@ function dashboardHtmlPostProcessor(
 
     // Process valueboxes
     processValueBoxes(doc);
+
+    // Process sidedars
+    processSidebars(doc);
 
     // Process fill images to include proper fill behavior
     const fillImgNodes = doc.body.querySelectorAll("img.html-fill-item");

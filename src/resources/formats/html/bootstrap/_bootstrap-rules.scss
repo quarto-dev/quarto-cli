@@ -501,7 +501,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-up(lg) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -2124,6 +2124,22 @@ code.sourceCode a.code-annotation-anchor {
 }
 
 .quarto-dashboard {
+  &.dashboard-sidebar > .page-layout-custom {
+    padding: 0;
+    > .bslib-sidebar-layout {
+      > .sidebar {
+        padding-left: 1em;
+        padding-right: 1em;
+      }
+    }
+  }
+
+  .bslib-sidebar-layout {
+    > div.main {
+      padding: 0.7em;
+    }
+  }
+
   .callout {
     margin-bottom: 0;
     margin-top: 0;

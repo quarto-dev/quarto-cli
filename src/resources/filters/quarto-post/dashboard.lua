@@ -85,7 +85,7 @@ function render_dashboard()
         elseif dashboard.valuebox.isValueBox(el) then
           
           return dashboard.valuebox.makeValueBox(el), false
-                  
+        
         elseif el.classes:includes(kCellClass)  then
           
           -- See if this cell has bslib output already
@@ -97,13 +97,11 @@ function render_dashboard()
                 local outputStr = pandoc.utils.stringify(childDiv.content)
                 -- TODO: We probably should be a little more careful about
                 -- this check
-                hasBsLibOutput = outputStr:match('bslib-')
-                isHidden = childDiv.classes:includes(kHiddenClass)
+                hasBsLibOutput = hasBsLibOutput or outputStr:match('bslib-')
               end
+              isHidden = isHidden or childDiv.classes:includes(kHiddenClass)
             end
           })
-                  
-
           -- If the element is marked hidden or the element
           -- has bslib output (e.g. it is code that is outputing bslib components)
           -- just let it through as is
@@ -203,6 +201,28 @@ function render_dashboard()
             end
           end
         end      
+      end,
+    }, {
+      traverse = 'topdown',
+      Div = function(el) 
+        if el.classes:includes('columns') then
+
+          local sidebar = nil
+          local sidebarContent = pandoc.List({})
+          for i, v in ipairs(el.content) do            
+            if v.classes:includes('sidebar') then
+              sidebar = v
+            else
+              sidebarContent:insert(v)
+            end
+          end
+
+          if sidebar then
+            local options = dashboard.sidebar.readOptions(el)
+            return dashboard.sidebar.makeSidebar(sidebar.content, sidebarContent, options)  
+          end          
+        end
+
       end,
     }
   }

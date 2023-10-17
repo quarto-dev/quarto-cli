@@ -1,0 +1,31 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    orientation: columns
+    theme: journal
+---
+
+
+## Column {.sidebar width=250px}
+
+
+SIDEBAR CONTENT
+
+## Column
+
+```{r}
+plot(cars)
+```
+
+### Row
+
+#### Column {.sidebar width=200px}
+
+Sidebar stuff
+
+#### 
+
+```{r}
+plot(iris)
+```

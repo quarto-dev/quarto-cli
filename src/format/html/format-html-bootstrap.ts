@@ -219,7 +219,7 @@ export function boostrapExtras(
 // Find any elements that are using fancy layouts (columns)
 const getColumnLayoutElements = (doc: Document) => {
   return doc.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside:not(.footnotes), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
+    '[class^="column-"], [class*=" column-"], aside:not(.footnotes):not(.sidebar), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
   );
 };
 
@@ -1297,7 +1297,7 @@ const processMarginElsInCallouts = (doc: Document) => {
     }
 
     const marginNodes = calloutEl.querySelectorAll(
-      ".callout-body-container .column-margin, .callout-body-container aside:not(.footnotes), .callout-body-container .aside:not(.footnotes)",
+      ".callout-body-container .column-margin, .callout-body-container, aside:not(.footnotes):not(.sidebar), .callout-body-container .aside:not(.footnotes)",
     );
 
     if (marginNodes.length > 0) {
@@ -1373,7 +1373,7 @@ const processMarginElsInTabsets = (doc: Document) => {
       const tabId = tabEl.id;
 
       const marginNodes = tabEl.querySelectorAll(
-        ".column-margin, aside:not(.footnotes), .aside:not(.footnotes)",
+        ".column-margin, aside:not(.footnotes):not(.sidebar), .aside:not(.footnotes)",
       );
 
       if (tabId && marginNodes.length > 0) {

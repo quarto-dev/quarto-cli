@@ -4,6 +4,7 @@
 -- Layout classes
 local kRowsClass = "rows"
 local kColumnsClass = "columns"
+local kLayoutClz = pandoc.List({kRowsClass, kColumnsClass})
 
 -- Layout options
 local kLayoutHeight = "height"
@@ -13,6 +14,9 @@ local kLayout = "layout"         -- fill, flow, nil
 -- Layout values
 local kLayoutFill = "fill"
 local kLayoutFlow = "flow"
+
+local kOptionClasses = "classes"
+
 
 local function isRowOrColContainer(el) 
   return el.classes ~= nil and (el.classes:includes(kRowsClass) or el.classes:includes(kColumnsClass))
@@ -42,6 +46,12 @@ local function readOptions(el)
   options[kLayoutHeight] = el.attributes[kLayoutHeight];  
   options[kLayoutWidth] = el.attributes[kLayoutWidth];
 
+  -- Does the column have a sidebar class decorating it?
+  local classes = clz:filter(function(class)
+    return not kLayoutClz:includes(class)
+  end)
+  options[kOptionClasses] = classes
+
   return options;
 end
 
@@ -69,7 +79,13 @@ local function makeColumnContainer(content, options)
     attributes["data-" .. k] = v
   end
 
-  return pandoc.Div(content, pandoc.Attr("", {kRowsClass}, attributes))
+  -- the classes
+  local classes = pandoc.List({kRowsClass})
+  if options[kOptionClasses] ~= nil then
+    classes:extend(options[kOptionClasses])
+  end
+
+  return pandoc.Div(content, pandoc.Attr("", classes, attributes))
 end
 
 local function makeRowContainer(content, options) 
@@ -86,7 +102,13 @@ local function makeRowContainer(content, options)
     attributes["data-" .. k] = v
   end
 
-  return pandoc.Div(content, pandoc.Attr("", {kColumnsClass}, attributes))
+  -- the classes
+  local classes = pandoc.List({kColumnsClass})
+  if options[kOptionClasses] ~= nil then
+    classes:extend(options[kOptionClasses])
+  end
+
+  return pandoc.Div(content, pandoc.Attr("", classes, attributes))
 end
 
 
