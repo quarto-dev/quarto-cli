@@ -200,11 +200,8 @@ for (const { path: fileName } of files) {
     } = testSpec as any;
     if (format === "editor-support-crossref") {
       const tempFile = Deno.makeTempFileSync();
-      testQuartoCmd("editor-support", ["crossref"], verifyFns, {
-        env: {
-          QUARTO_CROSSREF_INPUT: input,
-          QUARTO_CROSSREF_OUTPUT: tempFile
-        }, teardown: () => {
+      testQuartoCmd("editor-support", ["crossref", "--input", input, "--output", tempFile], verifyFns, {
+        teardown: () => {
           Deno.removeSync(tempFile);
           return Promise.resolve();
         }
