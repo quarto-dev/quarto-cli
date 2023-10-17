@@ -5,7 +5,10 @@
  */
 
 import { Document, Element } from "../../core/deno-dom.ts";
-import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
+import {
+  applyFillItemClasses,
+  recursiveApplyFillClasses,
+} from "./format-dashboard-layout.ts";
 
 const kSidebarPanelClass = "sidebar-panel";
 const kSidebarClass = "sidebar";
@@ -52,7 +55,8 @@ export function processSidebars(doc: Document) {
     }
 
     sidebarContainerEl.appendChild(sidebarMainEl);
-    recursiveApplyFillClasses(sidebarContainerEl);
+    applyFillItemClasses(sidebarContainerEl);
+    applyFillItemClasses(sidebarMainEl);
 
     sidebarContainerEl.appendChild(sidebarAsideEl);
     sidebarContainerEl.append(...sidebarToggle(sidebarId, doc));
