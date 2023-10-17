@@ -25,7 +25,7 @@ plot(cars)
 plot(mtcars)
 ```
 
-### Column
+### Column 
 
 ```{r}
 #| title: Iris3

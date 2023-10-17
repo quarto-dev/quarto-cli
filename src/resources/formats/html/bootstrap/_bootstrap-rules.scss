@@ -2147,6 +2147,18 @@ code.sourceCode a.code-annotation-anchor {
     margin-right: auto;
   }
 
+  .tabset .tab-content {
+    border: none;
+  }
+
+  .tabset .card-header {
+    .nav-link[role="tab"] {
+      margin-top: -6px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+  }
+
   .card.bslib-value-box {
     min-height: 9rem;
     .card-body {
