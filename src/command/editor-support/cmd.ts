@@ -5,7 +5,7 @@
  */
 
 import { Command } from "cliffy/command/mod.ts";
-import { crossrefCommand, makeCrossrefCommand } from "./crossref.ts";
+import { crossrefCommand } from "./crossref.ts";
 
 export const editorSupportCommand = new Command()
   .name("editor-support")
@@ -14,13 +14,3 @@ export const editorSupportCommand = new Command()
   )
   .hidden()
   .command("crossref", crossrefCommand);
-
-export const makeEditorSupportCommand = (env?: Record<string, string>) => {
-  return new Command()
-    .name("editor-support")
-    .description(
-      "Miscellaneous tools to support Quarto editor modes",
-    )
-    .hidden()
-    .command("crossref", makeCrossrefCommand(env));
-};

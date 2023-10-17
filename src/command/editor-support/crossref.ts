@@ -15,33 +15,71 @@ import { execProcess } from "../../core/process.ts";
 import { pandocBinaryPath, resourcePath } from "../../core/resources.ts";
 import { globalTempContext } from "../../core/temp.ts";
 
-export const makeCrossrefCommand = (env?: Record<string, string>) =>
-  new Command()
+function parseCrossrefFlags(options: any, args: string[]): {
+  input?: string;
+  output?: string;
+} {
+  let input: string | undefined, output: string | undefined;
+
+  // stop early with no input seems wonky in Cliffy so we need to undo the damage here
+  // by inspecting partially-parsed input...
+  if (options.input && args[0]) {
+    input = args.shift();
+  } else if (options.output && args[0]) {
+    output = args.shift();
+  }
+  const argsStack = [...args];
+  let arg = argsStack.shift();
+  while (arg !== undefined) {
+    switch (arg) {
+      case "-i":
+      case "--input":
+        arg = argsStack.shift();
+        if (arg) {
+          input = arg;
+        }
+        break;
+
+      case "-o":
+      case "--output":
+        arg = argsStack.shift();
+        if (arg) {
+          output = arg;
+        }
+        break;
+      default:
+        arg = argsStack.shift();
+        break;
+    }
+  }
+  return { input, output };
+}
+
+const makeCrossrefCommand = () => {
+  return new Command()
     .description("Index cross references for content")
-    .env("QUARTO_CROSSREF_INPUT=<file:string>", "File to index")
-    .env("QUARTO_CROSSREF_OUTPUT=<file:string>", "Output file for result")
-    .action(async (options) => {
+    .stopEarly()
+    .arguments("[...args]")
+    .option(
+      "-i, --input",
+      "Use FILE as input (default: stdin).",
+    )
+    .option(
+      "-o, --output",
+      "Write output to FILE (default: stdout).",
+    )
+    .action(async (options, ...args: string[]) => {
+      const flags = parseCrossrefFlags(options, args);
       const getInput = async () => {
-        // Cliffy sometimes appears to steal the environment for itself,
-        // ignoring changes to Deno.env. This means we need to hack around
-        // its env() method ourselves. That is the cause of the mess
-        // of env checks below.
-        if (options.quartoCrossrefInput !== undefined) {
-          return Deno.readTextFileSync(options.quartoCrossrefInput);
-        } else if (Deno.env.get("QUARTO_CROSSREF_INPUT") !== undefined) {
-          return Deno.readTextFileSync(Deno.env.get("QUARTO_CROSSREF_INPUT")!);
-        } else if (env && env["QUARTO_CROSSREF_INPUT"] !== undefined) {
-          return Deno.readTextFileSync(env["QUARTO_CROSSREF_INPUT"]);
+        if (flags.input) {
+          return Deno.readTextFileSync(flags.input);
         } else {
           // read input
           const stdinContent = await readAll(Deno.stdin);
           return new TextDecoder().decode(stdinContent);
         }
       };
-
-      const getOutput: () => string = () => (options.quartoCrossrefOutput ||
-        Deno.env.get("QUARTO_CROSSREF_OUTPUT") ||
-        env?.["QUARTO_CROSSREF_OUTPUT"] || "stdout");
+      const getOutputFile: () => string = () => (flags.output || "stdout");
 
       const input = await getInput();
 
@@ -84,7 +122,6 @@ export const makeCrossrefCommand = (env?: Record<string, string>) =>
           env: {
             "QUARTO_FILTER_PARAMS": filterParams,
             "QUARTO_SHARE_PATH": resourcePath(),
-            ...(env || {}),
           },
           stdout: "piped",
         },
@@ -97,13 +134,14 @@ export const makeCrossrefCommand = (env?: Record<string, string>) =>
         throw new Error(result.stderr);
       }
 
-      const output = getOutput();
-      if (output === "stdout") {
+      const outputFile = getOutputFile();
+      if (outputFile === "stdout") {
         // write back the index
         Deno.stdout.writeSync(Deno.readFileSync(indexFile));
       } else {
-        Deno.writeTextFileSync(output, Deno.readTextFileSync(indexFile));
+        Deno.writeTextFileSync(outputFile, Deno.readTextFileSync(indexFile));
       }
     });
+};
 
 export const crossrefCommand = makeCrossrefCommand();

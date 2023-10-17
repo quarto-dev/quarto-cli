@@ -129,7 +129,7 @@ export async function quarto(
     .description("Quarto CLI")
     .throwErrors();
 
-  commands(env).forEach((command) => {
+  commands().forEach((command) => {
     // turn off colors
     command.help({ colors: false });
     quartoCommand.command(
