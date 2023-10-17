@@ -174,7 +174,7 @@ if (Deno.args.length === 0) {
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
 
-  const metadata = input.endsWith("qmd")
+  const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
   const testSpecs = [];
