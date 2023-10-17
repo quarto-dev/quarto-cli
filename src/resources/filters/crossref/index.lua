@@ -114,7 +114,7 @@ function writeKeysIndex(indexFile)
       key = k,
     }
     -- add caption if we have one
-    if v.caption ~= nil then
+    if v.caption ~= nil and #v.caption > 0 then
       if v.caption[1].t == "Str" then
         entry.caption = v.caption[1].text
       else
