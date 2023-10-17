@@ -99,7 +99,7 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
 
   ForEach ($file in $customArgs) {
     $filename=$(Split-Path -Path $file -Leaf)
-    If ($filename -match "^[^_]*[.]qmd$" -Or $filename -match "^[^_]*[.]ipynb$" -Or $filename -match "^[^_]*[.]md$") {
+    If ($filename -match "^^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file

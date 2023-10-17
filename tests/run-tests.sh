@@ -94,7 +94,7 @@ else
     for file in "$*"; do
       filename=$(basename "$file")
       # smoke-all.test.ts works with .qmd, .md and .ipynb but  will ignored file starting with _
-      if [[ $filename =~ ^[^_]*[.]qmd$ ]] || [[ $filename =~ ^[^_]*[.]ipynb$ ]] || [[ $filename =~ ^[^_]*[.]md$ ]]; then
+      if [[ $filename =~ ^[^_].*[.]qmd$ ]] || [[ $filename =~ ^[^_].*[.]ipynb$ ]] || [[ $filename =~ ^[^_].*[.]md$ ]]; then
         SMOKE_ALL_FILES="${SMOKE_ALL_FILES} ${file}"
       elif [[ $file == *.ts ]]; then
         TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
