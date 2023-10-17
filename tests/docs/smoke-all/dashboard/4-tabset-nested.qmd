@@ -1,0 +1,38 @@
+---
+title: Testing
+format: 
+  dashboard:
+    fill: false
+---
+
+## Row
+
+```{r}
+plot(iris)
+```
+
+## Row
+
+### Column {.tabset}
+
+```{r}
+#| title: Cars
+plot(cars)
+```
+
+```{r}
+#| title: MT Cars
+plot(mtcars)
+```
+
+### Column
+
+```{r}
+#| title: Iris3
+plot(iris3)
+```
+
+```{r}
+#| title: Iris3
+plot(iris3)
+```
