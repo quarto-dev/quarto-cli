@@ -100,7 +100,7 @@ else
         TESTS_TO_RUN="${TESTS_TO_RUN} ${file}"
       else
         echo "#### WARNING"
-        echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)"
+        echo "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
         echo "####"
         exit 1
       fi
