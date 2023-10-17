@@ -7,6 +7,13 @@ local dashboard = require 'modules/dashboard'
 local kOrientationRows = "rows"
 local kOrientationColumns = "columns"
 
+local kSectionClass = "section"
+local kHiddenClass = "hidden"
+local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
+
+local kCellClass = "cell"
+local kCellOutputDisplayClass = "cell-output-display"
+
 function render_dashboard() 
 
   -- Track the orientation that is used to perform heading based layout
@@ -79,24 +86,27 @@ function render_dashboard()
           
           return dashboard.valuebox.makeValueBox(el), false
                   
-        elseif el.classes:includes('cell')  then
+        elseif el.classes:includes(kCellClass)  then
           
           -- See if this cell has bslib output already
           local hasBsLibOutput = false
           local isHidden = false
           _quarto.ast.walk(el,  {
             Div = function(childDiv)  
-              if childDiv.classes:includes('cell-output-display') then
+              if childDiv.classes:includes(kCellOutputDisplayClass) then
                 local outputStr = pandoc.utils.stringify(childDiv.content)
                 -- TODO: We probably should be a little more careful about
                 -- this check
                 hasBsLibOutput = outputStr:match('bslib-')
-                isHidden = childDiv.classes:includes('hidden')
+                isHidden = childDiv.classes:includes(kHiddenClass)
               end
             end
           })
                   
 
+          -- If the element is marked hidden or the element
+          -- has bslib output (e.g. it is code that is outputing bslib components)
+          -- just let it through as is
           if hasBsLibOutput or isHidden then
             return el
           else
@@ -125,7 +135,7 @@ function render_dashboard()
         local nonSectionEls = pandoc.List()
         local sectionEls = pandoc.List()
         for _i, v in ipairs(el.blocks) do
-          if v.classes ~= nil and v.classes:includes('section') then
+          if v.classes ~= nil and v.classes:includes(kSectionClass) then
             sectionEls:insert(v)
           else
             nonSectionEls:insert(v)
@@ -142,7 +152,7 @@ function render_dashboard()
         end
 
         -- ensure that root level elements are containers
-        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List({'section', 'hidden'}))
+        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List(kIgnoreWhenOrganizingClz))
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
         -- Layout the proper elements with a specific orientation
@@ -155,7 +165,7 @@ function render_dashboard()
 
       end,
       Div = function(el) 
-        if el.classes:includes('section') then
+        if el.classes:includes(kSectionClass) then
 
           -- Allow arbitrary nesting of sections / heading levels to perform layouts
           local header = el.content[1]
@@ -164,7 +174,7 @@ function render_dashboard()
             local contents = tslice(el.content, 2)
 
             -- Make sure everything is in a card
-            local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List({'section', 'hidden'}))
+            local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
             local layoutContentEls = organizer.ensureInLayoutContainers()
             
             -- The first time we see a level, we should emit the rows and 
@@ -172,21 +182,23 @@ function render_dashboard()
             if level > 1 then
 
               -- see if this heading is marked as a component
-              if header.classes:includes('tabset') then
+              if dashboard.card.isCard(header) then 
+                -- Process the component
                 local options, userClasses = dashboard.card.readCardOptions(header)
                 -- don't pass an explicit title - any title will come from the card options
                 return dashboard.card.makeCard(nil, contents, userClasses, options)
-              end
+              else
+                -- Process the layout
 
-              -- Compute the options
-              local options = dashboard.layout.readOptions(header)
-
-              if level ~= lastLevel then
-                -- Note the new level
-                lastLevel = level
-                return orientContents(layoutContentEls, alternateOrientation(), options)
-              else 
-                return orientContents(layoutContentEls, orientation(), options)
+                -- Compute the options
+                local options = dashboard.layout.readOptions(header)
+                if level ~= lastLevel then
+                  -- Note the new level
+                  lastLevel = level
+                  return orientContents(layoutContentEls, alternateOrientation(), options)
+                else 
+                  return orientContents(layoutContentEls, orientation(), options)
+                end
               end
             end
           end
