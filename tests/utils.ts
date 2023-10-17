@@ -25,6 +25,15 @@ export function outputForInput(
   const dir = dirname(input);
   let stem = basename(input, extname(input));
 
+  // TODO: there's a bug where output-ext keys from a custom format are 
+  // not recognized (specifically this happens for confluence)
+  //
+  // we hack it here for the time being.
+  //
+  if (to === "confluence-publish") {
+    ext = "xml";
+  }
+
   const formatDesc = parseFormatString(to);
   const baseFormat = formatDesc.baseFormat;
   if (formatDesc.baseFormat === "pdf") {

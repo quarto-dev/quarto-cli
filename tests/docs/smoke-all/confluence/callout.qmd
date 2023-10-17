@@ -1,0 +1,17 @@
+---
+title: Callout test
+format: confluence-publish
+validate-yaml: false
+_quarto:
+  tests:
+    confluence-publish:
+      ensureFileRegexMatches:
+        - ["<ac:structured-macro ac:name=\"info\" ac:schema-version=\"1\" ac:macro-id=\"1c8062cd-87de-4701-a698-fd435e057468\">"]
+        - []
+---
+
+## Overview
+
+::: {.callout-note}
+Managing Confluence content with Quarto allows you to author content in Markdown, manage that content with your usual version control tools like Git and GitHub, and leverage Quarto’s tools for including computational output.
+:::
