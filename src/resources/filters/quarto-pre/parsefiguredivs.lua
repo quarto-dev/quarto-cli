@@ -3,6 +3,27 @@
 
 local patterns = require("modules/patterns")
 
+local function coalesce_code_blocks(content)
+  local result = pandoc.Blocks({})
+  local state = "start"
+  for _, element in ipairs(content) do
+    if state == "start" then
+      if is_regular_node(element, "CodeBlock") then
+        state = "coalescing"
+      end
+      result:insert(element)
+    elseif state == "coalescing" then
+      if is_regular_node(element, "CodeBlock") and result[#result].attr == element.attr then
+        result[#result].text = result[#result].text .. "\n" .. element.text
+      else
+        state = "start"
+        result:insert(element)
+      end
+    end
+  end
+  return result
+end
+
 local function remove_latex_crossref_envs(content, name)
   if name == "Table" then
     return _quarto.ast.walk(content, {
@@ -223,29 +244,30 @@ function parse_reftargets()
       local return_cell = pandoc.Div({})
       local final_content = pandoc.Div({})
       local found_cell_output_display = false
-      for i, element in ipairs(content or {}) do
+      for _, element in ipairs(content or {}) do
         if is_regular_node(element, "Div") and element.classes:includes("cell-output-display") then
           found_cell_output_display = true
-        end
-        if found_cell_output_display then
           final_content.content:insert(element)
         else
           return_cell.content:insert(element)
         end
       end
 
-      return_cell.classes = div.classes
-      return_cell.attributes = div.attributes
-      local reftarget = quarto.FloatRefTarget({
-        attr = attr,
-        type = category.name,
-        content = final_content.content,
-        caption_long = {pandoc.Plain(caption.content)},
-      })
-      -- need to reference as a local variable because of the
-      -- second return value from the constructor
-      return_cell.content:insert(reftarget)
-      return return_cell
+      if found_cell_output_display then
+        return_cell.content = coalesce_code_blocks(return_cell.content)
+        return_cell.classes = div.classes
+        return_cell.attributes = div.attributes
+        local reftarget = quarto.FloatRefTarget({
+          attr = attr,
+          type = category.name,
+          content = final_content.content,
+          caption_long = {pandoc.Plain(caption.content)},
+        })
+        -- need to reference as a local variable because of the
+        -- second return value from the constructor
+        return_cell.content:insert(reftarget)
+        return return_cell
+      end
     end
 
     return quarto.FloatRefTarget({
@@ -311,9 +333,11 @@ function parse_reftargets()
         -- set the label and remove it from the caption
         label = attr.identifier
         attr.identifier = ""
-        el.caption.long = pandoc.List({})
         caption = createTableCaption(caption, pandoc.Attr())
       end
+      
+      -- we've parsed the caption, so we can remove it from the table
+      el.caption.long = pandoc.List({})
 
       if label == "" then
         return nil
@@ -534,5 +558,54 @@ function parse_reftargets()
       }), false
     end
     
+  }
+end
+
+function forward_cell_subcaps()
+  return {
+    Div = function(div)
+      if not div.classes:includes("cell") then
+        return nil
+      end
+      local ref = refType(div.identifier)
+      if ref == nil then
+        return nil
+      end
+      local v = div.attributes[ref .. "-subcap"]
+      if v == nil then
+        return nil
+      end
+      local subcaps = quarto.json.decode(v)
+      local index = 1
+      div.content = _quarto.ast.walk(div.content, {
+        Div = function(subdiv)
+          if index > #subcaps or not subdiv.classes:includes("cell-output-display") then
+            return nil
+          end
+          -- now we attempt to insert subcaptions where it makes sense for them to be inserted
+
+          if is_regular_node(subdiv.content[1], "Table") then
+            subdiv.content[1].caption.long = quarto.utils.as_blocks(pandoc.Str(subcaps[index]))
+            subdiv.content[1].identifier = div.identifier .. "-" .. tostring(index)
+            index = index + 1
+            return subdiv
+          end
+
+          local fig = discoverFigure(subdiv.content[1], false) or discoverLinkedFigure(subdiv.content[1], false)
+          if fig ~= nil then
+            fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
+            fig.identifier = div.identifier .. "-" .. tostring(index)
+            index = index + 1
+            return subdiv
+          end
+
+          return nil
+        end
+      })
+      if index ~= 1 then
+        div.attributes[ref .. "-subcap"] = nil
+      end
+      return div
+    end
   }
 end

@@ -168,7 +168,13 @@ function render_latex()
       if float.type ~= "Table" then
         return nil, false
       end
+      -- we have a separate fixup for longtables in our floatreftarget renderer
+      -- in the case of subfloat tables...
       float.content = _quarto.ast.walk(float.content, {
+        traverse = "topdown",
+        FloatRefTarget = function(float)
+          return nil, false
+        end,
         Table = function(table)
           return pandoc.Blocks({
             table,
