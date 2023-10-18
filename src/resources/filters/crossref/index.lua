@@ -128,8 +128,6 @@ function writeKeysIndex(indexFile)
       key = k,
       caption = index_caption(v)
     }
-    -- add caption if we have one
-    entry.caption = index_caption(v)
     -- add entry
     index.entries:insert(entry)
   end
