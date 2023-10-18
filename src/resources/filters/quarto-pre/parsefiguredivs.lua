@@ -3,6 +3,26 @@
 
 local patterns = require("modules/patterns")
 
+local function remove_latex_crossref_envs(content, name)
+  if name == "Table" then
+    return _quarto.ast.walk(content, {
+      RawBlock = function(raw)
+        if not _quarto.format.isRawLatex(raw) then
+          return nil
+        end
+        local b, e, begin_table, table_body, end_table = raw.text:find(patterns.latex_table)
+        if b ~= nil then
+          raw.text = table_body
+          return raw
+        else
+          return nil
+        end
+      end
+    })
+  end
+  return content
+end
+
 local function kable_raw_latex_fixups(content, identifier)
   local matches = 0
 
@@ -185,6 +205,8 @@ function parse_reftargets()
         })  
       end
     end
+
+    content = remove_latex_crossref_envs(content, category.name)
 
     -- respect single table in latex longtable fixups above
     if skip_outer_reftarget then
