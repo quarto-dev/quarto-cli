@@ -526,7 +526,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(lg) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -544,7 +544,7 @@ img.img-fluid.column-screen-right {
   .page-columns.toc-left {
     .margin-caption,
     div.aside,
-    aside:not(.footnotes),
+    aside:not(.footnotes):not(.sidebar),
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
@@ -560,7 +560,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(md) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
@@ -2089,6 +2089,12 @@ code.sourceCode a.code-annotation-anchor {
 // Dashboards
 .quarto-dashboard {
   height: 100%;
+
+  @include media-breakpoint-down(md) {
+    .page-layout-custom {
+      min-height: 100%;
+    }
+  }
 
   &.dashboard-fill {
     display: flex;
