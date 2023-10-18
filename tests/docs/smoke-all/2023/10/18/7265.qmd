@@ -1,0 +1,10 @@
+---
+title: "failing solution env"
+format: latex
+---
+
+### Solution
+
+::: {.solution name="The solution"}
+The solution
+:::

@@ -62,7 +62,6 @@ function crossref_theorems()
             local begin_env = "\\begin{" .. proof.env .. "}"
             local preamble = pandoc.Plain(pandoc.RawInline("latex", begin_env))
             if name ~= nil then
-              env = env .. "[" .. name .. "]"
               preamble.content:insert(pandoc.RawInline("latex", "["))
               tappend(preamble.content, name)
               preamble.content:insert(pandoc.RawInline("latex", "]"))
