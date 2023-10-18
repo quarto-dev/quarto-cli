@@ -31,66 +31,26 @@ const kHiddenClass = "hidden";
 
 // Configuration for skipping elements when applying container classes
 // (we skip applying container classes to the following):
-const kSkipFillContainerElements = {
-  tags: [
-    "P",
-    "FIGCAPTION",
-    "SCRIPT",
-    "SPAN",
-    "A",
-    "PRE",
-    "CODE",
-    "BUTTON",
-    "TABLE",
-    "THEAD",
-    "TBODY",
-    "TR",
-    "TH",
-    "TD",
-    "LI",
-    "H1",
-    "H2",
-    "H3",
-    "H4",
-    "H5",
-    "H6",
-  ],
+const kFillContentElements = {
   classes: [
-    "bi",
-    "value-box-grid",
-    "value-box-area",
-    "value-box-title",
-    "value-box-value",
-    "nav-tabs",
-    "card-header",
+    "card",
+    "card-body",
+    "cell-output-display",
+    "tab-pane",
+    "tab-content",
+    "tabset",
+    "bslib-grid",
+    "sidebar-content",
+    "main",
+    "bslib-sidebar-layout",
   ],
 };
 
-const kSkipFillItemElements = {
-  tags: [
-    "P",
-    "FIGCAPTION",
-    "SCRIPT",
-    "SPAN",
-    "A",
-    "PRE",
-    "CODE",
-    "BUTTON",
-    "TABLE",
-    "THEAD",
-    "TBODY",
-    "TR",
-    "TH",
-    "TD",
-    "LI",
-    "H1",
-    "H2",
-    "H3",
-    "H4",
-    "H5",
-    "H6",
+const kFillContainerElements = {
+  classes: [
+    ...kFillContentElements.classes,
+    "bslib-page-fill",
   ],
-  classes: ["bi", "no-fill", "callout", "nav-tabs", "card-header"],
 };
 
 // Process row Elements (computing the grid heights for the
@@ -346,21 +306,19 @@ export const recursiveApplyFillClasses = (el: Element) => {
 };
 
 export const applyFillItemClasses = (el: Element) => {
-  const skipFill = kSkipFillItemElements.classes.some((clz) => {
-    return el.classList.contains(clz) ||
-      kSkipFillItemElements.tags.includes(el.tagName);
+  const fillItem = kFillContentElements.classes.some((clz) => {
+    return el.classList.contains(clz);
   });
-  if (!skipFill) {
+  if (fillItem) {
     el.classList.add(kHtmlFillItemClass);
   }
 };
 
 const applyFillContainerClasses = (el: Element) => {
-  const skipContainer = kSkipFillContainerElements.classes.some((clz) => {
-    return el.classList.contains(clz) ||
-      kSkipFillContainerElements.tags.includes(el.tagName);
+  const fillContainer = kFillContainerElements.classes.some((clz) => {
+    return el.classList.contains(clz);
   });
-  if (!skipContainer) {
+  if (fillContainer) {
     el.classList.add(kHtmlFillContainerClass);
   }
 };

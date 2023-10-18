@@ -260,7 +260,7 @@ function dashboardHtmlPostProcessor(
     processSidebars(doc);
 
     // Process fill images to include proper fill behavior
-    const fillImgNodes = doc.body.querySelectorAll("img.html-fill-item");
+    const fillImgNodes = doc.body.querySelectorAll("div.html-fill-item > img");
     for (const fillImgNode of fillImgNodes) {
       const fillImgEl = fillImgNode as Element;
       fillImgEl.classList.add("quarto-dashboard-img-contain");
