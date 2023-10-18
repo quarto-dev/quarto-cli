@@ -198,18 +198,27 @@ for (const { path: fileName } of files) {
       verifyFns,
       //deno-lint-ignore no-explicit-any
     } = testSpec as any;
-
-    testQuartoCmd("render", [input, "--to", format], verifyFns, {
-      prereq: async () => {
-        setInitializer(fullInit);
-        await initState();
-        return Promise.resolve(true);
-      },
-      teardown: () => {
-        cleanoutput(input, format);
-        return Promise.resolve();
-      },
-    });
+    if (format === "editor-support-crossref") {
+      const tempFile = Deno.makeTempFileSync();
+      testQuartoCmd("editor-support", ["crossref", "--input", input, "--output", tempFile], verifyFns, {
+        teardown: () => {
+          Deno.removeSync(tempFile);
+          return Promise.resolve();
+        }
+      }, `quarto editor-support crossref < ${input}`);
+    } else {
+      testQuartoCmd("render", [input, "--to", format], verifyFns, {
+        prereq: async () => {
+          setInitializer(fullInit);
+          await initState();
+          return Promise.resolve(true);
+        },
+        teardown: () => {
+          cleanoutput(input, format);
+          return Promise.resolve();
+        },
+      });
+    }
   }
 }
 

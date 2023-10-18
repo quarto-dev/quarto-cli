@@ -55,6 +55,9 @@ export interface TestContext {
 
   // control if test is ran or skipped
   ignore?: boolean;
+
+  // environment to pass to downstream processes
+  env?: Record<string, string>;
 }
 
 export function testQuartoCmd(
@@ -62,8 +65,11 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
+  name?: string
 ) {
-  const name = `quarto ${cmd} ${args.join(" ")}`;
+  if (name === undefined) {
+    name = `quarto ${cmd} ${args.join(" ")}`;
+  }
   test({
     name,
     execute: async () => {
@@ -71,7 +77,7 @@ export function testQuartoCmd(
         setTimeout(reject, 300000, "timed out after 5 minutes");
       });
       await Promise.race([
-        quarto([cmd, ...args]),
+        quarto([cmd, ...args], undefined, context?.env),
         timeout,
       ]);
     },

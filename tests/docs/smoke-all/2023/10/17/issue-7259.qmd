@@ -1,0 +1,12 @@
+---
+title: "oops"
+_quarto:
+  tests:
+    editor-support-crossref: 
+---
+
+This is a test.
+
+::: {#exr-a-b}
+This is a named exercise.
+:::
