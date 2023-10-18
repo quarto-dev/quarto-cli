@@ -1,0 +1,28 @@
+---
+title: "Quarto Playground"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - [" 1 \\(\\)"]  
+---
+
+# Section
+
+This is a playground for Quarto.
+
+::: {#thm-line}
+The equation of any straight line, called a linear equation, can be written as:
+
+$$
+y = mx + b
+$$
+:::
+
+See @thm-line.
+
+
+::: {#exr-a-b}
+This is a named exercise.
+:::
