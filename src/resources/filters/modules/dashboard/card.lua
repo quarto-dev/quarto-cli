@@ -209,7 +209,44 @@ local function resolveCardBodies(contents)
 
   for _i,v in ipairs(contents) do
     
-     if isCard(v) then
+     
+     if v.classes:includes("section") then
+      flushCollectedBodyContentEls()
+      local sectionContent = v.content
+      
+      if next(sectionContent) ~= nil then
+        local headerEl = sectionContent[1]
+        local cardEls = tslice(sectionContent, 2)
+
+        -- the header
+        local cardBodiesToMerge = pandoc.List({})
+        local cardFootersToMerge = pandoc.List({})
+        for i, cardEl in ipairs(cardEls) do
+
+          local cardBodyEls, cardFooterEls = resolveCardBodies(cardEl.content)
+          if cardBodyEls ~= nil then 
+            cardBodiesToMerge:extend(cardBodyEls)
+          end
+    
+          if cardFooterEls ~= nil then
+            cardFootersToMerge:extend(cardFooterEls)
+          end
+        end
+
+        local contentDiv = pandoc.Div({}, pandoc.Attr("", {kCardBodyClass}))
+        for i, cardBodyEl in ipairs(cardBodiesToMerge) do
+          contentDiv.content:extend(cardBodyEl.content)
+        end
+
+        if headerEl ~= nil then
+          contentDiv.attributes['data-title'] = pandoc.utils.stringify(headerEl)
+        end
+
+        bodyContentEls:insert(contentDiv)
+      
+      end
+
+     elseif isCard(v) then
       flushCollectedBodyContentEls()
 
       -- this is a card that is nested inside a card. Turn it into a card
