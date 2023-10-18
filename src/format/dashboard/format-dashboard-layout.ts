@@ -35,7 +35,6 @@ const kFillContentElements = {
   classes: [
     "card",
     "card-body",
-    "cell-output-display",
     "tab-pane",
     "tab-content",
     "tabset",
@@ -49,6 +48,7 @@ const kFillContentElements = {
 const kFillContainerElements = {
   classes: [
     ...kFillContentElements.classes,
+    "cell-output-display",
     "bslib-page-fill",
   ],
 };
