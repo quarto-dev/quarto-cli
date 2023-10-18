@@ -34,8 +34,19 @@ local function injectAnchor(element, addToFront)
   return element
 end
 
+quarto._quarto.ast.add_renderer("Callout", function(_)
+  return quarto._quarto.format.isConfluenceOutput()
+end, function(callout)
+  local renderedCalloutContent =
+    pandoc.write(pandoc.Pandoc(callout.content), "html")
+  local renderString = confluence.CalloutConfluence(
+          callout.type,
+          renderedCalloutContent)
+  return pandoc.RawInline('html', renderString)
+end)
+
 function Writer (doc, opts)
-  local filter ={
+  local filter = {
     Callout = function (callout)
       local renderedCalloutContent =
         pandoc.write(pandoc.Pandoc(callout.content), "html")
