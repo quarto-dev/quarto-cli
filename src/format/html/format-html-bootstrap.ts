@@ -1297,7 +1297,7 @@ const processMarginElsInCallouts = (doc: Document) => {
     }
 
     const marginNodes = calloutEl.querySelectorAll(
-      ".callout-body-container .column-margin, .callout-body-container, aside:not(.footnotes):not(.sidebar), .callout-body-container .aside:not(.footnotes)",
+      ".callout-body-container .column-margin, .callout-body-container aside:not(.footnotes):not(.sidebar), .callout-body-container .aside:not(.footnotes)",
     );
 
     if (marginNodes.length > 0) {
