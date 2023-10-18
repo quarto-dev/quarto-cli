@@ -47,6 +47,7 @@ const kSkipFillContainerElements = {
     "TR",
     "TH",
     "TD",
+    "LI",
   ],
   classes: [
     "bi",
@@ -54,6 +55,8 @@ const kSkipFillContainerElements = {
     "value-box-area",
     "value-box-title",
     "value-box-value",
+    "nav-tabs",
+    "card-header",
   ],
 };
 
@@ -73,8 +76,9 @@ const kSkipFillItemElements = {
     "TR",
     "TH",
     "TD",
+    "LI",
   ],
-  classes: ["bi", "no-fill", "callout"],
+  classes: ["bi", "no-fill", "callout", "nav-tabs", "card-header"],
 };
 
 // Process row Elements (computing the grid heights for the

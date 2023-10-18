@@ -210,7 +210,7 @@ local function resolveCardBodies(contents)
   for _i,v in ipairs(contents) do
     
      
-     if v.classes:includes("section") then
+     if v.classes ~= nil and v.classes:includes("section") then
       flushCollectedBodyContentEls()
       local sectionContent = v.content
       
