@@ -59,29 +59,35 @@ function crossref_theorems()
 
           -- output
           if _quarto.format.isLatexOutput() then
-            local begin_env = "\\begin{" .. proof.env .. "}"
-            local preamble = pandoc.Plain(pandoc.RawInline("latex", begin_env))
+            local preamble = pandoc.List()
+            preamble:insert(pandoc.RawInline("latex", 
+              "\\begin{" .. proof.env .. "}"))
             if name ~= nil then
-              preamble.content:insert(pandoc.RawInline("latex", "["))
-              tappend(preamble.content, name)
-              preamble.content:insert(pandoc.RawInline("latex", "]"))
-            end 
+              preamble:insert(pandoc.RawInline("latex", "["))
+              tappend(preamble, name)
+              preamble:insert(pandoc.RawInline("latex", "]"))
+            end
+            preamble:insert(pandoc.RawInline("latex", "\n"))
             -- https://github.com/quarto-dev/quarto-cli/issues/6077
             if el.content[1].t == "Para" then
-              el.content[1].content:insert(1, pandoc.RawInline("latex", begin_env .. "\n"))
-            elseif el.content[1].t == "RawBlock" and el.content[1].format == "latex" then
-              el.content[1].text = begin_env .. "\n" .. el.content[1].text
+              preamble:extend(el.content[1].content)
+              el.content[1].content = preamble
             else
-              el.content:insert(1, preamble)
+              if (el.content[1].t ~= "Para") then
+                -- required trick to get correct alignement when non Para content first
+                preamble:insert(pandoc.RawInline('latex', "\\leavevmode"))
+              end
+              el.content:insert(1, pandoc.Plain(preamble))
             end
             local end_env = "\\end{" .. proof.env .. "}"
             -- https://github.com/quarto-dev/quarto-cli/issues/6077
             if el.content[#el.content].t == "Para" then
               el.content[#el.content].content:insert(pandoc.RawInline("latex", "\n" .. end_env))
             elseif el.content[#el.content].t == "RawBlock" and el.content[#el.content].format == "latex" then
+              -- this is required for no empty line between end_env and previous latex block
               el.content[#el.content].text = el.content[#el.content].text .. "\n" .. end_env
             else
-              el.content:insert(pandoc.Plain(pandoc.RawInline("latex", end_env)))
+              el.content:insert(pandoc.RawBlock("latex", end_env))
             end
           elseif _quarto.format.isJatsOutput() then
             el = jatsTheorem(el,  nil, name )
