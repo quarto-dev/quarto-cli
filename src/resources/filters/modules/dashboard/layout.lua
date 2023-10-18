@@ -76,7 +76,9 @@ local function makeColumnContainer(content, options)
   -- forward the options onto attributes
   local attributes = {}
   for k,v in pairs(options) do
-    attributes["data-" .. k] = v
+    if k ~= kOptionClasses then
+      attributes["data-" .. k] = v
+    end
   end
 
   -- the classes
@@ -99,7 +101,9 @@ local function makeRowContainer(content, options)
   -- forward attributes along
   local attributes = {}
   for k,v in pairs(options) do
-    attributes["data-" .. k] = v
+    if k ~= kOptionClasses then
+      attributes["data-" .. k] = v
+    end
   end
 
   -- the classes
