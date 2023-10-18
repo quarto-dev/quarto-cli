@@ -16,6 +16,11 @@ local kCellOutputDisplayClass = "cell-output-display"
 
 function render_dashboard() 
 
+  -- only do this for dashboad output
+  if not _quarto.format.isDashboardOutput() then
+    return {}
+  end
+
   -- Track the orientation that is used to perform heading based layout
   -- the basic idea is to alternate the orientation at new heading levels
   local lastLevel = 0
@@ -40,12 +45,6 @@ function render_dashboard()
     else
       return dashboard.layout.makeColumnContainer(contents, options)
     end
-  end
-
-
-  -- only do this for dashboad output
-  if not _quarto.format.isDashboardOutput() then
-    return {}
   end
 
   -- This happens in 2 passes:
