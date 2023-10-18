@@ -40,7 +40,7 @@ Row
 :::
 
 
-Row {.flow}
+Row
 --------------------
 
 :::{.valuebox icon="hand-thumbs-up" showcase-position="bottom"}
@@ -65,7 +65,7 @@ So it is.
 
 
 
-Row {.flow}
+Row
 --------------------
 
 :::{.valuebox title="Number of Times Cats Kick Ass " icon="backpack-fill"}
