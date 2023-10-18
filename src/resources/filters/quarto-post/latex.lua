@@ -153,9 +153,30 @@ function render_latex()
     Div = column_margin,
     Span = column_margin,
     
-    -- don't look inside floats, they get their own rendering.
+    -- Pandoc emits longtable environments by default;
+    -- longtable environments increment the _table_ counter (!!)
+    -- https://mirror2.sandyriver.net/pub/ctan/macros/latex/required/tools/longtable.pdf 
+    -- (page 13, definition of \LT@array)
+    --
+    -- This causes double counting in our table environments. Our solution
+    -- is to decrement the counter manually after each longtable environment.
+    -- 
+    -- This hack causes some warning during the compilation of the latex document,
+    -- but the alternative is worse.
     FloatRefTarget = function(float)
-      return nil, false
+      -- don't look inside floats, they get their own rendering.
+      if float.type ~= "Table" then
+        return nil, false
+      end
+      float.content = _quarto.ast.walk(float.content, {
+        Table = function(table)
+          return pandoc.Blocks({
+            table,
+            pandoc.RawBlock('latex', '\\addtocounter{table}{-1}')
+          })
+        end
+      })
+      return float, false
     end,
     Image = function(img)
       if img.classes:includes("column-margin") then
