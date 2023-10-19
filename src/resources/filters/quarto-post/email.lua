@@ -331,20 +331,18 @@ function process_document(doc)
   local image_data = nil
 
   for cid, img in pairs(image_tbl) do
-    if (true) then
 
-      local image_file = io.open(img, "rb")
+    local image_file = io.open(img, "rb")
 
-      if type(image_file) == "userdata" then
-        image_data = image_file:read("*all")
-        image_file:close()
-      end
-
-      local encoded_data = quarto.base64.encode(image_data)
-      
-      -- Insert `encoded_data` into `email_images` table with prepared key
-      email_images[cid] = encoded_data
+    if type(image_file) == "userdata" then
+      image_data = image_file:read("*all")
+      image_file:close()
     end
+
+    local encoded_data = quarto.base64.encode(image_data)
+      
+    -- Insert `encoded_data` into `email_images` table with prepared key
+    email_images[cid] = encoded_data
   end
 
   -- Encode all of the strings and tables of strings into the JSON file
