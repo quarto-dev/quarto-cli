@@ -1,10 +1,19 @@
 $if(title)$
 <header>
 <nav class="navbar navbar-expand" data-bs-theme="dark">
+
+  
   <div class="navbar-container container-fluid">
-    <div class="navbar-title">$title$ <span class="navbar-author">$author$</span></div>
-    
-  </div>
+    <div class="navbar-brand-container">       
+$if(logo)$<img src="$logo$" alt="$logo-alt$" class="navbar-logo d-inline-block">$endif$
+$if(title)$
+      <div class="navbar-title">
+        <div class="navbar-title-text">$title$</div>
+        $if(author)$<div class="navbar-author">$author$</div>$endif$
+      </div>
+$endif$
+    </div>
+</div>
 </nav>
 </header>
 $endif$

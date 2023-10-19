@@ -1,9 +1,10 @@
 ---
 title: Simple Document
+author: Blue Note Records
 format: dashboard
+logo: who.jpg
 ---
 
-# Page 1
 
 
 ```{r}
@@ -15,9 +16,3 @@ plot(cars)
 ```
 
 
-# Page 2
-
-
-```{r}
-plot(mtcars)
-```

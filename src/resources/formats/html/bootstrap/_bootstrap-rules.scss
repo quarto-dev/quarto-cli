@@ -2095,6 +2095,35 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
+  .navbar-brand-container {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .navbar .navbar-title {
+    font-size: 1.45em;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .navbar.slim .navbar-title {
+    flex-direction: row;
+    align-items: center;
+    .navbar-title-text {
+      margin-right: 0.4em;
+    }
+  }
+
+  .navbar .navbar-author {
+    font-size: 0.9rem;
+  }
+
+  .navbar-logo {
+    max-height: 60px;
+    object-fit: cover;
+    margin-right: 1em;
+  }
+
   .card-header,
   .card-footer {
     p:last-child {
@@ -2106,14 +2135,6 @@ code.sourceCode a.code-annotation-anchor {
     color: $text-muted;
     font-size: 0.9em;
     text-align: center;
-  }
-  .navbar .navbar-title {
-    font-size: 1.45em;
-  }
-
-  .navbar .navbar-author {
-    margin-left: 10px;
-    font-size: 0.9rem;
   }
 }
 
