@@ -39,6 +39,7 @@ const kFillContentElements = {
     "tab-content",
     "tabset",
     "bslib-grid",
+    "bslib-grid-item",
     "sidebar-content",
     "main",
     "bslib-sidebar-layout",
