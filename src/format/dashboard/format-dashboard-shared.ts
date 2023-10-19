@@ -49,10 +49,16 @@ export const ensureCssUnits = (
   fn: (el: Element, attrValue: string) => void,
 ) => {
   return (el: Element, attrValue: string) => {
-    const attrWithUnits = attrValue.match(kEndsWithNumber)
-      ? `${attrValue}px`
-      : attrValue;
-    fn(el, attrWithUnits);
+    if (attrValue === "0") {
+      // Zero is allowed without units
+      fn(el, attrValue);
+    } else {
+      // This ends with a number and it isn't zero, make it px
+      const attrWithUnits = attrValue.match(kEndsWithNumber)
+        ? `${attrValue}px`
+        : attrValue;
+      fn(el, attrWithUnits);
+    }
   };
 };
 const kEndsWithNumber = /[0-9]$/;
