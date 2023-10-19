@@ -11,6 +11,7 @@ import {
   applyClasses,
   attrToCardBodyStyle,
   attrToStyle,
+  ensureCssUnits,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
 
@@ -80,11 +81,14 @@ const cardAttrHandlers = (doc: Document) => {
     },
     {
       attr: kAttrMaxHeight,
-      handle: attrToStyle("max-height"),
+      handle: ensureCssUnits(attrToStyle("max-height")),
     },
-    { attr: kAttrMinHeight, handle: attrToStyle("min-height") },
-    { attr: kAttrHeight, handle: attrToStyle("height") },
-    { attr: kAttrPadding, handle: attrToCardBodyStyle("padding") },
+    { attr: kAttrMinHeight, handle: ensureCssUnits(attrToStyle("min-height")) },
+    { attr: kAttrHeight, handle: ensureCssUnits(attrToStyle("height")) },
+    {
+      attr: kAttrPadding,
+      handle: ensureCssUnits(attrToCardBodyStyle("padding")),
+    },
   ];
 };
 
@@ -95,10 +99,10 @@ const cardBodyAttrHandlers = () => {
   return [
     {
       attr: kAttrMaxHeight,
-      handle: attrToStyle("max-height"),
+      handle: ensureCssUnits(attrToStyle("max-height")),
     },
-    { attr: kAttrMinHeight, handle: attrToStyle("min-height") },
-    { attr: kAttrHeight, handle: attrToStyle("height") },
+    { attr: kAttrMinHeight, handle: ensureCssUnits(attrToStyle("min-height")) },
+    { attr: kAttrHeight, handle: ensureCssUnits(attrToStyle("height")) },
   ];
 };
 
