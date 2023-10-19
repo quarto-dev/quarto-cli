@@ -4,7 +4,7 @@ format:
   dashboard:
     orientation: rows
     fill: false
-    theme: minty
+
 ---
 
 ```{python}
@@ -16,14 +16,20 @@ import json
 value = 100 * random.random()
 
 icon = "hand-thumbs-up"
-color = "primary"
 if value < 50:
   icon = "hand-thumbs-down"
-  color = "secondary"
 
 dict(
   value='%.0f'%(value),
-  color=color,
   icon=icon
 )
+```
+
+
+```{python}
+#| title: What is happening
+#| component: valuebox
+#| icon: twitter
+foo = 3 *493
+foo
 ```

@@ -147,25 +147,28 @@ local function valueboxContent(el)
 
     return title, value, content, options
   else
-    -- We need to actually pull apart the valuebox content
-    -- using the basic structure
-    local header = el.content[1]
-    
+
+    -- If there is only one child, that is the value
     local title = {}
     local value = el.content
     local content = {}
+  
 
-    if header ~= nil and header.t == "Header" then
-      title = header.content
-      value = tslice(el.content, 2)
-    elseif el.attributes[kValueBoxTitle] ~= nil then
+    -- First retrieve the title
+    local pendingContent = el.content
+    if el.attributes[kValueBoxTitle] ~= nil then
       title = el.attributes[kValueBoxTitle]
+    elseif #pendingContent > 1 then
+      title = pendingContent[1]:clone()
+      pendingContent = tslice(pendingContent, 2)
     end
-    
-    if #value > 1 then
-      content = tslice(value, 2)
-      value = value[1]
-    end
+
+    -- Now read the value
+    value = pendingContent[1]:clone()
+    pendingContent = tslice(pendingContent, 2)
+
+    -- Finally, the contents
+    content = pendingContent
     return title, value, content, {}
   end
 end
@@ -229,7 +232,12 @@ local function makeValueBox(el)
   local vbArea = pandoc.Div({}, pandoc.Attr("", {kValueBoxAreaClz}))
 
   -- The valuebox title
-  local vbTitle = pandoc.Div(pandoc.Plain(title), pandoc.Attr("", {kValueBoxTitleClz}))
+  local titleEl = title
+  if titleEl.t == "string" then
+    titleEl = pandoc.Plain(title)
+  end
+
+  local vbTitle = pandoc.Div(titleEl, pandoc.Attr("", {kValueBoxTitleClz}))
   vbArea.content:insert(vbTitle)
 
   -- The valuebox value

@@ -1,0 +1,33 @@
+---
+title: ValueBoxes
+format: 
+  dashboard:
+    orientation: rows
+    fill: false
+    theme: minty
+---
+
+:::{.valuebox}
+56
+:::
+
+:::{.valuebox}
+Number of things
+
+56
+:::
+
+:::{.valuebox}
+Number of things
+
+56
+
+Other content
+:::
+
+:::{.valuebox title="What up trey"}
+56
+
+What up dog
+:::
+

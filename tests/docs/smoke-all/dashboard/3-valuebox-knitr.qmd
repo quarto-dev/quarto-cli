@@ -84,6 +84,15 @@ list(
 )
 ```
 
+```{r}
+#| component: valuebox
+#| title: Cool things
+#| icon: facebook
+foo = 45
+bar = 3
+foo * bar
+```
+
 Row
 --------------------
 
