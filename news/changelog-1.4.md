@@ -77,6 +77,10 @@
 
 - ([#6589](https://github.com/quarto-dev/quarto-cli/issues/6589)): Don't crash when `format: asciidoc` with a missing title.
 
+## Confluence Format
+
+- ([#7256](https://github.com/quarto-dev/quarto-cli/issues/7256)): No undesired newline are created anymore in Callouts.
+
 ## Website Listings
 
 - ([#4800](https://github.com/quarto-dev/quarto-cli/issues/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.

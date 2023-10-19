@@ -38,7 +38,7 @@ quarto._quarto.ast.add_renderer("Callout", function(_)
   return quarto._quarto.format.isConfluenceOutput()
 end, function(callout)
   local renderedCalloutContent =
-    pandoc.write(pandoc.Pandoc(callout.content), "html")
+    pandoc.write(pandoc.Pandoc(callout.content), "html", { wrap_text = "none" })
   local renderString = confluence.CalloutConfluence(
           callout.type,
           renderedCalloutContent)
@@ -47,14 +47,6 @@ end)
 
 function Writer (doc, opts)
   local filter = {
-    Callout = function (callout)
-      local renderedCalloutContent =
-        pandoc.write(pandoc.Pandoc(callout.content), "html")
-      local renderString = confluence.CalloutConfluence(
-              callout.type,
-              renderedCalloutContent)
-      return pandoc.RawInline('html', renderString)
-    end,
     Image = function (image)
       local renderString = confluence.CaptionedImageConfluence(
               image.src,
@@ -108,7 +100,7 @@ function Writer (doc, opts)
         return pandoc.RawBlock('html', rawBlock.text)
       end
 
-      -- Raw blocks inclding arbirtary HTML like JavaScript are not supported in CSF
+      -- Raw blocks including arbirtary HTML like JavaScript are not supported in CSF
       return ""
     end,
     RawInline = function (inline)
