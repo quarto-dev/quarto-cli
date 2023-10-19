@@ -36,7 +36,7 @@ end
 
 
 local function isValueBox(el) 
-  if el.attributes[kComponentAttr] == kComponentValuebox then
+  if el.attributes ~= nil and el.attributes[kComponentAttr] == kComponentValuebox then
     return true
   end
   return el.classes ~= nil and el.classes:includes(kValueBoxClz)

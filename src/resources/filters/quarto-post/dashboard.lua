@@ -210,7 +210,10 @@ function render_dashboard()
     }, {
       traverse = 'topdown',
       Div = function(el) 
-        if el.classes:includes('columns') then
+        if dashboard.layout.isRowOrColContainer(el) and #el.content == 0 then
+          -- don't emit completely empty layout containers
+          return pandoc.Null()
+        elseif el.classes:includes('columns') then
 
           local sidebar = nil
           local sidebarContent = pandoc.List({})
