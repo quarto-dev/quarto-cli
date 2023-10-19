@@ -132,7 +132,7 @@ function render_dashboard()
         local nonSectionEls = pandoc.List()
         local sectionEls = pandoc.List()
         for _i, v in ipairs(el.blocks) do
-          if v.classes ~= nil and v.classes:includes(kSectionClass) then
+          if v.classes ~= nil and (v.classes:includes(kSectionClass) or dashboard.card.isCard(v)) then
             sectionEls:insert(v)
           else
             nonSectionEls:insert(v)
