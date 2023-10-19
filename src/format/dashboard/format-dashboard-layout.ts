@@ -327,6 +327,18 @@ export const recursiveApplyFillClasses = (el: Element) => {
 };
 
 const shouldApplyClasses = (el: Element, fillDescriptor: FillDescriptor) => {
+  // TODO: This is sort of hacked in right here, but could
+  // likely be place somewhere else better.
+  if (el.tagName === "DIV" && el.children.length > 0) {
+    // If a child is a flow element, don't make this a fill element
+    for (const childNode of el.childNodes) {
+      const childEl = childNode as Element;
+      if (childEl.classList?.contains(kLayoutFlow)) {
+        return false;
+      }
+    }
+  }
+
   const fillForClass = fillDescriptor.classes.some((clz) => {
     if (el.classList.contains(clz)) {
       return true;
