@@ -2182,6 +2182,16 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
+  .bslib-value-box {
+    .value-box-value {
+      font-size: 4rem;
+    }
+
+    .value-box-showcase .bi {
+      font-size: 5rem;
+    }
+  }
+
   .showcase-left-center .value-box-grid {
     display: grid;
     grid-template-columns: 30% auto;
