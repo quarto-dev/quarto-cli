@@ -60,8 +60,7 @@ function crossref_theorems()
           -- output
           if _quarto.format.isLatexOutput() then
             local preamble = pandoc.List()
-            preamble:insert(pandoc.RawInline("latex", 
-              "\\begin{" .. proof.env .. "}"))
+            preamble:insert(pandoc.RawInline("latex", "\\begin{" .. proof.env .. "}"))
             if name ~= nil then
               preamble:insert(pandoc.RawInline("latex", "["))
               tappend(preamble, name)
