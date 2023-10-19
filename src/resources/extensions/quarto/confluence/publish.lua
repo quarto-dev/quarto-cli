@@ -47,14 +47,6 @@ end)
 
 function Writer (doc, opts)
   local filter = {
-    Callout = function (callout)
-      local renderedCalloutContent =
-        pandoc.write(pandoc.Pandoc(callout.content), "html")
-      local renderString = confluence.CalloutConfluence(
-              callout.type,
-              renderedCalloutContent)
-      return pandoc.RawInline('html', renderString)
-    end,
     Image = function (image)
       local renderString = confluence.CaptionedImageConfluence(
               image.src,
