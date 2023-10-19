@@ -45,6 +45,7 @@ import {
   processRows,
 } from "./format-dashboard-layout.ts";
 import { processSidebars } from "./format-dashboard-sidebar.ts";
+import { kTemplatePartials } from "../../command/render/template.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -62,6 +63,10 @@ export function dashboardFormat() {
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
+        [kTemplatePartials]: formatResourcePath(
+          "dashboard",
+          "title-block.html",
+        ),
       },
       pandoc: {
         [kTemplate]: formatResourcePath("dashboard", "template.html"),
