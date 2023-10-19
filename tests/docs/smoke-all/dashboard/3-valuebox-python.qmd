@@ -1,0 +1,29 @@
+---
+title: ValueBoxes
+format: 
+  dashboard:
+    orientation: rows
+    fill: false
+    theme: minty
+---
+
+```{python}
+#| title: What is happening
+#| component: valuebox
+
+import random
+import json
+value = 100 * random.random()
+
+icon = "hand-thumbs-up"
+color = "primary"
+if value < 50:
+  icon = "hand-thumbs-down"
+  color = "secondary"
+
+dict(
+  value='%.0f'%(value),
+  color=color,
+  icon=icon
+)
+```

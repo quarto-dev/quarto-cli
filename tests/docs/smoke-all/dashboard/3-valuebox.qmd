@@ -41,6 +41,50 @@ Row
 
 
 Row
+---------------------
+
+```{r}
+#| title: Are Things Good?
+#| component: valuebox
+
+currentVal <- sample(1:200, 1)
+
+icon <- "hand-thumbs-up"
+color <- "primary"
+if (currentVal < 100) {
+  icon <- "hand-thumbs-down"
+  color <- "secondary"
+}
+
+list(
+  value=currentVal,
+  color=color,
+  icon=icon
+)
+```
+
+
+```{r}
+#| title: Really? Are They Good?
+#| component: valuebox
+
+currentVal <- sample(1:200, 1)
+
+icon <- "hand-thumbs-up"
+color <- "primary"
+if (currentVal < 100) {
+  icon <- "hand-thumbs-down"
+  color <- "secondary"
+}
+
+list(
+  value=currentVal,
+  color=color,
+  icon=icon
+)
+```
+
+Row
 --------------------
 
 :::{.valuebox icon="hand-thumbs-up" showcase-position="bottom"}
@@ -82,10 +126,5 @@ Row
 
 That is the way.
 
-:::{.showcase-content}
-
-plot(cars)
-
-:::
 
 :::
