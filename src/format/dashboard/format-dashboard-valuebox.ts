@@ -24,7 +24,9 @@ const kDefaultShowcasePosition = "left-center";
 
 const bsLibValueBoxClz = ["bslib-value-box", "value-box-grid"];
 
-const kDefaultColors = ["primary", "secondary", "light", "dark"];
+// The list of colors that should be used when automatically assigning a color
+// We'll just iterate through the list as we go (circular)
+const kDefaultColors = ["secondary"];
 
 export function isValueBox(el: Element) {
   return el.classList.contains(kValueboxClass);
