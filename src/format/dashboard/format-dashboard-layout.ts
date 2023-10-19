@@ -43,13 +43,13 @@ const kFillContentElements = {
     "sidebar-content",
     "main",
     "bslib-sidebar-layout",
+    "cell-output-display",
   ],
 };
 
 const kFillContainerElements = {
   classes: [
     ...kFillContentElements.classes,
-    "cell-output-display",
     "bslib-page-fill",
   ],
 };
