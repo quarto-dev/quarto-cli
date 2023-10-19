@@ -176,7 +176,13 @@ function render_dashboard()
             
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
-            if level > 1 then
+            if level == 1 then
+
+              -- Convert this to a page
+              local options = dashboard.page.readOptions(header)
+              return dashboard.page.makePage(header, contents, options)
+
+            else
 
               -- see if this heading is marked as a component
               if dashboard.card.isCard(header) then 

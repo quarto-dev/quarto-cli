@@ -5,23 +5,9 @@ local layout = require 'modules/dashboard/layout'
 local card = require 'modules/dashboard/card'
 local valuebox = require 'modules/dashboard/valuebox'
 local sidebar = require 'modules/dashboard/sidebar'
+local page = require 'modules/dashboard/page'
+local document = require 'modules/dashboard/document'
 
-
--- param name
-local kParamKey = "dashboard"
-
--- Layout param
-local kLayoutFill = "fill"
-
--- Orientation param
-local kParamOrientation = "orientation"
-local kDefaultOrientation = kOrientationRows
-
-
-local function dashboardParam(name, default) 
-  local dashboardParams = param(kParamKey, {})
-  return dashboardParams[name] or default
-end
 
 local function isLayoutContainer(el)
   if card.isCard(el) then
@@ -84,10 +70,8 @@ return {
   card = card,
   valuebox = valuebox,
   sidebar = sidebar,
-  document = {
-    fill = dashboardParam(kLayoutFill, true),
-    orientation = dashboardParam(kParamOrientation, kDefaultOrientation)
-  },
+  page = page,
+  document = document,
   layoutContainer = {
     organizer = organizer
   }

@@ -6,9 +6,6 @@ local card = require "modules/dashboard/card"
 -- left or right position (or both)
 -- theming / colors
 
- 
-
-
 
 -- Sidebar classes
 local kSidebarPanelClass = "sidebar-panel"
