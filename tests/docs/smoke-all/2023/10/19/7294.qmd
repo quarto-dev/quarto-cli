@@ -1,0 +1,36 @@
+---
+title: foo
+format: docusaurus-md
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - 
+          - "<Tabs>"                     # tabset
+          - ":::note"                    # callouts
+          - "```python title=\"Python\"" # decorated code blocks
+        - []
+---
+
+:::{.panel-tabset}
+
+## Not work
+
+```{.python filename="Python"}
+print("bar")
+```
+
+## Work
+
+```{.python}
+print("bar")
+```
+
+:::
+
+::: callout-note
+
+Note that this needs to be rendered.
+
+:::
+
