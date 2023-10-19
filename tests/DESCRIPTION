@@ -15,4 +15,5 @@ Depends:
     tibble,
     DT,
     DBI,
-    RSQLite
+    RSQLite,
+    webshot2
