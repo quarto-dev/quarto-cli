@@ -20159,6 +20159,7 @@ try {
             short: "Apply explicit table column widths",
             long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than <code>columns</code> characters wide (72 by\ndefault).\nSome formats (e.g.&nbsp;HTML) do an excellent job automatically sizing\ntable columns and so don\u2019t benefit much from column width\nspecifications. Other formats (e.g.&nbsp;LaTeX) require table column sizes in\norder to correctly flow longer cell content (this is a major reason why\ntables &gt; 72 columns wide are assigned explicit widths by Pandoc).\nThis can be specified as:"
           },
+          "If <code>none</code>, do not process raw HTML table in cell output\nand leave it as-is",
           {
             short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
             long: "Include the results of executing the code in the output. Possible\nvalues:"
@@ -21928,8 +21929,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          "If <code>none</code>, do not process raw HTML table in cell output\nand leave it as-is"
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -22153,12 +22153,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 168429,
+          _internalId: 171001,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 168421,
+              _internalId: 170993,
               type: "enum",
               enum: [
                 "png",
@@ -22174,7 +22174,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 168428,
+              _internalId: 171e3,
               type: "anyOf",
               anyOf: [
                 {
@@ -31717,8 +31717,10 @@ ${tidyverseInfo(
     const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
       "md",
       // alias for 'commonmark'
-      "hugo"
+      "hugo",
       // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
+      "email"
+      // for the HTML email format (used with Posit Connect)
     ).map(
       (format) => {
         const {
