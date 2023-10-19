@@ -33,7 +33,7 @@ import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
-import { kOutputExt } from "../../src/config/constants.ts";
+import { kMetadataFormat, kOutputExt } from "../../src/config/constants.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -113,7 +113,7 @@ function resolveTestSpecs(
         } else {
           // See if there is a project and grab it's type
           const projectOutDir = findProjectOutputDir(input);
-          const ext = metadata?.[kOutputExt];
+          const ext = metadata?.[kMetadataFormat]?.[format]?.[kOutputExt];
           const outputFile = outputForInput(input, format, projectOutDir, ext);
           if (key === "fileExists") {
             for (
