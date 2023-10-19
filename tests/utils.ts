@@ -7,6 +7,7 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
+import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
 
 // caller is responsible for cleanup!
 export function inTempDirectory(fn: (dir: string) => unknown): unknown {
@@ -19,11 +20,13 @@ export function outputForInput(
   input: string,
   to: string,
   projectOutDir?: string,
-  ext?: string
+  // deno-lint-ignore no-explicit-any
+  metadata?: Record<string, any>,
 ) {
   // TODO: Consider improving this (e.g. for cases like Beamer, or typst)
   const dir = dirname(input);
   let stem = basename(input, extname(input));
+  let ext = metadata?.[kMetadataFormat]?.[to]?.[kOutputExt];
 
   // TODO: there's a bug where output-ext keys from a custom format are 
   // not recognized (specifically this happens for confluence)
@@ -34,6 +37,7 @@ export function outputForInput(
     ext = "xml";
   }
 
+  
   const formatDesc = parseFormatString(to);
   const baseFormat = formatDesc.baseFormat;
   if (formatDesc.baseFormat === "pdf") {

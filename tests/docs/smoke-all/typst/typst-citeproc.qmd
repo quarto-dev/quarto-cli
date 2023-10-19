@@ -1,7 +1,8 @@
 ---
 title: "Citeproc and Typst"
-format: typst
-output-ext: typ
+format: 
+  typst:
+    output-ext: typ
 bibliography: refs.bib
 citeproc: true
 _quarto:
