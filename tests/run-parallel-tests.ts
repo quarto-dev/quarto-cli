@@ -1,5 +1,5 @@
 import { expandGlobSync } from "https://deno.land/std/fs/expand_glob.ts";
-import { relative } from "https://deno.land/std/path/mod.ts";
+import { basename, relative } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
 // Command line flags to use when calling `run-paralell-tests.sh`.
@@ -21,8 +21,10 @@ const detailedSmokeAll = flags["json-for-ci"];
 
 const smokeAllTestFile = "./smoke/smoke-all.test.ts";
 
+let timingFileContent;
+
 try {
-  Deno.readTextFileSync(timingFile);
+  timingFileContent = Deno.readTextFileSync(timingFile);
 } catch (e) {
   console.log(e);
   console.log(
@@ -32,7 +34,7 @@ try {
 }
 
 // Get timed tests information
-const lines = Deno.readTextFileSync(timingFile).trim().split("\n");
+const lines = timingFileContent.trim().split("\n");
 // Get all .test.ts files (including `smoke-all.test.ts`)
 const currentTests = new Set(
   [...expandGlobSync("**/*.test.ts", { globstar: true })].map((entry) =>
@@ -43,7 +45,13 @@ const currentTests = new Set(
 // Get all smoke-all documents (Only resolve glob when it will be needed)
 const currentSmokeFiles = new Set<string>(
   detailedSmokeAll
-    ? [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", { globstar: true })]
+    ? [
+      ...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}", {
+        globstar: true,
+      }),
+    ]
+      // ignore file starting with `_`
+      .filter((entry) => /^[^_]/.test(basename(entry.path)))
       .map((entry) => `${relative(Deno.cwd(), entry.path)}`)
     : [],
 );
@@ -166,7 +174,7 @@ for (const timing of testTimings) {
 
 // Add to buckets un-timed tests
 for (const currentTest of currentTests) {
-  let missingTest: string | undefined;
+  let missingTests = new Set<string>();
   // smoke-all.tests.ts is handled specifically
   if (currentTest.match(/smoke-all\.test\.ts/)) {
     if (detailedSmokeAll && !dontUseDetailledSmokeAll) {
@@ -177,7 +185,7 @@ for (const currentTest of currentTests) {
               `Missing smoke-all docs '${currentSmokeFile}' in ${timingFile}`,
             );
           failed = true;
-          missingTest = `${smokeAllTestFile} -- ${currentSmokeFile}`;
+          missingTests.add(`${smokeAllTestFile} -- ${currentSmokeFile}`);
         }
       }
     }
@@ -185,13 +193,15 @@ for (const currentTest of currentTests) {
     flags.verbose &&
       console.log(`Missing test '${currentTest}' in ${timingFile}`);
     failed = true;
-    missingTest = currentTest;
+    missingTests.add(currentTest);
   }
-  if (missingTest !== undefined) {
-    // add missing timed tests, randomly to buckets
-    buckets[Math.floor(Math.random() * nBuckets)].push({
-      name: missingTest,
-      timing: { real: 0, user: 0, sys: 0 },
+  if (missingTests.size !== 0) {
+    missingTests.forEach((missingTest) => {
+      // add missing timed tests, randomly to buckets
+      buckets[Math.floor(Math.random() * nBuckets)].push({
+        name: missingTest,
+        timing: { real: 0, user: 0, sys: 0 },
+      });
     });
   }
 }

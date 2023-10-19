@@ -9,7 +9,7 @@ _quarto:
         - 
           - '[^\]]```python {6-8} showLineNumbers'
           - '[^\]]```python {1-2[,]5-6} showLineNumbers'
-          - '[^\]]```python {1[,]4} showLineNumbers'
+          - '[^\]]```python {1|4} showLineNumbers'
           - '[^\]][`]r {1[,]3} showLineNumbers'
         - []
     revealjs:

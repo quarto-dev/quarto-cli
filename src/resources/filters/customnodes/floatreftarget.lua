@@ -240,8 +240,13 @@ end, function(float)
   end
 
   local latex_caption
+  if float.caption_long and type(float.caption_long) ~= "table" then
+    latex_caption = quarto.utils.as_inlines(float.caption_long)
+  else
+    latex_caption = float.caption_long
+  end
 
-  if float.caption_long and #float.caption_long.content == 0 then
+  if #latex_caption == 0 then
     local caption_setup = quarto.LatexInlineCommand({
       name = "captionsetup",
       arg = "labelsep=none"
@@ -260,11 +265,11 @@ end, function(float)
     name = "label",
     arg = pandoc.Str(float.identifier)
   })
-  float.caption_long.content:insert(1, label_cmd)
+  latex_caption:insert(1, label_cmd)
   latex_caption = quarto.LatexInlineCommand({
     name = caption_cmd_name,
     opt_arg = fig_scap,
-    arg = pandoc.Span(quarto.utils.as_inlines(float.caption_long or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
+    arg = pandoc.Span(quarto.utils.as_inlines(latex_caption or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
   })
 
   if float.parent_id then
@@ -315,11 +320,11 @@ end, function(float)
 
   if latex_caption then
     if caption_cmd_name == kSideCaptionEnv then
-        if #figure_content > 1 then
-          figure_content:insert(2, latex_caption) -- FIXME why is this 2 and not 1?
-        else
-          figure_content:insert(latex_caption)
-        end
+      if #figure_content > 1 then
+        figure_content:insert(2, latex_caption) -- FIXME why is this 2 and not 1?
+      else
+        figure_content:insert(latex_caption)
+      end
     elseif capLoc == "top" then
       figure_content:insert(1, latex_caption)
     else
@@ -614,11 +619,14 @@ end, function(float)
       imgEl.caption =  quarto.utils.as_inlines(float.caption_long) or {}
     end
     return pandoc.Para({imgEl})
+  elseif float.in_code_cell_output then
+    -- If the float is in a code_cell_output, it is ok to drop the identifier
+    -- and caption, because that infdormation is still carried by the cell itself
+    return float.content
   else
-    return pandoc.Figure(
-      {float.content},
-      {float.caption_long},
-      float.identifier)
+    -- TODO: Need to deal with other cases, such as flextable, which results in a 
+    -- Table which contains a FloatRefTarget (with an image/figure) inside of it.
+    return float.content
   end
 end)
 

@@ -58,6 +58,7 @@ import { kCliffyImplicitCwd } from "./config/constants.ts";
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
+  env?: Record<string, string>,
 ) {
   // check for need to reconfigure
   if (quartoConfig.isDebug()) {
@@ -73,6 +74,7 @@ export async function quarto(
   if (args[0] === "pandoc" && args[1] !== "help") {
     const result = await execProcess({
       cmd: [pandocBinaryPath(), ...args.slice(1)],
+      env,
     });
     Deno.exit(result.code);
   }
@@ -81,6 +83,7 @@ export async function quarto(
   if (args[0] === "typst") {
     const result = await execProcess({
       cmd: [typstBinaryPath(), ...args.slice(1)],
+      env,
     });
     Deno.exit(result.code);
   }
@@ -112,6 +115,13 @@ export async function quarto(
 
   debug("Quarto version: " + quartoConfig.version());
 
+  const oldEnv: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(env || {})) {
+    const oldV = Deno.env.get(key);
+    oldEnv[key] = oldV;
+    Deno.env.set(key, value);
+  }
+
   const quartoCommand = new Command()
     .name("quarto")
     .help({ colors: false })
@@ -132,8 +142,17 @@ export async function quarto(
   initSessionTempDir();
   onCleanup(cleanupSessionTempDir);
 
-  await quartoCommand.command("help", new HelpCommand().global())
+  const promise = quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
+  for (const [key, value] of Object.entries(oldEnv)) {
+    if (value === undefined) {
+      Deno.env.delete(key);
+    } else {
+      Deno.env.set(key, value);
+    }
+  }
+
+  await promise;
 }
 
 if (import.meta.main) {

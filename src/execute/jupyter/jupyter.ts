@@ -107,6 +107,7 @@ import {
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
+import { basename } from "https://deno.land/std@0.185.0/path/win32.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -512,22 +513,43 @@ export const jupyterEngine: ExecutionEngine = {
     return server.serve();
   },
 
-  postRender: async (files: RenderResultFile[], _context?: ProjectContext) => {
-    // discover non _files dir resources for server: shiny and ammend app.py with them
-    files.filter((file) => isServerShiny(file.format))
-      .forEach((file) => {
-        const [dir, stem] = dirAndStem(file.input);
-        const filesDir = join(dir, inputFilesDir(file.input));
-        const extraResources = file.resourceFiles
-          .filter((resource) => !resource.startsWith(filesDir))
-          .map((resource) => relative(dir, resource));
-        const appScript = join(dir, `${stem}-app.py`);
-        if (existsSync(appScript)) {
-          // TODO: extraResoures is an array of relative paths to resources
-          // that are NOT in the _files dir. these should be injected into
-          // the appropriate place in appScript
+  postRender: async (file: RenderResultFile, _context?: ProjectContext) => {
+    // discover non _files dir resources for server: shiny and amend app.py with them
+    if (isServerShiny(file.format)) {
+      const [dir, stem] = dirAndStem(file.input);
+      const filesDir = join(dir, inputFilesDir(file.input));
+      const extraResources = file.resourceFiles
+        .filter((resource) => !resource.startsWith(filesDir))
+        .map((resource) => relative(dir, resource));
+      const appScript = join(dir, `${stem}-app.py`);
+      if (existsSync(appScript)) {
+        // compute static assets
+        const staticAssets = [inputFilesDir(file.input), ...extraResources];
+
+        // check for (illegal) parent dir assets
+        const parentDirAssets = staticAssets.filter((asset) =>
+          asset.startsWith("..")
+        );
+        if (parentDirAssets.length > 0) {
+          error(
+            `References to files in parent directories found in document with server: shiny ` +
+              `(${basename(file.input)}): ${
+                JSON.stringify(parentDirAssets)
+              }. All resource files referenced ` +
+              `by Shiny documents must exist in the same directory as the source file.`,
+          );
+          throw new Error();
         }
-      });
+
+        // In the app.py file, replace the placeholder with the list of static assets.
+        let appContents = Deno.readTextFileSync(appScript);
+        appContents = appContents.replace(
+          "##STATIC_ASSETS_PLACEHOLDER##",
+          JSON.stringify(staticAssets),
+        );
+        Deno.writeTextFileSync(appScript, appContents);
+      }
+    }
   },
 
   postprocess: (options: PostProcessOptions) => {

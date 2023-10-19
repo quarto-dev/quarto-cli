@@ -11,6 +11,7 @@ import {
   resolvePathGlobs,
   safeExistsSync,
 } from "../../core/path.ts";
+import * as ld from "../../core/lodash.ts";
 import { engineIgnoreGlobs } from "../../execute/engine.ts";
 import { kQuartoScratch } from "../../project/project-scratch.ts";
 import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extract-resources.ts";
@@ -131,5 +132,6 @@ export async function resourceFilesFromFile(
       }
     },
   );
-  return resourceFiles;
+  // return  unique entries
+  return ld.uniq(resourceFiles) as string[];
 }

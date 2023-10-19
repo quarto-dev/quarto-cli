@@ -148,7 +148,7 @@ export async function preview(
 
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags.to, project);
+  const format = await previewFormat(file, flags.to, undefined, project);
   setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
@@ -345,6 +345,7 @@ export async function previewRenderRequestIsCompatible(
     const reqFormat = await previewFormat(
       request.path,
       request.format,
+      undefined,
       project,
     );
     return reqFormat === format;
@@ -355,11 +356,14 @@ export async function previewRenderRequestIsCompatible(
 export async function previewFormat(
   file: string,
   format?: string,
+  formats?: Record<string, Format>,
   project?: ProjectContext,
 ) {
-  format = format ||
-    Object.keys(await renderFormats(file, "all", project))[0] ||
-    "html";
+  if (format) {
+    return format;
+  }
+  formats = formats || await renderFormats(file, "all", project);
+  format = Object.keys(formats)[0] || "html";
   return format;
 }
 

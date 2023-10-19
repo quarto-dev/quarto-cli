@@ -48,7 +48,7 @@ function code_filename()
     --         block.attributes["filename"] = nil
     --         local code_block = codeBlockWithFilename(block, filename)
     --         newBlocks:insert(code_block)
-    --       elseif block.t == "Div" and block.content[1].t == "CodeBlock" then
+    --       elseif is_regular_node(block, "Div") and block.content[1].t == "CodeBlock" then
     --         foundFilename = true
     --         block.attributes["filename"] = nil
     --         block.content[1] = codeBlockWithFilename(block.content[1], filename)

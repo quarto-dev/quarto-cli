@@ -62,7 +62,6 @@ function crossref_theorems()
             local begin_env = "\\begin{" .. proof.env .. "}"
             local preamble = pandoc.Plain(pandoc.RawInline("latex", begin_env))
             if name ~= nil then
-              env = env .. "[" .. name .. "]"
               preamble.content:insert(pandoc.RawInline("latex", "["))
               tappend(preamble.content, name)
               preamble.content:insert(pandoc.RawInline("latex", "]"))
@@ -161,7 +160,7 @@ function captionPrefix(name, type, theoremType, order)
   table.insert(prefix, pandoc.Space())
   tappend(prefix, numberOption(type, order))
   table.insert(prefix, pandoc.Space())
-  if name then
+  if #name > 0 then
     table.insert(prefix, pandoc.Str("("))
     tappend(prefix, name)
     table.insert(prefix, pandoc.Str(")"))

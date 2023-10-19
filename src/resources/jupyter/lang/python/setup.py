@@ -75,14 +75,41 @@ if r'{4}':
 # to set a variable that stays in global scope.
 if {6}:
   try:
-    import htmltools
-    htmltools.html_dependency_render_mode = "json"
-    try:
-      # IPython 7.14 preferred import
-      from IPython.display import display
-    except:
-      from IPython.core.display import display
-    output = display
+    import htmltools as _htmltools
+    import ast as _ast
+
+    _htmltools.html_dependency_render_mode = "json"
+
+    # This decorator will be added to all function definitions
+    def _display_if_has_repr_html(x):
+      try:
+        # IPython 7.14 preferred import
+        from IPython.display import display, HTML
+      except:
+        from IPython.core.display import display, HTML
+
+      if hasattr(x, '_repr_html_'):
+        display(HTML(x._repr_html_()))
+      return x
+
+    class _FunctionDefReprHtml(_ast.NodeTransformer):
+      def visit_FunctionDef(self, node):
+        node.decorator_list.insert(
+          0,
+          _ast.Name(id="_display_if_has_repr_html", ctx=_ast.Load())
+        )
+        return node
+
+      def visit_AsyncFunctionDef(self, node):
+        node.decorator_list.insert(
+          0,
+          _ast.Name(id="_display_if_has_repr_html", ctx=_ast.Load())
+        )
+        return node
+
+    ip = get_ipython()
+    ip.ast_transformers.append(_FunctionDefReprHtml())
+
   except:
     pass
 

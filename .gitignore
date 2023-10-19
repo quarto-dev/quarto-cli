@@ -5,7 +5,6 @@
 *.Rhistory
 __pycache__/
 .Rproj.user
-tests/run-tests.sh
 package/dist/**
 /package/out
 /tests/cov_profile

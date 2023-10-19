@@ -53,7 +53,7 @@ function has_theorem_ref(el)
 end
 
 function is_theorem_div(div)
-  return div.t == "Div" and has_theorem_ref(div)
+  return is_regular_node(div, "Div") and has_theorem_ref(div)
 end
 
 _quarto.ast.add_handler({
@@ -134,7 +134,7 @@ end, function(thm)
   elseif _quarto.format.isJatsOutput() then
 
     -- JATS XML theorem
-    local lbl = captionPrefix(nil, type, theorem_type, order)
+    local lbl = captionPrefix({}, type, theorem_type, order)
     el = jatsTheorem(el, lbl, name)          
     
   else
