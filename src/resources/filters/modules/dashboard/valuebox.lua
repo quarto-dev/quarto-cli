@@ -49,6 +49,9 @@ local function toLines(s)
 end
 
 
+local kRListValuePattern = '%[1%] "?([^"]*)'
+local kRListKeyPattern = "%$(.*)"
+
 local function parseStdOutToOptions(stdOut) 
   local options = {}
   local value = nil
@@ -74,14 +77,14 @@ local function parseStdOutToOptions(stdOut)
       end
     end
 
-  else
+  elseif firstChar == '$' then
     -- parse the stdout (look for knitr style output)
     local pendingKey = nil
     for line in toLines(stdOut) do
       if pendingKey ~= nil then
-        local cleaned = line:match('%[1%] "?([^"]*)"?')
+        local cleaned = line:match(kRListValuePattern)
   
-        if pendingKey == 'value' then
+        if pendingKey == kValueBoxValue then
           value = cleaned
           pendingKey = nil
         else
@@ -89,13 +92,18 @@ local function parseStdOutToOptions(stdOut)
           pendingKey = nil
         end
       else
-        local key = line:match("%$(.*)")
+        local key = line:match(kRListKeyPattern)
         if kForwardValueFromCodeCell:includes(key) then
           pendingKey = key
         end
       end
     end  
+  elseif firstChar == '[' then
+    local cleaned = stdOut:match(kRListValuePattern)
+    value = cleaned
   end
+
+
   return options, value
 end
 
