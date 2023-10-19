@@ -303,6 +303,74 @@ local function as_blocks(v)
   -- luacov: enable
 end
 
+local function match_fun(...)
+  local args = {...}
+  return function(v)
+    for _, f in ipairs(args) do
+      local r = f(v)
+      if r == false or r == nil then
+        return r
+      end
+      if r ~= true then
+        v = r
+      end
+    end
+    return v
+  end
+end
+
+local function match(str)
+  local vs = split(str, "/")
+  local result = {}
+  local captures = {}
+  local capture_id = function(v) return v end
+  local capture_add = function(v) 
+    table.insert(captures, v) 
+    return v 
+  end
+  local captured = false
+
+  for _, v in ipairs(vs) do
+    local first = v:sub(1, 1)
+    local last = v:sub(-1)
+    local capture_fun = capture_id
+    if first == "{" then -- capture
+      v = v:sub(2, -2)
+      if last ~= "}" then
+        fail("invalid match token: " .. v .. "(in " .. str .. ")")
+        return match_fun({})
+      end
+      first = v:sub(1, 1)
+      capture_fun = capture_add
+      captured = true
+    end
+    -- close over capture_fun in all cases
+    if first == "[" then -- [1]
+      local n = tonumber(v:sub(2, -2))
+      table.insert(result, (function(capture_fun)
+        return function(node) return node.content ~= nil and node.content[n] and capture_fun(node.content[n]) end
+      end)(capture_fun))
+    elseif first:upper() == first then -- Plain
+      table.insert(result, (function(capture_fun)
+        return function(node) return node.t == v and capture_fun(node) end
+      end)(capture_fun))
+    else
+      fail("invalid match token: " .. v .. "(in " .. str .. ")")
+      return match_fun({})
+    end
+  end
+  if captured then
+    local function send_capture(v)
+      if v then 
+        return captures
+      end
+      return v
+    end
+    table.insert(result, send_capture)
+  end
+  return match_fun(table.unpack(result))
+end
+
 return {
   dump = dump,
   type = get_type,
@@ -312,5 +380,22 @@ return {
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
+  match = match,
+  add_to_blocks = function(blocks, block)
+    if pandoc.utils.type(blocks) ~= "Blocks" then
+      fatal("add_to_blocks: invalid type " .. pandoc.utils.type(blocks))
+    end
+    if block == nil then
+      return
+    end
+    local t = pandoc.utils.type(block)
+    if t == "Blocks" or t == "Inlines" then
+      blocks:extend(block)
+    elseif t == "Block" then
+      table.insert(blocks, block)
+    else
+      fatal("add_to_blocks: invalid type " .. t)
+    end
+  end,
 }
 

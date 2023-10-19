@@ -104,11 +104,11 @@ local function isBibliographyOutput()
   return tcontains(formats, FORMAT)
 end
 
-local function is_docusaurus_output()
+local function isDocusaurusOutput()
   return string.match(param("custom-writer", ""), "docusaurus_writer.lua$")
 end
 
-local function is_confluence_output()
+local function isConfluenceOutput()
   return param("quarto-custom-format", "") == "confluence"
 end
 
@@ -125,16 +125,20 @@ local function isMarkdownOutput()
     "commonmark_x",
     "markua"
   }
-  return tcontains(formats, FORMAT) or is_docusaurus_output()
+  return tcontains(formats, FORMAT) or isDocusaurusOutput()
 end
 
 local function isGithubMarkdownOutput()
   return param("format-identifier", {})["base-format"] == "gfm"
 end
 
+local function isHugoMarkdownOutput()
+  return param("format-identifier", {})["target-format"] == "hugo-md"
+end
+
 -- check for markdown with raw_html enabled
 local function isMarkdownWithHtmlOutput()
-  return (isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")) or is_docusaurus_output()
+  return (isMarkdownOutput() and tcontains(PANDOC_WRITER_OPTIONS.extensions, "raw_html")) or isDocusaurusOutput()
 end
 
 -- check for ipynb output
@@ -260,6 +264,7 @@ return {
   isSlideOutput = isSlideOutput,
   isEpubOutput = isEpubOutput,
   isGithubMarkdownOutput = isGithubMarkdownOutput,
+  isHugoMarkdownOutput = isHugoMarkdownOutput,
   isMarkdownOutput = isMarkdownOutput,
   isMarkdownWithHtmlOutput = isMarkdownWithHtmlOutput,
   isIpynbOutput = isIpynbOutput, 
@@ -271,6 +276,7 @@ return {
   isAstOutput = isAstOutput,
   isJatsOutput = isJatsOutput,
   isTypstOutput = isTypstOutput,
-  isConfluenceOutput = is_confluence_output,
+  isConfluenceOutput = isConfluenceOutput,
+  isDocusaurusOutput = isDocusaurusOutput,
   parse_format = parse_format
 }

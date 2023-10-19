@@ -35,6 +35,10 @@ function render_typst()
 end
 
 function render_typst_fixups()
+  if not _quarto.format.isTypstOutput() then
+    return {}
+  end
+
   return {
     Para = function(para)
       return para:walk({

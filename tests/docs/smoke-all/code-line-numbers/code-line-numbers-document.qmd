@@ -1,0 +1,55 @@
+---
+title: test
+code-line-numbers: true
+execute:
+  echo: true
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - 
+          - '[^\]]```python showLineNumbers'
+        - 
+          - '[^\]][`]r showLineNumbers'
+          - '[^\]]```julia showLineNumbers'
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - '#raw-cell .number-lines'
+        - 
+          - '#raw-cell-opt-out .number-lines'
+          - '#compute-cell-opt-out .number-lines'
+---
+
+## Raw cell 
+
+```{.python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+## Raw cell opt-out
+
+```{.julia code-line-numbers=false}
+1 + 1
+2 + 2
+3 + 3 
+```
+
+## Compute Cell opt-out
+
+```{r}
+#| code-line-numbers: false
+#| results: hold
+1 + 1
+2 + 2
+3 + 3 
+```

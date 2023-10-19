@@ -316,7 +316,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "tbl-column", "tbl-cap-location", "cap-location", "code-fold",
       "code-summary", "code-overflow", "code-line-numbers",
       "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign",
-      "output",
+      "output", "html-table-processing",
       # duplicating options as they were normalized in knitr < 1.44
       "fig-column", "fig.column", "fig-cap-location", "fig.cap-location",
       # those options have been aliased in knitr 1.44
@@ -968,7 +968,7 @@ output_div <- function(x, label, classes, attr = NULL) {
   }
   paste0(
     div,
-    paste(paste0(".", classes), collapse = " ") ,
+    paste(paste0(".", classes), collapse = " "),
     ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",
     x,

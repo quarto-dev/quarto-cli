@@ -1,0 +1,29 @@
+---
+title: Knitr Table Test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<a href=\"#tbl-cars\" class=\"quarto-xref\">"
+          - "<div id=\"tbl-tables\">"
+          - "<div id=\"tbl-cars\">"
+          - "<div id=\"tbl-pressure\">"
+          - "\\(a\\) Cars"
+          - "\\(b\\) Pressure"
+          - "Table 1: Tables"
+        - []
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars {#tbl-cars}")
+kable(head(pressure), caption = "Pressure {#tbl-pressure}")
+```
+
+See @tbl-cars for more information.

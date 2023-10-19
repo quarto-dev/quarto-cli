@@ -1,0 +1,26 @@
+---
+title: Python Crossref Test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        -
+          - "<a href=\"#fig-plot\" class=\"quarto-xref\">"
+          - "id=\"fig-plot\" "
+          - "alt=\"Figure 1: Plot\""
+        - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+For example, see @fig-plot.

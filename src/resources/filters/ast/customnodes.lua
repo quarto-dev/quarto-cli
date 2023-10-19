@@ -20,9 +20,11 @@ function scaffold(node)
   end
 end
 
-function is_custom_node(node)
+function is_custom_node(node, name)
   if node.attributes and node.attributes.__quarto_custom == "true" then
-    return node
+    if name == nil or name == node.attributes.__quarto_custom_type then
+      return node
+    end
   end
   return false
 end

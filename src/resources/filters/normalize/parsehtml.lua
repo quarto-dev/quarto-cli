@@ -27,8 +27,20 @@ function parse_html_tables()
   filter = {
     traverse = "topdown",
     Div = function(div)
-      if div.attributes[constants.kHtmlTableProcessing] == "none" then
-        return div.contents, false
+      if div.attributes[constants.kHtmlTableProcessing] then
+        -- catch and remove attributes
+        local htmlTableProcessing = div.attributes[constants.kHtmlTableProcessing]
+        div.attributes[constants.kHtmlTableProcessing] = nil
+        if htmlTableProcessing == "none" then
+          quarto.log.output(div.attr == pandoc.Attr())
+          if div.attr == pandoc.Attr() then
+            -- if no other attributes are set on the div, don't keep it
+            return div.content, false
+          else
+            -- when set on a div like div.cell-output-display, we need to keep it
+            return div, false
+          end
+        end
       end
     end,
     RawBlock = function(el)

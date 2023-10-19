@@ -33,6 +33,7 @@ function server_shiny()
         table.concat(args, " ") ..
         "'. Please make sure the 'shiny' Python package is installed."
       )
+      os.exit(1)
     end
 
     return res
@@ -48,16 +49,6 @@ function server_shiny()
     return deps
   end
 
-  -- Split a string on commas, trimming whitespace from each element.
-  local function splitString(s)
-    local t = {}
-    for str in string.gmatch(s, "([^,]+)") do
-        str = string.match(str, "^%s*(.-)%s*$")  -- Trim whitespace
-        table.insert(t, str)
-    end
-    return t
-  end
-
 
   local codeCells = {
     schema_version = 1,
@@ -71,39 +62,33 @@ function server_shiny()
         return el
       end
 
-      -- There are three types of contexts: "ui", "server-session", and
-      -- "server-global". The default for a code cell is "ui" and
-      -- "server-session". We also support a type called "setup", which is just
-      -- shorthand for "ui" and "server-global".
-      --
-      -- Each cell will have some combination of the three types of contexts.
-      -- For ui cells, we'll also keep the subsequent output cell.
-      -- For non-ui cells, we will discard the subsequent output cell.
-
-      -- We'll set the context when we hit a relevant Python code block. (We
-      -- don't want to interfere with other types of code blocks.)
+      -- Start the context as nil and then set it when we hit a relevant Python
+      -- code block. (We don't want to interfere with other types of code
+      -- blocks.)
       local context = nil
 
       local res = pandoc.walk_block(divEl, {
         CodeBlock = function(el)
           if el.attr.classes:includes("python") and el.attr.classes:includes("cell-code") then
 
-            context = divEl.attr.attributes["context"] or { "ui", "server-session" }
+            context = divEl.attr.attributes["context"] or "default"
 
-            -- "setup" is shorthand for "ui" and "server-global".
-            if context == "setup" then
-              context = { "ui", "server-global" }
-            end
-
-            if type(context) == "string" then
-              context = splitString(context)
+            -- Translate the context names to ones that are used by the backend
+            -- which writes out the app file.
+            if context == "default" then
+              context = { "ui", "server" }
+            elseif context == "ui" then
+              context = { "ui" }
+            elseif context == "setup" then
+              context = { "ui", "server-setup" }
+            else
+              error(
+                'Invalid context: "' .. context ..
+                '". Valid context types are "default", "ui", and "setup".'
+              )
             end
 
             context = pandoc.List(context)
-
-            -- TODO: check for names other than ui, server-session,
-            -- server-global in context, and if present, error. Also, error if
-            -- both server-session and server-global are present.
 
             table.insert(
               codeCells.cells,
@@ -113,7 +98,8 @@ function server_shiny()
         end,
         Div = function(el)
           -- In the HTML output, only include cell-output for ui cells.
-          -- TODO: It would be better if we could avoid execution of non-ui cells.
+          -- `context` will be non-nil only if there's a CodeBlock in the
+          -- wrapper div which has gone through the CodeBlock function above.
           if context ~= nil
             and not context:includes("ui")
             and el.attr.classes:includes("cell-output") then

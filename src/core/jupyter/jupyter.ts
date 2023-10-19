@@ -109,6 +109,7 @@ import {
   kError,
   kEval,
   kFigCapLoc,
+  kHtmlTableProcessing,
   kInclude,
   kLayout,
   kLayoutAlign,
@@ -210,6 +211,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCodeLineNumbers,
   kCodeSummary,
   kCodeOverflow,
+  kHtmlTableProcessing,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -1489,6 +1491,10 @@ async function mdFromCodeCell(
         // add execution count if we have one
         if (typeof (output.execution_count) === "number") {
           md.push(` execution_count=${output.execution_count}`);
+        }
+
+        if (cell.options[kHtmlTableProcessing] === "none") {
+          md.push(" html-table-processing=none");
         }
 
         md.push("}\n");
