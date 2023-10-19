@@ -43,6 +43,20 @@ export const processAndRemoveAttr = (
   }
 };
 
+// Wraps other processing functions and makes sure that
+// the value has css units before passing it along
+export const ensureCssUnits = (
+  fn: (el: Element, attrValue: string) => void,
+) => {
+  return (el: Element, attrValue: string) => {
+    const attrWithUnits = attrValue.match(kEndsWithNumber)
+      ? `${attrValue}px`
+      : attrValue;
+    fn(el, attrWithUnits);
+  };
+};
+const kEndsWithNumber = /[0-9]$/;
+
 // Converts the value of an attribute to a style on the
 // element itself
 export const attrToStyle = (style: string) => {
