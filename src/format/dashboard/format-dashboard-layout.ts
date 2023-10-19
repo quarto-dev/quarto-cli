@@ -330,13 +330,16 @@ const shouldApplyClasses = (el: Element, fillDescriptor: FillDescriptor) => {
   // TODO: This is sort of hacked in right here, but could
   // likely be place somewhere else better.
   if (el.tagName === "DIV" && el.children.length > 0) {
-    // If a child is a flow element, don't make this a fill element
+    // If this has only flow children then leave the class off
+    let hasFillChild = false;
     for (const childNode of el.childNodes) {
       const childEl = childNode as Element;
-      if (childEl.classList?.contains(kLayoutFlow)) {
-        return false;
+      if (!childEl.classList?.contains(kLayoutFlow)) {
+        hasFillChild = true;
+        break;
       }
     }
+    return hasFillChild;
   }
 
   const fillForClass = fillDescriptor.classes.some((clz) => {
