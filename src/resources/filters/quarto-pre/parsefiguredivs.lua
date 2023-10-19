@@ -583,23 +583,24 @@ function forward_cell_subcaps()
             return nil
           end
           -- now we attempt to insert subcaptions where it makes sense for them to be inserted
-
-          if is_regular_node(subdiv.content[1], "Table") then
-            subdiv.content[1].caption.long = quarto.utils.as_blocks(pandoc.Str(subcaps[index]))
-            subdiv.content[1].identifier = div.identifier .. "-" .. tostring(index)
-            index = index + 1
-            return subdiv
-          end
-
-          local fig = discoverFigure(subdiv.content[1], false) or discoverLinkedFigure(subdiv.content[1], false)
-          if fig ~= nil then
-            fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
-            fig.identifier = div.identifier .. "-" .. tostring(index)
-            index = index + 1
-            return subdiv
-          end
-
-          return nil
+          subdiv.content = _quarto.ast.walk(subdiv.content, {
+            Table = function(pandoc_table)
+              pandoc_table.caption.long = quarto.utils.as_blocks(pandoc.Str(subcaps[index]))
+              pandoc_table.identifier = div.identifier .. "-" .. tostring(index)
+              index = index + 1
+              return pandoc_table
+            end,
+            Div = function(maybe_fig)
+              local fig = discoverFigure(maybe_fig, false) or discoverLinkedFigure(maybe_fig, false)
+              if fig ~= nil then
+                fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
+                fig.identifier = div.identifier .. "-" .. tostring(index)
+                index = index + 1
+                return maybe_fig
+              end
+            end
+          })
+          return subdiv
         end
       })
       if index ~= 1 then
