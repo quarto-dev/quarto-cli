@@ -101,6 +101,8 @@ local function parseStdOutToOptions(stdOut)
   elseif firstChar == '[' then
     local cleaned = stdOut:match(kRListValuePattern)
     value = cleaned
+  else 
+    value = stdOut
   end
 
 
