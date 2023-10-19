@@ -1,0 +1,27 @@
+---
+title: "Development Indicators by Continent"
+author: "Gapminder Analytics Group"
+format: dashboard
+---
+
+```{python}
+import plotly.express as px
+df = px.data.gapminder()
+```
+
+```{python}
+#| title: Population
+#| expandable: true
+px.area(df, x="year", y="pop", color="continent", line_group="country")
+```
+
+```{python}
+#| title: Life Expectancy
+px.line(df, x="year", y="lifeExp", color="continent", line_group="country")
+```
+
+## {.flow}
+
+Mauris quis ex leo. Duis sagittis vel odio ac interdum. Sed molestie mauris neque, sed commodo est iaculis fringilla. Curabitur molestie suscipit sem, vitae condimentum dolor feugiat eget. Cras tincidunt sem vel dolor feugiat, et vehicula mauris fermentum. Nulla iaculis libero vitae porttitor consectetur. Vivamus ultricies lectus imperdiet elit lacinia congue. Etiam efficitur tortor est, nec pharetra mi congue quis. Curabitur accumsan, ante id condimentum elementum, felis odio suscipit felis, eget pellentesque justo tortor quis odio. Quisque nec ex et enim tempor dapibus quis ut libero. Quisque feugiat justo ipsum, eu tincidunt justo posuere id. Donec non ullamcorper eros. Curabitur maximus lacus vel lectus pulvinar vehicula.
+
+Maecenas nunc leo, molestie quis augue ac, interdum fringilla ante. Sed ut nunc diam. Etiam aliquet elit eget volutpat dignissim. Cras cursus bibendum eros, a pellentesque mauris venenatis non. In iaculis porta justo, vitae luctus lectus consectetur ut. Integer pretium dolor aliquet massa eleifend faucibus. Ut sed metus lacinia, fringilla neque eget, ultrices nunc.
