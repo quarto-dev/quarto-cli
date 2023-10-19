@@ -7,17 +7,17 @@ format:
     theme: minty
 ---
 
-:::{.valuebox}
+:::{.valuebox bg-color="#00009933" fg-color="#ffffff"}
 56
 :::
 
-:::{.valuebox}
+:::{.valuebox color="warning"}
 Number of things
 
 56
 :::
 
-:::{.valuebox}
+:::{.valuebox fg-color="green"}
 Number of things
 
 56
