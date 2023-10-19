@@ -48,7 +48,7 @@ export function processValueBoxes(doc: Document) {
         valueboxBodyEl,
         kValueBoxColorAttr,
         (_el: Element, attrValue: string) => {
-          valueboxEl.classList.add(`bg-${attrValue}`);
+          colorEl(valueboxEl, attrValue, "background");
           colorProcessed = true;
         },
       );
@@ -59,7 +59,7 @@ export function processValueBoxes(doc: Document) {
           valueboxBodyEl,
           kValueBoxBgColorAttr,
           (_el: Element, attrValue: string) => {
-            valueboxEl.classList.add(`bg-${attrValue}`);
+            colorEl(valueboxEl, attrValue, "background");
             colorProcessed = true;
           },
         );
@@ -68,7 +68,7 @@ export function processValueBoxes(doc: Document) {
           valueboxBodyEl,
           kValueBoxFgColorAttr,
           (_el: Element, attrValue: string) => {
-            valueboxEl.classList.add(`text-${attrValue}`);
+            colorEl(valueboxEl, attrValue, "foreground");
             colorProcessed = true;
           },
         );
@@ -77,7 +77,7 @@ export function processValueBoxes(doc: Document) {
       // Finally, try automatically assigning a color
       if (!colorProcessed) {
         const suggestedColorIndex = autoColorizeCount % kDefaultColors.length;
-        valueboxEl.classList.add(`bg-${kDefaultColors[suggestedColorIndex]}`);
+        colorEl(valueboxEl, kDefaultColors[suggestedColorIndex], "background");
         autoColorizeCount++;
       }
     }
@@ -108,3 +108,23 @@ export function processValueBoxes(doc: Document) {
     }
   }
 }
+
+const isHtmlColor = (color: string) => {
+  return color.startsWith("#");
+};
+
+const colorEl = (
+  el: Element,
+  color: string,
+  type: "background" | "foreground",
+) => {
+  if (isHtmlColor(color)) {
+    const styleName = type === "background" ? "background" : "color";
+    const style = el.getAttribute("style");
+    const currentStyle = style !== null ? style : "";
+    el.setAttribute("style", currentStyle + ` ${styleName}: ${color};`);
+  } else {
+    const clsPrefix = type === "background" ? "bg-" : "text-";
+    el.classList.add(`${clsPrefix}${color}`);
+  }
+};
