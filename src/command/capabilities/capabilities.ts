@@ -53,6 +53,7 @@ async function formats() {
     "revealjs",
     "gfm",
     "epub",
+    "email",
   ];
 
   const excludedFormats = [
