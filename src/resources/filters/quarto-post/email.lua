@@ -189,7 +189,7 @@ local email_images = {}
 local image_tbl = {}
 local suppress_scheduled_email = false
 
-function Meta(meta)
+function process_meta(meta)
 
   attachments = {}
 
@@ -205,7 +205,7 @@ function Meta(meta)
   end
 end
 
-function Div(div)
+function process_div(div)
 
   if div.classes:includes("subject") then
 
@@ -409,6 +409,15 @@ function process_document(doc)
   end
 end
 
-function Pandoc(doc)
-  process_document(doc)
+function render_email()
+
+  if not _quarto.format.isEmailOutput() then 
+    return {}
+  end
+
+  return {
+    Pandoc = process_document,
+    Meta = process_meta,
+    Div = process_div,
+  }
 end
