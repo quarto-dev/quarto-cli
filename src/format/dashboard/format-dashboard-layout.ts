@@ -29,9 +29,28 @@ const kHtmlFillContainerClass = "html-fill-container";
 
 const kHiddenClass = "hidden";
 
+interface FillDescriptor {
+  tags: [{
+    name: string;
+    ignoreClasses: string[];
+  }];
+  classes: string[];
+}
+
 // Configuration for skipping elements when applying container classes
 // (we skip applying container classes to the following):
-const kFillContentElements = {
+const kFillContentElements: FillDescriptor = {
+  tags: [{
+    name: "div",
+    ignoreClasses: [
+      "value-box-grid",
+      "value-box-area",
+      "value-box-title",
+      "value-box-value",
+      "nav-tabs",
+      "card-header",
+    ],
+  }],
   classes: [
     "card",
     "card-body",
@@ -47,7 +66,8 @@ const kFillContentElements = {
   ],
 };
 
-const kFillContainerElements = {
+const kFillContainerElements: FillDescriptor = {
+  tags: kFillContentElements.tags,
   classes: [
     ...kFillContentElements.classes,
     "bslib-page-fill",
@@ -306,20 +326,36 @@ export const recursiveApplyFillClasses = (el: Element) => {
   }
 };
 
-export const applyFillItemClasses = (el: Element) => {
-  const fillItem = kFillContentElements.classes.some((clz) => {
-    return el.classList.contains(clz);
+const shouldApplyClasses = (el: Element, fillDescriptor: FillDescriptor) => {
+  const fillForClass = fillDescriptor.classes.some((clz) => {
+    if (el.classList.contains(clz)) {
+      return true;
+    }
   });
-  if (fillItem) {
+  if (fillForClass) {
+    return true;
+  }
+
+  const fillForTagDesc = fillDescriptor.tags.some((tagDesc) => {
+    return tagDesc.name.toLowerCase() === el.tagName.toLowerCase() &&
+      !tagDesc.ignoreClasses.some((clz) => {
+        return el.classList.contains(clz);
+      });
+  });
+  if (fillForTagDesc) {
+    return true;
+  }
+  return false;
+};
+
+export const applyFillItemClasses = (el: Element) => {
+  if (shouldApplyClasses(el, kFillContentElements)) {
     el.classList.add(kHtmlFillItemClass);
   }
 };
 
 const applyFillContainerClasses = (el: Element) => {
-  const fillContainer = kFillContainerElements.classes.some((clz) => {
-    return el.classList.contains(clz);
-  });
-  if (fillContainer) {
+  if (shouldApplyClasses(el, kFillContainerElements)) {
     el.classList.add(kHtmlFillContainerClass);
   }
 };
