@@ -38,19 +38,22 @@ interface FillDescriptor {
   classes: string[];
 }
 
+const kNeverFillTags = ["P"];
+const kNeverFillClasses = [
+  "value-box-grid",
+  "value-box-area",
+  "value-box-title",
+  "value-box-value",
+  "nav-tabs",
+  "card-header",
+];
+
 // Configuration for skipping elements when applying container classes
 // (we skip applying container classes to the following):
 const kFillContentElements: FillDescriptor = {
   tags: [{
     name: "div",
-    ignoreClasses: [
-      "value-box-grid",
-      "value-box-area",
-      "value-box-title",
-      "value-box-value",
-      "nav-tabs",
-      "card-header",
-    ],
+    ignoreClasses: kNeverFillClasses,
   }],
   classes: [
     "card",
@@ -334,6 +337,19 @@ export const recursiveApplyFillClasses = (el: Element) => {
 };
 
 const shouldApplyClasses = (el: Element, fillDescriptor: FillDescriptor) => {
+  if (kNeverFillTags.includes(el.tagName.toUpperCase())) {
+    return false;
+  }
+
+  // Classes to ignore no matter what
+  if (
+    kNeverFillClasses.some((neverFillClass) => {
+      return el.classList.contains(neverFillClass);
+    })
+  ) {
+    return false;
+  }
+
   // TODO: This is sort of hacked in right here, but could
   // likely be place somewhere else better.
   if (el.tagName === "DIV" && el.children.length > 0) {
