@@ -22153,12 +22153,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 171001,
+          _internalId: 173366,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 170993,
+              _internalId: 173358,
               type: "enum",
               enum: [
                 "png",
@@ -22174,7 +22174,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 171e3,
+              _internalId: 173365,
               type: "anyOf",
               anyOf: [
                 {
@@ -31719,6 +31719,8 @@ ${tidyverseInfo(
       // alias for 'commonmark'
       "hugo",
       // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
+      "dashboard",
+      // our built in format for dashboards
       "email"
       // for the HTML email format (used with Posit Connect)
     ).map(
