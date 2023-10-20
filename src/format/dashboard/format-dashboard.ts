@@ -120,6 +120,13 @@ export function dashboardFormat() {
         const scripts: DependencyHtmlFile[] = [];
         const stylesheets: DependencyFile[] = [];
 
+        // Add the js script which we can use in dashboard to make client side
+        // adjustments
+        scripts.push({
+          name: "quarto-dashboard.js",
+          path: formatResourcePath("dashboard", "quarto-dashboard.js"),
+        });
+
         const componentDir = join(
           "bslib",
           "components",
@@ -146,23 +153,6 @@ export function dashboardFormat() {
             });
           },
         );
-
-        /*
-        stylesheets.push({
-          name: `components.css`,
-          path: formatResourcePath(
-            "html",
-            join("bslib", "components", "dist", "components.css"),
-          ),
-        });
-        stylesheets.push({
-          name: `sidebar.css`,
-          path: formatResourcePath(
-            "html",
-            join("bslib", "components", "dist", "sidebar", "sidebar.css"),
-          ),
-        });
-        */
 
         extras.html[kDependencies] = extras.html[kDependencies] || [];
         extras.html[kDependencies].push({
