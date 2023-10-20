@@ -1,6 +1,7 @@
+-- docusaurus_writer.lua
+-- Copyright (C) 2020-2023 Posit Software, PBC
 
-local codeBlock = require('docusaurus_utils').codeBlock
-
+local code_block = require('docusaurus_utils').code_block
 
 local reactPreamble = pandoc.List()
 
@@ -14,7 +15,7 @@ local function jsx(content)
   return pandoc.RawBlock("markdown", content)
 end
 
-local function tabset(node, filter)
+local function tabset(node)
   -- note groupId
   local groupId = ""
   local group = node.attr.attributes["group"]
@@ -32,11 +33,10 @@ local function tabset(node, filter)
     local title = node.tabs[i].title
 
     tabs.content:insert(jsx(([[<TabItem value="%s">]]):format(pandoc.utils.stringify(title))))
-    local result = quarto._quarto.ast.walk(content, filter)
-    if type(result) == "table" then
-      tabs.content:extend(result)
+    if type(content) == "table" then
+      tabs.content:extend(content)
     else
-      tabs.content:insert(result)
+      tabs.content:insert(content)
     end
     tabs.content:insert(jsx("</TabItem>"))
   end
@@ -51,38 +51,42 @@ local function tabset(node, filter)
   return tabs
 end
 
-function Writer(doc, opts)  
-  local filter
-  filter = {
-    CodeBlock = codeBlock,
+quarto._quarto.ast.add_renderer("Tabset", function()
+  return quarto._quarto.format.isDocusaurusOutput()
+end, function(node)
+  return tabset(node)
+end)
 
-    DecoratedCodeBlock = function(node)
-      local el = node.code_block
-      return codeBlock(el, node.filename)
-    end,
+quarto._quarto.ast.add_renderer("Callout", function()
+  return quarto._quarto.format.isDocusaurusOutput()
+end, function(node)
+  local admonition = pandoc.Blocks({})
+  admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
+  if node.title then
+    admonition:insert(pandoc.Header(2, node.title))
+  end
+  local content = node.content
+  if type(content) == "table" then
+    admonition:extend(content)
+  else
+    admonition:insert(content)
+  end
+  admonition:insert(pandoc.RawBlock("markdown", ":::\n"))
+  return admonition
+end)
 
-    Tabset = function(node)
-      return tabset(node, filter)
-    end,
+quarto._quarto.ast.add_renderer("DecoratedCodeBlock", function()
+  return quarto._quarto.format.isDocusaurusOutput()
+end, function(node)
+  local el = node.code_block
+  return code_block(el, node.filename)
+end)
 
-    Callout = function(node)
-      local admonition = pandoc.List()
-      admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
-      if node.title then
-        admonition:insert(pandoc.Header(2, node.title))
-      end
-      local content = node.content
-      if type(content) == "table" then
-        admonition:extend(content)
-      else
-        admonition:insert(content)
-      end
-      admonition:insert(pandoc.RawBlock("markdown", ":::\n"))
-      return admonition
-    end
-  }
-  
-  doc = quarto._quarto.ast.walk(doc, filter)
+function Writer(doc, opts)
+  doc = quarto._quarto.ast.walk(doc, {
+    CodeBlock = code_block,
+  })
+  assert(doc ~= nil)
 
   -- insert react preamble if we have it
   if #reactPreamble > 0 then

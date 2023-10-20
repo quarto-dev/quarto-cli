@@ -11,7 +11,6 @@ kFigScap = "fig-scap"
 kResizeWidth = "resize.width"
 kResizeHeight = "resize.height"
 
-
 function isFigAttribute(name)
   return string.find(name, "^fig%-")
 end
@@ -29,7 +28,7 @@ end
 
 -- is this a Div containing a figure
 function isFigureDiv(el, captionRequired)
-  if el.t == "Div" and hasFigureRef(el) then
+  if is_regular_node(el, "Div") and hasFigureRef(el) then
     if captionRequired == nil then
       captionRequired = true
     end
@@ -42,45 +41,33 @@ function isFigureDiv(el, captionRequired)
   end
 end
 
+local singleton_list = function(el) return #el.content == 1 end
 function discoverFigure(el, captionRequired)
-  if el.t ~= "Para" then
-    return nil
-  end
   if captionRequired == nil then
     captionRequired = true
   end
-  if #el.content == 1 and el.content[1].t == "Image" then
-    local image = el.content[1]
-    if not captionRequired or #image.caption > 0 then
-      return image
-    else
-      return nil
-    end
-  else
-    return nil
+  local function check_caption(image)
+    return #image.caption > 0 or not captionRequired
   end
+
+  return quarto.utils.match(
+    "Para", singleton_list, 1,
+    "Image",
+    check_caption)(el) or nil
 end
 
 function discoverLinkedFigure(el, captionRequired)
-  if el.t ~= "Para" then
-    return nil
+  local function check_caption(image)
+    return #image.caption > 0 or not captionRequired
   end
-  if #el.content == 1 then 
-    if el.content[1].t == "Link" then
-      local link = el.content[1]
-      if #link.content == 1 and link.content[1].t == "Image" then
-        local image = link.content[1]
-        if not captionRequired or #image.caption > 0 then
-          return image
-        end
-      end
-    end
-  end
-  return nil
+  return quarto.utils.match(
+    "Para", singleton_list, 1,
+    "Link", singleton_list, 1,
+    "Image", check_caption)(el) or nil
 end
 
 function discoverLinkedFigureDiv(el, captionRequired)
-  if el.t == "Div" and 
+  if is_regular_node(el, "Div") and 
      hasFigureRef(el) and
      #el.content == 2 and 
      el.content[1].t == "Para" and 

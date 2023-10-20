@@ -10,6 +10,7 @@ function quarto_ast_pipeline()
     { name = "normalize-html-table-processing", filter = parse_html_tables() },
 
     { name = "normalize-combined-1", filter = combineFilters({
+        forward_cell_subcaps(),
         parse_extended_nodes(),
         code_filename(),
         normalize_fixup_data_uri_image_extension(),

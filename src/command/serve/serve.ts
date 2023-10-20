@@ -32,6 +32,7 @@ export async function renderForServe(
         to: format,
         execute: true,
       },
+      previewServer: true,
     });
     return result;
   } finally {
@@ -43,34 +44,31 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
   const { host, port } = await resolveHostAndPort(options);
   const engine = fileExecutionEngine(options.input);
   if (engine?.run) {
-    const target = await engine.target(options.input, options.quiet);
-    if (target) {
-      // render if requested
-      if (options.render) {
-        const result = await renderForServe(options.input, options.format);
-        if (result.error) {
-          throw result.error;
-        }
+    // render if requested
+    if (options.render) {
+      const result = await renderForServe(options.input, options.format);
+      if (result.error) {
+        throw result.error;
       }
-
-      // print message and open browser when ready
-      const onReady = async () => {
-        printBrowsePreviewMessage(host, port, "");
-        if (options.browser && !isServerSession()) {
-          await openUrl(previewURL(host, port, ""));
-        }
-      };
-
-      // run using engine
-      await engine.run({
-        ...options,
-        input: options.input,
-        host,
-        port,
-        onReady,
-      });
-      return processSuccessResult();
     }
+
+    // print message and open browser when ready
+    const onReady = async () => {
+      printBrowsePreviewMessage(host, port, "");
+      if (options.browser && !isServerSession()) {
+        await openUrl(previewURL(host, port, ""));
+      }
+    };
+
+    // run using engine
+    await engine.run({
+      ...options,
+      input: options.input,
+      host,
+      port,
+      onReady,
+    });
+    return processSuccessResult();
   }
 
   return Promise.reject(

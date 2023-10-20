@@ -85,19 +85,41 @@ function ipynb()
           -- if we are in source notebook mode, we need to omit identifiers that appear on images
           -- and instead allow the cell yaml to declare things like ids
           if produceSourceNotebook and el.attr.classes:includes('cell-output-display') then
+
+            -- First, we need to collapse tables that are surrounded by
+            -- raw blocks (which specifically addresses tables that are parsed and 
+            -- surrounded by rawblocks to contain unparseable content)
+            -- This will catch GT tables and render HTML and markdown versions.
+            if #el.content == 3 and el.content[1].t == "RawBlock" and el.content[2].t == "Table" and el.content[3].t == "RawBlock" then
+              if el.content[1].format == "html" and el.content[3].format == "html" then
+
+                local tbl = pandoc.Pandoc(el.content[2])
+                local htmlRenderedTbl = pandoc.write(tbl, "html")
+                local htmlRawBlock = pandoc.RawBlock("html", el.content[1].text .. htmlRenderedTbl .. el.content[3].text)
+
+                local mdRenderedTbl = pandoc.write(tbl, "markdown")
+                local mdRawBlock = pandoc.RawBlock("markdown", mdRenderedTbl)
+
+                el.content = pandoc.Blocks({htmlRawBlock, mdRawBlock})
+              end
+            end
+
             el = _quarto.ast.walk(el, {
               Image = function(imgEl)
                 imgEl.attr = pandoc.Attr()
                 return imgEl
               end,
-              FloatRefTarget = function(float)
-                float.in_code_cell_output = true
-                return float
-              end,
               Table = function(tbl)
                 local rendered = pandoc.write(pandoc.Pandoc(tbl), "markdown")
                 return pandoc.RawBlock("markdown", rendered)      
               end,      
+            })
+          elseif produceSourceNotebook then
+            el = _quarto.ast.walk(el, {
+              FloatRefTarget = function(float)
+                float.in_code_cell_output = true
+                return float
+              end,
             })
           end
 

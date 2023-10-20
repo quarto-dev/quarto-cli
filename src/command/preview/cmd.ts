@@ -274,12 +274,12 @@ export const previewCommand = new Command()
     if (Deno.statSync(file).isFile) {
       // get project and preview format
       const project = await projectContext(dirname(file));
-      const format = await previewFormat(file, flags.to, project);
+      const formats = await renderFormats(file, undefined, project);
+      const format = await previewFormat(file, flags.to, formats, project);
 
       // see if this is server: shiny document and if it is then forward to previewShiny
       if (isHtmlOutput(format)) {
-        const renderFormat = (await renderFormats(file, format, project))
-          ?.[format] as Format | undefined;
+        const renderFormat = formats[format] as Format | undefined;
         if (renderFormat && isServerShiny(renderFormat)) {
           const engine = fileExecutionEngine(file, flags);
           if (isServerShinyPython(renderFormat, engine?.name)) {

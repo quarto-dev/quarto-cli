@@ -18,7 +18,7 @@ function unroll_cell_outputs()
         -- unroll blocks contained in divs
         local blocks = pandoc.List()
         for _, childBlock in ipairs(div.content) do
-          if childBlock.t == "Div" and not is_custom_node(childBlock) then
+          if is_regular_node(childBlock, "Div") and not is_custom_node(childBlock) then
             tappend(blocks, childBlock.content)
           else
             blocks:insert(childBlock)

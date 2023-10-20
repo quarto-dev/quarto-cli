@@ -1,0 +1,52 @@
+---
+title: Callout test
+format: confluence-publish
+validate-yaml: false
+_quarto:
+  tests:
+    confluence-publish:
+      ensureHtmlElements:
+        - 
+          - '#note + ac\:structured-macro[ac\:name="info"] code'
+          - '#warning + ac\:structured-macro[ac\:name="note"]'
+          - '#tip + ac\:structured-macro[ac\:name="tip"]'
+          - '#caution + ac\:structured-macro[ac\:name="note"]'
+          - '#important + ac\:structured-macro[ac\:name="warning"]'
+        - []
+      ensureFileRegexMatches:
+        - 
+          - '<ac:rich-text-body>[^\n]+</ac:rich-text-body>' # no newline created
+        - []
+---
+
+The below callout should not be rendered with undesired line breaks.
+
+## Note
+
+::: {.callout-note}
+Note that there are five types of callouts, including: `note`, `tip`, `warning`, `caution`, and `important`.
+:::
+
+## Warning 
+
+::: {.callout-warning}
+Managing Confluence content with Quarto allows you to author content in Markdown, manage that content with your usual version control tools like Git and GitHub, and leverage Quarto’s tools for including computational output.
+:::
+
+## Tip
+
+::: {.callout-tip}
+Managing Confluence content with Quarto allows you to author content in Markdown, manage that content with your usual version control tools like Git and GitHub, and leverage Quarto’s tools for including computational output.
+:::
+
+## Caution
+
+::: {.callout-caution}
+Managing Confluence content with Quarto allows you to author content in Markdown, manage that content with your usual version control tools like Git and GitHub, and leverage Quarto’s tools for including computational output.
+:::
+
+## Important
+
+::: {.callout-important}
+Managing Confluence content with Quarto allows you to author content in Markdown, manage that content with your usual version control tools like Git and GitHub, and leverage Quarto’s tools for including computational output.
+:::

@@ -207,7 +207,10 @@ function lightbox()
       Para = function(para)
         local image = discoverFigure(para, false)
         if image ~= nil then
-          return pandoc.Para({processImg(image, { automatic = true })}), false
+          local lightboxedFigEl = processImg(image, { automatic = true })
+          if lightboxedFigEl ~= nil then
+            return pandoc.Para({lightboxedFigEl}), false
+          end
         end
       end,
 

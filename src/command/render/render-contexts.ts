@@ -77,6 +77,7 @@ import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import {
   fileEngineClaimReason,
+  fileExecutionEngine,
   fileExecutionEngineAndTarget,
 } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
@@ -290,18 +291,26 @@ export async function renderContexts(
         context.target.preEngineExecuteResults = results;
       }
 
+      // if a markdown detected engine changed then re-scan
       if (engineClaimReason === "markdown") {
-        // since the content decided the engine, and the content now changed,
-        // we need to re-evaluate the engine and target based on new content.
-
-        const { engine, target } = await fileExecutionEngineAndTarget(
+        const detectedEngine = fileExecutionEngine(
           file.path,
           options.flags,
           markdown,
-          project,
         );
-        context.engine = engine;
-        context.target = target;
+        if (detectedEngine && (context.engine.name !== detectedEngine.name)) {
+          context.engine = detectedEngine;
+          const target = await detectedEngine.target(
+            file.path,
+            options.flags?.quiet,
+            markdown,
+            project,
+          );
+          if (!target) {
+            throw new Error("Unable to render " + file);
+          }
+          context.target = target;
+        }
       }
     }
 

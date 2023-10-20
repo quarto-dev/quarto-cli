@@ -1,4 +1,7 @@
-function codeBlock(el, filename)
+-- docusaurus_utils.lua
+-- Copyright (C) 2020-2023 Posit Software, PBC
+
+function code_block(el, filename)
   local lang = el.attr.classes[1]
   local title = filename or el.attr.attributes["filename"] or el.attr.attributes["title"]
   local showLineNumbers = el.attr.classes:includes('number-lines')
@@ -33,5 +36,5 @@ function codeBlock(el, filename)
 end
 
 return {
-  codeBlock = codeBlock
+  code_block = code_block
 }

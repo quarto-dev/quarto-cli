@@ -1,0 +1,37 @@
+---
+title: "Test table numbering"
+format: pdf
+# TODO: we should have _quarto: tests: pdf:
+# but that doesn't exist yet.
+---
+
+\listoftables
+
+```{r}
+df = data.frame(a=1:3,b=letters[1:3])
+```
+
+
+# Table 1
+
+```{r}
+#| label: tbl-table1
+#| tbl-cap: A first caption
+#| echo: false
+knitr::kable(df)
+knitr::kable(df)
+```
+
+
+# Table 2
+
+```{r}
+#| label: tbl-table2
+#| tbl-cap: A second caption
+#| echo: false
+knitr::kable(df)
+knitr::kable(df)
+```
+
+See @tbl-table1 and @tbl-table2.
+

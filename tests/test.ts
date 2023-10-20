@@ -55,6 +55,9 @@ export interface TestContext {
 
   // control if test is ran or skipped
   ignore?: boolean;
+
+  // environment to pass to downstream processes
+  env?: Record<string, string>;
 }
 
 export async function testQuartoCmd(
@@ -62,6 +65,7 @@ export async function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
+  name?: string
 ) {
   if (cmd === "render" && Deno.env.get("QUARTO_FINE_GRAINED_LUACOV")) {
     const testCovFilename = await requestIncomingCovFilename(
@@ -72,7 +76,9 @@ export async function testQuartoCmd(
       `QUARTO_LUACOV=${testCovFilename}`,
     );
   }
-  const name = `quarto ${cmd} ${args.join(" ")}`;
+  if (name === undefined) {
+    name = `quarto ${cmd} ${args.join(" ")}`;
+  }
   test({
     name,
     execute: async () => {
@@ -80,7 +86,7 @@ export async function testQuartoCmd(
         setTimeout(reject, 300000, "timed out after 5 minutes");
       });
       await Promise.race([
-        quarto([cmd, ...args]),
+        quarto([cmd, ...args], undefined, context?.env),
         timeout,
       ]);
     },

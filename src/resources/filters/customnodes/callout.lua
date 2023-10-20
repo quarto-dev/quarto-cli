@@ -128,7 +128,7 @@ function docx_callout_and_table_fixup()
           local isCodeBlock = el.t == "CodeBlock"
 
           -- Determine whether this is a code cell that outputs a table
-          local isCodeCell = el.t == "Div" and el.attr.classes:find_if(isCodeCell)
+          local isCodeCell = is_regular_node(el, "Div") and el.attr.classes:find_if(isCodeCell)
           if isCodeCell and (isCodeCellTable(el) or isCodeCellFigure(el)) then 
             isTableOrFigure = true
           end
