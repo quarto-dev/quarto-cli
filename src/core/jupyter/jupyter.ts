@@ -1334,7 +1334,7 @@ async function mdFromCodeCell(
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
-      if (value) {
+      if (value !== undefined) {
         if (typeof (value) !== "string") {
           value = JSON.stringify(value);
         }

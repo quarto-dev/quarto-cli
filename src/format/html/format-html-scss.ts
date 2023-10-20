@@ -35,6 +35,10 @@ import {
   bootstrapResourceDir,
   bootstrapRules,
   bootstrapVariables,
+  bslibComponentMixins,
+  bslibComponentRules,
+  bslibResourceDir,
+  htmlToolsRules,
   kBootstrapDependencyName,
   quartoBootstrapCustomizationLayer,
   quartoBootstrapFunctions,
@@ -67,6 +71,32 @@ function layerQuartoScss(
   darkDefault?: boolean,
   loadPaths?: string[],
 ): SassBundle {
+  // Compose the base Quarto SCSS
+  const uses = quartoUses();
+  const defaults = [
+    quartoDefaults(format),
+    quartoBootstrapDefaults(format.metadata),
+    quartoCopyCodeDefaults(),
+  ].join("\n");
+  const mixins = [quartoBootstrapMixins()].join("\n");
+  const functions = [quartoFunctions(), quartoBootstrapFunctions()].join("\n");
+  const rules = [
+    quartoRules(),
+    quartoCopyCodeRules(),
+    quartoBootstrapRules(),
+    quartoGlobalCssVariableRules(),
+    quartoLinkExternalRules(),
+    quartoCodeFilenameRules(),
+  ].join("\n");
+  const quartoScss = {
+    uses,
+    defaults,
+    functions,
+    mixins,
+    rules,
+  };
+
+  // Compose the framework level SCSS (bootstrap)
   // The bootstrap framework functions
   const frameworkFunctions = [
     bootstrapFunctions(),
@@ -81,38 +111,36 @@ function layerQuartoScss(
     pandocVariablesToThemeScss(format.metadata),
   ].join("\n");
 
-  const defaults = [
-    quartoDefaults(format),
-    quartoBootstrapDefaults(format.metadata),
-    quartoCopyCodeDefaults(),
+  const frameworkMixins = [bootstrapMixins(), bslibComponentMixins()].join(
+    "\n",
+  );
+  const frameworkRules = [
+    bootstrapRules(),
+    bslibComponentRules(),
+    htmlToolsRules(),
   ].join("\n");
+  const bootstrapScss = {
+    uses: "",
+    defaults: frameworkVariables,
+    functions: frameworkFunctions,
+    mixins: frameworkMixins,
+    rules: frameworkRules,
+  };
+
+  // Compute the load paths
+  const resolvedLoadPaths = [
+    ...(loadPaths || []),
+    bootstrapResourceDir(),
+    bslibResourceDir(),
+  ];
 
   return {
     dependency,
     key,
     user: sassLayer,
-    quarto: {
-      uses: quartoUses(),
-      defaults,
-      functions: [quartoFunctions(), quartoBootstrapFunctions()].join("\n"),
-      mixins: quartoBootstrapMixins(),
-      rules: [
-        quartoRules(),
-        quartoCopyCodeRules(),
-        quartoBootstrapRules(),
-        quartoGlobalCssVariableRules(),
-        quartoLinkExternalRules(),
-        quartoCodeFilenameRules(),
-      ].join("\n"),
-    },
-    framework: {
-      uses: "",
-      defaults: frameworkVariables,
-      functions: frameworkFunctions,
-      mixins: bootstrapMixins(),
-      rules: bootstrapRules(),
-    },
-    loadPaths: [...(loadPaths || []), bootstrapResourceDir()],
+    quarto: quartoScss,
+    framework: bootstrapScss,
+    loadPaths: resolvedLoadPaths,
     dark: darkLayer
       ? {
         user: darkLayer,
