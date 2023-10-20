@@ -75,9 +75,7 @@ local function makeColumnContainer(content, options)
 
   -- cols can't have height
   validateLayout(options)
-  if options[kLayoutHeight] ~= nil then
-    fail("Columns are not allowed to specify their height - they always fill their container.")
-  end
+
 
   -- forward the options onto attributes
   local attributes = {}
@@ -100,9 +98,6 @@ local function makeRowContainer(content, options)
   
   -- rows can't have width
   validateLayout(options)
-  if options[kLayoutWidth] ~= nil then
-    fail("Rows are not allowed to specify their width - they always fill their container.")
-  end
 
   -- forward attributes along
   local attributes = {}
