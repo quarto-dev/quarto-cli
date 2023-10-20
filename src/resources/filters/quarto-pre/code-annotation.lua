@@ -359,7 +359,7 @@ function code_annotations()
         end
 
         for i, block in ipairs(blocks) do
-          if block.t == 'Div' and block.attr.classes:find('cell') then
+          if is_regular_node(block, "Div") and block.attr.classes:find('cell') then
             -- Process executable code blocks 
             -- In the case of executable code blocks, we actually want
             -- to shift the OL up above the output, so we hang onto this outer
