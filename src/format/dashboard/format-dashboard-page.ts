@@ -114,7 +114,12 @@ function toNav(navItem: NavItem, doc: Document) {
       "aria-selected": navItem.active.toString(),
     },
   }, doc);
-  aEl.innerText = navItem.text;
+
+  const spanEl = makeEl("spand", {
+    classes: ["nav-link-text"],
+  }, doc);
+  spanEl.innerText = navItem.text;
+  aEl.append(spanEl);
   liEl.append(aEl);
   return liEl;
 }
