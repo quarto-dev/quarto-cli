@@ -43,9 +43,7 @@ async function findAllTests(): Promise<string[]> {
     result.push(relative(Deno.cwd(), test.path));
   }
 
-  return result.slice(0, 10); // TODO remove
-
-  // return result;
+  return result;
 }
 
 type ReqHandler = (req: Request) => Promise<Response>;
