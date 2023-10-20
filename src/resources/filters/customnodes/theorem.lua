@@ -134,7 +134,7 @@ end, function(thm)
   elseif _quarto.format.isJatsOutput() then
 
     -- JATS XML theorem
-    local lbl = captionPrefix(nil, type, theorem_type, order)
+    local lbl = captionPrefix({}, type, theorem_type, order)
     el = jatsTheorem(el, lbl, name)          
     
   else

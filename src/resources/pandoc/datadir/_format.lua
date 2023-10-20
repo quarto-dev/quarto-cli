@@ -159,6 +159,10 @@ local function isHtmlOutput()
   return tcontains(formats, FORMAT) or isHtmlSlideOutput()
 end
 
+local function isEmailOutput()
+  return param("format-identifier", {})["base-format"] == "email"
+end
+
 local function parse_format(raw_format)
   local pattern = "^([%a_]+)([-+_%a]*)"
   local i, j, format, extensions = raw_format:find(pattern)
@@ -278,5 +282,6 @@ return {
   isTypstOutput = isTypstOutput,
   isConfluenceOutput = isConfluenceOutput,
   isDocusaurusOutput = isDocusaurusOutput,
+  isEmailOutput = isEmailOutput,
   parse_format = parse_format
 }

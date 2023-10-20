@@ -75,6 +75,7 @@ import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
 import("./quarto-post/code.lua")
 import("./quarto-post/html.lua")
+import("./quarto-post/email.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
@@ -344,6 +345,7 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
+  { name = "post-render-email", filter = render_email() },
 }
 
 local quarto_finalize_filters = {

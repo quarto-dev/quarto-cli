@@ -1,5 +1,5 @@
 import { expandGlobSync } from "https://deno.land/std/fs/expand_glob.ts";
-import { relative } from "https://deno.land/std/path/mod.ts";
+import { basename, relative } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
 // Command line flags to use when calling `run-paralell-tests.sh`.
@@ -45,7 +45,13 @@ const currentTests = new Set(
 // Get all smoke-all documents (Only resolve glob when it will be needed)
 const currentSmokeFiles = new Set<string>(
   detailedSmokeAll
-    ? [...expandGlobSync("docs/smoke-all/**/*.{qmd,ipynb}", { globstar: true })]
+    ? [
+      ...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}", {
+        globstar: true,
+      }),
+    ]
+      // ignore file starting with `_`
+      .filter((entry) => /^[^_]/.test(basename(entry.path)))
       .map((entry) => `${relative(Deno.cwd(), entry.path)}`)
     : [],
 );
@@ -190,13 +196,13 @@ for (const currentTest of currentTests) {
     missingTests.add(currentTest);
   }
   if (missingTests.size !== 0) {
-    missingTests.forEach(missingTest => {
+    missingTests.forEach((missingTest) => {
       // add missing timed tests, randomly to buckets
       buckets[Math.floor(Math.random() * nBuckets)].push({
         name: missingTest,
         timing: { real: 0, user: 0, sys: 0 },
       });
-    })
+    });
   }
 }
 
