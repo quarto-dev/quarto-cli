@@ -103,13 +103,21 @@ function render_dashboard()
         -- Now that the document has been re-organized, gather any
         -- loose elements that appear before the first section and cleave them
         -- out for use later
+        -- Once we've visited a card or section, any subsequent content that appears loose is
+        -- no longer considered above the fold
         local nonSectionEls = pandoc.List()
         local sectionEls = pandoc.List()
+        local visitedSectionOrCard = false
         for _i, v in ipairs(el.blocks) do
           if v.classes ~= nil and (v.classes:includes(kSectionClass) or dashboard.card.isCard(v)) then
             sectionEls:insert(v)
+            visitedSectionOrCard = true
           else
-            nonSectionEls:insert(v)
+            if visitedSectionOrCard then
+              sectionEls:insert(v)
+            else 
+              nonSectionEls:insert(v)             
+            end
           end
         end
 
