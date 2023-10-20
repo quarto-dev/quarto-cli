@@ -166,6 +166,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
   kQuartoFilters,
@@ -508,6 +509,7 @@ export interface FormatExecute {
     | "last_expr"
     | "none"
     | "last_expr_or_assign";
+  [kPlotlyConnected]?: boolean;
 }
 
 export interface FormatPandoc {

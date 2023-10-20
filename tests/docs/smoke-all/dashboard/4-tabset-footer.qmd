@@ -1,0 +1,28 @@
+---
+title: Testing
+format: dashboard
+---
+
+### Any What? {.tabset}
+
+![](who.jpg)
+
+
+```{r}
+#| title: Homey
+plot(cars)
+```
+
+
+:::{.card title="content"}
+
+This is the card content
+
+
+:::{.card-footer}
+
+Yo dawg
+
+:::
+
+:::

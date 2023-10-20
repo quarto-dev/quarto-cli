@@ -68,20 +68,25 @@ $text-muted:                  body-mix(75%) !default;
 
 $table-border-color:          body-mix(85%) !default;
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Forms
 
-$input-bg:                          $white !default;
+$input-bg:                          $body-color !default;
 $input-color:                       body-mix(95%) !default;
 $input-border-color:                $body-bg !default;
 $input-group-addon-color:           body-mix(65%) !default;
 $input-group-addon-bg:              body-mix(85%) !default;
+$input-placeholder-color:           body-mix(75%) !default;
 
 $form-check-input-bg:                     $body-color !default;
 $form-check-input-border:                 none !default;
 
-$form-file-button-color:          $body-color !default;
+$form-select-disabled-color:        body-mix(75%) !default;
+
+$form-file-button-color:          $input-group-addon-color !default;
+$form-file-button-bg:             $input-group-addon-bg !default;
+$form-file-button-hover-bg:       darken($form-file-button-bg, 5%) !default;
 
 // Dropdowns
 
@@ -104,8 +109,12 @@ $nav-tabs-link-active-border-color: $nav-tabs-border-color $nav-tabs-border-colo
 // Navbar
 
 $navbar-padding-y:                  1rem !default;
-$navbar-light-bg:                   $primary !default;
-$navbar-dark-bg:                    $success !default;
+$navbar-dark-color:                rgba($body-color, .6) !default;
+$navbar-dark-hover-color:          $body-color !default;
+$navbar-light-color:                rgba($body-bg, .7) !default;
+$navbar-light-hover-color:          $body-bg !default;
+$navbar-light-active-color:         $body-bg !default;
+$navbar-light-toggler-border-color: rgba($body-bg, .1) !default;
 
 // Pagination
 
@@ -154,7 +163,7 @@ $list-group-bg:                     body-mix(95%) !default;
 $list-group-border-color:           body-mix(85%) !default;
 $list-group-hover-bg:               body-mix(85%) !default;
 $list-group-action-hover-color:     $list-group-color !default;
-$list-group-action-active-bg:       body-mix(99%) !default;
+$list-group-action-active-bg:       $body-bg !default;
 
 // Breadcrumbs
 
@@ -185,10 +194,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: dark;
-}
-
 // Typography
 
 .blockquote {
@@ -199,12 +204,18 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
 
 // Forms
 
-.input-group-addon {
-  color: $body-color;
+@include color-mode(dark) {
+  .input-group-text {
+    // color: $body-color;
+  }
 }
 
-.form-floating > label {
-  color: $gray-700;
+.form-floating {
+  > label,
+  > .form-control:focus ~ label,
+  > .form-control:not(:placeholder-shown) ~ label {
+    color: $input-placeholder-color;
+  }
 }
 
 // Navs
@@ -253,6 +264,11 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
       }
     }
   }
+}
+
+.tooltip {
+  --bs-tooltip-bg: var(--bs-tertiary-bg);
+  --bs-tooltip-color: var(--bs-emphasis-color);
 }
 
 

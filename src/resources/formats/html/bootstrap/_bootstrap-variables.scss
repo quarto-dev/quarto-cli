@@ -1,3 +1,12 @@
+// Colors that must be defined
+$blue: #0d6efd !default;
+$primary: $blue !default;
+$white: #ffffff !default;
+$gray-200: #e9ecef !default;
+$gray-100: #f8f9fa !default;
+$gray-900: #212529 !default;
+$link-color: $primary !default;
+
 /* Code Block Formatting */
 // Code Block Border Treatment
 $code-block-border-left: false !default;
@@ -19,10 +28,8 @@ $code-block-theme-dark-threshhold: 40% !default;
 // $code-bg, $code-color, $code-padding
 $code-color: #7d12ba !default;
 
-$blue: #0d6efd !default;
-$primary: $blue !default;
-$link-color: $primary !default;
-$gray-200: #e9ecef !default;
+// Set a default body emphasis color
+$code-bg: $gray-100 !default;
 
 // toc variables
 $toc-color: $link-color !default;
@@ -64,8 +71,6 @@ $navbar-bg: theme-override-value(
 $btn-bg: if(variable-exists(secondary), $secondary, #6c757d) !default;
 $btn-fg: theme-contrast($btn-bg, $btn-bg) !default;
 
-$white: #ffffff !default;
-$gray-900: #212529 !default;
 $body-contrast-bg: if(variable-exists(body-bg), $body-bg, $white);
 $body-contrast-color: if(variable-exists(body-color), $body-color, $gray-900);
 $navbar-fg: if(
@@ -226,3 +231,5 @@ $table-group-separator-color-lighter: lighten(
   if(variable-exists(body-color), $body-color, $gray-900),
   70%
 ) !default;
+
+$bootstrap-version: 5;

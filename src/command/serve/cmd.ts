@@ -13,6 +13,8 @@ import { projectContext } from "../../project/project-context.ts";
 
 import { serve } from "./serve.ts";
 import { resolveHostAndPort } from "../../core/previewurl.ts";
+import { renderFormats } from "../render/render-contexts.ts";
+import { previewFormat } from "../preview/preview.ts";
 
 export const serveCommand = new Command()
   .name("serve")
@@ -60,9 +62,13 @@ export const serveCommand = new Command()
     const { host, port } = await resolveHostAndPort(options);
 
     const context = await projectContext(input);
+    const formats = await renderFormats(input, undefined, context);
+    const format = await previewFormat(input, undefined, formats, context);
+
     const result = await serve({
       input,
       render: options.render,
+      format,
       port,
       host,
       browser: options.browser,

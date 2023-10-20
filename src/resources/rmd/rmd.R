@@ -150,8 +150,9 @@
     source(file.path(res_dir, "hooks.R"), local = TRUE)
   }
 
-  # print execute-debug message
-  debug <- isTRUE(params$format$execute[["debug"]])
+  # print execute-debug message ("spin" and "run" don't pass format option)
+  debug <- (!request$action %in% c("spin", "run")) &&
+            isTRUE(params$format$execute[["debug"]])
   if (debug)
     message("[knitr engine]: ", request$action)
 

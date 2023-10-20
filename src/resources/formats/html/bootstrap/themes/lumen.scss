@@ -40,6 +40,11 @@ $dark:          $gray-700 !default;
 
 $min-contrast-ratio:   1.75 !default;
 
+// Prefix for :root CSS variables
+
+$variable-prefix:             bs- !default; // Deprecated in v5.2.0 for the shorter `$prefix`
+$prefix:                      $variable-prefix !default;
+
 // Fonts
 
 // stylelint-disable-next-line value-keyword-case
@@ -47,7 +52,7 @@ $font-family-sans-serif:      "Source Sans Pro", -apple-system, BlinkMacSystemFo
 
 // Tables
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Buttons
 
@@ -55,19 +60,17 @@ $btn-font-weight:             700 !default;
 
 // Dropdowns
 
-$dropdown-link-color:         rgba(0, 0, 0, .5) !default;
+$dropdown-link-color:         var(--#{$prefix}tertiary-color) !default;
 
 // Navs
 
-$nav-tabs-border-color:             $gray-200 !default;
-$nav-tabs-link-hover-border-color:  $nav-tabs-border-color !default;
-$nav-tabs-link-active-color:        $gray-900 !default;
-$nav-tabs-link-active-border-color: $nav-tabs-border-color !default;
+$nav-link-color:                    $primary !default;
 
 // Pagination
 
 $pagination-color:                  $gray-700 !default;
-$pagination-bg:                     $gray-200 !default;
+$pagination-bg:                     var(--#{$prefix}tertiary-bg) !default;
+$pagination-border-color:           var(--#{$prefix}border-color) !default;
 $pagination-hover-color:            $pagination-color !default;
 $pagination-hover-bg:               $pagination-bg !default;
 $pagination-active-border-color:    darken($primary, 5%) !default;
@@ -103,10 +106,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,w
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: light;
-}
-
 // Mixins
 
 @mixin shadow($width: 4px){
@@ -124,6 +123,11 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,w
     &.bg-#{$color} {
       border-color: shade-color($value, 10%);
     }
+  }
+
+  &.bg-body-secondary,
+  &.bg-body-tertiary {
+    border-color: rgba(0, 0, 0, .1);
   }
 }
 
@@ -163,7 +167,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,w
 }
 
 .btn-outline-secondary {
-  color: $black;
+  color: var(--bs-tertiary-color);
 }
 
 [class*="btn-outline"] {
@@ -212,7 +216,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,w
 
 .nav-tabs {
   .nav-link {
-    color: $body-color;
+    color: var(--#{$prefix}body-color);
 
     &,
     &.disabled,
@@ -228,6 +232,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,w
     &.active {
       padding-bottom: add(.5rem, 6px);
       margin-top: 0;
+      color: var(--#{$prefix}body-color);
       border-bottom-color: transparent;
     }
   }
@@ -245,7 +250,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,w
 }
 
 .breadcrumb {
-  border-color: shade-color($breadcrumb-bg, 10%);
+  border-color: $pagination-border-color;
   @include shadow();
 }
 

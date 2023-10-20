@@ -278,10 +278,11 @@ export const previewCommand = new Command()
       const format = await previewFormat(file, flags.to, formats, project);
 
       // see if this is server: shiny document and if it is then forward to previewShiny
-      if (isHtmlOutput(format)) {
+      if (isHtmlOutput(parseFormatString(format).baseFormat)) {
         const renderFormat = formats[format] as Format | undefined;
         if (renderFormat && isServerShiny(renderFormat)) {
           const engine = fileExecutionEngine(file, flags);
+          setPreviewFormat(format, flags, args);
           if (isServerShinyPython(renderFormat, engine?.name)) {
             const result = await previewShiny({
               input: file,
@@ -306,6 +307,7 @@ export const previewCommand = new Command()
                 ? parseInt(options.port)
                 : options.port,
               host: options.host,
+              format: format,
               browser: options.browser,
               projectDir: project?.dir,
               tempDir: Deno.makeTempDirSync(),

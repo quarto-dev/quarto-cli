@@ -105,10 +105,61 @@ export const bootstrapRules = () => {
   );
 };
 
+export const bslibComponentMixins = () => {
+  const bootstrapDistDir = formatResourcePath(
+    "html",
+    "bslib",
+  );
+  const mixinsDir = join(bootstrapDistDir, "components", "scss", "mixins");
+  return Deno.readTextFileSync(join(mixinsDir, "_mixins.scss"));
+};
+
+export const bslibComponentRules = () => {
+  const bslibDistDir = formatResourcePath(
+    "html",
+    join("bslib"),
+  );
+
+  const bslibDirs = [
+    join(bslibDistDir, "bslib-scss"),
+    join(bslibDistDir, "components", "scss"),
+  ];
+
+  const scss = [];
+  for (const bsLibDir of bslibDirs) {
+    for (
+      const walk of Deno.readDirSync(bsLibDir)
+    ) {
+      if (walk.isFile) {
+        const contents = Deno.readTextFileSync(join(bsLibDir, walk.name));
+        scss.push(contents);
+      }
+    }
+  }
+
+  return scss.join("\n");
+};
+
+export const htmlToolsRules = () => {
+  const htmlToolsDir = formatResourcePath(
+    "html",
+    join("htmltools"),
+  );
+  const fillCss = Deno.readTextFileSync(join(htmlToolsDir, "fill.css"));
+  return fillCss;
+};
+
 export const bootstrapResourceDir = () => {
   return formatResourcePath(
     "html",
     join("bootstrap", "dist", "scss"),
+  );
+};
+
+export const bslibResourceDir = () => {
+  return formatResourcePath(
+    "html",
+    join("bslib", "bslib-scss"),
   );
 };
 

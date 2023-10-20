@@ -51,6 +51,7 @@ export async function previewShiny(options: PreviewShinyOptions) {
 
   // render for preview
   const render = async (to?: string) => {
+    to = to || options.format;
     const renderFlags: RenderFlags = { to, execute: true };
     const services = renderServices();
     try {

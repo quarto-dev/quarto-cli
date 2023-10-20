@@ -1,9 +1,8 @@
 /*
-* css.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * css.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";

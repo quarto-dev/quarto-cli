@@ -14,7 +14,7 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   <header id="quarto-header" class="headroom fixed-top">
 
   <% if (nav.navbar) { %>  
-    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-dark <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
+    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <% partial('navbrand.ejs', {
         navbar: nav.navbar
