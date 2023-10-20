@@ -74,13 +74,21 @@ export function processPages(doc: Document) {
 
   // Generate the navigation
   const navUlEl = makeEl("ul", {
-    classes: ["navbar-nav"],
+    classes: ["navbar-nav", "navbar-nav-scroll", "me-auto"],
     attributes: { role: "tablist" },
   }, doc);
   for (const navItem of navItems) {
     navUlEl.append(toNav(navItem, doc));
   }
-  navbarContainerEl.append(navUlEl);
+
+  // Generate a collapsible region
+  const collapseEl = makeEl("div", {
+    id: "collapse",
+    classes: ["collapse", "navbar-collapse"],
+  }, doc);
+  collapseEl.append(navUlEl);
+
+  navbarContainerEl.append(collapseEl);
 }
 
 function toNav(navItem: NavItem, doc: Document) {

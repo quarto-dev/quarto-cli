@@ -2095,34 +2095,49 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
-  .navbar-brand-container {
-    display: flex;
-    flex-direction: row;
-  }
+  .navbar {
+    margin-bottom: 0.5em;
+    padding: 0;
 
-  .navbar .navbar-title {
-    font-size: 1.45em;
-    line-height: 1em;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .navbar.slim .navbar-title {
-    flex-direction: row;
-    align-items: baseline;
-    .navbar-title-text {
-      margin-right: 0.4em;
+    .navbar-nav {
+      .nav-link {
+        padding: 0.7em;
+      }
+      & .active {
+        background-color: theme-dim($navbar-bg, 8%);
+      }
     }
-  }
 
-  .navbar .navbar-author {
-    font-size: 0.9rem;
-  }
+    .navbar-brand-container {
+      padding: 0.7em;
+      display: flex;
+      flex-direction: row;
+    }
 
-  .navbar-logo {
-    max-height: 48px;
-    object-fit: cover;
-    margin-right: 1em;
+    .navbar-title {
+      font-size: 1.25em;
+      line-height: 1em;
+      display: flex;
+      flex-direction: column;
+    }
+
+    &.slim .navbar-title {
+      flex-direction: row;
+      align-items: baseline;
+      .navbar-title-text {
+        margin-right: 0.4em;
+      }
+    }
+
+    .navbar-author {
+      font-size: 0.9rem;
+    }
+
+    .navbar-logo {
+      max-height: 48px;
+      object-fit: cover;
+      margin-right: 1em;
+    }
   }
 
   .page-layout-custom .tab-content {
