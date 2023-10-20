@@ -2114,6 +2114,9 @@ code.sourceCode a.code-annotation-anchor {
         height: 100%;
         display: flex;
         align-items: center;
+        .nav-link-text {
+          white-space: nowrap;
+        }
       }
       & .active {
         background-color: theme-dim($navbar-bg, 8%);
@@ -2139,6 +2142,7 @@ code.sourceCode a.code-annotation-anchor {
       line-height: 1.1em;
       display: flex;
       flex-direction: column;
+      flex-wrap: wrap;
     }
 
     &.slim .navbar-title {
