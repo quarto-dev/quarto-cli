@@ -1,6 +1,8 @@
 -- layout.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
+local document = require "modules/dashboard/document"
+
 -- Layout classes
 local kRowsClass = "rows"
 local kColumnsClass = "columns"
@@ -14,6 +16,10 @@ local kLayout = "layout"         -- fill, flow, nil
 -- Layout values
 local kLayoutFill = "fill"
 local kLayoutFlow = "flow"
+
+-- Page level data
+local kOrientationRows = "rows"
+local kOrientationColumns = "columns"
 
 local kOptionClasses = "classes"
 
@@ -82,7 +88,7 @@ local function makeColumnContainer(content, options)
   end
 
   -- the classes
-  local classes = pandoc.List({kRowsClass})
+  local classes = pandoc.List({kColumnsClass})
   if options[kOptionClasses] ~= nil then
     classes:extend(options[kOptionClasses])
   end
@@ -107,7 +113,7 @@ local function makeRowContainer(content, options)
   end
 
   -- the classes
-  local classes = pandoc.List({kColumnsClass})
+  local classes = pandoc.List({kRowsClass})
   if options[kOptionClasses] ~= nil then
     classes:extend(options[kOptionClasses])
   end
@@ -115,11 +121,38 @@ local function makeRowContainer(content, options)
   return pandoc.Div(content, pandoc.Attr("", classes, attributes))
 end
 
+local currentOrientation = document.orientation
+
+local function rotatedOrientation() 
+  if currentOrientation == kOrientationRows then
+    return kOrientationColumns
+  else
+    return kOrientationRows
+  end 
+end
+
+local function orientation() 
+  return currentOrientation
+end
+
+
+
+local function orientContents(contents, toOrientation, options)
+  if toOrientation == kOrientationColumns then
+    currentOrientation = toOrientation
+    return makeColumnContainer(contents, options)
+  else
+    currentOrientation = toOrientation
+    return makeRowContainer(contents, options)
+  end
+end
+
 
 return {
   isRowOrColContainer = isRowOrColContainer,
-  makeColumnContainer = makeColumnContainer,
-  makeRowContainer = makeRowContainer,
+  currentOrientation = orientation,
+  rotatedOrientation = rotatedOrientation,
+  orientContents = orientContents,
   readOptions = readOptions,
   makeOptions = makeOptions
 }

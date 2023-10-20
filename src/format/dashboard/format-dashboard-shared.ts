@@ -4,9 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { Format, Metadata } from "../../config/types.ts";
-import { Element } from "../../core/deno-dom.ts";
+import { Document, Element } from "../../core/deno-dom.ts";
 
 export const kDashboard = "dashboard";
+
+export const kDashboardGridSkip = "grid-skip";
 
 export interface DashboardMeta {
   orientation: "rows" | "columns";
@@ -24,6 +26,35 @@ export function dashboardMeta(format: Format): DashboardMeta {
     orientation,
     fill,
   };
+}
+
+export interface Attr {
+  id?: string;
+  classes?: string[];
+  attributes?: Record<string, string>;
+}
+
+// Generic helper function for making elements
+export function makeEl(
+  name: string,
+  attr: Attr,
+  doc: Document,
+) {
+  const el = doc.createElement(name);
+  if (attr.id) {
+    el.id = attr.id;
+  }
+
+  for (const cls of attr.classes || []) {
+    el.classList.add(cls);
+  }
+
+  const attribs = attr.attributes || {};
+  for (const key of Object.keys(attribs)) {
+    el.setAttribute(key, attribs[key]);
+  }
+
+  return el;
 }
 
 // Processes an attribute, then remove it

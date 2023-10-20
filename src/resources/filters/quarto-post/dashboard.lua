@@ -3,10 +3,6 @@
 
 local dashboard = require 'modules/dashboard'
 
--- Page level data
-local kOrientationRows = "rows"
-local kOrientationColumns = "columns"
-
 local kSectionClass = "section"
 local kHiddenClass = "hidden"
 local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
@@ -24,28 +20,6 @@ function render_dashboard()
   -- Track the orientation that is used to perform heading based layout
   -- the basic idea is to alternate the orientation at new heading levels
   local lastLevel = 0
-  local currentOrientation = dashboard.document.orientation
-
-  local function alternateOrientation() 
-    if currentOrientation == kOrientationRows then
-      currentOrientation = kOrientationColumns
-    else
-      currentOrientation = kOrientationRows
-    end 
-    return currentOrientation
-  end
-
-  local function orientation() 
-    return currentOrientation
-  end
-
-  local function orientContents(contents, orientation, options)
-    if orientation == kOrientationColumns then
-      return dashboard.layout.makeRowContainer(contents, options)
-    else
-      return dashboard.layout.makeColumnContainer(contents, options)
-    end
-  end
 
   -- This happens in 2 passes:
   -- The first pass will resolve cards, valueboxes, etc...
@@ -153,7 +127,7 @@ function render_dashboard()
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
         -- Layout the proper elements with a specific orientation
-        local cardsWithLayoutEl = orientContents(layoutContentEls, orientation(), options)
+        local cardsWithLayoutEl = dashboard.layout.orientContents(layoutContentEls, dashboard.layout.currentOrientation(), options)
         finalEls:insert(cardsWithLayoutEl)
 
         -- return the newly restructured document
@@ -180,7 +154,8 @@ function render_dashboard()
 
               -- Convert this to a page
               local options = dashboard.page.readOptions(header)
-              return dashboard.page.makePage(header, contents, options)
+              local page = dashboard.page.makePage(header, contents, options)
+              return page
 
             else
 
@@ -195,13 +170,13 @@ function render_dashboard()
 
                 -- Compute the options
                 local options = dashboard.layout.readOptions(header)
+                local toOrientation = dashboard.layout.currentOrientation()
                 if level ~= lastLevel then
                   -- Note the new level
                   lastLevel = level
-                  return orientContents(layoutContentEls, alternateOrientation(), options)
-                else 
-                  return orientContents(layoutContentEls, orientation(), options)
-                end
+                  toOrientation = dashboard.layout.rotatedOrientation()
+                end                
+                return dashboard.layout.orientContents(layoutContentEls, toOrientation, options)
               end
             end
           end

@@ -7,6 +7,7 @@
 import { Document, Element } from "../../core/deno-dom.ts";
 import { isValueBox } from "./format-dashboard-valuebox.ts";
 import { asCssSize } from "../../core/css.ts";
+import { kDashboardGridSkip } from "./format-dashboard-shared.ts";
 
 // Container type classes
 const kRowsClass = "rows";
@@ -150,7 +151,10 @@ export function processColumns(doc: Document) {
 function computeColumnLayouts(colEl: Element) {
   const layouts: Layout[] = [];
   for (const childEl of colEl.children) {
-    if (childEl.classList.contains(kHiddenClass)) {
+    if (
+      childEl.classList.contains(kHiddenClass) ||
+      childEl.classList.contains(kDashboardGridSkip)
+    ) {
       // Skip this, it is hidden
     } else {
       const explicitWidth = childEl.getAttribute(kWidthAttr);
@@ -182,7 +186,10 @@ function computeRowLayouts(rowEl: Element) {
   for (const childEl of rowEl.children) {
     // If the child has an explicitly set height, just use that
     const explicitHeight = childEl.getAttribute(kHeightAttr);
-    if (childEl.classList.contains(kHiddenClass)) {
+    if (
+      childEl.classList.contains(kHiddenClass) ||
+      childEl.classList.contains(kDashboardGridSkip)
+    ) {
       // Skip this, it is hidden
     } else if (explicitHeight !== null) {
       childEl.removeAttribute(kHeightAttr);

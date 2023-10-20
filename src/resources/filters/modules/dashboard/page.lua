@@ -1,16 +1,25 @@
 -- page.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local document = require "modules/dashboard/document"
+local layout = require "modules/dashboard/layout"
 
 local kPageClass = "dashboard-page"
 
 local kOrientationAttr = "orientation"
+local kOrientationRowsClass = "rows"
+local kOrientationColumnsClass = "columns"
 
 local kPageAttr = "data-title"
 
 local function readOptions(el)
 
   local orientation = el.attributes[kOrientationAttr] or document.orientation;
+  if el.classes ~= nil and el.classes:includes(kOrientationColumnsClass) then
+    orientation = kOrientationColumnsClass
+  elseif el.classes ~= nil and el.classes:includes(kOrientationRowsClass) then    
+    orientation = kOrientationRowsClass
+  end
+
   return {
     [kOrientationAttr] = orientation
   }
@@ -30,9 +39,11 @@ local function makePage(headerEl, contents, options)
     attr['data-' .. k] = v
   end
 
-  local pageDiv = pandoc.Div(contents, pandoc.Attr("", classes, attr))
-  return pageDiv
-
+  local tabContentsOrientation = options[kOrientationAttr];
+  local pageContainerEl = layout.orientContents(contents, tabContentsOrientation, {})
+  local pageDiv = pandoc.Div(pageContainerEl, pandoc.Attr("", classes, attr))
+  
+  return pageDiv, options[kOrientationAttr]
 end
 
 

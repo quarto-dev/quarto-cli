@@ -1,18 +1,24 @@
 ---
 title: Simple Document
 author: Blue Note Records
-format: dashboard
+format: 
+  dashboard:
+    orientation: columns
 logo: who.jpg
 ---
 
-
-
-```{r}
-plot(cars)
-```
+# Page 1
 
 ```{r}
 plot(cars)
 ```
 
+# Page 2 {orientation="rows"}
 
+```{r}
+plot(mtcars)
+```
+
+```{r}
+plot(PlantGrowth)
+```

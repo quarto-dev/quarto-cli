@@ -46,6 +46,7 @@ import {
 } from "./format-dashboard-layout.ts";
 import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
+import { processPages } from "./format-dashboard-page.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -249,8 +250,8 @@ function dashboardHtmlPostProcessor(
       }
     }
 
-    // Adjust the appearance of row  elements
-    processRows(doc);
+    // Process pages that may be present in the document
+    processPages(doc);
 
     // Adjust the appearance of column element
     processColumns(doc);
@@ -263,6 +264,9 @@ function dashboardHtmlPostProcessor(
 
     // Process sidedars
     processSidebars(doc);
+
+    // Adjust the appearance of row  elements
+    processRows(doc);
 
     // Process fill images to include proper fill behavior
     const fillImgNodes = doc.body.querySelectorAll("div.html-fill-item > img");
