@@ -60,6 +60,7 @@
 - ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
 - ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
 - ([#7175](https://github.com/quarto-dev/quarto-cli/issues/7175)): Fix an issue with code annotations when more than one digit is used for annotation number.
+- ([#7267](https://github.com/quarto-dev/quarto-cli/issues/7267)): Fix issue with longtable environments interfering with the `table` counter.
 
 ## Docusaurus Format
 
@@ -75,6 +76,10 @@
 ## Asciidoc Format
 
 - ([#6589](https://github.com/quarto-dev/quarto-cli/issues/6589)): Don't crash when `format: asciidoc` with a missing title.
+
+## Confluence Format
+
+- ([#7256](https://github.com/quarto-dev/quarto-cli/issues/7256)): No undesired newline are created anymore in Callouts.
 
 ## Website Listings
 

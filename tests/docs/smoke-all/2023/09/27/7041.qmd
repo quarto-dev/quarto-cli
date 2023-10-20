@@ -1,6 +1,7 @@
 ---
-format: typst
-output-ext: typ
+format: 
+  typst:
+    output-ext: typ
 _quarto:
   tests:
     typst:

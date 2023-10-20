@@ -182,7 +182,7 @@ function ensureFormats() {
 
   // Custom build in aliases
   if (!FormatAliases.custom) {
-    FormatAliases.custom = ["dashboard"];
+    FormatAliases.custom = ["dashboard", "email"];
   }
 }
 

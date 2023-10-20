@@ -33,7 +33,6 @@ import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
-import { kOutputExt } from "../../src/config/constants.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -113,8 +112,7 @@ function resolveTestSpecs(
         } else {
           // See if there is a project and grab it's type
           const projectOutDir = findProjectOutputDir(input);
-          const ext = metadata?.[kOutputExt];
-          const outputFile = outputForInput(input, format, projectOutDir, ext);
+          const outputFile = outputForInput(input, format, projectOutDir, metadata);
           if (key === "fileExists") {
             for (
               const [path, file] of Object.entries(
@@ -198,18 +196,27 @@ for (const { path: fileName } of files) {
       verifyFns,
       //deno-lint-ignore no-explicit-any
     } = testSpec as any;
-
-    testQuartoCmd("render", [input, "--to", format], verifyFns, {
-      prereq: async () => {
-        setInitializer(fullInit);
-        await initState();
-        return Promise.resolve(true);
-      },
-      teardown: () => {
-        cleanoutput(input, format);
-        return Promise.resolve();
-      },
-    });
+    if (format === "editor-support-crossref") {
+      const tempFile = Deno.makeTempFileSync();
+      testQuartoCmd("editor-support", ["crossref", "--input", input, "--output", tempFile], verifyFns, {
+        teardown: () => {
+          Deno.removeSync(tempFile);
+          return Promise.resolve();
+        }
+      }, `quarto editor-support crossref < ${input}`);
+    } else {
+      testQuartoCmd("render", [input, "--to", format], verifyFns, {
+        prereq: async () => {
+          setInitializer(fullInit);
+          await initState();
+          return Promise.resolve(true);
+        },
+        teardown: () => {
+          cleanoutput(input, format, undefined, metadata);
+          return Promise.resolve();
+        },
+      });
+    }
   }
 }
 

@@ -1,0 +1,23 @@
+---
+format: 
+  hugo-md: default
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - ['<script>', '<div class="datatables'] 
+        - []
+    typst:
+      ensureFileRegexMatches:
+        - ['#image\(']
+        - []
+---
+
+This test will do snapshoting of the HTML widgets, so it requires chrome / chromium with **webshot2** or phantomjs with **webshot** to work. 
+TODO: See how to configure our test suites for this
+
+```{r}
+DT::datatable(cars)
+```

@@ -101,7 +101,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     # This truly awful hack ensures that rmarkdown doesn't tell us we're
     # producing HTML widgets when targeting a non-html format (doing this
     # is triggered by the "prefer-html" options)
-    if (format$render$`prefer-html`) {
+    if (is_html_prefered(format)) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
     }
@@ -112,7 +112,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # determine df_print
   df_print <- format$execute$`df-print`
-  if (df_print == "paged" && !is_pandoc_html_format(format) && !format$render$`prefer-html`) {
+  if (
+    df_print == "paged" &&
+    !is_pandoc_html_format(format) &&
+    !is_html_prefered(format)
+  ) {
     df_print <- "kable"
   }
 
@@ -290,7 +294,7 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
 
 
   # add screenshot force if prefer-html specified
-  if (isTRUE(format$render$`prefer-html`)) {
+  if (is_html_prefered(format)) {
     opts_chunk$screenshot.force <- FALSE
   }
 
@@ -420,8 +424,7 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
 
   # convert dependencies to in_header includes
   dependencies$includes <- list()
-
-  if (is_pandoc_html_format(format) || format$render$`prefer-html`) {
+  if (is_pandoc_html_format(format) || is_html_prefered(format)) {
     # get extras (e.g. html dependencies)
     # only include these html extras if we're targeting a format that
     # supports html (widgets) like this or that prefers html (e.g. Hugo)
@@ -465,7 +468,7 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
       }
     }
   } else if (
-    is_latex_output(format$pandoc$to) &&
+    is_pandoc_latex_output(format) &&
     rmarkdown:::has_latex_dependencies(knit_meta)
   ) {
     latex_dependencies <- rmarkdown:::flatten_latex_dependencies(knit_meta)
@@ -539,12 +542,45 @@ extract_preserve_chunks <- function(output_file, format) {
   }
 }
 
-is_pandoc_html_format <- function(format) {
-  knitr::is_html_output(format$pandoc$to, c("markdown", "epub", "gfm", "commonmark", "commonmark_x", "markua"))
+# inline knitr::pandoc_to from knitr 1.41
+# before that, the all format (w/ pandoc extension) was checked
+is_pandoc_to_format <- function(format, check_fmts) {
+  to <- gsub("[-+].*", "", format$pandoc$to)
+  to %in% check_fmts
 }
 
-is_latex_output <- function(to) {
-  knitr:::is_latex_output() || identical(to, "pdf")
+# check is pandoc$to is among html formats (html, slides, epub)
+is_pandoc_html_format <- function(format) {
+  knitr::is_html_output(
+    format$pandoc$to,
+    c("markdown", "epub", "gfm", "commonmark", "commonmark_x", "markua")
+  )
+}
+
+# check if pandoc$to is latex output
+is_pandoc_latex_output <- function(format) {
+  knitr:::is_latex_output() || is_pandoc_to_format(format, "pdf")
+}
+
+# check if pandoc$to is among markdown outputs
+is_pandoc_markdown_output <- function(format) {
+  markdown_formats <- c(
+    "markdown",
+    "markdown_github",
+    "markdown_mmd",
+    "markdown_phpextra",
+    "markdown_strict",
+    "gfm",
+    "commonmark",
+    "commonmark_x",
+    "markua"
+  )
+  is_pandoc_to_format(format, markdown_formats)
+}
+
+# `prefer-html: true` can be set in markdown format that supports HTML outputs
+is_html_prefered <- function(format) {
+  is_pandoc_markdown_output(format) && isTRUE(format$render$`prefer-html`)
 }
 
 is_dashboard_output <- function(to) {
