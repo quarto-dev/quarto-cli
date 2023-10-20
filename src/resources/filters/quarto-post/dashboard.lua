@@ -162,7 +162,7 @@ function render_dashboard()
 
               -- Convert this to a page
               local options = dashboard.page.readOptions(header)
-              local page = dashboard.page.makePage(header, contents, options)
+              local page = dashboard.page.makePage(header, layoutContentEls, options)
               return page
 
             else
@@ -201,7 +201,7 @@ function render_dashboard()
           local sidebar = nil
           local sidebarContent = pandoc.List({})
           for i, v in ipairs(el.content) do            
-            if v.classes:includes('sidebar') then
+            if v.classes ~= nil and v.classes:includes('sidebar') then
               sidebar = v
             else
               sidebarContent:insert(v)
