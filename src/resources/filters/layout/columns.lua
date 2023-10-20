@@ -131,7 +131,7 @@ function renderDivColumn(el)
             latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
             el.content[j] = tableDiv
             figOrTable = true
-        elseif is_regular_node(contentEl, "Div") then
+          elseif is_custom_node(contentEl, "FloatRefTarget") then
             -- forward the columns class from the output div
             -- onto the float ref target, which prevents
             -- the general purpose `sidenote` processing from capturing this
