@@ -590,15 +590,15 @@ function forward_cell_subcaps()
               index = index + 1
               return pandoc_table
             end,
-            Div = function(maybe_fig)
-              local fig = discoverFigure(maybe_fig, false) or discoverLinkedFigure(maybe_fig, false)
+            Para = function(maybe_float)
+              local fig = discoverFigure(maybe_float, false) or discoverLinkedFigure(maybe_float, false)
               if fig ~= nil then
                 fig.caption = quarto.utils.as_inlines(pandoc.Str(subcaps[index]))
                 fig.identifier = div.identifier .. "-" .. tostring(index)
                 index = index + 1
-                return maybe_fig
+                return maybe_float
               end
-            end
+            end,
           })
           return subdiv
         end
