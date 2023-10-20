@@ -14,7 +14,7 @@ local function isLayoutContainer(el)
     return true
   elseif valuebox.isValueBox(el) then
     return true
-  elseif layout.isRowOrColContainer(el) then
+  elseif layout.isRowOrColumnContainer(el) then
     return true
   elseif sidebar.isSidebar(el) then
     return true

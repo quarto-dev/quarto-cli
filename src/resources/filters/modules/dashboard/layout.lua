@@ -24,8 +24,17 @@ local kOrientationColumns = "columns"
 local kOptionClasses = "classes"
 
 
-local function isRowOrColContainer(el) 
-  return el.classes ~= nil and (el.classes:includes(kRowsClass) or el.classes:includes(kColumnsClass))
+
+local function isRowContainer(el)
+  return el.classes ~= nil and el.classes:includes(kRowsClass)
+end
+
+local function isColumnContainer(el)
+  return el.classes ~= nil and el.classes:includes(kColumnsClass)
+end
+
+local function isRowOrColumnContainer(el) 
+  return isRowContainer(el) or isColumnContainer(el)
 end
 
 local function validateLayout(options)
@@ -144,7 +153,9 @@ end
 
 
 return {
-  isRowOrColContainer = isRowOrColContainer,
+  isRowOrColumnContainer = isRowOrColumnContainer,
+  isRowContainer = isRowContainer,
+  isColumnContainer = isColumnContainer,
   currentOrientation = orientation,
   rotatedOrientation = rotatedOrientation,
   orientContents = orientContents,

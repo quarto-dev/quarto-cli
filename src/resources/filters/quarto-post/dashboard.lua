@@ -193,21 +193,21 @@ function render_dashboard()
     }, {
       traverse = 'topdown',
       Div = function(el) 
-        if dashboard.layout.isRowOrColContainer(el) and #el.content == 0 then
+        if dashboard.layout.isRowOrColumnContainer(el) and #el.content == 0 then
           -- don't emit completely empty layout containers
           return pandoc.Null()
-        elseif el.classes:includes('columns') then
+        elseif dashboard.layout.isColumnContainer(el) then
 
           local sidebar = nil
           local sidebarContent = pandoc.List({})
-          for i, v in ipairs(el.content) do            
-            if v.classes ~= nil and v.classes:includes('sidebar') then
+          for _i, v in ipairs(el.content) do   
+            if dashboard.sidebar.isSidebar(v) then         
               sidebar = v
             else
               sidebarContent:insert(v)
             end
           end
-
+          
           if sidebar then
             local options = dashboard.sidebar.readOptions(el)
             return dashboard.sidebar.makeSidebar(sidebar.content, sidebarContent, options)  
