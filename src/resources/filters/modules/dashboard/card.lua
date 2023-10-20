@@ -13,6 +13,7 @@ local kTabClass = "tab"
 
 -- Cell classes
 local kCellClass = "cell"
+local kFlowClass = "flow"
 
 -- Implicit Card classes, these mean that this is a card
 -- even if it isn't specified
@@ -31,6 +32,9 @@ local kWidth = "width"
 local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kTitle = "title"
+local kLayout = "layout"
+
+
 
 -- Card explicit attributes
 local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable})
@@ -113,6 +117,10 @@ local function readCardOptions(el)
       if el.classes:includes(v) then
         options[v] = true
       end
+    end
+
+    if el.classes:includes(kFlowClass) then
+      options[kLayout] = kFlowClass
     end
   end
 

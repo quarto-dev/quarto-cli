@@ -43,6 +43,10 @@ local function organizer(contents, ignoreClasses)
   local function flushLooseContent() 
     if #looseContentEls > 0 then
       local cardOptions = card.readCardOptions(looseContentEls[1])
+      
+      -- For loose content, mark this as a flow layout
+      cardOptions[kLayout] = "flow"
+
       layoutContentEls:insert(card.makeCard(nil, looseContentEls, {}, cardOptions))              
       looseContentEls = pandoc.List()
       end
