@@ -99,7 +99,7 @@ const dispatch: Record<string, ReqHandler> = {
     globalState.waitingTests.splice(index, 1);
     // TODO validate json
     globalState.results[json.name] = json;
-    console.log(`report  ${json.status.toLocaleUpperCase()} ${json.name}`);
+    console.log(`report  ${json.status.toLocaleUpperCase()} ${json.name} (from ${json.runner}))`);
     return new Response("ok");
   }),
   "/get-results": handlePost(async (req) => {

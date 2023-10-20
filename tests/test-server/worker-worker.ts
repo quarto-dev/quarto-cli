@@ -33,6 +33,7 @@ async function runOneTest() {
     method: "POST", 
     body: JSON.stringify({ 
       name: test, 
+      runner: Deno.hostname(),
       status: result.code === 0 ? "pass" : "fail",
       output: new TextDecoder().decode(result.stdout),
     })
