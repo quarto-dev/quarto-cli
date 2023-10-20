@@ -8,6 +8,7 @@
 let serverUrl = "http://localhost:8000";
 let workerNumber = 1;
 let maxWorkers = 1;
+let errors: string[] = [];
 
 function message(str: string, ...args: unknown[]) {
   console.log(`Worker ${" ".repeat(String(maxWorkers).length - String(workerNumber).length)}${workerNumber}: ${str}`, ...args);
@@ -29,13 +30,17 @@ async function runOneTest() {
     args: [test],
   });
   const result = cmd.outputSync();
+  const output = new TextDecoder().decode(result.stdout)
+  if (result.code !== 0) {
+    errors.push(test);
+  }
   const reportResponse = await fetch(`${serverUrl}report-test`, { 
     method: "POST", 
     body: JSON.stringify({ 
       name: test, 
       runner: Deno.hostname(),
       status: result.code === 0 ? "pass" : "fail",
-      output: new TextDecoder().decode(result.stdout),
+      output,
     })
   });
   if (reportResponse.status !== 200) {
@@ -52,6 +57,9 @@ async function runOneTest() {
     maxWorkers = evt.data.maxWorkers;
     while (await runOneTest()) {
       // do nothing
+    }
+    for (const error of errors) {
+      message(`Failed test: ${error}`)
     }
     self.close();
   }
