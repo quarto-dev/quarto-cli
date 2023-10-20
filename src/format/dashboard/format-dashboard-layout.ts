@@ -7,7 +7,10 @@
 import { Document, Element } from "../../core/deno-dom.ts";
 import { isValueBox } from "./format-dashboard-valuebox.ts";
 import { asCssSize } from "../../core/css.ts";
-import { kDashboardGridSkip } from "./format-dashboard-shared.ts";
+import {
+  kDashboardGridSkip,
+  kDontMutateTags,
+} from "./format-dashboard-shared.ts";
 
 // Container type classes
 const kRowsClass = "rows";
@@ -38,7 +41,6 @@ interface FillDescriptor {
   classes: string[];
 }
 
-const kNeverFillTags = ["P"];
 const kNeverFillClasses = [
   "value-box-grid",
   "value-box-area",
@@ -337,7 +339,7 @@ export const recursiveApplyFillClasses = (el: Element) => {
 };
 
 const shouldApplyClasses = (el: Element, fillDescriptor: FillDescriptor) => {
-  if (kNeverFillTags.includes(el.tagName.toUpperCase())) {
+  if (kDontMutateTags.includes(el.tagName.toUpperCase())) {
     return false;
   }
 

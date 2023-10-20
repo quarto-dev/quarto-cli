@@ -36,7 +36,11 @@ import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
-import { dashboardMeta, kDashboard } from "./format-dashboard-shared.ts";
+import {
+  dashboardMeta,
+  kDashboard,
+  kDontMutateTags,
+} from "./format-dashboard-shared.ts";
 import { processCards } from "./format-dashboard-card.ts";
 import { processValueBoxes } from "./format-dashboard-valuebox.ts";
 import {
@@ -243,7 +247,10 @@ function dashboardHtmlPostProcessor(
       for (const childEl of children) {
         // All the children of the dashboard container at the root level become
         // fill children
-        if (!childEl.classList.contains("quarto-title-block")) {
+        if (
+          !childEl.classList.contains("quarto-title-block") &&
+          !kDontMutateTags.includes(childEl.tagName.toUpperCase())
+        ) {
           childEl.classList.add("bslib-grid-item");
           applyFillItemClasses(childEl);
         }

@@ -10,6 +10,8 @@ export const kDashboard = "dashboard";
 
 export const kDashboardGridSkip = "grid-skip";
 
+export const kDontMutateTags = ["P", "SCRIPT"];
+
 export interface DashboardMeta {
   orientation: "rows" | "columns";
   fill: boolean;
