@@ -2102,6 +2102,7 @@ code.sourceCode a.code-annotation-anchor {
 
   .navbar .navbar-title {
     font-size: 1.45em;
+    line-height: 1em;
     display: flex;
     flex-direction: column;
   }
@@ -2119,7 +2120,7 @@ code.sourceCode a.code-annotation-anchor {
   }
 
   .navbar-logo {
-    max-height: 60px;
+    max-height: 48px;
     object-fit: cover;
     margin-right: 1em;
   }
