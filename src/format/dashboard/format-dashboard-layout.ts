@@ -185,12 +185,9 @@ function computeRowLayouts(rowEl: Element) {
     ? asLayout(parentLayoutRaw)
     : null;
 
-  const indexesToFillIfAnyOtherFills: number[] = [];
-
   // Build a set of layouts for this row by looking at the children of
   // the row
   const layouts: Layout[] = [];
-  let idx = 0;
   for (const childEl of rowEl.children) {
     // If the child has an explicitly set height, just use that
     const explicitHeight = childEl.getAttribute(kHeightAttr);
@@ -209,9 +206,6 @@ function computeRowLayouts(rowEl: Element) {
         // That child has either an explicitly set `fill` or `flow` layout
         // attribute, so just use that explicit value
         layouts.push(asLayout(layout));
-        if (layout === kLayoutFlow) {
-          indexesToFillIfAnyOtherFills.push(idx);
-        }
       } else {
         // This is `auto` mode - no explicit size information is
         // being provided, so we need to figure out what size
@@ -243,23 +237,6 @@ function computeRowLayouts(rowEl: Element) {
         }
       }
     }
-    idx++;
-  }
-
-  // Cards might be requesting to be a flow layout, but if they are in a row which
-  // includes other fill elements, that row is going to become a fill row, and the flow
-  // will leave the card looking stupid (because it will be short)
-  //
-  // So if there is explicitly a flow on a card which appears in a fill row, just overwrite
-  // that to fill so the grid layout is maintained
-  if (
-    indexesToFillIfAnyOtherFills.length > 0 && layouts.some((layout) => {
-      return layout === kLayoutFlow;
-    })
-  ) {
-    indexesToFillIfAnyOtherFills.forEach((index) => {
-      layouts[index] = asLayout(kLayoutFill);
-    });
   }
   return layouts;
 }
