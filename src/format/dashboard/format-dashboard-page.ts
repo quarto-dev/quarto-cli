@@ -41,6 +41,12 @@ export function processPages(doc: Document) {
     );
   }
 
+  // Mark the toggle button visible
+  const navbarTogglerEl = navbarEl.querySelector(".navbar-toggler");
+  if (navbarTogglerEl) {
+    navbarTogglerEl.classList.remove("hidden");
+  }
+
   // Build up the navigation descriptors, marking up the pages as we go
   const navItems: NavItem[] = [];
   let counter = 1;
@@ -83,8 +89,8 @@ export function processPages(doc: Document) {
 
   // Generate a collapsible region
   const collapseEl = makeEl("div", {
-    id: "collapse",
-    classes: ["collapse", "navbar-collapse"],
+    id: "dashboard-collapse",
+    classes: ["navbar-collapse", "collapse"],
   }, doc);
   collapseEl.append(navUlEl);
 
@@ -115,7 +121,7 @@ function toNav(navItem: NavItem, doc: Document) {
     },
   }, doc);
 
-  const spanEl = makeEl("spand", {
+  const spanEl = makeEl("span", {
     classes: ["nav-link-text"],
   }, doc);
   spanEl.innerText = navItem.text;

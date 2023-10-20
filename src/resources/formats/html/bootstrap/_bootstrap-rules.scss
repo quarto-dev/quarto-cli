@@ -2096,7 +2096,6 @@ code.sourceCode a.code-annotation-anchor {
   }
 
   .navbar {
-    margin-bottom: 0.5em;
     padding: 0;
 
     &.slim {
@@ -2106,6 +2105,10 @@ code.sourceCode a.code-annotation-anchor {
           padding: 0.7em;
         }
       }
+    }
+
+    .navbar-toggler {
+      order: 10;
     }
 
     .navbar-nav {
@@ -2127,10 +2130,19 @@ code.sourceCode a.code-annotation-anchor {
       padding: 0.5em;
       display: flex;
       flex-direction: row;
-      margin-right: 3em;
+      margin-right: 2em;
+      @include media-breakpoint-down(md) {
+        flex-basis: 80%;
+      }
     }
 
     .navbar-collapse {
+      @include media-breakpoint-up(md) {
+        order: 8;
+      }
+      @include media-breakpoint-down(md) {
+        order: 1000;
+      }
       align-self: stretch;
       .navbar-nav {
         align-self: stretch;

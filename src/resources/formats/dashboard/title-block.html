@@ -1,13 +1,15 @@
 $if(title)$
 <header>
 $if(logo)$
-<nav class="navbar navbar-expand" data-bs-theme="dark">
+<nav class="navbar navbar-expand-md" data-bs-theme="dark">
 $else$
-<nav class="navbar navbar-expand slim" data-bs-theme="dark">
+<nav class="navbar navbar-expand-md slim" data-bs-theme="dark">
 $endif$
 
-  
   <div class="navbar-container container-fluid">
+    <button class="navbar-toggler hidden" type="button" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-controls="dashboard-collapse" aria-expanded="true" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>    
     <div class="navbar-brand-container">       
 $if(logo)$<img src="$logo$" alt="$logo-alt$" class="navbar-logo d-inline-block">$endif$
 $if(title)$
@@ -18,6 +20,8 @@ $if(title)$
 $endif$
     </div>
 </div>
+
+
 </nav>
 </header>
 $endif$
