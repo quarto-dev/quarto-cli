@@ -114,7 +114,7 @@ export function dashboardFormat() {
         extras[kFilterParams] = extras[kFilterParams] || {};
         extras[kFilterParams][kDashboard] = {
           orientation: dashboard.orientation,
-          fill: dashboard.fill,
+          scrolling: dashboard.scrolling,
         };
 
         const scripts: DependencyHtmlFile[] = [];
@@ -205,7 +205,7 @@ function dashboardHtmlPostProcessor(
     doc.body.classList.add(kDashboardClz);
 
     // Note the orientation as fill if needed
-    if (dashboard.fill) {
+    if (!dashboard.scrolling) {
       doc.body.classList.add("dashboard-fill");
     }
 
@@ -218,7 +218,7 @@ function dashboardHtmlPostProcessor(
       ];
 
       // The scrolling behavior
-      if (dashboard.fill) {
+      if (!dashboard.scrolling) {
         containerClz.push("bslib-page-fill"); // only apply this if we aren't scrolling
       } else {
         containerClz.push("dashboard-scrolling"); // only apply this if we are scrolling

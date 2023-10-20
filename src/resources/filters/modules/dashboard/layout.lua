@@ -70,12 +70,12 @@ local function readOptions(el)
   return options;
 end
 
-local function makeOptions(filling) 
+local function makeOptions(scrolling) 
   local options = {}
-  if filling == true then
-    options[kLayout] = kLayoutFill
-  else
+  if scrolling == true then
     options[kLayout] = kLayoutFlow
+  else
+    options[kLayout] = kLayoutFill
   end
   return options;
 end

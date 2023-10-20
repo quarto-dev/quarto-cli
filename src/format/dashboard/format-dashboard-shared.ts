@@ -14,7 +14,7 @@ export const kDontMutateTags = ["P", "SCRIPT"];
 
 export interface DashboardMeta {
   orientation: "rows" | "columns";
-  fill: boolean;
+  scrolling: boolean;
 }
 
 export function dashboardMeta(format: Format): DashboardMeta {
@@ -22,11 +22,11 @@ export function dashboardMeta(format: Format): DashboardMeta {
   const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
     ? "columns"
     : "rows";
-  const fill = !dashboardRaw || dashboardRaw.fill !== false;
+  const scrolling = dashboardRaw.scrolling === true;
 
   return {
     orientation,
-    fill,
+    scrolling,
   };
 }
 

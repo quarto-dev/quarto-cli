@@ -93,7 +93,7 @@ function render_dashboard()
       Pandoc = function(el)
         
         -- Look for global fill setting
-        local options = dashboard.layout.makeOptions(dashboard.document.fill)
+        local options = dashboard.layout.makeOptions(dashboard.document.scrolling)
 
         -- Make sections based upon the headings and use that for the 
         -- document structure

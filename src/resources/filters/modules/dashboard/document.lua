@@ -5,7 +5,7 @@
 local kParamKey = "dashboard"
 
 -- Layout param
-local kLayoutFill = "fill"
+local kLayoutScrolling = "scrolling"
 
 -- Orientation param
 local kParamOrientation = "orientation"
@@ -19,6 +19,6 @@ end
 
 
 return {
-  fill = dashboardParam(kLayoutFill, true),
+  scrolling = dashboardParam(kLayoutScrolling, false),
   orientation = dashboardParam(kParamOrientation, kDefaultOrientation)
 }
