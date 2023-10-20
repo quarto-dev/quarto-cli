@@ -2131,6 +2131,7 @@ code.sourceCode a.code-annotation-anchor {
       display: flex;
       flex-direction: row;
       margin-right: 2em;
+      align-items: center;
       @include media-breakpoint-down(md) {
         flex-basis: 80%;
       }
@@ -2153,12 +2154,8 @@ code.sourceCode a.code-annotation-anchor {
       font-size: 1.25em;
       line-height: 1.1em;
       display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-    }
-
-    &.slim .navbar-title {
       flex-direction: row;
+      flex-wrap: wrap;
       align-items: baseline;
       .navbar-title-text {
         margin-right: 0.4em;
