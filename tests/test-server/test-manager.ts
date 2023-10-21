@@ -6,7 +6,7 @@
 */
 
 import { expandGlob } from "fs/expand_glob.ts";
-import { relative } from "path/mod.ts";
+import { relative, basename } from "path/mod.ts";
 
 type TestResult = {
   name: string;
@@ -32,7 +32,8 @@ async function findAllTests(): Promise<string[]> {
   for await (const test of tests) {
     let path = relative(Deno.cwd(), test.path);
     if (path === "smoke/smoke-all.test.ts" || 
-        path.match("smoke/smoke-all/.*.js")) {
+        path.match("docs/smoke-all/.*.js") ||
+        path.match("/node_modules/")) {
       continue;
     }
     result.push(path);
@@ -40,6 +41,9 @@ async function findAllTests(): Promise<string[]> {
   // smoke-all tests
   const smokeAllTests = await expandGlob("docs/smoke-all/**/*.{md,qmd,ipynb}");
   for await (const test of smokeAllTests) {
+    if (basename(test.path).startsWith("_")) {
+      continue;
+    }
     result.push(relative(Deno.cwd(), test.path));
   }
 
