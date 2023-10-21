@@ -6,6 +6,7 @@
 
 import { Document, Element } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
+import { makeEl } from "./format-dashboard-shared.ts";
 
 const kSidebarPanelClass = "sidebar-panel";
 const kSidebarClass = "sidebar";
@@ -22,16 +23,18 @@ export function processSidebars(doc: Document) {
       : `bslib-sidebar-${sidebarCount++}`;
 
     // Create the sidebar container
-    const sidebarContainerEl = doc.createElement("DIV");
-    sidebarContainerEl.classList.add("bslib-sidebar-layout");
-    sidebarContainerEl.classList.add("html-fill-item");
-    sidebarContainerEl.setAttribute("data-bslib-sidebar-open", "desktop");
-    sidebarContainerEl.setAttribute("data-bslib-sidebar-init", "true");
+    const sidebarContainerEl = makeEl("div", {
+      classes: ["bslib-sidebar-layout", "html-fill-item"],
+      attributes: {
+        "data-bslib-sidebar-open": "desktop",
+        "data-bslib-sidebar-init": "true",
+      },
+    }, doc);
 
     // Capture the content (the sidebar's next sibling)
-    const sidebarMainEl = doc.createElement("DIV");
-    sidebarMainEl.classList.add("main");
-    sidebarMainEl.classList.add("html-fill-container");
+    const sidebarMainEl = makeEl("div", {
+      classes: ["main", "html-fill-container"],
+    }, doc);
     const sidebarMainContentsEl = sidebarEl.querySelector(
       `.${kSidebarContentClass}`,
     );
@@ -42,12 +45,14 @@ export function processSidebars(doc: Document) {
     // convert to an aside (class sidebar)
     const sidebarContentsEl = sidebarEl.querySelector(`.${kSidebarClass}`);
 
-    const sidebarAsideEl = doc.createElement("ASIDE");
-    sidebarAsideEl.id = sidebarId;
-    sidebarAsideEl.classList.add(kSidebarClass);
+    const sidebarAsideEl = makeEl("aside", {
+      id: sidebarId,
+      classes: [kSidebarClass, "html-fill-container", "html-fill-item"],
+    }, doc);
 
     // place contents inside
     if (sidebarContentsEl !== null) {
+      sidebarContentsEl.classList.add("html-fill-container", "html-fill-item");
       sidebarAsideEl.appendChild(sidebarContentsEl);
     }
 
