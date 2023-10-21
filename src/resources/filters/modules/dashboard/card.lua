@@ -90,6 +90,20 @@ local function isTabset(el)
   return (el.t == "Div" or el.t == "Header") and el.classes:includes(kTabsetClass)
 end
 
+local function hasRealLookingContent(contents)
+  -- Inspect the loose content and don't make cards out of things that don't look cardish
+  local hasReal = false
+  for _i, v in ipairs(contents) do
+    -- This looks like shiny pre-rendered stuff, just ignore it
+    if v.t == "Para" and pandoc.utils.stringify(v):match('^preserve%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x.*') then
+    elseif v.t == "RawBlock" then
+    else
+      hasReal = true
+    end
+  end
+  return hasReal
+end
+
 local function isLiteralCard(el)
   -- it must be a div
   if el.t ~= "Div" then
@@ -200,10 +214,22 @@ local function resolveCardBodies(contents)
           end
         end
       end
-      contentDiv.content:extend(collectedBodyEls)
-      bodyContentEls:insert(contentDiv)
+
+      -- If the card doesn't have `real content`, just pile it into the previous 
+      -- body (or leave it hanging around to go into the next code body)
+      local hasRealContent = hasRealLookingContent(collectedBodyEls)
+      if hasRealContent then
+        contentDiv.content:extend(collectedBodyEls)
+        bodyContentEls:insert(contentDiv)
+        collectedBodyEls = pandoc.List()
+      else
+        local prevDiv = bodyContentEls[#bodyContentEls]
+        if prevDiv ~= nil then
+          prevDiv.content:extend(collectedBodyEls)
+          collectedBodyEls = pandoc.List()
+        end
+      end
     end
-    collectedBodyEls = pandoc.List()
   end
   local function collectBodyContentEl(el)
     local popped = popImagePara(el)
@@ -320,17 +346,26 @@ end
 --   .card-body[max-height, min-height]
 local function makeCard(title, contents, classes, options)  
 
+
+  -- Inspect the loose content and don't make cards out of things that don't look cardish
+  local hasRealContent = hasRealLookingContent(contents)
+  if not hasRealContent then
+    return nil
+  end
+
   -- compute the card contents
   local cardContents = pandoc.List({})
 
   -- the card header
   local cardHeader = resolveCardHeader(title, options)
+  
   if cardHeader ~= nil then
     cardContents:insert(cardHeader)  
   end
 
   -- compute the card body(ies)
   local cardBodyEls, cardFooterEls = resolveCardBodies(contents)
+
   cardContents:extend(cardBodyEls)
 
   -- compute any card footers
