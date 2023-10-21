@@ -2337,9 +2337,14 @@ code.sourceCode a.code-annotation-anchor {
     .card-body {
       margin-bottom: 2em;
     }
+    .cell-output-display:not(:last-child) {
+      margin-bottom: 1em;
+    }
+    .shiny-options-group {
+      margin-top: 0;
+    }
     .control-label {
       margin-bottom: 0.3em;
-      margin-left: 2px;
     }
   }
 }
