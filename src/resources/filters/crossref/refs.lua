@@ -13,7 +13,7 @@ function resolveRefs()
       local function add_ref_prefix(ref, ref_type, prefix)
         local category = crossref.categories.by_ref_type[ref_type]
         ref:extend(prefix)
-        if category.space_before_numbering == nil then
+        if category == nil or category.space_before_numbering ~= false then
           ref:extend({nbspString()})
         end
       end
@@ -48,7 +48,7 @@ function resolveRefs()
             local ref = pandoc.List()
 
             local category = crossref.categories.by_ref_type[type]
-            if category.custom_ref_command ~= nil and _quarto.format.isLatexOutput() then
+            if category ~= nil and category.custom_ref_command ~= nil and _quarto.format.isLatexOutput() then
               -- do nothing else, this was all handled by the custom command
               ref:extend({pandoc.RawInline('latex', '\\' .. category.custom_ref_command .. '{' .. label .. '}')})
             elseif #cite.prefix > 0 then
@@ -81,7 +81,7 @@ function resolveRefs()
               -- check for custom ref command here, but don't combine the conditional above
               -- so we don't get the fallthrough else clause in latex when custom ref commands
               -- are in play
-              if category.custom_ref_command == nil then
+              if category == nil or category.custom_ref_command == nil then
                 ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
               end
             elseif _quarto.format.isAsciiDocOutput() then
