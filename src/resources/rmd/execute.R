@@ -82,6 +82,12 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     do.call(options, r_options)
   }
 
+  # set DT.fillContainer for dashboards
+  if (is_dashboard_output(format$pandoc$to) &&
+      is.na(getOption("DT.fillContainer", NA))) {
+    options(DT.fillContainer = TRUE)
+  }
+
   # get kntir options
   knitr <- knitr_options(format, resourceDir, handledLanguages)
 
