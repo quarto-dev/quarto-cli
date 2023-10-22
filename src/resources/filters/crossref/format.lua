@@ -14,15 +14,18 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, order, with_delimiter)
-  if with_delimiter == nil then
-    with_delimiter = true
+function titlePrefix(ref_type, default, order, with_title_delimiter)
+  if with_title_delimiter == nil then
+    with_title_delimiter = true
   end
 
-  local prefix = title(type, default)
-  table.insert(prefix, nbspString())
-  tappend(prefix, numberOption(type, order))
-  if with_delimiter then
+  local prefix = title(ref_type, default)
+  local category = crossref.categories.by_ref_type[ref_type]
+  if category == nil or category.space_before_numbering ~= false then
+    table.insert(prefix, nbspString())
+  end
+  tappend(prefix, numberOption(ref_type, order))
+  if with_title_delimiter then
     tappend(prefix, titleDelim())
     table.insert(prefix, pandoc.Space())
   end
