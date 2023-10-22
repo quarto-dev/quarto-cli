@@ -12110,6 +12110,12 @@ var require_yaml_intelligence_resources = __commonJS({
                         object: {
                           description: "A custom cross reference type.",
                           closed: true,
+                          required: [
+                            "kind",
+                            "prefix",
+                            "name",
+                            "ref-type"
+                          ],
                           properties: {
                             kind: {
                               enum: [
@@ -12127,6 +12133,12 @@ var require_yaml_intelligence_resources = __commonJS({
                                 description: "The prefix used in captions when referencing this type."
                               }
                             },
+                            "space-before-numbering": {
+                              default: true,
+                              boolean: {
+                                description: "If false, use no space between crossref prefixes and numbering."
+                              }
+                            },
                             "ref-type": {
                               string: {
                                 description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
@@ -12134,12 +12146,17 @@ var require_yaml_intelligence_resources = __commonJS({
                             },
                             "latex-env": {
                               string: {
-                                description: "The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output."
+                                description: "In LaTeX output, the name of the custom environment to be used."
                               }
                             },
-                            "latex-list-of-name": {
+                            "latex-list-of-file-extension": {
                               string: {
-                                description: 'The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.'
+                                description: 'In LaTeX output, the extension of the auxiliary file used by LaTeX to collect names to be used in the custom "list of" command. If omitted, a string with prefix `lo` and suffix with the value of `ref-type` is used.'
+                              }
+                            },
+                            "latex-list-of-description": {
+                              string: {
+                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
                               }
                             }
                           }
@@ -20294,9 +20311,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
         "The prefix used in rendered citations when referencing this type.",
         "The prefix used in captions when referencing this type.",
+        "If false, use no space between crossref prefixes and numbering.",
         "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
-        "The name of the custom LaTeX environment that quarto will use to\ncreate this type of crossreferenceable object in LaTeX output.",
-        "The name of the custom LaTeX \u201Clist of\u201D command that quarto will use\nto create this type of crossreferenceable object in LaTeX output.",
+        "In LaTeX output, the name of the custom environment to be used.",
+        "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command.",
+        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
@@ -22152,12 +22171,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 173366,
+        _internalId: 173650,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 173358,
+            _internalId: 173642,
             type: "enum",
             enum: [
               "png",
@@ -22173,7 +22192,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 173365,
+            _internalId: 173649,
             type: "anyOf",
             anyOf: [
               {
