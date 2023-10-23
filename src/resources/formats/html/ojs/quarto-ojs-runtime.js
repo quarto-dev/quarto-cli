@@ -20318,6 +20318,32 @@ function createRuntime() {
    || document.querySelector("div.reveal")       // reveal
    || document.querySelector("body"));           // fall-through
 
+  function cards() {
+    if (mainEl === null) {
+      return lib.Generators.observe((change) => {
+        change(undefined);
+      });
+    }
+    return lib.Generators.observe(function(change) {
+      function resized() {
+        const result = [];
+        for (const card of document.querySelectorAll("div.card div.cell-output-display")) {
+          result.push({
+            id: card.id,
+            width: card.clientWidth,
+            height: card.clientHeight,
+          });
+          change(result);
+        }
+      }
+      resized();
+      window.addEventListener("resize", resized);
+      return function() {
+        window.removeEventListener("resize", resized);
+      }
+    });
+  }
+
   function width() {
     if (mainEl === null) {
       return lib.Generators.observe((change) => {
@@ -20337,6 +20363,7 @@ function createRuntime() {
     });
   }
   lib.width = width;
+  lib.cards = cards;
 
   // hack for "echo: fenced": remove all "//| echo: fenced" lines the hard way, but keep
   // the right line numbers around.
