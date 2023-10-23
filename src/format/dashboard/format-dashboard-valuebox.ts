@@ -7,10 +7,10 @@
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
   applyClasses,
+  kValueboxClass,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
 
-const kValueboxClass = "valuebox";
 const kValueboxBodySelector = ".card-body > div";
 const kValueboxShowcaseClass = ".value-box-showcase";
 

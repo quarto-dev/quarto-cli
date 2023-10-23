@@ -12,6 +12,7 @@ import {
   attrToCardBodyStyle,
   attrToStyle,
   ensureCssUnits,
+  kValueboxClass,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
 
@@ -69,7 +70,7 @@ const cardAttrHandlers = (doc: Document) => {
     {
       attr: kAttrExpandable,
       handle: (el: Element, attrValue: string) => {
-        if (attrValue === "true") {
+        if (attrValue !== "false") {
           const shellEl = doc.createElement("DIV");
           shellEl.innerHTML = kExpandBtnHtml;
           for (const childEl of shellEl.children) {
@@ -77,6 +78,9 @@ const cardAttrHandlers = (doc: Document) => {
           }
           el.setAttribute(kAttrFullScreen, "false");
         }
+      },
+      defaultValue: (el: Element) => {
+        return !el.classList.contains(kValueboxClass) ? "true" : "false";
       },
     },
     {
@@ -138,10 +142,14 @@ export function processCards(doc: Document) {
 
     // Process card attributes
     for (const cardAttrHandler of cardAttrHandlers(doc)) {
+      const defaultValue = cardAttrHandler.defaultValue
+        ? cardAttrHandler.defaultValue(cardEl)
+        : undefined;
       processAndRemoveAttr(
         cardEl,
         cardAttrHandler.attr,
         cardAttrHandler.handle,
+        defaultValue,
       );
     }
 

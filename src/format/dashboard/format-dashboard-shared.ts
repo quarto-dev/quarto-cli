@@ -17,6 +17,8 @@ export interface DashboardMeta {
   scrolling: boolean;
 }
 
+export const kValueboxClass = "valuebox";
+
 export function dashboardMeta(format: Format): DashboardMeta {
   const dashboardRaw = format.metadata as Metadata;
   const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
