@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, join, relative } from "path/mod.ts";
+import { basename, join, relative, SEP, SEP_PATTERN } from "path/mod.ts";
 import { kOrder } from "../../../config/constants.ts";
 import { asNumber } from "../../../core/cast.ts";
 
@@ -127,8 +127,8 @@ async function sidebarItemsFromAuto(
     // if this is an auto-dir that has an index page inside it
     // then re-shuffle things a bit
     if (isAutoDir) {
-      const root = nodeSet.root.split("/");
-      nodeSet.root = root.slice(0, -1).join("/");
+      const root = nodeSet.root.split(SEP_PATTERN);
+      nodeSet.root = root.slice(0, -1).join(SEP);
       nodeSet.nodes = {
         [root.slice(-1)[0]]: nodeSet.nodes,
       };
@@ -137,7 +137,7 @@ async function sidebarItemsFromAuto(
     entries.push(
       ...await nodesToEntries(
         project,
-        `${nodeSet.root ? nodeSet.root + "/" : ""}`,
+        `${nodeSet.root ? nodeSet.root + SEP : ""}`,
         nodeSet.nodes,
       ),
     );
@@ -201,7 +201,7 @@ function autoSidebarNodes(
     // split into directory heirarchy
     let result: Record<string, SidebarNodes> = {};
     inputs.forEach((p) =>
-      p.split("/").reduce(
+      p.split(SEP_PATTERN).reduce(
         (o, k) => o[k] = o[k] || {},
         result,
       )
@@ -209,7 +209,7 @@ function autoSidebarNodes(
 
     // index into the nodes based on the directory
     if (directory) {
-      directory.split("/").forEach((p) => {
+      directory.split(SEP_PATTERN).forEach((p) => {
         result = result[p];
       });
     }
