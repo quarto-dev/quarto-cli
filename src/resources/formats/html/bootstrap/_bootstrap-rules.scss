@@ -1125,6 +1125,10 @@ figure .quarto-notebook-link {
   text-align: right;
 }
 
+.quarto-notebook .cell-container.code-fold .cell-decorator {
+  padding-top: 3em;
+}
+
 .quarto-notebook .cell-code code {
   white-space: pre-wrap;
 }

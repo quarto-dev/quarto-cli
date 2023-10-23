@@ -19,9 +19,13 @@ function foldCode()
                 open = " open"
               end
               local style = ""
+              local clz = 'code-fold'
               if block.attr.classes:includes("hidden") then
-                style = ' class="hidden"'
+                clz = clz + " hidden"
               end
+
+
+              style = ' class="' .. clz .. '"'
               local beginPara = pandoc.Plain({
                 pandoc.RawInline("html", "<details" .. open .. style .. ">\n<summary>"),
               })
