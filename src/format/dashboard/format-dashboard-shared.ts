@@ -15,6 +15,7 @@ export const kDontMutateTags = ["P", "SCRIPT"];
 export interface DashboardMeta {
   orientation: "rows" | "columns";
   scrolling: boolean;
+  expandable: boolean;
 }
 
 export const kValueboxClass = "valuebox";
@@ -25,10 +26,12 @@ export function dashboardMeta(format: Format): DashboardMeta {
     ? "columns"
     : "rows";
   const scrolling = dashboardRaw.scrolling === true;
+  const expandable = dashboardRaw.expandable !== false;
 
   return {
     orientation,
     scrolling,
+    expandable,
   };
 }
 

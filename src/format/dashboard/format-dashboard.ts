@@ -254,7 +254,7 @@ function dashboardHtmlPostProcessor(
     processColumns(doc);
 
     // Process card
-    processCards(doc);
+    processCards(doc, dashboard);
 
     // Process valueboxes
     processValueBoxes(doc);

@@ -11,6 +11,7 @@ import {
   applyClasses,
   attrToCardBodyStyle,
   attrToStyle,
+  DashboardMeta,
   ensureCssUnits,
   kValueboxClass,
   processAndRemoveAttr,
@@ -65,7 +66,7 @@ const kBsCardAttributes: Record<string, string> = {
 // How to process card attributes (card attributes express options that the
 // user has provided via markdown) - this converts them into their final rendered
 // form (e.g. turn a height attribute into a css style enforcing height)
-const cardAttrHandlers = (doc: Document) => {
+const cardAttrHandlers = (doc: Document, dashboardMeta: DashboardMeta) => {
   return [
     {
       attr: kAttrExpandable,
@@ -80,7 +81,11 @@ const cardAttrHandlers = (doc: Document) => {
         }
       },
       defaultValue: (el: Element) => {
-        return !el.classList.contains(kValueboxClass) ? "true" : "false";
+        if (el.classList.contains(kValueboxClass)) {
+          return "false";
+        } else {
+          return dashboardMeta.expandable ? "true" : "false";
+        }
       },
     },
     {
@@ -110,7 +115,7 @@ const cardBodyAttrHandlers = () => {
   ];
 };
 
-export function processCards(doc: Document) {
+export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
   // We need to process cards specially
   const cardNodes = doc.body.querySelectorAll(`.${kCardClass}`);
   let cardCount = 0;
@@ -141,7 +146,7 @@ export function processCards(doc: Document) {
     }
 
     // Process card attributes
-    for (const cardAttrHandler of cardAttrHandlers(doc)) {
+    for (const cardAttrHandler of cardAttrHandlers(doc, dashboardMeta)) {
       const defaultValue = cardAttrHandler.defaultValue
         ? cardAttrHandler.defaultValue(cardEl)
         : undefined;
