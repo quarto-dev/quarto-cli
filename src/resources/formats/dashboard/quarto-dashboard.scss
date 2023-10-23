@@ -1,3 +1,52 @@
-/*-- scss:defaults --*/
-
 /*-- scss:rules --*/
+$valuebox-bg-primary: $primary !default;
+$valuebox-bg-secondary: $secondary !default;
+$valuebox-bg-success: $success !default;
+$valuebox-bg-info: $info !default;
+$valuebox-bg-warning: $warning !default;
+$valuebox-bg-danger: $danger !default;
+$valuebox-bg-light: $light !default;
+$valuebox-bg-dark: $dark !default;
+
+$valuebox-colors: (
+  "primary":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-primary",
+      $valuebox-bg-primary
+    ),
+  "secondary":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-secondary",
+      $valuebox-bg-secondary
+    ),
+  "success":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-success",
+      $valuebox-bg-success
+    ),
+  "info":
+    theme-override-value($theme-name, "valuebox-bg-info", $valuebox-bg-info),
+  "warning":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-warning",
+      $valuebox-bg-warning
+    ),
+  "danger":
+    theme-override-value($theme-name, "valuebox-bg-danger", $valuebox-bg-danger),
+  "light":
+    theme-override-value($theme-name, "valuebox-bg-light", $valuebox-bg-light),
+  "dark":
+    theme-override-value($theme-name, "valuebox-bg-dark", $valuebox-bg-dark),
+);
+
+.quarto-dashboard {
+  @each $valuebox-color, $valuebox-color-value in $valuebox-colors {
+    .card.valuebox.bslib-card.bg-#{$valuebox-color} {
+      background-color: $valuebox-color-value !important;
+    }
+  }
+}
