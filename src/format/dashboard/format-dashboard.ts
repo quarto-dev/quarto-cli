@@ -24,6 +24,7 @@ import {
   FormatExtras,
   kDependencies,
   kHtmlPostprocessors,
+  kSassBundles,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -32,7 +33,11 @@ import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
-import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
+import {
+  kBootstrapDependencyName,
+  kPageLayout,
+  kPageLayoutCustom,
+} from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
@@ -51,6 +56,7 @@ import {
 import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
+import { sassLayer } from "../../core/sass.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -126,6 +132,23 @@ export function dashboardFormat() {
           name: "quarto-dashboard.js",
           path: formatResourcePath("dashboard", "quarto-dashboard.js"),
         });
+
+        // Inject a quarto dashboard scss file into the bootstrap scss layer
+        const dashboardScss = formatResourcePath(
+          "dashboard",
+          "quarto-dashboard.scss",
+        );
+        const dashboardLayer = sassLayer(dashboardScss);
+        const dashboardScssDependency = {
+          dependency: kBootstrapDependencyName,
+          key: dashboardScss,
+          quarto: {
+            name: "quarto-search.css",
+            ...dashboardLayer,
+          },
+        };
+        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+        extras.html[kSassBundles].push(dashboardScssDependency);
 
         const componentDir = join(
           "bslib",
