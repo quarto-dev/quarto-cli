@@ -1480,6 +1480,11 @@ async function mdFromCodeCell(
           md.push(`.${outputTypeCssClass(output.output_type)}`);
         }
 
+        // if this is markdown output then include a special class for that
+        if (isMarkdown(output, options)) {
+          md.push(` .${outputTypeCssClass("markdown")}`);
+        }
+
         // add hidden if necessary
         if (
           hideOutput(cell, options) ||
@@ -1682,7 +1687,6 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsImage);
 }
 
-// deno-lint-ignore no-unused-vars
 function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
