@@ -43,6 +43,7 @@ if is_dashboard:
     from itables import options
     options.dom = "ifrt"
     options.language = dict(info = "Showing _TOTAL_ entries")
+    options.classes = "display nowrap compact"
     options.paging = False
   except Exception:
     pass
