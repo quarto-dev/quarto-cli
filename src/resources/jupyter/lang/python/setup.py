@@ -42,6 +42,7 @@ if is_dashboard:
   try:
     from itables import options
     options.dom = "ifrt"
+    options.maxBytes = 1024 * 1024
     options.language = dict(info = "Showing _TOTAL_ entries")
     options.classes = "display nowrap compact"
     options.paging = False
