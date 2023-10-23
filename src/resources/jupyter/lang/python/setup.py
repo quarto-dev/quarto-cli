@@ -12,7 +12,8 @@ fig_format = '{2}'
 fig_dpi = {3}
 interactivity = '{5}'
 is_shiny = {6}
-plotly_connected = {7}
+is_dashboard = {7}
+plotly_connected = {8}
 
 # matplotlib defaults / format
 try:
@@ -35,6 +36,16 @@ try:
   pio.templates['plotly'].layout.margin = dict(t=30,r=0,b=0,l=0)
 except Exception:
   pass
+
+# disable itables paging for dashboards
+if is_dashboard:
+  try:
+    from itables import options
+    options.dom = "ifrt"
+    options.language = dict(info = "Showing _TOTAL_ entries")
+    options.paging = False
+  except Exception:
+    pass
 
 # enable pandas latex repr when targeting pdfs
 try:
