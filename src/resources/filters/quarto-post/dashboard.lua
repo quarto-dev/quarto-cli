@@ -64,6 +64,7 @@ function render_dashboard()
           -- See if this cell has bslib output already
           local hasBsLibOutput = false
           local isHidden = false
+          local isMarkdownOutput = false
           _quarto.ast.walk(el,  {
             Div = function(childDiv)  
               if childDiv.classes:includes(kCellOutputDisplayClass) then
@@ -71,6 +72,10 @@ function render_dashboard()
                 -- TODO: We probably should be a little more careful about
                 -- this check
                 hasBsLibOutput = hasBsLibOutput or outputStr:match('bslib-')
+
+                if childDiv.classes:includes("cell-output-markdown") then
+                  isMarkdownOutput = true
+                end
               end
               isHidden = isHidden or childDiv.classes:includes(kHiddenClass)
             end
@@ -81,7 +86,13 @@ function render_dashboard()
           if hasBsLibOutput or isHidden then
             return el
           else
+            -- Look for markdown explictly being output
             local options, userClasses = dashboard.card.readCardOptions(el)
+            -- if not explicitly set, mark markdown cells as flow
+            if isMarkdownOutput and options[dashboard.card.optionKeys.layout] == nil then
+              options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+            end
+
             return dashboard.card.makeCard(nil, el.content, userClasses, options), false
           end
         end

@@ -14,6 +14,7 @@ local kTabClass = "tab"
 -- Cell classes
 local kCellClass = "cell"
 local kFlowClass = "flow"
+local kFillClass = "fill"
 
 -- Implicit Card classes, these mean that this is a card
 -- even if it isn't specified
@@ -75,7 +76,6 @@ local function isCardBody(el)
     return kCardBodyClz:includes(class)
   end) 
 end
-
 local function isCardFooter(el)
   return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
 end
@@ -135,6 +135,8 @@ local function readCardOptions(el)
 
     if el.classes:includes(kFlowClass) then
       options[kLayout] = kFlowClass
+    elseif el.classes:includes(kFillClass) then
+      options[kLayout] = kFillClass
     end
   end
 
@@ -395,4 +397,10 @@ return {
   isLiteralCard = isLiteralCard,
   makeCard = makeCard,
   readCardOptions = readCardOptions,
+  optionKeys = {
+    layout = kLayout
+  },
+  optionValues = {
+    flow = kFlowClass
+  }
 }
