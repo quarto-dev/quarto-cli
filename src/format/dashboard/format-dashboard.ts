@@ -273,6 +273,9 @@ function dashboardHtmlPostProcessor(
     // Process pages that may be present in the document
     processPages(doc);
 
+    // Adjust the appearance of row  elements
+    processRows(doc);
+
     // Adjust the appearance of column element
     processColumns(doc);
 
@@ -284,9 +287,6 @@ function dashboardHtmlPostProcessor(
 
     // Process sidedars
     processSidebars(doc);
-
-    // Adjust the appearance of row  elements
-    processRows(doc);
 
     // Process fill images to include proper fill behavior
     const fillImgNodes = doc.body.querySelectorAll(
