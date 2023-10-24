@@ -2169,6 +2169,10 @@ code.sourceCode a.code-annotation-anchor {
       .navbar-title-text {
         margin-right: 0.4em;
       }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
     }
 
     .navbar-author {

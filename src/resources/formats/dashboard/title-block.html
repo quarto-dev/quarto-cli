@@ -6,10 +6,10 @@ $if(title)$
       <span class="navbar-toggler-icon"></span>
     </button>    
     <div class="navbar-brand-container">       
-$if(logo)$<img src="$logo$" alt="$logo-alt$" class="navbar-logo d-inline-block">$endif$
+$if(logo)$<a href="#"><img src="$logo$" alt="$logo-alt$" class="navbar-logo d-inline-block"></a>$endif$
 $if(title)$
       <div class="navbar-title">
-        <div class="navbar-title-text">$title$</div>
+        <div class="navbar-title-text"><a href="#">$title$</a></div>
         $if(author)$<div class="navbar-author">$author$</div>$endif$
       </div>
 $endif$
