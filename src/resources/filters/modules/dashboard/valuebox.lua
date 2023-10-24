@@ -235,6 +235,8 @@ local function makeValueBox(el)
   local titleEl = title
   if titleEl.t == "string" then
     titleEl = pandoc.Plain(title)
+  elseif pandoc.utils.type(title) == "table" and #table == 0 then
+    titleEl = pandoc.Para({nbspString()})
   end
 
   local vbTitle = pandoc.Div(titleEl, pandoc.Attr("", {kValueBoxTitleClz}))
