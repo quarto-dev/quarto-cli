@@ -28422,7 +28422,6 @@ function createRuntime() {
 
         for (const call of JSON.parse(el.text).contents) {
           let source = autosize ? autosizeOJSPlot(call.source, call.cellName) : call.source;
-          console.log({ original: call.source, transformed: source });
           switch (call.methodName) {
             case "interpret":
               this.interpret(source, call.cellName, call.inline);
