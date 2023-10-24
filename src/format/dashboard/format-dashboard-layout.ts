@@ -10,17 +10,15 @@ import { asCssSize } from "../../core/css.ts";
 import {
   kDashboardGridSkip,
   kDontMutateTags,
+  kLayoutAttr,
+  kLayoutFill,
+  kLayoutFlow,
+  Layout,
 } from "./format-dashboard-shared.ts";
 
 // Container type classes
 const kRowsClass = "rows";
 const kColumnsClass = "columns";
-
-// Carries the layout for a given row or column
-const kLayoutAttr = "data-layout";
-const kLayoutFill = "fill";
-const kLayoutFlow = "flow";
-type Layout = "fill" | "flow" | string;
 
 // Explicit size attributes
 const kHeightAttr = "data-height";

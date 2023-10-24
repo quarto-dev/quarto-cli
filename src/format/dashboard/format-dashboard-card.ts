@@ -13,6 +13,7 @@ import {
   attrToStyle,
   DashboardMeta,
   ensureCssUnits,
+  hasFlowLayout,
   kValueboxClass,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
@@ -81,7 +82,7 @@ const cardAttrHandlers = (doc: Document, dashboardMeta: DashboardMeta) => {
         }
       },
       defaultValue: (el: Element) => {
-        if (el.classList.contains(kValueboxClass)) {
+        if (el.classList.contains(kValueboxClass) || hasFlowLayout(el)) {
           return "false";
         } else {
           return dashboardMeta.expandable ? "true" : "false";
