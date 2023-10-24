@@ -162,22 +162,30 @@ function render_dashboard()
           if header.t == "Header" then            
             local level = header.level
             local contents = tslice(el.content, 2)
-
-            -- Make sure everything is in a card
-            local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
-            local layoutContentEls = organizer.ensureInLayoutContainers()
             
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level == 1 then
-              lastLevel = level
+              -- A level 1 header marked as a sidebar is global, just let it
+              -- flow through and the sidebar collector will ingest it and convert it into 
+              -- a sidebar (which contains the other pages as its content)
+              if not dashboard.sidebar.isSidebar(header) then
+                lastLevel = level
 
-              -- Convert this to a page
-              local options = dashboard.page.readOptions(header)
-              local page = dashboard.page.makePage(el.identifier, header, layoutContentEls, options)
-              return page
+                -- Make sure everything is in a card
+                local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
+                local layoutContentEls = organizer.ensureInLayoutContainers()
 
+                -- Convert this to a page
+                local options = dashboard.page.readOptions(header)
+                local page = dashboard.page.makePage(el.identifier, header, layoutContentEls, options)
+                return page
+              end
             else
+
+              -- Make sure everything is in a card
+              local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
+              local layoutContentEls = organizer.ensureInLayoutContainers()
 
               -- see if this heading is marked as a component
               if dashboard.card.isCard(header) then 
