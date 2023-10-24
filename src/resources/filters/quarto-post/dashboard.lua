@@ -170,6 +170,7 @@ function render_dashboard()
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level == 1 then
+              lastLevel = level
 
               -- Convert this to a page
               local options = dashboard.page.readOptions(header)
