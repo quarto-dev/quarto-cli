@@ -28098,19 +28098,28 @@ function createRuntime() {
           }
         };
         for (const card of document.querySelectorAll("div.card div.cell-output-display")) {
-          handle(card);
-        }
-        for (const card of document.querySelectorAll("div.card div.quarto-layout-cell")) {
-          handle(card);
+          for (const cell of card.querySelectorAll("div.cell-output-display")) {
+            handle(cell);
+          }
+          for (const cell of card.querySelectorAll("div.quarto-layout-cell")) {
+            handle(cell);
+          }
         }
         for (const card of document.querySelectorAll("div")) {
           if (!(card.id.startsWith("ojs-cell-") && card.dataset.nodetype === "expression")) {
             continue;
           }
           let cardInfoCard;
-          if (card.parentElement.classList.contains("quarto-layout-cell")) {
+          // many possible cases:
+
+          if (card.parentElement.classList.contains("cell-output-display")) {
+            // single cell: card parent is cell-output-display
+            cardInfoCard = card.parentElement;
+          } else if (card.parentElement.classList.contains("quarto-layout-cell")) {
+            // subcell of layout
             cardInfoCard = card.parentElement;
           } else if (card.parentElement.parentElement.classList.contains("cell-output-display")) {
+            // subcell of cell-output-display
             cardInfoCard = card.parentElement.parentElement;
           } else {
             continue;
