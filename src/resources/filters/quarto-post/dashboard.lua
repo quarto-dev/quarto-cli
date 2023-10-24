@@ -28,8 +28,8 @@ function render_dashboard()
     {
       traverse = 'topdown',
       PanelLayout = function(el)
-        local options, userClasses = dashboard.card.readCardOptions(el)          
-        return dashboard.card.makeCard(nil, el, userClasses, options), false
+        local options, userClasses = dashboard.card.readCardOptions(el)
+        return dashboard.card.makeCard(nil, { el }, userClasses, options), false
       end,
       Div = function(el) 
 
