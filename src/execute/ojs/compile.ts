@@ -442,8 +442,8 @@ export async function ojsCompile(
       //   outputVal = false;
       // }
       outputVal = outputVal ?? true;
-      if (outputVal === "all") {
-        attrs.push(`output="all"`);
+      if (outputVal === "all" || outputVal === "asis") {
+        attrs.push(`output="${outputVal}"`);
       }
       const {
         classes,

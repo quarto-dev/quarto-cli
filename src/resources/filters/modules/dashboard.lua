@@ -48,8 +48,10 @@ local function organizer(contents, ignoreClasses)
       cardOptions[kLayout] = "flow"
 
       local looseCard = card.makeCard(nil, looseContentEls, {}, cardOptions)
-      if card ~= nil then
+      if looseCard ~= nil then
         layoutContentEls:insert(looseCard)              
+      else
+        layoutContentEls:extend(looseContentEls)
       end
       looseContentEls = pandoc.List()
       end
@@ -65,7 +67,7 @@ local function organizer(contents, ignoreClasses)
           layoutContentEls:insert(v)
         end
       end
-      flushLooseContent()    
+      flushLooseContent()
       return layoutContentEls
     end
   }

@@ -81,8 +81,6 @@ local function makeOptions(scrolling)
 end
 
 local function makeColumnContainer(content, options)
-
-  -- cols can't have height
   validateLayout(options)
 
 
@@ -100,7 +98,8 @@ local function makeColumnContainer(content, options)
     classes:extend(options[kOptionClasses])
   end
 
-  return pandoc.Div(content, pandoc.Attr("", classes, attributes))
+  local result = pandoc.Div(content, pandoc.Attr("", classes, attributes))
+  return result
 end
 
 local function makeRowContainer(content, options) 

@@ -33,7 +33,9 @@ function render_dashboard()
       end,
       Div = function(el) 
 
-        if dashboard.card.isCard(el) then
+        if el.attributes["output"] == "asis" then
+          return nil
+        elseif dashboard.card.isCard(el) then
 
           -- see if the card is already in the correct structure (a single header and body)
           -- exit early, not processing if it is already processed in this way
