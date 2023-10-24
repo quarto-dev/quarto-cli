@@ -516,7 +516,8 @@ function latexFigurePosition(el, env)
   if env == kMarginFigureEnv then
     return attribute(el, kOffset, nil)
   else
-    return attribute(el, kFigPos, nil)
+    local prefix = refType(el.identifier) or "fig"
+    return attribute(el, prefix .. "-pos", nil)
   end
 end
 
