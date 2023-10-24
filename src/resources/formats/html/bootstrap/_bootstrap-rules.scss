@@ -2254,8 +2254,8 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
-  .card.bslib-value-box {
-    min-height: 9rem;
+  .card.valuebox {
+    min-height: 6rem;
     .card-body {
       padding: 0;
     }
@@ -2267,7 +2267,7 @@ code.sourceCode a.code-annotation-anchor {
     }
 
     .value-box-showcase .bi {
-      font-size: 5rem;
+      font-size: 20cqw;
     }
   }
 
