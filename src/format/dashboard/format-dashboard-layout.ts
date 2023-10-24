@@ -264,7 +264,7 @@ function toGridSize(layout: Layout, fillFr: number) {
   }
 }
 const kEndsWithNumber = /[0-9]$/;
-const kMinSizeRow = "6em";
+const kMinSizeRow = "3em";
 
 function computeFillFr(layouts: Layout[]) {
   const percents: number[] = [];
