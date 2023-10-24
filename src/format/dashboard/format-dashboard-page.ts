@@ -61,7 +61,7 @@ export function processPages(doc: Document) {
     pageEl.parentElement?.classList.add("tab-content");
     pageEl.id = id;
     pageEl.classList.add("tab-pane");
-    pageEl.setAttribute("aria-labeled-by", `tab-${id}`);
+    pageEl.setAttribute("aria-labelledby", `tab-${id}`);
     if (active) {
       pageEl.classList.add("show");
       pageEl.classList.add("active");

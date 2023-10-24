@@ -25,7 +25,7 @@ local function readOptions(el)
   }
 end
 
-local function makePage(headerEl, contents, options) 
+local function makePage(id, headerEl, contents, options) 
 
   local title = pandoc.utils.stringify(headerEl)
   local classes = pandoc.List({kPageClass})
@@ -39,9 +39,11 @@ local function makePage(headerEl, contents, options)
     attr['data-' .. k] = v
   end
 
+
+
   local tabContentsOrientation = options[kOrientationAttr];
   local pageContainerEl = layout.orientContents(contents, tabContentsOrientation, {})
-  local pageDiv = pandoc.Div(pageContainerEl, pandoc.Attr("", classes, attr))
+  local pageDiv = pandoc.Div(pageContainerEl, pandoc.Attr(id, classes, attr))
   
   return pageDiv, options[kOrientationAttr]
 end

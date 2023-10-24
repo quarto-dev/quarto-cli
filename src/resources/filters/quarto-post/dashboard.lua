@@ -173,7 +173,7 @@ function render_dashboard()
 
               -- Convert this to a page
               local options = dashboard.page.readOptions(header)
-              local page = dashboard.page.makePage(header, layoutContentEls, options)
+              local page = dashboard.page.makePage(el.identifier, header, layoutContentEls, options)
               return page
 
             else

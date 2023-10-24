@@ -236,6 +236,7 @@ function dashboardHtmlPostProcessor(
     const containerEl = doc.querySelector("div.page-layout-custom");
     if (containerEl) {
       const containerClz = [
+        "quarto-dashboard-content",
         "bslib-gap-spacing",
         "html-fill-container",
       ];
