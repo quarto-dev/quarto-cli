@@ -288,6 +288,9 @@ function dashboardHtmlPostProcessor(
     // Process sidedars
     processSidebars(doc);
 
+    // Process tables
+    processTables(doc);
+
     // Process fill images to include proper fill behavior
     const fillImgNodes = doc.body.querySelectorAll(
       "div.cell-output-display > img",
@@ -301,4 +304,10 @@ function dashboardHtmlPostProcessor(
 
     return Promise.resolve(result);
   };
+}
+
+function processTables(doc: Document) {
+  doc.querySelectorAll(".itables table").forEach((tableEl) => {
+    (tableEl as Element).setAttribute("style", "width:100%;");
+  });
 }
