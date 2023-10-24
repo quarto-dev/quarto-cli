@@ -207,7 +207,19 @@ function render_latex()
       -- require special handling
       local hasVerbatimInNotes = false
       local noteContents = {}
-      local nodeContent = node.content:walk({
+      local lifted_contents = pandoc.Blocks({})
+
+      local nodeContent = _quarto.ast.walk(node.content, {
+        traverse = "topdown",
+        FloatRefTarget = function(float, float_node)
+          if float.identifier ~= nil then
+            local ref = refType(float.identifier)
+            if ref ~= nil then
+              float.attributes[ref .. "-pos"] = "H"
+              return float
+            end
+          end
+        end,
         Note = function(el)
           tappend(noteContents, {el.content})
           el.content:walk({
@@ -235,7 +247,7 @@ function render_latex()
       local endEnvironment = callout.endInlines
       local calloutContents = callout.contents
       if calloutContents == nil then
-        calloutContents = pandoc.List({})
+        calloutContents = pandoc.Blocks({})
       end
     
       if lua_type(nodeContent) == "table" then
@@ -270,6 +282,8 @@ function render_latex()
         end
         tappend(calloutContents, v)
       end 
+
+      calloutContents:extend(lifted_contents)
     
       -- Enable fancyvrb if verbatim appears in the footnotes
       if hasVerbatimInNotes then
