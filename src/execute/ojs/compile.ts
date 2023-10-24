@@ -232,7 +232,6 @@ export async function ojsCompile(
         return `ojs-cell-${ojsCellID}`;
       };
       const ojsId = bumpOjsCellIdString();
-      console.log({ ojsId });
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
