@@ -10821,16 +10821,6 @@ var dist = {exports: {}};
 	  })(node, state, override);
 	}
 
-	// A full walk triggers the callback on each node
-	function full(node, callback, baseVisitor, state, override) {
-	  if (!baseVisitor) { baseVisitor = base
-	  ; }(function c(node, st, override) {
-	    var type = override || node.type;
-	    baseVisitor[type](node, st, c);
-	    if (!override) { callback(node, st, type); }
-	  })(node, state, override);
-	}
-
 	// Fallback to an Object.create polyfill for older environments.
 	var create = Object.create || function(proto) {
 	  function Ctor() {}
@@ -11707,7 +11697,280 @@ var dist = {exports: {}};
 	    cell.secrets = new Map();
 	  }
 	  return cell;
-	}var index=/*#__PURE__*/Object.freeze({__proto__:null,parseCell: parseCell,peekId: peekId,CellParser: CellParser,parseModule: parseModule,ModuleParser: ModuleParser,walk: walk});/**
+	}var index=/*#__PURE__*/Object.freeze({__proto__:null,parseCell: parseCell,peekId: peekId,CellParser: CellParser,parseModule: parseModule,ModuleParser: ModuleParser,walk: walk});// AST walker module for Mozilla Parser API compatible trees
+
+	// A full walk triggers the callback on each node
+	function full(node, callback, baseVisitor, state, override) {
+	  if (!baseVisitor) { baseVisitor = base$1
+	  ; }(function c(node, st, override) {
+	    var type = override || node.type;
+	    baseVisitor[type](node, st, c);
+	    if (!override) { callback(node, st, type); }
+	  })(node, state, override);
+	}
+
+	function skipThrough$1(node, st, c) { c(node, st); }
+	function ignore$1(_node, _st, _c) {}
+
+	// Node walkers.
+
+	var base$1 = {};
+
+	base$1.Program = base$1.BlockStatement = function (node, st, c) {
+	  for (var i = 0, list = node.body; i < list.length; i += 1)
+	    {
+	    var stmt = list[i];
+
+	    c(stmt, st, "Statement");
+	  }
+	};
+	base$1.Statement = skipThrough$1;
+	base$1.EmptyStatement = ignore$1;
+	base$1.ExpressionStatement = base$1.ParenthesizedExpression = base$1.ChainExpression =
+	  function (node, st, c) { return c(node.expression, st, "Expression"); };
+	base$1.IfStatement = function (node, st, c) {
+	  c(node.test, st, "Expression");
+	  c(node.consequent, st, "Statement");
+	  if (node.alternate) { c(node.alternate, st, "Statement"); }
+	};
+	base$1.LabeledStatement = function (node, st, c) { return c(node.body, st, "Statement"); };
+	base$1.BreakStatement = base$1.ContinueStatement = ignore$1;
+	base$1.WithStatement = function (node, st, c) {
+	  c(node.object, st, "Expression");
+	  c(node.body, st, "Statement");
+	};
+	base$1.SwitchStatement = function (node, st, c) {
+	  c(node.discriminant, st, "Expression");
+	  for (var i$1 = 0, list$1 = node.cases; i$1 < list$1.length; i$1 += 1) {
+	    var cs = list$1[i$1];
+
+	    if (cs.test) { c(cs.test, st, "Expression"); }
+	    for (var i = 0, list = cs.consequent; i < list.length; i += 1)
+	      {
+	      var cons = list[i];
+
+	      c(cons, st, "Statement");
+	    }
+	  }
+	};
+	base$1.SwitchCase = function (node, st, c) {
+	  if (node.test) { c(node.test, st, "Expression"); }
+	  for (var i = 0, list = node.consequent; i < list.length; i += 1)
+	    {
+	    var cons = list[i];
+
+	    c(cons, st, "Statement");
+	  }
+	};
+	base$1.ReturnStatement = base$1.YieldExpression = base$1.AwaitExpression = function (node, st, c) {
+	  if (node.argument) { c(node.argument, st, "Expression"); }
+	};
+	base$1.ThrowStatement = base$1.SpreadElement =
+	  function (node, st, c) { return c(node.argument, st, "Expression"); };
+	base$1.TryStatement = function (node, st, c) {
+	  c(node.block, st, "Statement");
+	  if (node.handler) { c(node.handler, st); }
+	  if (node.finalizer) { c(node.finalizer, st, "Statement"); }
+	};
+	base$1.CatchClause = function (node, st, c) {
+	  if (node.param) { c(node.param, st, "Pattern"); }
+	  c(node.body, st, "Statement");
+	};
+	base$1.WhileStatement = base$1.DoWhileStatement = function (node, st, c) {
+	  c(node.test, st, "Expression");
+	  c(node.body, st, "Statement");
+	};
+	base$1.ForStatement = function (node, st, c) {
+	  if (node.init) { c(node.init, st, "ForInit"); }
+	  if (node.test) { c(node.test, st, "Expression"); }
+	  if (node.update) { c(node.update, st, "Expression"); }
+	  c(node.body, st, "Statement");
+	};
+	base$1.ForInStatement = base$1.ForOfStatement = function (node, st, c) {
+	  c(node.left, st, "ForInit");
+	  c(node.right, st, "Expression");
+	  c(node.body, st, "Statement");
+	};
+	base$1.ForInit = function (node, st, c) {
+	  if (node.type === "VariableDeclaration") { c(node, st); }
+	  else { c(node, st, "Expression"); }
+	};
+	base$1.DebuggerStatement = ignore$1;
+
+	base$1.FunctionDeclaration = function (node, st, c) { return c(node, st, "Function"); };
+	base$1.VariableDeclaration = function (node, st, c) {
+	  for (var i = 0, list = node.declarations; i < list.length; i += 1)
+	    {
+	    var decl = list[i];
+
+	    c(decl, st);
+	  }
+	};
+	base$1.VariableDeclarator = function (node, st, c) {
+	  c(node.id, st, "Pattern");
+	  if (node.init) { c(node.init, st, "Expression"); }
+	};
+
+	base$1.Function = function (node, st, c) {
+	  if (node.id) { c(node.id, st, "Pattern"); }
+	  for (var i = 0, list = node.params; i < list.length; i += 1)
+	    {
+	    var param = list[i];
+
+	    c(param, st, "Pattern");
+	  }
+	  c(node.body, st, node.expression ? "Expression" : "Statement");
+	};
+
+	base$1.Pattern = function (node, st, c) {
+	  if (node.type === "Identifier")
+	    { c(node, st, "VariablePattern"); }
+	  else if (node.type === "MemberExpression")
+	    { c(node, st, "MemberPattern"); }
+	  else
+	    { c(node, st); }
+	};
+	base$1.VariablePattern = ignore$1;
+	base$1.MemberPattern = skipThrough$1;
+	base$1.RestElement = function (node, st, c) { return c(node.argument, st, "Pattern"); };
+	base$1.ArrayPattern = function (node, st, c) {
+	  for (var i = 0, list = node.elements; i < list.length; i += 1) {
+	    var elt = list[i];
+
+	    if (elt) { c(elt, st, "Pattern"); }
+	  }
+	};
+	base$1.ObjectPattern = function (node, st, c) {
+	  for (var i = 0, list = node.properties; i < list.length; i += 1) {
+	    var prop = list[i];
+
+	    if (prop.type === "Property") {
+	      if (prop.computed) { c(prop.key, st, "Expression"); }
+	      c(prop.value, st, "Pattern");
+	    } else if (prop.type === "RestElement") {
+	      c(prop.argument, st, "Pattern");
+	    }
+	  }
+	};
+
+	base$1.Expression = skipThrough$1;
+	base$1.ThisExpression = base$1.Super = base$1.MetaProperty = ignore$1;
+	base$1.ArrayExpression = function (node, st, c) {
+	  for (var i = 0, list = node.elements; i < list.length; i += 1) {
+	    var elt = list[i];
+
+	    if (elt) { c(elt, st, "Expression"); }
+	  }
+	};
+	base$1.ObjectExpression = function (node, st, c) {
+	  for (var i = 0, list = node.properties; i < list.length; i += 1)
+	    {
+	    var prop = list[i];
+
+	    c(prop, st);
+	  }
+	};
+	base$1.FunctionExpression = base$1.ArrowFunctionExpression = base$1.FunctionDeclaration;
+	base$1.SequenceExpression = function (node, st, c) {
+	  for (var i = 0, list = node.expressions; i < list.length; i += 1)
+	    {
+	    var expr = list[i];
+
+	    c(expr, st, "Expression");
+	  }
+	};
+	base$1.TemplateLiteral = function (node, st, c) {
+	  for (var i = 0, list = node.quasis; i < list.length; i += 1)
+	    {
+	    var quasi = list[i];
+
+	    c(quasi, st);
+	  }
+
+	  for (var i$1 = 0, list$1 = node.expressions; i$1 < list$1.length; i$1 += 1)
+	    {
+	    var expr = list$1[i$1];
+
+	    c(expr, st, "Expression");
+	  }
+	};
+	base$1.TemplateElement = ignore$1;
+	base$1.UnaryExpression = base$1.UpdateExpression = function (node, st, c) {
+	  c(node.argument, st, "Expression");
+	};
+	base$1.BinaryExpression = base$1.LogicalExpression = function (node, st, c) {
+	  c(node.left, st, "Expression");
+	  c(node.right, st, "Expression");
+	};
+	base$1.AssignmentExpression = base$1.AssignmentPattern = function (node, st, c) {
+	  c(node.left, st, "Pattern");
+	  c(node.right, st, "Expression");
+	};
+	base$1.ConditionalExpression = function (node, st, c) {
+	  c(node.test, st, "Expression");
+	  c(node.consequent, st, "Expression");
+	  c(node.alternate, st, "Expression");
+	};
+	base$1.NewExpression = base$1.CallExpression = function (node, st, c) {
+	  c(node.callee, st, "Expression");
+	  if (node.arguments)
+	    { for (var i = 0, list = node.arguments; i < list.length; i += 1)
+	      {
+	        var arg = list[i];
+
+	        c(arg, st, "Expression");
+	      } }
+	};
+	base$1.MemberExpression = function (node, st, c) {
+	  c(node.object, st, "Expression");
+	  if (node.computed) { c(node.property, st, "Expression"); }
+	};
+	base$1.ExportNamedDeclaration = base$1.ExportDefaultDeclaration = function (node, st, c) {
+	  if (node.declaration)
+	    { c(node.declaration, st, node.type === "ExportNamedDeclaration" || node.declaration.id ? "Statement" : "Expression"); }
+	  if (node.source) { c(node.source, st, "Expression"); }
+	};
+	base$1.ExportAllDeclaration = function (node, st, c) {
+	  if (node.exported)
+	    { c(node.exported, st); }
+	  c(node.source, st, "Expression");
+	};
+	base$1.ImportDeclaration = function (node, st, c) {
+	  for (var i = 0, list = node.specifiers; i < list.length; i += 1)
+	    {
+	    var spec = list[i];
+
+	    c(spec, st);
+	  }
+	  c(node.source, st, "Expression");
+	};
+	base$1.ImportExpression = function (node, st, c) {
+	  c(node.source, st, "Expression");
+	};
+	base$1.ImportSpecifier = base$1.ImportDefaultSpecifier = base$1.ImportNamespaceSpecifier = base$1.Identifier = base$1.Literal = ignore$1;
+
+	base$1.TaggedTemplateExpression = function (node, st, c) {
+	  c(node.tag, st, "Expression");
+	  c(node.quasi, st, "Expression");
+	};
+	base$1.ClassDeclaration = base$1.ClassExpression = function (node, st, c) { return c(node, st, "Class"); };
+	base$1.Class = function (node, st, c) {
+	  if (node.id) { c(node.id, st, "Pattern"); }
+	  if (node.superClass) { c(node.superClass, st, "Expression"); }
+	  c(node.body, st);
+	};
+	base$1.ClassBody = function (node, st, c) {
+	  for (var i = 0, list = node.body; i < list.length; i += 1)
+	    {
+	    var elt = list[i];
+
+	    c(elt, st);
+	  }
+	};
+	base$1.MethodDefinition = base$1.Property = function (node, st, c) {
+	  if (node.computed) { c(node.key, st, "Expression"); }
+	  c(node.value, st, "Expression");
+	};/**
 	 *  FINISH REPLACING THE SIMPLE WALKER WITH A FULL WALKER THAT DOES SUBSTITUTION ALL AT ONCE.
 	 * 
 	 */
@@ -26936,7 +27199,29 @@ Plot.(method(...).method(...).)plot({
   height: card[$CARD_IN_SCOPE].height,
   ...
 }) */
+const multipleOutputCellMap = {};
 function rewritePlotPlotCall(exp, cellName) {
+  // First, check if cellName exists. If it doesn't,
+  // then that's likely because we're on a multiple-output cell.
+  // attempt to find a cell with the name cellName-1, cellName-2, etc.
+  const fixupCellName = () => {
+    if (document.getElementById(cellName) === null) {
+      let index = 1;
+      let subcellName;
+      do {
+        subcellName = `${cellName}-${index}`;
+        index += 1;
+        if (document.getElementById(subcellName) !== null && multipleOutputCellMap[subcellName] === undefined) {
+          multipleOutputCellMap[subcellName] = true;
+          return subcellName;
+        }
+      } while (document.getElementById(subcellName) !== null);
+      return undefined;
+    } else {
+      return cellName;
+    }
+  };
+  
   const args = isPlotPlotCall(exp);
   if (args === null) {
     return false;
@@ -26964,6 +27249,10 @@ function rewritePlotPlotCall(exp, cellName) {
   //     width: cards[cardIndex].width property
   // and height: cards[cardIndex].height property
 
+  const cellNameToUse = fixupCellName();
+  if (cellNameToUse === undefined) {
+    return false;
+  }
   const value = (field) => ({
     type: "MemberExpression",
     object: {
@@ -26975,7 +27264,7 @@ function rewritePlotPlotCall(exp, cellName) {
       },
       property: {
         type: "Literal",
-        value: cellName,
+        value: cellNameToUse,
       },
     },
     property: {
@@ -27002,7 +27291,6 @@ function autosizeOJSPlot(
   cellName,
 ) {
   // deno-lint-ignore no-explicit-any
-  debugger;
   let ast;
   try {
     ast = parseModule(src);
@@ -27012,13 +27300,10 @@ function autosizeOJSPlot(
     if (!(e instanceof SyntaxError)) throw e;
     return src;
   }
-  console.log(ast);
   ojsSimpleWalker(ast, {
     // deno-lint-ignore no-explicit-any
     CallExpression(exp) {
-      console.log({exp});
       if (rewritePlotPlotCall(exp, cellName)) {
-        console.log("Hit!");
         return;
       }
     }
@@ -27794,7 +28079,6 @@ function createRuntime() {
         const result = {};
         let cellIndex = 0;
         for (const card of document.querySelectorAll("div.card div.cell-output-display")) {
-          debugger;
           const cardInfo = {
             card,
             width: card.clientWidth,
@@ -27812,19 +28096,27 @@ function createRuntime() {
           if (card.id) {
             result[card.id] = cardInfo;
           }
-          for (const div of card.querySelectorAll("div")) {
-            // allow auto-generated ids as keys for
-            // implicit autosizing
-            if (div.id.startsWith("ojs-cell-")) {
-              result[div.id] = cardInfo;
-            }
-            // parent ids are also allowed since they come up in
-            // layouts of multiple OJS cells per card
-            if (div.parentElement.id) {
-              result[div.parentElement.id] = cardInfo;
-            }
+        }
+        for (const card of document.querySelectorAll("div")) {
+          if (!(card.id.startsWith("ojs-cell-") && card.dataset.nodetype === "expression")) {
+            continue;
+          }
+          const cardInfo = {
+            card,
+            width: card.clientWidth,
+            height: card.clientHeight,
+          };
+          result[card.id] = cardInfo;
+          if (previous === undefined || 
+            previous[card.id].width !== cardInfo.width || 
+            previous[card.id].height !== cardInfo.height) {
+            changed = true;
+          }
+          if (card.parentElement.id !== "") {
+            result[card.parentElement.id] = cardInfo;
           }
         }
+
         if (changed) {
           previous = result;
           change(result);
