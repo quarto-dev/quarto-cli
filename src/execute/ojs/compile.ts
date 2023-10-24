@@ -232,6 +232,7 @@ export async function ojsCompile(
         return `ojs-cell-${ojsCellID}`;
       };
       const ojsId = bumpOjsCellIdString();
+      console.log({ ojsId });
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
@@ -435,12 +436,12 @@ export async function ojsCompile(
 
       let outputVal: any = cell.options?.[kOutput] ??
         options.format.execute[kOutput];
-      if (
-        options.format.identifier["base-format"] == "dashboard" &&
-        !hasOutputs
-      ) {
-        outputVal = false;
-      }
+      // if (
+      //   options.format.identifier["base-format"] == "dashboard" &&
+      //   !hasOutputs
+      // ) {
+      //   outputVal = false;
+      // }
       outputVal = outputVal ?? true;
       if (outputVal === "all") {
         attrs.push(`output="all"`);

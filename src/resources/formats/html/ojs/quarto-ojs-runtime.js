@@ -28097,7 +28097,7 @@ function createRuntime() {
             result[card.id] = cardInfo;
           }
         };
-        for (const card of document.querySelectorAll("div.card div.cell-output-display")) {
+        for (const card of document.querySelectorAll("div.card")) {
           for (const cell of card.querySelectorAll("div.cell-output-display")) {
             handle(cell);
           }
@@ -28106,9 +28106,10 @@ function createRuntime() {
           }
         }
         for (const card of document.querySelectorAll("div")) {
-          if (!(card.id.startsWith("ojs-cell-") && card.dataset.nodetype === "expression")) {
+          if (!(card.id.startsWith("ojs-cell-"))) {
             continue;
           }
+          console.log(card);
           let cardInfoCard;
           // many possible cases:
 
@@ -28142,7 +28143,6 @@ function createRuntime() {
 
         if (changed) {
           previous = result;
-          window.hackResultStored = result;
           change(result);
         }
       }
