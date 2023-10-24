@@ -2267,7 +2267,7 @@ code.sourceCode a.code-annotation-anchor {
     }
 
     .value-box-showcase .bi {
-      font-size: 20cqw;
+      font-size: clamp(0.1em, 20cqw, 5em);
     }
   }
 
