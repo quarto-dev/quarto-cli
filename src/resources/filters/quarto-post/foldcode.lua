@@ -21,7 +21,7 @@ function foldCode()
               local style = ""
               local clz = 'code-fold'
               if block.attr.classes:includes("hidden") then
-                clz = clz + " hidden"
+                clz = clz .. " hidden"
               end
 
 
