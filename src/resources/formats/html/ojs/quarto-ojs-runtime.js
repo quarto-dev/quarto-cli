@@ -27315,8 +27315,12 @@ function autosizeOJSPlot(
       return bodySrc;
     } else if (cell.id.type === "Identifier") {
       return `${cell.id.name} = ${bodySrc}`;
+    } else if (cell.id.type === "ViewExpression") {
+      return `viewof ${cell.id.id.name} = ${bodySrc}`;
+    } else if (cell.id.type === "MutableExpression") {
+      return `mutable ${cell.id.id.name} = ${bodySrc}`;
     } else {
-      throw new Error(`OJS: I don't know how to handle this cell id: ${cell.id}`);
+      throw new Error(`OJS: I don't know how to handle this cell id: ${cell.id.type}`);
     }
   }).join("\n");
   return result;
@@ -28417,7 +28421,7 @@ function createRuntime() {
       for (const el of document.querySelectorAll(
         "script[type='ojs-module-contents']"
       )) {
-        const autosize = document.querySelectorAll("div.card div.cell-output-display").length > 0;
+        const autosize = document.body.classList.contains("quarto-dashboard");
 
         for (const call of JSON.parse(el.text).contents) {
           let source = autosize ? autosizeOJSPlot(call.source, call.cellName) : call.source;
