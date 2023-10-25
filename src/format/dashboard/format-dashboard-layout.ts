@@ -46,6 +46,7 @@ const kNeverFillClasses = [
   "value-box-value",
   "nav-tabs",
   "card-header",
+  "callout",
 ];
 
 // Configuration for skipping elements when applying container classes
