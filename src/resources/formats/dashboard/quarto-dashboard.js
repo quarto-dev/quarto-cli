@@ -56,7 +56,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   }
 
   // Hook links in the body so users can link to pages
-  const linkEls = document.querySelectorAll(".quarto-dashboard-content a");
+  const linkEls = document.querySelectorAll(
+    ".quarto-dashboard-content a:not(.nav-link)"
+  );
   for (const linkEl of linkEls) {
     const linkHref = linkEl.getAttribute("href");
     linkEl.addEventListener("click", () => {
