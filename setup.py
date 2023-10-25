@@ -46,6 +46,10 @@ def download_quarto(version):
         import zipfile
         with zipfile.ZipFile(name, 'r') as zip_ref:
             zip_ref.extractall(output_location)
+    elif suffix.startswith("linux"):
+        import tarfile
+        with tarfile.open(name) as tf:
+            tf.extractall(Path(output_location).parent.resolve())
     else:
         import tarfile
         with tarfile.open(name) as tf:
