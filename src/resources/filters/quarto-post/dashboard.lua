@@ -147,6 +147,12 @@ function render_dashboard()
         local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List(kIgnoreWhenOrganizingClz))
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
+        -- force the global orientation to columns if there is a sidebar present
+        local inferredOrientation = dashboard.layout.inferOrientation(el)
+        if inferredOrientation ~= nil then 
+          dashboard.layout.setOrientation(inferredOrientation)
+        end
+
         -- Layout the proper elements with a specific orientation
         local cardsWithLayoutEl = dashboard.layout.orientContents(layoutContentEls, dashboard.layout.currentOrientation(), options)
         finalEls:insert(cardsWithLayoutEl)
@@ -206,7 +212,14 @@ function render_dashboard()
                 if level ~= lastLevel then
                   -- Note the new level
                   lastLevel = level
-                  toOrientation = dashboard.layout.rotatedOrientation()
+
+                  -- force the global orientation to columns if there is a sidebar present
+                  local inferredOrientation = dashboard.layout.inferOrientation(el)
+                  if inferredOrientation ~= nil then 
+                    toOrientation = dashboard.layout.setOrientation(inferredOrientation)
+                  else
+                    toOrientation = dashboard.layout.rotatedOrientation()
+                  end
                 end                
                 return dashboard.layout.orientContents(layoutContentEls, toOrientation, options)
               end
