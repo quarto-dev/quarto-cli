@@ -39,9 +39,14 @@ local function makePage(id, headerEl, contents, options)
     attr['data-' .. k] = v
   end
 
-
-
   local tabContentsOrientation = options[kOrientationAttr];
+
+  -- Infer orientation by seeing 'sidebar' on a row
+  local inferred = layout.inferOrientation(pandoc.Div(contents))
+  if inferred ~= nil then
+    tabContentsOrientation = inferred
+  end
+
   local pageContainerEl = layout.orientContents(contents, tabContentsOrientation, {})
   local pageDiv = pandoc.Div(pageContainerEl, pandoc.Attr(id, classes, attr))
   

@@ -2,6 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 local document = require "modules/dashboard/document"
+local sidebar = require "modules/dashboard/sidebar"
 
 -- Layout classes
 local kRowsClass = "rows"
@@ -138,7 +139,9 @@ local function orientation()
   return currentOrientation
 end
 
-
+local function setOrientation(o) 
+  currentOrientation = o
+end
 
 local function orientContents(contents, toOrientation, options)
   if toOrientation == kOrientationColumns then
@@ -150,6 +153,29 @@ local function orientContents(contents, toOrientation, options)
   end
 end
 
+function inferOrientation(el)
+  -- force the global orientation to columns if there is a sidebar present
+  local hasSidebar = false
+  _quarto.ast.walk(el, {
+    Header = function(header)
+      if header.level == 1 and sidebar.isSidebar(header) then
+        hasSidebar = true
+      end
+    end,
+    Div = function(div)
+      if sidebar.isSidebar(div) then
+        hasSidebar = true
+      end
+    end
+  })
+  if hasSidebar then
+    return kOrientationColumns
+  else
+    return nil
+  end
+end
+
+
 
 return {
   isRowOrColumnContainer = isRowOrColumnContainer,
@@ -157,7 +183,9 @@ return {
   isColumnContainer = isColumnContainer,
   currentOrientation = orientation,
   rotatedOrientation = rotatedOrientation,
+  setOrientation = setOrientation,
   orientContents = orientContents,
   readOptions = readOptions,
-  makeOptions = makeOptions
+  makeOptions = makeOptions,
+  inferOrientation = inferOrientation
 }
