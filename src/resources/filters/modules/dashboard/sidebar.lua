@@ -43,10 +43,16 @@ local function makeSidebar(sidebarEls, contentEls, options)
   return sidebarContainerEl
 end
 
+local function pageSidebarPlaceholder(contents) 
+  local sidebarContainer = pandoc.Div(contents, pandoc.Attr("", {kSidebarClass}))
+  return sidebarContainer
+end
+
 return {
   isSidebar = isSidebar,
   readOptions = readOptions,
   makeSidebar = makeSidebar,
+  pageSidebarPlaceholder = pageSidebarPlaceholder
 }
 
 

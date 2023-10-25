@@ -168,10 +168,12 @@ function render_dashboard()
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level == 1 then
-              -- A level 1 header marked as a sidebar is global, just let it
-              -- flow through and the sidebar collector will ingest it and convert it into 
-              -- a sidebar (which contains the other pages as its content)
-              if not dashboard.sidebar.isSidebar(header) then
+                -- A level 1 header marked as a sidebar is global, just let it
+                -- flow through and the sidebar collector will ingest it and convert it into 
+                -- a sidebar (which contains the other pages as its content)
+              if dashboard.sidebar.isSidebar(header) then
+                return dashboard.sidebar.pageSidebarPlaceholder(contents)
+              else
                 lastLevel = level
 
                 -- Make sure everything is in a card
