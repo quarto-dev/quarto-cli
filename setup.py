@@ -56,7 +56,7 @@ def download_quarto(version):
             tf.extractall(output_location)
 
     for path in glob.glob(str(Path(output_location, "**")), recursive=True):
-        quarto_data.append(path.replace("quarto_cli/", ""))
+        quarto_data.append(path.replace("quarto_cli" + os.path.sep, ""))
 
 def cleanup_quarto():
     shutil.rmtree(output_location)
