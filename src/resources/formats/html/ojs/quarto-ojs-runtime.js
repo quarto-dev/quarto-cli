@@ -27945,6 +27945,10 @@ class QuartoOJSConnector extends OJSConnector {
 
                 // in dashboard, change styles so that autosizing works
                 if (window._ojs.isDashboard) {
+                  const table = added.querySelector("table");
+                  if (table) {
+                    table.style.width = "100%";
+                  }
                   added.style.maxHeight = null;
                   added.style.margin = "0 0 0 0";
                   added.style.padding = "0 0 0 0";
