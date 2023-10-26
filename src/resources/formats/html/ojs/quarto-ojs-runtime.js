@@ -27933,7 +27933,6 @@ class QuartoOJSConnector extends OJSConnector {
 
             that.decorateSource(cellDiv, ojsDiv);
 
-            // hide import statements even if output === "all"
             for (const added of mutation.addedNodes) {
               if (
                 added.tagName === "FORM" &&
@@ -27941,14 +27940,34 @@ class QuartoOJSConnector extends OJSConnector {
                   (x) => x.endsWith("table") && x.startsWith("oi-")
                 )
               ) {
+                // add quarto-specific classes to OJS-generated tables
                 added.classList.add("quarto-ojs-table-fixup");
+
+                // in dashboard, change styles so that autosizing works
+                if (window._ojs.isDashboard) {
+                  added.style.maxHeight = null;
+                  added.style.margin = "0 0 0 0";
+                  added.style.padding = "0 0 0 0";
+
+                  // find parentElement with class cell-output-display or cell
+                  let parent = added.parentElement;
+                  while (parent && !parent.classList.contains("cell-output-display") && !parent.classList.contains("cell")) {
+                    parent = parent.parentElement;
+                  }
+                  if (parent !== null && added.clientHeight > parent.clientHeight) {
+                    added.style.maxHeight = `${parent.clientHeight}px`;
+                  }
+                }
               }
 
+              // add quarto-specific classes to OJS-generated buttons
               const addedButtons = added.querySelectorAll("button");
               for (const button of Array.from(addedButtons)) {
                 button.classList.add("btn");
                 button.classList.add("btn-quarto");
               }
+
+              // hide import statements even if output === "all"
               //// Hide imports that aren't javascript code
               //
               // We search here for code.javascript and node span.hljs-... because
@@ -28421,10 +28440,8 @@ function createRuntime() {
       for (const el of document.querySelectorAll(
         "script[type='ojs-module-contents']"
       )) {
-        const autosize = document.body.classList.contains("quarto-dashboard");
-
         for (const call of JSON.parse(el.text).contents) {
-          let source = autosize ? autosizeOJSPlot(call.source, call.cellName) : call.source;
+          let source = window._ojs.isDashboard ? autosizeOJSPlot(call.source, call.cellName) : call.source;
           switch (call.methodName) {
             case "interpret":
               this.interpret(source, call.cellName, call.inline);
@@ -28466,6 +28483,8 @@ function initializeRuntime()
     // necessary for module resolution
 
     hasShiny: false, // true if we have the quarto-ojs-shiny runtime
+
+    isDashboard: document.body.classList.contains("quarto-dashboard"), // true if we are a dashboard format
 
     shinyElementRoot: undefined, // root element for the communication with shiny
     // via DOM
