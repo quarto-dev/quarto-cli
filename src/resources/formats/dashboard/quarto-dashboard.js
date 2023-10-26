@@ -83,7 +83,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 window.QuartoDashboardUtils = {
   setLocation: function (href) {
     if (history && history.pushState) {
-      history.pushState(null, null, href);
+      history.pushState({}, null, href);
+      // post "hashchange" for tools looking for it
+      if (window.parent?.postMessage) {
+        window.parent.postMessage({
+          type: "hashchange",
+          href: window.location.href,
+        }, "*");
+      }
     } else {
       window.location.replace(href);
     }
