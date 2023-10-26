@@ -69,6 +69,7 @@ setup(
     install_requires=[
         'jupyter',
         'nbclient',
+        'wheel',
     ],
     packages=find_packages(include=['quarto_cli', 'quarto_cli.*']),
     entry_points={
