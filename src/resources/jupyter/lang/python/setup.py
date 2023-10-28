@@ -62,6 +62,10 @@ if interactivity:
   from IPython.core.interactiveshell import InteractiveShell
   InteractiveShell.ast_node_interactivity = interactivity
 
+# NOTE: the kernel_deps code is repeated in the cleanup.py file
+# (we can't easily share this code b/c of the way it is run).
+# If you edit this code also edit the same code in cleanup.py!
+
 # output kernel dependencies
 kernel_deps = dict()
 for module in list(sys.modules.values()):

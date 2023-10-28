@@ -159,6 +159,7 @@
 - Only search for Julia conda installation when the engine language is Julia
 - Support for `plotly-connected` option to determine where Plotly is embedded or loaded from CDN
 - Reduce default margins for Plotly figures (t=30,r=0,b=0,l=0)
+- Restart kernel daemon when non-package Python modules change
 
 ## Knitr
 

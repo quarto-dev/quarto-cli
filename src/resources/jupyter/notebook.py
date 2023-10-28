@@ -225,19 +225,16 @@ def notebook_execute(options, status):
         
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
-         kernel_deps = nb_kernel_depenencies(cell)
-         if kernel_deps:
-            if hasattr(notebook_execute, "kernel_deps"):
+         # confirm kernel_deps haven't changed (restart if they have)
+         if hasattr(notebook_execute, "kernel_deps"):
+            kernel_deps = nb_kernel_depenencies(cell)
+            if kernel_deps:
                for path in kernel_deps.keys():
                   if path in notebook_execute.kernel_deps.keys():
                      if notebook_execute.kernel_deps[path] != kernel_deps[path]:
                         raise RestartKernel
                   else:
                      notebook_execute.kernel_deps[path] = kernel_deps[path]
-            else:
-               notebook_execute.kernel_deps = kernel_deps
-         else:
-            notebook_execute.kernel_deps = {}
 
          # we are done w/ setup (with no restarts) so it's safe to print 'Executing...'
          if not quiet:
@@ -283,6 +280,14 @@ def notebook_execute(options, status):
       store_history = False
    )
    nb.cells.pop()
+
+   # record kernel deps after execution (picks up imports that occurred
+   # witihn the notebook cells)
+   kernel_deps = nb_kernel_depenencies(cleanup_cell)
+   if kernel_deps:
+      notebook_execute.kernel_deps = kernel_deps
+   else:
+      notebook_execute.kernel_deps = {}
 
    # progress
    if not quiet:
