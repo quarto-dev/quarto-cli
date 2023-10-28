@@ -204,6 +204,7 @@ async function execJupyter(
           // that the way to use a different backend w/ Quarto is to call the matplotlib.use()
           // function within the notebook
           "MPLBACKEND": "module://matplotlib_inline.backend_inline",
+          "PYDEVD_DISABLE_FILE_VALIDATION": "1",
         },
         stdout: "piped",
       },
