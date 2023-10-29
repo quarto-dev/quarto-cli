@@ -16,7 +16,7 @@ import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
 import { relative } from "path/mod.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
-import { fromFileUrl } from "path/win32.ts";
+import { fromFileUrl } from "path/mod.ts";
 
 export interface TestDescriptor {
   // The name of the test
