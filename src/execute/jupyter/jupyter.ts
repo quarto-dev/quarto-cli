@@ -107,7 +107,7 @@ import {
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
-import { basename } from "https://deno.land/std@0.185.0/path/win32.ts";
+import { basename } from "path/mod.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -592,7 +592,7 @@ async function ensureYamlKernelspec(
 ) {
   const markdown = target.markdown.value;
   const yamlJupyter = readYamlFromMarkdown(markdown)?.jupyter;
-  if (yamlJupyter && typeof (yamlJupyter) !== "boolean") {
+  if (yamlJupyter && typeof yamlJupyter !== "boolean") {
     const [yamlKernelspec, _] = await jupyterKernelspecFromMarkdown(markdown);
     if (yamlKernelspec.name !== kernelspec.name) {
       const nb = jupyterFromJSON(Deno.readTextFileSync(target.source));
