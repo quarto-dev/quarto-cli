@@ -2106,6 +2106,10 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
+  .dashboard-page:not(.dashboard-sidebar-container) {
+    padding: 0.7em;
+  }
+
   .navbar {
     padding: 0;
 
@@ -2229,6 +2233,10 @@ code.sourceCode a.code-annotation-anchor {
     > div.main {
       padding: 0.7em;
     }
+
+    button.collapse-toggle {
+      margin-top: 0.3em;
+    }
   }
 
   .callout {
@@ -2347,6 +2355,9 @@ code.sourceCode a.code-annotation-anchor {
 
   .tab-content {
     margin-bottom: 0;
+  }
+
+  .sidebar-collapsed {
   }
 
   .sidebar {

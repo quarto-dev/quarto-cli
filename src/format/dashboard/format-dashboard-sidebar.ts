@@ -63,6 +63,9 @@ export function processSidebars(doc: Document) {
     sidebarContainerEl.append(...sidebarToggle(sidebarId, doc));
 
     sidebarEl.replaceWith(sidebarContainerEl);
+    sidebarContainerEl.parentElement?.classList.add(
+      "dashboard-sidebar-container",
+    );
   }
 
   // Decorate the body of the document if there is a top level sidebar panel
