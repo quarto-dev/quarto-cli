@@ -225,6 +225,22 @@ async function installPackage(
   opts?: string[],
   quiet?: boolean,
 ) {
+  // if any packages have been installed already, update packages first
+  let isInstalled = await verifyPackageInstalled(pkg, context);
+  if (isInstalled) {
+    // update tlmgr itself
+    const updateResult = await updatePackages(
+      true,
+      true,
+      context,
+      opts,
+      quiet,
+    );
+    if (updateResult.code !== 0) {
+      return Promise.reject();
+    }
+  }
+
   // Run the install command
   let installResult = await tlmgrCommand(
     "install",
@@ -240,8 +256,8 @@ async function installPackage(
     );
   }
 
-  // Check whether we should update and retry the install
-  const isInstalled = await verifyPackageInstalled(pkg, context);
+  // Check whether we should update again and retry the install
+  isInstalled = await verifyPackageInstalled(pkg, context);
   if (!isInstalled) {
     // update tlmgr itself
     const updateResult = await updatePackages(
