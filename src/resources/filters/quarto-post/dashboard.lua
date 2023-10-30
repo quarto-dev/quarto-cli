@@ -29,7 +29,7 @@ function render_dashboard()
       traverse = 'topdown',
       PanelLayout = function(el)
         local options, userClasses = dashboard.card.readCardOptions(el)
-        return dashboard.card.makeCard(nil, { el }, userClasses, options), false
+        return dashboard.card.makeCard(nil, { el }, userClasses, options)
       end,
       Div = function(el) 
 
@@ -55,7 +55,7 @@ function render_dashboard()
           end
           
           local options, userClasses = dashboard.card.readCardOptions(el)          
-          return dashboard.card.makeCard(title, contents, userClasses, options), false
+          return dashboard.card.makeCard(title, contents, userClasses, options)
 
         elseif dashboard.valuebox.isValueBox(el) then
           
@@ -160,7 +160,6 @@ function render_dashboard()
         -- return the newly restructured document
         el.blocks = finalEls
         return el
-
       end,
       Div = function(el) 
         if el.classes:includes(kSectionClass) then
@@ -170,7 +169,7 @@ function render_dashboard()
           if header.t == "Header" then            
             local level = header.level
             local contents = tslice(el.content, 2)
-            
+
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level == 1 then
@@ -205,6 +204,12 @@ function render_dashboard()
                 return dashboard.card.makeCard(nil, contents, userClasses, options)
               else
                 -- Process the layout
+                            
+                -- TODO: extend to other component types for completeness
+                if dashboard.card.hasCardDecoration(header) then
+                  -- sections may not have component decorations, throw error
+                  fatal("Headings may not be cards - please remove the `card` class from the offending heading: '" .. pandoc.utils.stringify(header) .. "'")
+                end
 
                 -- Compute the options
                 local options = dashboard.layout.readOptions(header)

@@ -65,10 +65,14 @@ local function popImagePara(el)
   end
 end
 
-local function isCard(el) 
-  return (el.t == "Div" or el.t == "Header") and el.classes ~= nil and el.classes:find_if(function(class) 
+local function hasCardDecoration(el)
+  return el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardClz:includes(class)
   end) 
+end
+
+local function isCard(el) 
+  return (el.t == "Div") and hasCardDecoration(el)
 end
 
 local function isCardBody(el) 
@@ -77,8 +81,7 @@ local function isCardBody(el)
   end) 
 end
 local function isCardFooter(el)
-  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
-end
+  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))end
 
 local function isCardHeader(el)
   return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
