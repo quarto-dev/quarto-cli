@@ -45,7 +45,7 @@ local function organizer(contents, ignoreClasses)
       local cardOptions = card.readCardOptions(looseContentEls[1])
       
       -- For loose content, mark this as a flow layout
-      cardOptions[kLayout] = "flow"
+      cardOptions[card.optionKeys.layout] = card.optionValues.flow
 
       local looseCard = card.makeCard(nil, looseContentEls, {}, cardOptions)
       if looseCard ~= nil then
