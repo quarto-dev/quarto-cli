@@ -6,6 +6,7 @@ local layout = require "modules/dashboard/layout"
 local kPageClass = "dashboard-page"
 
 local kOrientationAttr = "orientation"
+-- TODO: Convert this to use orientation="rows|columns" like pages
 local kOrientationRowsClass = "rows"
 local kOrientationColumnsClass = "columns"
 
