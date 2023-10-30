@@ -61,7 +61,7 @@ crossref = {
         kind = "Block",
         name = "Note",
         prefix = "Note",
-        ref_type = "not",
+        ref_type = "nte",
       },
       {
         kind = "Block",
