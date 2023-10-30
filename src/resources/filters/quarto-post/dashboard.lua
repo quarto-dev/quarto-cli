@@ -43,19 +43,9 @@ function render_dashboard()
             return nil
           end
 
-          -- Support explicit cards as divs (without the proper nested structure)
-          -- First element as a header will be used as the title, if present
-          -- otherwise just use the contents as the card body
-          local header = el.content[1]
-          local title = {}
-          local contents = el.content
-          if header ~= nil and header.t == "Header" then
-            title = header
-            contents = tslice(el.content, 2)
-          end
-          
+          local contents = el.content          
           local options, userClasses = dashboard.card.readCardOptions(el)          
-          return dashboard.card.makeCard(title, contents, userClasses, options)
+          return dashboard.card.makeCard(nil, contents, userClasses, options)
 
         elseif dashboard.valuebox.isValueBox(el) then
           
@@ -225,7 +215,7 @@ function render_dashboard()
                   else
                     toOrientation = dashboard.layout.rotatedOrientation()
                   end
-                end                
+                end        
                 return dashboard.layout.orientContents(layoutContentEls, toOrientation, options)
               end
             end
