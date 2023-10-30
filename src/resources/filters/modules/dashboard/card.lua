@@ -166,13 +166,6 @@ local function resolveCardHeader(title, options)
     if pandoc.utils.type(title) == "table" and #title > 0 then
       --- The title is a table with value
       return pandoc.Div(title, pandoc.Attr("", {kCardHeaderClass}))
-    elseif title.t == "Header" then
-      -- The title is being provided by a header
-      local titleText = title.content
-      if next(titleText) == nil then
-        titleText = title.attr.attributes[kTitle]  or ""
-      end
-      return pandoc.Div(titleText, pandoc.Attr("", {kCardHeaderClass}))
     elseif options[kTitle] ~= nil then
       return pandoc.Div(string_to_quarto_ast_inlines(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
     elseif options[kForceHeader] then
