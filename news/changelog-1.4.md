@@ -52,6 +52,7 @@
 - ([#6853](https://github.com/quarto-dev/quarto-cli/issues/6853), [#5208](https://github.com/quarto-dev/quarto-cli/issues/5208)): Wrap callout in div when attr is non-empty.
 - ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now works correctly with code annotation.
 - ([#7104](https://github.com/quarto-dev/quarto-cli/issues/7104)): Line highlighting progressive reveal now correctly has code annotation anchor on the right.
+- ([#7366](https://github.com/quarto-dev/quarto-cli/issues/7366)): `smaller: true` now applies correctly on nested slides.
 
 ## PDF Format
 

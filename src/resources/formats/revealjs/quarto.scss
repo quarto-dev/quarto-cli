@@ -377,6 +377,10 @@ $panel-sidebar-padding: 0.5em;
 .reveal .slides section .callout {
   font-size: #{$presentation-font-smaller}em;
 }
+// avoid applying twice the reduction when using nested section
+.reveal.smaller .slides section section {
+  font-size: inherit;
+}
 
 .reveal.smaller .slides h1,
 .reveal .slides section.smaller h1 {
