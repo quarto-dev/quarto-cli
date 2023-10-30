@@ -29,6 +29,14 @@ function is_custom_node(node, name)
   return false
 end
 
+function ensure_custom(node)
+  if pandoc.utils.type(node) == "Block" or pandoc.utils.type(node) == "Inline" then
+    local result = _quarto.ast.resolve_custom_data(node)
+    return result or node -- it'll never be nil or false, but the lua analyzer doesn't know that
+  end
+  return node
+end
+
 -- use this instead of node.t == "Div" so that custom nodes
 -- are not considered Divs
 function is_regular_node(node, name)
