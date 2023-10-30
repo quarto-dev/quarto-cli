@@ -152,6 +152,8 @@ jobs:
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v1
+        with:
+          cache-registries: true
 
       - name: Restore Julia Packages
         working-directory: tests
