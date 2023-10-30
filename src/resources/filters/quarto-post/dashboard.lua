@@ -196,12 +196,12 @@ function render_dashboard()
               local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
               local layoutContentEls = organizer.ensureInLayoutContainers()
 
-              -- see if this heading is marked as a component
-              if dashboard.card.isCard(header) then 
+              -- see if this heading is marked as a tabset
+              if dashboard.tabset.isTabset(header) then 
                 -- Process the component
-                local options, userClasses = dashboard.card.readCardOptions(header)
+                local options, userClasses = dashboard.tabset.readOptions(header)
                 -- don't pass an explicit title - any title will come from the card options
-                return dashboard.card.makeCard(nil, contents, userClasses, options)
+                return dashboard.tabset.makeTabset(nil, contents, userClasses, options)
               else
                 -- Process the layout
                             

@@ -7,10 +7,6 @@ local kCardHeaderClass = "card-header"
 local kCardBodyClass = "card-body"
 local kCardFooterClass = "card-footer"
 
--- Tabset classes
-local kTabsetClass = "tabset"
-local kTabClass = "tab"
-
 -- Cell classes
 local kCellClass = "cell"
 local kFlowClass = "flow"
@@ -18,8 +14,8 @@ local kFillClass = "fill"
 
 -- Implicit Card classes, these mean that this is a card
 -- even if it isn't specified
-local kCardClz = pandoc.List({kCardClass, kTabsetClass})
-local kCardBodyClz = pandoc.List({kCardBodyClass, kTabClass, kCellClass})
+local kCardClz = pandoc.List({kCardClass})
+local kCardBodyClz = pandoc.List({kCardBodyClass, kCellClass})
 local kCardHeaderClz = pandoc.List({kCardHeaderClass})
 
 -- Card classes that are forwarded to attributes
@@ -34,8 +30,6 @@ local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kTitle = "title"
 local kLayout = "layout"
-
-
 
 -- Card explicit attributes
 local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable})
@@ -81,16 +75,13 @@ local function isCardBody(el)
   end) 
 end
 local function isCardFooter(el)
-  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))end
+  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
+end
 
 local function isCardHeader(el)
   return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardHeaderClz:includes(class)
   end) 
-end
-
-local function isTabset(el)
-  return (el.t == "Div" or el.t == "Header") and el.classes:includes(kTabsetClass)
 end
 
 local function hasRealLookingContent(contents)
@@ -150,9 +141,6 @@ local function readCardOptions(el)
       end
     end
   end
-
-  -- note whether this card should force the header on
-  options[kForceHeader] = isTabset(el)
 
   local clz = pandoc.List()
   if el.classes ~= nil then
@@ -242,43 +230,7 @@ local function resolveCardBodies(contents)
   for _i,v in ipairs(contents) do
     
      
-     if v.classes ~= nil and v.classes:includes("section") then
-      flushCollectedBodyContentEls()
-      local sectionContent = v.content
-      
-      if next(sectionContent) ~= nil then
-        local headerEl = sectionContent[1]
-        local cardEls = tslice(sectionContent, 2)
-
-        -- the header
-        local cardBodiesToMerge = pandoc.List({})
-        local cardFootersToMerge = pandoc.List({})
-        for i, cardEl in ipairs(cardEls) do
-
-          local cardBodyEls, cardFooterEls = resolveCardBodies(cardEl.content)
-          if cardBodyEls ~= nil then 
-            cardBodiesToMerge:extend(cardBodyEls)
-          end
-    
-          if cardFooterEls ~= nil then
-            cardFootersToMerge:extend(cardFooterEls)
-          end
-        end
-
-        local contentDiv = pandoc.Div({}, pandoc.Attr("", {kCardBodyClass}))
-        for i, cardBodyEl in ipairs(cardBodiesToMerge) do
-          contentDiv.content:extend(cardBodyEl.content)
-        end
-
-        if headerEl ~= nil then
-          contentDiv.attributes['data-title'] = pandoc.utils.stringify(headerEl)
-        end
-
-        bodyContentEls:insert(contentDiv)
-      
-      end
-
-     elseif isCard(v) then
+    if isCard(v) then
       flushCollectedBodyContentEls()
 
       -- this is a card that is nested inside a card. Turn it into a card
@@ -310,9 +262,6 @@ local function resolveCardBodies(contents)
       if not v.classes:includes(kCardBodyClass) then
         v.classes:insert(kCardBodyClass)
       end
-
-      -- remove the tab class as this is now a resolved card body
-      v.classes = v.classes:filter(function(class) return class ~= kTabClass end)
 
       -- forward our known attributes into data attributes
       for k, val in pairs(v.attr.attributes) do
@@ -385,14 +334,17 @@ local function makeCard(title, contents, classes, options)
     attributes['data-' .. k] = pandoc.utils.stringify(v)
   end
   
-  return pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
+  local cardEl = pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
+  return cardEl
+
 end
 
 return {
   isCard = isCard,
   isLiteralCard = isLiteralCard,
-  makeCard = makeCard,
   readCardOptions = readCardOptions,
+  makeCard = makeCard,
+  hasCardDecoration = hasCardDecoration,
   optionKeys = {
     layout = kLayout
   },
