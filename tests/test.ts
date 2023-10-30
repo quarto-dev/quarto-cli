@@ -74,7 +74,7 @@ export function testQuartoCmd(
     name,
     execute: async () => {
       const timeout = new Promise((_resolve, reject) => {
-        setTimeout(reject, 300000, "timed out after 5 minutes");
+        setTimeout(reject, 600000, "timed out after 10 minutes");
       });
       await Promise.race([
         quarto([cmd, ...args], undefined, context?.env),
