@@ -19,7 +19,7 @@ function resolveRefs()
       end
     
       -- all valid ref types (so we can provide feedback when one doesn't match)
-      local refTypes = validRefTypes()
+      local refTypes = valid_ref_types()
       
       -- scan citations for refs
       local refs = pandoc.List()
@@ -27,7 +27,7 @@ function resolveRefs()
         -- get the label and type, and note if the label is uppercase
         local label = cite.id
         local type = refType(label)
-        if type ~= nil and isValidRefType(type) then
+        if type ~= nil and is_valid_ref_type(type) then
           local upper = not not string.match(cite.id, "^[A-Z]")
 
           -- convert the first character of the label to lowercase for lookups
@@ -199,11 +199,11 @@ function refLabelPattern(type)
   return "{#(" .. type .. "%-[^ }]+)}"
 end
 
-function isValidRefType(type) 
-  return tcontains(validRefTypes(), type)
+function is_valid_ref_type(type) 
+  return tcontains(valid_ref_types(), type)
 end
 
-function validRefTypes()
+function valid_ref_types()
   local types = tkeys(theorem_types)
   for k, _ in pairs(crossref.categories.by_ref_type) do
     table.insert(types, k)
