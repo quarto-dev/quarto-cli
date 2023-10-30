@@ -8,11 +8,7 @@ import { existsSync, expandGlobSync } from "fs/mod.ts";
 import { extname, join, normalize } from "path/mod.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
-import {
-  architectureToolsPath,
-  resourcePath,
-  toolsPath,
-} from "../resources.ts";
+import { architectureToolsPath, resourcePath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./types.ts";
 import { removeIfExists } from "../path.ts";
 import { copyTo } from "../copy.ts";

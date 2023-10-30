@@ -1,0 +1,12 @@
+---
+code-fold: true
+---
+
+```{r}
+#| file: script.R
+#| filename: script.R
+```
+
+```{js}
+#| file: script.js
+```

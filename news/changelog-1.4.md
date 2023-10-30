@@ -100,6 +100,7 @@
 - ([#6904](https://github.com/quarto-dev/quarto-cli/issues/6904)): Within feeds, remove `index.html` from urls which shouldn't include it.
 - ([#7088](https://github.com/quarto-dev/quarto-cli/issues/7088)): Don't emit extraneous link or whitespace in default listing template.
 - ([#7184](https://github.com/quarto-dev/quarto-cli/issues/7184)): Properly use the boostrap variable `pagination-active-color` for coloring pagination controls.
+- ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
 
 ## Websites
 
@@ -145,6 +146,7 @@
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 - Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
+- Only re-use Jupyter kernels for languages that explicitly opt into it
 
 ## Jupyter
 

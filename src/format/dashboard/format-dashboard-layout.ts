@@ -309,10 +309,15 @@ function asLayout(layout: string): Layout {
 
 // Suggest a layout for an element
 function suggestLayout(el: Element) {
-  if (isValueBox(el)) {
-    return kLayoutFlow;
+  const explicitLayout = el.getAttribute(kLayoutAttr);
+  if (explicitLayout !== null) {
+    return explicitLayout;
   } else {
-    return kLayoutFill;
+    if (isValueBox(el)) {
+      return kLayoutFlow;
+    } else {
+      return kLayoutFill;
+    }
   }
 }
 
