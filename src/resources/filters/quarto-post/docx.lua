@@ -187,7 +187,8 @@ local function calloutDocxSimple(node, type, hasIcon)
   return callout
 end
 
-local function calloutDocx(node)
+function calloutDocx(node)
+  node = decorate_callout_title_with_crossref(node)
   local type = node.type
   local appearance = node.appearance
   local hasIcon = node.icon 
@@ -199,12 +200,11 @@ local function calloutDocx(node)
   end
 end
 
-function render_docx()
-  if not _quarto.format.isDocxOutput() then
-    return {}
-  end
-
-  return {
-    Callout = calloutDocx
-  }
-end
+-- function render_docx()
+--   if not _quarto.format.isDocxOutput() then
+--     return {}
+--   end
+--   return {
+--     Callout = calloutDocx
+--   }
+-- end

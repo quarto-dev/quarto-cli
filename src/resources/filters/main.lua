@@ -24,6 +24,7 @@ import("./common/base64.lua")
 import("./common/citations.lua")
 import("./common/colors.lua")
 import("./common/collate.lua")
+import("./common/crossref.lua")
 import("./common/debug.lua")
 import("./common/error.lua")
 import("./common/figures.lua")
@@ -333,7 +334,6 @@ local quarto_post_filters = {
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-docx", filter = render_docx() },
   { name = "post-render-typst", filter = render_typst() },
   { name = "post-render-dashboard", filters = render_dashboard()},
 
@@ -397,6 +397,7 @@ local quarto_crossref_filters = {
     crossref_figures(),
     equations(),
     crossref_theorems(),
+    crossref_callouts(),
   })},
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),

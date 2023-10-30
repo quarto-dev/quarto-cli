@@ -1,0 +1,44 @@
+---
+title: Cross-referenceable callouts
+format: docx
+# _quarto:
+#   tests:
+#     html:
+#       ensureHtmlElements:
+#         -
+#           # ensure the anchors are there
+#           - "#not-1"
+#           - "#not-2"
+#           # ensure actual refs are there
+#           - "a[href=\"#not-1\"]"
+#           - "a[href=\"#not-2\"]"
+#         - []
+---
+
+![A figure](./test.jpg){#fig-1}
+
+::: {#not-1 .callout-note}
+
+## Cross-referenceable callouts in v1.4
+
+In Quarto v1.4, you can cross-reference callouts.
+
+:::
+
+::: {#not-2 .callout-note}
+
+In Quarto v1.4, you can cross-reference callouts with no titles.
+
+:::
+
+
+::: {.callout-note}
+
+Old-style callouts with no titles get the old treatment.
+
+:::
+
+
+Like we mentioned in @not-1 and @not-2, you can cross-reference callouts.
+
+See @fig-1 as well.

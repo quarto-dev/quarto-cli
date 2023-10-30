@@ -28,8 +28,8 @@ function crossref_theorems()
     Theorem = function(thm)
       local label = thm.identifier
       local type = refType(label)
-      thm.order = indexNextOrder(type)
-      indexAddEntry(label, nil, thm.order, { thm.name })
+      local title = quarto.utils.as_blocks(thm.name)
+      thm.order = add_crossref(label, type, title)
       return thm
     end,
     Div = function(el)

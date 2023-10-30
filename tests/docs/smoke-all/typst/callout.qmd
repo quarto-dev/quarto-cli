@@ -1,18 +1,22 @@
 ---
 title: Callouts
 format: typst
+keep-typ: true
 ---
 
 ## With titles
 
-::: {.callout-note}
+::: {#not-1 .callout-note}
 
 ## A title for a Typst callout
 
 Some content for Quarto callouts in Typst format. 
+
 :::
 
-::: {.callout-tip}
+See @not-1, @tip-1.
+
+::: {#tip-1 .callout-tip}
 
 ## A title for a Typst callout
 
@@ -49,7 +53,7 @@ A note without a title.
 
 :::
 
-::: {.callout-tip}
+::: {#tip-2 .callout-tip}
 
 A tip without a title.
 
