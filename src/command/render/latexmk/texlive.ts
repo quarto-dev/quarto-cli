@@ -239,6 +239,12 @@ async function installPackage(
     if (updateResult.code !== 0) {
       return Promise.reject();
     }
+
+    // Rebuild format tree
+    const fmtutilResult = await fmtutilCommand(context);
+    if (fmtutilResult.code !== 0) {
+      return Promise.reject();
+    }
   }
 
   // Run the install command
@@ -268,6 +274,12 @@ async function installPackage(
       quiet,
     );
     if (updateResult.code !== 0) {
+      return Promise.reject();
+    }
+
+    // Rebuild format tree
+    const fmtutilResult = await fmtutilCommand(context);
+    if (fmtutilResult.code !== 0) {
       return Promise.reject();
     }
 
@@ -432,4 +444,17 @@ function tlmgrCommand(
   } else {
     return execTlmgr([tlmgr.fullPath, tlmgrCmd, ...args]);
   }
+}
+
+// Exectute fmtutil
+// https://tug.org/texlive/doc/fmtutil.html
+function fmtutilCommand(context: TexLiveContext) {
+  const fmtutil = texLiveCmd("fmtutil-sys", context);
+  return execProcess(
+    {
+      cmd: [fmtutil.fullPath, "--all"],
+      stdout: "piped",
+      stderr: "piped",
+    },
+  );
 }
