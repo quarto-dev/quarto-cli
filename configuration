@@ -9,7 +9,8 @@
 
 # Binary dependencies
 export DENO=v1.37.2
-export DENO_DOM=v0.1.35-alpha-artifacts # TODO figure out where 0.1.41 apple silicon libs are available
+# TODO figure out where 0.1.41 apple silicon libs are available
+export DENO_DOM=v0.1.35-alpha-artifacts
 export PANDOC=3.1.9
 export DARTSASS=1.69.5
 export ESBUILD=0.19.5
