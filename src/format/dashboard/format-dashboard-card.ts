@@ -123,7 +123,16 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
   for (const cardNode of cardNodes) {
     cardCount++;
     const cardEl = cardNode as Element;
-    const cardBodyNodes = cardEl.querySelectorAll(`.${kCardBodyClass}`);
+
+    const cardBodyEls: Element[] = [];
+    let cardHeaderEl = undefined;
+    for (const cardChildEl of cardEl.children) {
+      if (cardChildEl.classList.contains(kCardBodyClass)) {
+        cardBodyEls.push(cardChildEl);
+      } else if (cardChildEl.classList.contains(kCardHeaderClass)) {
+        cardHeaderEl = cardChildEl;
+      }
+    }
 
     // Add card attributes
     applyClasses(cardEl, kBsCardClasses);
@@ -135,15 +144,14 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
       : undefined;
     if (tabSetId) {
       // Fix up the header
-      const cardHeaderEl = cardEl.querySelector(`.${kCardHeaderClass}`);
       if (cardHeaderEl) {
         if (cardHeaderEl.innerText.trim() === "") {
           cardHeaderEl.classList.add(kQuartoHideTitleClass);
         }
-        convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyNodes, doc);
+        convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyEls, doc);
       }
       // Convert the body to tabs
-      convertToTabs(tabSetId, cardEl, cardBodyNodes, doc);
+      convertToTabs(tabSetId, cardEl, cardBodyEls, doc);
     }
 
     // Process card attributes
@@ -160,8 +168,7 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     }
 
     // Process card body attributes
-    for (const cardBodyNode of cardBodyNodes) {
-      const cardBodyEl = cardBodyNode as Element;
+    for (const cardBodyEl of cardBodyEls) {
       for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
         processAndRemoveAttr(
           cardBodyEl,
@@ -190,7 +197,7 @@ function initCardScript(doc: Document) {
 function convertToTabsetHeader(
   tabSetId: string,
   cardHeaderEl: Element,
-  cardBodyNodes: NodeList,
+  cardBodyEls: Element[],
   doc: Document,
 ) {
   // Decorate it
@@ -205,9 +212,8 @@ function convertToTabsetHeader(
   });
 
   let cardBodyCount = 0;
-  for (const cardBodyNode of cardBodyNodes) {
+  for (const cardBodyEl of cardBodyEls) {
     cardBodyCount++;
-    const cardBodyEl = cardBodyNode as Element;
 
     // If the user has provided a title, use that
     let cardBodyTitle = cardBodyEl.getAttribute(kAttrTitle);
@@ -248,7 +254,7 @@ function convertToTabsetHeader(
 function convertToTabs(
   tabSetId: string,
   cardEl: Element,
-  cardBodyNodes: NodeList,
+  cardBodyEls: Element[],
   doc: Document,
 ) {
   const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
@@ -257,7 +263,7 @@ function convertToTabs(
     tabContainerEl.setAttribute("data-tabset-id", tabSetId);
 
     // Make sure we place this above the card footer
-    const cardFooterEl = cardEl.querySelector(`.${kCardFooterClass}`);
+    const cardFooterEl = cardEl.querySelector(`:scope > .${kCardFooterClass}`);
     if (cardFooterEl) {
       cardEl.insertBefore(tabContainerEl, cardFooterEl);
     } else {
@@ -266,9 +272,8 @@ function convertToTabs(
   }
 
   let cardBodyCount = 0;
-  for (const cardBodyNode of cardBodyNodes) {
+  for (const cardBodyEl of cardBodyEls) {
     cardBodyCount++;
-    const cardBodyEl = cardBodyNode as Element;
 
     for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
       processAndRemoveAttr(
