@@ -13,6 +13,8 @@ local kTabFooterClass = "card-footer"
 local kTitleAttr = "title"
 local kTabAttributes = {kTitleAttr}
 
+local kTabTitleOutAttr = "data-title"
+
 
 -- title
 -- pill vs tabs vs underline
@@ -39,7 +41,21 @@ local function resolveTabs(contents)
   local tabBodyEls = pandoc.List()
 
   for _i, v in ipairs(contents) do
-    tabBodyEls:insert(pandoc.Div(v, pandoc.Attr("", {kTabBodyClass})))
+    
+    local attr = {}
+    if v.content and #v.content > 1 then
+      if v.content[1].t == "Header" then
+        local titleAttr = v.content[1].attributes[kTitleAttr]
+        if titleAttr ~= nil then
+          attr[kTabTitleOutAttr] = titleAttr
+        else
+          attr[kTabTitleOutAttr] = pandoc.utils.stringify(v.content[1])
+        end
+        
+      end
+    end
+    
+    tabBodyEls:insert(pandoc.Div(v, pandoc.Attr("", {kTabBodyClass}, attr)))
   end
 
   return tabBodyEls, tabFooterEls
