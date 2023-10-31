@@ -95,6 +95,17 @@ function render_pandoc3_figure()
           end
         end,
         Figure = function(figure)
+          -- this is a figure that is not cross-referenceable
+          -- if this ends up in a layout without fig-pos = H, it'll fail
+          -- 'H' forces it to not float
+          if figure.identifier == "" then
+            figure = _quarto.ast.walk(figure, {
+              Image = function(image)
+                image.attributes['fig-pos'] = 'H'
+                return image
+              end
+            })
+          end
           local image
           _quarto.ast.walk(figure, {
             Image = function(img)
