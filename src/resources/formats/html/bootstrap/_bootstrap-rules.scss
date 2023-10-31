@@ -2361,15 +2361,12 @@ code.sourceCode a.code-annotation-anchor {
     margin-bottom: 0;
   }
 
-  .sidebar-collapsed {
-  }
-
   .sidebar {
     .card-body {
       margin-bottom: 2em;
     }
     .cell-output-display:not(:last-child) {
-      margin-bottom: 1em;
+      margin-bottom: 0;
     }
     .shiny-options-group {
       margin-top: 0;
