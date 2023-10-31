@@ -1,0 +1,54 @@
+---
+title: Card Types
+format: 
+  dashboard:
+    theme: lux
+---
+
+::: card
+A card with no title
+:::
+
+::: card
+### Card with Heading Title
+
+This is a simple card created using markdown
+:::
+
+::: {.card title="Card with Attr Title"}
+This is the card
+:::
+
+::: card
+A card with no title, but a footer
+
+> This is the footer
+:::
+
+::: card
+### Card With Markdown Header and Footers
+
+This is a markdown card with a footer
+
+> This is the footer
+:::
+
+```{r}
+#| title: A Cell Is A Card
+#| classes: expandable
+plot(cars)
+```
+
+::: card
+::: card-header
+Fully nested card with all divs
+:::
+
+::: card-body
+This is a markdown card with a footer
+:::
+
+::: card-footer
+This is the footer
+:::
+:::

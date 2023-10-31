@@ -1,9 +1,8 @@
 /*
-* capabilities.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * capabilities.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, join } from "path/mod.ts";
 
@@ -53,6 +52,7 @@ async function formats() {
     "revealjs",
     "gfm",
     "epub",
+    "dashboard",
     "email",
   ];
 

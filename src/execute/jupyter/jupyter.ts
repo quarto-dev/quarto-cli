@@ -445,14 +445,14 @@ export const jupyterEngine: ExecutionEngine = {
     const asSemVer = (version: string) => {
       const v = version.split(".");
       if (v.length > 3) {
-        return `${v[0]}.${v[1]}.${v.slice(2).join("")}`;
+        return `${v[0]}.${v[1]}.${v[2]}`;
       } else {
         return version;
       }
     };
 
     // confirm required version of shiny
-    const kShinyVersion = ">=0.5.1.9002";
+    const kShinyVersion = ">=0.6";
     let shinyError: string | undefined;
     const caps = await jupyterCapabilities();
     if (!caps?.shiny) {
@@ -464,9 +464,7 @@ export const jupyterEngine: ExecutionEngine = {
     }
     if (shinyError) {
       shinyError +=
-        "\n\nInstall the development version of the shiny package with: \n\n" +
-        "pip install git+https://github.com/posit-dev/py-htmltools.git@html-text-doc#egg=htmltools\n" +
-        "pip install git+https://github.com/posit-dev/py-shiny.git@quarto-ext#egg=shiny\n";
+        "\n\nInstall the latest version of shiny with pip install --upgrade shiny\n";
       error(shinyError);
       throw new Error();
     }

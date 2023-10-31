@@ -1,44 +1,79 @@
 -- foldcode.lua
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
+-- slightly fancy code here to make two operations work in a single pass
+
+local pass_uuid = "8c6b3915-b784-4ce5-8e73-59b368a9f289"
+
 function foldCode()
   return {
-    CodeBlock = function(block)
-      if _quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput() then
-        if block.attr.classes:includes("cell-code") then
-          local fold = foldAttribute(block)
-          local summary = summaryAttribute(block)
-          if fold ~= nil or summary ~= nil then
-            block.attr.attributes["code-fold"] = nil
-            block.attr.attributes["code-summary"] = nil
-            if fold ~= "none" then 
-              local blocks = pandoc.List()
-              quarto_global_state.codeFoldingCss =  _quarto.format.isHtmlOutput()
-              local open = ""
-              if fold == "show" then
-                open = " open"
-              end
-              local style = ""
-              if block.attr.classes:includes("hidden") then
-                style = ' class="hidden"'
-              end
-              local beginPara = pandoc.Plain({
-                pandoc.RawInline("html", "<details" .. open .. style .. ">\n<summary>"),
-              })
-              
-              if not isEmpty(summary) then
-                tappend(beginPara.content, markdownToInlines(summary))
-              end
-              beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
-              blocks:insert(beginPara)
-              blocks:insert(block)
-              blocks:insert(pandoc.RawBlock("html", "</details>"))
-              return blocks
-            else
-              return block
-            end
+    FloatRefTarget = function(float, float_node)
+      local blocks = pandoc.Blocks({})
+      float.content = _quarto.ast.walk(float.content, {
+        Div = function(div)
+          if div.classes:includes(pass_uuid) then
+            blocks:insert(div)
+            return {}
           end
         end
+      })
+      if #blocks > 0 then
+        blocks:insert(float_node)
+        return blocks
+      end
+    end,
+
+    CodeBlock = function(block)
+      local make_code_fold_html = function(fold, summary)
+        local div = pandoc.Div({}, pandoc.Attr("", { 
+          "quarto-scaffold", pass_uuid 
+        }))
+        quarto_global_state.codeFoldingCss = _quarto.format.isHtmlOutput()
+        local open = ""
+        if fold == "show" then
+          open = " open"
+        end
+        local style = ""
+        local clz = 'code-fold'
+        if block.attr.classes:includes("hidden") then
+          clz = clz .. " hidden"
+        end
+
+        style = ' class="' .. clz .. '"'
+        local beginPara = pandoc.Plain({
+          pandoc.RawInline("html", "<details" .. open .. style .. ">\n<summary>"),
+        })
+        
+        if not isEmpty(summary) then
+          tappend(beginPara.content, markdownToInlines(summary))
+        end
+        beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
+        div.content:insert(beginPara)
+        div.content:insert(block)
+        div.content:insert(pandoc.RawBlock("html", "</details>"))
+        return div
+      end
+      local make_code_cell_scaffold = function(div)
+        return pandoc.Div({ block }, pandoc.Attr("", { "quarto-scaffold", pass_uuid }))
+      end
+      if not block.attr.classes:includes("cell-code") then
+        return nil
+      end
+      if not (_quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput()) then
+        return make_code_cell_scaffold(block)
+      end
+      local fold = foldAttribute(block)
+      local summary = summaryAttribute(block)
+      if fold ~= nil or summary ~= nil then
+        block.attr.attributes["code-fold"] = nil
+        block.attr.attributes["code-summary"] = nil
+        if fold ~= "none" then 
+          return make_code_fold_html(fold, summary)
+        else
+          return make_code_cell_scaffold(block)
+        end
+      else
+        return make_code_cell_scaffold(block)
       end
     end
   }

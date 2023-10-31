@@ -63,7 +63,6 @@ import {
   kScrollable,
   kSlideFooter,
   kSlideLogo,
-  kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";

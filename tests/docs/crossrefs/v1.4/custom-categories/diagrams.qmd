@@ -15,8 +15,9 @@ crossref:
       latex-env: video
       latex-list-of-name: lov
     - kind: float
-      prefix: Table
-      name: Table
+      prefix: Table S
+      space-before-numbering: false
+      name: Table S
       ref-type: supptbl
       latex-env: supptbl
       latex-list-of-name: lost

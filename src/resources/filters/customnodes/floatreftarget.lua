@@ -92,13 +92,6 @@ end, function(float)
   return scaffold(float.content)
 end)
 
-local function ensure_custom(node)
-  if pandoc.utils.type(node) == "Block" or pandoc.utils.type(node) == "Inline" then
-    return _quarto.ast.resolve_custom_data(node)
-  end
-  return node
-end
-
 function is_unlabeled_float(float)
   -- from src/resources/filters/common/refs.lua
   return float.identifier:match("^%a+%-539a35d47e664c97a50115a146a7f1bd%-")

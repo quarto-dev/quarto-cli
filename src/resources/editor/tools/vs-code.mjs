@@ -12110,6 +12110,12 @@ var require_yaml_intelligence_resources = __commonJS({
                         object: {
                           description: "A custom cross reference type.",
                           closed: true,
+                          required: [
+                            "kind",
+                            "prefix",
+                            "name",
+                            "ref-type"
+                          ],
                           properties: {
                             kind: {
                               enum: [
@@ -12127,6 +12133,12 @@ var require_yaml_intelligence_resources = __commonJS({
                                 description: "The prefix used in captions when referencing this type."
                               }
                             },
+                            "space-before-numbering": {
+                              default: true,
+                              boolean: {
+                                description: "If false, use no space between crossref prefixes and numbering."
+                              }
+                            },
                             "ref-type": {
                               string: {
                                 description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
@@ -12134,12 +12146,17 @@ var require_yaml_intelligence_resources = __commonJS({
                             },
                             "latex-env": {
                               string: {
-                                description: "The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output."
+                                description: "In LaTeX output, the name of the custom environment to be used."
                               }
                             },
-                            "latex-list-of-name": {
+                            "latex-list-of-file-extension": {
                               string: {
-                                description: 'The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.'
+                                description: 'In LaTeX output, the extension of the auxiliary file used by LaTeX to collect names to be used in the custom "list of" command. If omitted, a string with prefix `lo` and suffix with the value of `ref-type` is used.'
+                              }
+                            },
+                            "latex-list-of-description": {
+                              string: {
+                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
                               }
                             }
                           }
@@ -15297,7 +15314,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "revealjs",
-              "beamer"
+              "beamer",
+              "dashboard"
             ]
           },
           schema: {
@@ -15575,7 +15593,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The logo image for slides."
+          description: "The logo image."
         },
         {
           name: "titlegraphic",
@@ -17919,7 +17937,8 @@ var require_yaml_intelligence_resources = __commonJS({
           ],
           "html-files": [
             "$html-doc",
-            "$html-pres"
+            "$html-pres",
+            "dashboard"
           ],
           "html-all": [
             "$html-files",
@@ -18000,7 +18019,8 @@ var require_yaml_intelligence_resources = __commonJS({
             "typst",
             "xwiki",
             "zimwiki",
-            "md"
+            "md",
+            "dashboard"
           ]
         }
       },
@@ -18008,6 +18028,9 @@ var require_yaml_intelligence_resources = __commonJS({
         cell: {
           attributes: {
             title: "Attributes"
+          },
+          card: {
+            title: "Card"
           },
           codeoutput: {
             title: "Code Output"
@@ -18037,6 +18060,9 @@ var require_yaml_intelligence_resources = __commonJS({
         document: {
           attributes: {
             title: "Title & Author"
+          },
+          dashboard: {
+            title: "Dashboard"
           },
           options: {
             title: "Format Options"
@@ -20294,9 +20320,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
         "The prefix used in rendered citations when referencing this type.",
         "The prefix used in captions when referencing this type.",
+        "If false, use no space between crossref prefixes and numbering.",
         "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
-        "The name of the custom LaTeX environment that quarto will use to\ncreate this type of crossreferenceable object in LaTeX output.",
-        "The name of the custom LaTeX \u201Clist of\u201D command that quarto will use\nto create this type of crossreferenceable object in LaTeX output.",
+        "In LaTeX output, the name of the custom environment to be used.",
+        "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
+        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
@@ -20943,7 +20971,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to produce a Beamer article from this presentation.",
         "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
         "The aspect ratio for this presentation.",
-        "The logo image for slides.",
+        "The logo image.",
         "The image for the title slide.",
         "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
         "Whether to enable title pages for new sections.",
@@ -21614,6 +21642,35 @@ var require_yaml_intelligence_resources = __commonJS({
         "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
         "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
         "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
+        "Logo image (placed on the left side of the navigation bar)",
+        "Default orientation for dashboard content (default\n<code>rows</code>)",
+        "Use scrolling rather than fill layout (default:\n<code>false</code>)",
+        "Make card content expandable (default: <code>true</code>)",
+        "Title displayed in card header",
+        {
+          short: "Title displayed in dashboard card header",
+          long: ""
+        },
+        {
+          short: "Padding around dashboard card content (default <code>8px</code>)",
+          long: ""
+        },
+        {
+          short: "Make dashboard card content expandable (default:\n<code>true</code>)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
+          long: ""
+        },
+        {
+          short: "Context to execute cell within.",
+          long: ""
+        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -22152,12 +22209,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 171001,
+        _internalId: 175354,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 170993,
+            _internalId: 175346,
             type: "enum",
             enum: [
               "png",
@@ -22173,7 +22230,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 171e3,
+            _internalId: 175353,
             type: "anyOf",
             anyOf: [
               {
@@ -22282,6 +22339,145 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "Enable or disable lightbox treatment for images in this document."
+        }
+      ],
+      "schema/document-dashboard.yml": [
+        {
+          name: "logo",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "path",
+          description: "Logo image (placed on the left side of the navigation bar)"
+        },
+        {
+          name: "orientation",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            enum: [
+              "rows",
+              "columns"
+            ]
+          },
+          description: "Default orientation for dashboard content (default `rows`)"
+        },
+        {
+          name: "scrolling",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: "Use scrolling rather than fill layout (default: `false`)"
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: "Make card content expandable (default: `true`)"
+        }
+      ],
+      "schema/cell-dashboard.yml": [
+        {
+          name: "title",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: "Title displayed in card header"
+        }
+      ],
+      "schema/cell-card.yml": [
+        {
+          name: "title",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Title displayed in dashboard card header"
+          }
+        },
+        {
+          name: "padding",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Padding around dashboard card content (default `8px`)"
+          }
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: {
+            short: "Make dashboard card content expandable (default: `true`)"
+          }
+        },
+        {
+          name: "width",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+          }
+        },
+        {
+          name: "height",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+          }
+        },
+        {
+          name: "context",
+          tags: {
+            formats: [
+              "dashboard"
+            ],
+            engine: [
+              "jupyter"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Context to execute cell within."
+          }
         }
       ]
     };
@@ -31705,6 +31901,8 @@ async function makeFrontMatterFormatSchema(nonStrict = false) {
     // alias for 'commonmark'
     "hugo",
     // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
+    "dashboard",
+    // our built in format for dashboards
     "email"
     // for the HTML email format (used with Posit Connect)
   ).map(

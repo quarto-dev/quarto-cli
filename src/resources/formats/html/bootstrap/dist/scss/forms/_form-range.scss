@@ -8,12 +8,12 @@
   width: 100%;
   height: add($form-range-thumb-height, $form-range-thumb-focus-box-shadow-width * 2);
   padding: 0; // Need to reset padding
-  background-color: transparent;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
+  background-color: transparent;
 
   &:focus {
     outline: 0;
@@ -32,16 +32,16 @@
     width: $form-range-thumb-width;
     height: $form-range-thumb-height;
     margin-top: ($form-range-track-height - $form-range-thumb-height) * .5; // Webkit specific
-    @include gradient-bg($form-range-thumb-bg);
-    border: $form-range-thumb-border;
-    @include border-radius($form-range-thumb-border-radius);
-    @include box-shadow($form-range-thumb-box-shadow);
-    @include transition($form-range-thumb-transition);
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     -ms-appearance: none;
     -o-appearance: none;
+    @include gradient-bg($form-range-thumb-bg);
+    border: $form-range-thumb-border;
+    @include border-radius($form-range-thumb-border-radius);
+    @include box-shadow($form-range-thumb-box-shadow);
+    @include transition($form-range-thumb-transition);
 
     &:active {
       @include gradient-bg($form-range-thumb-active-bg);
@@ -62,16 +62,16 @@
   &::-moz-range-thumb {
     width: $form-range-thumb-width;
     height: $form-range-thumb-height;
-    @include gradient-bg($form-range-thumb-bg);
-    border: $form-range-thumb-border;
-    @include border-radius($form-range-thumb-border-radius);
-    @include box-shadow($form-range-thumb-box-shadow);
-    @include transition($form-range-thumb-transition);
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     -ms-appearance: none;
     -o-appearance: none;
+    @include gradient-bg($form-range-thumb-bg);
+    border: $form-range-thumb-border;
+    @include border-radius($form-range-thumb-border-radius);
+    @include box-shadow($form-range-thumb-box-shadow);
+    @include transition($form-range-thumb-transition);
 
     &:active {
       @include gradient-bg($form-range-thumb-active-bg);

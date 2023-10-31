@@ -8,7 +8,7 @@
 
 - name: theme
   tags:
-    formats: [$html-doc, revealjs, beamer]
+    formats: [$html-doc, revealjs, beamer, dashboard]
   schema:
     anyOf:
       - string
@@ -200,7 +200,7 @@
   schema: path
   tags:
     formats: [beamer]
-  description: The logo image for slides.
+  description: The logo image.
 
 - name: titlegraphic
   schema: path

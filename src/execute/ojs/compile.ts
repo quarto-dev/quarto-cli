@@ -102,6 +102,18 @@ interface SubfigureSpec {
   caption?: string;
 }
 
+const ojsHasOutputs = (parse: any) => {
+  let hasOutputs = false;
+  ojsSimpleWalker(parse, {
+    Cell(node: any) {
+      if (node.id === null) {
+        hasOutputs = true;
+      }
+    },
+  });
+  return hasOutputs;
+};
+
 // TODO decide how source code is presented, we've lost this
 // feature from the ojs-engine move
 export async function ojsCompile(
@@ -317,9 +329,11 @@ export async function ojsCompile(
 
       let nCells = 0;
       const parsedCells: ParsedCellInfo[] = [];
+      let hasOutputs = true;
 
       try {
         const parse = parseModule(cellSrcStr.value);
+        hasOutputs = ojsHasOutputs(parse);
         let info: SourceInfo[] = [];
         const flushSeqSrc = () => {
           parsedCells.push({ info });
@@ -419,10 +433,17 @@ export async function ojsCompile(
         }
       };
 
-      const outputVal = cell.options?.[kOutput] ??
-        options.format.execute[kOutput] ?? true;
-      if (outputVal === "all") {
-        attrs.push(`output="all"`);
+      let outputVal: any = cell.options?.[kOutput] ??
+        options.format.execute[kOutput];
+      // if (
+      //   options.format.identifier["base-format"] == "dashboard" &&
+      //   !hasOutputs
+      // ) {
+      //   outputVal = false;
+      // }
+      outputVal = outputVal ?? true;
+      if (outputVal === "all" || outputVal === "asis") {
+        attrs.push(`output="${outputVal}"`);
       }
       const {
         classes,
@@ -435,10 +456,15 @@ export async function ojsCompile(
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
 
+      const ojsCellClasses = ["cell"];
+      if (!outputVal) {
+        ojsCellClasses.push("hidden");
+      }
+
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
         classes: [
-          "cell",
+          ...ojsCellClasses,
           ...classes,
         ],
         attrs,

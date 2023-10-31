@@ -1,0 +1,65 @@
+---
+title: No Headers
+format: 
+  dashboard:
+    orientation: rows
+    scrolling: false
+    theme: lux
+---
+
+Row
+--------------------------
+
+:::{.card}
+### This is a card
+
+```{r}
+#| label: fig-cars
+#| fig-cap: |
+#|   Embarking on a data-driven road trip through the 'cars' dataset in R! 🚗📊 Buckle up as we explore the fascinating world of speed and #|   #|   stopping distances. 🏁
+
+plot(cars)
+```
+:::
+
+:::{.card}
+### This is a card
+
+```{r}
+#| label: fig-cars2
+#| fig-cap: |
+#|   Embarking on a data-driven road trip through the 'cars' dataset in R! 🚗📊 Buckle up as we explore the fascinating world of speed and #|   #|   stopping distances. 🏁
+
+plot(cars)
+```
+:::
+
+
+Row
+--------------------------
+
+:::{.valuebox icon="cloud-rain"}
+
+### Tigers in Kansas 
+
+0
+
+:::
+
+:::{.valuebox icon="car-front"}
+
+### M3 Sedans Imported to US
+
+1,524
+
+:::
+
+:::{.valuebox icon=calendar-date""}
+
+### Shared Birthday
+
+0.27%.
+
+The probably that I share the same birthday as the creator of the M3 sedan, whoever that is.
+
+:::

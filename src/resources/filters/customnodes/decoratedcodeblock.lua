@@ -55,9 +55,14 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     -- But that'll be done in 1.4 with crossrefs overhaul.
 
     if node.filename then
+      -- a user filter could have replaced
+      -- a single code block in a decorated code block with a list of elements,
+      -- so we need to handle that.
+      local blocks = quarto.utils.as_blocks(el) or pandoc.Blocks({})
       -- if we have a filename, add it as a header
+      blocks:insert(1, pandoc.Plain{pandoc.Strong{pandoc.Str(node.filename)}})
       return pandoc.Div(
-        { pandoc.Plain{pandoc.Strong{pandoc.Str(node.filename)}}, el },
+        blocks,
         pandoc.Attr("", {"code-with-filename"})
       )
     else
@@ -74,7 +79,6 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     local el = node.code_block
     -- add listing class to the code block
     el.attr.classes:insert("listing")
-
     -- if we are use the listings package we don't need to do anything
     -- further, otherwise generate the listing div and return it
     if not param("listings", false) then
@@ -112,7 +116,10 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         listingDiv.content:insert(listingCaption)
       end
 
-      listingDiv.content:insert(el)
+      -- a user filter could have replaced
+      -- a single code block in a decorated code block with a list of elements,
+      -- so we need to handle that.
+      listingDiv.content:extend(quarto.utils.as_blocks(el) or {})
       listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
       return listingDiv
     end
@@ -150,7 +157,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     if filenameEl ~= nil then
       blocks:insert(filenameEl)
     end
-    blocks:insert(el)
+    blocks:extend(quarto.utils.as_blocks(el) or {})
 
     return pandoc.Div(blocks, pandoc.Attr("", classes))
   end)

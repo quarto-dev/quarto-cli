@@ -12,6 +12,8 @@ fig_format = '{2}'
 fig_dpi = {3}
 interactivity = '{5}'
 is_shiny = {6}
+is_dashboard = {7}
+plotly_connected = {8}
 
 # matplotlib defaults / format
 try:
@@ -27,9 +29,25 @@ except Exception:
 # plotly use connected mode
 try:
   import plotly.io as pio
-  pio.renderers.default = "notebook_connected"
+  if plotly_connected:
+    pio.renderers.default = "notebook_connected"
+  else:
+    pio.renderers.default = "notebook"
+  pio.templates['plotly'].layout.margin = dict(t=30,r=0,b=0,l=0)
 except Exception:
   pass
+
+# disable itables paging for dashboards
+if is_dashboard:
+  try:
+    from itables import options
+    options.dom = "ifrt"
+    options.maxBytes = 1024 * 1024
+    options.language = dict(info = "Showing _TOTAL_ entries")
+    options.classes = "display nowrap compact"
+    options.paging = False
+  except Exception:
+    pass
 
 # enable pandas latex repr when targeting pdfs
 try:
@@ -43,6 +61,10 @@ except Exception:
 if interactivity:
   from IPython.core.interactiveshell import InteractiveShell
   InteractiveShell.ast_node_interactivity = interactivity
+
+# NOTE: the kernel_deps code is repeated in the cleanup.py file
+# (we can't easily share this code b/c of the way it is run).
+# If you edit this code also edit the same code in cleanup.py!
 
 # output kernel dependencies
 kernel_deps = dict()

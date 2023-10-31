@@ -33,6 +33,7 @@ return "";
 }
 
 const readField = (item, field) => {
+
 let value = item[field];
 if (field.includes(".") && !field.endsWith(".") && !field.startsWith(".")) {
 const fields = field.split(".");
@@ -41,6 +42,11 @@ for (const deref of fields) {
 value = value[deref];
 }
 }
+
+if (Array.isArray(value)) {
+value = value.join(", ");
+}
+
 return value;
 }
 

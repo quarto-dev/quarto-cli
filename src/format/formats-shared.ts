@@ -65,6 +65,7 @@ import {
   kOutputDivs,
   kOutputExt,
   kPageWidth,
+  kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
   kQuartoVersion,
@@ -223,6 +224,7 @@ function defaultFormat(displayName: string): Format {
       [kExecuteDebug]: false,
       [kIpynbFilters]: [],
       [kIpynbShellInteractivity]: null,
+      [kPlotlyConnected]: true,
     },
     render: {
       [kKeepTex]: false,

@@ -186,26 +186,22 @@ function ojs()
       
       Pandoc = function(doc)
         if uid > 0 then
-          doc.blocks:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))
-          doc.blocks:insert(pandoc.RawBlock("html", '{"contents":['))
+          local div = pandoc.Div({}, pandoc.Attr("", {"ojs-auto-generated", "hidden"}, {}))
+          div.content:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))
+          div.content:insert(pandoc.RawBlock("html", '{"contents":['))
           for i, v in ipairs(cells) do
-            local inlineStr = ''
-            if v.inline then
-              inlineStr = 'true'
-            else
-              inlineStr = 'false'
-            end
             if i > 1 then
-              doc.blocks:insert(",")
+              div.content:insert(",")
             end
-            doc.blocks:insert(
+            div.content:insert(
               pandoc.RawBlock(
                 "html",
                 ('  {"methodName":"interpret","inline":"true","source":"htl.html`<span>${' ..
                  escape_quotes(v.src) .. '}</span>`", "cellName":"' .. v.id .. '"}')))
           end
-          doc.blocks:insert(pandoc.RawBlock("html", ']}'))
-          doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
+          div.content:insert(pandoc.RawBlock("html", ']}'))
+          div.content:insert(pandoc.RawBlock("html", "</script>"))
+          doc.blocks:insert(div)
         end
         return doc
       end,

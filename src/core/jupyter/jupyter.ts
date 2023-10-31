@@ -1334,7 +1334,7 @@ async function mdFromCodeCell(
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
-      if (value) {
+      if (value !== undefined) {
         if (typeof (value) !== "string") {
           value = JSON.stringify(value);
         }
@@ -1478,6 +1478,11 @@ async function mdFromCodeCell(
           md.push(`.cell-output-${stream.name}`);
         } else {
           md.push(`.${outputTypeCssClass(output.output_type)}`);
+        }
+
+        // if this is markdown output then include a special class for that
+        if (isMarkdown(output, options)) {
+          md.push(` .${outputTypeCssClass("markdown")}`);
         }
 
         // add hidden if necessary
@@ -1682,7 +1687,6 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsImage);
 }
 
-// deno-lint-ignore no-unused-vars
 function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }

@@ -132,10 +132,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;50
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: light;
-}
-
 // Mixins
 
 @mixin ripple($color) {
@@ -415,16 +411,16 @@ input[type="number"],
 select,
 select.form-control {
   padding: .5rem 0;
-  background-image: escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4'><path fill='#{$gray-600}' d='M8 0 4 4 0 0z'/></svg>"));
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: 8px 4px;
-  box-shadow: $input-box-shadow;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   -o-appearance: none;
+  background-image: escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4'><path fill='#{$gray-600}' d='M8 0 4 4 0 0z'/></svg>"));
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 8px 4px;
+  box-shadow: $input-box-shadow;
 
   &.input {
     &-sm {

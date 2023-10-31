@@ -112,6 +112,11 @@ local function isConfluenceOutput()
   return param("quarto-custom-format", "") == "confluence"
 end
 
+
+local function isDashboardOutput()
+  return param("format-identifier", {})["base-format"] == "dashboard"
+end
+
 -- check for markdown output
 local function isMarkdownOutput()
   local formats = {
@@ -282,6 +287,7 @@ return {
   isTypstOutput = isTypstOutput,
   isConfluenceOutput = isConfluenceOutput,
   isDocusaurusOutput = isDocusaurusOutput,
+  isDashboardOutput = isDashboardOutput,
   isEmailOutput = isEmailOutput,
   parse_format = parse_format
 }

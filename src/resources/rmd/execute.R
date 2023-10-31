@@ -82,6 +82,17 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     do.call(options, r_options)
   }
 
+  # set some default DT options for dashboards (if not otherwise specified)
+  if (is_dashboard_output(format)) {
+    if (is.na(getOption("DT.options", NA))) {
+      options(DT.options = list(
+        bPaginate = FALSE, 
+        dom = "ifrt", 
+        language = list(info = "Showing _TOTAL_ entries")
+      ))
+    }
+  }
+
   # get kntir options
   knitr <- knitr_options(format, resourceDir, handledLanguages)
 
@@ -435,12 +446,22 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
       list() # format deps
     )
 
+    
+    # We explicitly will inject dependencies for bslib (bootstrap and supporting 
+    # js / css) so we block those dependencies from making their way into the 
+    # document
+    filteredDependencies = c("bootstrap")
+    if (is_dashboard_output(format)) {
+      bslibDepNames <- c("bootstrap", "bslib-webComponents-js", "bslib-tag-require", "bslib-card-js", "bslib-card-styles", "htmltools-fill", "bslib-value_box-styles", "bs3compat", "bslib-sidebar-js", "bslib-sidebar-styles", "bslib-page_fillable-styles", "bslib-page_navbar-styles", "bslib-component-js", "bslib-component-css")
+      append(filteredDependencies, bslibDepNames)
+    }
+    
+    
     # filter out bootstrap
     extras$dependencies <- Filter(
-      function(dependency) dependency$name != "bootstrap",
+      function(dependency) !(dependency$name %in% filteredDependencies),
       extras$dependencies
     )
-
 
     if (length(extras$dependencies) > 0) {
       deps <- html_dependencies_as_string(extras$dependencies, files_dir)
@@ -571,6 +592,10 @@ is_pandoc_markdown_output <- function(format) {
 # `prefer-html: true` can be set in markdown format that supports HTML outputs
 is_html_prefered <- function(format) {
   is_pandoc_markdown_output(format) && isTRUE(format$render$`prefer-html`)
+}
+
+is_dashboard_output <- function(format) {
+  identical(format$identifier[["base-format"]], "dashboard")
 }
 
 # apply patches to output as required

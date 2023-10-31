@@ -1,0 +1,30 @@
+---
+title: Card Examples
+format: dashboard
+---
+
+Row
+---------------------------------
+
+```{r}
+#| title: Hello World
+#| layout-ncol: 2
+plot(cars)
+plot(mtcars)
+```
+
+
+Row
+---------------------------------
+
+
+```{r}
+#| title: Hello World 1
+plot(cars)
+```
+
+
+```{r}
+#| title: Hello World 2
+plot(mtcars)
+```

@@ -1,0 +1,21 @@
+.html-fill-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.html-fill-container > .html-fill-item {
+  /* Fill items can grow and shrink freely within
+     available vertical space in fillable container */
+  flex: 1 1 auto;
+  overflow: auto;
+  width: 100%;
+}
+.html-fill-container > :not(.html-fill-item) {
+  /* Prevent shrinking or growing of non-fill items */
+  flex: 0 0 auto;
+}
+.html-fill-container > .html-fill-item.html-fill-item-overflow-hidden {
+  overflow: hidden;
+}

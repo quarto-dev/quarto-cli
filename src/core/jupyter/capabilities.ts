@@ -209,6 +209,9 @@ async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
       ],
       stdout: "piped",
       stderr: "piped",
+      env: {
+        ["PYDEVD_DISABLE_FILE_VALIDATION"]: "1",
+      },
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as JupyterCapabilities;

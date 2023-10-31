@@ -1,0 +1,19 @@
+---
+title: Testing
+format: dashboard
+---
+
+:::{.tabset}
+
+:::{.tab}
+
+![](who.jpg)
+
+:::
+
+```{r}
+#| title: Homey
+plot(cars)
+```
+
+:::

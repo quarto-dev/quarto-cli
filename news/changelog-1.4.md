@@ -52,6 +52,7 @@
 - ([#6853](https://github.com/quarto-dev/quarto-cli/issues/6853), [#5208](https://github.com/quarto-dev/quarto-cli/issues/5208)): Wrap callout in div when attr is non-empty.
 - ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now works correctly with code annotation.
 - ([#7104](https://github.com/quarto-dev/quarto-cli/issues/7104)): Line highlighting progressive reveal now correctly has code annotation anchor on the right.
+- ([#7366](https://github.com/quarto-dev/quarto-cli/issues/7366)): `smaller: true` now applies correctly on nested slides.
 
 ## PDF Format
 
@@ -100,6 +101,7 @@
 - ([#6904](https://github.com/quarto-dev/quarto-cli/issues/6904)): Within feeds, remove `index.html` from urls which shouldn't include it.
 - ([#7088](https://github.com/quarto-dev/quarto-cli/issues/7088)): Don't emit extraneous link or whitespace in default listing template.
 - ([#7184](https://github.com/quarto-dev/quarto-cli/issues/7184)): Properly use the boostrap variable `pagination-active-color` for coloring pagination controls.
+- ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
 
 ## Websites
 
@@ -145,6 +147,7 @@
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 - Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
+- Only re-use Jupyter kernels for languages that explicitly opt into it
 
 ## Jupyter
 
@@ -157,6 +160,9 @@
 - ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - Only search for Julia conda installation when the engine language is Julia
+- Support for `plotly-connected` option to determine where Plotly is embedded or loaded from CDN
+- Reduce default margins for Plotly figures (t=30,r=0,b=0,l=0)
+- Restart kernel daemon when non-package Python modules change
 
 ## Knitr
 
