@@ -21668,8 +21668,8 @@ var require_yaml_intelligence_resources = __commonJS({
           long: ""
         },
         {
-          short: "Context to execute cell within (<code>setup</code> or\n<code>ui</code>)",
-          long: "Context to execute cell within (<code>setup</code> for only during\nrender and server startup, <code>ui</code> for only during render)"
+          short: "Context to execute cell within.",
+          long: ""
         },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
@@ -22209,12 +22209,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 175774,
+        _internalId: 175354,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 175766,
+            _internalId: 175346,
             type: "enum",
             enum: [
               "png",
@@ -22230,7 +22230,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 175773,
+            _internalId: 175353,
             type: "anyOf",
             anyOf: [
               {

@@ -4,19 +4,15 @@
   contexts: [div]
   formats: [dashboard]
   completions:
-    - value: .content
+    - value: ".card"
       doc: Markdown content with its own card
-    - value: '.content within="next-card"'
-      doc: Markdown content placed at the top of the next card
-    - value: '.content within="previous-card"'
-      doc: Markdown content placed at the bottom of the previous card
     - value: ".valuebox"
       doc: Prominently display a value
 
-- group: aDashboardContent
+- group: aDashboardCard
   contexts: [div]
   formats: [dashboard]
-  filter: "\\.(content|card)"
+  filter: "\\.card"
   completions:
     - value: 'title="$0"'
       doc: Title for markdown content card
