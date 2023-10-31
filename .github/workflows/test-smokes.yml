@@ -124,9 +124,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
+          python-version: "3.11"
           cache: "pipenv"
           cache-dependency-path: "./tests/Pipfile.lock"
-          python-version-file: "./tests/.python-version"
 
       - name: Restore Python Dependencies
         working-directory: tests
