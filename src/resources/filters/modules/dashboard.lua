@@ -45,7 +45,7 @@ local function organizer(contents, ignoreClasses)
   local looseContentEls = pandoc.List()
   local function flushLooseContent() 
     if #looseContentEls > 0 then
-      local cardOptions = card.readCardOptions(looseContentEls[1])
+      local cardOptions = card.readOptions(looseContentEls[1])
       
       -- For loose content, mark this as a flow layout
       cardOptions[card.optionKeys.layout] = card.optionValues.flow

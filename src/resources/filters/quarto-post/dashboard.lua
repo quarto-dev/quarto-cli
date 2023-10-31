@@ -31,7 +31,7 @@ function render_dashboard()
         if (el.attributes['dashboard-resolved'] == true) then
           return el
         end
-        local options, userClasses = dashboard.card.readCardOptions(el)
+        local options, userClasses = dashboard.card.readOptions(el)
         el.attributes['dashboard-resolved'] = true
         return dashboard.card.makeCard(nil, { el }, userClasses, options)
       end,
@@ -48,7 +48,7 @@ function render_dashboard()
           end
 
           local contents = el.content          
-          local options, userClasses = dashboard.card.readCardOptions(el)          
+          local options, userClasses = dashboard.card.readOptions(el)          
           return dashboard.card.makeCard(nil, contents, userClasses, options)
 
         elseif dashboard.valuebox.isValueBox(el) then
@@ -83,7 +83,7 @@ function render_dashboard()
             return el
           else
             -- Look for markdown explictly being output
-            local options, userClasses = dashboard.card.readCardOptions(el)
+            local options, userClasses = dashboard.card.readOptions(el)
             -- if not explicitly set, mark markdown cells as flow
             if isMarkdownOutput and options[dashboard.card.optionKeys.layout] == nil then
               options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow

@@ -117,7 +117,7 @@ local function isLiteralCard(el)
 end
 
 
-local function readCardOptions(el) 
+local function readOptions(el) 
   local options = {}
   
   if el.classes ~= nil then
@@ -342,7 +342,7 @@ end
 return {
   isCard = isCard,
   isLiteralCard = isLiteralCard,
-  readCardOptions = readCardOptions,
+  readOptions = readOptions,
   makeCard = makeCard,
   hasCardDecoration = hasCardDecoration,
   optionKeys = {
