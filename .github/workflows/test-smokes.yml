@@ -162,7 +162,10 @@ jobs:
         run: |
           # Setup IJulia with the jupyter from the Python environment
           # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER="jupyter"
+          JUPYTER=$(pipenv run which jupyter)
+          [[ "${{ runner.os }}" == "Windows" ]] && JUPYTER=${JUPYTER}.exe
+          echo $JUPYTER
+          export JUPYTER          
           pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
           julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
