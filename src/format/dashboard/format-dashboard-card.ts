@@ -251,6 +251,14 @@ function convertToTabsetHeader(
   cardHeaderEl.appendChild(ulEl);
 }
 
+function findFooterEl(cardEl: Element) {
+  for (const childEl of cardEl.children) {
+    if (childEl.classList.contains(kCardFooterClass)) {
+      return childEl;
+    }
+  }
+}
+
 function convertToTabs(
   tabSetId: string,
   cardEl: Element,
@@ -263,7 +271,7 @@ function convertToTabs(
     tabContainerEl.setAttribute("data-tabset-id", tabSetId);
 
     // Make sure we place this above the card footer
-    const cardFooterEl = cardEl.querySelector(`:scope > .${kCardFooterClass}`);
+    const cardFooterEl = findFooterEl(cardEl);
     if (cardFooterEl) {
       cardEl.insertBefore(tabContainerEl, cardFooterEl);
     } else {
