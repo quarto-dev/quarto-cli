@@ -50,7 +50,7 @@ local function organizer(contents, ignoreClasses)
       -- For loose content, mark this as a flow layout
       cardOptions[card.optionKeys.layout] = card.optionValues.flow
 
-      local looseCard = card.makeCard(nil, looseContentEls, {}, cardOptions)
+      local looseCard = card.makeCard(looseContentEls, {}, cardOptions)
       if looseCard ~= nil then
         layoutContentEls:insert(looseCard)              
       else

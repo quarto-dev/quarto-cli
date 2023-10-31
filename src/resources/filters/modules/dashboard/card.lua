@@ -156,18 +156,8 @@ local function readOptions(el)
   return options, clz
 end
 
-local function resolveCardHeader(title, options) 
-  if title ~= nil then
-    if pandoc.utils.type(title) == "table" and #title > 0 then
-      --- The title is a table with value
-      return pandoc.Div(title, pandoc.Attr("", {kCardHeaderClass}))
-    elseif options[kTitle] ~= nil then
-      return pandoc.Div(string_to_quarto_ast_inlines(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
-    elseif options[kForceHeader] then
-      -- Couldn't find a title, but force the header into place
-      return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))  
-    end
-  elseif options and options[kTitle] ~= nil then
+local function resolveCardHeader(options) 
+  if options and options[kTitle] ~= nil then
     -- The title is being provided as option
     return pandoc.Div(pandoc.Plain(string_to_quarto_ast_inlines(options[kTitle])), pandoc.Attr("", {kCardHeaderClass}))
   elseif options ~= nil and options[kForceHeader] then
@@ -297,7 +287,7 @@ end
 -- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
 --   .card-header
 --   .card-body[max-height, min-height]
-local function makeCard(title, contents, classes, options)  
+local function makeCard(contents, classes, options)  
 
 
   -- Inspect the loose content and don't make cards out of things that don't look cardish
@@ -310,7 +300,7 @@ local function makeCard(title, contents, classes, options)
   local cardContents = pandoc.List({})
 
   -- the card header
-  local cardHeader = resolveCardHeader(title, options)
+  local cardHeader = resolveCardHeader(options)
   
   if cardHeader ~= nil then
     cardContents:insert(cardHeader)  

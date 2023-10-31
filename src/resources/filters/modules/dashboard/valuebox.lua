@@ -31,7 +31,7 @@ local kComponentValuebox = "valuebox"
 local function wrapValueBox(box, classes)
   local valueBoxClz = pandoc.List({kValueBoxClz})
   valueBoxClz:extend(classes)
-  return card.makeCard(nil, {box}, valueBoxClz)
+  return card.makeCard({box}, valueBoxClz)
 end
 
 

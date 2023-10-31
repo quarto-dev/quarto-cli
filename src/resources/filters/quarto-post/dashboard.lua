@@ -29,7 +29,7 @@ function render_dashboard()
       traverse = 'topdown',
       PanelLayout = function(el)
         local options, userClasses = dashboard.card.readOptions(el)
-        return dashboard.card.makeCard(nil, { el }, userClasses, options), false
+        return dashboard.card.makeCard({ el }, userClasses, options), false
       end,
       Div = function(el) 
 
@@ -45,7 +45,7 @@ function render_dashboard()
 
           local contents = el.content          
           local options, userClasses = dashboard.card.readOptions(el)          
-          return dashboard.card.makeCard(nil, contents, userClasses, options), false
+          return dashboard.card.makeCard(contents, userClasses, options), false
 
         elseif dashboard.valuebox.isValueBox(el) then
           
@@ -85,7 +85,7 @@ function render_dashboard()
               options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
             end
 
-            return dashboard.card.makeCard(nil, el.content, userClasses, options), false
+            return dashboard.card.makeCard(el.content, userClasses, options), false
           end
         end
       end,      
