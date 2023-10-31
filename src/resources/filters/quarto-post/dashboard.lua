@@ -28,7 +28,11 @@ function render_dashboard()
     {
       traverse = 'topdown',
       PanelLayout = function(el)
+        if (el.attributes['dashboard-resolved'] == true) then
+          return el
+        end
         local options, userClasses = dashboard.card.readCardOptions(el)
+        el.attributes['dashboard-resolved'] = true
         return dashboard.card.makeCard(nil, { el }, userClasses, options)
       end,
       Div = function(el) 
