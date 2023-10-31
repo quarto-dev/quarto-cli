@@ -7,6 +7,7 @@ local valuebox = require 'modules/dashboard/valuebox'
 local sidebar = require 'modules/dashboard/sidebar'
 local page = require 'modules/dashboard/page'
 local document = require 'modules/dashboard/document'
+local tabset = require 'modules/dashboard/tabset'
 
 
 local function isLayoutContainer(el)
@@ -17,6 +18,8 @@ local function isLayoutContainer(el)
   elseif layout.isRowOrColumnContainer(el) then
     return true
   elseif sidebar.isSidebar(el) then
+    return true
+  elseif tabset.isTabset(el) then
     return true
   end
   return false
@@ -42,7 +45,7 @@ local function organizer(contents, ignoreClasses)
   local looseContentEls = pandoc.List()
   local function flushLooseContent() 
     if #looseContentEls > 0 then
-      local cardOptions = card.readCardOptions(looseContentEls[1])
+      local cardOptions = card.readOptions(looseContentEls[1])
       
       -- For loose content, mark this as a flow layout
       cardOptions[card.optionKeys.layout] = card.optionValues.flow
@@ -80,6 +83,7 @@ return {
   valuebox = valuebox,
   sidebar = sidebar,
   page = page,
+  tabset = tabset,
   document = document,
   layoutContainer = {
     organizer = organizer

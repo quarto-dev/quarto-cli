@@ -2106,6 +2106,10 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
+  .dashboard-page:not(.dashboard-sidebar-container) {
+    padding: 0.7em;
+  }
+
   .navbar {
     padding: 0;
 
@@ -2201,6 +2205,10 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
+  .card-body > .h4:first-child {
+    margin-top: 0;
+  }
+
   .card-footer {
     color: $text-muted;
     font-size: 0.9em;
@@ -2228,6 +2236,10 @@ code.sourceCode a.code-annotation-anchor {
   .bslib-sidebar-layout {
     > div.main {
       padding: 0.7em;
+    }
+
+    button.collapse-toggle {
+      margin-top: 0.3em;
     }
   }
 
@@ -2347,6 +2359,9 @@ code.sourceCode a.code-annotation-anchor {
 
   .tab-content {
     margin-bottom: 0;
+  }
+
+  .sidebar-collapsed {
   }
 
   .sidebar {

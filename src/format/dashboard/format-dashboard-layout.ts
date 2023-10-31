@@ -46,6 +46,7 @@ const kNeverFillClasses = [
   "value-box-value",
   "nav-tabs",
   "card-header",
+  "card-footer",
   "callout",
 ];
 

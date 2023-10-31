@@ -22209,12 +22209,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 175354,
+        _internalId: 175719,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 175346,
+            _internalId: 175711,
             type: "enum",
             enum: [
               "png",
@@ -22230,7 +22230,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 175353,
+            _internalId: 175718,
             type: "anyOf",
             anyOf: [
               {
@@ -22422,7 +22422,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           description: {
             short: "Padding around dashboard card content (default `8px`)"
           }
@@ -22447,7 +22452,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           description: {
             short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
           }
@@ -22459,7 +22469,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           description: {
             short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
           }

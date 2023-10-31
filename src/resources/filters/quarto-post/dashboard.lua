@@ -28,7 +28,7 @@ function render_dashboard()
     {
       traverse = 'topdown',
       PanelLayout = function(el)
-        local options, userClasses = dashboard.card.readCardOptions(el)
+        local options, userClasses = dashboard.card.readOptions(el)
         return dashboard.card.makeCard(nil, { el }, userClasses, options), false
       end,
       Div = function(el) 
@@ -43,19 +43,9 @@ function render_dashboard()
             return nil
           end
 
-          -- Support explicit cards as divs (without the proper nested structure)
-          -- First element as a header will be used as the title, if present
-          -- otherwise just use the contents as the card body
-          local header = el.content[1]
-          local title = {}
-          local contents = el.content
-          if header ~= nil and header.t == "Header" then
-            title = header
-            contents = tslice(el.content, 2)
-          end
-          
-          local options, userClasses = dashboard.card.readCardOptions(el)          
-          return dashboard.card.makeCard(title, contents, userClasses, options), false
+          local contents = el.content          
+          local options, userClasses = dashboard.card.readOptions(el)          
+          return dashboard.card.makeCard(nil, contents, userClasses, options), false
 
         elseif dashboard.valuebox.isValueBox(el) then
           
@@ -89,7 +79,7 @@ function render_dashboard()
             return el
           else
             -- Look for markdown explictly being output
-            local options, userClasses = dashboard.card.readCardOptions(el)
+            local options, userClasses = dashboard.card.readOptions(el)
             -- if not explicitly set, mark markdown cells as flow
             if isMarkdownOutput and options[dashboard.card.optionKeys.layout] == nil then
               options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
@@ -160,7 +150,6 @@ function render_dashboard()
         -- return the newly restructured document
         el.blocks = finalEls
         return el
-
       end,
       Div = function(el) 
         if el.classes:includes(kSectionClass) then
@@ -170,7 +159,7 @@ function render_dashboard()
           if header.t == "Header" then            
             local level = header.level
             local contents = tslice(el.content, 2)
-            
+
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level == 1 then
@@ -197,14 +186,20 @@ function render_dashboard()
               local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
               local layoutContentEls = organizer.ensureInLayoutContainers()
 
-              -- see if this heading is marked as a component
-              if dashboard.card.isCard(header) then 
+              -- see if this heading is marked as a tabset
+              if dashboard.tabset.isTabset(header) then 
                 -- Process the component
-                local options, userClasses = dashboard.card.readCardOptions(header)
+                local options, userClasses = dashboard.tabset.readOptions(header)
                 -- don't pass an explicit title - any title will come from the card options
-                return dashboard.card.makeCard(nil, contents, userClasses, options)
+                return dashboard.tabset.makeTabset(nil, contents, userClasses, options)
               else
                 -- Process the layout
+                            
+                -- TODO: extend to other component types for completeness
+                if dashboard.card.hasCardDecoration(header) then
+                  -- sections may not have component decorations, throw error
+                  fatal("Headings may not be cards - please remove the `card` class from the offending heading: '" .. pandoc.utils.stringify(header) .. "'")
+                end
 
                 -- Compute the options
                 local options = dashboard.layout.readOptions(header)
@@ -220,7 +215,7 @@ function render_dashboard()
                   else
                     toOrientation = dashboard.layout.rotatedOrientation()
                   end
-                end                
+                end        
                 return dashboard.layout.orientContents(layoutContentEls, toOrientation, options)
               end
             end
