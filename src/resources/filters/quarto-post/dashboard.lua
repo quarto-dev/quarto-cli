@@ -93,12 +93,12 @@ function render_dashboard()
                 local codeBlockEl = cardContent[1].content[1]
                 if codeBlockEl.t == "CodeBlock"  then
 
-                  local titlePrefix = "title= "
+                  local titlePrefix = "title="
                   local prefixLen = pandoc.text.len(titlePrefix)
 
                   local strValue = codeBlockEl.text
                   if pandoc.text.len(strValue) > prefixLen then
-                    options['title'] = pandoc.text.sub(codeBlockEl.text, prefixLen)
+                    options['title'] = trim(pandoc.text.sub(codeBlockEl.text, prefixLen + 1))
                   end
                   
                   
