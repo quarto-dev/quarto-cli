@@ -1,5 +1,6 @@
 -- tabset.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
+local card = require 'modules/dashboard/card'
 
 -- Tabset classes
 local kTabsetClass = "tabset"
@@ -40,22 +41,47 @@ local function resolveTabs(contents)
   local tabFooterEls = pandoc.List()
   local tabBodyEls = pandoc.List()
 
-  for _i, v in ipairs(contents) do
-    
+  -- Process the contents (figuring out the tab title, dealing with cards, etc...)
+  for _i, v in ipairs(contents) do   
+
+    local tabContent = v
     local attr = {}
-    if v.content and #v.content > 1 then
-      if v.content[1].t == "Header" then
-        local titleAttr = v.content[1].attributes[kTitleAttr]
-        if titleAttr ~= nil then
-          attr[kTabTitleOutAttr] = titleAttr
-        else
-          attr[kTabTitleOutAttr] = pandoc.utils.stringify(v.content[1])
+
+    if card.isCard(v) then
+      -- If the direct descendent of a tab is a card, just hoist the card contents
+      -- up into the tab body and forward along the title and footer
+      attr[kTabTitleOutAttr] = v.attributes[kTabTitleOutAttr]
+
+      local cardTabContents = pandoc.List()
+      _quarto.ast.walk(v.content, {
+        Div = function(divEl)
+          if card.isCardBody(divEl) then
+            cardTabContents:extend(divEl.content)
+          elseif card.isCardFooter(divEl) then
+            tabFooterEls:extend(divEl.content)
+          end
         end
-        
-      end
+      })
+      tabContent = cardTabContents
+
+    else
+      -- If the direct descrendent of a tab isn't a card, see if it has a header within it
+      -- that we can use as the tab title, then just allow the content to flow along
+      if v.content and #v.content > 1 then
+        if v.content[1].t == "Header" then
+          local titleAttr = v.content[1].attributes[kTitleAttr]
+          if titleAttr ~= nil then
+            attr[kTabTitleOutAttr] = titleAttr
+          else
+            attr[kTabTitleOutAttr] = pandoc.utils.stringify(v.content[1])
+          end   
+        end
+      end 
     end
     
-    tabBodyEls:insert(pandoc.Div(v, pandoc.Attr("", {kTabBodyClass}, attr)))
+
+    
+    tabBodyEls:insert(pandoc.Div(tabContent, pandoc.Attr("", {kTabBodyClass}, attr)))
   end
 
   return tabBodyEls, tabFooterEls

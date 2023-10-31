@@ -341,6 +341,8 @@ end
 
 return {
   isCard = isCard,
+  isCardBody = isCardBody,
+  isCardFooter = isCardFooter,
   isLiteralCard = isLiteralCard,
   readOptions = readOptions,
   makeCard = makeCard,
