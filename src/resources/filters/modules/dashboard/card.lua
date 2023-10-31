@@ -222,15 +222,16 @@ local function resolveCardBodies(contents)
     contents = {contents}
   end
 
-
   -- compute an offset to use when processing cell contents
   local baseHeadingLevel = 10000
-  _quarto.ast.walk(contents, {
-    Header = function(el)
-      baseHeadingLevel = math.min(el.level, baseHeadingLevel)
-    end
-  })
-  local headingOffset = math.min(4 - baseHeadingLevel, 10000)
+  if contents ~= nil then
+    _quarto.ast.walk(pandoc.Pandoc(contents), {
+      Header = function(el)
+        baseHeadingLevel = math.min(el.level, baseHeadingLevel)
+      end
+    })
+  end
+  local headingOffset = math.max(math.min(4 - baseHeadingLevel, 10000), 0)
 
   for _i,v in ipairs(contents) do
 
