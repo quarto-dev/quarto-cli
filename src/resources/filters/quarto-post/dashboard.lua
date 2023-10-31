@@ -85,7 +85,29 @@ function render_dashboard()
               options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
             end
 
-            return dashboard.card.makeCard(el.content, userClasses, options), false
+            local cardContent = el.content
+            if #cardContent > 1 and cardContent[1].t == "Div" then
+              if cardContent[1].classes:includes('cell-output-stdout') then
+
+                -- See if the content is a CodeBlock 
+                local codeBlockEl = cardContent[1].content[1]
+                if codeBlockEl.t == "CodeBlock"  then
+
+                  local titlePrefix = "title= "
+                  local prefixLen = pandoc.text.len(titlePrefix)
+
+                  local strValue = codeBlockEl.text
+                  if pandoc.text.len(strValue) > prefixLen then
+                    options['title'] = pandoc.text.sub(codeBlockEl.text, prefixLen)
+                  end
+                  
+                  
+                end
+                cardContent = tslice(cardContent, 2)
+              end
+            end
+
+            return dashboard.card.makeCard(cardContent, userClasses, options), false
           end
         end
       end,      
