@@ -15315,7 +15315,8 @@ try {
               formats: [
                 "$html-doc",
                 "revealjs",
-                "beamer"
+                "beamer",
+                "dashboard"
               ]
             },
             schema: {
@@ -15593,7 +15594,7 @@ try {
                 "beamer"
               ]
             },
-            description: "The logo image for slides."
+            description: "The logo image."
           },
           {
             name: "titlegraphic",
@@ -17937,7 +17938,8 @@ try {
             ],
             "html-files": [
               "$html-doc",
-              "$html-pres"
+              "$html-pres",
+              "dashboard"
             ],
             "html-all": [
               "$html-files",
@@ -18018,7 +18020,8 @@ try {
               "typst",
               "xwiki",
               "zimwiki",
-              "md"
+              "md",
+              "dashboard"
             ]
           }
         },
@@ -18026,6 +18029,9 @@ try {
           cell: {
             attributes: {
               title: "Attributes"
+            },
+            card: {
+              title: "Card"
             },
             codeoutput: {
               title: "Code Output"
@@ -18055,6 +18061,9 @@ try {
           document: {
             attributes: {
               title: "Title & Author"
+            },
+            dashboard: {
+              title: "Dashboard"
             },
             options: {
               title: "Format Options"
@@ -20315,7 +20324,7 @@ try {
           "If false, use no space between crossref prefixes and numbering.",
           "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
           "In LaTeX output, the name of the custom environment to be used.",
-          "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command.",
+          "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
           "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
@@ -20963,7 +20972,7 @@ try {
           "Whether to produce a Beamer article from this presentation.",
           "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
           "The aspect ratio for this presentation.",
-          "The logo image for slides.",
+          "The logo image.",
           "The image for the title slide.",
           "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
           "Whether to enable title pages for new sections.",
@@ -21634,6 +21643,35 @@ try {
           "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
           "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
           "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
+          "Logo image (placed on the left side of the navigation bar)",
+          "Default orientation for dashboard content (default\n<code>rows</code>)",
+          "Use scrolling rather than fill layout (default:\n<code>false</code>)",
+          "Make card content expandable (default: <code>true</code>)",
+          "Title displayed in card header",
+          {
+            short: "Title displayed in dashboard card header",
+            long: ""
+          },
+          {
+            short: "Padding around dashboard card content (default <code>8px</code>)",
+            long: ""
+          },
+          {
+            short: "Make dashboard card content expandable (default:\n<code>true</code>)",
+            long: ""
+          },
+          {
+            short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
+            long: ""
+          },
+          {
+            short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
+            long: ""
+          },
+          {
+            short: "Context to execute cell within (<code>setup</code> or\n<code>ui</code>)",
+            long: "Context to execute cell within (<code>setup</code> for only during\nrender and server startup, <code>ui</code> for only during render)"
+          },
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -22172,12 +22210,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 173650,
+          _internalId: 175774,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 173642,
+              _internalId: 175766,
               type: "enum",
               enum: [
                 "png",
@@ -22193,7 +22231,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 173649,
+              _internalId: 175773,
               type: "anyOf",
               anyOf: [
                 {
@@ -22302,6 +22340,145 @@ try {
               ]
             },
             description: "Enable or disable lightbox treatment for images in this document."
+          }
+        ],
+        "schema/document-dashboard.yml": [
+          {
+            name: "logo",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "path",
+            description: "Logo image (placed on the left side of the navigation bar)"
+          },
+          {
+            name: "orientation",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              enum: [
+                "rows",
+                "columns"
+              ]
+            },
+            description: "Default orientation for dashboard content (default `rows`)"
+          },
+          {
+            name: "scrolling",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "boolean",
+            default: false,
+            description: "Use scrolling rather than fill layout (default: `false`)"
+          },
+          {
+            name: "expandable",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: "Make card content expandable (default: `true`)"
+          }
+        ],
+        "schema/cell-dashboard.yml": [
+          {
+            name: "title",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "string",
+            description: "Title displayed in card header"
+          }
+        ],
+        "schema/cell-card.yml": [
+          {
+            name: "title",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Title displayed in dashboard card header"
+            }
+          },
+          {
+            name: "padding",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Padding around dashboard card content (default `8px`)"
+            }
+          },
+          {
+            name: "expandable",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: {
+              short: "Make dashboard card content expandable (default: `true`)"
+            }
+          },
+          {
+            name: "width",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+            }
+          },
+          {
+            name: "height",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+            }
+          },
+          {
+            name: "context",
+            tags: {
+              formats: [
+                "dashboard"
+              ],
+              engine: [
+                "jupyter"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Context to execute cell within."
+            }
           }
         ]
       };

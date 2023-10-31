@@ -1,0 +1,26 @@
+- name: logo
+  tags:
+    formats: [dashboard]
+  schema: path
+  description: "Logo image (placed on the left side of the navigation bar)"
+
+- name: orientation
+  tags:
+    formats: [dashboard]
+  schema:
+    enum: [rows, columns]
+  description: "Default orientation for dashboard content (default `rows`)"
+
+- name: scrolling
+  tags:
+    formats: [dashboard]
+  schema: boolean
+  default: false
+  description: "Use scrolling rather than fill layout (default: `false`)"
+
+- name: expandable
+  tags:
+    formats: [dashboard]
+  schema: boolean
+  default: true
+  description: "Make card content expandable (default: `true`)"
