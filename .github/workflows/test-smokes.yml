@@ -154,12 +154,18 @@ jobs:
         uses: julia-actions/cache@v1
         with:
           cache-registries: true
+          cache-compiled: true
 
       - name: Restore Julia Packages
         working-directory: tests
         shell: bash
         run: |
+          # Setup IJulia with the jupyter from the Python environment
+          # https://julialang.github.io/IJulia.jl/stable/manual/installation/
+          export JUPYTER=$(pipenv run which jupyter)
           julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          echo "Julia Jupyter:"
+          julia --project=. -e "import IJulia;println(IJulia.JUPYTER)"
 
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
