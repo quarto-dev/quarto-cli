@@ -44,12 +44,13 @@ local kForceHeader = "force-header";
 -- this is necessary to ensure things like `object-fit`
 -- will work with images (because they're directly contained)
 -- in a constraining element
-local function processCardBodyContent(el)
+local function processCardBodyContent(el, headingOffset)
   if el.t == "Para" and #el.content == 1 then
     return pandoc.Plain(el.content)
   elseif el.t == "Header" then
-    local headerClz = "h" .. tostring(el.level + 1);
-    return pandoc.Span(el.content, pandoc.Attr("", {headerClz}))
+    local level = math.min(el.level + headingOffset, 6)
+    local headerClz = "h" .. level;
+    return pandoc.Div(el.content, pandoc.Attr("", {headerClz}))
   else
     local result = _quarto.ast.walk(el, {
       Para = function(para)
@@ -211,8 +212,8 @@ local function resolveCardBodies(contents)
       end
     end
   end
-  local function collectBodyContentEl(el)
-    local processed = processCardBodyContent(el)
+  local function collectBodyContentEl(el, headingOffset)
+    local processed = processCardBodyContent(el, headingOffset)
     collectedBodyEls:insert(processed)
   end
 
@@ -221,9 +222,18 @@ local function resolveCardBodies(contents)
     contents = {contents}
   end
 
+
+  -- compute an offset to use when processing cell contents
+  local baseHeadingLevel = 10000
+  _quarto.ast.walk(contents, {
+    Header = function(el)
+      baseHeadingLevel = math.min(el.level, baseHeadingLevel)
+    end
+  })
+  local headingOffset = math.min(4 - baseHeadingLevel, 10000)
+
   for _i,v in ipairs(contents) do
-    
-     
+
     if isCard(v) then
       flushCollectedBodyContentEls()
 
@@ -266,13 +276,13 @@ local function resolveCardBodies(contents)
           v.attr.attributes[k] = nil
         end
       end
-      local processed = processCardBodyContent(v);
+      local processed = processCardBodyContent(v, headingOffset);
       bodyContentEls:insert(processed)
 
     elseif isCardFooter(v) then
       footerContentEls:extend(v.content)
     else
-      collectBodyContentEl(v)
+      collectBodyContentEl(v, headingOffset)
     end    
   end
   flushCollectedBodyContentEls()

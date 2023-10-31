@@ -48,6 +48,12 @@ const kNeverFillClasses = [
   "card-header",
   "card-footer",
   "callout",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
 ];
 
 // Configuration for skipping elements when applying container classes
