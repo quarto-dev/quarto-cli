@@ -44,18 +44,22 @@ local kForceHeader = "force-header";
 -- this is necessary to ensure things like `object-fit`
 -- will work with images (because they're directly contained)
 -- in a constraining element
-local function popImagePara(el)
+local function processCardBodyContent(el)
   if el.t == "Para" and #el.content == 1 then
     return pandoc.Plain(el.content)
+  elseif el.t == "Header" then
+    local headerClz = "h" .. tostring(el.level + 1);
+    return pandoc.Span(el.content, pandoc.Attr("", {headerClz}))
   else
-    return _quarto.ast.walk(el, {
+    local result = _quarto.ast.walk(el, {
       Para = function(para)
         if #para.content == 1 then
           return para.content[1]
         end
         return para
-      end
+      end,
     })  
+    return result
   end
 end
 
@@ -218,8 +222,8 @@ local function resolveCardBodies(contents)
     end
   end
   local function collectBodyContentEl(el)
-    local popped = popImagePara(el)
-    collectedBodyEls:insert(popped)
+    local processed = processCardBodyContent(el)
+    collectedBodyEls:insert(processed)
   end
 
   -- ensure that contents is a list
@@ -233,7 +237,9 @@ local function resolveCardBodies(contents)
     if isCard(v) then
       flushCollectedBodyContentEls()
 
-      -- this is a card that is nested inside a card. Turn it into a card
+      -- this is a card that is nested inside a card.
+      -- extract its contents and just merge them into the 
+      -- appropriate places within this card
       local cardContentEls = v.content
       local title = nil
       if v.content[1] ~= nil and isCardHeader(v.content[1]) then
@@ -270,8 +276,8 @@ local function resolveCardBodies(contents)
           v.attr.attributes[k] = nil
         end
       end
-      local popped = popImagePara(v);
-      bodyContentEls:insert(popped)
+      local processed = processCardBodyContent(v);
+      bodyContentEls:insert(processed)
 
     elseif isCardFooter(v) then
       footerContentEls:extend(v.content)

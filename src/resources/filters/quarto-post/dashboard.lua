@@ -33,7 +33,7 @@ function render_dashboard()
         end
         local options, userClasses = dashboard.card.readOptions(el)
         el.attributes['dashboard-resolved'] = true
-        return dashboard.card.makeCard(nil, { el }, userClasses, options)
+        return dashboard.card.makeCard(nil, { el }, userClasses, options), false
       end,
       Div = function(el) 
 
@@ -49,7 +49,7 @@ function render_dashboard()
 
           local contents = el.content          
           local options, userClasses = dashboard.card.readOptions(el)          
-          return dashboard.card.makeCard(nil, contents, userClasses, options)
+          return dashboard.card.makeCard(nil, contents, userClasses, options), false
 
         elseif dashboard.valuebox.isValueBox(el) then
           
