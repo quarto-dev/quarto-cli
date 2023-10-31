@@ -174,14 +174,14 @@ local function resolveCardHeader(title, options)
       end
       return pandoc.Div(titleText, pandoc.Attr("", {kCardHeaderClass}))
     elseif options[kTitle] ~= nil then
-      return pandoc.Div(options[kTitle], pandoc.Attr("", {kCardHeaderClass}))
+      return pandoc.Div(string_to_quarto_ast_inlines(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
     elseif options[kForceHeader] then
       -- Couldn't find a title, but force the header into place
       return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))  
     end
   elseif options and options[kTitle] ~= nil then
     -- The title is being provided as option
-    return pandoc.Div(pandoc.Plain(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
+    return pandoc.Div(pandoc.Plain(string_to_quarto_ast_inlines(options[kTitle])), pandoc.Attr("", {kCardHeaderClass}))
   elseif options ~= nil and options[kForceHeader] then
     -- Couldn't find a title, but force the header into place
     return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))
