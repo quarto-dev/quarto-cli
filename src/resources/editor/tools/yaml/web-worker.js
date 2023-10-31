@@ -22210,12 +22210,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 175354,
+          _internalId: 175719,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 175346,
+              _internalId: 175711,
               type: "enum",
               enum: [
                 "png",
@@ -22231,7 +22231,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 175353,
+              _internalId: 175718,
               type: "anyOf",
               anyOf: [
                 {
@@ -22423,7 +22423,12 @@ try {
                 "dashboard"
               ]
             },
-            schema: "string",
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
             description: {
               short: "Padding around dashboard card content (default `8px`)"
             }
@@ -22448,7 +22453,12 @@ try {
                 "dashboard"
               ]
             },
-            schema: "string",
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
             description: {
               short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
             }
@@ -22460,7 +22470,12 @@ try {
                 "dashboard"
               ]
             },
-            schema: "string",
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
             description: {
               short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
             }

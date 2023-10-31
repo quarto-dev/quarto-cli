@@ -8,7 +8,10 @@
 - name: padding
   tags:
     formats: [dashboard]
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - number
   description:
     short: "Padding around dashboard card content (default `8px`)"
 
@@ -23,14 +26,20 @@
 - name: width
   tags:
     formats: [dashboard]
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - number
   description:
     short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
 
 - name: height
   tags:
     formats: [dashboard]
-  schema: string
+  schema:
+    anyOf:
+      - string
+      - number
   description:
     short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
 
