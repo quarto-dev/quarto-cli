@@ -32317,6 +32317,8 @@ ${tidyverseInfo(
       });
       return rawCompletions;
     };
+    const trimEnd = line.trimEnd();
+    const trimEndCorrection = position.column - 1 >= trimEnd.length ? line.length - trimEnd.length : 0;
     for (const parseResult of attemptParsesAtLine(context, parser)) {
       const {
         parse: tree,
@@ -32337,7 +32339,7 @@ ${tidyverseInfo(
         }
         const index = lineColToIndex(mappedCode.value)({
           line: position.row,
-          column: position.column - deletions
+          column: position.column - deletions - trimEndCorrection
         });
         let { withError: locateFailed, value: maybePath } = locateCursor(
           doc,
@@ -32643,6 +32645,11 @@ ${tidyverseInfo(
       completions2 = completions2.filter((c) => c.type === completionPosition);
     }
     completions2 = uniqBy(completions2, (completion) => completion.value);
+    if (context.line[context.position.column - 1] === ":") {
+      for (const completion of completions2) {
+        completion.value = " " + completion.value;
+      }
+    }
     return {
       // token to replace
       token: word,
@@ -32674,6 +32681,7 @@ ${tidyverseInfo(
       return size;
     };
     if (kind === "completions") {
+      debugger;
       let foundCell = void 0;
       for (const cell of result.cells) {
         const size = lines((cell.sourceWithYaml || cell.source).value).length;
