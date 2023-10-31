@@ -162,10 +162,10 @@ jobs:
         run: |
           # Setup IJulia with the jupyter from the Python environment
           # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER=$(pipenv run which jupyter)
-          julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          export JUPYTER="jupyter"
+          pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
-          julia --project=. -e "import IJulia;println(IJulia.JUPYTER)"
+          julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
