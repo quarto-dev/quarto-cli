@@ -2,12 +2,11 @@
 title: Sidebar Example
 format: 
   dashboard:
-    orientation: columns
     theme: journal
 ---
 
 
-Global Sidebar {.sidebar width=500}
+Global Sidebar {.sidebar width=200}
 ==================================
 
 Sidebar controls
@@ -16,13 +15,56 @@ Sidebar controls
 Page 1
 ==================================
 
+
+## Row 
+
+:::{.valuebox icon="facebook"}
+
+Title
+
+45
+
+:::
+
 ```{r}
 #| component: valuebox
 list(
-  value = 45.5,
-  color = "red"
+  title = "Total Dollars",
+  value = 3243.33,
+  color = "green",
+  icon = "stripe"
 )
 ```
+
+```{r}
+library(bslib)
+library(bsicons)
+library(shiny)
+value_box(
+    title = "3rd value",
+    value = "789",
+    showcase = bs_icon("pie-chart"),
+    theme = "pink",
+  )
+```
+
+## Row
+
+```{r}
+plot(cars)
+```
+
+## Row
+
+```{r}
+card(
+  card_header(
+    "A header"
+  ),
+  markdown("Some text with a [link](https://github.com).")
+)
+```
+
 
 
 Page 2 {orientation="rows"}
