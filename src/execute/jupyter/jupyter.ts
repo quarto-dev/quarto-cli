@@ -30,6 +30,7 @@ import {
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
+  kBaseFormat,
   kExecuteDaemon,
   kExecuteEnabled,
   kExecuteIpynb,
@@ -48,6 +49,7 @@ import {
 import { Format } from "../../config/types.ts";
 import {
   isHtmlCompatible,
+  isHtmlDashboardOutput,
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
@@ -347,6 +349,14 @@ export const jupyterEngine: ExecutionEngine = {
       options.target.input,
       options.format.pandoc.to,
     );
+
+    // Preserve the cell metadata if users have asked us to, or if this is dashboard
+    // that is coming from a non-qmd source
+    const preserveCellMetadata =
+      options.format.render[kNotebookPreserveCells] === true ||
+      (isHtmlDashboardOutput(options.format.identifier[kBaseFormat]) &&
+        !isQmdFile(options.target.source));
+
     // NOTE: for perforance reasons the 'nb' is mutated in place
     // by jupyterToMarkdown (we don't want to make a copy of a
     // potentially very large notebook) so should not be relied
@@ -367,8 +377,7 @@ export const jupyterEngine: ExecutionEngine = {
         figFormat: options.format.execute[kFigFormat],
         figDpi: options.format.execute[kFigDpi],
         figPos: options.format.render[kFigPos],
-        preserveCellMetadata:
-          options.format.render[kNotebookPreserveCells] === true,
+        preserveCellMetadata,
         preserveCodeCellYaml:
           options.format.render[kIpynbProduceSourceNotebook] === true,
       },
@@ -445,14 +454,14 @@ export const jupyterEngine: ExecutionEngine = {
     const asSemVer = (version: string) => {
       const v = version.split(".");
       if (v.length > 3) {
-        return `${v[0]}.${v[1]}.${v.slice(2).join("")}`;
+        return `${v[0]}.${v[1]}.${v[2]}`;
       } else {
         return version;
       }
     };
 
     // confirm required version of shiny
-    const kShinyVersion = ">=0.5.1.9002";
+    const kShinyVersion = ">=0.6";
     let shinyError: string | undefined;
     const caps = await jupyterCapabilities();
     if (!caps?.shiny) {
@@ -464,9 +473,7 @@ export const jupyterEngine: ExecutionEngine = {
     }
     if (shinyError) {
       shinyError +=
-        "\n\nInstall the development version of the shiny package with: \n\n" +
-        "pip install git+https://github.com/posit-dev/py-htmltools.git@html-text-doc#egg=htmltools\n" +
-        "pip install git+https://github.com/posit-dev/py-shiny.git@quarto-ext#egg=shiny\n";
+        "\n\nInstall the latest version of shiny with pip install --upgrade shiny\n";
       error(shinyError);
       throw new Error();
     }

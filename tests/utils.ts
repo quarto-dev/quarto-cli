@@ -7,8 +7,6 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
-import { quartoRules } from "../src/format/html/format-html-shared.ts";
-import { quarto } from "../src/quarto.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
 
 // caller is responsible for cleanup!

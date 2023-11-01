@@ -1,9 +1,8 @@
 /*
-* yaml-intelligence.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * yaml-intelligence.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import {
   AutomationKind,
@@ -80,6 +79,13 @@ import { hover } from "./hover.ts";
 interface IDEContext {
   formats: string[];
   project_formats: string[];
+  line: string;
+  position: {
+    row: number;
+    column: number;
+  };
+  client?: string;
+  explicit?: boolean;
 }
 
 interface CompletionContext {
@@ -316,6 +322,13 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
     });
     return rawCompletions;
   };
+  // are we in a whitespace span before the end of the line?
+  // if so, we should adjust the column position inwards
+  // to the start of the whitespace span.
+  const trimEnd = line.trimEnd();
+  const trimEndCorrection = (position.column - 1) >= trimEnd.length
+    ? line.length - trimEnd.length
+    : 0;
 
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
@@ -338,7 +351,7 @@ async function completionsFromGoodParseYAML(context: YamlIntelligenceContext) {
       }
       const index = lineColToIndex(mappedCode.value)({
         line: position.row,
-        column: position.column - deletions,
+        column: position.column - deletions - trimEndCorrection,
       });
       let { withError: locateFailed, value: maybePath } = locateCursor(
         doc,
@@ -768,6 +781,13 @@ function completions(obj: CompletionContext): CompletionResult {
   // uniqBy the final completions array on their completion values.
 
   completions = uniqBy(completions, (completion) => completion.value);
+
+  // if there's exactly a colon before the cursor, add a space to the value completions
+  if (context.line[context.position.column - 1] === ":") {
+    for (const completion of completions) {
+      completion.value = " " + completion.value;
+    }
+  }
   return {
     // token to replace
     token: word,
@@ -813,6 +833,7 @@ async function automationFromGoodParseMarkdown(
   };
 
   if (kind === "completions") {
+    debugger;
     let foundCell = undefined;
     for (const cell of result.cells) {
       // use sourceWithYaml when it exists (code cells)
@@ -935,11 +956,9 @@ async function automationFromGoodParseYAML(
     return noIntelligence(kind);
   }
 
-  const func = (
-    kind === "completions"
-      ? completionsFromGoodParseYAML
-      : validationFromGoodParseYAML
-  );
+  const func = kind === "completions"
+    ? completionsFromGoodParseYAML
+    : validationFromGoodParseYAML;
   return func(context);
 }
 

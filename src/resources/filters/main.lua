@@ -24,6 +24,7 @@ import("./common/base64.lua")
 import("./common/citations.lua")
 import("./common/colors.lua")
 import("./common/collate.lua")
+import("./common/crossref.lua")
 import("./common/debug.lua")
 import("./common/error.lua")
 import("./common/figures.lua")
@@ -316,7 +317,7 @@ local quarto_post_filters = {
     figCleanup(),
     responsive_table(),
   }) },
-  { name = "post-ojs", filter = ojs() },
+
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   
   { name = "post-render-jats", filter = filterIf(function()
@@ -333,9 +334,10 @@ local quarto_post_filters = {
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-docx", filter = render_docx() },
   { name = "post-render-typst", filter = render_typst() },
-  { name = "post-render-dashboard", filters = render_dashboard()},
+  { name = "post-render-dashboard", filters = render_dashboard() },
+
+  { name = "post-ojs", filter = ojs() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
@@ -397,6 +399,7 @@ local quarto_crossref_filters = {
     crossref_figures(),
     equations(),
     crossref_theorems(),
+    crossref_callouts(),
   })},
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),

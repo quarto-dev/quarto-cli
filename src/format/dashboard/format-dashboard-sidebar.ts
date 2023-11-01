@@ -63,11 +63,14 @@ export function processSidebars(doc: Document) {
     sidebarContainerEl.append(...sidebarToggle(sidebarId, doc));
 
     sidebarEl.replaceWith(sidebarContainerEl);
+    sidebarContainerEl.parentElement?.classList.add(
+      "dashboard-sidebar-container",
+    );
   }
 
   // Decorate the body of the document if there is a top level sidebar panel
   const topLevelSidebar = doc.querySelector(
-    ".page-layout-custom > .bslib-sidebar-layout",
+    ".page-layout-custom > .bslib-sidebar-layout, .page-layout-custom .dashboard-page > .bslib-sidebar-layout",
   );
   if (topLevelSidebar !== null) {
     topLevelSidebar.setAttribute("data-bslib-sidebar-border", "false");

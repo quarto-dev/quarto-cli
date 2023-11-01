@@ -28,8 +28,8 @@ function render_dashboard()
     {
       traverse = 'topdown',
       PanelLayout = function(el)
-        local options, userClasses = dashboard.card.readCardOptions(el)
-        return dashboard.card.makeCard(nil, { el }, userClasses, options), false
+        local options, userClasses = dashboard.card.readOptions(el)
+        return dashboard.card.makeCard({ el }, userClasses, options), false
       end,
       Div = function(el) 
 
@@ -43,26 +43,58 @@ function render_dashboard()
             return nil
           end
 
-          -- Support explicit cards as divs (without the proper nested structure)
-          -- First element as a header will be used as the title, if present
-          -- otherwise just use the contents as the card body
-          local header = el.content[1]
-          local title = {}
-          local contents = el.content
-          if header ~= nil and header.t == "Header" then
-            title = header
-            contents = tslice(el.content, 2)
-          end
-          
-          local options, userClasses = dashboard.card.readCardOptions(el)          
-          return dashboard.card.makeCard(title, contents, userClasses, options), false
+          local contents = el.content          
+          local options, userClasses = dashboard.card.readOptions(el)          
+          return dashboard.card.makeCard(contents, userClasses, options), false
 
         elseif dashboard.valuebox.isValueBox(el) then
           
           return dashboard.valuebox.makeValueBox(el), false
         
-        elseif el.classes:includes(kCellClass)  then
+        elseif el.classes:includes(kCellClass) and el.classes:includes("markdown") then
           
+          -- See if this is explicitely a markdown cell (being preserved by a notebook)
+          -- If so, provide some special handling which pops any markdown cell first header
+          -- out and then treats the rest of the cell as a card
+
+          -- First, if the user provided only a single element which is a card, just treat that
+          -- as the user providing the card envelope (place the contents into a card whose
+          -- options are determined by the card element that the user is providing)
+          if #el.content == 1 and dashboard.card.isCard(el.content[1]) then
+            local options, userClasses = dashboard.card.readOptions(el.content[1])
+            return dashboard.card.makeCard(el.content[1].content, userClasses, options)
+
+          else
+            -- Otherwise, look more closely at the markdown contents and figure out 
+            -- how to best handle
+            local options, userClasses = dashboard.card.readOptions(el)
+            if options[dashboard.card.optionKeys.layout] == nil then
+              options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+            end
+
+            local results = pandoc.List()
+            local cardContent = el.content
+            if #el.content > 0 and el.content[1].t == "Header" then              
+              results:insert(el.content[1])
+              cardContent = tslice(cardContent, 2)              
+            end
+
+            local card = dashboard.card.makeCard(cardContent, userClasses, options)
+            if card ~= nil then
+              results:insert(card)
+            end
+            
+            if #results > 0 then
+              return pandoc.Blocks(results)
+            end
+          end
+
+        elseif el.classes:includes(kCellClass) then
+
+          -- Process a standard code cell. In particular, we should be 
+          -- looking to try to determine the visibility and processing behavior
+          -- for the cell
+
           -- See if this cell has bslib output already
           local hasBsLibOutput = false
           local isHidden = false
@@ -89,14 +121,37 @@ function render_dashboard()
             return el
           else
             -- Look for markdown explictly being output
-            local options, userClasses = dashboard.card.readCardOptions(el)
+            local options, userClasses = dashboard.card.readOptions(el)
+
             -- if not explicitly set, mark markdown cells as flow
             if isMarkdownOutput and options[dashboard.card.optionKeys.layout] == nil then
               options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
             end
 
-            return dashboard.card.makeCard(nil, el.content, userClasses, options), false
-          end
+            -- Try to read the title from any programmatic output
+            -- in case it is showing up that way
+            local cardContent = el.content
+            if #cardContent > 1 and cardContent[1].t == "Div" then
+              if cardContent[1].classes:includes('cell-output-stdout') then
+
+                -- See if the content is a CodeBlock 
+                local codeBlockEl = cardContent[1].content[1]
+                if codeBlockEl.t == "CodeBlock"  then
+
+                  local titlePrefix = "title="
+                  local prefixLen = pandoc.text.len(titlePrefix)
+
+                  local strValue = codeBlockEl.text
+                  if pandoc.text.len(strValue) > prefixLen then
+                    options['title'] = trim(pandoc.text.sub(codeBlockEl.text, prefixLen + 1))
+                  end
+                end
+                cardContent = tslice(cardContent, 2)
+              end
+            end
+
+            return dashboard.card.makeCard(cardContent, userClasses, options), false
+          end  
         end
       end,      
 
@@ -160,7 +215,6 @@ function render_dashboard()
         -- return the newly restructured document
         el.blocks = finalEls
         return el
-
       end,
       Div = function(el) 
         if el.classes:includes(kSectionClass) then
@@ -170,7 +224,7 @@ function render_dashboard()
           if header.t == "Header" then            
             local level = header.level
             local contents = tslice(el.content, 2)
-            
+
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
             if level == 1 then
@@ -197,14 +251,20 @@ function render_dashboard()
               local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
               local layoutContentEls = organizer.ensureInLayoutContainers()
 
-              -- see if this heading is marked as a component
-              if dashboard.card.isCard(header) then 
+              -- see if this heading is marked as a tabset
+              if dashboard.tabset.isTabset(header) then 
                 -- Process the component
-                local options, userClasses = dashboard.card.readCardOptions(header)
+                local options, userClasses = dashboard.tabset.readOptions(header)
                 -- don't pass an explicit title - any title will come from the card options
-                return dashboard.card.makeCard(nil, contents, userClasses, options)
+                return dashboard.tabset.makeTabset(nil, contents, userClasses, options)
               else
                 -- Process the layout
+                            
+                -- TODO: extend to other component types for completeness
+                if dashboard.card.hasCardDecoration(header) then
+                  -- sections may not have component decorations, throw error
+                  fatal("Headings may not be cards - please remove the `card` class from the offending heading: '" .. pandoc.utils.stringify(header) .. "'")
+                end
 
                 -- Compute the options
                 local options = dashboard.layout.readOptions(header)
@@ -220,7 +280,7 @@ function render_dashboard()
                   else
                     toOrientation = dashboard.layout.rotatedOrientation()
                   end
-                end                
+                end        
                 return dashboard.layout.orientContents(layoutContentEls, toOrientation, options)
               end
             end

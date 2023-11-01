@@ -144,6 +144,9 @@ function parse_reftargets()
       fail("Float with invalid crossref category? " .. div.identifier)
       return
     end
+    if category.kind ~= "float" then
+      return nil -- skip non-float reftargets now that they exist
+    end
 
     local content = div.content
     local caption_attr_key = ref .. "-cap"

@@ -1,9 +1,15 @@
-$bslib-sidebar-bg: rgba(var(--bs-emphasis-color-rgb, 0,0,0), 0.05) !default;
+$bslib-sidebar-bg: rgba(var(--bs-emphasis-color-rgb, 0, 0, 0), 0.05) !default;
 $bslib-sidebar-fg: var(--bs-emphasis-color, black) !default;
-$bslib-sidebar-toggle-bg: rgba(var(--bs-emphasis-color-rgb, 0,0,0), 0.1) !default;
-$bslib-sidebar-border: var(--bs-card-border-width, #{$card-border-width}) solid var(--bs-card-border-color, #{$card-border-color}) !default;
-$bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), var(--bslib-sidebar-width, 250px));
-
+$bslib-sidebar-toggle-bg: rgba(
+  var(--bs-emphasis-color-rgb, 0, 0, 0),
+  0.1
+) !default;
+$bslib-sidebar-border: var(--bs-card-border-width, #{$card-border-width}) solid
+  var(--bs-card-border-color, #{$card-border-color}) !default;
+$bslib-sidebar-column-sidebar: Min(
+  calc(100% - var(--bslib-sidebar-icon-size)),
+  var(--bslib-sidebar-width, 275px)
+);
 
 .bslib-sidebar-layout {
   --bslib-sidebar-transition-duration: 500ms;
@@ -18,21 +24,32 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
   --bslib-sidebar-toggle-bg: #{$bslib-sidebar-toggle-bg};
   --bslib-sidebar-padding: calc(var(--bslib-spacer) * 1.5);
   --bslib-sidebar-icon-size: var(--bslib-spacer, 1rem);
-  --bslib-sidebar-icon-button-size: calc(var(--bslib-sidebar-icon-size, 1rem) * 2);
-  --bslib-sidebar-padding-icon: calc(var(--bslib-sidebar-icon-button-size, 2rem) * 1.5);
+  --bslib-sidebar-icon-button-size: calc(
+    var(--bslib-sidebar-icon-size, 1rem) * 2
+  );
+  --bslib-sidebar-padding-icon: calc(
+    var(--bslib-sidebar-icon-button-size, 2rem) * 1.5
+  );
   // We intentionally don't give a value here, but it could be set by someone else
   // --bslib-collapse-toggle-border: ;
-  --bslib-collapse-toggle-border-radius: var(--bs-border-radius, #{$border-radius});
+  --bslib-collapse-toggle-border-radius: var(
+    --bs-border-radius,
+    #{$border-radius}
+  );
   --bslib-collapse-toggle-transform: 0deg;
   --bslib-sidebar-toggle-transition-easing: cubic-bezier(1, 0, 0, 1);
   --bslib-collapse-toggle-right-transform: 180deg;
   --bslib-sidebar-column-main: minmax(0, 1fr);
-  
+
   display: grid !important;
-  grid-template-columns: $bslib-sidebar-column-sidebar var(--bslib-sidebar-column-main);
+  grid-template-columns: $bslib-sidebar-column-sidebar var(
+      --bslib-sidebar-column-main
+    );
   position: relative;
 
-  @include transition(grid-template-columns ease-in-out var(--bslib-sidebar-transition-duration));
+  @include transition(
+    grid-template-columns ease-in-out var(--bslib-sidebar-transition-duration)
+  );
 
   border: var(--bslib-sidebar-border);
   border-radius: var(--bslib-sidebar-border-radius);
@@ -44,7 +61,8 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
     border-radius: initial;
   }
 
-  > .main, > .sidebar {
+  > .main,
+  > .sidebar {
     grid-row: 1 / 2;
     border-radius: inherit;
     overflow: auto;
@@ -55,7 +73,8 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     padding: var(--bslib-sidebar-padding);
-    transition: padding var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration);
+    transition: padding var(--bslib-sidebar-transition-easing-x)
+      var(--bslib-sidebar-transition-duration);
     color: var(--bslib-sidebar-main-fg);
     background-color: var(--bslib-sidebar-main-bg);
   }
@@ -90,7 +109,7 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
         margin-left: calc(-1 * var(--bslib-sidebar-padding));
         margin-right: calc(-1 * var(--bslib-sidebar-padding));
         &:last-child {
-            margin-bottom: calc(-1 * var(--bslib-sidebar-padding));
+          margin-bottom: calc(-1 * var(--bslib-sidebar-padding));
         }
         &:not(:last-child) {
           margin-bottom: $spacer;
@@ -106,10 +125,12 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
       // But in our usage, the accordions might not be the first or last item in
       // the sidebar. In that case, it's better to keep the top/bottom borders.
       > .accordion:not(:first-child) .accordion-item:first-child {
-        border-top: var(--#{$prefix}accordion-border-width) solid var(--#{$prefix}accordion-border-color);
+        border-top: var(--#{$prefix}accordion-border-width) solid
+          var(--#{$prefix}accordion-border-color);
       }
       > .accordion:not(:last-child) .accordion-item:last-child {
-        border-bottom: var(--#{$prefix}accordion-border-width) solid var(--#{$prefix}accordion-border-color);
+        border-bottom: var(--#{$prefix}accordion-border-width) solid
+          var(--#{$prefix}accordion-border-color);
       }
 
       &.has-accordion > .sidebar-title {
@@ -148,11 +169,14 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
     padding: 0;
     color: var(--bslib-sidebar-fg);
     background-color: unset; // don't take `button` background color
-    transition:
-      color var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration),
-      top var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration),
-      right var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration),
-      left var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration);
+    transition: color var(--bslib-sidebar-transition-easing-x)
+        var(--bslib-sidebar-transition-duration),
+      top var(--bslib-sidebar-transition-easing-x)
+        var(--bslib-sidebar-transition-duration),
+      right var(--bslib-sidebar-transition-easing-x)
+        var(--bslib-sidebar-transition-duration),
+      left var(--bslib-sidebar-transition-easing-x)
+        var(--bslib-sidebar-transition-duration);
 
     &:hover {
       background-color: var(--bslib-sidebar-toggle-bg);
@@ -165,7 +189,8 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
       transform: rotateY(var(--bslib-collapse-toggle-transform));
       // N.B. since mobile view won't trigger a transition of grid-template-columns,
       // we transition this toggle to ensure _some_ transition event always happens.
-      transition: transform var(--bslib-sidebar-toggle-transition-easing) var(--bslib-sidebar-transition-duration);
+      transition: transform var(--bslib-sidebar-toggle-transition-easing)
+        var(--bslib-sidebar-transition-duration);
     }
 
     &:hover > .collapse-icon {
@@ -248,15 +273,19 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
       color: var(--bslib-sidebar-main-fg);
       // The CSS variable (set via JS) is here to help avoid overlapping toggles
       top: calc(
-          var(--bslib-sidebar-overlap-counter, 0) *
-          calc(var(--bslib-sidebar-icon-size) +
-          var(--bslib-sidebar-padding)
-        ) + var(--bslib-sidebar-icon-size, 1rem) / 2);
-      right: calc(-2.5 * var(--bslib-sidebar-icon-size) - var(--bs-card-border-width, 1px));
+        var(--bslib-sidebar-overlap-counter, 0) *
+          calc(var(--bslib-sidebar-icon-size) + var(--bslib-sidebar-padding)) +
+          var(--bslib-sidebar-icon-size, 1rem) / 2
+      );
+      right: calc(
+        -2.5 * var(--bslib-sidebar-icon-size) - var(--bs-card-border-width, 1px)
+      );
     }
 
     &.sidebar-right > .collapse-toggle {
-      left: calc(-2.5 * var(--bslib-sidebar-icon-size) - var(--bs-card-border-width, 1px));
+      left: calc(
+        -2.5 * var(--bslib-sidebar-icon-size) - var(--bs-card-border-width, 1px)
+      );
       right: unset;
     }
   }
@@ -277,9 +306,12 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
       --bslib-sidebar-js-init-collapsed: true;
     }
 
-    &, &.sidebar-right {
+    &,
+    &.sidebar-right {
       // Remove sidebar borders in mobile view (except always-open, added below)
-      > .sidebar { border: none }
+      > .sidebar {
+        border: none;
+      }
 
       // Main area takes up entire layout area to avoid layout shift when
       // sidebar is expanded as an overlay.
@@ -301,8 +333,12 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
     &:not([data-bslib-sidebar-open="always"]) {
       // Sidebar layer has to be lifted up to cover other (nested) sidebars
       &:not(.sidebar-collapsed) {
-        > .sidebar { z-index: 1; }
-        > .collapse-toggle { z-index: 1; }
+        > .sidebar {
+          z-index: 1;
+        }
+        > .collapse-toggle {
+          z-index: 1;
+        }
       }
 
       // Either sidebar or main area take up entire layout depending on state
@@ -320,7 +356,6 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
         }
       }
 
-
       // Keep padding on main contents when sidebar is expanded (avoid shifts)
       &:not(.sidebar-right) > .main {
         padding-left: var(--bslib-sidebar-padding-icon);
@@ -332,7 +367,8 @@ $bslib-sidebar-column-sidebar: Min(calc(100% - var(--bslib-sidebar-icon-size)), 
       // Make main contents transparent while sidebar is expanded
       > .main {
         opacity: 0;
-        transition: opacity var(--bslib-sidebar-transition-easing-x) var(--bslib-sidebar-transition-duration)
+        transition: opacity var(--bslib-sidebar-transition-easing-x)
+          var(--bslib-sidebar-transition-duration);
       }
       &.sidebar-collapsed > .main {
         opacity: 1;

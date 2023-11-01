@@ -1137,7 +1137,6 @@ figure .quarto-notebook-link {
   .cell .cell-output-stderr pre code,
   .cell .cell-output-stdout pre code {
     white-space: pre-wrap;
-    border: solid red 1px;
     overflow-wrap: anywhere;
   }
 }
@@ -2106,6 +2105,10 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
+  .dashboard-page:not(.dashboard-sidebar-container) {
+    padding: 0.7em;
+  }
+
   .navbar {
     padding: 0;
 
@@ -2201,6 +2204,10 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
+  .card-body > .h4:first-child {
+    margin-top: 0;
+  }
+
   .card-footer {
     color: $text-muted;
     font-size: 0.9em;
@@ -2228,6 +2235,10 @@ code.sourceCode a.code-annotation-anchor {
   .bslib-sidebar-layout {
     > div.main {
       padding: 0.7em;
+    }
+
+    button.collapse-toggle {
+      margin-top: 0.3em;
     }
   }
 
@@ -2314,6 +2325,8 @@ code.sourceCode a.code-annotation-anchor {
 
   .card figure.quarto-float {
     display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .dashboard-scrolling {
@@ -2349,13 +2362,27 @@ code.sourceCode a.code-annotation-anchor {
     margin-bottom: 0;
   }
 
+  .bslib-sidebar-layout .collapse-toggle {
+    top: 0;
+  }
+
+  .bslib-sidebar-layout:not(.sidebar-collapsed) .collapse-toggle {
+    right: 2px;
+  }
+
+  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning) .collapse-toggle {
+    left: 2px;
+  }
+
   .sidebar {
     .card-body {
       margin-bottom: 2em;
     }
-    .cell-output-display:not(:last-child) {
+
+    .shiny-input-container {
       margin-bottom: 1em;
     }
+
     .shiny-options-group {
       margin-top: 0;
     }

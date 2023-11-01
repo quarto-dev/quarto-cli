@@ -251,7 +251,7 @@ end
 
 local function as_inlines(v)
   if v == nil then
-    return {}
+    return pandoc.Inlines({})
   end
   local t = pandoc.utils.type(v)
   if t == "Inlines" then
@@ -259,7 +259,7 @@ local function as_inlines(v)
   elseif t == "Blocks" then
     return pandoc.utils.blocks_to_inlines(v)
   elseif t == "Inline" then
-    return {v}
+    return pandoc.Inlines({v})
   elseif t == "Block" then
     return pandoc.utils.blocks_to_inlines({v})
   end
@@ -280,7 +280,7 @@ end
 
 local function as_blocks(v)
   if v == nil then
-    return {}
+    return pandoc.Blocks({})
   end
   local t = pandoc.utils.type(v)
   if t == "Blocks" then
@@ -299,7 +299,7 @@ local function as_blocks(v)
 
   -- luacov: disable
   fatal("as_blocks: invalid type " .. t)
-  return nil
+  return pandoc.Blocks({})
   -- luacov: enable
 end
 

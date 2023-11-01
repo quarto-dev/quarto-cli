@@ -124,9 +124,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
+          python-version: "3.11"
           cache: "pipenv"
           cache-dependency-path: "./tests/Pipfile.lock"
-          python-version-file: "./tests/.python-version"
 
       - name: Restore Python Dependencies
         working-directory: tests
@@ -148,16 +148,24 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v1
         with:
-          version: 1.8.5
+          version: 1.9.3
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v1
+        with:
+          cache-name: version-1
+          cache-registries: true
 
       - name: Restore Julia Packages
         working-directory: tests
         shell: bash
         run: |
-          julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          # Setup IJulia with the jupyter from the Python environment
+          # https://julialang.github.io/IJulia.jl/stable/manual/installation/
+          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")        
+          pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          echo "Julia Jupyter:"
+          julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
