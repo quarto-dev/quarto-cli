@@ -230,7 +230,7 @@ const packageMatchers = [
       return "lua-uni-algos.lua";
     },
   },
-
+  { regex: /.* Loading '([^']+)' aborted!.*/g },
   { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
   { regex: /.* file ['`]?([^' ]+)'? not found.*/g },
   { regex: /.*the language definition file ([^ ]+) .*/g },
