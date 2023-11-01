@@ -33,7 +33,8 @@ try:
     pio.renderers.default = "notebook_connected"
   else:
     pio.renderers.default = "notebook"
-  pio.templates['plotly'].layout.margin = dict(t=30,r=0,b=0,l=0)
+  for template in pio.templates.keys():
+    pio.templates[template].layout.margin = dict(t=30,r=0,b=0,l=0)
 except Exception:
   pass
 
