@@ -2286,11 +2286,12 @@ code.sourceCode a.code-annotation-anchor {
 
   .bslib-value-box {
     .value-box-value {
-      font-size: 4rem;
+      font-size: clamp(0.1em, 15cqw, 5em);
     }
 
     .value-box-showcase .bi {
       font-size: clamp(0.1em, 20cqw, 5em);
+      text-align: center;
     }
   }
 
