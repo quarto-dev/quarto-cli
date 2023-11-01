@@ -12055,17 +12055,20 @@ var dist = {exports: {}};
 	  let bodyText = cell.input.substring(cell.body.start, cell.body.end);
 	  let expressionMap = {};
 	  let references = [];
+	  let counter = 0;
 	  const cellReferences = Array.from(new Set((cell.references || []).map(ref => {
 	    if (ref.type === "ViewExpression") {
 	      if (expressionMap[ref.id.name] === undefined) {
-	        expressionMap[ref.id.name] = ref.id.name;
-	        references.push(ref.id.name);
+	        const newName = `$${counter++}`;
+	        expressionMap[ref.id.name] = newName;
+	        references.push(newName);
 	      }
 	      return "viewof " + ref.id.name;
 	    } else if (ref.type === "MutableExpression") {
 	      if (expressionMap[ref.id.name] === undefined) {
-	        expressionMap[ref.id.name] = ref.id.name;
-	        references.push(ref.id.name);
+	        const newName = `$${counter++}`;
+	        expressionMap[ref.id.name] = newName;
+	        references.push(newName);
 	      }
 	      return "mutable " + ref.id.name;
 	    } else {
