@@ -51,8 +51,38 @@ function render_dashboard()
           
           return dashboard.valuebox.makeValueBox(el), false
         
-        elseif el.classes:includes(kCellClass)  then
+        elseif el.classes:includes(kCellClass) and el.classes:includes("markdown") then
           
+          -- See if this is explicitely a markdown cell (being preserved by a notebook)
+          -- If so, provide some special handling which pops any markdown cell first header
+          -- out and then treats the rest of the cell as a card
+          local options, userClasses = dashboard.card.readOptions(el)
+          if options[dashboard.card.optionKeys.layout] == nil then
+            options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+          end
+
+          local results = pandoc.List()
+          local cardContent = el.content
+          if #el.content > 0 and el.content[1].t == "Header" then              
+            results:insert(el.content[1])
+            cardContent = tslice(cardContent, 2)              
+          end
+
+          local card = dashboard.card.makeCard(cardContent, userClasses, options)
+          if card ~= nil then
+            results:insert(card)
+          end
+          
+          if #results > 0 then
+            return pandoc.Blocks(results)
+          end
+
+        elseif el.classes:includes(kCellClass) then
+
+          -- Process a standard code cell. In particular, we should be 
+          -- looking to try to determine the visibility and processing behavior
+          -- for the cell
+
           -- See if this cell has bslib output already
           local hasBsLibOutput = false
           local isHidden = false
@@ -80,11 +110,14 @@ function render_dashboard()
           else
             -- Look for markdown explictly being output
             local options, userClasses = dashboard.card.readOptions(el)
+
             -- if not explicitly set, mark markdown cells as flow
             if isMarkdownOutput and options[dashboard.card.optionKeys.layout] == nil then
               options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
             end
 
+            -- Try to read the title from any programmatic output
+            -- in case it is showing up that way
             local cardContent = el.content
             if #cardContent > 1 and cardContent[1].t == "Div" then
               if cardContent[1].classes:includes('cell-output-stdout') then
@@ -100,15 +133,13 @@ function render_dashboard()
                   if pandoc.text.len(strValue) > prefixLen then
                     options['title'] = trim(pandoc.text.sub(codeBlockEl.text, prefixLen + 1))
                   end
-                  
-                  
                 end
                 cardContent = tslice(cardContent, 2)
               end
             end
 
             return dashboard.card.makeCard(cardContent, userClasses, options), false
-          end
+          end  
         end
       end,      
 
