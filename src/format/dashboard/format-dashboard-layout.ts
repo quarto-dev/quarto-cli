@@ -75,6 +75,7 @@ const kFillContentElements: FillDescriptor = {
     "main",
     "bslib-sidebar-layout",
     "cell-output-display",
+    "quarto-float",
   ],
 };
 

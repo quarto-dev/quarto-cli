@@ -2325,6 +2325,8 @@ code.sourceCode a.code-annotation-anchor {
 
   .card figure.quarto-float {
     display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .dashboard-scrolling {
