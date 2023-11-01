@@ -13,6 +13,9 @@ import {
 
 const kValueboxBodySelector = ".card-body > div";
 const kValueboxShowcaseClass = ".value-box-showcase";
+const kValueboxTitleClass = "value-box-title";
+const kValueBoxValueClass = "value-box-value";
+const kToParagraphsClz = [kValueboxTitleClass, kValueBoxValueClass];
 
 const kValueBoxColorAttr = "data-color";
 const kValueBoxBgColorAttr = "data-bg-color";
@@ -43,6 +46,19 @@ export function processValueBoxes(doc: Document) {
     const valueboxBodyEl = valueboxEl.querySelector(kValueboxBodySelector);
     if (valueboxBodyEl) {
       applyClasses(valueboxBodyEl, bsLibValueBoxClz);
+
+      // Convert any divs to paragraphs
+      kToParagraphsClz.forEach((cls) => {
+        const toParaEl = valueboxEl.querySelector(`.${cls}`);
+        if (toParaEl && toParaEl.tagName !== "P") {
+          const paraEl = doc.createElement("P");
+          paraEl.childNodes = toParaEl.childNodes;
+          for (const toClass of toParaEl.classList) {
+            paraEl.classList.add(toClass);
+          }
+          toParaEl.replaceWith(paraEl);
+        }
+      });
 
       // Resolve colors, first try the general color theme
       let colorProcessed = false;
