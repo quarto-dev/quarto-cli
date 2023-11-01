@@ -56,25 +56,37 @@ function render_dashboard()
           -- See if this is explicitely a markdown cell (being preserved by a notebook)
           -- If so, provide some special handling which pops any markdown cell first header
           -- out and then treats the rest of the cell as a card
-          local options, userClasses = dashboard.card.readOptions(el)
-          if options[dashboard.card.optionKeys.layout] == nil then
-            options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
-          end
 
-          local results = pandoc.List()
-          local cardContent = el.content
-          if #el.content > 0 and el.content[1].t == "Header" then              
-            results:insert(el.content[1])
-            cardContent = tslice(cardContent, 2)              
-          end
+          -- First, if the user provided only a single element which is a card, just treat that
+          -- as the user providing the card envelope (place the contents into a card whose
+          -- options are determined by the card element that the user is providing)
+          if #el.content == 1 and dashboard.card.isCard(el.content[1]) then
+            local options, userClasses = dashboard.card.readOptions(el.content[1])
+            return dashboard.card.makeCard(el.content[1].content, userClasses, options)
 
-          local card = dashboard.card.makeCard(cardContent, userClasses, options)
-          if card ~= nil then
-            results:insert(card)
-          end
-          
-          if #results > 0 then
-            return pandoc.Blocks(results)
+          else
+            -- Otherwise, look more closely at the markdown contents and figure out 
+            -- how to best handle
+            local options, userClasses = dashboard.card.readOptions(el)
+            if options[dashboard.card.optionKeys.layout] == nil then
+              options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+            end
+
+            local results = pandoc.List()
+            local cardContent = el.content
+            if #el.content > 0 and el.content[1].t == "Header" then              
+              results:insert(el.content[1])
+              cardContent = tslice(cardContent, 2)              
+            end
+
+            local card = dashboard.card.makeCard(cardContent, userClasses, options)
+            if card ~= nil then
+              results:insert(card)
+            end
+            
+            if #results > 0 then
+              return pandoc.Blocks(results)
+            end
           end
 
         elseif el.classes:includes(kCellClass) then
