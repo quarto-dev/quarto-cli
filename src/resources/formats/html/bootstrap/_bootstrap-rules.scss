@@ -2277,7 +2277,8 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
-  .card.valuebox {
+  .card.valuebox,
+  .card.bslib-value-box {
     min-height: 6rem;
     .card-body {
       padding: 0;
@@ -2290,8 +2291,19 @@ code.sourceCode a.code-annotation-anchor {
     }
 
     .value-box-showcase .bi {
-      font-size: clamp(0.1em, 20cqw, 5em);
+      font-size: clamp(0.1em, max(18cqw, 5.2cqh), 5em);
+
       text-align: center;
+      height: 1em;
+    }
+
+    .value-box-showcase .bi::before {
+      vertical-align: 1em;
+    }
+
+    .value-box-area {
+      margin-top: auto;
+      margin-bottom: auto;
     }
   }
 

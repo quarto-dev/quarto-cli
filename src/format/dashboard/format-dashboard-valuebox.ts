@@ -26,7 +26,7 @@ const kValueBoxShowcasePositionAttr = "data-showcase-position";
 const kDefaultShowcasePosition = "left-center";
 
 const bsLibValueBoxClass = "bslib-value-box";
-const bsLibValueBoxClz = [bsLibValueBoxClass, "value-box-grid"];
+const bsLibValueBoxGridClass = "value-box-grid";
 
 // The list of colors that should be used when automatically assigning a color
 // We'll just iterate through the list as we go (circular)
@@ -43,9 +43,10 @@ export function processValueBoxes(doc: Document) {
   let autoColorizeCount = 0;
   for (const valueboxNode of valueboxNodes) {
     const valueboxEl = valueboxNode as Element;
+    applyClasses(valueboxEl, [bsLibValueBoxClass]);
     const valueboxBodyEl = valueboxEl.querySelector(kValueboxBodySelector);
     if (valueboxBodyEl) {
-      applyClasses(valueboxBodyEl, bsLibValueBoxClz);
+      applyClasses(valueboxBodyEl, [bsLibValueBoxGridClass]);
 
       // Convert any divs to paragraphs
       kToParagraphsClz.forEach((cls) => {
