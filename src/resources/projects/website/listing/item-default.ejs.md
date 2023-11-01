@@ -39,7 +39,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <div class="quarto-post image-<%= imageAlign %>" <%= listing.utilities.metadataAttrs(item) %>>
 <% if (fields.includes('image')) { %>
 <div class="thumbnail">
-<a href="<%- item.path %>">
+<a href="<%- item.path %>" class="no-external">
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt']) %>
 <% } else { %>
@@ -50,8 +50,8 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% } %>
 <div class="body">
 <% if (fields.includes('title')) { %>
-<h3 class="no-anchor listing-title"><a href="<%- item.path %>"><%= item.title %></a></h3>
-<div class="listing-subtitle"><a href="<%- item.path %>"><%= item.subtitle %></a></div>
+<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external"><%= item.title %></a></h3>
+<div class="listing-subtitle"><a href="<%- item.path %>" class="no-external"><%= item.subtitle %></a></div>
 <% } %>
 <% if (fields.includes('categories') && item.categories) { %> 
 <div class="listing-categories">
@@ -61,10 +61,10 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 </div>
 <% } %> 
 <% if (fields.includes('description')) { %>
-<div class="delink listing-description"><a href="<%- item.path %>"><%= item.description %></a></div>
+<div class="delink listing-description"><a href="<%- item.path %>" class="no-external"><%= item.description %></a></div>
 <% } %>
 </div>
-<div class="metadata"><a href="<%- item.path %>">
+<div class="metadata"><a href="<%- item.path %>" class="no-external">
 <% if (fields.includes('date') && item.date) { %><div class="listing-date">`<%= item.date %>`{=html}</div><% } %>
 <% if (fields.includes('author') && item.author) { %><div class="listing-author"><%= item.author %></div><% } %>
 <% if (fields.includes('reading-time') && item['reading-time']) { %> <div class="listing-reading-time"><%= item['reading-time'] %></div> <% } %>
