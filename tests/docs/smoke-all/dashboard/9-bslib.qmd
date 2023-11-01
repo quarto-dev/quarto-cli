@@ -1,0 +1,29 @@
+---
+title: Yo
+author: MTV Raps
+format: dashboard
+---
+
+## Row
+```{r}
+library(bslib)
+library(bsicons)
+value_box(
+    title = "1st value",
+    value = "789",
+    showcase = bs_icon("pie-chart"),
+    theme = "pink"
+  )
+value_box(
+    title = "2nd value",
+    value = "789",
+    showcase = bs_icon("pie-chart"),
+    theme = "blue"
+  )
+value_box(
+    title = "3rd value",
+    value = "789",
+    showcase = bs_icon("pie-chart"),
+    theme = "green"
+  )  
+```
