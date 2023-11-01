@@ -12,12 +12,18 @@ local kSidebarPanelClass = "sidebar-panel"
 local kSidebarClass = "sidebar"
 local kSidebarContentClass = "sidebar-content"
 
+local kSidebarWidthAttr = "data-width"
+
 local function isSidebar(el) 
   return el.classes ~= nil and el.classes:includes(kSidebarClass)
 end 
 
 local function readOptions(el)
-  return {}
+  local options = {}
+  if el.attributes[kSidebarWidthAttr] ~= nil then
+    options[kSidebarWidthAttr] = el.attributes[kSidebarWidthAttr]
+  end
+  return options
 end
 
 local function makeSidebar(sidebarEls, contentEls, options) 
@@ -35,7 +41,13 @@ local function makeSidebar(sidebarEls, contentEls, options)
   end
 
   -- TODO: forward title
-  local sidebarEl = pandoc.Div(sidebarContentsFiltered, pandoc.Attr("", {kSidebarClass}))
+  -- TODOL: width
+  local sidebarAttr = {}
+  if options[kSidebarWidthAttr] ~= nil then 
+    sidebarAttr[kSidebarWidthAttr] = options[kSidebarWidthAttr]
+  end
+
+  local sidebarEl = pandoc.Div(sidebarContentsFiltered, pandoc.Attr("", {kSidebarClass}, sidebarAttr))
 
   local sidebarContentsEl = pandoc.Div(contentEls, pandoc.Attr("", {kSidebarContentClass}))
   sidebarContainerEl.content:extend({sidebarEl, sidebarContentsEl})

@@ -306,7 +306,7 @@ function render_dashboard()
           end
           
           if sidebar then
-            local options = dashboard.sidebar.readOptions(el)
+            local options = dashboard.sidebar.readOptions(sidebar)
             return dashboard.sidebar.makeSidebar(sidebar.content, sidebarContent, options)  
           end          
         end
