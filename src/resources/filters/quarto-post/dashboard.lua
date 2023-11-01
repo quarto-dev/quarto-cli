@@ -232,7 +232,8 @@ function render_dashboard()
                 -- flow through and the sidebar collector will ingest it and convert it into 
                 -- a sidebar (which contains the other pages as its content)
               if dashboard.sidebar.isSidebar(header) then
-                return dashboard.sidebar.pageSidebarPlaceholder(contents)
+                local options = dashboard.sidebar.readOptions(header)
+                return dashboard.sidebar.pageSidebarPlaceholder(contents, options)
               else
                 lastLevel = level
 
