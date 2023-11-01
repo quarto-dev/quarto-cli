@@ -446,7 +446,7 @@ function tlmgrCommand(
   }
 }
 
-// Exectute fmtutil
+// Execute fmtutil
 // https://tug.org/texlive/doc/fmtutil.html
 function fmtutilCommand(context: TexLiveContext) {
   const fmtutil = texLiveCmd("fmtutil-sys", context);
