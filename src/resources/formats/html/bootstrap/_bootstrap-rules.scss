@@ -2374,6 +2374,14 @@ code.sourceCode a.code-annotation-anchor {
     left: 2px;
   }
 
+  .card {
+    .shiny-input-container {
+      padding-bottom: 0.5em;
+      margin-bottom: 0.5em;
+      width: inherit;
+    }
+  }
+
   .sidebar {
     .card-body {
       margin-bottom: 2em;
