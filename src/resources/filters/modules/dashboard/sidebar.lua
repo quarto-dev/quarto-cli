@@ -20,9 +20,7 @@ local function isSidebar(el)
   return el.classes ~= nil and el.classes:includes(kSidebarClass)
 end 
 
-local function readOptions(el)
-
-  
+local function readOptions(el)  
   local options = {}
   for _i, v in ipairs(kSidebarWidthAttrs) do
     if el.attributes[v] ~= nil then
