@@ -5,6 +5,7 @@
  */
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { gitHubContext } from "../../core/github.ts";
 
 export const kDashboard = "dashboard";
 
@@ -38,7 +39,7 @@ export interface DashboardMeta {
 
 export const kValueboxClass = "valuebox";
 
-export function dashboardMeta(format: Format): DashboardMeta {
+export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
   const dashboardRaw = format.metadata as Metadata;
   const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
     ? "columns"
@@ -46,10 +47,10 @@ export function dashboardMeta(format: Format): DashboardMeta {
   const scrolling = dashboardRaw.scrolling === true;
   const expandable = dashboardRaw.expandable !== false;
 
-  const processNavbarButton = (buttonRaw: unknown) => {
+  const processNavbarButton = async (buttonRaw: unknown) => {
     if (typeof (buttonRaw) === "string") {
-      if (kSharingUrls[buttonRaw] !== undefined) {
-        return kSharingUrls[buttonRaw];
+      if (kNavButtonAliases[buttonRaw] !== undefined) {
+        return kNavButtonAliases[buttonRaw]();
       }
       return undefined;
     } else {
@@ -60,14 +61,14 @@ export function dashboardMeta(format: Format): DashboardMeta {
   const navbarButtons = [];
   const navbarButtonsRaw = format.metadata[kNavButtons];
   if (Array.isArray(navbarButtonsRaw)) {
-    navbarButtonsRaw.forEach((btnRaw) => {
-      const btn = processNavbarButton(btnRaw);
+    for (const btnRaw of navbarButtonsRaw) {
+      const btn = await processNavbarButton(btnRaw);
       if (btn) {
         navbarButtons.push(btn);
       }
-    });
+    }
   } else {
-    const btn = processNavbarButton(navbarButtonsRaw);
+    const btn = await processNavbarButton(navbarButtonsRaw);
     if (btn) {
       navbarButtons.push(btn);
     }
@@ -197,21 +198,45 @@ export const applyAttributes = (el: Element, attr: Record<string, string>) => {
   }
 };
 
-const kSharingUrls: Record<string, NavButton> = {
-  linkedin: {
-    icon: "linkedin",
-    href: "https://www.linkedin.com/sharing/share-offsite/?url=|url|",
-  },
-  facebook: {
-    icon: "facebook",
-    href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
-  },
-  twitter: {
-    icon: "twitter",
-    href: "https://twitter.com/intent/tweet?url=|url|",
-  },
-  reddit: {
-    icon: "reddit",
-    href: "https://reddit.com/submit?url=|url|&title=Sharing%20My%20Dashboard",
-  },
+const resolveGithub = async () => {
 };
+
+const kNavButtonAliases: Record<string, () => Promise<NavButton | undefined>> =
+  {
+    linkedin: () => {
+      return Promise.resolve({
+        icon: "linkedin",
+        href: "https://www.linkedin.com/sharing/share-offsite/?url=|url|",
+      });
+    },
+    facebook: () => {
+      return Promise.resolve({
+        icon: "facebook",
+        href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
+      });
+    },
+    reddit: () => {
+      return Promise.resolve({
+        icon: "reddit",
+        href:
+          "https://reddit.com/submit?url=|url|&title=Sharing%20My%20Dashboard",
+      });
+    },
+    twitter: () => {
+      return Promise.resolve({
+        icon: "twitter",
+        href: "https://twitter.com/intent/tweet?url=|url|",
+      });
+    },
+    github: async () => {
+      const context = await gitHubContext(Deno.cwd());
+      if (context.repoUrl) {
+        return {
+          icon: "github",
+          href: context.repoUrl,
+        } as NavButton;
+      } else {
+        return undefined;
+      }
+    },
+  };

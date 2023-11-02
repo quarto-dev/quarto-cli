@@ -5,12 +5,13 @@ format:
     orientation: columns
     theme: journal
     nav-buttons:
-      - linkedin
-      - twitter
-      - reddit
       - text: Mail
         icon: newspaper
         href: https://www.charlesteague.com
+      - linkedin
+      - twitter
+      - reddit
+      - github
 ---
 
 Global Sidebar {.sidebar}

@@ -101,7 +101,7 @@ export function dashboardFormat() {
     ) => {
       if (baseHtmlFormat.formatExtras) {
         // Read the dashboard metadata
-        const dashboard = dashboardMeta(format);
+        const dashboard = await dashboardMeta(format);
 
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
