@@ -3,10 +3,9 @@ title: Sidebar Example
 format: 
   dashboard:
     orientation: columns
-    theme: journal
     nav-buttons:
-      - text: Mail
-        icon: newspaper
+      - text: USPS Mail
+        icon: envelope
         href: https://www.charlesteague.com
       - linkedin
       - twitter
