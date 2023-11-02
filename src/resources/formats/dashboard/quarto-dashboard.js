@@ -73,7 +73,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const sidebarCollapseClass = "sidebar-collapsed";
   if (sidebar) {
     const resizeObserver = new ResizeObserver(
-      throttle(function (e) {
+      throttle(function () {
         const clientWidth = window.document.body.clientWidth;
         if (prevWidth !== clientWidth) {
           if (clientWidth <= 576) {

@@ -2,6 +2,7 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local document = require "modules/dashboard/document"
 local sidebar = require "modules/dashboard/sidebar"
+local layout = require "modules/dashboard/layout"
 
 local kPageClass = "dashboard-page"
 
