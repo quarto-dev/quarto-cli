@@ -24,6 +24,9 @@ export interface NavButton {
   href: string;
   text?: string;
   icon?: string;
+  rel?: string;
+  alt?: string;
+  ["aria-label"]?: string;
 }
 
 export interface DashboardMeta {
@@ -45,7 +48,9 @@ export function dashboardMeta(format: Format): DashboardMeta {
 
   const processNavbarButton = (buttonRaw: unknown) => {
     if (typeof (buttonRaw) === "string") {
-      // TODO: parse string aliases into nice urls
+      if (kSharingUrls[buttonRaw] !== undefined) {
+        return kSharingUrls[buttonRaw];
+      }
       return undefined;
     } else {
       return buttonRaw as NavButton;
@@ -190,4 +195,23 @@ export const applyAttributes = (el: Element, attr: Record<string, string>) => {
   for (const key of Object.keys(attr)) {
     el.setAttribute(key, attr[key]);
   }
+};
+
+const kSharingUrls: Record<string, NavButton> = {
+  linkedin: {
+    icon: "linkedin",
+    href: "https://www.linkedin.com/sharing/share-offsite/?url=|url|",
+  },
+  facebook: {
+    icon: "facebook",
+    href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
+  },
+  twitter: {
+    icon: "twitter",
+    href: "https://twitter.com/intent/tweet?url=|url|",
+  },
+  reddit: {
+    icon: "reddit",
+    href: "https://reddit.com/submit?url=|url|&title=Sharing%20My%20Dashboard",
+  },
 };

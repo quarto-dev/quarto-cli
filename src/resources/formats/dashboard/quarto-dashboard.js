@@ -30,6 +30,22 @@ function ensureWidgetsFill() {
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   ensureWidgetsFill();
 
+  // Fixup any sharing links that require urls
+  // Append url to any sharing urls
+  const sharingLinks = window.document.querySelectorAll(
+    "a.quarto-dashboard-link"
+  );
+  for (let i = 0; i < sharingLinks.length; i++) {
+    const sharingLink = sharingLinks[i];
+    const href = sharingLink.getAttribute("href");
+    if (href) {
+      sharingLink.setAttribute(
+        "href",
+        href.replace("|url|", window.location.href)
+      );
+    }
+  }
+
   // Try to process the hash and activate a tab
   const hash = window.decodeURIComponent(window.location.hash);
   if (hash.length > 0) {

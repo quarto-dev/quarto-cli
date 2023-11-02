@@ -41,9 +41,22 @@ export function processNavButtons(doc: Document, dashboardMeta: DashboardMeta) {
     doc,
   );
   buttons.forEach((btn) => {
+    const linkAttr: Record<string, string> = {
+      href: btn.href,
+    };
+    if (btn.rel) {
+      linkAttr.rel = btn.rel;
+    }
+    if (btn.alt) {
+      linkAttr.alt = btn.alt;
+    }
+    if (btn["aria-label"]) {
+      linkAttr["aria-label"] = btn["aria-label"];
+    }
+
     const linkEl = makeEl("A", {
       classes: ["quarto-dashboard-link"],
-      attributes: { href: btn.href },
+      attributes: linkAttr,
     }, doc);
 
     if (btn.icon) {

@@ -5,16 +5,12 @@ format:
     orientation: columns
     theme: journal
     nav-buttons:
-      - href: https://github.com/dragonstyle
-        icon: github
-        text: Code
-      - href: https://www.linkedin.com
-        icon: linkedin
-        text: Share
-      - href: https://www.facebook.com
-        icon: facebook        
-      - href: https://www.twitter.com
-        icon: twitter                
+      - linkedin
+      - twitter
+      - reddit
+      - text: Mail
+        icon: newspaper
+        href: https://www.charlesteague.com
 ---
 
 Global Sidebar {.sidebar}
