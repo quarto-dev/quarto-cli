@@ -2222,6 +2222,12 @@ code.sourceCode a.code-annotation-anchor {
 }
 
 .quarto-dashboard {
+  @include media-breakpoint-down(sm) {
+    .bslib-grid {
+      grid-template-rows: max-content !important;
+    }
+  }
+
   &.dashboard-sidebar > .page-layout-custom {
     padding: 0;
     > .bslib-sidebar-layout {
