@@ -55,8 +55,6 @@ function lightbox()
     local title = nil
     if imgEl.caption ~= nil and #imgEl.caption > 0 then
       title = pandoc.utils.stringify(imgEl.caption)
-    elseif imgEl.attributes['fig-alt'] ~= nil and #imgEl.attributes['fig-alt'] > 0 then
-      title = pandoc.utils.stringify(imgEl.attributes['fig-alt'])
     end
   
     -- move a group attribute to the link, if present
