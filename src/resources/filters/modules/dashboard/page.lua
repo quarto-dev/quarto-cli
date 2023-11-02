@@ -1,7 +1,7 @@
 -- page.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local document = require "modules/dashboard/document"
-local layout = require "modules/dashboard/layout"
+local sidebar = require "modules/dashboard/sidebar"
 
 local kPageClass = "dashboard-page"
 
@@ -43,7 +43,7 @@ local function makePage(id, headerEl, contents, options)
   local tabContentsOrientation = options[kOrientationAttr];
 
   -- Infer orientation by seeing 'sidebar' on a row
-  local inferred = layout.inferOrientation(pandoc.Div(contents))
+  local inferred = sidebar.maybeUseSidebarOrientation(pandoc.Div(contents))
   if inferred ~= nil then
     tabContentsOrientation = inferred
   end

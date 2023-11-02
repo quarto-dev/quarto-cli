@@ -1,6 +1,7 @@
 -- sidebar.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local card = require "modules/dashboard/card"
+local layout = require "modules/dashboard/layout"
 
 
 -- left or right position (or both)
@@ -55,7 +56,8 @@ local function makeSidebar(sidebarEls, contentEls, options)
   -- TODO: forward title
   local sidebarEl = pandoc.Div(sidebarContentsFiltered, pandoc.Attr("", {kSidebarClass}, sidebarAttr(options)))
 
-  local sidebarContentsEl = pandoc.Div(contentEls, pandoc.Attr("", {kSidebarContentClass}))
+  local sidebarColumns = layout.orientContents(contentEls, layout.orientations.columns, {})
+  local sidebarContentsEl = pandoc.Div(sidebarColumns, pandoc.Attr("", {kSidebarContentClass}))
   sidebarContainerEl.content:extend({sidebarEl, sidebarContentsEl})
 
   return sidebarContainerEl
@@ -66,11 +68,35 @@ local function pageSidebarPlaceholder(contents, options)
   return sidebarContainer
 end
 
+function maybeUseSidebarOrientation(el)
+  -- force the global orientation to columns if there is a sidebar present
+  local hasSidebar = false
+  _quarto.ast.walk(el, {
+    Header = function(header)
+      if header.level == 1 and isSidebar(header) then
+        hasSidebar = true
+      end
+    end,
+    Div = function(div)
+      if isSidebar(div) then
+        hasSidebar = true
+      end
+    end
+  })
+  if hasSidebar then
+    return layout.orientations.columns
+  else
+    return nil
+  end
+end
+
+
 return {
   isSidebar = isSidebar,
   readOptions = readOptions,
   makeSidebar = makeSidebar,
-  pageSidebarPlaceholder = pageSidebarPlaceholder
+  pageSidebarPlaceholder = pageSidebarPlaceholder,
+  maybeUseSidebarOrientation = maybeUseSidebarOrientation
 }
 
 
