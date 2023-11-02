@@ -1,0 +1,49 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    orientation: columns
+    theme: journal
+    nav-buttons:
+      - href: https://github.com/dragonstyle
+        icon: github
+        text: Code
+      - href: https://www.linkedin.com
+        icon: linkedin
+        text: Share
+      - href: https://www.facebook.com
+        icon: facebook        
+      - href: https://www.twitter.com
+        icon: twitter                
+---
+
+Global Sidebar {.sidebar}
+==================================
+
+Sidebar controls
+
+
+Page 1
+==================================
+
+```{r}
+list(
+  value = 45.5,
+  color = "red"
+)
+```
+
+
+Page 2 {orientation="rows"}
+==================================
+
+## row
+
+Hi
+
+## row
+
+There
+
+
+

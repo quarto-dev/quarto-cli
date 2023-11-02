@@ -21985,7 +21985,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "Links to display on the dashboard navigation bar"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22209,12 +22210,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 175719,
+        _internalId: 176443,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 175711,
+            _internalId: 176435,
             type: "enum",
             enum: [
               "png",
@@ -22230,7 +22231,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 175718,
+            _internalId: 176442,
             type: "anyOf",
             anyOf: [
               {
@@ -22388,6 +22389,34 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           default: true,
           description: "Make card content expandable (default: `true`)"
+        },
+        {
+          name: "nav-buttons",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            maybeArrayOf: {
+              anyOf: [
+                "string",
+                {
+                  object: {
+                    properties: {
+                      text: "string",
+                      href: "string",
+                      icon: "string",
+                      rel: "string",
+                      target: "string",
+                      "aria-label": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          description: "Links to display on the dashboard navigation bar"
         }
       ],
       "schema/cell-dashboard.yml": [

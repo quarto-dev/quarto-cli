@@ -16,12 +16,21 @@ export type Layout = "fill" | "flow" | string;
 
 export const kDashboardGridSkip = "grid-skip";
 
+export const kNavButtons = "nav-buttons";
+
 export const kDontMutateTags = ["P", "SCRIPT"];
+
+export interface NavButton {
+  href: string;
+  text?: string;
+  icon?: string;
+}
 
 export interface DashboardMeta {
   orientation: "rows" | "columns";
   scrolling: boolean;
   expandable: boolean;
+  [kNavButtons]: NavButton[];
 }
 
 export const kValueboxClass = "valuebox";
@@ -34,10 +43,36 @@ export function dashboardMeta(format: Format): DashboardMeta {
   const scrolling = dashboardRaw.scrolling === true;
   const expandable = dashboardRaw.expandable !== false;
 
+  const processNavbarButton = (buttonRaw: unknown) => {
+    if (typeof (buttonRaw) === "string") {
+      // TODO: parse string aliases into nice urls
+      return undefined;
+    } else {
+      return buttonRaw as NavButton;
+    }
+  };
+
+  const navbarButtons = [];
+  const navbarButtonsRaw = format.metadata[kNavButtons];
+  if (Array.isArray(navbarButtonsRaw)) {
+    navbarButtonsRaw.forEach((btnRaw) => {
+      const btn = processNavbarButton(btnRaw);
+      if (btn) {
+        navbarButtons.push(btn);
+      }
+    });
+  } else {
+    const btn = processNavbarButton(navbarButtonsRaw);
+    if (btn) {
+      navbarButtons.push(btn);
+    }
+  }
+
   return {
     orientation,
     scrolling,
     expandable,
+    [kNavButtons]: navbarButtons,
   };
 }
 

@@ -2147,7 +2147,7 @@ code.sourceCode a.code-annotation-anchor {
       margin-right: 2em;
       align-items: center;
       @include media-breakpoint-down(md) {
-        flex-basis: 80%;
+        margin-right: auto;
       }
     }
 
@@ -2157,6 +2157,7 @@ code.sourceCode a.code-annotation-anchor {
       }
       @include media-breakpoint-down(md) {
         order: 1000;
+        padding-bottom: 0.5em;
       }
       align-self: stretch;
       .navbar-nav {
@@ -2189,6 +2190,20 @@ code.sourceCode a.code-annotation-anchor {
       min-height: 30px;
       object-fit: cover;
       margin-right: 1em;
+    }
+
+    .quarto-dashboard-links {
+      order: 9;
+      padding-right: 1em;
+    }
+    .quarto-dashboard-link-text {
+      margin-left: 0.25em;
+    }
+
+    .quarto-dashboard-link {
+      padding-right: 0em;
+      padding-left: 0.7em;
+      text-decoration: none;
     }
   }
 

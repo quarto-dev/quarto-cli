@@ -42,6 +42,7 @@ import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
 import {
+  DashboardMeta,
   dashboardMeta,
   kDashboard,
   kDontMutateTags,
@@ -57,6 +58,7 @@ import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
 import { sassLayer } from "../../core/sass.ts";
+import { processNavButtons } from "./format-dashboard-navbutton.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -98,6 +100,9 @@ export function dashboardFormat() {
       quiet?: boolean,
     ) => {
       if (baseHtmlFormat.formatExtras) {
+        // Read the dashboard metadata
+        const dashboard = dashboardMeta(format);
+
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,
@@ -113,10 +118,9 @@ export function dashboardFormat() {
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
-          dashboardHtmlPostProcessor(format),
+          dashboardHtmlPostProcessor(dashboard),
         );
 
-        const dashboard = dashboardMeta(format);
         extras[kFilterParams] = extras[kFilterParams] || {};
         extras[kFilterParams][kDashboard] = {
           orientation: dashboard.orientation,
@@ -213,7 +217,7 @@ registerWriterFormatHandler((format) => {
 });
 
 function dashboardHtmlPostProcessor(
-  format: Format,
+  dashboardMeta: DashboardMeta,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -221,14 +225,11 @@ function dashboardHtmlPostProcessor(
       supporting: [],
     };
 
-    // Read the dashboard metadata
-    const dashboard = dashboardMeta(format);
-
     // Mark the body as a quarto dashboard
     doc.body.classList.add(kDashboardClz);
 
     // Note the orientation as fill if needed
-    if (!dashboard.scrolling) {
+    if (!dashboardMeta.scrolling) {
       doc.body.classList.add("dashboard-fill");
     }
 
@@ -242,7 +243,7 @@ function dashboardHtmlPostProcessor(
       ];
 
       // The scrolling behavior
-      if (!dashboard.scrolling) {
+      if (!dashboardMeta.scrolling) {
         containerClz.push("bslib-page-fill"); // only apply this if we aren't scrolling
       } else {
         containerClz.push("dashboard-scrolling"); // only apply this if we are scrolling
@@ -274,6 +275,9 @@ function dashboardHtmlPostProcessor(
     // Process pages that may be present in the document
     processPages(doc);
 
+    // Process Navbar buttons
+    processNavButtons(doc, dashboardMeta);
+
     // Adjust the appearance of row  elements
     processRows(doc);
 
@@ -281,7 +285,7 @@ function dashboardHtmlPostProcessor(
     processColumns(doc);
 
     // Process card
-    processCards(doc, dashboard);
+    processCards(doc, dashboardMeta);
 
     // Process valueboxes
     processValueBoxes(doc);
