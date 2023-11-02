@@ -2222,9 +2222,16 @@ code.sourceCode a.code-annotation-anchor {
 }
 
 .quarto-dashboard {
+  // Mobile sizes convert into 'scrolling' layouts
   @include media-breakpoint-down(sm) {
     .bslib-grid {
-      grid-template-rows: max-content !important;
+      grid-template-rows: minmax(1em, max-content) !important;
+    }
+    .sidebar-content {
+      height: inherit;
+    }
+    .page-layout-custom {
+      min-height: 100vh;
     }
   }
 

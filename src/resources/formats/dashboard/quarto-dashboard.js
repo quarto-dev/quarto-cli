@@ -89,7 +89,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           }
           prevWidth = clientWidth;
         }
-      }, 5)
+      }, 2)
     );
     resizeObserver.observe(window.document.body);
   }
