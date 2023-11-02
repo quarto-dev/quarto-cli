@@ -75,5 +75,12 @@ export function processNavButtons(doc: Document, dashboardMeta: DashboardMeta) {
     }
     containerEl.appendChild(linkEl);
   });
-  navbarContainerEl.appendChild(containerEl);
+
+  // See if we can place this in the `collapse` region
+  const navbarCollapseEl = navbarEl.querySelector(`.navbar-collapse`);
+  if (navbarCollapseEl) {
+    navbarCollapseEl.appendChild(containerEl);
+  } else {
+    navbarContainerEl.appendChild(containerEl);
+  }
 }

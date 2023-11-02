@@ -1,0 +1,49 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    nav-buttons:
+      - icon: envelope
+        href: https://www.usps.gov?url=|url|
+      - twitter
+      - reddit
+      - github
+---
+
+## Row
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red",
+  icon = "envelope",
+  title = "Cool Things"
+)
+```
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red",
+  icon = "envelope",
+  title = "Cool Things"
+)
+```
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red",
+  icon = "envelope",
+  title = "Cool Things"
+)
+```
+
+## Row
+
+```{r}
+plot(cars)
+```

@@ -4,10 +4,8 @@ format:
   dashboard:
     orientation: columns
     nav-buttons:
-      - text: USPS Mail
-        icon: envelope
+      - icon: envelope
         href: https://www.usps.gov?url=|url|
-      - linkedin
       - twitter
       - reddit
       - github
