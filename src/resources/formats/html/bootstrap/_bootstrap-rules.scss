@@ -2105,6 +2105,10 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
+  #quarto-appendix {
+    display: none;
+  }
+
   .dashboard-page:not(.dashboard-sidebar-container) {
     padding: 0.7em;
   }
