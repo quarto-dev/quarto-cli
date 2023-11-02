@@ -183,6 +183,9 @@ function run_emulated_filter(doc, filter)
     if node.attributes.__quarto_custom_scaffold == "true" then
       return nil
     end
+    if node.identifier == _quarto.ast.vault._uuid then
+      return nil
+    end
     if filter.Div ~= nil then
       return filter.Div(node)
     end
@@ -257,6 +260,35 @@ function create_emulated_node(t, tbl, context, forwarder)
 end
 
 _quarto.ast = {
+  vault = {
+    _uuid = "3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9",
+
+    _added = {},
+    _removed = {},
+    add = function(id, contents)
+      _quarto.ast.vault._added[id] = contents
+    end,
+    remove = function(id)
+      _quarto.ast.vault._removed[id] = true
+    end,
+    locate = function(doc)
+      if doc == nil then
+        doc = _quarto.ast._current_doc
+      end
+      -- attempt a fast lookup first
+      if #doc.blocks > 0 and doc.blocks[#doc.blocks].identifier == _quarto.ast.vault._uuid then
+        return doc.blocks[#doc.blocks]
+      else
+        -- otherwise search for it
+        for _, block in ipairs(doc.blocks) do
+          if block.identifier == _quarto.ast.vault._uuid then
+            return block
+          end
+        end
+      end
+      return nil
+    end,  
+  },
   custom_node_data = custom_node_data,
   create_custom_node_scaffold = create_custom_node_scaffold,
 
