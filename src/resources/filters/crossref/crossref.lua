@@ -152,6 +152,8 @@ local quarto_normalize_filters = {
     return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
+  { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() },
+
   { name = "pre-table-merge-raw-html", 
     filter = table_merge_raw_html()
   },

@@ -60,7 +60,7 @@ function parseOption(name, options, def)
   end
 end
 
-function capLocation(scope, default)
+function cap_location_from_option(scope, default)
   local loc = option(scope .. '-cap-location', option('cap-location', nil))
   if loc ~= nil then
     return inlinesToString(loc)
