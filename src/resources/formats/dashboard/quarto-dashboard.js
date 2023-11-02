@@ -69,20 +69,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const sidebar = window.document.querySelector(
     ".quarto-dashboard-content .bslib-sidebar-layout"
   );
+  let prevWidth = window.document.body.clientWidth;
   const sidebarCollapseClass = "sidebar-collapsed";
   if (sidebar) {
     const resizeObserver = new ResizeObserver(
-      throttle(function () {
-        if (window.document.body.clientWidth <= 576) {
-          // Hide the sidebar
-          if (!sidebar.classList.contains(sidebarCollapseClass)) {
-            sidebar.classList.add(sidebarCollapseClass);
+      throttle(function (e) {
+        const clientWidth = window.document.body.clientWidth;
+        if (prevWidth !== clientWidth) {
+          if (clientWidth <= 576) {
+            // Hide the sidebar
+            if (!sidebar.classList.contains(sidebarCollapseClass)) {
+              sidebar.classList.add(sidebarCollapseClass);
+            }
+          } else {
+            // Show the sidebar
+            if (sidebar.classList.contains(sidebarCollapseClass)) {
+              sidebar.classList.remove(sidebarCollapseClass);
+            }
           }
-        } else {
-          // Show the sidebar
-          if (sidebar.classList.contains(sidebarCollapseClass)) {
-            sidebar.classList.remove(sidebarCollapseClass);
-          }
+          prevWidth = clientWidth;
         }
       }, 5)
     );
