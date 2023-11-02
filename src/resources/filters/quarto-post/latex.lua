@@ -208,6 +208,23 @@ function render_latex()
     traverse = "topdown",
     Div = column_margin,
     Span = column_margin,
+    PanelLayout = function(panel)
+      panel.rows = _quarto.ast.walk(panel.rows, {
+        FloatRefTarget = function(float)
+          if float.attributes["ref-parent"] == nil then
+            -- we're about to mess up here, force a [H] position
+            local ref = refType(float.identifier)
+            if ref == nil then
+              -- don't know what to do with this
+              -- give up
+              return nil
+            end
+            float.attributes[ref .. "-pos"] = "H"
+            return float
+          end
+        end
+      })
+    end,
     
     -- Pandoc emits longtable environments by default;
     -- longtable environments increment the _table_ counter (!!)

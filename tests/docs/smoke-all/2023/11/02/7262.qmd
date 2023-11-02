@@ -1,0 +1,22 @@
+---
+format:
+  pdf: default
+execute:
+  echo: false
+---
+
+::: {layout-ncol="2" layout-valign="bottom"}
+
+```{r}
+#| label: fig-example
+#| fig-cap: Figure caption
+plot(cars)
+```
+
+```{r}
+#| label: tbl-example
+#| tbl-cap: Table caption
+knitr::kable(head(cars))
+```
+
+:::
