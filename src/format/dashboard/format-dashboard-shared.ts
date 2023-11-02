@@ -27,7 +27,8 @@ export interface NavButton {
   text?: string;
   icon?: string;
   rel?: string;
-  alt?: string;
+  target?: string;
+  title?: string;
   ["aria-label"]?: string;
 }
 
@@ -206,6 +207,7 @@ const kNavButtonAliases: Record<
   linkedin: (text?: string) => {
     return Promise.resolve({
       icon: "linkedin",
+      title: "LinkedIn",
       href: `https://www.linkedin.com/sharing/share-offsite/?url=|url|&title=${
         text ? encodeURI(text) : undefined
       }`,
@@ -214,12 +216,14 @@ const kNavButtonAliases: Record<
   facebook: (_text?: string) => {
     return Promise.resolve({
       icon: "facebook",
+      title: "Facebook",
       href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
     });
   },
   reddit: (text?: string) => {
     return Promise.resolve({
       icon: "reddit",
+      title: "Reddit",
       href: `https://reddit.com/submit?url=|url|&title=${
         text ? encodeURI(text) : undefined
       }`,
@@ -228,6 +232,7 @@ const kNavButtonAliases: Record<
   twitter: (text?: string) => {
     return Promise.resolve({
       icon: "twitter",
+      title: "Twitter",
       href: `https://twitter.com/intent/tweet?url=|url|&text=${
         text ? encodeURI(text) : undefined
       }`,
@@ -238,6 +243,7 @@ const kNavButtonAliases: Record<
     if (context.repoUrl) {
       return {
         icon: "github",
+        title: "GitHub",
         href: context.repoUrl,
       } as NavButton;
     } else {

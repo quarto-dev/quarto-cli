@@ -47,9 +47,13 @@ export function processNavButtons(doc: Document, dashboardMeta: DashboardMeta) {
     if (btn.rel) {
       linkAttr.rel = btn.rel;
     }
-    if (btn.alt) {
-      linkAttr.alt = btn.alt;
+    if (btn.title) {
+      linkAttr.title = btn.title;
     }
+    if (btn.target) {
+      linkAttr.target = btn.target;
+    }
+
     if (btn["aria-label"]) {
       linkAttr["aria-label"] = btn["aria-label"];
     }

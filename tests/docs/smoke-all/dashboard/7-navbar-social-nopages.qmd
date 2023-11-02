@@ -44,6 +44,14 @@ list(
 
 ## Row
 
+::: {.card}
+
 ```{r}
 plot(cars)
 ```
+
+This is some cool content what up^[Inlines notes are easier to write,
+since you don't have to pick an identifier and move down to
+type the note.] dog. 
+
+:::

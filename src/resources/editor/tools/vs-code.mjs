@@ -21646,6 +21646,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Default orientation for dashboard content (default\n<code>rows</code>)",
         "Use scrolling rather than fill layout (default:\n<code>false</code>)",
         "Make card content expandable (default: <code>true</code>)",
+        "Links to display on the dashboard navigation bar",
         "Title displayed in card header",
         {
           short: "Title displayed in dashboard card header",
@@ -21985,8 +21986,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "Links to display on the dashboard navigation bar"
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22210,12 +22210,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 176443,
+        _internalId: 178127,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 176435,
+            _internalId: 178119,
             type: "enum",
             enum: [
               "png",
@@ -22231,7 +22231,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 176442,
+            _internalId: 178126,
             type: "anyOf",
             anyOf: [
               {
@@ -22409,6 +22409,7 @@ var require_yaml_intelligence_resources = __commonJS({
                       icon: "string",
                       rel: "string",
                       target: "string",
+                      title: "string",
                       "aria-label": "string"
                     }
                   }

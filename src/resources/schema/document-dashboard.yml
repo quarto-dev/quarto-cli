@@ -39,5 +39,6 @@
               icon: string
               rel: string
               target: string
+              title: string
               aria-label: string
   description: "Links to display on the dashboard navigation bar"
