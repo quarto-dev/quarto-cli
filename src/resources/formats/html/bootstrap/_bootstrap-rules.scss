@@ -2336,35 +2336,6 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
-  .showcase-left-center .value-box-grid {
-    display: grid;
-    grid-template-columns: 30% auto;
-    grid-template-areas: "left right";
-
-    .value-box-showcase {
-      grid-area: left;
-    }
-    .value-box-area {
-      grid-area: right;
-    }
-  }
-
-  .showcase-top-right .value-box-grid {
-    display: grid;
-    grid-template-columns: 1fr minmax(30%, 75px);
-    grid-template-areas: "left right";
-
-    .value-box-showcase {
-      grid-area: right;
-      margin-top: 0;
-      margin-left: auto;
-      align-items: end;
-    }
-    .value-box-area {
-      grid-area: left;
-    }
-  }
-
   .card figure.quarto-float {
     display: flex;
     flex-direction: column;
