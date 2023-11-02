@@ -109,7 +109,7 @@ function toNav(navItem: NavItem, doc: Document) {
   }
 
   const aEl = makeEl("a", {
-    id: `tab-${navItem}`,
+    id: `tab-${navItem.id}`,
     classes,
     attributes: {
       "data-bs-toggle": "tab",
