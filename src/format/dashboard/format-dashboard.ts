@@ -297,15 +297,20 @@ function dashboardHtmlPostProcessor(
     processTables(doc);
 
     // Process fill images to include proper fill behavior
-    const fillImgNodes = doc.body.querySelectorAll(
+
+    const imgFillSelectors = [
+      "div.cell-output-display > div.quarto-figure > .quarto-float img",
       "div.cell-output-display > img",
-    );
-    for (const fillImgNode of fillImgNodes) {
-      const fillImgEl = fillImgNode as Element;
-      fillImgEl.classList.add("quarto-dashboard-img-contain");
-      fillImgEl.removeAttribute("height");
-      fillImgEl.removeAttribute("width");
-    }
+    ];
+    imgFillSelectors.forEach((selector) => {
+      const fillImgNodes = doc.body.querySelectorAll(selector);
+      for (const fillImgNode of fillImgNodes) {
+        const fillImgEl = fillImgNode as Element;
+        fillImgEl.classList.add("quarto-dashboard-img-contain");
+        fillImgEl.removeAttribute("height");
+        fillImgEl.removeAttribute("width");
+      }
+    });
 
     return Promise.resolve(result);
   };
