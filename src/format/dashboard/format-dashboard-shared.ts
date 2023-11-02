@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
+import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { gitHubContext } from "../../core/github.ts";
@@ -46,11 +47,12 @@ export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
     : "rows";
   const scrolling = dashboardRaw.scrolling === true;
   const expandable = dashboardRaw.expandable !== false;
+  const dashboardTitle = format.metadata[kTitle] as string | undefined;
 
   const processNavbarButton = async (buttonRaw: unknown) => {
     if (typeof (buttonRaw) === "string") {
       if (kNavButtonAliases[buttonRaw] !== undefined) {
-        return kNavButtonAliases[buttonRaw]();
+        return kNavButtonAliases[buttonRaw](dashboardTitle);
       }
       return undefined;
     } else {
@@ -197,46 +199,49 @@ export const applyAttributes = (el: Element, attr: Record<string, string>) => {
     el.setAttribute(key, attr[key]);
   }
 };
-
-const resolveGithub = async () => {
+const kNavButtonAliases: Record<
+  string,
+  (text?: string) => Promise<NavButton | undefined>
+> = {
+  linkedin: (text?: string) => {
+    return Promise.resolve({
+      icon: "linkedin",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=|url|&title=${
+        text ? encodeURI(text) : undefined
+      }`,
+    });
+  },
+  facebook: (_text?: string) => {
+    return Promise.resolve({
+      icon: "facebook",
+      href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
+    });
+  },
+  reddit: (text?: string) => {
+    return Promise.resolve({
+      icon: "reddit",
+      href: `https://reddit.com/submit?url=|url|&title=${
+        text ? encodeURI(text) : undefined
+      }`,
+    });
+  },
+  twitter: (text?: string) => {
+    return Promise.resolve({
+      icon: "twitter",
+      href: `https://twitter.com/intent/tweet?url=|url|&text=${
+        text ? encodeURI(text) : undefined
+      }`,
+    });
+  },
+  github: async (_text?: string) => {
+    const context = await gitHubContext(Deno.cwd());
+    if (context.repoUrl) {
+      return {
+        icon: "github",
+        href: context.repoUrl,
+      } as NavButton;
+    } else {
+      return undefined;
+    }
+  },
 };
-
-const kNavButtonAliases: Record<string, () => Promise<NavButton | undefined>> =
-  {
-    linkedin: () => {
-      return Promise.resolve({
-        icon: "linkedin",
-        href: "https://www.linkedin.com/sharing/share-offsite/?url=|url|",
-      });
-    },
-    facebook: () => {
-      return Promise.resolve({
-        icon: "facebook",
-        href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
-      });
-    },
-    reddit: () => {
-      return Promise.resolve({
-        icon: "reddit",
-        href:
-          "https://reddit.com/submit?url=|url|&title=Sharing%20My%20Dashboard",
-      });
-    },
-    twitter: () => {
-      return Promise.resolve({
-        icon: "twitter",
-        href: "https://twitter.com/intent/tweet?url=|url|",
-      });
-    },
-    github: async () => {
-      const context = await gitHubContext(Deno.cwd());
-      if (context.repoUrl) {
-        return {
-          icon: "github",
-          href: context.repoUrl,
-        } as NavButton;
-      } else {
-        return undefined;
-      }
-    },
-  };
