@@ -189,7 +189,7 @@ end)
 --       captionPara.content:insert(pandoc.RawInline("html", figcaption))
 --       tappend(captionPara.content, caption.content)
 --       captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
---       if capLocation('fig', 'bottom') == 'bottom' then
+--       if cap_location_from_option('fig', 'bottom') == 'bottom' then
 --         panel.content:insert(captionPara)
 --       else
 --         tprepend(panel.content, { captionPara })
@@ -198,7 +198,7 @@ end)
 --       local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
 --       if hasTableRef(divEl) then
 --         panelCaption.attr.classes:insert("table-caption")
---         if capLocation('tbl', 'top') == 'bottom' then
+--         if cap_location_from_option('tbl', 'top') == 'bottom' then
 --           panel.content:insert(panelCaption)
 --         else
 --           tprepend(panel.content, { panelCaption })
@@ -312,7 +312,7 @@ function renderHtmlFigure(el, render)
     ))
     tappend(figureCaption.content, captionInlines) 
     figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-    if capLocation('fig', 'bottom') == 'top' then
+    if cap_location_from_option('fig', 'bottom') == 'top' then
       figureDiv.content:insert(figureCaption)
       tappend(figureDiv.content, figure)
     else

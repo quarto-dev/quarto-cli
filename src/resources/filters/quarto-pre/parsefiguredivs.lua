@@ -3,6 +3,26 @@
 
 local patterns = require("modules/patterns")
 
+local function process_div_caption_classes(div)
+  -- knitr forwards "cap-location: top" as `.caption-top`...
+  -- and in that case we don't know if it's a fig- or a tbl- :facepalm:
+  -- so we have to use cap-locatin generically in the attribute
+  if div.classes:find_if(
+    function(class) return class:match("caption%-.+") end) then
+    local matching_classes = div.classes:filter(function(class)
+      return class:match("caption%-.+")
+    end)
+    div.classes = div.classes:filter(function(class)
+      return not class:match("caption%-.+")
+    end)
+    for i, c in ipairs(matching_classes) do
+      div.attributes["cap-location"] = c:match("caption%-(.+)")
+    end
+    return true
+  end
+  return false
+end
+
 local function coalesce_code_blocks(content)
   local result = pandoc.Blocks({})
   local state = "start"
@@ -134,6 +154,7 @@ function parse_reftargets()
   end
 
   local function parse_float_div(div)
+    process_div_caption_classes(div)
     local ref = refType(div.identifier)
     if ref == nil then
       fail("Float div without crossref identifier?")
@@ -151,6 +172,24 @@ function parse_reftargets()
     local content = div.content
     local caption_attr_key = ref .. "-cap"
 
+    -- caption location handling
+
+    -- .*-cap-location
+    local caption_location_attr_key = ref .. "-cap-location"
+    local caption_location_class_pattern = ".*cap%-location%-(.*)"
+    local caption_location_classes = div.classes:filter(function(class)
+      return class:match(caption_location_class_pattern)
+    end)
+
+    if #caption_location_classes then
+      div.classes = div.classes:filter(function(class)
+        return not class:match(caption_location_class_pattern)
+      end)
+      for _, class in ipairs(caption_location_classes) do
+        local c = class:match(caption_location_class_pattern)
+        div.attributes[caption_location_attr_key] = c
+      end
+    end
     local caption = refCaptionFromDiv(div)
     if caption ~= nil then
       div.content:remove(#div.content)
@@ -380,6 +419,40 @@ function parse_reftargets()
         return parse_float_div(div)
       elseif is_theorem_div(div) then
         return parse_theorem_div(div)
+      end
+
+      if div.classes:includes("cell") then
+        process_div_caption_classes(div)
+        -- forward cell attributes to potential FloatRefTargets
+        div = _quarto.ast.walk(div, {
+          Figure = function(fig)
+            if div.attributes["cap-location"] then
+              fig.attributes["cap-location"] = div.attributes["cap-location"]
+            end
+            for i, c in ipairs(div.classes) do
+              local c = c:match(".*%-?cap%-location%-(.*)")
+              if c then
+                fig.attributes["cap-location"] = c
+              end
+            end
+            return fig
+          end,
+          CodeBlock = function(block)
+            for _, k in ipairs({"cap-location", "lst-cap-location"}) do
+              if div.attributes[k] then
+                block.attributes[k] = div.attributes[k]
+              end
+            end
+            for i, c in ipairs(div.classes) do
+              local c = c:match(".*%-?cap%-location%-(.*)")
+              if c then
+                block.attributes["cap-location"] = c
+              end
+            end
+            return block
+          end,
+        })
+        return div
       end
     end,
 
