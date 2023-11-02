@@ -478,8 +478,8 @@ export const jupyterEngine: ExecutionEngine = {
       throw new Error();
     }
 
-    const [_dir, stem] = dirAndStem(options.input);
-    const appFile = `${stem}-app.py`;
+    const [_dir] = dirAndStem(options.input);
+    const appFile = "app.py";
     const cmd = [
       ...await pythonExec(),
       "-m",
@@ -523,12 +523,12 @@ export const jupyterEngine: ExecutionEngine = {
   postRender: async (file: RenderResultFile, _context?: ProjectContext) => {
     // discover non _files dir resources for server: shiny and amend app.py with them
     if (isServerShiny(file.format)) {
-      const [dir, stem] = dirAndStem(file.input);
+      const [dir] = dirAndStem(file.input);
       const filesDir = join(dir, inputFilesDir(file.input));
       const extraResources = file.resourceFiles
         .filter((resource) => !resource.startsWith(filesDir))
         .map((resource) => relative(dir, resource));
-      const appScript = join(dir, `${stem}-app.py`);
+      const appScript = join(dir, `app.py`);
       if (existsSync(appScript)) {
         // compute static assets
         const staticAssets = [inputFilesDir(file.input), ...extraResources];
