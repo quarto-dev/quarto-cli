@@ -110,6 +110,7 @@ import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
 import { basename } from "https://deno.land/std@0.185.0/path/win32.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -528,7 +529,8 @@ export const jupyterEngine: ExecutionEngine = {
       const extraResources = file.resourceFiles
         .filter((resource) => !resource.startsWith(filesDir))
         .map((resource) => relative(dir, resource));
-      const appScript = join(dir, `app.py`);
+      const appScriptDir = _context ? projectOutputDir(_context) : dir;
+      const appScript = join(appScriptDir, `app.py`);
       if (existsSync(appScript)) {
         // compute static assets
         const staticAssets = [inputFilesDir(file.input), ...extraResources];
