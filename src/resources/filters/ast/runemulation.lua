@@ -12,7 +12,7 @@ local ensure_vault = function(doc)
  
   -- create if missing
   if vault == nil then
-    vault = pandoc.Div({}, pandoc.Attr(_quarto.ast.vault._uuid, {}, {}))
+    vault = pandoc.Div({}, pandoc.Attr(_quarto.ast.vault._uuid, {"hidden"}, {}))
     doc.blocks:insert(vault)
   end
 
