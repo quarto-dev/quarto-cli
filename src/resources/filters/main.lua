@@ -353,13 +353,13 @@ local quarto_post_filters = {
 }
 
 local quarto_finalize_filters = {
-  -- quarto-finalize
-  { name = "finalize-combined", filter =
+    -- quarto-finalize
+    { name = "finalize-fileMetadataAndMediabag", filter =
     combineFilters({
       file_metadata(),
-      mediabag(),
-      inject_vault_content_into_rawlatex(),
-    })},
+      mediabag()
+    })
+  },
   { name = "finalize-bookCleanup", filter = bookCleanup() },
   { name = "finalize-cites", filter = writeCites() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },

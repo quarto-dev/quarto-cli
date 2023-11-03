@@ -5,48 +5,6 @@
 
 local profiler = require('profiler')
 
--- locate or create the quarto vault,
--- inserting the just-added nodes if needed, and mutating doc
-local ensure_vault = function(doc)
-  local vault = _quarto.ast.vault.locate(doc)
- 
-  -- create if missing
-  if vault == nil then
-    vault = pandoc.Div({}, pandoc.Attr(_quarto.ast.vault._uuid, {}, {}))
-    doc.blocks:insert(vault)
-  end
-
-  for k, v in pairs(_quarto.ast.vault._added) do
-    local div = pandoc.Div(quarto.utils.as_blocks(v), pandoc.Attr(k, {}, {}))
-    vault.content:insert(div)
-  end
-  vault.content = _quarto.ast.walk(vault.content, {
-    Div = function(div)
-      if _quarto.ast.vault._removed[div.identifier] then
-        return {}
-      end
-    end
-  }) or pandoc.Blocks({}) -- to satisfy the Lua analyzer
-
-  _quarto.ast.vault._added = {}
-  _quarto.ast.vault._removed = {}
-end
-
-local function remove_vault(doc)
-  -- attempt a fast lookup first
-  if #doc.blocks > 0 and doc.blocks[#doc.blocks].identifier == _quarto.ast.vault._uuid then
-    doc.blocks:remove(#doc.blocks)
-  else
-    -- otherwise search for it
-    for i, block in ipairs(doc.blocks) do
-      if block.identifier == _quarto.ast.vault._uuid then
-        doc.blocks:remove(i)
-        break
-      end
-    end
-  end
-end
-
 local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
   for i, v in ipairs(filters) do
@@ -78,9 +36,8 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
       if v.print_ast then
         print(pandoc.write(doc, "native"))
       else
-        _quarto.ast._current_doc = doc
+
         doc = run_emulated_filter(doc, v.filter)
-        ensure_vault(doc)
 
         add_trace(doc, v.name)
 
@@ -101,7 +58,6 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
     end
   end
   end_trace()
-  remove_vault(doc)
   return doc
 end
 
