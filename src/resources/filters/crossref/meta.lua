@@ -5,6 +5,9 @@
 function crossrefMetaInject()
   return {
     Meta = function(meta)
+      local function as_latex(inlines)
+        return trim(pandoc.write(pandoc.Pandoc(inlines), "latex"))
+      end
       metaInjectLatex(meta, function(inject)
         
         inject(usePackage("caption"))
@@ -14,8 +17,8 @@ function crossrefMetaInject()
           maybeRenewCommand("contentsname", param("toc-title-document", "Table of contents")) ..
           maybeRenewCommand("listfigurename", listOfTitle("lof", "List of Figures")) ..
           maybeRenewCommand("listtablename", listOfTitle("lot", "List of Tables")) ..
-          maybeRenewCommand("figurename", titleString("fig", "Figure")) ..
-          maybeRenewCommand("tablename", titleString("tbl", "Table")) ..
+          maybeRenewCommand("figurename", as_latex(title("fig", "Figure"))) ..
+          maybeRenewCommand("tablename", as_latex(title("tbl", "Table"))) ..
           "}\n"
         )
       
@@ -23,7 +26,7 @@ function crossrefMetaInject()
           inject(
             "\\newcommand*\\listoflistings\\lstlistoflistings\n" ..
             "\\AtBeginDocument{%\n" ..
-            "\\renewcommand*\\lstlistlistingname{" .. listOfTitle("lol", "List of Listigs") .. "}\n" ..
+            "\\renewcommand*\\lstlistlistingname{" .. listOfTitle("lol", "List of Listings") .. "}\n" ..
             "}\n"
           )
         else
@@ -31,7 +34,7 @@ function crossrefMetaInject()
             usePackage("float") .. "\n" ..
             "\\floatstyle{ruled}\n" ..
             "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}\n" ..
-            "\\floatname{codelisting}{" .. titleString("lst", "Listing") .. "}\n"
+            "\\floatname{codelisting}{" .. as_latex(title("lst", "Listing")) .. "}\n"
           )
 
           inject(
