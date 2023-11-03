@@ -1,13 +1,13 @@
 ## Languages
 
-- Add Serbian-Latin translation (author: @n_grubor)
-- Add Slovak translation (author: @tom67)
-- Improve Italian translation of 'proof' (author: @espinielli)
-- Add Greek translation (author: @cultab)
-- Add Norwegian translation (author: @lektorodd)
-- Add Lithuanian translation (author: @GegznaV)
-- Add Traditional Chinese (Taiwan) translation (author: @bobby1030)
-- Update Catalan translation (author: @jmaspons)
+- Add Serbian-Latin translation (author: [@n_grubor](https://github.com/n_grubor))
+- Add Slovak translation (author: [@tom67](https://github.com/tom67))
+- Improve Italian translation of 'proof' (author: [@espinielli](https://github.com/espinielli))
+- Add Greek translation (author: [@cultab](https://github.com/cultab))
+- Add Norwegian translation (author: [@lektorodd](https://github.com/lektorodd))
+- Add Lithuanian translation (author: [@GegznaV](https://github.com/GegznaV))
+- Add Traditional Chinese (Taiwan) translation (author: [@bobby1030](https://github.com/bobby1030))
+- Update Catalan translation (author: [@jmaspons](https://github.com/jmaspons))
 
 ## Dependencies
 
@@ -180,7 +180,7 @@
 ## Mermaid diagrams
 
 - Upgrade to 10.2.0-rc.2
-- ([#5426](https://github.com/quarto-dev/quarto-cli/issues/5426)): Don't escape mermaid output in markdown formats (author: @rcannood).
+- ([#5426](https://github.com/quarto-dev/quarto-cli/issues/5426)): Don't escape mermaid output in markdown formats (author: [@rcannood](https://github.com/rcannood)).
 
 ## Author and Affiliations
 
@@ -202,7 +202,7 @@
 - ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): Add isGithubMarkdownOutput() to quarto.format API.
 - ([#6935](https://github.com/quarto-dev/quarto-cli/issues/6935)): render callouts to `gfm` using GitHub's syntax.
 - ([#7067](https://github.com/quarto-dev/quarto-cli/issues/7067)): Add new entry points to user Lua filters. See <https://quarto.org/docs/prerelease/1.4/lua_changes.html>.
-- ([#7083](https://github.com/quarto-dev/quarto-cli/issues/7083)): Separate custom node handlers for Span and Div nodes, enabling conditional content spans (author: @knuesel)
+- ([#7083](https://github.com/quarto-dev/quarto-cli/issues/7083)): Separate custom node handlers for Span and Div nodes, enabling conditional content spans (author: [@knuesel](https://github.com/knuesel))
 
 ## Debian Installer
 
@@ -249,6 +249,6 @@
 - ([#6836](https://github.com/quarto-dev/quarto-cli/issues/6836)): Fix missing `docx` format for `abstract` key in reference schema.
 - ([#7013](https://github.com/quarto-dev/quarto-cli/issues/7013)): Improve error message when there is an issue finding or running R and add more verbosity in [verbose mode](https://quarto.org/docs/troubleshooting/#verbose-mode).
 - ([#7032](https://github.com/quarto-dev/quarto-cli/issues/7032)): `quarto` is now correctly working when installed in a folder with spaces in path.
-- ([#7131](https://github.com/quarto-dev/quarto-cli/issues/7131)): Fix typo in ISBN entry for JATS subarticle template (author: @jasonaris).
+- ([#7131](https://github.com/quarto-dev/quarto-cli/issues/7131)): Fix typo in ISBN entry for JATS subarticle template (author: [@jasonaris](https://github.com/jasonaris)).
 - ([#3599](https://github.com/quarto-dev/quarto-cli/issues/3599), [#5870](https://github.com/quarto-dev/quarto-cli/issues/5870)): Fix hash issue causing unexpected render when `freeze` is activated on Windows but re-rendered on Linux (e.g. in Github Action).
 - ([#7252](https://github.com/quarto-dev/quarto-cli/issues/7252)): Improve handling with `tlmgr` of some mismatched LaTeX support files, associated with `expl3.sty` loading.
