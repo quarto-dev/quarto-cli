@@ -1,6 +1,6 @@
 ## Languages
 
-- Add Serbian-Latin translation (author: [@n_grubor](https://github.com/n_grubor))
+- Add Serbian-Latin translation (author: [@nikola-grubor](https://github.com/nikola-grubor))
 - Add Slovak translation (author: [@tom67](https://github.com/tom67))
 - Improve Italian translation of 'proof' (author: [@espinielli](https://github.com/espinielli))
 - Add Greek translation (author: [@cultab](https://github.com/cultab))
