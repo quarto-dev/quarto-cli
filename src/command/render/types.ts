@@ -35,6 +35,7 @@ export interface RenderOptions {
   devServerReload?: boolean;
   previewServer?: boolean;
   setProjectDir?: boolean;
+  forceClean?: boolean;
   echo?: boolean;
   warning?: boolean;
   quietPandoc?: boolean;

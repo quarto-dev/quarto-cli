@@ -222,6 +222,7 @@
 ## Other Fixes and Improvements
 
 - Exit if project pre or post render script fails
+- Support `--output-dir` for rendering individual files.
 - Use InternalError in typescript code, and offer a more helpful error message when an internal error happens.
 - ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.

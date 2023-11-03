@@ -36,7 +36,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--output-dir",
-    "Write project output to DIR (path is project relative)",
+    "Write output to DIR (path is input/project relative)",
   )
   .option(
     "-M, --metadata",
