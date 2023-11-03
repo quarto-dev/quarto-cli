@@ -11,7 +11,7 @@
 
 ## Dependencies
 
-- Update to Pandoc 3.1.6.1
+- Update to Pandoc 3.1.8
 - Update to Typst 0.7.0
 
 ## HTML Format
