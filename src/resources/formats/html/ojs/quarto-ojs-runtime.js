@@ -203,9 +203,9 @@ function dependency(name, version, main) {
   };
 }
 
-const d3 = dependency("d3", "7.8.4", "dist/d3.min.js");
-const inputs = dependency("@observablehq/inputs", "0.10.4", "dist/inputs.min.js");
-const plot = dependency("@observablehq/plot", "0.6.5", "dist/plot.umd.min.js");
+const d3 = dependency("d3", "7.8.5", "dist/d3.min.js");
+const inputs = dependency("@observablehq/inputs", "0.10.6", "dist/inputs.min.js");
+const plot = dependency("@observablehq/plot", "0.6.11", "dist/plot.umd.min.js");
 const graphviz = dependency("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
 const highlight = dependency("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
 const katex = dependency("@observablehq/katex", "0.11.1", "dist/katex.min.js");
@@ -1207,7 +1207,7 @@ const __query = Object.assign(
 function sourceCache(loadSource) {
   const cache = new WeakMap();
   return (source, name) => {
-    if (!source) throw new Error("data source not found");
+    if (!source || typeof source !== "object") throw new Error("invalid data source");
     let promise = cache.get(source);
     if (!promise || (isDataArray(source) && source.length !== promise._numRows)) {
       // Warning: do not await here! We need to populate the cache synchronously.
@@ -1636,15 +1636,13 @@ function getSchema(source) {
   return {schema, inferred: false};
 }
 
-// This function applies table cell operations to an in-memory table (array of
-// objects); it should be equivalent to the corresponding SQL query. TODO Use
-// DuckDBClient for data arrays, too, and then we wouldn’t need our own __table
-// function to do table operations on in-memory data?
-function __table(source, operations) {
+// This function infers a schema from the source data, if one doesn't already
+// exist, and merges type assertions into that schema. If the schema was
+// inferred or if there are type assertions, it then coerces the rows in the
+// source data to the types specified in the schema.
+function applyTypes(source, operations) {
   const input = source;
-  let {columns} = source;
   let {schema, inferred} = getSchema(source);
-  // Combine column types from schema with user-selected types in operations
   const types = new Map(schema.map(({name, type}) => [name, type]));
   if (operations.types) {
     for (const {name, type} of operations.types) {
@@ -1659,6 +1657,67 @@ function __table(source, operations) {
     // Coerce data according to new schema, unless that happened due to
     // operations.types, above.
     source = source.map(d => coerceRow(d, types, schema));
+  }
+  return {source, schema};
+}
+
+function applyNames(source, operations) {
+  if (!operations.names) return source;
+  const overridesByName = new Map(operations.names.map((n) => [n.column, n]));
+  return source.map((d) =>
+    Object.fromEntries(Object.keys(d).map((k) => {
+      const override = overridesByName.get(k);
+      return [override?.name ?? k, d[k]];
+    }))
+  );
+}
+
+// This function applies table cell operations to an in-memory table (array of
+// objects); it should be equivalent to the corresponding SQL query. TODO Use
+// DuckDBClient for data arrays, too, and then we wouldn’t need our own __table
+// function to do table operations on in-memory data?
+function __table(source, operations) {
+  const errors = new Map();
+  const input = source;
+  const typed = applyTypes(source, operations);
+  source = typed.source;
+  let schema = typed.schema;
+  if (operations.derive) {
+    // Derived columns may depend on coerced values from the original data source,
+    // so we must evaluate derivations after the initial inference and coercion
+    // step.
+    const derivedSource = [];
+    operations.derive.map(({name, value}) => {
+      let columnErrors = [];
+      // Derived column formulas may reference renamed columns, so we must
+      // compute derivations on the renamed source. However, we don't modify the
+      // source itself with renamed names until after the other operations are
+      // applied, because operations like filter and sort reference original
+      // column names.
+      // TODO Allow derived columns to reference other derived columns.
+      applyNames(source, operations).map((row, index) => {
+        let resolved;
+        try {
+          // TODO Support referencing `index` and `rows` in the derive function.
+          resolved = value(row);
+        } catch (error) {
+          columnErrors.push({index, error});
+          resolved = undefined;
+        }
+        if (derivedSource[index]) {
+          derivedSource[index] = {...derivedSource[index], [name]: resolved};
+        } else {
+          derivedSource.push({[name]: resolved});
+        }
+      });
+      if (columnErrors.length) errors.set(name, columnErrors);
+    });
+    // Since derived columns are untyped by default, we do a pass of type
+    // inference and coercion after computing the derived values.
+    const typedDerived = applyTypes(derivedSource, operations);
+    // Merge derived source and schema with the source dataset.
+    source = source.map((row, i) => ({...row, ...typedDerived.source[i]}));
+    schema = [...schema, ...typedDerived.schema];
   }
   for (const {type, operands} of operations.filter) {
     const [{value: column}] = operands;
@@ -1760,13 +1819,12 @@ function __table(source, operations) {
   if (from > 0 || to < Infinity) {
     source = source.slice(Math.max(0, from), Math.max(0, to));
   }
+  // Preserve the schema for all columns.
+  let fullSchema = schema.slice();
   if (operations.select.columns) {
     if (schema) {
       const schemaByName = new Map(schema.map((s) => [s.name, s]));
       schema = operations.select.columns.map((c) => schemaByName.get(c));
-    }
-    if (columns) {
-      columns = operations.select.columns;
     }
     source = source.map((d) =>
       Object.fromEntries(operations.select.columns.map((c) => [c, d[c]]))
@@ -1780,23 +1838,19 @@ function __table(source, operations) {
         return ({...s, ...(override ? {name: override.name} : null)});
       });
     }
-    if (columns) {
-      columns = columns.map((c) => {
-        const override = overridesByName.get(c);
-        return override?.name ?? c;
+    if (fullSchema) {
+      fullSchema = fullSchema.map((s) => {
+        const override = overridesByName.get(s.name);
+        return ({...s, ...(override ? {name: override.name} : null)});
       });
     }
-    source = source.map((d) =>
-      Object.fromEntries(Object.keys(d).map((k) => {
-        const override = overridesByName.get(k);
-        return [override?.name ?? k, d[k]];
-      }))
-    );
+    source = applyNames(source, operations);
   }
   if (source !== input) {
     if (schema) source.schema = schema;
-    if (columns) source.columns = columns;
   }
+  source.fullSchema = fullSchema;
+  source.errors = errors;
   return source;
 }
 
@@ -2820,7 +2874,7 @@ const Library = Object.assign(Object.defineProperties(function Library(resolver)
     vl: () => vl(require),
 
     // Sample datasets
-    // https://observablehq.com/@observablehq/datasets
+    // https://observablehq.com/@observablehq/sample-datasets
     aapl: () => new FileAttachment("https://static.observableusercontent.com/files/3ccff97fd2d93da734e76829b2b066eafdaac6a1fafdec0faf6ebc443271cfc109d29e80dd217468fcb2aff1e6bffdc73f356cc48feb657f35378e6abbbb63b9").csv({typed: true}),
     alphabet: () => new FileAttachment("https://static.observableusercontent.com/files/75d52e6c3130b1cae83cda89305e17b50f33e7420ef205587a135e8562bcfd22e483cf4fa2fb5df6dff66f9c5d19740be1cfaf47406286e2eb6574b49ffc685d").csv({typed: true}),
     cars: () => new FileAttachment("https://static.observableusercontent.com/files/048ec3dfd528110c0665dfa363dd28bc516ffb7247231f3ab25005036717f5c4c232a5efc7bb74bc03037155cb72b1abe85a33d86eb9f1a336196030443be4f6").csv({typed: true}),
@@ -2831,6 +2885,7 @@ const Library = Object.assign(Object.defineProperties(function Library(resolver)
     miserables: () => new FileAttachment("https://static.observableusercontent.com/files/31d904f6e21d42d4963ece9c8cc4fbd75efcbdc404bf511bc79906f0a1be68b5a01e935f65123670ed04e35ca8cae3c2b943f82bf8db49c5a67c85cbb58db052").json(),
     olympians: () => new FileAttachment("https://static.observableusercontent.com/files/31ca24545a0603dce099d10ee89ee5ae72d29fa55e8fc7c9ffb5ded87ac83060d80f1d9e21f4ae8eb04c1e8940b7287d179fe8060d887fb1f055f430e210007c").csv({typed: true}),
     penguins: () => new FileAttachment("https://static.observableusercontent.com/files/715db1223e067f00500780077febc6cebbdd90c151d3d78317c802732252052ab0e367039872ab9c77d6ef99e5f55a0724b35ddc898a1c99cb14c31a379af80a").csv({typed: true}),
+    pizza: () => new FileAttachment("https://static.observableusercontent.com/files/c653108ab176088cacbb338eaf2344c4f5781681702bd6afb55697a3f91b511c6686ff469f3e3a27c75400001a2334dbd39a4499fe46b50a8b3c278b7d2f7fb5").csv({typed: true}),
     weather: () => new FileAttachment("https://static.observableusercontent.com/files/693a46b22b33db0f042728700e0c73e836fa13d55446df89120682d55339c6db7cc9e574d3d73f24ecc9bc7eb9ac9a1e7e104a1ee52c00aab1e77eb102913c1f").csv({typed: true}),
 
     // Note: these are namespace objects, and thus exposed directly rather than
@@ -3871,7 +3926,7 @@ const TYPE_DUPLICATE = 3; // created on duplicate definition
 
 const no_observer = Symbol("no-observer");
 
-function Variable(type, module, observer) {
+function Variable(type, module, observer, options) {
   if (!observer) observer = no_observer;
   Object.defineProperties(this, {
     _observer: {value: observer, writable: true},
@@ -3887,6 +3942,7 @@ function Variable(type, module, observer) {
     _promise: {value: Promise.resolve(undefined), writable: true},
     _reachable: {value: observer !== no_observer, writable: true}, // Is this variable transitively visible?
     _rejector: {value: variable_rejector(this)},
+    _shadow: {value: initShadow(module, options)},
     _type: {value: type},
     _value: {value: undefined, writable: true},
     _version: {value: 0, writable: true}
@@ -3897,10 +3953,19 @@ Object.defineProperties(Variable.prototype, {
   _pending: {value: variable_pending, writable: true, configurable: true},
   _fulfilled: {value: variable_fulfilled, writable: true, configurable: true},
   _rejected: {value: variable_rejected, writable: true, configurable: true},
+  _resolve: {value: variable_resolve, writable: true, configurable: true},
   define: {value: variable_define, writable: true, configurable: true},
   delete: {value: variable_delete, writable: true, configurable: true},
   import: {value: variable_import, writable: true, configurable: true}
 });
+
+function initShadow(module, options) {
+  if (!options?.shadow) return null;
+  return new Map(
+    Object.entries(options.shadow)
+      .map(([name, definition]) => [name, (new Variable(TYPE_IMPLICIT, module)).define([], definition)])
+  );
+}
 
 function variable_attach(variable) {
   variable._module._runtime._dirty.add(variable);
@@ -3950,9 +4015,13 @@ function variable_define(name, inputs, definition) {
   }
   return variable_defineImpl.call(this,
     name == null ? null : String(name),
-    inputs == null ? [] : map.call(inputs, this._module._resolve, this._module),
+    inputs == null ? [] : map.call(inputs, this._resolve, this),
     typeof definition === "function" ? definition : constant(definition)
   );
+}
+
+function variable_resolve(name) {
+  return this._shadow?.get(name) ?? this._module._resolve(name);
 }
 
 function variable_defineImpl(name, inputs, definition) {
@@ -4110,8 +4179,8 @@ function module_import() {
   return v.import.apply(v, arguments);
 }
 
-function module_variable(observer) {
-  return new Variable(TYPE_NORMAL, this, observer);
+function module_variable(observer, options) {
+  return new Variable(TYPE_NORMAL, this, observer, options);
 }
 
 async function module_value(name) {
@@ -4503,7 +4572,7 @@ function variable_compute(variable) {
     variable._value = value;
     variable._fulfilled(value);
   }, (error) => {
-    if (error === variable_stale) return;
+    if (error === variable_stale || variable._version !== version) return;
     variable._value = undefined;
     variable._rejected(error);
   });
@@ -19087,6 +19156,7 @@ function parseFeatures(cell, input) {
       cell.fileAttachments = findFeatures(cell, "FileAttachment");
       cell.databaseClients = findFeatures(cell, "DatabaseClient");
       cell.secrets = findFeatures(cell, "Secret");
+      cell.notificationClients = findFeatures(cell, "NotificationClient");
     } catch (error) {
       if (error.node) {
         const loc = getLineInfo(input, error.node.start);
@@ -19101,6 +19171,7 @@ function parseFeatures(cell, input) {
     cell.fileAttachments = new Map();
     cell.databaseClients = new Map();
     cell.secrets = new Map();
+    cell.notificationClients = new Map();
   }
   return cell;
 }
