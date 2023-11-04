@@ -43,19 +43,21 @@ function crossrefMetaInject()
         end
 
         -- title-delim
-        local titleDelim = pandoc.utils.stringify(crossrefOption("title-delim"))
-        if titleDelim == ":" or titleDelim == "colon" then
-          inject("\\captionsetup{labelsep=colon}\n")
-        elseif titleDelim == "." or titleDelim == "period" then
-          inject("\\captionsetup{labelsep=period}\n")
-        elseif titleDelim == " " or titleDelim == "space" then
-          inject("\\captionsetup{labelsep=space}\n")
-        elseif titleDelim == "quad" then
-          inject("\\captionsetup{labelsep=quad}\n")
-        elseif titleDelim == "none" or titleDelim == "" then
-          inject("\\captionsetup{labelsep=none}\n")
-        else
-          fail("Invalid value for 'title-delim' option in PDF: " .. titleDelim .. ". The valid values are '', 'none', ':', 'colon', '.', 'period', ' ', 'space', and 'quad'")
+        if crossrefOption("title-delim") ~= nil then
+          local titleDelim = pandoc.utils.stringify(crossrefOption("title-delim"))
+          if titleDelim == ":" or titleDelim == "colon" then
+            inject("\\captionsetup{labelsep=colon}\n")
+          elseif titleDelim == "." or titleDelim == "period" then
+            inject("\\captionsetup{labelsep=period}\n")
+          elseif titleDelim == " " or titleDelim == "space" then
+            inject("\\captionsetup{labelsep=space}\n")
+          elseif titleDelim == "quad" then
+            inject("\\captionsetup{labelsep=quad}\n")
+          elseif titleDelim == "none" or titleDelim == "" then
+            inject("\\captionsetup{labelsep=none}\n")
+          else
+            fail("Invalid value for 'title-delim' option in PDF: " .. titleDelim .. ". The valid values are '', 'none', ':', 'colon', '.', 'period', ' ', 'space', and 'quad'")
+          end
         end
         
         local theoremIncludes = theoremLatexIncludes()
