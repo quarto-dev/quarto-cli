@@ -13,6 +13,9 @@ import {
 
 const kValueboxBodySelector = ".card-body > div";
 const kValueboxShowcaseClass = ".value-box-showcase";
+const kValueboxTitleClass = "value-box-title";
+const kValueBoxValueClass = "value-box-value";
+const kToParagraphsClz = [kValueboxTitleClass, kValueBoxValueClass];
 
 const kValueBoxColorAttr = "data-color";
 const kValueBoxBgColorAttr = "data-bg-color";
@@ -22,14 +25,16 @@ const kValueBoxShowcasePositionAttr = "data-showcase-position";
 
 const kDefaultShowcasePosition = "left-center";
 
-const bsLibValueBoxClz = ["bslib-value-box", "value-box-grid"];
+const bsLibValueBoxClass = "bslib-value-box";
+const bsLibValueBoxGridClass = "value-box-grid";
 
 // The list of colors that should be used when automatically assigning a color
 // We'll just iterate through the list as we go (circular)
 const kDefaultColors = ["secondary"];
 
 export function isValueBox(el: Element) {
-  return el.classList.contains(kValueboxClass);
+  return el.classList.contains(kValueboxClass) ||
+    el.classList.contains(bsLibValueBoxClass);
 }
 
 export function processValueBoxes(doc: Document) {
@@ -38,9 +43,23 @@ export function processValueBoxes(doc: Document) {
   let autoColorizeCount = 0;
   for (const valueboxNode of valueboxNodes) {
     const valueboxEl = valueboxNode as Element;
+    applyClasses(valueboxEl, [bsLibValueBoxClass]);
     const valueboxBodyEl = valueboxEl.querySelector(kValueboxBodySelector);
     if (valueboxBodyEl) {
-      applyClasses(valueboxBodyEl, bsLibValueBoxClz);
+      applyClasses(valueboxBodyEl, [bsLibValueBoxGridClass]);
+
+      // Convert any divs to paragraphs
+      kToParagraphsClz.forEach((cls) => {
+        const toParaEl = valueboxEl.querySelector(`.${cls}`);
+        if (toParaEl && toParaEl.tagName !== "P") {
+          const paraEl = doc.createElement("P");
+          paraEl.childNodes = toParaEl.childNodes;
+          for (const toClass of toParaEl.classList) {
+            paraEl.classList.add(toClass);
+          }
+          toParaEl.replaceWith(paraEl);
+        }
+      });
 
       // Resolve colors, first try the general color theme
       let colorProcessed = false;

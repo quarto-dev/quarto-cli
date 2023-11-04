@@ -2105,6 +2105,10 @@ code.sourceCode a.code-annotation-anchor {
     flex-direction: column;
   }
 
+  #quarto-appendix {
+    display: none;
+  }
+
   .dashboard-page:not(.dashboard-sidebar-container) {
     padding: 0.7em;
   }
@@ -2147,7 +2151,7 @@ code.sourceCode a.code-annotation-anchor {
       margin-right: 2em;
       align-items: center;
       @include media-breakpoint-down(md) {
-        flex-basis: 80%;
+        margin-right: auto;
       }
     }
 
@@ -2157,6 +2161,7 @@ code.sourceCode a.code-annotation-anchor {
       }
       @include media-breakpoint-down(md) {
         order: 1000;
+        padding-bottom: 0.5em;
       }
       align-self: stretch;
       .navbar-nav {
@@ -2190,6 +2195,21 @@ code.sourceCode a.code-annotation-anchor {
       object-fit: cover;
       margin-right: 1em;
     }
+
+    .quarto-dashboard-links {
+      order: 9;
+      padding-right: 1em;
+    }
+    .quarto-dashboard-link-text {
+      margin-left: 0.25em;
+    }
+
+    .quarto-dashboard-link {
+      padding-right: 0em;
+      padding-left: 0.7em;
+      text-decoration: none;
+      color: $navbar-fg;
+    }
   }
 
   .page-layout-custom .tab-content {
@@ -2222,6 +2242,19 @@ code.sourceCode a.code-annotation-anchor {
 }
 
 .quarto-dashboard {
+  // Mobile sizes convert into 'scrolling' layouts
+  @include media-breakpoint-down(sm) {
+    .bslib-grid {
+      grid-template-rows: minmax(1em, max-content) !important;
+    }
+    .sidebar-content {
+      height: inherit;
+    }
+    .page-layout-custom {
+      min-height: 100vh;
+    }
+  }
+
   &.dashboard-sidebar > .page-layout-custom {
     padding: 0;
     > .bslib-sidebar-layout {
@@ -2277,7 +2310,8 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
-  .card.valuebox {
+  .card.valuebox,
+  .card.bslib-value-box {
     min-height: 6rem;
     .card-body {
       padding: 0;
@@ -2286,40 +2320,23 @@ code.sourceCode a.code-annotation-anchor {
 
   .bslib-value-box {
     .value-box-value {
-      font-size: 4rem;
+      font-size: clamp(0.1em, 15cqw, 5em);
     }
 
     .value-box-showcase .bi {
-      font-size: clamp(0.1em, 20cqw, 5em);
-    }
-  }
+      font-size: clamp(0.1em, max(18cqw, 5.2cqh), 5em);
 
-  .showcase-left-center .value-box-grid {
-    display: grid;
-    grid-template-columns: 30% auto;
-    grid-template-areas: "left right";
-
-    .value-box-showcase {
-      grid-area: left;
+      text-align: center;
+      height: 1em;
     }
+
+    .value-box-showcase .bi::before {
+      vertical-align: 1em;
+    }
+
     .value-box-area {
-      grid-area: right;
-    }
-  }
-
-  .showcase-top-right .value-box-grid {
-    display: grid;
-    grid-template-columns: 1fr minmax(30%, 75px);
-    grid-template-areas: "left right";
-
-    .value-box-showcase {
-      grid-area: right;
-      margin-top: 0;
-      margin-left: auto;
-      align-items: end;
-    }
-    .value-box-area {
-      grid-area: left;
+      margin-top: auto;
+      margin-bottom: auto;
     }
   }
 
@@ -2372,6 +2389,14 @@ code.sourceCode a.code-annotation-anchor {
 
   .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning) .collapse-toggle {
     left: 2px;
+  }
+
+  .card {
+    .shiny-input-container {
+      padding-bottom: 0.5em;
+      margin-bottom: 0.5em;
+      width: inherit;
+    }
   }
 
   .sidebar {

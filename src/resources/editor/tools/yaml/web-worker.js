@@ -21647,6 +21647,7 @@ try {
           "Default orientation for dashboard content (default\n<code>rows</code>)",
           "Use scrolling rather than fill layout (default:\n<code>false</code>)",
           "Make card content expandable (default: <code>true</code>)",
+          "Links to display on the dashboard navigation bar",
           "Title displayed in card header",
           {
             short: "Title displayed in dashboard card header",
@@ -22210,12 +22211,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 175719,
+          _internalId: 178127,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 175711,
+              _internalId: 178119,
               type: "enum",
               enum: [
                 "png",
@@ -22231,7 +22232,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 175718,
+              _internalId: 178126,
               type: "anyOf",
               anyOf: [
                 {
@@ -22389,6 +22390,35 @@ try {
             schema: "boolean",
             default: true,
             description: "Make card content expandable (default: `true`)"
+          },
+          {
+            name: "nav-buttons",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              maybeArrayOf: {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      properties: {
+                        text: "string",
+                        href: "string",
+                        icon: "string",
+                        rel: "string",
+                        target: "string",
+                        title: "string",
+                        "aria-label": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            description: "Links to display on the dashboard navigation bar"
           }
         ],
         "schema/cell-dashboard.yml": [

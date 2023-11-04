@@ -6,7 +6,7 @@
 
 import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
-import { kJupyterEngine } from "../execute/types.ts";
+import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 import { dirAndStem } from "./path.ts";
 import { extname } from "path/mod.ts";
 
@@ -35,6 +35,13 @@ export function isServerShinyPython(
   engine: string | undefined,
 ) {
   return isServerShiny(format) && engine === kJupyterEngine;
+}
+
+export function isServerShinyKnitr(
+  format: Format,
+  engine: string | undefined,
+) {
+  return isServerShiny(format) && engine === kKnitrEngine;
 }
 
 export function formatOutputFile(format: Format) {

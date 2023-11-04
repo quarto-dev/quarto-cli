@@ -173,7 +173,8 @@ export async function renderProject(
   // if there is an output dir then remove it if clean is specified
   if (
     renderAll && hasProjectOutputDir(context) &&
-    (options.flags?.clean == true) && (projType.cleanOutputDir === true)
+    (options.forceClean ||
+      (options.flags?.clean == true) && (projType.cleanOutputDir === true))
   ) {
     // ouptut dir
     const realProjectDir = normalizePath(context.dir);

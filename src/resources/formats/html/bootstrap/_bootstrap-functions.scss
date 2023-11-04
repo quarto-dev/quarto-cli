@@ -91,7 +91,12 @@
       valuebox-bg-danger: #c48282,
     ),
     cosmo: (
-      navbar-bg: if(variable-exists(light), $light, $gray-500),
+      navbar-bg:
+        if(
+          $default == #2780e3,
+          if(variable-exists(light), $light, $gray-500),
+          $default
+        ),
       valuebox-bg-primary: #5397e9,
       valuebox-bg-info: #9954bbb3,
       valuebox-bg-success: #3aa716,
@@ -99,7 +104,12 @@
       valuebox-bg-danger: #ff0039b3,
     ),
     cyborg: (
-      navbar-bg: if(variable-exists(secondary), $secondary, $black),
+      navbar-bg:
+        if(
+          $default == #2a9fd6,
+          if(variable-exists(secondary), $secondary, $black),
+          $default
+        ),
       navbar-hl: $white,
     ),
     darkly: (
@@ -125,7 +135,7 @@
       valuebox-bg-danger: #c77f7f,
     ),
     litera: (
-      navbar-bg: $white,
+      navbar-bg: if($default == #4582ec, $white, $default),
     ),
     lumen: (
       navbar-fg: rgba($white, 0.7),
@@ -145,7 +155,12 @@
       navbar-fg: $white,
     ),
     morph: (
-      navbar-bg: if(variable-exists(body-bg), $body-bg, $black),
+      navbar-bg:
+        if(
+          $default == #378dfc,
+          if(variable-exists(body-bg), $body-bg, $black),
+          $default
+        ),
       navbar-fg: rgba($black, 0.5),
     ),
     paper: (
@@ -164,7 +179,12 @@
       navbar-hl: $white,
     ),
     sandstone: (
-      navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-bg:
+        if(
+          $default == #325d88,
+          if(variable-exists(dark), $dark, $black),
+          $default
+        ),
       navbar-fg: rgba($white, 0.7),
       navbar-hl: $white,
       valuebox-bg-primary: #7b98ad,
@@ -174,7 +194,7 @@
       valuebox-bg-danger: #ca8181,
     ),
     simplex: (
-      navbar-bg: $white,
+      navbar-bg: if($default == #d9230f, $white, $default),
       navbar-fg: rgba($black, 0.6),
       navbar-hl: $black,
       nav-tabs-link-active-border-color: $simplex-border-mix $simplex-border-mix
@@ -190,11 +210,21 @@
     ),
     slate: (),
     solar: (
-      navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-bg:
+        if(
+          $default == #b58900,
+          if(variable-exists(dark), $dark, $black),
+          $default
+        ),
       navbar-hl: $white,
     ),
     spacelab: (
-      navbar-bg: if(variable-exists(light), $light, #bbb),
+      navbar-bg:
+        if(
+          $default == #446e9b,
+          if(variable-exists(light), $light, #bbb),
+          $default
+        ),
       navbar-hl: if(variable-exists(link-color), $link-color, $blue),
       valuebox-bg-primary: #7e97ae,
       valuebox-bg-info: #3d9dd1,
@@ -203,7 +233,12 @@
       valuebox-bg-danger: #c97e7e,
     ),
     superhero: (
-      navbar-bg: if(variable-exists(dark), $dark, $black),
+      navbar-bg:
+        if(
+          $default == #df6919,
+          if(variable-exists(dark), $dark, $black),
+          $default
+        ),
       navbar-hl: $white,
     ),
     united: (

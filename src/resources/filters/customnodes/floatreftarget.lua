@@ -42,20 +42,28 @@ _quarto.ast.add_handler({
   end
 })
 
-function cap_location(float)
-  local ref = refType(float.identifier)
+function cap_location(float_or_layout)
+  local ref = refType(float_or_layout.identifier)
+  -- layouts might not have good identifiers, but they might have
+  -- ref-parents
+  if ref == nil then
+    ref = refType(float_or_layout.attributes["ref-parent"] or "")
+  end
+  -- last resort, pretend we're a figure
+  if ref == nil then
+    ref = "fig"
+  end
   local qualified_key = ref .. '-cap-location'
   local result = (
-    float.attributes[qualified_key] or
-    float.attributes['cap-location'] or
+    float_or_layout.attributes[qualified_key] or
+    float_or_layout.attributes['cap-location'] or
     option_as_string(qualified_key) or
     option_as_string('cap-location') or
-    capLocation(ref) or
     crossref.categories.by_ref_type[ref].default_caption_location)
 
   if result ~= "margin" and result ~= "top" and result ~= "bottom" then
     -- luacov: disable
-    error("Invalid caption location for float: " .. float.identifier .. 
+    error("Invalid caption location for float: " .. float_or_layout.identifier .. 
       " requested " .. result .. 
       ".\nOnly 'top', 'bottom', and 'margin' are supported. Assuming 'bottom'.")
     result = "bottom"
@@ -203,9 +211,8 @@ end, function(float)
   local figEnv = latexFigureEnv(float)
   local figPos = latexFigurePosition(float, figEnv)
   local float_type = refType(float.identifier)
-  local crossref_category = crossref.categories.by_ref_type[float_type] or crossref.categories.by_name.Figure
 
-  local capLoc = capLocation(float_type, crossref_category.default_caption_location)
+  local capLoc = cap_location(float)
   local caption_cmd_name = latexCaptionEnv(float)
 
   if float.parent_id then

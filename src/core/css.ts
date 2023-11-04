@@ -128,7 +128,7 @@ export function asCssSize(value: unknown): string | undefined {
     return undefined;
   } else {
     const str = String(value);
-    if (str !== "0" && !str.match(/\w$/)) {
+    if (str !== "0" && !str.match(/[^0-9]$/)) {
       return str + "px";
     } else {
       return str;

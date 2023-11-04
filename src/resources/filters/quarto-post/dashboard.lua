@@ -96,28 +96,56 @@ function render_dashboard()
           -- for the cell
 
           -- See if this cell has bslib output already
-          local hasBsLibOutput = false
           local isHidden = false
           local isMarkdownOutput = false
-          _quarto.ast.walk(el,  {
+
+          local bslibRawOutputs = pandoc.List()
+          el = _quarto.ast.walk(el,  {
             Div = function(childDiv)  
               if childDiv.classes:includes(kCellOutputDisplayClass) then
-                local outputStr = pandoc.utils.stringify(childDiv.content)
-                -- TODO: We probably should be a little more careful about
-                -- this check
-                hasBsLibOutput = hasBsLibOutput or outputStr:match('bslib-')
 
-                if childDiv.classes:includes("cell-output-markdown") then
-                  isMarkdownOutput = true
-                end
+                  -- Note whether we see any markdown cells
+                  if childDiv.classes:includes("cell-output-markdown") then
+                    isMarkdownOutput = true
+                  end
+
+                  if #childDiv.content == 1 and childDiv.content[1].t == "RawBlock" and childDiv.content[1].format == "html" then
+                    if childDiv.content[1].text:match('bslib-') ~= nil then
+                      -- capture any raw blocks that we see
+                      bslibRawOutputs:insert(childDiv.content[1])
+
+                      -- Don't emit these within the cell outputs
+                      return pandoc.Null()
+                    end
+                  end
               end
+
+              -- Note whether there are hidden elements in the cell
               isHidden = isHidden or childDiv.classes:includes(kHiddenClass)
             end
           })
+
+
           -- If the element is marked hidden or the element
           -- has bslib output (e.g. it is code that is outputing bslib components)
-          -- just let it through as is
-          if hasBsLibOutput or isHidden then
+          -- give it special treatment
+          if #bslibRawOutputs > 0 then
+            -- If bslib outputs were detected, we need to elevate those rawblocks and 
+            -- just allow them to pass through the system unharmed along side
+            -- the cell and any of its other output
+            local result = pandoc.Blocks(bslibRawOutputs)
+            if el ~= nil and #el.content > 0 then
+              local options, userClasses = dashboard.card.readOptions(el)
+              local card = dashboard.card.makeCard(el.content, userClasses, options)
+              if card ~= nil then
+                result:insert(card)
+              end
+            end
+            return result
+          elseif isHidden then
+            if el ~= nil then
+              el.classes:insert(kHiddenClass)
+            end
             return el
           else
             -- Look for markdown explictly being output
@@ -203,7 +231,7 @@ function render_dashboard()
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
         -- force the global orientation to columns if there is a sidebar present
-        local inferredOrientation = dashboard.layout.inferOrientation(el)
+        local inferredOrientation = dashboard.sidebar.maybeUseSidebarOrientation(el)
         if inferredOrientation ~= nil then 
           dashboard.layout.setOrientation(inferredOrientation)
         end
@@ -232,7 +260,8 @@ function render_dashboard()
                 -- flow through and the sidebar collector will ingest it and convert it into 
                 -- a sidebar (which contains the other pages as its content)
               if dashboard.sidebar.isSidebar(header) then
-                return dashboard.sidebar.pageSidebarPlaceholder(contents)
+                local options = dashboard.sidebar.readOptions(header)
+                return dashboard.sidebar.pageSidebarPlaceholder(contents, options)
               else
                 lastLevel = level
 
@@ -274,7 +303,7 @@ function render_dashboard()
                   lastLevel = level
 
                   -- force the global orientation to columns if there is a sidebar present
-                  local inferredOrientation = dashboard.layout.inferOrientation(el)
+                  local inferredOrientation = dashboard.sidebar.maybeUseSidebarOrientation(el)
                   if inferredOrientation ~= nil then 
                     toOrientation = dashboard.layout.setOrientation(inferredOrientation)
                   else
@@ -306,7 +335,7 @@ function render_dashboard()
           end
           
           if sidebar then
-            local options = dashboard.sidebar.readOptions(el)
+            local options = dashboard.sidebar.readOptions(sidebar)
             return dashboard.sidebar.makeSidebar(sidebar.content, sidebarContent, options)  
           end          
         end

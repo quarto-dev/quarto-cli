@@ -273,6 +273,12 @@
       ],
       "Hash": "283015ddfbb9d7bf15ea9f0b5698f0d9"
     },
+    "bsicons" : {
+      "Package": "bsicons",
+      "Version": "0.1.1",
+      "Source": "Repository",
+      "Repository": "RSPM"
+    },
     "cachem": {
       "Package": "cachem",
       "Version": "1.0.8",

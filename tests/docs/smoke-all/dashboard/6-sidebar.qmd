@@ -7,29 +7,32 @@ format:
 ---
 
 
-Global Sidebar {.sidebar}
-==================================
+## Sidebar {.sidebar width=350}
+
 
 Sidebar controls
 
 
-Page 1
-==================================
+## Contents
 
 ```{r}
+#| component: valuebox
 list(
   value = 45.5,
   color = "red"
 )
 ```
 
+### row
 
-Page 2 {orientation="rows"}
-==================================
+```{r}
+plot(cars)
+```
 
-## row
 
-## row
+```{r}
+plot(mtcars)
+```
 
 
 

@@ -21,7 +21,7 @@ local kValueBoxIcon = "icon"
 local kValueBoxOptions = pandoc.List({kValueBoxIcon, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor})
 local kValueBoxDataAttr = {kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor}
 local kValueBoxShowcaseDataAttr = {kValueBoxIcon, kValueBoxShowcasePosition}
-local kForwardValueFromCodeCell = pandoc.List({kValueBoxValue, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor, kValueBoxIcon })
+local kForwardValueFromCodeCell = pandoc.List({kValueBoxTitle, kValueBoxValue, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor, kValueBoxIcon })
 
 local kComponentAttr = "component"
 local kComponentValuebox = "valuebox"
@@ -142,6 +142,10 @@ local function valueboxContent(el)
       options = stdOptions
       if stdValue ~= nil then
         value = stdValue
+      end
+
+      if options[kValueBoxTitle] ~= nil then
+        title = options[kValueBoxTitle]
       end
     end
 
