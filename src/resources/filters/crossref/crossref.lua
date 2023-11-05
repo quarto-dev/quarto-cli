@@ -155,7 +155,7 @@ local quarto_normalize_filters = {
 
   { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() },
 
-  { name = "pre-table-merge-raw-html", 
+  { name = "pre-table-merge-raw-html",
     filter = table_merge_raw_html()
   },
 
@@ -166,15 +166,15 @@ local quarto_normalize_filters = {
   -- can't be combined with parse_html_tables. combineFilters
   -- doesn't inspect the contents of the results in the inner loop in case
   -- the result is "spread" into a Blocks or Inlines.
-  
+
   { name = "normalize-combined-1", filter = combineFilters({
       parse_html_tables(),
       parse_extended_nodes(),
       code_filename(),
     })
   },
-  { 
-    name = "normalize-combine-2", 
+  {
+    name = "normalize-combine-2",
     filter = combineFilters({
       parse_md_in_html_rawblocks(),
       parse_reftargets(),
@@ -187,7 +187,7 @@ local quarto_pre_filters = {
 
   { name = "flags", filter = compute_flags() },
 
-  { name = "pre-shortcodes-filter", 
+  { name = "pre-shortcodes-filter",
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 }
@@ -197,7 +197,7 @@ local quarto_crossref_filters = {
   { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
   },
 
-  { name = "crossref-preprocessTheorems", 
+  { name = "crossref-preprocessTheorems",
     filter = crossref_preprocess_theorems(),
     flags = { "has_theorem_refs" } },
 
@@ -212,7 +212,7 @@ local quarto_crossref_filters = {
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),
     flags = { "has_cites" } },
-    
+
   { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
   { name = "crossref-writeIndex", filter = writeIndex() },
 }
@@ -228,7 +228,7 @@ local result = run_as_extended_ast({
   pre = {
     init_options()
   },
-  afterFilterPass = function() 
+  afterFilterPass = function()
     -- After filter pass is called after each pass through a filter group
     -- allowing state or other items to be handled
     resetFileMetadata()

@@ -81,44 +81,44 @@ local filterList = {
   -- when they mutate options
   { name = "pre-read-options-again", filter = init_options() },
 
-  { name = "pre-parse-pandoc3-figures", 
-    filter = parse_pandoc3_figures(), 
-    flags = { "has_pandoc3_figure" } 
+  { name = "pre-parse-pandoc3-figures",
+    filter = parse_pandoc3_figures(),
+    flags = { "has_pandoc3_figure" }
   },
 
-  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
-  
-  { name = "pre-shortcodes-filter", 
+  { name = "pre-bibliography-formats", filter = bibliography_formats() },
+
+  { name = "pre-shortcodes-filter",
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-hidden", 
-    filter = hidden(), 
+  { name = "pre-hidden",
+    filter = hidden(),
     flags = { "has_hidden" } },
 
-  { name = "pre-content-hidden", 
+  { name = "pre-content-hidden",
     filter = content_hidden(),
     flags = { "has_conditional_content" } },
 
-  { name = "pre-table-captions", 
+  { name = "pre-table-captions",
     filter = table_captions(),
     flags = { "has_table_captions" } },
 
-  { name = "pre-longtable-no-caption-fixup", 
+  { name = "pre-longtable-no-caption-fixup",
     filter = longtable_no_caption_fixup(),
     flags = { "has_longtable_no_caption_fixup" } },
-  
-  { name = "pre-code-annotations", 
+
+  { name = "pre-code-annotations",
     filter = code_annotations(),
     flags = { "has_code_annotations" } },
-  
+
   { name = "pre-code-annotations-meta", filter = code_meta() },
 
-  { name = "pre-unroll-cell-outputs", 
+  { name = "pre-unroll-cell-outputs",
     filter = unroll_cell_outputs(),
     flags = { "needs_output_unrolling" } },
 
-  { name = "pre-output-location", 
+  { name = "pre-output-location",
     filter = output_location()
   },
 
@@ -139,7 +139,7 @@ local filterList = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    table_colwidth(), 
+    table_colwidth(),
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),

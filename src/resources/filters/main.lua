@@ -237,39 +237,39 @@ local quarto_pre_filters = {
   -- when they mutate options
   { name = "pre-read-options-again", filter = init_options() },
 
-  { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
-  
-  { name = "pre-shortcodes-filter", 
+  { name = "pre-bibliography-formats", filter = bibliography_formats() },
+
+  { name = "pre-shortcodes-filter",
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-hidden", 
-    filter = hidden(), 
+  { name = "pre-hidden",
+    filter = hidden(),
     flags = { "has_hidden" } },
 
-  { name = "pre-content-hidden", 
+  { name = "pre-content-hidden",
     filter = content_hidden(),
     flags = { "has_conditional_content" } },
 
-  { name = "pre-table-captions", 
+  { name = "pre-table-captions",
     filter = table_captions(),
     flags = { "has_table_captions" } },
 
-  { name = "pre-longtable-no-caption-fixup", 
+  { name = "pre-longtable-no-caption-fixup",
     filter = longtable_no_caption_fixup(),
     flags = { "has_longtable_no_caption_fixup" } },
-  
-  { name = "pre-code-annotations", 
+
+  { name = "pre-code-annotations",
     filter = code_annotations(),
     flags = { "has_code_annotations" } },
-  
+
   { name = "pre-code-annotations-meta", filter = code_meta() },
 
-  { name = "pre-unroll-cell-outputs", 
+  { name = "pre-unroll-cell-outputs",
     filter = unroll_cell_outputs(),
     flags = { "needs_output_unrolling" } },
 
-  { name = "pre-output-location", 
+  { name = "pre-output-location",
     filter = output_location()
   },
 
@@ -289,7 +289,7 @@ local quarto_pre_filters = {
     bootstrap_panel_layout(),
     bootstrap_panel_sidebar(),
     table_respecify_gt_css(),
-    table_colwidth(), 
+    table_colwidth(),
     table_classes(),
     input_traits(),
     resolve_book_file_targets(),
@@ -301,7 +301,7 @@ local quarto_pre_filters = {
 }
 
 local quarto_post_filters = {
-  { name = "post-cell-cleanup", 
+  { name = "post-cell-cleanup",
     filter = cell_cleanup(),
     flags = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
@@ -321,7 +321,7 @@ local quarto_post_filters = {
   }) },
 
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
-  
+
   { name = "post-render-jats", filter = filterIf(function()
     return quarto_global_state.active_filters.jats_subarticle == nil or not quarto_global_state.active_filters.jats_subarticle
   end, jats()) },
@@ -329,7 +329,7 @@ local quarto_post_filters = {
     return quarto_global_state.active_filters.jats_subarticle ~= nil and quarto_global_state.active_filters.jats_subarticle
   end, jatsSubarticle()) },
 
-  { name = "post-code-options", filter = filterIf(function() 
+  { name = "post-code-options", filter = filterIf(function()
     return param("clear-cell-options", false) == true
   end, removeCodeOptions()) },
 
@@ -390,7 +390,7 @@ local quarto_crossref_filters = {
   { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
   },
 
-  { name = "crossref-preprocessTheorems", 
+  { name = "crossref-preprocessTheorems",
     filter = crossref_preprocess_theorems(),
     flags = { "has_theorem_refs" } },
 
@@ -406,7 +406,7 @@ local quarto_crossref_filters = {
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),
     flags = { "has_cites" } },
-    
+
   { name = "crossref-crossrefMetaInject", filter = crossrefMetaInject() },
   { name = "crossref-writeIndex", filter = writeIndex() },
 }
@@ -437,7 +437,7 @@ local result = run_as_extended_ast({
   pre = {
     init_options()
   },
-  afterFilterPass = function() 
+  afterFilterPass = function()
     -- After filter pass is called after each pass through a filter group
     -- allowing state or other items to be handled
     resetFileMetadata()
