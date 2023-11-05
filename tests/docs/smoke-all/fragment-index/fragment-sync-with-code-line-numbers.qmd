@@ -1,0 +1,47 @@
+---
+title: test
+# execute:
+#   echo: true
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - div[data-fragment-index="7"]
+          - div[data-fragment-index="8"]
+          - div[data-fragment-index="9"]
+          - div[data-fragment-index="10"]
+        - []
+---
+
+## ranges using step syntax
+
+```{.python code-line-numbers="|1|2|4-10" fragment-index="7"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+:::{.fragment .fade-in-then-semi-out fragment-index="7"}
+All lines
+:::
+
+
+:::{.fragment .fade-in-then-semi-out fragment-index="8"}
+code-line 1
+:::
+
+:::{.fragment .fade-in-then-semi-out fragment-index="9"}
+code-line 2
+:::
+
+:::{.fragment .fade-in-then-semi-out fragment-index="10"}
+code-line 4-10
+:::
