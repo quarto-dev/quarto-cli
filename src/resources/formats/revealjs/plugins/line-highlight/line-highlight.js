@@ -38,7 +38,9 @@ window.QuartoLineHighlight = function () {
     divSourceCode.forEach((el) => {
       if (el.hasAttribute(kCodeLineNumbersAttr)) {
         const codeLineAttr = el.getAttribute(kCodeLineNumbersAttr);
+        const fragmentIndexAttr = el.getAttribute(kFragmentIndex);
         el.removeAttribute(kCodeLineNumbersAttr);
+        el.removeAttribute(kFragmentIndex);
         if (handleLinesSelector(deck, codeLineAttr)) {
           // Only process if attr is a string to select lines to highlights
           // e.g "1|3,6|8-11"
@@ -46,6 +48,7 @@ window.QuartoLineHighlight = function () {
           codeBlock.forEach((code) => {
             // move attributes on code block
             code.setAttribute(kCodeLineNumbersAttr, codeLineAttr);
+            code.setAttribute(kFragmentIndex, fragmentIndexAttr);
 
             const scrollState = { currentBlock: code };
 
@@ -61,7 +64,7 @@ window.QuartoLineHighlight = function () {
               fragmentIndex =
                 typeof fragmentIndex !== "number" || isNaN(fragmentIndex)
                   ? null
-                  : fragmentIndex;
+                  : fragmentIndex + 1;  // skip the original block
 
               let stepN = 1;
               highlightSteps.slice(1).forEach(
@@ -119,7 +122,6 @@ window.QuartoLineHighlight = function () {
                   );
                 }
               );
-              code.removeAttribute(kFragmentIndex);
               code.setAttribute(
                 kCodeLineNumbersAttr,
                 joinLineNumbers([highlightSteps[0]])

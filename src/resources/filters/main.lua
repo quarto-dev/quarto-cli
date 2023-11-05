@@ -131,6 +131,7 @@ import("./quarto-pre/code-annotation.lua")
 import("./quarto-pre/code-filename.lua")
 import("./quarto-pre/engine-escape.lua")
 import("./quarto-pre/figures.lua")
+import("./quarto-pre/fragment-index.lua")
 import("./quarto-pre/hidden.lua")
 import("./quarto-pre/include-paths.lua")
 import("./quarto-pre/input-traits.lua")
@@ -282,6 +283,7 @@ local quarto_pre_filters = {
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
     engine_escape(),
+    fragment_index(),
     line_numbers(),
     bootstrap_panel_input(),
     bootstrap_panel_layout(),

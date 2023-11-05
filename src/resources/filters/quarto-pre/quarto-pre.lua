@@ -39,6 +39,7 @@ import("code-filename.lua")
 import("shortcodes-handlers.lua")
 import("outputs.lua")
 import("figures.lua")
+import("fragment-index.lua")
 import("table-rawhtml.lua")
 import("table-captions.lua")
 import("table-colwidth.lua")
@@ -131,6 +132,7 @@ local filterList = {
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
     -- code_filename(),
+    fragment_index(),
     line_numbers(),
     engine_escape(),
     bootstrap_panel_input(),

@@ -43,6 +43,7 @@ local kCodeLine = "code-line"
 local kCodeLines = "code-lines"
 local kCellAnnotationClass = "cell-annotation"
 local kCodeLineNumbers = "code-line-numbers"
+local kFragmentIndex = "fragment-index"
 
 local kContentVisible = "content-visible"
 local kContentHidden = "content-hidden"
@@ -133,6 +134,7 @@ return {
   kPageFirst = kPageFirst,
   kPageLast = kPageLast,
   kFigExtended = kFigExtended,
+  kFragmentIndex = kFragmentIndex,
   kLstCap = kLstCap,
   kNotebook = kNotebook,
   kNotebookTitle = kNotebookTitle,
