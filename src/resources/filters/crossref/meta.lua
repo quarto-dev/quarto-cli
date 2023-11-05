@@ -56,7 +56,9 @@ function crossrefMetaInject()
           elseif titleDelim == "none" or titleDelim == "" then
             inject("\\captionsetup{labelsep=none}\n")
           else
-            fail("Invalid value for 'title-delim' option in PDF: " .. titleDelim .. ". The valid values are '', 'none', ':', 'colon', '.', 'period', ' ', 'space', and 'quad'")
+            warn("\nIgnoring invalid value for 'title-delim' option in PDF: " .. titleDelim .. "." ..
+                 "\nThe valid values in the caption LaTeX package are:" ..
+                 "\n'', 'none', ':', 'colon', '.', 'period', ' ', 'space', and 'quad'")
           end
         end
         
