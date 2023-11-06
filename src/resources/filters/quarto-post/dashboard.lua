@@ -30,9 +30,12 @@ local function noteTargetForInputPanel(panel, id)
   inputPanelTargets[id]:insert(panel)
 end
 
-local function inputPanelsForId(id) 
-  return inputPanelTargets[id]
+local function popInputPanelsForId(id) 
+  local inputPanels = inputPanelTargets[id]
+  inputPanelTargets[id] = nil
+  return inputPanels
 end
+
 
 
 function render_dashboard() 
@@ -382,7 +385,7 @@ function render_dashboard()
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
                 for _j, targetId in ipairs(possibleTargetIds) do
-                  local panelsForTarget = inputPanelsForId(targetId)
+                  local panelsForTarget = popInputPanelsForId(targetId)
                   if panelsForTarget ~= nil then
                     for _j,panel in ipairs(panelsForTarget) do
                       dashboard.inputpanel.addToTarget(panel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
@@ -408,7 +411,7 @@ function render_dashboard()
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
                 for _j, targetId in ipairs(possibleTargetIds) do
-                  local panelsForTarget = inputPanelsForId(targetId)
+                  local panelsForTarget = popInputPanelsForId(targetId)
                   if panelsForTarget ~= nil then
                     for _j,panel in ipairs(panelsForTarget) do
                       dashboard.inputpanel.addToTarget(panel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
@@ -426,7 +429,7 @@ function render_dashboard()
               if dashboard.inputpanel.targetPrevious(v) then
                 -- This is for a the card/tabset that appears above
                 if previousInputPanelTarget == nil then
-                  fatal("Input panel specified to insert into card above, but there was no card above")
+                  fatal("Input panel specified to insert into previous card or tabset, but there was no previous card or tabset.")
                 elseif dashboard.card.isCard(previousInputPanelTarget) then
                   dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
                 elseif dashboard.tabset.isTabset(previousInputPanelTarget) then
@@ -477,6 +480,25 @@ function render_dashboard()
         end
 
       end,
+    }, {
+      Pandoc = function(_pandoc) 
+
+        local pendingPanel = popPendingInputPanel()
+        if pendingPanel ~= nil then
+          fatal("An input panel was unable to placed within the next card or tabset as there was no next card or tabset.")
+        end
+
+        local missingIds = pandoc.List()
+        for k,v in pairs(inputPanelTargets) do
+          missingIds:insert(k)
+        end
+        
+        if #missingIds > 0 then
+          fatal("An input failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
+        end
+
+
+      end
     }
   }
 end
