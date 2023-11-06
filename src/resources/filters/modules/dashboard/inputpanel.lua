@@ -9,6 +9,8 @@ local kForAttrValueBelow = "below"
 
 local kInputPanelProcess = "inputpanel-process"
 
+local kInputPanelComponentAttr = "component"
+local kInputPanelComponentAttrVal = "input-panel"
 
 local function readOptions(el)
   local options = {}
@@ -28,6 +30,10 @@ local function makeInputPanel(contents, options)
 end
 
 local function isInputPanel(el)
+  if el.attributes ~= nil and el.attributes[kInputPanelComponentAttr] == kInputPanelComponentAttrVal then
+    return true
+  end
+
   return (el.t == "Div") and el.classes:includes(kInputPanelClass)
 end
 
