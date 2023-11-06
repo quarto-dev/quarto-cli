@@ -4,7 +4,7 @@ format: dashboard
 ---
 
 
-:::{.input-panel for="below"}
+:::{.inputs for="next"}
 
 Here is the input panel contents
 
