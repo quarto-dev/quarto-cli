@@ -99,7 +99,7 @@ function writeIndex()
         if isQmdInput() then
           writeKeysIndex(indexFile)
         else
-          writeFullIndex(indexFile)
+          writeFullIndex(indexFile, doc)
         end   
       end
     end
@@ -108,11 +108,7 @@ end
 
 local function index_caption(v)
   if #v.caption > 0 then
-    if pandoc.utils.type(v.caption[1]) == "Inline" then
-      return inlinesToString(pandoc.Inlines({v.caption[1]}))
-    else
-      return inlinesToString(pandoc.Inlines(v.caption[1].content))
-    end
+    return inlinesToString(quarto.utils.as_inlines(v.caption))
   else
     return ""
   end
@@ -144,7 +140,7 @@ function writeKeysIndex(indexFile)
 end
 
 
-function writeFullIndex(indexFile)
+function writeFullIndex(indexFile, doc)
   -- create an index data structure to serialize for this file 
   local index = {
     entries = pandoc.List(),
@@ -184,7 +180,8 @@ function writeFullIndex(indexFile)
         order = {
           number = 1,
           section = crossref.index.numberOffset
-        }
+        },
+        caption = pandoc.utils.stringify(doc.meta.title)
       }
       index.entries:insert(chapterEntry)
     end
