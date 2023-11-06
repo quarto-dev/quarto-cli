@@ -1,17 +1,22 @@
 -- utils.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-function findChildDiv(el, matches) 
+
+-- Finds a child div that matches the given function
+function findChildDiv(el, fnMatches) 
   local childDiv
   for i, v in ipairs(el.content) do
-    if matches(v) then
+    if fnMatches(v) then
       childDiv = v
+      break
     end
   end
   return childDiv
 end
 
 
+-- Provides a list of element identifiers that are within the 
+-- given element
 function idsWithinEl(el)
   local ids = pandoc.List()
   _quarto.ast.walk(el, {

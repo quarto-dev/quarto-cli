@@ -18,8 +18,6 @@ local kTabAttributes = {kTitleAttr}
 
 local kTabTitleOutAttr = "data-title"
 
-
--- title
 -- pill vs tabs vs underline
 -- longer term, could emit a menu that goes with a card or a tabbed card
 

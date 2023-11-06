@@ -23,18 +23,12 @@ local kValueBoxDataAttr = {kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor}
 local kValueBoxShowcaseDataAttr = {kValueBoxIcon, kValueBoxShowcasePosition}
 local kForwardValueFromCodeCell = pandoc.List({kValueBoxTitle, kValueBoxValue, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor, kValueBoxIcon })
 
+-- Component / content attributes
 local kComponentAttr = "component"
 local kContentAttr = "content"
 local kContentAttrs = pandoc.List({kComponentAttr, kContentAttr})
 local kComponentValuebox = "valuebox"
 
-
-
-local function wrapValueBox(box, classes)
-  local valueBoxClz = pandoc.List({kValueBoxClz})
-  valueBoxClz:extend(classes)
-  return card.makeCard({box}, valueBoxClz)
-end
 
 local function isValueBoxContent(el) 
   if el.attributes ~= nil and kContentAttrs:find_if(function(attrName) 
@@ -164,7 +158,6 @@ local function valueboxContent(el)
     local title = {}
     local value = el.content
     local content = {}
-  
 
     -- First retrieve the title
     local pendingContent = el.content
@@ -183,6 +176,12 @@ local function valueboxContent(el)
     content = pendingContent
     return title, value, content, {}
   end
+end
+
+local function wrapValueBox(box, classes)
+  local valueBoxClz = pandoc.List({kValueBoxClz})
+  valueBoxClz:extend(classes)
+  return card.makeCard({box}, valueBoxClz)
 end
 
 -- Make a valuebox
