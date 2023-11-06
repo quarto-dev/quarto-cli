@@ -1,16 +1,16 @@
 -- inputpanel.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local kInputPanelClass = "input-panel"
+local kInputPanelClass = "inputs"
 
 local kForAttr = "for"
 local kForAttrValueAbove = "above"
 local kForAttrValueBelow = "below"
 
-local kInputPanelProcess = "inputpanel-process"
+local kInputPanelProcess = "inputs-process"
 
 local kInputPanelComponentAttr = "component"
-local kInputPanelComponentAttrVal = "input-panel"
+local kInputPanelComponentAttrVal = "inputs"
 
 local function readOptions(el)
   local options = {}
