@@ -483,11 +483,15 @@ function render_dashboard()
     }, {
       Pandoc = function(_pandoc) 
 
+        -- If there is still a pending input panel, that means that the user
+        -- placed inputs at the end of the document with no cards or tabsets following
         local pendingPanel = popPendingInputPanel()
         if pendingPanel ~= nil then
           fatal("An input panel was unable to placed within the next card or tabset as there was no next card or tabset.")
         end
 
+        -- If there are ids that haven't been resolved, that means that the user targeted ids with
+        -- inputs and those ids were never found, so the input panel was never placed.
         local missingIds = pandoc.List()
         for k,v in pairs(inputPanelTargets) do
           missingIds:insert(k)
