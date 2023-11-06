@@ -10,6 +10,19 @@ local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
 local kCellClass = "cell"
 local kCellOutputDisplayClass = "cell-output-display"
 
+local previousInputPanelTarget = nil
+local pendingInputPanel = nil
+local function setPendingInputPanel(el)
+  pendingInputPanel = el
+end
+
+local function popPendingInputPanel(el)
+  local pendingPanel = pendingInputPanel
+  pendingInputPanel = nil
+  return pendingPanel
+end
+
+
 function render_dashboard() 
 
   -- only do this for dashboad output
@@ -35,6 +48,15 @@ function render_dashboard()
 
         if el.attributes["output"] == "asis" then
           return nil
+        elseif dashboard.inputpanel.isInputPanel(el) then
+          
+          -- Convert any input panels into their standard representation
+          -- note that these will be process downstream to do things like 
+          -- convert them into a card, or merge them into other card header/footers
+          -- per the user's request 
+          local options = dashboard.inputpanel.readOptions(el)
+          return dashboard.inputpanel.makeInputPanel(el.content, options), false
+        
         elseif dashboard.card.isCard(el) then
 
           -- see if the card is already in the correct structure (a single header and body)
@@ -316,8 +338,74 @@ function render_dashboard()
           end
         end      
       end,
-    }, {
+    },
+    {
       traverse = 'topdown',
+      Blocks = function(blocks)
+        -- Track the last card and any pending input panels to be joined
+        -- to cards
+        local result = pandoc:Blocks()
+        for i, v in ipairs(blocks) do
+          if v.t == "Div" and not is_custom_node(v) then
+          
+            if dashboard.card.isCard(v) then
+              -- If there is a pending input panel, then insert it into
+              -- this card (note that a pending input panel will only
+              -- be present if the card is to be inserted into the below
+              -- container)
+              local pendingPanel = popPendingInputPanel()
+              if pendingPanel ~= nil then
+                dashboard.card.addToHeader(v, pendingPanel)
+              end
+              result:insert(v)
+              previousInputPanelTarget = v
+
+            elseif (dashboard.tabset.isTabset(v)) then
+              -- If there is a pending input panel, then insert it into
+              -- this tabset (note that a pending input panel will only
+              -- be present if the card is to be inserted into the below
+              -- container)
+              local pendingPanel = popPendingInputPanel()
+              if pendingPanel ~= nil then
+                dashboard.tabset.addToHeader(v, pendingInputPanel)
+              end
+              result:insert(v)
+              previousInputPanelTarget = v
+
+            elseif dashboard.inputpanel.isInputPanel(v) and dashboard.inputpanel.isUnprocessed(v) then
+              -- If this is an unprocessed input panel, mark it processed and handle it appropriately
+              dashboard.inputpanel.markProcessed(v)
+              if dashboard.inputpanel.forAbove(v) then
+                -- This is for a the card/tabset that appears above
+                if previousInputPanelTarget == nil then
+                  fatal("Input panel specified to insert into card above, but there was no card above")
+                elseif dashboard.card.isCard(previousInputPanelTarget) then
+                  dashboard.card.addToFooter(previousInputPanelTarget, v)
+                elseif dashboard.tabset.isTabset(previousInputPanelTarget) then
+                  dashboard.tabset.addToFooter(previousInputPanelTarget, v)
+                else
+                  fatal("Unexpected element " .. previousInputPanelTarget.t .. "appearing as previous input panel target.")
+                end
+              elseif dashboard.inputpanel.forBelow(v) then
+                -- This input panel belongs in the next card, hang onto it
+                -- don't inject it
+                pendingInputPanel = v
+              else
+                -- Free floating input panel, place it in a card
+                local userClasses, cardOptions = dashboard.card.readOptions(v)
+                cardOptions[dashboard.card.optionKeys.expandable] = false
+                cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+                result:insert(dashboard.card.makeCard({v}, userClasses, cardOptions))
+              end
+            else 
+              result:insert(v)  
+            end
+          else 
+            result:insert(v)
+          end
+        end
+        return result
+      end,      
       Div = function(el) 
         if dashboard.layout.isRowOrColumnContainer(el) and #el.content == 0 then
           -- don't emit completely empty layout containers

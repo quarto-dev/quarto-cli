@@ -2211,6 +2211,22 @@ code.sourceCode a.code-annotation-anchor {
       color: $navbar-fg;
     }
   }
+  .bslib-card .bslib-navs-card-title {
+    justify-content: stretch;
+    align-items: end;
+
+    .input-panel {
+      flex-grow: 1;
+    }
+  }
+
+  .input-panel {
+    display: flex;
+    flex-direction: row;
+    > * {
+      flex-grow: 1;
+    }
+  }
 
   .page-layout-custom .tab-content {
     padding: 0;
@@ -2229,9 +2245,7 @@ code.sourceCode a.code-annotation-anchor {
   }
 
   .card-footer {
-    color: $text-muted;
     font-size: 0.9em;
-    text-align: center;
   }
 }
 

@@ -1,6 +1,8 @@
 -- tabset.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local card = require 'modules/dashboard/card'
+local inputpanel = require 'modules/dashboard/inputpanel'
+local utils = require 'modules/dashboard/utils'
 
 -- Tabset classes
 local kTabsetClass = "tabset"
@@ -63,7 +65,12 @@ local function resolveTabs(contents)
         end
       })
       tabContent = cardTabContents
-
+    elseif inputpanel.isInputPanel(v) then 
+      -- If an input panel is captured by a tabset, it will naturally go into the
+      -- the footer for the tabset - place it and mark it processed
+      tabFooterEls:insert(v)
+      inputpanel.markProcessed(v)
+      tabContent = nil
     else
       -- If the direct descrendent of a tab isn't a card, see if it has a header within it
       -- that we can use as the tab title, then just allow the content to flow along
@@ -79,9 +86,9 @@ local function resolveTabs(contents)
       end 
     end
     
-
-    
-    tabBodyEls:insert(pandoc.Div(tabContent, pandoc.Attr("", {kTabBodyClass}, attr)))
+    if tabContent ~= nil then
+      tabBodyEls:insert(pandoc.Div(tabContent, pandoc.Attr("", {kTabBodyClass}, attr)))
+    end
   end
 
   return tabBodyEls, tabFooterEls
@@ -130,7 +137,7 @@ local function makeTabset(title, contents, classes, options)
 end
 
 local function isTabset(el)
-  return (el.t == "Div" or el.t == "Header") and el.classes:includes(kTabsetClass)
+  return (el.t == "Div" or el.t == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
 end
 
 local function readOptions(el)
@@ -157,11 +164,39 @@ local function readOptions(el)
 
 end
 
+local function isTabHeader(el)
+  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabHeaderClass)
+end
+
+local function isTabFooter(el)
+  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabFooterClass)
+end
+
+function addToHeader(tabset, content)
+  local tabsetHeader = utils.findChildDiv(tabset, isTabHeader)
+  if tabsetHeader then
+    tabsetHeader.content:insert(content)
+  else
+    local newHeader = pandoc.Div(content, pandoc.Attr("", {kTabHeaderClass}))
+    tabset.content:insert(1, newHeader)
+  end
+end
+
+function addToFooter(tabset, content)
+  local tabsetFooter = utils.findChildDiv(tabset, isTabFooter)
+  if tabsetFooter then
+    tabsetFooter.content:insert(content)
+  else
+    local newFooter = pandoc.Div(content, pandoc.Attr("", {kTabFooterClass}))
+    card.content:insert(newFooter)
+  end
+end
 
 return {
   isTabset = isTabset,
   readOptions = readOptions,
-  makeTabset = makeTabset
-
+  makeTabset = makeTabset,
+  addToHeader = addToHeader,
+  addToFooter = addToFooter
 }
 

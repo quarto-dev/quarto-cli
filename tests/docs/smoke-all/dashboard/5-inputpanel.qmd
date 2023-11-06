@@ -1,0 +1,17 @@
+---
+title: Input Panel
+format: dashboard
+---
+
+
+:::{.input-panel for="below"}
+
+Here is the input panel contents
+
+:::
+
+```{r}
+plot(cars)
+```
+
+
