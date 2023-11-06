@@ -59,6 +59,7 @@ import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
 import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
+import { processNavigation } from "./format-dashboard-website.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -114,6 +115,7 @@ export function dashboardFormat() {
           project,
           quiet,
         );
+
         extras.html = extras.html || {};
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
@@ -272,6 +274,9 @@ function dashboardHtmlPostProcessor(
       }
     }
 
+    // Process navigation
+    processNavigation(doc);
+
     // Process pages that may be present in the document
     processPages(doc);
 
@@ -297,7 +302,6 @@ function dashboardHtmlPostProcessor(
     processTables(doc);
 
     // Process fill images to include proper fill behavior
-
     const imgFillSelectors = [
       "div.cell-output-display > div.quarto-figure > .quarto-float img",
       "div.cell-output-display > img",
