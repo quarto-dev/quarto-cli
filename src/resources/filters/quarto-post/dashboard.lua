@@ -72,7 +72,7 @@ function render_dashboard()
           local options = dashboard.inputpanel.readOptions(el)
           local inputPanel = dashboard.inputpanel.makeInputPanel(el.content, options)
 
-          local targetId = dashboard.inputpanel.targetId(el)
+          local targetId = dashboard.inputpanel.targetId(inputPanel)
           if targetId ~= nil then
             noteTargetForInputPanel(inputPanel, targetId)
             return pandoc.Null(), false
