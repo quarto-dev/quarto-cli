@@ -1,6 +1,6 @@
 -- dashboard.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
-
+local utils = require 'modules/dashboard/utils'
 local layout = require 'modules/dashboard/layout'
 local card = require 'modules/dashboard/card'
 local valuebox = require 'modules/dashboard/valuebox'
@@ -17,8 +17,7 @@ local function isLayoutContainer(el)
   elseif valuebox.isValueBox(el) then
     return true
   elseif layout.isRowOrColumnContainer(el) then
-    return true
-  elseif sidebar.isSidebar(el) then
+    return true  elseif sidebar.isSidebar(el) then
     return true
   elseif tabset.isTabset(el) then
     return true
@@ -91,5 +90,6 @@ return {
   document = document,
   layoutContainer = {
     organizer = organizer
-  }
+  },
+  utils = utils
 }
