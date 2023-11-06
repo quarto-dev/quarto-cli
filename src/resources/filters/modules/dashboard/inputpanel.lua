@@ -27,7 +27,18 @@ local kInputPanelComponentAtts = pandoc.List({kInputPanelComponentAttr, kInputPa
 local kInputPanelComponentAttrVal = "inputs"
 
 local function readOptions(el)
-  -- TODO: Validation
+
+
+  if el.attributes ~= nil then
+    if el.attributes[kHeaderFor] ~= nil and el.attributes[kFooterFor] ~= nil then
+      fatal("A set of inputs can't appear both within a header and footer of a card or tabset. Please remove either `header-for` or `footer-for` from the inputs cell.")
+    end
+
+    local targetPosition = el.attributes[kTargetPosition]
+    if targetPosition ~= nil and targetPosition ~= kTargetPositionHeader and targetPosition ~= kTargetPositionFooter then
+      fatal("Invalid value for the target-position of inputs: " .. targetPosition)
+    end
+  end
 
   local options = {}
 
