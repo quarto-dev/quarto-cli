@@ -24,6 +24,8 @@ local kValueBoxShowcaseDataAttr = {kValueBoxIcon, kValueBoxShowcasePosition}
 local kForwardValueFromCodeCell = pandoc.List({kValueBoxTitle, kValueBoxValue, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor, kValueBoxIcon })
 
 local kComponentAttr = "component"
+local kContentAttr = "content"
+local kContentAttrs = pandoc.List({kComponentAttr, kContentAttr})
 local kComponentValuebox = "valuebox"
 
 
@@ -34,14 +36,20 @@ local function wrapValueBox(box, classes)
   return card.makeCard({box}, valueBoxClz)
 end
 
+local function isValueBoxContent(el) 
+  if el.attributes ~= nil and kContentAttrs:find_if(function(attrName) 
+    return el.attributes[attrName] == kComponentValuebox
+  end) then
+    return true
+  end
+end
 
 local function isValueBox(el) 
-  if el.attributes ~= nil and el.attributes[kComponentAttr] == kComponentValuebox then
+  if isValueBoxContent(el) then
     return true
   end
   return el.classes ~= nil and el.classes:includes(kValueBoxClz)
 end 
-
 
 local function toLines(s)
   if s:sub(-1)~="\n" then s=s.."\n" end
@@ -111,7 +119,7 @@ end
 
 
 local function valueboxContent(el)
-  if el.attributes[kComponentAttr] == kComponentValuebox then 
+  if isValueBoxContent(el) then
 
     -- read the title from attributes, if possible
     local title = {}
