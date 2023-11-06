@@ -71,7 +71,7 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { isHtmlOutput } from "../../config/format.ts";
+import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -511,8 +511,9 @@ async function resolveFormats(
 
     // resolve theme (project-level bootstrap theme always wins for web drived output)
     if (
-      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat) &&
-      projectTypeIsWebsite(projType)
+      project &&
+      (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
+      formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];

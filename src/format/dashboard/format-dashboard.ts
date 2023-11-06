@@ -15,6 +15,7 @@ import {
   kIpynbShellInteractivity,
   kPlotlyConnected,
   kTemplate,
+  kTheme,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -25,6 +26,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -60,6 +62,7 @@ import { processPages } from "./format-dashboard-page.ts";
 import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
 import { processNavigation } from "./format-dashboard-website.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -103,6 +106,18 @@ export function dashboardFormat() {
       if (baseHtmlFormat.formatExtras) {
         // Read the dashboard metadata
         const dashboard = await dashboardMeta(format);
+
+        // Forward the theme along (from either the html format
+        // or from the dashboard format)
+        // TODO: There must be a beter way to do this
+        if (projectIsWebsite(project)) {
+          const formats: Record<string, Metadata> = format.metadata
+            .format as Record<string, Metadata>;
+          const htmlFormat = formats["html"];
+          if (htmlFormat && htmlFormat[kTheme]) {
+            format.metadata[kTheme] = htmlFormat[kTheme];
+          }
+        }
 
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
@@ -149,7 +164,7 @@ export function dashboardFormat() {
           dependency: kBootstrapDependencyName,
           key: dashboardScss,
           quarto: {
-            name: "quarto-search.css",
+            name: "quarto-dashboard.css",
             ...dashboardLayer,
           },
         };

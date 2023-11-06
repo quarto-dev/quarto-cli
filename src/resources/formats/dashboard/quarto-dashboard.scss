@@ -1,3 +1,7 @@
+/*-- scss: defaults --*/
+$dashboard-navbar-border-top-color: $border-color !default;
+$dashboard-navbar-border-bottom-color: $border-color !default;
+
 /*-- scss:rules --*/
 $valuebox-bg-primary: $primary !default;
 $valuebox-bg-secondary: $secondary !default;
@@ -49,4 +53,9 @@ $valuebox-colors: (
       background-color: $valuebox-color-value !important;
     }
   }
+}
+
+#quarto-header #quarto-dashboard-header {
+  border-top: solid 1px $dashboard-navbar-border-top-color;
+  border-bottom: solid 1px $dashboard-navbar-border-bottom-color;
 }
