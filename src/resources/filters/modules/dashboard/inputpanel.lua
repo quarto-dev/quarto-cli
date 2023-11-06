@@ -14,6 +14,8 @@ local kInAttrValueFooter = "footer"
 local kInputPanelProcess = "inputs-process"
 
 local kInputPanelComponentAttr = "component"
+local kInputPanelContentAttr = "content"
+local kInputPanelComponentAtts = pandoc.List({kInputPanelComponentAttr, kInputPanelContentAttr})
 local kInputPanelComponentAttrVal = "inputs"
 
 local function readOptions(el)
@@ -44,7 +46,9 @@ local function makeInputPanel(contents, options)
 end
 
 local function isInputPanel(el)
-  if el.attributes ~= nil and el.attributes[kInputPanelComponentAttr] == kInputPanelComponentAttrVal then
+  if el.attributes ~= nil and kInputPanelComponentAtts:find_if(function(attrName) 
+    return el.attributes[attrName] == kInputPanelComponentAttrVal
+  end) then
     return true
   end
 
