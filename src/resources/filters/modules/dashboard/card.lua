@@ -301,7 +301,6 @@ end
 --   .card-body[max-height, min-height]
 local function makeCard(contents, classes, options)  
 
-
   -- Inspect the loose content and don't make cards out of things that don't look cardish
   local hasRealContent = hasRealLookingContent(contents)
   if not hasRealContent then

@@ -22,6 +22,18 @@ local function popPendingInputPanel(el)
   return pendingPanel
 end
 
+local inputPanelTargets = {
+}
+local function noteTargetForInputPanel(panel, id) 
+  dashboard.inputpanel.markProcessed(panel)
+  inputPanelTargets[id] = inputPanelTargets[id] or pandoc.List()
+  inputPanelTargets[id]:insert(panel)
+end
+
+local function inputPanelsForId(id) 
+  return inputPanelTargets[id]
+end
+
 
 function render_dashboard() 
 
@@ -55,7 +67,15 @@ function render_dashboard()
           -- convert them into a card, or merge them into other card header/footers
           -- per the user's request 
           local options = dashboard.inputpanel.readOptions(el)
-          return dashboard.inputpanel.makeInputPanel(el.content, options), false
+          local inputPanel = dashboard.inputpanel.makeInputPanel(el.content, options)
+
+          local targetId = dashboard.inputpanel.targetId(el)
+          if targetId ~= nil then
+            noteTargetForInputPanel(inputPanel, targetId)
+            return pandoc.Null(), false
+          else
+            return inputPanel, false
+          end
         
         elseif dashboard.card.isCard(el) then
 
@@ -345,7 +365,7 @@ function render_dashboard()
         -- Track the last card and any pending input panels to be joined
         -- to cards
         local result = pandoc:Blocks()
-        for i, v in ipairs(blocks) do
+        for _i, v in ipairs(blocks) do
           if v.t == "Div" and not is_custom_node(v) then
           
             if dashboard.card.isCard(v) then
@@ -355,8 +375,22 @@ function render_dashboard()
               -- container)
               local pendingPanel = popPendingInputPanel()
               if pendingPanel ~= nil then
-                dashboard.card.addToHeader(v, pendingPanel)
+                dashboard.inputpanel.addToTarget(pendingPanel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
               end
+
+              -- inject any specifically target input panels
+              local possibleTargetIds = dashboard.utils.idsWithinEl(v)
+              if possibleTargetIds ~= nil then
+                for _j, targetId in ipairs(possibleTargetIds) do
+                  local panelsForTarget = inputPanelsForId(targetId)
+                  if panelsForTarget ~= nil then
+                    for _j,panel in ipairs(panelsForTarget) do
+                      dashboard.inputpanel.addToTarget(panel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                    end
+                  end    
+                end
+              end
+
               result:insert(v)
               previousInputPanelTarget = v
 
@@ -367,29 +401,43 @@ function render_dashboard()
               -- container)
               local pendingPanel = popPendingInputPanel()
               if pendingPanel ~= nil then
-                dashboard.tabset.addToHeader(v, pendingInputPanel)
+                dashboard.inputpanel.addToTarget(pendingPanel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
               end
+
+              -- inject an specifically target input panels
+              local possibleTargetIds = dashboard.utils.idsWithinEl(v)
+              if possibleTargetIds ~= nil then
+                for _j, targetId in ipairs(possibleTargetIds) do
+                  local panelsForTarget = inputPanelsForId(targetId)
+                  if panelsForTarget ~= nil then
+                    for _j,panel in ipairs(panelsForTarget) do
+                      dashboard.inputpanel.addToTarget(panel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                    end
+                  end    
+                end
+              end
+              
               result:insert(v)
               previousInputPanelTarget = v
 
             elseif dashboard.inputpanel.isInputPanel(v) and dashboard.inputpanel.isUnprocessed(v) then
               -- If this is an unprocessed input panel, mark it processed and handle it appropriately
               dashboard.inputpanel.markProcessed(v)
-              if dashboard.inputpanel.forAbove(v) then
+              if dashboard.inputpanel.targetPrevious(v) then
                 -- This is for a the card/tabset that appears above
                 if previousInputPanelTarget == nil then
                   fatal("Input panel specified to insert into card above, but there was no card above")
                 elseif dashboard.card.isCard(previousInputPanelTarget) then
-                  dashboard.card.addToFooter(previousInputPanelTarget, v)
+                  dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
                 elseif dashboard.tabset.isTabset(previousInputPanelTarget) then
-                  dashboard.tabset.addToFooter(previousInputPanelTarget, v)
+                  dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                 else
                   fatal("Unexpected element " .. previousInputPanelTarget.t .. "appearing as previous input panel target.")
                 end
-              elseif dashboard.inputpanel.forBelow(v) then
+              elseif dashboard.inputpanel.targetNext(v) then
                 -- This input panel belongs in the next card, hang onto it
                 -- don't inject it
-                pendingInputPanel = v
+                setPendingInputPanel(v)
               else
                 -- Free floating input panel, place it in a card
                 local userClasses, cardOptions = dashboard.card.readOptions(v)
