@@ -454,7 +454,7 @@ async function resolveFormats(
     });
 
     // Remove any 'to' information that will force the
-    // rnedering to a particular format
+    // rendering to a particular format
     options = ld.cloneDeep(options);
     delete options.flags?.to;
   }
