@@ -2113,102 +2113,131 @@ code.sourceCode a.code-annotation-anchor {
     padding: 0.7em;
   }
 
-  .navbar {
-    padding: 0;
+  #quarto-header #quarto-dashboard-header {
+    > nav {
+      padding-left: 1em;
+      padding-right: 1em;
+      .navbar-brand-container {
+        padding-left: 0;
+      }
+    }
+  }
 
-    &.slim {
-      .navbar-brand-container,
+  #quarto-dashboard-header {
+    .navbar {
+      padding: 0;
+
+      &.slim {
+        .navbar-brand-container,
+        .navbar-nav {
+          .nav-link {
+            padding: 0.7em;
+          }
+        }
+      }
+
+      .navbar-toggler {
+        order: 10;
+      }
+
       .navbar-nav {
         .nav-link {
-          padding: 0.7em;
+          padding: 0.5em;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          .nav-link-text {
+            white-space: nowrap;
+          }
+        }
+        & .active {
+          background-color: theme-dim($navbar-bg, 8%);
         }
       }
-    }
 
-    .navbar-toggler {
-      order: 10;
-    }
-
-    .navbar-nav {
-      .nav-link {
+      .navbar-brand-container {
         padding: 0.5em;
-        height: 100%;
         display: flex;
+        flex-direction: row;
+        margin-right: 2em;
         align-items: center;
-        .nav-link-text {
-          white-space: nowrap;
+        @include media-breakpoint-down(md) {
+          margin-right: auto;
         }
       }
-      & .active {
-        background-color: theme-dim($navbar-bg, 8%);
-      }
-    }
 
-    .navbar-brand-container {
-      padding: 0.5em;
-      display: flex;
-      flex-direction: row;
-      margin-right: 2em;
-      align-items: center;
-      @include media-breakpoint-down(md) {
-        margin-right: auto;
-      }
-    }
-
-    .navbar-collapse {
-      @include media-breakpoint-up(md) {
-        order: 8;
-      }
-      @include media-breakpoint-down(md) {
-        order: 1000;
-        padding-bottom: 0.5em;
-      }
-      align-self: stretch;
-      .navbar-nav {
+      .navbar-collapse {
+        @include media-breakpoint-up(md) {
+          order: 8;
+        }
+        @include media-breakpoint-down(md) {
+          order: 1000;
+          padding-bottom: 0.5em;
+        }
         align-self: stretch;
+        .navbar-nav {
+          align-self: stretch;
+        }
       }
-    }
 
-    .navbar-title {
-      font-size: 1.25em;
-      line-height: 1.1em;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: baseline;
-      .navbar-title-text {
-        margin-right: 0.4em;
+      .navbar-title {
+        font-size: 1.25em;
+        line-height: 1.1em;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: baseline;
+        .navbar-title-text {
+          margin-right: 0.4em;
+        }
+        a {
+          text-decoration: none;
+          color: inherit;
+        }
       }
-      a {
+
+      .navbar-author {
+        font-size: 0.9rem;
+      }
+
+      .navbar-logo {
+        max-height: 48px;
+        min-height: 30px;
+        object-fit: cover;
+        margin-right: 1em;
+      }
+
+      .quarto-dashboard-links {
+        order: 9;
+        padding-right: 1em;
+      }
+      .quarto-dashboard-link-text {
+        margin-left: 0.25em;
+      }
+
+      .quarto-dashboard-link {
+        padding-right: 0em;
+        padding-left: 0.7em;
         text-decoration: none;
-        color: inherit;
+        color: $navbar-fg;
       }
     }
+  }
 
-    .navbar-author {
-      font-size: 0.9rem;
-    }
+  .bslib-card .bslib-navs-card-title {
+    justify-content: stretch;
+    align-items: end;
 
-    .navbar-logo {
-      max-height: 48px;
-      min-height: 30px;
-      object-fit: cover;
-      margin-right: 1em;
+    .inputs {
+      flex-grow: 1;
     }
+  }
 
-    .quarto-dashboard-links {
-      order: 9;
-      padding-right: 1em;
-    }
-    .quarto-dashboard-link-text {
-      margin-left: 0.25em;
-    }
-
-    .quarto-dashboard-link {
-      padding-right: 0em;
-      padding-left: 0.7em;
-      text-decoration: none;
-      color: $navbar-fg;
+  .inputs {
+    display: flex;
+    flex-direction: row;
+    > * {
+      flex-grow: 1;
     }
   }
 
@@ -2229,9 +2258,7 @@ code.sourceCode a.code-annotation-anchor {
   }
 
   .card-footer {
-    color: $text-muted;
     font-size: 0.9em;
-    text-align: center;
   }
 }
 

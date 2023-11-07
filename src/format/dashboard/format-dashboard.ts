@@ -15,6 +15,7 @@ import {
   kIpynbShellInteractivity,
   kPlotlyConnected,
   kTemplate,
+  kTheme,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -25,6 +26,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -59,6 +61,8 @@ import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
 import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
+import { processNavigation } from "./format-dashboard-website.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -103,6 +107,18 @@ export function dashboardFormat() {
         // Read the dashboard metadata
         const dashboard = await dashboardMeta(format);
 
+        // Forward the theme along (from either the html format
+        // or from the dashboard format)
+        // TODO: There must be a beter way to do this
+        if (projectIsWebsite(project)) {
+          const formats: Record<string, Metadata> = format.metadata
+            .format as Record<string, Metadata>;
+          const htmlFormat = formats["html"];
+          if (htmlFormat && htmlFormat[kTheme]) {
+            format.metadata[kTheme] = htmlFormat[kTheme];
+          }
+        }
+
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,
@@ -114,6 +130,7 @@ export function dashboardFormat() {
           project,
           quiet,
         );
+
         extras.html = extras.html || {};
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
@@ -147,7 +164,7 @@ export function dashboardFormat() {
           dependency: kBootstrapDependencyName,
           key: dashboardScss,
           quarto: {
-            name: "quarto-search.css",
+            name: "quarto-dashboard.css",
             ...dashboardLayer,
           },
         };
@@ -272,6 +289,9 @@ function dashboardHtmlPostProcessor(
       }
     }
 
+    // Process navigation
+    processNavigation(doc);
+
     // Process pages that may be present in the document
     processPages(doc);
 
@@ -297,7 +317,6 @@ function dashboardHtmlPostProcessor(
     processTables(doc);
 
     // Process fill images to include proper fill behavior
-
     const imgFillSelectors = [
       "div.cell-output-display > div.quarto-figure > .quarto-float img",
       "div.cell-output-display > img",

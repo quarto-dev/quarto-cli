@@ -61,6 +61,9 @@ function initialize_custom_crossref_categories(meta)
     add_crossref_category(obj_entry)
 
     if quarto.doc.isFormat("pdf") then
+      local function as_latex(inlines)
+        return trim(pandoc.write(pandoc.Pandoc(inlines), "latex"))
+      end
       metaInjectLatex(meta, function(inject)
         local env_name = entry["latex-env"]
         local name = entry["name"]
@@ -80,7 +83,7 @@ function initialize_custom_crossref_categories(meta)
         usePackage("float") .. "\n" ..
         "\\floatstyle{plain}\n" ..
         "\\@ifundefined{c@chapter}{\\newfloat{" .. env_name .. "}{h}{" .. list_of_name .. "}}{\\newfloat{" .. env_name .. "}{h}{" .. list_of_name .. "}[chapter]}\n" ..
-        "\\floatname{".. env_name .. "}{" .. titleString(ref_type, env_prefix) .. "}\n"
+        "\\floatname{".. env_name .. "}{" .. as_latex(title(ref_type, env_prefix)) .. "}\n"
         )
 
         -- FIXME this is a bit of hack for the case of custom categories with

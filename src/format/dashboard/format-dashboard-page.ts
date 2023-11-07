@@ -26,7 +26,7 @@ export function processPages(doc: Document) {
   }
 
   // Find the navbar, which will be using to make navigation
-  const navbarEl = doc.querySelector(".navbar");
+  const navbarEl = doc.querySelector("#quarto-dashboard-header .navbar");
   if (!navbarEl) {
     throw new Error(
       "Expected a navbar in the dashboard output since pages are specified.",

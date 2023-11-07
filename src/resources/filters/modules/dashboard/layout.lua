@@ -66,6 +66,9 @@ local function readOptions(el)
     return not kLayoutClz:includes(class)
   end)
   options[kOptionClasses] = classes
+  
+  -- validate the layout options
+  validateLayout(options)
 
   return options;
 end
@@ -81,8 +84,6 @@ local function makeOptions(scrolling)
 end
 
 local function makeColumnContainer(content, options)
-  validateLayout(options)
-
 
   -- forward the options onto attributes
   local attributes = {}
@@ -103,9 +104,6 @@ local function makeColumnContainer(content, options)
 end
 
 local function makeRowContainer(content, options) 
-  
-  -- rows can't have width
-  validateLayout(options)
 
   -- forward attributes along
   local attributes = {}

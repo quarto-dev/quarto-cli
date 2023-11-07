@@ -1,5 +1,6 @@
 -- card.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
+local utils = require "modules/dashboard/utils"
 
 -- Card classes
 local kCardClass = "card"
@@ -300,7 +301,6 @@ end
 --   .card-body[max-height, min-height]
 local function makeCard(contents, classes, options)  
 
-
   -- Inspect the loose content and don't make cards out of things that don't look cardish
   local hasRealContent = hasRealLookingContent(contents)
   if not hasRealContent then
@@ -343,7 +343,26 @@ local function makeCard(contents, classes, options)
   
   local cardEl = pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
   return cardEl
+end
 
+function addToHeader(card, content)
+  local cardHeader = utils.findChildDiv(card, isCardHeader)
+  if cardHeader then
+    cardHeader.content:insert(content)
+  else
+    local newHeader = pandoc.Div(content, pandoc.Attr("", {kCardHeaderClass}))
+    card.content:insert(1, newHeader)
+  end
+end
+
+function addToFooter(card, content)
+  local cardFooter = utils.findChildDiv(card, isCardFooter)
+  if cardFooter then
+    cardFooter.content:insert(content)
+  else
+    local newFooter = pandoc.Div(content, pandoc.Attr("", {kCardFooterClass}))
+    card.content:insert(newFooter)
+  end
 end
 
 return {
@@ -353,9 +372,12 @@ return {
   isLiteralCard = isLiteralCard,
   readOptions = readOptions,
   makeCard = makeCard,
+  addToFooter = addToFooter,
+  addToHeader = addToHeader,
   hasCardDecoration = hasCardDecoration,
   optionKeys = {
-    layout = kLayout
+    layout = kLayout,
+    expandable = kExpandable
   },
   optionValues = {
     flow = kFlowClass

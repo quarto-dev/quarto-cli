@@ -10,6 +10,34 @@ local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
 local kCellClass = "cell"
 local kCellOutputDisplayClass = "cell-output-display"
 
+local previousInputPanelTarget = nil
+local pendingInputPanel = nil
+local function setPendingInputPanel(el)
+  pendingInputPanel = el
+end
+
+local function popPendingInputPanel(el)
+  local pendingPanel = pendingInputPanel
+  pendingInputPanel = nil
+  return pendingPanel
+end
+
+local inputPanelTargets = {
+}
+local function noteTargetForInputPanel(panel, id) 
+  dashboard.inputpanel.markProcessed(panel)
+  inputPanelTargets[id] = inputPanelTargets[id] or pandoc.List()
+  inputPanelTargets[id]:insert(panel)
+end
+
+local function popInputPanelsForId(id) 
+  local inputPanels = inputPanelTargets[id]
+  inputPanelTargets[id] = nil
+  return inputPanels
+end
+
+
+
 function render_dashboard() 
 
   -- only do this for dashboad output
@@ -35,6 +63,23 @@ function render_dashboard()
 
         if el.attributes["output"] == "asis" then
           return nil
+        elseif dashboard.inputpanel.isInputPanel(el) then
+          
+          -- Convert any input panels into their standard representation
+          -- note that these will be process downstream to do things like 
+          -- convert them into a card, or merge them into other card header/footers
+          -- per the user's request 
+          local options = dashboard.inputpanel.readOptions(el)
+          local inputPanel = dashboard.inputpanel.makeInputPanel(el.content, options)
+
+          local targetId = dashboard.inputpanel.targetId(inputPanel)
+          if targetId ~= nil then
+            noteTargetForInputPanel(inputPanel, targetId)
+            return pandoc.Null(), false
+          else
+            return inputPanel, false
+          end
+        
         elseif dashboard.card.isCard(el) then
 
           -- see if the card is already in the correct structure (a single header and body)
@@ -316,8 +361,102 @@ function render_dashboard()
           end
         end      
       end,
-    }, {
+    },
+    {
       traverse = 'topdown',
+      Blocks = function(blocks)
+        -- Track the last card and any pending input panels to be joined
+        -- to cards
+        local result = pandoc:Blocks()
+        for _i, v in ipairs(blocks) do
+          if v.t == "Div" and not is_custom_node(v) then
+          
+            if dashboard.card.isCard(v) then
+              -- If there is a pending input panel, then insert it into
+              -- this card (note that a pending input panel will only
+              -- be present if the card is to be inserted into the below
+              -- container)
+              local pendingPanel = popPendingInputPanel()
+              if pendingPanel ~= nil then
+                dashboard.inputpanel.addToTarget(pendingPanel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
+              end
+
+              -- inject any specifically target input panels
+              local possibleTargetIds = dashboard.utils.idsWithinEl(v)
+              if possibleTargetIds ~= nil then
+                for _j, targetId in ipairs(possibleTargetIds) do
+                  local panelsForTarget = popInputPanelsForId(targetId)
+                  if panelsForTarget ~= nil then
+                    for _j,panel in ipairs(panelsForTarget) do
+                      dashboard.inputpanel.addToTarget(panel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                    end
+                  end    
+                end
+              end
+
+              result:insert(v)
+              previousInputPanelTarget = v
+
+            elseif (dashboard.tabset.isTabset(v)) then
+              -- If there is a pending input panel, then insert it into
+              -- this tabset (note that a pending input panel will only
+              -- be present if the card is to be inserted into the below
+              -- container)
+              local pendingPanel = popPendingInputPanel()
+              if pendingPanel ~= nil then
+                dashboard.inputpanel.addToTarget(pendingPanel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+              end
+
+              -- inject an specifically target input panels
+              local possibleTargetIds = dashboard.utils.idsWithinEl(v)
+              if possibleTargetIds ~= nil then
+                for _j, targetId in ipairs(possibleTargetIds) do
+                  local panelsForTarget = popInputPanelsForId(targetId)
+                  if panelsForTarget ~= nil then
+                    for _j,panel in ipairs(panelsForTarget) do
+                      dashboard.inputpanel.addToTarget(panel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                    end
+                  end    
+                end
+              end
+              
+              result:insert(v)
+              previousInputPanelTarget = v
+
+            elseif dashboard.inputpanel.isInputPanel(v) and dashboard.inputpanel.isUnprocessed(v) then
+              -- If this is an unprocessed input panel, mark it processed and handle it appropriately
+              dashboard.inputpanel.markProcessed(v)
+              if dashboard.inputpanel.targetPrevious(v) then
+                -- This is for a the card/tabset that appears above
+                if previousInputPanelTarget == nil then
+                  fatal("Input panel specified to insert into previous card or tabset, but there was no previous card or tabset.")
+                elseif dashboard.card.isCard(previousInputPanelTarget) then
+                  dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                elseif dashboard.tabset.isTabset(previousInputPanelTarget) then
+                  dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                else
+                  fatal("Unexpected element " .. previousInputPanelTarget.t .. "appearing as previous input panel target.")
+                end
+              elseif dashboard.inputpanel.targetNext(v) then
+                -- This input panel belongs in the next card, hang onto it
+                -- don't inject it
+                setPendingInputPanel(v)
+              else
+                -- Free floating input panel, place it in a card
+                local userClasses, cardOptions = dashboard.card.readOptions(v)
+                cardOptions[dashboard.card.optionKeys.expandable] = false
+                cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+                result:insert(dashboard.card.makeCard({v}, userClasses, cardOptions))
+              end
+            else 
+              result:insert(v)  
+            end
+          else 
+            result:insert(v)
+          end
+        end
+        return result
+      end,      
       Div = function(el) 
         if dashboard.layout.isRowOrColumnContainer(el) and #el.content == 0 then
           -- don't emit completely empty layout containers
@@ -341,6 +480,29 @@ function render_dashboard()
         end
 
       end,
+    }, {
+      Pandoc = function(_pandoc) 
+
+        -- If there is still a pending input panel, that means that the user
+        -- placed inputs at the end of the document with no cards or tabsets following
+        local pendingPanel = popPendingInputPanel()
+        if pendingPanel ~= nil then
+          fatal("An input panel was unable to placed within the next card or tabset as there was no next card or tabset.")
+        end
+
+        -- If there are ids that haven't been resolved, that means that the user targeted ids with
+        -- inputs and those ids were never found, so the input panel was never placed.
+        local missingIds = pandoc.List()
+        for k,v in pairs(inputPanelTargets) do
+          missingIds:insert(k)
+        end
+        
+        if #missingIds > 0 then
+          fatal("An input failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
+        end
+
+
+      end
     }
   }
 end

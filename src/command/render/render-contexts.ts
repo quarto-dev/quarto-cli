@@ -71,13 +71,12 @@ import {
   kProjectType,
   ProjectContext,
 } from "../../project/types.ts";
-import { isHtmlOutput } from "../../config/format.ts";
+import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
 import {
   fileEngineClaimReason,
-  fileExecutionEngine,
   fileExecutionEngineAndTarget,
 } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
@@ -291,26 +290,17 @@ export async function renderContexts(
         context.target.preEngineExecuteResults = results;
       }
 
-      // if a markdown detected engine changed then re-scan
       if (engineClaimReason === "markdown") {
-        const detectedEngine = fileExecutionEngine(
+        // since the content decided the engine, and the content now changed,
+        // we need to re-evaluate the engine and target based on new content.
+        const { engine, target } = await fileExecutionEngineAndTarget(
           file.path,
           options.flags,
           markdown,
+          project,
         );
-        if (detectedEngine && (context.engine.name !== detectedEngine.name)) {
-          context.engine = detectedEngine;
-          const target = await detectedEngine.target(
-            file.path,
-            options.flags?.quiet,
-            markdown,
-            project,
-          );
-          if (!target) {
-            throw new Error("Unable to render " + file);
-          }
-          context.target = target;
-        }
+        context.engine = engine;
+        context.target = target;
       }
     }
 
@@ -464,7 +454,7 @@ async function resolveFormats(
     });
 
     // Remove any 'to' information that will force the
-    // rnedering to a particular format
+    // rendering to a particular format
     options = ld.cloneDeep(options);
     delete options.flags?.to;
   }
@@ -521,8 +511,9 @@ async function resolveFormats(
 
     // resolve theme (project-level bootstrap theme always wins for web drived output)
     if (
-      project && isHtmlOutput(format, true) && formatHasBootstrap(projFormat) &&
-      projectTypeIsWebsite(projType)
+      project &&
+      (isHtmlOutput(format, true) || isHtmlDashboardOutput(format)) &&
+      formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];

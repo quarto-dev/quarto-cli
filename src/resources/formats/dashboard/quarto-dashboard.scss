@@ -50,3 +50,8 @@ $valuebox-colors: (
     }
   }
 }
+
+#quarto-header #quarto-dashboard-header {
+  border-top: solid 1px theme-dim($navbar-bg, 10%);
+  border-bottom: solid 1px theme-dim($navbar-bg, 10%);
+}

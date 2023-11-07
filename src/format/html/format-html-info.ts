@@ -1,18 +1,21 @@
 /*
-* format-html-info.ts
-*
-* functions to obtain information about qmd files in HTML format
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-info.ts
+ *
+ * functions to obtain information about qmd files in HTML format
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { kTheme } from "../../config/constants.ts";
-import { isHtmlOutput } from "../../config/format.ts";
+import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
 import { Format, Metadata } from "../../config/types.ts";
 
 export function formatHasBootstrap(format: Format) {
-  if (format && isHtmlOutput(format.pandoc, true)) {
+  if (
+    format &&
+    (isHtmlOutput(format.pandoc, true) ||
+      isHtmlDashboardOutput(format.identifier["base-format"]))
+  ) {
     return hasBootstrapTheme(format.metadata);
   } else {
     return false;
