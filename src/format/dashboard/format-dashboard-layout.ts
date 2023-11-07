@@ -46,7 +46,15 @@ const kNeverFillClasses = [
   "value-box-value",
   "nav-tabs",
   "card-header",
+  "card-footer",
   "callout",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "input-panel",
 ];
 
 // Configuration for skipping elements when applying container classes
@@ -68,6 +76,7 @@ const kFillContentElements: FillDescriptor = {
     "main",
     "bslib-sidebar-layout",
     "cell-output-display",
+    "quarto-float",
   ],
 };
 

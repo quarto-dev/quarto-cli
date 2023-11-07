@@ -3,8 +3,10 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
+import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
+import { gitHubContext } from "../../core/github.ts";
 
 export const kDashboard = "dashboard";
 
@@ -16,28 +18,70 @@ export type Layout = "fill" | "flow" | string;
 
 export const kDashboardGridSkip = "grid-skip";
 
+export const kNavButtons = "nav-buttons";
+
 export const kDontMutateTags = ["P", "SCRIPT"];
+
+export interface NavButton {
+  href: string;
+  text?: string;
+  icon?: string;
+  rel?: string;
+  target?: string;
+  title?: string;
+  ["aria-label"]?: string;
+}
 
 export interface DashboardMeta {
   orientation: "rows" | "columns";
   scrolling: boolean;
   expandable: boolean;
+  [kNavButtons]: NavButton[];
 }
 
 export const kValueboxClass = "valuebox";
 
-export function dashboardMeta(format: Format): DashboardMeta {
+export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
   const dashboardRaw = format.metadata as Metadata;
   const orientation = dashboardRaw && dashboardRaw.orientation === "columns"
     ? "columns"
     : "rows";
   const scrolling = dashboardRaw.scrolling === true;
   const expandable = dashboardRaw.expandable !== false;
+  const dashboardTitle = format.metadata[kTitle] as string | undefined;
+
+  const processNavbarButton = async (buttonRaw: unknown) => {
+    if (typeof (buttonRaw) === "string") {
+      if (kNavButtonAliases[buttonRaw] !== undefined) {
+        return kNavButtonAliases[buttonRaw](dashboardTitle);
+      }
+      return undefined;
+    } else {
+      return buttonRaw as NavButton;
+    }
+  };
+
+  const navbarButtons = [];
+  const navbarButtonsRaw = format.metadata[kNavButtons];
+  if (Array.isArray(navbarButtonsRaw)) {
+    for (const btnRaw of navbarButtonsRaw) {
+      const btn = await processNavbarButton(btnRaw);
+      if (btn) {
+        navbarButtons.push(btn);
+      }
+    }
+  } else {
+    const btn = await processNavbarButton(navbarButtonsRaw);
+    if (btn) {
+      navbarButtons.push(btn);
+    }
+  }
 
   return {
     orientation,
     scrolling,
     expandable,
+    [kNavButtons]: navbarButtons,
   };
 }
 
@@ -155,4 +199,55 @@ export const applyAttributes = (el: Element, attr: Record<string, string>) => {
   for (const key of Object.keys(attr)) {
     el.setAttribute(key, attr[key]);
   }
+};
+const kNavButtonAliases: Record<
+  string,
+  (text?: string) => Promise<NavButton | undefined>
+> = {
+  linkedin: (text?: string) => {
+    return Promise.resolve({
+      icon: "linkedin",
+      title: "LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=|url|&title=${
+        text ? encodeURI(text) : undefined
+      }`,
+    });
+  },
+  facebook: (_text?: string) => {
+    return Promise.resolve({
+      icon: "facebook",
+      title: "Facebook",
+      href: "https://www.facebook.com/sharer/sharer.php?u=|url|",
+    });
+  },
+  reddit: (text?: string) => {
+    return Promise.resolve({
+      icon: "reddit",
+      title: "Reddit",
+      href: `https://reddit.com/submit?url=|url|&title=${
+        text ? encodeURI(text) : undefined
+      }`,
+    });
+  },
+  twitter: (text?: string) => {
+    return Promise.resolve({
+      icon: "twitter",
+      title: "Twitter",
+      href: `https://twitter.com/intent/tweet?url=|url|&text=${
+        text ? encodeURI(text) : undefined
+      }`,
+    });
+  },
+  github: async (_text?: string) => {
+    const context = await gitHubContext(Deno.cwd());
+    if (context.repoUrl) {
+      return {
+        icon: "github",
+        title: "GitHub",
+        href: context.repoUrl,
+      } as NavButton;
+    } else {
+      return undefined;
+    }
+  },
 };

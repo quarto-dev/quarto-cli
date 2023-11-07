@@ -30,6 +30,7 @@ import {
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
+  kBaseFormat,
   kExecuteDaemon,
   kExecuteEnabled,
   kExecuteIpynb,
@@ -48,6 +49,7 @@ import {
 import { Format } from "../../config/types.ts";
 import {
   isHtmlCompatible,
+  isHtmlDashboardOutput,
   isIpynbOutput,
   isLatexOutput,
   isMarkdownOutput,
@@ -108,6 +110,7 @@ import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
 import { basename } from "https://deno.land/std@0.185.0/path/win32.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
@@ -347,6 +350,14 @@ export const jupyterEngine: ExecutionEngine = {
       options.target.input,
       options.format.pandoc.to,
     );
+
+    // Preserve the cell metadata if users have asked us to, or if this is dashboard
+    // that is coming from a non-qmd source
+    const preserveCellMetadata =
+      options.format.render[kNotebookPreserveCells] === true ||
+      (isHtmlDashboardOutput(options.format.identifier[kBaseFormat]) &&
+        !isQmdFile(options.target.source));
+
     // NOTE: for perforance reasons the 'nb' is mutated in place
     // by jupyterToMarkdown (we don't want to make a copy of a
     // potentially very large notebook) so should not be relied
@@ -367,8 +378,7 @@ export const jupyterEngine: ExecutionEngine = {
         figFormat: options.format.execute[kFigFormat],
         figDpi: options.format.execute[kFigDpi],
         figPos: options.format.render[kFigPos],
-        preserveCellMetadata:
-          options.format.render[kNotebookPreserveCells] === true,
+        preserveCellMetadata,
         preserveCodeCellYaml:
           options.format.render[kIpynbProduceSourceNotebook] === true,
       },
@@ -469,8 +479,8 @@ export const jupyterEngine: ExecutionEngine = {
       throw new Error();
     }
 
-    const [_dir, stem] = dirAndStem(options.input);
-    const appFile = `${stem}-app.py`;
+    const [_dir] = dirAndStem(options.input);
+    const appFile = "app.py";
     const cmd = [
       ...await pythonExec(),
       "-m",
@@ -514,12 +524,13 @@ export const jupyterEngine: ExecutionEngine = {
   postRender: async (file: RenderResultFile, _context?: ProjectContext) => {
     // discover non _files dir resources for server: shiny and amend app.py with them
     if (isServerShiny(file.format)) {
-      const [dir, stem] = dirAndStem(file.input);
+      const [dir] = dirAndStem(file.input);
       const filesDir = join(dir, inputFilesDir(file.input));
       const extraResources = file.resourceFiles
         .filter((resource) => !resource.startsWith(filesDir))
         .map((resource) => relative(dir, resource));
-      const appScript = join(dir, `${stem}-app.py`);
+      const appScriptDir = _context ? projectOutputDir(_context) : dir;
+      const appScript = join(appScriptDir, `app.py`);
       if (existsSync(appScript)) {
         // compute static assets
         const staticAssets = [inputFilesDir(file.input), ...extraResources];

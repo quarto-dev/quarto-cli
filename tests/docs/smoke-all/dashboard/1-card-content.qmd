@@ -1,0 +1,19 @@
+---
+title: Card Examples
+format: 
+  dashboard:
+    fill: false
+---
+
+:::{.card}
+
+# Heading 2
+
+###### Heading 3
+
+{{< lipsum 1 >}}
+
+
+
+
+:::

@@ -33,7 +33,8 @@ try:
     pio.renderers.default = "notebook_connected"
   else:
     pio.renderers.default = "notebook"
-  pio.templates['plotly'].layout.margin = dict(t=30,r=0,b=0,l=0)
+  for template in pio.templates.keys():
+    pio.templates[template].layout.margin = dict(t=30,r=0,b=0,l=0)
 except Exception:
   pass
 
@@ -113,6 +114,14 @@ if {6}:
       if hasattr(x, '_repr_html_'):
         display(HTML(x._repr_html_()))
       return x
+
+    # ideally we would undo the call to ast_transformers.append
+    # at the end of this block whenver an error occurs, we do 
+    # this for now as it will only be a problem if the user 
+    # switches from shiny to not-shiny mode (and even then likely
+    # won't matter)
+    import builtins
+    builtins._display_if_has_repr_html = _display_if_has_repr_html
 
     class _FunctionDefReprHtml(_ast.NodeTransformer):
       def visit_FunctionDef(self, node):

@@ -1,0 +1,25 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    orientation: rows
+    theme: journal
+---
+
+## Sidebar {.sidebar}
+
+Sidebar controls
+
+## Column
+
+```{r}
+plot(cars)
+```
+
+## Column
+
+```{r}
+plot(mtcars)
+```
+
+

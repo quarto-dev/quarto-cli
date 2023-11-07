@@ -21646,6 +21646,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Default orientation for dashboard content (default\n<code>rows</code>)",
         "Use scrolling rather than fill layout (default:\n<code>false</code>)",
         "Make card content expandable (default: <code>true</code>)",
+        "Links to display on the dashboard navigation bar",
         "Title displayed in card header",
         {
           short: "Title displayed in dashboard card header",
@@ -22209,12 +22210,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 175354,
+        _internalId: 178127,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 175346,
+            _internalId: 178119,
             type: "enum",
             enum: [
               "png",
@@ -22230,7 +22231,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 175353,
+            _internalId: 178126,
             type: "anyOf",
             anyOf: [
               {
@@ -22388,6 +22389,35 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           default: true,
           description: "Make card content expandable (default: `true`)"
+        },
+        {
+          name: "nav-buttons",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            maybeArrayOf: {
+              anyOf: [
+                "string",
+                {
+                  object: {
+                    properties: {
+                      text: "string",
+                      href: "string",
+                      icon: "string",
+                      rel: "string",
+                      target: "string",
+                      title: "string",
+                      "aria-label": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          description: "Links to display on the dashboard navigation bar"
         }
       ],
       "schema/cell-dashboard.yml": [
@@ -22422,7 +22452,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           description: {
             short: "Padding around dashboard card content (default `8px`)"
           }
@@ -22447,7 +22482,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           description: {
             short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
           }
@@ -22459,7 +22499,12 @@ var require_yaml_intelligence_resources = __commonJS({
               "dashboard"
             ]
           },
-          schema: "string",
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
           description: {
             short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
           }
@@ -32448,6 +32493,8 @@ async function completionsFromGoodParseYAML(context) {
     });
     return rawCompletions;
   };
+  const trimEnd = line.trimEnd();
+  const trimEndCorrection = position.column - 1 >= trimEnd.length ? line.length - trimEnd.length : 0;
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
       parse: tree,
@@ -32468,7 +32515,7 @@ async function completionsFromGoodParseYAML(context) {
       }
       const index = lineColToIndex(mappedCode.value)({
         line: position.row,
-        column: position.column - deletions
+        column: position.column - deletions - trimEndCorrection
       });
       let { withError: locateFailed, value: maybePath } = locateCursor(
         doc,
@@ -32774,6 +32821,11 @@ function completions(obj) {
     completions2 = completions2.filter((c) => c.type === completionPosition);
   }
   completions2 = uniqBy(completions2, (completion) => completion.value);
+  if (context.line[context.position.column - 1] === ":") {
+    for (const completion of completions2) {
+      completion.value = " " + completion.value;
+    }
+  }
   return {
     // token to replace
     token: word,
@@ -32805,6 +32857,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
     return size;
   };
   if (kind === "completions") {
+    debugger;
     let foundCell = void 0;
     for (const cell of result.cells) {
       const size = lines((cell.sourceWithYaml || cell.source).value).length;

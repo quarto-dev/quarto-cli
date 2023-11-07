@@ -960,7 +960,7 @@ export async function runPandoc(
     );
   });
 
-  // Ensure that citationMetadat is expanded into
+  // Ensure that citationMetadata is expanded into
   // and object for downstream use
   if (
     typeof (pandocMetadata[kCitation]) === "boolean" &&

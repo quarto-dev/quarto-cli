@@ -39,6 +39,7 @@ runs:
         If ( "$(git status --porcelain)" -ne "" ) { Exit 1 }
 
     - name: Quarto Check
+      if:  runner.debug == '1'
       working-directory: tests
       shell: pwsh
       run: quarto check

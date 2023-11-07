@@ -1,12 +1,14 @@
 -- dashboard.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
-
+local utils = require 'modules/dashboard/utils'
 local layout = require 'modules/dashboard/layout'
 local card = require 'modules/dashboard/card'
 local valuebox = require 'modules/dashboard/valuebox'
 local sidebar = require 'modules/dashboard/sidebar'
 local page = require 'modules/dashboard/page'
 local document = require 'modules/dashboard/document'
+local tabset = require 'modules/dashboard/tabset'
+local inputpanel = require 'modules/dashboard/inputpanel'
 
 
 local function isLayoutContainer(el)
@@ -15,8 +17,11 @@ local function isLayoutContainer(el)
   elseif valuebox.isValueBox(el) then
     return true
   elseif layout.isRowOrColumnContainer(el) then
+    return true  elseif sidebar.isSidebar(el) then
     return true
-  elseif sidebar.isSidebar(el) then
+  elseif tabset.isTabset(el) then
+    return true
+  elseif inputpanel.isInputPanel(el) then
     return true
   end
   return false
@@ -42,12 +47,12 @@ local function organizer(contents, ignoreClasses)
   local looseContentEls = pandoc.List()
   local function flushLooseContent() 
     if #looseContentEls > 0 then
-      local cardOptions = card.readCardOptions(looseContentEls[1])
+      local cardOptions = card.readOptions(looseContentEls[1])
       
       -- For loose content, mark this as a flow layout
       cardOptions[card.optionKeys.layout] = card.optionValues.flow
 
-      local looseCard = card.makeCard(nil, looseContentEls, {}, cardOptions)
+      local looseCard = card.makeCard(looseContentEls, {}, cardOptions)
       if looseCard ~= nil then
         layoutContentEls:insert(looseCard)              
       else
@@ -80,8 +85,11 @@ return {
   valuebox = valuebox,
   sidebar = sidebar,
   page = page,
+  tabset = tabset,
+  inputpanel = inputpanel,
   document = document,
   layoutContainer = {
     organizer = organizer
-  }
+  },
+  utils = utils
 }

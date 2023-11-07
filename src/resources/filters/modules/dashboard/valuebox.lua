@@ -21,27 +21,29 @@ local kValueBoxIcon = "icon"
 local kValueBoxOptions = pandoc.List({kValueBoxIcon, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor})
 local kValueBoxDataAttr = {kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor}
 local kValueBoxShowcaseDataAttr = {kValueBoxIcon, kValueBoxShowcasePosition}
-local kForwardValueFromCodeCell = pandoc.List({kValueBoxValue, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor, kValueBoxIcon })
+local kForwardValueFromCodeCell = pandoc.List({kValueBoxTitle, kValueBoxValue, kValueBoxColor, kValueBoxBgColor, kValueBoxFgColor, kValueBoxIcon })
 
+-- Component / content attributes
 local kComponentAttr = "component"
+local kContentAttr = "content"
+local kContentAttrs = pandoc.List({kComponentAttr, kContentAttr})
 local kComponentValuebox = "valuebox"
 
 
-
-local function wrapValueBox(box, classes)
-  local valueBoxClz = pandoc.List({kValueBoxClz})
-  valueBoxClz:extend(classes)
-  return card.makeCard(nil, {box}, valueBoxClz)
+local function isValueBoxContent(el) 
+  if el.attributes ~= nil and kContentAttrs:find_if(function(attrName) 
+    return el.attributes[attrName] == kComponentValuebox
+  end) then
+    return true
+  end
 end
 
-
 local function isValueBox(el) 
-  if el.attributes ~= nil and el.attributes[kComponentAttr] == kComponentValuebox then
+  if isValueBoxContent(el) then
     return true
   end
   return el.classes ~= nil and el.classes:includes(kValueBoxClz)
 end 
-
 
 local function toLines(s)
   if s:sub(-1)~="\n" then s=s.."\n" end
@@ -111,7 +113,7 @@ end
 
 
 local function valueboxContent(el)
-  if el.attributes[kComponentAttr] == kComponentValuebox then 
+  if isValueBoxContent(el) then
 
     -- read the title from attributes, if possible
     local title = {}
@@ -143,6 +145,10 @@ local function valueboxContent(el)
       if stdValue ~= nil then
         value = stdValue
       end
+
+      if options[kValueBoxTitle] ~= nil then
+        title = options[kValueBoxTitle]
+      end
     end
 
     return title, value, content, options
@@ -152,7 +158,6 @@ local function valueboxContent(el)
     local title = {}
     local value = el.content
     local content = {}
-  
 
     -- First retrieve the title
     local pendingContent = el.content
@@ -171,6 +176,12 @@ local function valueboxContent(el)
     content = pendingContent
     return title, value, content, {}
   end
+end
+
+local function wrapValueBox(box, classes)
+  local valueBoxClz = pandoc.List({kValueBoxClz})
+  valueBoxClz:extend(classes)
+  return card.makeCard({box}, valueBoxClz)
 end
 
 -- Make a valuebox

@@ -1,0 +1,43 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    orientation: columns
+    nav-buttons:
+      - icon: envelope
+        href: https://www.usps.gov?url=|url|
+      - twitter
+      - reddit
+      - github
+---
+
+Global Sidebar {.sidebar}
+==================================
+
+Sidebar controls
+
+
+Page 1
+==================================
+
+```{r}
+list(
+  value = 45.5,
+  color = "red"
+)
+```
+
+
+Page 2 {orientation="rows"}
+==================================
+
+## row
+
+Hi
+
+## row
+
+There
+
+
+

@@ -307,7 +307,11 @@ export async function projectContext(
           const context: ProjectContext = {
             dir: originalDir,
             engines: [],
-            config: { project: {} },
+            config: {
+              project: {
+                [kProjectOutputDir]: flags?.outputDir,
+              },
+            },
             files: {
               input: [],
             },

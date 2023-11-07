@@ -66,7 +66,12 @@ import { error, info } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
-import { figuresDir, inputFilesDir, isServerShiny } from "../../core/render.ts";
+import {
+  figuresDir,
+  inputFilesDir,
+  isServerShiny,
+  isServerShinyKnitr,
+} from "../../core/render.ts";
 import {
   normalizePath,
   removeIfEmptyDir,
@@ -496,10 +501,12 @@ async function renderFileInternal(
         );
         throw new Error();
       } else if (
-        projectOutputDir(context.project) !== normalizePath(context.project.dir)
+        (projectOutputDir(context.project) !==
+          normalizePath(context.project.dir)) &&
+        isServerShinyKnitr(context.format, context.engine.name)
       ) {
         error(
-          `${src} uses server: shiny so cannot be included in a project with an output-dir ` +
+          `${src} is a knitr engine document that uses server: shiny so cannot be included in a project with an output-dir ` +
             `(shiny document output must be rendered alongside its source document).`,
         );
         throw new Error();

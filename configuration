@@ -18,7 +18,7 @@ export TYPST=0.8.0
 # Bootstrap dependencies from bslib
 # (use commit hash from bslib repo)
 export BOOTSTRAP=ad946cafdbf1c91cfd714cb39948bb203ae66e66 # 0.5.1 + consolidated components
-export HTMLTOOLS=0.5.6
+export HTMLTOOLS=0.5.7
 export BOOTSTRAP_FONT=1.11.1
 export BOOTSWATCH=5.3.1
 

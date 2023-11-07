@@ -30,6 +30,22 @@ function ensureWidgetsFill() {
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   ensureWidgetsFill();
 
+  // Fixup any sharing links that require urls
+  // Append url to any sharing urls
+  const sharingLinks = window.document.querySelectorAll(
+    "a.quarto-dashboard-link"
+  );
+  for (let i = 0; i < sharingLinks.length; i++) {
+    const sharingLink = sharingLinks[i];
+    const href = sharingLink.getAttribute("href");
+    if (href) {
+      sharingLink.setAttribute(
+        "href",
+        href.replace("|url|", window.location.href)
+      );
+    }
+  }
+
   // Try to process the hash and activate a tab
   const hash = window.decodeURIComponent(window.location.hash);
   if (hash.length > 0) {
@@ -66,6 +82,33 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return false;
     });
   }
+  const sidebar = window.document.querySelector(
+    ".quarto-dashboard-content .bslib-sidebar-layout"
+  );
+  let prevWidth = window.document.body.clientWidth;
+  const sidebarCollapseClass = "sidebar-collapsed";
+  if (sidebar) {
+    const resizeObserver = new ResizeObserver(
+      throttle(function () {
+        const clientWidth = window.document.body.clientWidth;
+        if (prevWidth !== clientWidth) {
+          if (clientWidth <= 576) {
+            // Hide the sidebar
+            if (!sidebar.classList.contains(sidebarCollapseClass)) {
+              sidebar.classList.add(sidebarCollapseClass);
+            }
+          } else {
+            // Show the sidebar
+            if (sidebar.classList.contains(sidebarCollapseClass)) {
+              sidebar.classList.remove(sidebarCollapseClass);
+            }
+          }
+          prevWidth = clientWidth;
+        }
+      }, 2)
+    );
+    resizeObserver.observe(window.document.body);
+  }
 
   const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
@@ -86,10 +129,13 @@ window.QuartoDashboardUtils = {
       history.pushState({}, null, href);
       // post "hashchange" for tools looking for it
       if (window.parent?.postMessage) {
-        window.parent.postMessage({
-          type: "hashchange",
-          href: window.location.href,
-        }, "*");
+        window.parent.postMessage(
+          {
+            type: "hashchange",
+            href: window.location.href,
+          },
+          "*"
+        );
       }
     } else {
       window.location.replace(href);
@@ -151,3 +197,16 @@ window.QuartoDashboardUtils = {
     else return "";
   },
 };
+
+function throttle(func, wait) {
+  let waiting = false;
+  return function () {
+    if (!waiting) {
+      func.apply(this, arguments);
+      waiting = true;
+      setTimeout(function () {
+        waiting = false;
+      }, wait);
+    }
+  };
+}

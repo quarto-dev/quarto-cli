@@ -15,6 +15,7 @@ import {
   kIpynbShellInteractivity,
   kPlotlyConnected,
   kTemplate,
+  kTheme,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -25,6 +26,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  Metadata,
 } from "../../config/types.ts";
 import { PandocFlags } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -42,6 +44,7 @@ import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
 import {
+  DashboardMeta,
   dashboardMeta,
   kDashboard,
   kDontMutateTags,
@@ -57,6 +60,9 @@ import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
 import { sassLayer } from "../../core/sass.ts";
+import { processNavButtons } from "./format-dashboard-navbutton.ts";
+import { processNavigation } from "./format-dashboard-website.ts";
+import { projectIsWebsite } from "../../project/project-shared.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -98,6 +104,21 @@ export function dashboardFormat() {
       quiet?: boolean,
     ) => {
       if (baseHtmlFormat.formatExtras) {
+        // Read the dashboard metadata
+        const dashboard = await dashboardMeta(format);
+
+        // Forward the theme along (from either the html format
+        // or from the dashboard format)
+        // TODO: There must be a beter way to do this
+        if (projectIsWebsite(project)) {
+          const formats: Record<string, Metadata> = format.metadata
+            .format as Record<string, Metadata>;
+          const htmlFormat = formats["html"];
+          if (htmlFormat && htmlFormat[kTheme]) {
+            format.metadata[kTheme] = htmlFormat[kTheme];
+          }
+        }
+
         const extras: FormatExtras = await baseHtmlFormat.formatExtras(
           input,
           markdown,
@@ -109,14 +130,14 @@ export function dashboardFormat() {
           project,
           quiet,
         );
+
         extras.html = extras.html || {};
         extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
           [];
         extras.html[kHtmlPostprocessors].push(
-          dashboardHtmlPostProcessor(format),
+          dashboardHtmlPostProcessor(dashboard),
         );
 
-        const dashboard = dashboardMeta(format);
         extras[kFilterParams] = extras[kFilterParams] || {};
         extras[kFilterParams][kDashboard] = {
           orientation: dashboard.orientation,
@@ -143,7 +164,7 @@ export function dashboardFormat() {
           dependency: kBootstrapDependencyName,
           key: dashboardScss,
           quarto: {
-            name: "quarto-search.css",
+            name: "quarto-dashboard.css",
             ...dashboardLayer,
           },
         };
@@ -213,7 +234,7 @@ registerWriterFormatHandler((format) => {
 });
 
 function dashboardHtmlPostProcessor(
-  format: Format,
+  dashboardMeta: DashboardMeta,
 ) {
   return (doc: Document): Promise<HtmlPostProcessResult> => {
     const result: HtmlPostProcessResult = {
@@ -221,14 +242,11 @@ function dashboardHtmlPostProcessor(
       supporting: [],
     };
 
-    // Read the dashboard metadata
-    const dashboard = dashboardMeta(format);
-
     // Mark the body as a quarto dashboard
     doc.body.classList.add(kDashboardClz);
 
     // Note the orientation as fill if needed
-    if (!dashboard.scrolling) {
+    if (!dashboardMeta.scrolling) {
       doc.body.classList.add("dashboard-fill");
     }
 
@@ -242,7 +260,7 @@ function dashboardHtmlPostProcessor(
       ];
 
       // The scrolling behavior
-      if (!dashboard.scrolling) {
+      if (!dashboardMeta.scrolling) {
         containerClz.push("bslib-page-fill"); // only apply this if we aren't scrolling
       } else {
         containerClz.push("dashboard-scrolling"); // only apply this if we are scrolling
@@ -271,8 +289,14 @@ function dashboardHtmlPostProcessor(
       }
     }
 
+    // Process navigation
+    processNavigation(doc);
+
     // Process pages that may be present in the document
     processPages(doc);
+
+    // Process Navbar buttons
+    processNavButtons(doc, dashboardMeta);
 
     // Adjust the appearance of row  elements
     processRows(doc);
@@ -281,7 +305,7 @@ function dashboardHtmlPostProcessor(
     processColumns(doc);
 
     // Process card
-    processCards(doc, dashboard);
+    processCards(doc, dashboardMeta);
 
     // Process valueboxes
     processValueBoxes(doc);
@@ -293,15 +317,19 @@ function dashboardHtmlPostProcessor(
     processTables(doc);
 
     // Process fill images to include proper fill behavior
-    const fillImgNodes = doc.body.querySelectorAll(
+    const imgFillSelectors = [
+      "div.cell-output-display > div.quarto-figure > .quarto-float img",
       "div.cell-output-display > img",
-    );
-    for (const fillImgNode of fillImgNodes) {
-      const fillImgEl = fillImgNode as Element;
-      fillImgEl.classList.add("quarto-dashboard-img-contain");
-      fillImgEl.removeAttribute("height");
-      fillImgEl.removeAttribute("width");
-    }
+    ];
+    imgFillSelectors.forEach((selector) => {
+      const fillImgNodes = doc.body.querySelectorAll(selector);
+      for (const fillImgNode of fillImgNodes) {
+        const fillImgEl = fillImgNode as Element;
+        fillImgEl.classList.add("quarto-dashboard-img-contain");
+        fillImgEl.removeAttribute("height");
+        fillImgEl.removeAttribute("width");
+      }
+    });
 
     return Promise.resolve(result);
   };

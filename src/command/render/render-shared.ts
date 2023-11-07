@@ -42,7 +42,16 @@ export async function render(
   await initState();
 
   // determine target context/files
-  const context = await projectContext(path, options.flags);
+  let context = await projectContext(path, options.flags);
+
+  // if there is no project parent and an output-dir was passed, then force a project
+  if (!context && options.flags?.outputDir) {
+    // recompute context
+    context = await projectContextForDirectory(path, options.flags);
+
+    // force clean as --output-dir implies fully overwrite the target
+    options.forceClean = options.flags.clean !== false;
+  }
 
   // set env var if requested
   if (context && options.setProjectDir) {
@@ -62,7 +71,7 @@ export async function render(
         );
       }
       return renderProject(
-        context || await projectContextForDirectory(path, options.flags),
+        context,
         options,
         files,
       );

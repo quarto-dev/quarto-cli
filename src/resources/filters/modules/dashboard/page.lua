@@ -1,11 +1,13 @@
 -- page.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local document = require "modules/dashboard/document"
+local sidebar = require "modules/dashboard/sidebar"
 local layout = require "modules/dashboard/layout"
 
 local kPageClass = "dashboard-page"
 
 local kOrientationAttr = "orientation"
+-- TODO: Convert this to use orientation="rows|columns" like pages
 local kOrientationRowsClass = "rows"
 local kOrientationColumnsClass = "columns"
 
@@ -42,7 +44,7 @@ local function makePage(id, headerEl, contents, options)
   local tabContentsOrientation = options[kOrientationAttr];
 
   -- Infer orientation by seeing 'sidebar' on a row
-  local inferred = layout.inferOrientation(pandoc.Div(contents))
+  local inferred = sidebar.maybeUseSidebarOrientation(pandoc.Div(contents))
   if inferred ~= nil then
     tabContentsOrientation = inferred
   end

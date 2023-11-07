@@ -2,7 +2,6 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 local document = require "modules/dashboard/document"
-local sidebar = require "modules/dashboard/sidebar"
 
 -- Layout classes
 local kRowsClass = "rows"
@@ -67,6 +66,9 @@ local function readOptions(el)
     return not kLayoutClz:includes(class)
   end)
   options[kOptionClasses] = classes
+  
+  -- validate the layout options
+  validateLayout(options)
 
   return options;
 end
@@ -82,8 +84,6 @@ local function makeOptions(scrolling)
 end
 
 local function makeColumnContainer(content, options)
-  validateLayout(options)
-
 
   -- forward the options onto attributes
   local attributes = {}
@@ -104,9 +104,6 @@ local function makeColumnContainer(content, options)
 end
 
 local function makeRowContainer(content, options) 
-  
-  -- rows can't have width
-  validateLayout(options)
 
   -- forward attributes along
   local attributes = {}
@@ -153,28 +150,6 @@ local function orientContents(contents, toOrientation, options)
   end
 end
 
-function inferOrientation(el)
-  -- force the global orientation to columns if there is a sidebar present
-  local hasSidebar = false
-  _quarto.ast.walk(el, {
-    Header = function(header)
-      if header.level == 1 and sidebar.isSidebar(header) then
-        hasSidebar = true
-      end
-    end,
-    Div = function(div)
-      if sidebar.isSidebar(div) then
-        hasSidebar = true
-      end
-    end
-  })
-  if hasSidebar then
-    return kOrientationColumns
-  else
-    return nil
-  end
-end
-
 
 
 return {
@@ -187,5 +162,8 @@ return {
   orientContents = orientContents,
   readOptions = readOptions,
   makeOptions = makeOptions,
-  inferOrientation = inferOrientation
+  orientations = {
+    columns = kOrientationColumns,
+    rows = kOrientationRows
+  }
 }

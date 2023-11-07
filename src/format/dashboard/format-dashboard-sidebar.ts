@@ -4,9 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { asCssSize } from "../../core/css.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
-import { makeEl } from "./format-dashboard-shared.ts";
+import { makeEl, processAndRemoveAttr } from "./format-dashboard-shared.ts";
 
 const kSidebarPanelClass = "sidebar-panel";
 const kSidebarClass = "sidebar";
@@ -45,6 +46,22 @@ export function processSidebars(doc: Document) {
     // convert to an aside (class sidebar)
     const sidebarContentsEl = sidebarEl.querySelector(`.${kSidebarClass}`);
 
+    // See if there is a width
+    if (sidebarContentsEl) {
+      processAndRemoveAttr(
+        sidebarContentsEl,
+        "data-width",
+        (_el: Element, value: string) => {
+          const size = asCssSize(value);
+
+          const styleRaw = sidebarEl.parentElement?.getAttribute("style");
+          const styleVal = styleRaw !== null ? styleRaw : "";
+          const newStyle = styleVal + " --bslib-sidebar-width: " + size;
+          sidebarEl.parentElement?.setAttribute("style", newStyle);
+        },
+      );
+    }
+
     const sidebarAsideEl = makeEl("aside", {
       id: sidebarId,
       classes: [kSidebarClass, "html-fill-container", "html-fill-item"],
@@ -63,11 +80,14 @@ export function processSidebars(doc: Document) {
     sidebarContainerEl.append(...sidebarToggle(sidebarId, doc));
 
     sidebarEl.replaceWith(sidebarContainerEl);
+    sidebarContainerEl.parentElement?.classList.add(
+      "dashboard-sidebar-container",
+    );
   }
 
   // Decorate the body of the document if there is a top level sidebar panel
   const topLevelSidebar = doc.querySelector(
-    ".page-layout-custom > .bslib-sidebar-layout",
+    ".page-layout-custom > .bslib-sidebar-layout, .page-layout-custom .dashboard-page > .bslib-sidebar-layout",
   );
   if (topLevelSidebar !== null) {
     topLevelSidebar.setAttribute("data-bslib-sidebar-border", "false");

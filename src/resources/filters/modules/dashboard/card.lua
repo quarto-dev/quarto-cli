@@ -1,15 +1,12 @@
 -- card.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
+local utils = require "modules/dashboard/utils"
 
 -- Card classes
 local kCardClass = "card"
 local kCardHeaderClass = "card-header"
 local kCardBodyClass = "card-body"
 local kCardFooterClass = "card-footer"
-
--- Tabset classes
-local kTabsetClass = "tabset"
-local kTabClass = "tab"
 
 -- Cell classes
 local kCellClass = "cell"
@@ -18,8 +15,8 @@ local kFillClass = "fill"
 
 -- Implicit Card classes, these mean that this is a card
 -- even if it isn't specified
-local kCardClz = pandoc.List({kCardClass, kTabsetClass})
-local kCardBodyClz = pandoc.List({kCardBodyClass, kTabClass, kCellClass})
+local kCardClz = pandoc.List({kCardClass})
+local kCardBodyClz = pandoc.List({kCardBodyClass, kCellClass})
 local kCardHeaderClz = pandoc.List({kCardHeaderClass})
 
 -- Card classes that are forwarded to attributes
@@ -35,8 +32,6 @@ local kMaxHeight = "max-height"
 local kTitle = "title"
 local kLayout = "layout"
 
-
-
 -- Card explicit attributes
 local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable})
 
@@ -50,25 +45,34 @@ local kForceHeader = "force-header";
 -- this is necessary to ensure things like `object-fit`
 -- will work with images (because they're directly contained)
 -- in a constraining element
-local function popImagePara(el)
+local function processCardBodyContent(el, headingOffset)
   if el.t == "Para" and #el.content == 1 then
     return pandoc.Plain(el.content)
+  elseif el.t == "Header" then
+    local level = math.min(el.level + headingOffset, 6)
+    local headerClz = "h" .. level;
+    return pandoc.Div(el.content, pandoc.Attr("", {headerClz}))
   else
-    return _quarto.ast.walk(el, {
+    local result = _quarto.ast.walk(el, {
       Para = function(para)
         if #para.content == 1 then
           return para.content[1]
         end
         return para
-      end
+      end,
     })  
+    return result
   end
 end
 
-local function isCard(el) 
-  return (el.t == "Div" or el.t == "Header") and el.classes ~= nil and el.classes:find_if(function(class) 
+local function hasCardDecoration(el)
+  return el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardClz:includes(class)
   end) 
+end
+
+local function isCard(el) 
+  return (el.t == "Div") and hasCardDecoration(el)
 end
 
 local function isCardBody(el) 
@@ -84,10 +88,6 @@ local function isCardHeader(el)
   return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardHeaderClz:includes(class)
   end) 
-end
-
-local function isTabset(el)
-  return (el.t == "Div" or el.t == "Header") and el.classes:includes(kTabsetClass)
 end
 
 local function hasRealLookingContent(contents)
@@ -123,7 +123,7 @@ local function isLiteralCard(el)
 end
 
 
-local function readCardOptions(el) 
+local function readOptions(el) 
   local options = {}
   
   if el.classes ~= nil then
@@ -148,9 +148,6 @@ local function readCardOptions(el)
     end
   end
 
-  -- note whether this card should force the header on
-  options[kForceHeader] = isTabset(el)
-
   local clz = pandoc.List()
   if el.classes ~= nil then
     clz = el.classes:filter(function(class)
@@ -161,27 +158,10 @@ local function readCardOptions(el)
   return options, clz
 end
 
-local function resolveCardHeader(title, options) 
-  if title ~= nil then
-    if pandoc.utils.type(title) == "table" and #title > 0 then
-      --- The title is a table with value
-      return pandoc.Div(title, pandoc.Attr("", {kCardHeaderClass}))
-    elseif title.t == "Header" then
-      -- The title is being provided by a header
-      local titleText = title.content
-      if next(titleText) == nil then
-        titleText = title.attr.attributes[kTitle]  or ""
-      end
-      return pandoc.Div(titleText, pandoc.Attr("", {kCardHeaderClass}))
-    elseif options[kTitle] ~= nil then
-      return pandoc.Div(options[kTitle], pandoc.Attr("", {kCardHeaderClass}))
-    elseif options[kForceHeader] then
-      -- Couldn't find a title, but force the header into place
-      return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))  
-    end
-  elseif options and options[kTitle] ~= nil then
+local function resolveCardHeader(options) 
+  if options and options[kTitle] ~= nil then
     -- The title is being provided as option
-    return pandoc.Div(pandoc.Plain(options[kTitle]), pandoc.Attr("", {kCardHeaderClass}))
+    return pandoc.Div(pandoc.Plain(string_to_quarto_ast_inlines(options[kTitle])), pandoc.Attr("", {kCardHeaderClass}))
   elseif options ~= nil and options[kForceHeader] then
     -- Couldn't find a title, but force the header into place
     return pandoc.Div(pandoc.Plain(""), pandoc.Attr("", {kCardHeaderClass}))
@@ -233,9 +213,9 @@ local function resolveCardBodies(contents)
       end
     end
   end
-  local function collectBodyContentEl(el)
-    local popped = popImagePara(el)
-    collectedBodyEls:insert(popped)
+  local function collectBodyContentEl(el, headingOffset)
+    local processed = processCardBodyContent(el, headingOffset)
+    collectedBodyEls:insert(processed)
   end
 
   -- ensure that contents is a list
@@ -243,49 +223,25 @@ local function resolveCardBodies(contents)
     contents = {contents}
   end
 
-  for _i,v in ipairs(contents) do
-    
-     
-     if v.classes ~= nil and v.classes:includes("section") then
-      flushCollectedBodyContentEls()
-      local sectionContent = v.content
-      
-      if next(sectionContent) ~= nil then
-        local headerEl = sectionContent[1]
-        local cardEls = tslice(sectionContent, 2)
-
-        -- the header
-        local cardBodiesToMerge = pandoc.List({})
-        local cardFootersToMerge = pandoc.List({})
-        for i, cardEl in ipairs(cardEls) do
-
-          local cardBodyEls, cardFooterEls = resolveCardBodies(cardEl.content)
-          if cardBodyEls ~= nil then 
-            cardBodiesToMerge:extend(cardBodyEls)
-          end
-    
-          if cardFooterEls ~= nil then
-            cardFootersToMerge:extend(cardFooterEls)
-          end
-        end
-
-        local contentDiv = pandoc.Div({}, pandoc.Attr("", {kCardBodyClass}))
-        for i, cardBodyEl in ipairs(cardBodiesToMerge) do
-          contentDiv.content:extend(cardBodyEl.content)
-        end
-
-        if headerEl ~= nil then
-          contentDiv.attributes['data-title'] = pandoc.utils.stringify(headerEl)
-        end
-
-        bodyContentEls:insert(contentDiv)
-      
+  -- compute an offset to use when processing cell contents
+  local baseHeadingLevel = 10000
+  if contents ~= nil then
+    _quarto.ast.walk(pandoc.Pandoc(contents), {
+      Header = function(el)
+        baseHeadingLevel = math.min(el.level, baseHeadingLevel)
       end
+    })
+  end
+  local headingOffset = math.max(math.min(4 - baseHeadingLevel, 10000), 0)
 
-     elseif isCard(v) then
+  for _i,v in ipairs(contents) do
+
+    if isCard(v) then
       flushCollectedBodyContentEls()
 
-      -- this is a card that is nested inside a card. Turn it into a card
+      -- this is a card that is nested inside a card.
+      -- extract its contents and just merge them into the 
+      -- appropriate places within this card
       local cardContentEls = v.content
       local title = nil
       if v.content[1] ~= nil and isCardHeader(v.content[1]) then
@@ -315,9 +271,6 @@ local function resolveCardBodies(contents)
         v.classes:insert(kCardBodyClass)
       end
 
-      -- remove the tab class as this is now a resolved card body
-      v.classes = v.classes:filter(function(class) return class ~= kTabClass end)
-
       -- forward our known attributes into data attributes
       for k, val in pairs(v.attr.attributes) do
         if kCardBodyAttributes:includes(k) then
@@ -325,13 +278,13 @@ local function resolveCardBodies(contents)
           v.attr.attributes[k] = nil
         end
       end
-      local popped = popImagePara(v);
-      bodyContentEls:insert(popped)
+      local processed = processCardBodyContent(v, headingOffset);
+      bodyContentEls:insert(processed)
 
     elseif isCardFooter(v) then
       footerContentEls:extend(v.content)
     else
-      collectBodyContentEl(v)
+      collectBodyContentEl(v, headingOffset)
     end    
   end
   flushCollectedBodyContentEls()
@@ -346,8 +299,7 @@ end
 -- .card[scrollable, max-height, min-height, full-screen(true, false), full-bleed?,]
 --   .card-header
 --   .card-body[max-height, min-height]
-local function makeCard(title, contents, classes, options)  
-
+local function makeCard(contents, classes, options)  
 
   -- Inspect the loose content and don't make cards out of things that don't look cardish
   local hasRealContent = hasRealLookingContent(contents)
@@ -359,7 +311,7 @@ local function makeCard(title, contents, classes, options)
   local cardContents = pandoc.List({})
 
   -- the card header
-  local cardHeader = resolveCardHeader(title, options)
+  local cardHeader = resolveCardHeader(options)
   
   if cardHeader ~= nil then
     cardContents:insert(cardHeader)  
@@ -389,16 +341,43 @@ local function makeCard(title, contents, classes, options)
     attributes['data-' .. k] = pandoc.utils.stringify(v)
   end
   
-  return pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
+  local cardEl = pandoc.Div(cardContents, pandoc.Attr("", clz, attributes))
+  return cardEl
+end
+
+function addToHeader(card, content)
+  local cardHeader = utils.findChildDiv(card, isCardHeader)
+  if cardHeader then
+    cardHeader.content:insert(content)
+  else
+    local newHeader = pandoc.Div(content, pandoc.Attr("", {kCardHeaderClass}))
+    card.content:insert(1, newHeader)
+  end
+end
+
+function addToFooter(card, content)
+  local cardFooter = utils.findChildDiv(card, isCardFooter)
+  if cardFooter then
+    cardFooter.content:insert(content)
+  else
+    local newFooter = pandoc.Div(content, pandoc.Attr("", {kCardFooterClass}))
+    card.content:insert(newFooter)
+  end
 end
 
 return {
   isCard = isCard,
+  isCardBody = isCardBody,
+  isCardFooter = isCardFooter,
   isLiteralCard = isLiteralCard,
+  readOptions = readOptions,
   makeCard = makeCard,
-  readCardOptions = readCardOptions,
+  addToFooter = addToFooter,
+  addToHeader = addToHeader,
+  hasCardDecoration = hasCardDecoration,
   optionKeys = {
-    layout = kLayout
+    layout = kLayout,
+    expandable = kExpandable
   },
   optionValues = {
     flow = kFlowClass

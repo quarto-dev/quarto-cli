@@ -24,3 +24,21 @@
   schema: boolean
   default: true
   description: "Make card content expandable (default: `true`)"
+
+- name: nav-buttons
+  tags:
+    formats: [dashboard]
+  schema:
+    maybeArrayOf:
+      anyOf:
+        - string
+        - object:
+            properties:
+              text: string
+              href: string
+              icon: string
+              rel: string
+              target: string
+              title: string
+              aria-label: string
+  description: "Links to display on the dashboard navigation bar"
