@@ -1,7 +1,7 @@
 /*
  * pandoc.ts
  *
- * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
 import { basename, dirname, isAbsolute, join } from "path/mod.ts";
@@ -207,7 +207,9 @@ export async function runPandoc(
 ): Promise<RunPandocResult | null> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
-  const pandocEnv: { [key: string]: string } = {};
+  const pandocEnv: { [key: string]: string } = {
+    ...(options.flags?.env || {}),
+  };
 
   // compute cwd for render
   const cwd = dirname(options.source);

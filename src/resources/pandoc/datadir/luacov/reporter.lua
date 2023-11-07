@@ -7,7 +7,7 @@ local reporter = {}
 local LineScanner = require("luacov.linescanner")
 local luacov = require("luacov.runner")
 local util = require("luacov.util")
-local lfs_ok, lfs = pcall(require, "lfs")
+-- local lfs_ok, lfs = pcall(require, "lfs")
 
 ----------------------------------------------------------------
 local dir_sep = package.config:sub(1, 1)
@@ -97,60 +97,60 @@ function ReporterBase:new(conf)
 
    -- including files without tests
    -- only .lua files
-   if conf.includeuntestedfiles then
-      if not lfs_ok then
-         print("The option includeuntestedfiles requires the lfs module (from luafilesystem) to be installed.")
-         os.exit(1)
-      end
+   -- if conf.includeuntestedfiles then
+   --    if not lfs_ok then
+   --       print("The option includeuntestedfiles requires the lfs module (from luafilesystem) to be installed.")
+   --       os.exit(1)
+   --    end
 
-      local function add_empty_file_coverage_data(file_path)
+   --    local function add_empty_file_coverage_data(file_path)
 
-         -- Leading "./" must be trimmed from the file paths because the paths of tested
-         -- files do not have a leading "./" either
-         if (file_path:match("^%.[/\\]")) then
-            file_path = file_path:sub(3)
-         end
+   --       -- Leading "./" must be trimmed from the file paths because the paths of tested
+   --       -- files do not have a leading "./" either
+   --       if (file_path:match("^%.[/\\]")) then
+   --          file_path = file_path:sub(3)
+   --       end
 
-         if luacov.file_included(file_path) then
-            local file_stats = {
-               max = 0,
-               max_hits = 0
-            }
+   --       if luacov.file_included(file_path) then
+   --          local file_stats = {
+   --             max = 0,
+   --             max_hits = 0
+   --          }
 
-            local filename = luacov.real_name(file_path)
+   --          local filename = luacov.real_name(file_path)
 
-            if not filtered_data[filename] then
-               table.insert(files, filename)
-               filtered_data[filename] = file_stats
-            end
-         end
+   --          if not filtered_data[filename] then
+   --             table.insert(files, filename)
+   --             filtered_data[filename] = file_stats
+   --          end
+   --       end
 
-      end
+   --    end
 
-      local function add_empty_dir_coverage_data(directory_path)
+   --    local function add_empty_dir_coverage_data(directory_path)
 
-         for filename, attr in dirtree(directory_path) do
-            if attr.mode == "file" and fileMatches(filename, '.%.lua$') then
-               add_empty_file_coverage_data(filename)
-            end
-         end
+   --       for filename, attr in dirtree(directory_path) do
+   --          if attr.mode == "file" and fileMatches(filename, '.%.lua$') then
+   --             add_empty_file_coverage_data(filename)
+   --          end
+   --       end
 
-      end
+   --    end
 
-      if (conf.includeuntestedfiles == true) then
-        add_empty_dir_coverage_data("." .. dir_sep)
+   --    if (conf.includeuntestedfiles == true) then
+   --      add_empty_dir_coverage_data("." .. dir_sep)
 
-      elseif (type(conf.includeuntestedfiles) == "table" and conf.includeuntestedfiles[1]) then
-         for _, include_path in ipairs(conf.includeuntestedfiles) do
-            if (fileMatches(include_path, '.%.lua$')) then
-               add_empty_file_coverage_data(include_path)
-            else
-               add_empty_dir_coverage_data(include_path)
-            end
-         end
-      end
+   --    elseif (type(conf.includeuntestedfiles) == "table" and conf.includeuntestedfiles[1]) then
+   --       for _, include_path in ipairs(conf.includeuntestedfiles) do
+   --          if (fileMatches(include_path, '.%.lua$')) then
+   --             add_empty_file_coverage_data(include_path)
+   --          else
+   --             add_empty_dir_coverage_data(include_path)
+   --          end
+   --       end
+   --    end
 
-   end
+   -- end
 
    table.sort(files)
 

@@ -139,8 +139,8 @@ local on_exit_run_once = false
 local function on_exit()
    -- Lua >= 5.2 could call __gc when user call os.exit
    -- so this method could be called twice
-   if on_exit_run_once then return end
-   on_exit_run_once = true
+   -- if on_exit_run_once then return end
+   -- on_exit_run_once = true
    -- disable hooks before aggregating stats
    debug.sethook(nil)
    runner.save_stats()
@@ -424,16 +424,18 @@ local hook_per_thread
 
 -- Determines whether debug hooks are separate for each thread.
 local function has_hook_per_thread()
-   if hook_per_thread == nil then
-      local old_hook, old_mask, old_count = debug.gethook()
-      local noop = function() end
-      debug.sethook(noop, "l")
-      local thread_hook = coroutine.wrap(function() return debug.gethook() end)()
-      hook_per_thread = thread_hook ~= noop
-      debug.sethook(old_hook, old_mask, old_count)
-   end
+   return false
 
-   return hook_per_thread
+   -- if hook_per_thread == nil then
+   --    local old_hook, old_mask, old_count = debug.gethook()
+   --    local noop = function() end
+   --    debug.sethook(noop, "l")
+   --    local thread_hook = coroutine.wrap(function() return debug.gethook() end)()
+   --    hook_per_thread = thread_hook ~= noop
+   --    debug.sethook(old_hook, old_mask, old_count)
+   -- end
+
+   -- return hook_per_thread
 end
 
 --------------------------------------------------
@@ -467,10 +469,10 @@ function runner.init(configuration)
 
    -- metatable trick on filehandle won't work if Lua exits through
    -- os.exit() hence wrap that with exit code as well
-   os.exit = function(...) -- luacheck: no global
-      on_exit()
-      raw_os_exit(...)
-   end
+   -- os.exit = function(...) -- luacheck: no global
+   --    on_exit()
+   --    raw_os_exit(...)
+   -- end
 
    debug.sethook(runner.debug_hook, "l")
 
@@ -503,9 +505,9 @@ function runner.init(configuration)
       end
    end
 
-   if not runner.tick then
-      runner.on_exit_trick = on_exit_wrap(on_exit)
-   end
+   -- if not runner.tick then
+   --    runner.on_exit_trick = on_exit_wrap(on_exit)
+   -- end
 
    runner.initialized = true
    runner.paused = false
