@@ -52,7 +52,7 @@ jobs:
         run: |
           echo ${{steps.config.outputs.version}}.${{steps.config.outputs.build_number}} > version.txt
 
-      - uses: EndBug/add-and-commit@v9
+      - uses: EndBug/add-and-commit@1bad3abcf0d6ec49a5857d124b0bfb52dc7bb081
         if: ${{ inputs.publish-release }}
         id: version_commit
         with:
