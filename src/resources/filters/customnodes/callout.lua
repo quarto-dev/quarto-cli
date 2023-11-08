@@ -119,7 +119,7 @@ function docx_callout_and_table_fixup()
     Blocks = function(blocks)
       local lastWasCallout = false
       local lastWasTableOrFigure = false
-      local newBlocks = pandoc.List()
+      local newBlocks = pandoc.Blocks({})
       for i,el in ipairs(blocks) do 
         -- determine what this block is
         local isCallout = is_custom_node(el, "Callout")
