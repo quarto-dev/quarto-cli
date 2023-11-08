@@ -59,7 +59,6 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 # Quarto Info Version
 export QUARTO_VERSION=1.4
 export QUARTO_NAME=Quarto
-export QUARTO_BUILD_RUN_OFFSET=-2030
 
 # Folder names. These are not the same as paths (those variable names end in _PATH).
 #     See set_package_paths .sh and .bat for these in context of full paths.
