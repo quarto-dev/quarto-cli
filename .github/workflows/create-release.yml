@@ -25,9 +25,6 @@ jobs:
       version_commit: ${{ steps.version_commit.outputs.commit_long_sha }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - name: Install libc6-div
-        run: sudo apt-get install libc6-dev
-
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
