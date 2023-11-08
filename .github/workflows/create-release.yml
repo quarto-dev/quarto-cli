@@ -19,9 +19,9 @@ jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number}}
-      version_base: ${{steps.config.outputs.version}}
-      tag_name: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
+      version: ${{ steps.read-version.outputs.version_full }}
+      version_base: ${{ steps.read-version.outputs.version }}
+      tag_name: v${{ steps.read-version.outputs.version_full }}
       version_commit: ${{ steps.version_commit.outputs.commit_long_sha }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
@@ -29,32 +29,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: config
-        id: config
+      - name: Get previous version
+        id: read-version
         run: |
-          source ./configuration
-
-          QUARTO_BUILD_NUMBER=$(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
-
-          echo "version=$QUARTO_VERSION" >> $GITHUB_OUTPUT
-          echo "build_number=$QUARTO_BUILD_NUMBER" >> $GITHUB_OUTPUT
+          read_version=$(cat version.txt)
+          version=$(echo $read_version | grep -o '[[:digit:]]*\.[[:digit:]]*' | head -1)
+          build_number=$(($(echo $read_version | grep -o '[[:digit:]]*' | tail -1)+1))
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version_full=$version.$build_number">> $GITHUB_OUTPUT
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./news/changelog-${{steps.config.outputs.version}}.md
+          path: ./news/changelog-${{steps.read-version.outputs.version}}.md
 
       - name: Update version.txt
         run: |
-          echo ${{steps.config.outputs.version}}.${{steps.config.outputs.build_number}} > version.txt
+          echo ${{ steps.read-version.outputs.version_full }} > version.txt
 
       - uses: EndBug/add-and-commit@1bad3abcf0d6ec49a5857d124b0bfb52dc7bb081
         if: ${{ inputs.publish-release }}
         id: version_commit
         with:
           add: "version.txt"
-          tag: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
+          tag: v${{ steps.read-version.outputs.version_full }}
           message: "Update version.txt"
           fetch: true
           default_author: github_actions
