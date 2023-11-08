@@ -303,7 +303,7 @@ local quarto_post_filters = {
     filter = cell_cleanup(),
     flags = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
-  { name = "post-foldCode", filter = foldCode() },
+  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
   { name = "post-bibliography", filter = bibliography() },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({

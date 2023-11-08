@@ -5,10 +5,25 @@
 
 local pass_uuid = "8c6b3915-b784-4ce5-8e73-59b368a9f289"
 
-function foldCode()
+function fold_code_and_lift_codeblocks()
   return {
     FloatRefTarget = function(float, float_node)
+      -- we need some special case logic to not lift code blocks
+      -- from listing floats that have no other content.
+      local other_content_found = false
+      _quarto.ast.walk(float.content, {
+        Div = function(div)
+          if not div.classes:includes(pass_uuid) then
+            other_content_found = true
+          end
+        end,
+      })
+      if not other_content_found then
+        return nil
+      end
+
       local blocks = pandoc.Blocks({})
+      -- ok to lift codeblocks
       float.content = _quarto.ast.walk(float.content, {
         Div = function(div)
           if div.classes:includes(pass_uuid) then
