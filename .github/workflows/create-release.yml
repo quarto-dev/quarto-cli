@@ -35,14 +35,18 @@ jobs:
           read_version=$(cat version.txt)
           version=$(echo $read_version | grep -o '[[:digit:]]*\.[[:digit:]]*' | head -1)
           build_number=$(($(echo $read_version | grep -o '[[:digit:]]*' | tail -1)+1))
+          version_full=$version.$build_number
           echo "version=$version" >> $GITHUB_OUTPUT
-          echo "version_full=$version.$build_number">> $GITHUB_OUTPUT
+          echo "version_full=$version_full">> $GITHUB_OUTPUT
+          echo "**Full Changelog**: https://github.com/cderv/quarto-cli/compare/v${read_version}...v${version_full}" > "release_note.md"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./news/changelog-${{steps.read-version.outputs.version}}.md
+          path: |
+            ./news/changelog-${{steps.read-version.outputs.version}}.md
+            ./release_note.md
 
       - name: Update version.txt
         run: |
@@ -432,7 +436,7 @@ jobs:
       - name: Rename news
         run: |
           ls -la ./News
-          mv ./News/changelog-${{needs.configure.outputs.version_base}}.md ./News/changelog.md
+          mv ./News/news/changelog-${{needs.configure.outputs.version_base}}.md ./News/news/changelog.md
 
       - name: Generate Checksums
         id: generate_checksum
@@ -486,7 +490,7 @@ jobs:
           tag_name: ${{needs.configure.outputs.tag_name}}
           target_commitish: ${{ needs.configure.outputs.version_commit }}
           name: ${{needs.configure.outputs.tag_name}}
-          generate_release_notes: true
+          body_path: ./News/release_note.md
           draft: false
           prerelease: ${{ inputs.pre-release }}
           files: |
@@ -500,7 +504,7 @@ jobs:
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
             ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-            ./News/changelog.md
+            ./News/news/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
 
   docker-push:
