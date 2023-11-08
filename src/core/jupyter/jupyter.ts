@@ -513,7 +513,12 @@ export async function jupyterKernelspecFromMarkdown(
       return [kernelspec, {}];
     } else {
       return Promise.reject(
-        new Error("Jupyter kernel '" + kernel + "' not found."),
+        new Error(
+          `Jupyter kernel '${kernel}' not found. Known kernels: ${
+            Array.from((await jupyterKernelspecs()).values())
+              .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+          }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+        ),
       );
     }
   } else if (typeof (yamlJupyter) === "object") {
@@ -529,7 +534,12 @@ export async function jupyterKernelspecFromMarkdown(
         return [kernelspec, jupyter];
       } else {
         return Promise.reject(
-          new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
+          new Error(
+            `Jupyter kernel '${jupyter.kernel}' not found. Known kernels: ${
+              Array.from((await jupyterKernelspecs()).values())
+                .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+            }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+          ),
         );
       }
     } else {

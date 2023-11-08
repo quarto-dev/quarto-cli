@@ -165,6 +165,7 @@
 - Support for `plotly-connected` option to determine where Plotly is embedded or loaded from CDN
 - Reduce default margins for Plotly figures (t=30,r=0,b=0,l=0)
 - Restart kernel daemon when non-package Python modules change
+- ([#7512](https://github.com/quarto-dev/quarto-cli/issues/7512): Improved error message listing known kernels, when a kernel set with `jupyter` key in YAML is not found.
 
 ## Knitr
 
