@@ -6,6 +6,6 @@ filters:
 
 ::: {#hello}
 
-Stuff.
+Stuff. ![](./an-image.qmd). More stuff.
 
 :::

@@ -303,9 +303,10 @@ local function as_blocks(v)
   -- luacov: enable
 end
 
-local function match_fun(...)
+local function match_fun(reset, ...)
   local args = {...}
   return function(v)
+    reset()
     for _, f in ipairs(args) do
       local r = f(v)
       if r == false or r == nil then
@@ -319,6 +320,50 @@ local function match_fun(...)
   end
 end
 
+
+-- ## syntax examples
+--
+-- match("Div")
+--   returns the node if it's a Div, otherwise false
+-- match("Div/[1]")
+--   returns the first child of a Div, otherwise false
+-- match(".class")
+--   returns the node if it has the class "class", otherwise false
+-- match("#id")
+--   returns the node if it has the id "id", otherwise false
+--
+-- match("Div/:child/Para") (in analogy to "div > p" in CSS)
+--   returns the div if it has a direct child Para, otherwise false
+--
+-- match("Div/:descendant/Para") (in analogy to "div p" in CSS)
+--   returns the div if it has a direct child Para, otherwise false
+--
+-- ## Node captures
+-- 
+-- match("{Div}/[1]/Para") (capture)
+--   returns a list with the div if the first child is a Para, otherwise false
+-- match("{Div}/[1]/{Para}/[1]/Img") (capture)
+--   returns a list with the div and Para if the first child is a Para whose 
+--   first child is an Image, otherwise false
+--
+-- ## custom matchers
+--
+-- match("Div", function(node) return node.content[1] end) 
+--   is equivalent to match("Div/[1]")
+-- match("Div", function(node) return node.content[1] end, "Para")
+--   is equivalent to match("Div/[1]/Para")
+--
+--
+
+-- Performance notes: :descendant is implemented with a walk, 
+-- so it's not very efficient. 
+--
+-- eg :descendant/#id walks the node set
+-- 
+-- repeated calls to :descendant in the same match are likely 
+-- to be quite slow
+
+-- TODO we probably need to consider recursive reentrancy here
 local function match(...)
   local result = {}
   local captured = false
@@ -328,8 +373,24 @@ local function match(...)
     table.insert(captures, v) 
     return v 
   end
+  local function reset()
+    result = {}
+    captures = {}
+  end
 
-  local function process_number(n, capture_fun)
+  -- canonicalize the arguments into split_args
+  local args = {...}
+  local split_args = {}
+  for _, v in ipairs(args) do
+    if type(v) == "string" then
+      local vs = split(v, "/", true)
+      tappend(split_args, vs)
+    else
+      table.insert(split_args, v)
+    end
+  end
+
+  local function process_nth_child(n, capture_fun)
     table.insert(result, function(node)
       return node.content ~= nil and 
         node.content[n] and 
@@ -337,9 +398,63 @@ local function match(...)
     end)
   end
 
-  local function process_str(str)
-    local vs = split(str, "/", true)
-    for _, v in ipairs(vs) do
+  local function report_inner_result(r)
+    if r == nil or r == false or not captured then
+      return r
+    end
+    -- a table result indicates the child was captured
+    -- and we might need to return the parent
+    -- if we're also capturing
+    if type(r) == "table" then
+      for _, v in ipairs(r) do
+        table.insert(captures, v)
+      end
+    end    
+    return captures
+  end
+
+  local function process_child(index)
+    -- call match recursively, slicing the remaining args
+    local conf = table.pack(table.unpack(split_args, index))
+    local inner_match = match(table.unpack(split_args, index))
+    table.insert(result, function(node)
+      if node.content == nil then
+        return nil
+      end
+      local r
+      for _, v in ipairs(node.content) do
+        r = inner_match(v)
+        if r ~= nil and r ~= false then
+          break
+        end
+      end
+
+      return report_inner_result(r)
+    end)
+  end
+
+  local function process_descendant(index)
+    local inner_match = match(table.unpack(split_args, index))
+    table.insert(result, function(node)
+      local r
+      local function inner_process(inner_node)
+        if r ~= nil and r ~= false then
+          -- we've already found a match, so we can stop
+          return
+        end
+
+        r = inner_match(inner_node)
+      end
+      _quarto.ast.walk(node, {
+        Inline = inner_process,
+        Block = inner_process
+      })
+      return report_inner_result(r)
+    end)
+  end
+
+  for i, v in ipairs(split_args) do
+    if type(v) == "string" then
       local first = v:sub(1, 1)
       local last = v:sub(-1)
       local capture_fun = capture_id
@@ -347,7 +462,7 @@ local function match(...)
         v = v:sub(2, -2)
         if last ~= "}" then
           fail("invalid match token: " .. v .. "(in " .. str .. ")")
-          return match_fun({})
+          return match_fun(reset, {})
         end
         first = v:sub(1, 1)
         capture_fun = capture_add
@@ -362,10 +477,27 @@ local function match(...)
             return capture_fun(node) 
           end
         end)(capture_fun))
-
+      elseif v == ":child" then
+        process_child(i + 1)
+        break
+      elseif v == ":descendant" then
+        process_descendant(i + 1)
+        break
+      elseif first == "." then
+        table.insert(result, (function(capture_fun, v)
+          return function(node) 
+            return node.classes ~= nil and tcontains(node.classes, v) and capture_fun(node) 
+          end
+        end)(capture_fun, v:sub(2)))
+      elseif first == "#" then
+        table.insert(result, (function(capture_fun, v)
+          return function(node) 
+            return node.identifier ~= nil and node.identifier == v and capture_fun(node) 
+          end
+        end)(capture_fun, v:sub(2)))
       elseif first == "[" then -- [1]
         local n = tonumber(v:sub(2, -2))
-        process_number(n, capture_fun)
+        process_nth_child(n, capture_fun)
       elseif first:upper() == first then -- Plain
         table.insert(result, (function(capture_fun, v)
           return function(node) 
@@ -374,22 +506,15 @@ local function match(...)
         end)(capture_fun, v))
       else
         fail("invalid match token: " .. v .. "(in " .. str .. ")")
-        return match_fun({})
+        return match_fun(reset, {})
       end
-    end
-  end
-
-  local args = {...}
-  for _, v in ipairs(args) do
-    if type(v) == "string" then
-      process_str(v)
     elseif type(v) == "number" then
-      process_number(v, capture_id)
+      process_nth_child(v, capture_id)
     elseif type(v) == "function" then
       table.insert(result, v)
     else
       fail("invalid match parameter: " .. tostring(v))
-      return match_fun({})
+      return match_fun(reset, {})
     end
   end
 
@@ -402,7 +527,7 @@ local function match(...)
     end
     table.insert(result, send_capture)
   end
-  return match_fun(table.unpack(result))
+  return match_fun(reset, table.unpack(result))
 end
 
 return {
