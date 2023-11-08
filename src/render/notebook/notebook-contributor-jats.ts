@@ -112,7 +112,6 @@ async function renderJats(
           [kOutputFile]: outputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
           [kNotebookPreserveCells]: true,
-          [kNotebookPreserveCells]: true,
         },
         quiet: false,
       },
