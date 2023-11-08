@@ -10,30 +10,30 @@ local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
 local kCellClass = "cell"
 local kCellOutputDisplayClass = "cell-output-display"
 
-local previousInputPanelTarget = nil
-local pendingInputPanel = nil
-local function setPendingInputPanel(el)
-  pendingInputPanel = el
+local previousCardToolbarTarget = nil
+local pendingCardToolbar = nil
+local function setPendingCardToolbar(el)
+  pendingCardToolbar = el
 end
 
-local function popPendingInputPanel(el)
-  local pendingPanel = pendingInputPanel
-  pendingInputPanel = nil
-  return pendingPanel
+local function popPendingCardToolbar()
+  local pendingToolbar = pendingCardToolbar
+  pendingCardToolbar = nil
+  return pendingToolbar
 end
 
-local inputPanelTargets = {
+local cardToolbarTargets = {
 }
-local function noteTargetForInputPanel(panel, id) 
-  dashboard.inputpanel.markProcessed(panel)
-  inputPanelTargets[id] = inputPanelTargets[id] or pandoc.List()
-  inputPanelTargets[id]:insert(panel)
+local function noteTargetForCardToolbar(panel, id) 
+  dashboard.card_toolbar.markProcessed(panel)
+  cardToolbarTargets[id] = cardToolbarTargets[id] or pandoc.List()
+  cardToolbarTargets[id]:insert(panel)
 end
 
-local function popInputPanelsForId(id) 
-  local inputPanels = inputPanelTargets[id]
-  inputPanelTargets[id] = nil
-  return inputPanels
+local function popCardTargetsForId(id) 
+  local cardTargets = cardToolbarTargets[id]
+  cardToolbarTargets[id] = nil
+  return cardTargets
 end
 
 
@@ -63,21 +63,21 @@ function render_dashboard()
 
         if el.attributes["output"] == "asis" then
           return nil
-        elseif dashboard.inputpanel.isInputPanel(el) then
+        elseif dashboard.card_toolbar.isCardToolbar(el) then
           
-          -- Convert any input panels into their standard representation
+          -- Convert any card toolbars into their standard representation
           -- note that these will be process downstream to do things like 
           -- convert them into a card, or merge them into other card header/footers
           -- per the user's request 
-          local options = dashboard.inputpanel.readOptions(el)
-          local inputPanel = dashboard.inputpanel.makeInputPanel(el.content, options)
+          local options = dashboard.card_toolbar.readOptions(el)
+          local cardToolbar = dashboard.card_toolbar.makeCardToolbar(el.content, options)
 
-          local targetId = dashboard.inputpanel.targetId(inputPanel)
+          local targetId = dashboard.card_toolbar.targetId(cardToolbar)
           if targetId ~= nil then
-            noteTargetForInputPanel(inputPanel, targetId)
+            noteTargetForCardToolbar(cardToolbar, targetId)
             return pandoc.Null(), false
           else
-            return inputPanel, false
+            return cardToolbar, false
           end
         
         elseif dashboard.card.isCard(el) then
@@ -365,84 +365,84 @@ function render_dashboard()
     {
       traverse = 'topdown',
       Blocks = function(blocks)
-        -- Track the last card and any pending input panels to be joined
+        -- Track the last card and any pending card toolbars to be joined
         -- to cards
         local result = pandoc:Blocks()
         for _i, v in ipairs(blocks) do
           if v.t == "Div" and not is_custom_node(v) then
           
             if dashboard.card.isCard(v) then
-              -- If there is a pending input panel, then insert it into
-              -- this card (note that a pending input panel will only
+              -- If there is a pending card toolbar, then insert it into
+              -- this card (note that a pending card toolbar will only
               -- be present if the card is to be inserted into the below
               -- container)
-              local pendingPanel = popPendingInputPanel()
-              if pendingPanel ~= nil then
-                dashboard.inputpanel.addToTarget(pendingPanel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
+              local pendingToolbar = popPendingCardToolbar()
+              if pendingToolbar ~= nil then
+                dashboard.card_toolbar.addToTarget(pendingToolbar, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
               end
 
-              -- inject any specifically target input panels
+              -- inject any specifically target card toolbars
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
                 for _j, targetId in ipairs(possibleTargetIds) do
-                  local panelsForTarget = popInputPanelsForId(targetId)
-                  if panelsForTarget ~= nil then
-                    for _j,panel in ipairs(panelsForTarget) do
-                      dashboard.inputpanel.addToTarget(panel, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                  local toolbarsForTarget = popCardTargetsForId(targetId)
+                  if toolbarsForTarget ~= nil then
+                    for _j,toolbar in ipairs(toolbarsForTarget) do
+                      dashboard.card_toolbar.addToTarget(toolbar, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
                     end
                   end    
                 end
               end
 
               result:insert(v)
-              previousInputPanelTarget = v
+              previousCardToolbarTarget = v
 
             elseif (dashboard.tabset.isTabset(v)) then
-              -- If there is a pending input panel, then insert it into
-              -- this tabset (note that a pending input panel will only
+              -- If there is a pending card toolbar, then insert it into
+              -- this tabset (note that a pending card toolbar will only
               -- be present if the card is to be inserted into the below
               -- container)
-              local pendingPanel = popPendingInputPanel()
-              if pendingPanel ~= nil then
-                dashboard.inputpanel.addToTarget(pendingPanel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+              local pendingToolbar = popPendingCardToolbar()
+              if pendingToolbar ~= nil then
+                dashboard.card_toolbar.addToTarget(pendingToolbar, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
               end
 
-              -- inject an specifically target input panels
+              -- inject an specifically target card toolbars
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
                 for _j, targetId in ipairs(possibleTargetIds) do
-                  local panelsForTarget = popInputPanelsForId(targetId)
-                  if panelsForTarget ~= nil then
-                    for _j,panel in ipairs(panelsForTarget) do
-                      dashboard.inputpanel.addToTarget(panel, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                  local toolbarsForTarget = popCardTargetsForId(targetId)
+                  if toolbarsForTarget ~= nil then
+                    for _j,toolbar in ipairs(toolbarsForTarget) do
+                      dashboard.card_toolbar.addToTarget(toolbar, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                     end
                   end    
                 end
               end
               
               result:insert(v)
-              previousInputPanelTarget = v
+              previousCardToolbarTarget = v
 
-            elseif dashboard.inputpanel.isInputPanel(v) and dashboard.inputpanel.isUnprocessed(v) then
-              -- If this is an unprocessed input panel, mark it processed and handle it appropriately
-              dashboard.inputpanel.markProcessed(v)
-              if dashboard.inputpanel.targetPrevious(v) then
+            elseif dashboard.card_toolbar.isCardToolbar(v) and dashboard.card_toolbar.isUnprocessed(v) then
+              -- If this is an unprocessed card toolbar, mark it processed and handle it appropriately
+              dashboard.card_toolbar.markProcessed(v)
+              if dashboard.card_toolbar.targetPrevious(v) then
                 -- This is for a the card/tabset that appears above
-                if previousInputPanelTarget == nil then
-                  fatal("Input panel specified to insert into previous card or tabset, but there was no previous card or tabset.")
-                elseif dashboard.card.isCard(previousInputPanelTarget) then
-                  dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
-                elseif dashboard.tabset.isTabset(previousInputPanelTarget) then
-                  dashboard.inputpanel.addToTarget(v, previousInputPanelTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                if previousCardToolbarTarget == nil then
+                  fatal("A card toolbar specified to insert into previous card or tabset, but there was no previous card or tabset.")
+                elseif dashboard.card.isCard(previousCardToolbarTarget) then
+                  dashboard.card_toolbar.addToTarget(v, previousCardToolbarTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                elseif dashboard.tabset.isTabset(previousCardToolbarTarget) then
+                  dashboard.card_toolbar.addToTarget(v, previousCardToolbarTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                 else
-                  fatal("Unexpected element " .. previousInputPanelTarget.t .. "appearing as previous input panel target.")
+                  fatal("Unexpected element " .. previousCardToolbarTarget.t .. "appearing as the target for a card toolbar.")
                 end
-              elseif dashboard.inputpanel.targetNext(v) then
-                -- This input panel belongs in the next card, hang onto it
+              elseif dashboard.card_toolbar.targetNext(v) then
+                -- This card toolbar belongs in the next card, hang onto it
                 -- don't inject it
-                setPendingInputPanel(v)
+                setPendingCardToolbar(v)
               else
-                -- Free floating input panel, place it in a card
+                -- Free floating card toolbar, place it in a card
                 local userClasses, cardOptions = dashboard.card.readOptions(v)
                 cardOptions[dashboard.card.optionKeys.expandable] = false
                 cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
@@ -483,22 +483,22 @@ function render_dashboard()
     }, {
       Pandoc = function(_pandoc) 
 
-        -- If there is still a pending input panel, that means that the user
+        -- If there is still a pending card toolbar, that means that the user
         -- placed inputs at the end of the document with no cards or tabsets following
-        local pendingPanel = popPendingInputPanel()
+        local pendingPanel = popPendingCardToolbar()
         if pendingPanel ~= nil then
-          fatal("An input panel was unable to placed within the next card or tabset as there was no next card or tabset.")
+          fatal("The card toolbar was unable to placed within the next card or tabset as there was no next card or tabset.")
         end
 
         -- If there are ids that haven't been resolved, that means that the user targeted ids with
-        -- inputs and those ids were never found, so the input panel was never placed.
+        -- inputs and those ids were never found, so the card toolbar was never placed.
         local missingIds = pandoc.List()
-        for k,v in pairs(inputPanelTargets) do
+        for k,v in pairs(cardToolbarTargets) do
           missingIds:insert(k)
         end
         
         if #missingIds > 0 then
-          fatal("An input failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
+          fatal("A card toolbar failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
         end
 
 

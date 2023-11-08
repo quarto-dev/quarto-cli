@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Document, Element, NodeList } from "../../core/deno-dom.ts";
+import { Document, Element, Node, NodeList } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
 import {
   applyAttributes,
@@ -145,7 +145,18 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     if (tabSetId) {
       // Fix up the header
       if (cardHeaderEl) {
-        if (cardHeaderEl.innerText.trim() === "") {
+        let hasTitle = false;
+        for (const headerChildNode of cardHeaderEl.childNodes) {
+          if (
+            headerChildNode.nodeType === Node.TEXT_NODE &&
+            headerChildNode.textContent.trim() !== ""
+          ) {
+            hasTitle = true;
+            break;
+          }
+        }
+
+        if (!hasTitle) {
           cardHeaderEl.classList.add(kQuartoHideTitleClass);
         }
         convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyEls, doc);

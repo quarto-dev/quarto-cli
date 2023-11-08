@@ -1,7 +1,7 @@
--- inputpanel.lua
+-- card-toolbar.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
-local kInputPanelClass = "inputs"
+local kCardToolbarClass = "card-toolbar"
 
 -- Attributes that specify a target (next/prev/id) and position
 -- within that target
@@ -23,25 +23,25 @@ local kTargetPositionFooter = "footer"
 -- Marks whether this input panel needs to be processed 
 -- (e.g. once it is determine whether panel has been placed in a card
 -- or as a header or footer of another card, this attribute will be removed)
-local kInputPanelProcess = "inputs-process"
+local kCardToolbarUnprocessed = "card-toolbar-unprocessed"
 
 -- cell/chunk options to mark cell outputs as inputs
-local kInputPanelComponentAttr = "component"
-local kInputPanelContentAttr = "content"
-local kInputPanelComponentAtts = pandoc.List({kInputPanelComponentAttr, kInputPanelContentAttr})
-local kInputPanelComponentAttrVal = "inputs"
+local kComponentAttr = "component"
+local kContentAttr = "content"
+local kComponentAttrs = pandoc.List({kComponentAttr, kContentAttr})
+local kComponentAttrVal = "card-toolbar"
 
 local function readOptions(el)
 
   -- Validate that the options aren't unreasonable
   if el.attributes ~= nil then
     if el.attributes[kHeaderFor] ~= nil and el.attributes[kFooterFor] ~= nil then
-      fatal("A set of inputs can't appear both within a header and footer of a card or tabset. Please remove either `header-for` or `footer-for` from the inputs cell.")
+      fatal("A toolbar can't appear both within a header and footer of a card or tabset. Please remove either `header-for` or `footer-for` from the inputs cell.")
     end
 
     local targetPosition = el.attributes[kTargetPosition]
     if targetPosition ~= nil and targetPosition ~= kTargetPositionHeader and targetPosition ~= kTargetPositionFooter then
-      fatal("Invalid value for the target-position of inputs: " .. targetPosition)
+      fatal("Invalid value target-position '" .. targetPosition .. "' for a card toolbar.")
     end
   end
 
@@ -65,11 +65,19 @@ local function readOptions(el)
     options[kTargetPosition] = kTargetPositionFooter
     options[kTargetElement] = el.attributes[kFooterFor]
   end
+
+  -- By default, this will target appearing in the next card if no
+  -- position information was specified
+  if options[kTargetPosition] == nil and options[kTargetElement] == nil then
+    options[kTargetPosition] = kTargetPositionHeader
+    options[kTargetElement] = kTargetElementNext
+  end
+
   return options  
 end
 
 -- Makes an input panel div
-local function makeInputPanel(contents, options) 
+local function makeCardToolbar(contents, options) 
   local attributes = {}
   if options[kTargetElement] then
     attributes[kTargetElement] = options[kTargetElement]
@@ -78,18 +86,18 @@ local function makeInputPanel(contents, options)
   if options[kTargetPosition] then
     attributes[kTargetPosition] = options[kTargetPosition]
   end
-  return pandoc.Div(contents, pandoc.Attr("", {kInputPanelClass, kInputPanelProcess}, attributes))
+  return pandoc.Div(contents, pandoc.Attr("", {kCardToolbarClass, kCardToolbarUnprocessed}, attributes))
 end
 
 -- Identifies an input panel
-local function isInputPanel(el)
-  if el.attributes ~= nil and kInputPanelComponentAtts:find_if(function(attrName) 
-    return el.attributes[attrName] == kInputPanelComponentAttrVal
+local function isCardToolbar(el)
+  if el.attributes ~= nil and kComponentAttrs:find_if(function(attrName) 
+    return el.attributes[attrName] == kComponentAttrVal
   end) then
     return true
   end
 
-  return (el.t == "Div") and el.classes:includes(kInputPanelClass)
+  return (el.t == "Div") and el.classes:includes(kCardToolbarClass)
 end
 
 -- Target Processing
@@ -129,19 +137,19 @@ end
 
 -- Helper for tracking whether input panel is processed
 local function isUnprocessed(el)
-  return el.classes:includes(kInputPanelProcess)
+  return el.classes:includes(kCardToolbarUnprocessed)
 end
 
 local function markProcessed(el)
   el.classes = el.classes:filter(function(clz) 
-    return clz ~= kInputPanelProcess
+    return clz ~= kCardToolbarUnprocessed
   end)
 end
 
 return {
-  isInputPanel = isInputPanel,
+  isCardToolbar = isCardToolbar,
   readOptions = readOptions,
-  makeInputPanel = makeInputPanel,
+  makeCardToolbar = makeCardToolbar,
   targetPrevious = targetPrevious,
   targetNext = targetNext,
   targetId = targetId,

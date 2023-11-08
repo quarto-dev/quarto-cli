@@ -1,7 +1,7 @@
 -- tabset.lua
 -- Copyright (C) 2020-2022 Posit Software, PBC
 local card = require 'modules/dashboard/card'
-local inputpanel = require 'modules/dashboard/inputpanel'
+local cardToolbar = require 'modules/dashboard/card-toolbar'
 local utils = require 'modules/dashboard/utils'
 
 -- Tabset classes
@@ -40,6 +40,7 @@ end
 local function resolveTabs(contents)
   local tabFooterEls = pandoc.List()
   local tabBodyEls = pandoc.List()
+  local tabHeaderEls = pandoc.List()
 
   -- Process the contents (figuring out the tab title, dealing with cards, etc...)
   for _i, v in ipairs(contents) do   
@@ -63,11 +64,11 @@ local function resolveTabs(contents)
         end
       })
       tabContent = cardTabContents
-    elseif inputpanel.isInputPanel(v) then 
+    elseif cardToolbar.isCardToolbar(v) then 
       -- If an input panel is captured by a tabset, it will naturally go into the
-      -- the footer for the tabset - place it and mark it processed
-      tabFooterEls:insert(v)
-      inputpanel.markProcessed(v)
+      -- the header for the tabset - place it and mark it processed
+      tabHeaderEls:insert(v)
+      cardToolbar.markProcessed(v)
       tabContent = nil
     else
       -- If the direct descrendent of a tab isn't a card, see if it has a header within it
@@ -89,7 +90,7 @@ local function resolveTabs(contents)
     end
   end
 
-  return tabBodyEls, tabFooterEls
+  return tabBodyEls, tabHeaderEls, tabFooterEls
 end
 
 
@@ -107,8 +108,13 @@ local function makeTabset(title, contents, classes, options)
   end
 
   -- compute the card body(ies)
-  local tabEls, tabFooterEls = resolveTabs(contents)
+  local tabEls, tabHeaderEls, tabFooterEls = resolveTabs(contents)
   tabContents:extend(tabEls)
+
+  -- add anything to header that needs to be added
+  if tabHeaderEls ~= nil and tabHeader ~= nil then
+    tprepend(tabHeader.content, tabHeaderEls)
+  end
 
   -- compute any card footers
   local tabFooter = resolveTabFooter(tabFooterEls)

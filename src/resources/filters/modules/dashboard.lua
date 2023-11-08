@@ -8,7 +8,7 @@ local sidebar = require 'modules/dashboard/sidebar'
 local page = require 'modules/dashboard/page'
 local document = require 'modules/dashboard/document'
 local tabset = require 'modules/dashboard/tabset'
-local inputpanel = require 'modules/dashboard/inputpanel'
+local card_toolbar = require 'modules/dashboard/card-toolbar'
 
 
 local function isLayoutContainer(el)
@@ -21,7 +21,7 @@ local function isLayoutContainer(el)
     return true
   elseif tabset.isTabset(el) then
     return true
-  elseif inputpanel.isInputPanel(el) then
+  elseif card_toolbar.isCardToolbar(el) then
     return true
   end
   return false
@@ -86,7 +86,7 @@ return {
   sidebar = sidebar,
   page = page,
   tabset = tabset,
-  inputpanel = inputpanel,
+  card_toolbar = card_toolbar,
   document = document,
   layoutContainer = {
     organizer = organizer

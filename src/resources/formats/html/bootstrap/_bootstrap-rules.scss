@@ -2228,12 +2228,13 @@ code.sourceCode a.code-annotation-anchor {
     justify-content: stretch;
     align-items: end;
 
-    .inputs {
+    .card-toolbar {
       flex-grow: 1;
+      width: 100%;
     }
   }
 
-  .inputs {
+  .card-toolbar {
     display: flex;
     flex-direction: row;
     > * {

@@ -348,7 +348,7 @@ end
 function addToHeader(card, content)
   local cardHeader = utils.findChildDiv(card, isCardHeader)
   if cardHeader then
-    cardHeader.content:insert(content)
+    cardHeader.content:insert(1, content)
   else
     local newHeader = pandoc.Div(content, pandoc.Attr("", {kCardHeaderClass}))
     card.content:insert(1, newHeader)
