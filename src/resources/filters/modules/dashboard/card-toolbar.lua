@@ -86,6 +86,12 @@ local function makeCardToolbar(contents, options)
   if options[kTargetPosition] then
     attributes[kTargetPosition] = options[kTargetPosition]
   end
+
+  -- if there is only a single cell as a child, forward its children to the top level
+  if #contents == 1 and contents[1].t == "Div" and contents[1].classes:includes("cell") then
+    contents = contents[1].content
+  end
+
   return pandoc.Div(contents, pandoc.Attr("", {kCardToolbarClass, kCardToolbarUnprocessed}, attributes))
 end
 
