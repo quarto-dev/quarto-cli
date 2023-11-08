@@ -38,7 +38,10 @@ jobs:
           version_full=$version.$build_number
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "version_full=$version_full">> $GITHUB_OUTPUT
-          echo "**Full Changelog**: https://github.com/cderv/quarto-cli/compare/v${read_version}...v${version_full}" > "release_note.md"
+          echo "**Changelog since last release**: https://github.com/${GITHUB_REPOSITORY}/compare/v${read_version}...v${version_full}" > "release_note.md"
+          echo -e "\n\nFull ${version} changelog up to this version:\n" >> "release_note.md"
+          echo -e "  * View: https://github.com/cderv/quarto-cli/blob/v${version_full}/news/changelog-${version}.md\n" >> "release_note.md"
+          echo -e "  * Download: https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version_full}/changelog.md\n" >> "release_note.md"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
