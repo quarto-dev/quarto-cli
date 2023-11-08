@@ -14,11 +14,6 @@ on:
         required: false
         type: boolean
         default: true
-      draft:
-        description: "Draft"
-        required: false
-        type: boolean
-        default: false
 
 jobs:
   configure:
@@ -496,7 +491,7 @@ jobs:
           target_commitish: ${{ needs.configure.outputs.version_commit }}
           name: ${{needs.configure.outputs.tag_name}}
           generate_release_notes: true
-          draft: ${{ inputs.draft }}
+          draft: false
           prerelease: ${{ inputs.pre-release }}
           files: |
             ./Source/quarto-${{needs.configure.outputs.version}}.tar.gz
