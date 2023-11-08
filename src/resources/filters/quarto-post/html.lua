@@ -21,7 +21,47 @@ function render_html_fixups()
         el.attributes["alt"] = alt_text
         el.attributes[kFigAlt] = nil
       end
-    return el
+      return el
+    end,
+    Div = function(div)
+      -- this narrow fix prevents a 1.3 regression with knitr:
+      -- https://github.com/quarto-dev/quarto-cli/issues/7516
+      -- 
+      -- if we have a cell-output-display with a para with an image, we want to
+      -- wrap the paragraph in a <figure> rawblock so that our CSS works compatibly with the
+      -- CSS we use for FloatRefTargets
+
+      local lst = quarto.utils.match(".cell-output-display/:child/{Para}/:child/{Image}")(div)
+      if not lst or #lst == 0 then
+        return
+      end
+      local para = lst[1]
+      local img = lst[2]
+      -- we still need to find the correct index in the parent content
+      for i, node in ipairs(div.content) do
+        if node == para then
+          local el = pandoc.Div({
+            pandoc.RawBlock("html", "<figure>"),
+            para,
+            pandoc.RawBlock("html", "</figure>")
+          })
+          div.content[i] = el
+          -- the image here might have been changed by the filter above already,
+          -- but I don't trust this order to be consistent, so here we check
+          -- for both attribute and class
+
+          local align = attribute(img, kFigAlign, nil)
+          if align ~= nil then
+            el.classes:insert("quarto-figure-" .. align)
+          end
+          for i, c in ipairs(img.classes) do
+            if c:match("quarto%-figure%-.*") then
+              el.classes:insert(c)
+            end
+          end
+          return div
+        end
+      end
     end
   }
 end
