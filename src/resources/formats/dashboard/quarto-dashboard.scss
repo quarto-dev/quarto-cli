@@ -160,8 +160,14 @@ $valuebox-colors: (
         }
       }
 
+      .navbar-subtitle,
       .navbar-author {
         font-size: 0.9rem;
+        margin-right: 0.5em;
+      }
+
+      .navbar-author {
+        margin-left: auto;
       }
 
       .navbar-logo {

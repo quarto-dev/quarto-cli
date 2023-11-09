@@ -10,6 +10,7 @@ $if(logo)$<a href="#"><img src="$logo$" alt="$logo-alt$" class="navbar-logo d-in
 $if(title)$
       <div class="navbar-title">
         <div class="navbar-title-text"><a href="#">$title$</a></div>
+        $if(subtitle)$<div class="navbar-subtitle">$subtitle$</div>$endif$
         $if(author)$<div class="navbar-author">$author$</div>$endif$
       </div>
 $endif$
