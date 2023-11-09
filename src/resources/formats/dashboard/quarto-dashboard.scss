@@ -50,6 +50,13 @@ $valuebox-colors: (
 
 // Dashboards
 .quarto-dashboard {
+  #quarto-content.quarto-dashboard-content {
+    padding: 1em;
+    > * {
+      padding-top: 0;
+    }
+  }
+
   @include media-breakpoint-up(sm) {
     height: 100%;
   }
