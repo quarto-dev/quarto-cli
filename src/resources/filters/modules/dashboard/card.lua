@@ -180,6 +180,7 @@ end
 local function resolveCardBodies(contents)
   local bodyContentEls = pandoc.List()
   local footerContentEls = pandoc.List()
+  local headerContentEls = pandoc.List()
 
   local collectedBodyEls = pandoc.List() 
   local function flushCollectedBodyContentEls()
@@ -250,7 +251,7 @@ local function resolveCardBodies(contents)
       end
       
 
-      local cardBodyEls, cardFooterEls = resolveCardBodies(cardContentEls)
+      local cardBodyEls, cardHeaderEls, cardFooterEls = resolveCardBodies(cardContentEls)
       if title ~= nil and next(cardBodyEls) ~= nil then
         cardBodyEls[1].attributes['data-title'] = title
       end
@@ -261,6 +262,10 @@ local function resolveCardBodies(contents)
 
       if cardFooterEls ~= nil then
         footerContentEls:extend(cardFooterEls)
+      end
+
+      if cardHeaderEls ~= nil then
+        headerContentEls:extend(cardHeaderEls)
       end
 
     elseif isCardBody(v) then
@@ -283,13 +288,15 @@ local function resolveCardBodies(contents)
 
     elseif isCardFooter(v) then
       footerContentEls:extend(v.content)
+    elseif isCardHeader(v) then
+      headerContentEls:extend(v.content)
     else
       collectBodyContentEl(v, headingOffset)
     end    
   end
   flushCollectedBodyContentEls()
   
-  return bodyContentEls, footerContentEls
+  return bodyContentEls, headerContentEls, footerContentEls
 end
 
 -- title: string
@@ -310,16 +317,23 @@ local function makeCard(contents, classes, options)
   -- compute the card contents
   local cardContents = pandoc.List({})
 
+  -- compute the card body(ies)
+  local cardBodyEls, cardHeaderEls, cardFooterEls = resolveCardBodies(contents)
+
   -- the card header
   local cardHeader = resolveCardHeader(options)
-  
+  if cardHeaderEls ~= nil and #cardHeaderEls > 0 then
+    if cardHeader ~= nil then
+      cardHeader.content:extend(cardHeaderEls)
+    else
+      cardHeader = pandoc.Div(cardHeaderEls, pandoc.Attr("", {kCardHeaderClass}))
+    end
+  end
   if cardHeader ~= nil then
     cardContents:insert(cardHeader)  
   end
 
-  -- compute the card body(ies)
-  local cardBodyEls, cardFooterEls = resolveCardBodies(contents)
-
+  -- the body
   cardContents:extend(cardBodyEls)
 
   -- compute any card footers
