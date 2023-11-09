@@ -541,7 +541,7 @@ jobs:
           git pull origin $GITHUB_REF_NAME
           git revert -n ${{ needs.configure.outputs.version_commit }}
           git add 'version.txt'
-          git commit -m 'Revert version.txt updae (${{ needs.configure.outputs.version_commit }})' -m 'Publishing release has failed.'
+          git commit -m 'Revert version.txt update (${{ needs.configure.outputs.version_commit }})' -m 'Publishing release has failed.'
           git push origin $GITHUB_REF_NAME
 
       - name: Deleted created tag
