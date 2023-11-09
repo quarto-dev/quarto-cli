@@ -63,6 +63,7 @@ import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
 import { processNavigation } from "./format-dashboard-website.ts";
 import { projectIsWebsite } from "../../project/project-shared.ts";
+import { processShinyComponents } from "./format-dashboard-shiny.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -315,6 +316,9 @@ function dashboardHtmlPostProcessor(
 
     // Process tables
     processTables(doc);
+
+    // Process Shiny Specific Components
+    processShinyComponents(doc);
 
     // Process fill images to include proper fill behavior
     const imgFillSelectors = [

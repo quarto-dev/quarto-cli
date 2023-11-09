@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Document, Element, Node, NodeList } from "../../core/deno-dom.ts";
+import { Document, Element, Node } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
 import {
   applyAttributes,
@@ -15,6 +15,7 @@ import {
   ensureCssUnits,
   hasFlowLayout,
   kValueboxClass,
+  makeEl,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
 
@@ -33,6 +34,9 @@ const kCardClass = "card";
 const kCardBodyClass = "card-body";
 const kCardHeaderClass = "card-header";
 const kCardFooterClass = "card-footer";
+const kCardTitleClass = "card-title";
+const kCardToolbarClass = "card-toolbar";
+const kCardTitleToolbarClass = "card-title-toolbar";
 
 // Tabset classes
 const kTabsetClass = "tabset";
@@ -134,6 +138,39 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
       }
     }
 
+    // Loose text gets grouped into a div for alignment purposes
+    // Always place this element first no matter what else is going on
+    const looseText: string[] = [];
+    if (cardHeaderEl) {
+      // See if there is a toolbar in the header
+      const hasHeader =
+        cardHeaderEl.querySelector(`.${kCardToolbarClass}`) !== null;
+
+      for (const headerChildNode of cardHeaderEl.childNodes) {
+        if (
+          headerChildNode.nodeType === Node.TEXT_NODE &&
+          headerChildNode.textContent.trim() !== ""
+        ) {
+          looseText.push(headerChildNode.textContent.trim());
+          headerChildNode.parentNode?.removeChild(headerChildNode);
+        }
+      }
+
+      if (looseText.length > 0) {
+        // Inject the text into a div that we can use for layout
+        const classes = [kCardTitleClass];
+        if (hasHeader) {
+          classes.push(kCardTitleToolbarClass);
+        }
+
+        const titleTextDiv = makeEl("DIV", { classes }, doc);
+        titleTextDiv.innerText = looseText.join(" ");
+        cardHeaderEl.insertBefore(titleTextDiv, cardHeaderEl.firstChild);
+      } else {
+        cardHeaderEl.classList.add(kQuartoHideTitleClass);
+      }
+    }
+
     // Add card attributes
     applyClasses(cardEl, kBsCardClasses);
     applyAttributes(cardEl, kBsCardAttributes);
@@ -145,20 +182,6 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     if (tabSetId) {
       // Fix up the header
       if (cardHeaderEl) {
-        let hasTitle = false;
-        for (const headerChildNode of cardHeaderEl.childNodes) {
-          if (
-            headerChildNode.nodeType === Node.TEXT_NODE &&
-            headerChildNode.textContent.trim() !== ""
-          ) {
-            hasTitle = true;
-            break;
-          }
-        }
-
-        if (!hasTitle) {
-          cardHeaderEl.classList.add(kQuartoHideTitleClass);
-        }
         convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyEls, doc);
       }
       // Convert the body to tabs

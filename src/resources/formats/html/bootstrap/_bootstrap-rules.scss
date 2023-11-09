@@ -2224,24 +2224,6 @@ code.sourceCode a.code-annotation-anchor {
     }
   }
 
-  .bslib-card .bslib-navs-card-title {
-    justify-content: stretch;
-    align-items: end;
-
-    .card-toolbar {
-      flex-grow: 1;
-      width: 100%;
-    }
-  }
-
-  .card-toolbar {
-    display: flex;
-    flex-direction: row;
-    > * {
-      flex-grow: 1;
-    }
-  }
-
   .page-layout-custom .tab-content {
     padding: 0;
     border: none;
@@ -2419,11 +2401,189 @@ code.sourceCode a.code-annotation-anchor {
     left: 2px;
   }
 
+  .bslib-card .bslib-navs-card-title {
+    justify-content: stretch;
+    align-items: end;
+
+    .card-toolbar {
+      flex-grow: 1;
+      width: 100%;
+    }
+  }
+
+  .card-toolbar {
+    display: inline-flex;
+    flex-direction: row;
+    > * {
+      flex-grow: 0;
+    }
+  }
+
+  .card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    .card-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    .card-title.card-title-toolbar {
+      justify-content: flex-start;
+      margin-top: 4px;
+    }
+  }
+
+  .tabset {
+    .card-toolbar {
+      margin-bottom: 1em;
+    }
+  }
+
   .card {
     .shiny-input-container {
       padding-bottom: 0.5em;
       margin-bottom: 0.5em;
       width: inherit;
+
+      > .checkbox:first-child {
+        margin-top: 4px;
+      }
+    }
+
+    .card-toolbar {
+      flex-wrap: wrap;
+
+      input[type="text"] {
+        line-height: 1;
+        width: inherit;
+      }
+
+      .input-daterange {
+        width: inherit;
+        input[type="text"] {
+          height: 2.4em;
+          width: 10em;
+        }
+
+        .input-group-addon {
+          height: auto;
+          padding: 0;
+          margin-left: -5px !important;
+          margin-right: -5px;
+
+          .input-group-text {
+            padding-top: 0;
+            padding-bottom: 0;
+            height: 100%;
+          }
+        }
+      }
+
+      .cell-output-display {
+        display: flex;
+      }
+
+      div.checkbox {
+        margin-bottom: 0px;
+      }
+
+      > *:last-child {
+        margin-right: 0;
+      }
+
+      > * {
+        margin-right: 1em;
+        .shiny-input-container {
+          padding-bottom: 0;
+          margin-bottom: 0;
+          > * {
+            flex-shrink: 0;
+            flex-grow: 0;
+          }
+        }
+        align-items: baseline;
+
+        .form-group.shiny-input-container:not([role="group"]) > label {
+          margin-bottom: 0;
+        }
+
+        .shiny-input-container.no-baseline {
+          align-items: start;
+          padding-top: 4px;
+        }
+
+        .shiny-input-container {
+          display: flex;
+          align-items: baseline;
+
+          label {
+            padding-right: 0.4em;
+          }
+
+          .bslib-input-switch {
+            margin-top: 4px;
+          }
+        }
+
+        span.irs.irs--shiny {
+          width: 10em;
+          .irs-line {
+            top: 9px;
+          }
+          .irs-min,
+          .irs-max,
+          .irs-from,
+          .irs-to,
+          .irs-single {
+            top: 20px;
+          }
+          .irs-bar {
+            top: 8px;
+          }
+          .irs-handle {
+            top: 0px;
+          }
+        }
+
+        > a {
+          text-decoration: none;
+          margin-top: auto;
+          margin-bottom: auto;
+        }
+
+        .shiny-input-checkboxgroup {
+          > label {
+            margin-top: 4px;
+          }
+          > .shiny-options-group {
+            margin-top: 0;
+            align-items: baseline;
+          }
+        }
+
+        .shiny-input-radiogroup {
+          > label {
+            margin-top: 4px;
+          }
+        }
+
+        .shiny-input-radiogroup > .shiny-options-group {
+          align-items: baseline;
+          margin-top: 0;
+          > .radio {
+            margin-right: 0.3em;
+          }
+        }
+      }
+
+      .form-select {
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+      }
     }
   }
 
