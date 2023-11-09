@@ -7,6 +7,9 @@ import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { gitHubContext } from "../../core/github.ts";
+import { formatResourcePath } from "../../core/resources.ts";
+import { sassLayer } from "../../core/sass.ts";
+import { kBootstrapDependencyName } from "../html/format-html-shared.ts";
 
 export const kDashboard = "dashboard";
 
@@ -40,6 +43,24 @@ export interface DashboardMeta {
 }
 
 export const kValueboxClass = "valuebox";
+
+export function dashboardScssLayer() {
+  // Inject a quarto dashboard scss file into the bootstrap scss layer
+  const dashboardScss = formatResourcePath(
+    "dashboard",
+    "quarto-dashboard.scss",
+  );
+  const dashboardLayer = sassLayer(dashboardScss);
+  const dashboardScssDependency = {
+    dependency: kBootstrapDependencyName,
+    key: dashboardScss,
+    quarto: {
+      name: "quarto-dashboard.css",
+      ...dashboardLayer,
+    },
+  };
+  return dashboardScssDependency;
+}
 
 export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
   const dashboardRaw = format.metadata as Metadata;

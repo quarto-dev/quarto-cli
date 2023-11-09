@@ -133,6 +133,7 @@ import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
+import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -231,6 +232,9 @@ export async function websiteNavigationExtras(
     sassBundles.push(websiteSearchSassBundle());
     includeInHeader.push(websiteSearchIncludeInHeader(project, format, temp));
   }
+
+  // Inject dashboard dependencies so they are present if necessary
+  sassBundles.push(dashboardScssLayer());
 
   // Check to see whether the navbar or sidebar have been disabled on this page
   const disableNavbar = format.metadata[kSiteNavbar] !== undefined &&

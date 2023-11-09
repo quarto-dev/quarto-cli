@@ -46,6 +46,7 @@ import { join } from "path/mod.ts";
 import {
   DashboardMeta,
   dashboardMeta,
+  dashboardScssLayer,
   kDashboard,
   kDontMutateTags,
 } from "./format-dashboard-shared.ts";
@@ -108,10 +109,12 @@ export function dashboardFormat() {
         // Read the dashboard metadata
         const dashboard = await dashboardMeta(format);
 
+        const isWebsiteProject = projectIsWebsite(project);
+
         // Forward the theme along (from either the html format
         // or from the dashboard format)
         // TODO: There must be a beter way to do this
-        if (projectIsWebsite(project)) {
+        if (isWebsiteProject) {
           const formats: Record<string, Metadata> = format.metadata
             .format as Record<string, Metadata>;
           const htmlFormat = formats["html"];
@@ -145,6 +148,12 @@ export function dashboardFormat() {
           scrolling: dashboard.scrolling,
         };
 
+        if (!isWebsiteProject) {
+          // If this is a website project, it will inject the scss for dashboards
+          extras.html[kSassBundles] = extras.html[kSassBundles] || [];
+          extras.html[kSassBundles].push(dashboardScssLayer());
+        }
+
         const scripts: DependencyHtmlFile[] = [];
         const stylesheets: DependencyFile[] = [];
 
@@ -154,23 +163,6 @@ export function dashboardFormat() {
           name: "quarto-dashboard.js",
           path: formatResourcePath("dashboard", "quarto-dashboard.js"),
         });
-
-        // Inject a quarto dashboard scss file into the bootstrap scss layer
-        const dashboardScss = formatResourcePath(
-          "dashboard",
-          "quarto-dashboard.scss",
-        );
-        const dashboardLayer = sassLayer(dashboardScss);
-        const dashboardScssDependency = {
-          dependency: kBootstrapDependencyName,
-          key: dashboardScss,
-          quarto: {
-            name: "quarto-dashboard.css",
-            ...dashboardLayer,
-          },
-        };
-        extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-        extras.html[kSassBundles].push(dashboardScssDependency);
 
         const componentDir = join(
           "bslib",
