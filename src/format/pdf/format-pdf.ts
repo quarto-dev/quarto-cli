@@ -76,6 +76,7 @@ export function beamerFormat(): Format {
         [kEcho]: false,
         [kWarning]: false,
       },
+      classoption: ["notheorems"],
     },
   );
 }
