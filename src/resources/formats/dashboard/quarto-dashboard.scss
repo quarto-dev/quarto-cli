@@ -373,10 +373,19 @@ $valuebox-colors: (
   }
 
   .card-toolbar {
-    display: inline-flex;
+    display: flex;
     flex-direction: row;
+    width: 100%;
     > * {
+      font-size: 0.9em;
       flex-grow: 0;
+    }
+
+    > .card-title {
+      font-size: 1em;
+      flex-grow: 1;
+      align-self: flex-start;
+      margin-top: 4px;
     }
   }
 
@@ -390,11 +399,6 @@ $valuebox-colors: (
       flex-direction: column;
       justify-content: center;
       margin-bottom: 0;
-    }
-
-    .card-title.card-title-toolbar {
-      justify-content: flex-start;
-      margin-top: 4px;
     }
   }
 

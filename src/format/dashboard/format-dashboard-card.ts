@@ -143,8 +143,7 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     const looseText: string[] = [];
     if (cardHeaderEl) {
       // See if there is a toolbar in the header
-      const hasHeader =
-        cardHeaderEl.querySelector(`.${kCardToolbarClass}`) !== null;
+      const cardToolbarEl = cardHeaderEl.querySelector(`.${kCardToolbarClass}`);
 
       for (const headerChildNode of cardHeaderEl.childNodes) {
         if (
@@ -159,13 +158,14 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
       if (looseText.length > 0) {
         // Inject the text into a div that we can use for layout
         const classes = [kCardTitleClass];
-        if (hasHeader) {
-          classes.push(kCardTitleToolbarClass);
-        }
 
         const titleTextDiv = makeEl("DIV", { classes }, doc);
         titleTextDiv.innerText = looseText.join(" ");
-        cardHeaderEl.insertBefore(titleTextDiv, cardHeaderEl.firstChild);
+        if (cardToolbarEl) {
+          cardToolbarEl.insertBefore(titleTextDiv, cardToolbarEl.firstChild);
+        } else {
+          cardHeaderEl.insertBefore(titleTextDiv, cardHeaderEl.firstChild);
+        }
       } else {
         cardHeaderEl.classList.add(kQuartoHideTitleClass);
       }
