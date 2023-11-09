@@ -1,3 +1,6 @@
+/*-- scss:defaults --*/
+$dashboard-card-toolbar-top-margin: 6px !default;
+
 /*-- scss:rules --*/
 
 // Value Boxes
@@ -385,7 +388,7 @@ $valuebox-colors: (
       font-size: 1em;
       flex-grow: 1;
       align-self: flex-start;
-      margin-top: 4px;
+      margin-top: $dashboard-card-toolbar-top-margin;
     }
   }
 
@@ -415,7 +418,7 @@ $valuebox-colors: (
       width: inherit;
 
       > .checkbox:first-child {
-        margin-top: 4px;
+        margin-top: $dashboard-card-toolbar-top-margin;
       }
     }
 
@@ -478,7 +481,7 @@ $valuebox-colors: (
 
         .shiny-input-container.no-baseline {
           align-items: start;
-          padding-top: 4px;
+          padding-top: $dashboard-card-toolbar-top-margin;
         }
 
         .shiny-input-container {
@@ -490,7 +493,7 @@ $valuebox-colors: (
           }
 
           .bslib-input-switch {
-            margin-top: 4px;
+            margin-top: $dashboard-card-toolbar-top-margin;
           }
         }
 
@@ -522,7 +525,7 @@ $valuebox-colors: (
 
         .shiny-input-checkboxgroup {
           > label {
-            margin-top: 4px;
+            margin-top: $dashboard-card-toolbar-top-margin;
           }
           > .shiny-options-group {
             margin-top: 0;
@@ -532,7 +535,7 @@ $valuebox-colors: (
 
         .shiny-input-radiogroup {
           > label {
-            margin-top: 4px;
+            margin-top: $dashboard-card-toolbar-top-margin;
           }
         }
 
