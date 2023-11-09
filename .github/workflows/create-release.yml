@@ -23,6 +23,8 @@ jobs:
       version_base: ${{ steps.read-version.outputs.version }}
       tag_name: v${{ steps.read-version.outputs.version_full }}
       version_commit: ${{ steps.version_commit.outputs.commit_long_sha }}
+      pushed: ${{ steps.version_commit.outputs.pushed }}
+      tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
       - uses: actions/checkout@v3
@@ -518,6 +520,44 @@ jobs:
             ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
             ./News/news/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
+
+  cleanup-when-failure:
+    if: ${{ failure() && inputs.publish-release }}
+    needs:
+      [
+        configure,
+        make-installer-deb,
+        make-installer-arm64-deb,
+        make-installer-win,
+        make-tarball-rhel,
+        make-arm64-tarball,
+        make-tarball,
+        make-source-tarball,
+        test-zip-win,
+        test-zip-mac,
+        test-tarball-linux,
+        publish-release,
+      ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Revert commit of version.txt
+        if: ${{ needs.configure.outputs.pushed }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git pull origin main
+          git revert -n ${{ needs.configure.outputs.version_commit }}
+          git add 'version.txt'
+          git commit -m 'Revert ${{ needs.configure.outputs.version_commit }}' -m 'Publishing release has failed.'
+          git push origin main
+
+      - name: Deleted created tag
+        if: ${{ needs.configure.outputs.tag_pushed }}
+        run: |
+          git pull -t origin main
+          git push --delete origin ${{ needs.configure.outputs.tag_name }}
 
   docker-push:
     if: ${{ inputs.publish-release }}
