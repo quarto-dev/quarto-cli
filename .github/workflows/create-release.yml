@@ -346,6 +346,7 @@ jobs:
           quarto --version
 
   make-installer-mac:
+    if: false
     runs-on: macos-latest
     needs: [configure]
 
@@ -438,7 +439,6 @@ jobs:
         make-installer-deb,
         make-installer-arm64-deb,
         make-installer-win,
-        make-installer-mac,
         make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
@@ -470,10 +470,6 @@ jobs:
 
           pushd Mac\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd
-
-          pushd Mac\ Installer
-          sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
           pushd RHEL\ Zip
@@ -521,7 +517,6 @@ jobs:
             ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
             ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
-            ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
             ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
             ./News/news/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
