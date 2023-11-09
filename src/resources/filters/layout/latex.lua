@@ -618,7 +618,9 @@ function latexImageFigure(image)
     
     -- get align
     local align = figAlignAttribute(image)
-   
+    if align ~= nil then
+      image.attributes[kFigAlign] = nil
+    end
     -- insert the figure without the caption
     local figureContent = { pandoc.Para({
       pandoc.RawInline("latex", latexBeginAlign(align)),
