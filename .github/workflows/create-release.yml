@@ -90,6 +90,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -122,6 +124,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -154,6 +158,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -197,6 +203,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -226,6 +234,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -278,6 +288,8 @@ jobs:
           rustup.exe default 1.63.0
 
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -337,6 +349,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
