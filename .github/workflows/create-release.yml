@@ -538,16 +538,15 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git pull origin main
+          git pull origin $GITHUB_REF_NAME
           git revert -n ${{ needs.configure.outputs.version_commit }}
           git add 'version.txt'
-          git commit -m 'Revert ${{ needs.configure.outputs.version_commit }}' -m 'Publishing release has failed.'
-          git push origin main
+          git commit -m 'Revert version.txt updae (${{ needs.configure.outputs.version_commit }})' -m 'Publishing release has failed.'
+          git push origin $GITHUB_REF_NAME
 
       - name: Deleted created tag
         if: ${{ needs.configure.outputs.tag_pushed }}
         run: |
-          git pull -t origin main
           git push --delete origin ${{ needs.configure.outputs.tag_name }}
 
   docker-push:
