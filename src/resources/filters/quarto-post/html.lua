@@ -5,13 +5,17 @@ function render_html_fixups()
   if not _quarto.format.isHtmlOutput() then 
     return {} 
   end
+  local function needs_forward_align(source)
+    return attribute(source, kFigAlign, nil) or source.classes:find_if(function(c) return c:match("quarto%-figure.*") end)
+  end
   local function forward_align(source, target)
     local align = attribute(source, kFigAlign, nil)
     if align ~= nil then
+      target.classes:insert("quarto-figure")
       target.classes:insert("quarto-figure-" .. align)
     end
     for i, c in ipairs(source.classes) do
-      if c:match("quarto%-figure%-.*") then
+      if c:match("quarto%-figure.*") then
         target.classes:insert(c)
       end
     end
@@ -25,6 +29,7 @@ function render_html_fixups()
       local align = attribute(el, kFigAlign, nil)
       if align ~= nil then
         el.attributes[kFigAlign] = nil
+        el.classes:insert("quarto-figure")
         el.classes:insert("quarto-figure-" .. align)
       end
       local alt_text = attribute(el, kFigAlt, nil)
@@ -40,6 +45,9 @@ function render_html_fixups()
       end
       local img = quarto.utils.match("Para/[1]/Image")(para)
       if img == false then
+        return nil
+      end
+      if not needs_forward_align(img) then
         return nil
       end
       local el = pandoc.Div({
