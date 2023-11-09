@@ -5,6 +5,21 @@ function render_html_fixups()
   if not _quarto.format.isHtmlOutput() then 
     return {} 
   end
+  local function needs_forward_align(source)
+    return attribute(source, kFigAlign, nil) or source.classes:find_if(function(c) return c:match("quarto%-figure.*") end)
+  end
+  local function forward_align(source, target)
+    local align = attribute(source, kFigAlign, nil)
+    if align ~= nil then
+      target.classes:insert("quarto-figure")
+      target.classes:insert("quarto-figure-" .. align)
+    end
+    for i, c in ipairs(source.classes) do
+      if c:match("quarto%-figure.*") then
+        target.classes:insert(c)
+      end
+    end
+  end
 
   return {
     Image = function(el)
@@ -14,6 +29,7 @@ function render_html_fixups()
       local align = attribute(el, kFigAlign, nil)
       if align ~= nil then
         el.attributes[kFigAlign] = nil
+        el.classes:insert("quarto-figure")
         el.classes:insert("quarto-figure-" .. align)
       end
       local alt_text = attribute(el, kFigAlt, nil)
@@ -21,6 +37,26 @@ function render_html_fixups()
         el.attributes["alt"] = alt_text
         el.attributes[kFigAlt] = nil
       end
+      return el
+    end,
+    Para = function(para)
+      if #para.content ~= 1 then
+        return nil
+      end
+      local img = quarto.utils.match("Para/[1]/Image")(para)
+      if img == false then
+        return nil
+      end
+      if not needs_forward_align(img) then
+        return nil
+      end
+      local el = pandoc.Div({
+        pandoc.RawBlock("html", "<figure>"),
+        para,
+        pandoc.RawBlock("html", "</figure>")
+      })
+
+      forward_align(img, el)
       return el
     end,
     Div = function(div)
@@ -50,15 +86,7 @@ function render_html_fixups()
           -- but I don't trust this order to be consistent, so here we check
           -- for both attribute and class
 
-          local align = attribute(img, kFigAlign, nil)
-          if align ~= nil then
-            el.classes:insert("quarto-figure-" .. align)
-          end
-          for i, c in ipairs(img.classes) do
-            if c:match("quarto%-figure%-.*") then
-              el.classes:insert(c)
-            end
-          end
+          forward_align(img, el)
           return div
         end
       end

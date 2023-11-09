@@ -261,6 +261,17 @@ function render_latex()
       if img.classes:includes("column-margin") then
         return column_margin(pandoc.Span(img, img.attr))
       end
+      local align = attribute(img, kFigAlign, nil) or attribute(img, kLayoutAlign, nil)
+      if align == nil then
+        return nil
+      end
+      img.attributes[kFigAlign] = nil
+      -- \\centering doesn't work consistently here...
+      return pandoc.Inlines({
+        pandoc.RawInline('latex', '\\begin{center}\n'),
+        img,
+        pandoc.RawInline('latex', '\n\\end{center}\n')
+      })
     end,
     Callout = function(node)
       -- read and clear attributes
