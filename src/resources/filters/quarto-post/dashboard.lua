@@ -307,6 +307,9 @@ function render_dashboard()
               if dashboard.sidebar.isSidebar(header) then
                 local options = dashboard.sidebar.readOptions(header)
                 return dashboard.sidebar.pageSidebarPlaceholder(contents, options)
+              elseif dashboard.toolbar.isToolbar(header) then
+                local options = dashboard.toolbar.readOptions(header)
+                return dashboard.toolbar.pageToolbarPlaceholder(contents, options)
               else
                 lastLevel = level
 
