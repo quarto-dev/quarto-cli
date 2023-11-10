@@ -68,21 +68,36 @@ local function pageSidebarPlaceholder(contents, options)
   return sidebarContainer
 end
 
-function maybeUseSidebarOrientation(el)
-  -- force the global orientation to columns if there is a sidebar present
+function sidebarInContents(content)
   local hasSidebar = false
-  _quarto.ast.walk(el, {
-    Header = function(header)
-      if header.level == 1 and isSidebar(header) then
+  for i, v in ipairs(content) do
+    if v.t == "Header" then
+      if v.level == 1 and isSidebar(v) then
         hasSidebar = true
+        break
       end
-    end,
-    Div = function(div)
-      if isSidebar(div) then
+    elseif v.t == "Div" then
+      
+      if isSidebar(v) then
         hasSidebar = true
+        break
       end
     end
-  })
+  end
+  return hasSidebar
+end
+
+function maybeUseSidebarOrientation(el)
+
+  -- force the global orientation to columns if there is a sidebar present
+  local hasSidebar = false
+  local elType = pandoc.utils.type(el)
+  if elType == "Pandoc" then
+    hasSidebar = sidebarInContents(el.blocks)
+  else
+    hasSidebar = sidebarInContents(el.content)
+  end
+
   if hasSidebar then
     return layout.orientations.columns
   else
