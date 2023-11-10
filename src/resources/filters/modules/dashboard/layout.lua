@@ -138,9 +138,13 @@ end
 
 local function setOrientation(o) 
   currentOrientation = o
+  return currentOrientation
 end
 
 local function orientContents(contents, toOrientation, options)
+  if toOrientation == nil then
+    fatal("You must specify an orientation when orienting contents")
+  end
   if toOrientation == kOrientationColumns then
     currentOrientation = toOrientation
     return makeColumnContainer(contents, options)
