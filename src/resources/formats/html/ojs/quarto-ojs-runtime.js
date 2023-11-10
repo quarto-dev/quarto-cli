@@ -19202,6 +19202,17 @@ class ModuleParser extends CellParser {
 
 /* Fork changes end here */
 
+// https://developer.mozilla.org/en-US/docs/Glossary/Base64
+
+function base64ToBytes(base64) {
+  const binString = atob(base64);
+  return Uint8Array.from(binString, (m) => m.codePointAt(0));
+}
+
+function base64ToStr(base64) {
+  return new TextDecoder().decode(base64ToBytes(base64));
+}
+
 /*global Shiny, $, DOMParser, MutationObserver, URL
 *
 * ojs-connector.js
@@ -19500,18 +19511,19 @@ function importPathResolver(paths, localResolverMap) {
   };
 }
 
+
 function createOjsModuleFromHTMLSrc(text) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/html");
   const staticDefns = [];
   for (const el of doc.querySelectorAll('script[type="ojs-define"]')) {
-    staticDefns.push(el.text);
+    staticDefns.push(base64ToStr(el.text));
   }
   const ojsSource = [];
   for (
     const content of doc.querySelectorAll('script[type="ojs-module-contents"]')
   ) {
-    for (const cell of JSON.parse(content.text).contents) {
+    for (const cell of JSON.parse(base64ToStr(content.text)).contents) {
       ojsSource.push(cell.source);
     }
   }
@@ -22922,7 +22934,7 @@ function displayOJSWarning(warning)
   for (
     const content of document.querySelectorAll('script[type="ojs-module-contents"]')
   ) {
-    for (const cellJson of JSON.parse(content.text).contents) {
+    for (const cellJson of JSON.parse(base64ToStr(content.text)).contents) {
       let cell = document.getElementById(cellJson.cellName) || document.getElementById(`${cellJson.cellName}-1`);
       if (!cell) {
         // give up
@@ -23932,7 +23944,7 @@ function createRuntime() {
       for (const el of document.querySelectorAll(
         "script[type='ojs-module-contents']"
       )) {
-        for (const call of JSON.parse(el.text).contents) {
+        for (const call of JSON.parse(base64ToStr(el.text)).contents) {
           let source = window._ojs.isDashboard ? autosizeOJSPlot(call.source, call.cellName) : call.source;
           switch (call.methodName) {
             case "interpret":
