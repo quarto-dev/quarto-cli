@@ -280,7 +280,6 @@ jobs:
           quarto --version
 
   make-installer-win:
-    if: false
     runs-on: windows-latest
     needs: [configure]
 
@@ -439,6 +438,7 @@ jobs:
         configure,
         make-installer-deb,
         make-installer-arm64-deb,
+        make-installer-win,
         make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
@@ -458,6 +458,13 @@ jobs:
       - name: Generate Checksums
         id: generate_checksum
         run: |
+          pushd Windows\ Installer
+          sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
+
+          pushd Windows\ Zip
+          sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+          popd
 
           pushd RHEL\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
@@ -502,6 +509,8 @@ jobs:
             ./RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz
             ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
             ./Deb Arm64 Installer/quarto-${{needs.configure.outputs.version}}-linux-arm64.deb
+            ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
+            ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./News/news/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
 
