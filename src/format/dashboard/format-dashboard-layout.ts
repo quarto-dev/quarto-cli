@@ -55,6 +55,7 @@ const kNeverFillClasses = [
   "h5",
   "h6",
   "input-panel",
+  "toolbar",
 ];
 
 // Configuration for skipping elements when applying container classes

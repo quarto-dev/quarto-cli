@@ -65,6 +65,7 @@ import { processNavButtons } from "./format-dashboard-navbutton.ts";
 import { processNavigation } from "./format-dashboard-website.ts";
 import { projectIsWebsite } from "../../project/project-shared.ts";
 import { processShinyComponents } from "./format-dashboard-shiny.ts";
+import { processToolbars } from "./format-dashboard-toolbar.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -305,6 +306,9 @@ function dashboardHtmlPostProcessor(
 
     // Process sidedars
     processSidebars(doc);
+
+    // Process toolbars
+    processToolbars(doc);
 
     // Process tables
     processTables(doc);

@@ -476,7 +476,25 @@ function render_dashboard()
           if sidebar then
             local options = dashboard.sidebar.readOptions(sidebar)
             return dashboard.sidebar.makeSidebar(sidebar.content, sidebarContent, options)  
-          end          
+          end    
+        elseif dashboard.layout.isRowContainer(el) then
+
+          local toolbar = nil
+          local toolbarContent = pandoc.List({})
+          for _i, v in ipairs(el.content) do   
+            if dashboard.toolbar.isToolbar(v) then         
+              toolbar = v
+            else
+              toolbarContent:insert(v)
+            end
+          end
+
+          if toolbar then
+            local options = dashboard.toolbar.readOptions(sidebar)
+            return dashboard.toolbar.makeToolbar(toolbar.content, toolbarContent, options)  
+          end    
+
+
         end
 
       end,

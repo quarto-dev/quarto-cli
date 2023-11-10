@@ -610,4 +610,21 @@ $valuebox-colors: (
   .card .card-body .quarto-layout-row {
     align-items: stretch;
   }
+
+  .toolbar {
+    font-size: 0.9em;
+    display: flex;
+    flex-direction: row;
+    background-color: $secondary-bg-subtle;
+    border-top: solid 1px theme-dim($secondary-bg-subtle, 10%);
+    padding: 1em;
+  }
+
+  .toolbar-content {
+    padding: 1em;
+  }
+
+  .dashboard-toolbar-container {
+    padding: 0;
+  }
 }
