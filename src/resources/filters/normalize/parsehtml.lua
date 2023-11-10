@@ -53,6 +53,13 @@ function parse_html_tables()
           return nil
         end
 
+        -- we're already at a state of sin here, cf https://stackoverflow.com/a/1732454
+        -- but this is important enough to do a little more work anyway
+        -- 
+        -- specifically, we should do our best not to break good HTML when it's there
+
+
+
         local tableBegin,tableBody,tableEnd = el.text:match(pat)
         if tableBegin then
           local before_table = string.sub(el.text, 1, i - 1)
@@ -75,7 +82,9 @@ function parse_html_tables()
           -- annotated td elements with th elements.
 
           tableHtml = preprocess_table_text(tableHtml)
-          local tableDoc = pandoc.read(tableHtml, "html")
+          -- process html with raw_html so that contents that are not parseable
+          -- by Pandoc end up as rawblock elements
+          local tableDoc = pandoc.read(tableHtml, "html+raw_html")
           local skip = false
           local found = false
           _quarto.ast.walk(tableDoc, {

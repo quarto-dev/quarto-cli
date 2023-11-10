@@ -223,6 +223,10 @@
 - ([#6620](https://github.com/quarto-dev/quarto-cli/issues/6620)): Introduce `FloatRefTarget` AST nodes that generalize crossref targets to include figures, tables, and custom floating elements.
 - ([#7200](https://github.com/quarto-dev/quarto-cli/issues/7200)): Support Unicode in subref labels.
 
+## Input format
+
+- ([#7905](https://github.com/quarto-dev/quarto-cli/issues/7905)): Use `html+raw_html` as input format when processing HTML rawblocks for tables to avoid Pandoc converting SVG elements to images.
+
 ## Other Fixes and Improvements
 
 - Exit if project pre or post render script fails
