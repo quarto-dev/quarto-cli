@@ -266,13 +266,11 @@ $valuebox-colors: (
 
   &.dashboard-sidebar > .page-layout-custom {
     padding: 0;
-    > .bslib-grid-item > .dashboard-page > .bslib-sidebar-layout,
-    > .bslib-sidebar-layout {
-      > .sidebar {
-        padding-left: 1em;
-        padding-right: 1em;
-      }
-    }
+  }
+
+  aside.sidebar {
+    padding-left: 1em;
+    padding-right: 1em;
   }
 
   .bslib-sidebar-layout {
