@@ -88,6 +88,8 @@ const kFillContainerElements: FillDescriptor = {
   ],
 };
 
+const kFillDontRecurseInsideClasses = ["sidebar"];
+
 // Process row Elements (computing the grid heights for the
 // row and applying bslib style classes)
 export function processRows(doc: Document) {
@@ -347,7 +349,13 @@ export const recursiveApplyFillClasses = (el: Element) => {
   applyFillItemClasses(el);
   applyFillContainerClasses(el);
   for (const childEl of el.children) {
-    recursiveApplyFillClasses(childEl);
+    const recurse = !kFillDontRecurseInsideClasses.some((cls) => {
+      return el.classList.contains(cls);
+    });
+
+    if (recurse) {
+      recursiveApplyFillClasses(childEl);
+    }
   }
 };
 
