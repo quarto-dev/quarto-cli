@@ -56,8 +56,8 @@ local function makeToolbar(toolbarEls, contentEls, options)
 
   local toolbarEl = pandoc.Div(toolbarContentsFiltered, pandoc.Attr("", {kToolbarClass}, toolbarAttr(options)))
 
-  local toolbarColumns = layout.orientContents(contentEls, layout.orientations.rows, {})
-  local toolbarContentsEls = pandoc.Div(toolbarColumns, pandoc.Attr("", {kToolbarContentClass}))
+  local toolbarRows = layout.orientContents(contentEls, layout.orientations.rows, {})
+  local toolbarContentsEls = pandoc.Div(toolbarRows, pandoc.Attr("", {kToolbarContentClass}))
   toolbarContainerEl.content:extend({toolbarEl, toolbarContentsEls})
 
   return toolbarContainerEl

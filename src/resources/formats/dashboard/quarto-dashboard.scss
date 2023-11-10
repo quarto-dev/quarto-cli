@@ -625,6 +625,18 @@ $valuebox-colors: (
     padding: 1em;
   }
 
+  .dashboard-toolbar-container:not(.toolbar-toplevel) {
+    .toolbar {
+      margin-bottom: 1em;
+      border-top: none;
+      border-radius: $border-radius;
+    }
+
+    .toolbar-content {
+      padding: 0;
+    }
+  }
+
   .dashboard-toolbar-container {
     padding: 0;
   }

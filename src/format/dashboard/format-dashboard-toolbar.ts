@@ -25,17 +25,6 @@ export function processToolbars(doc: Document) {
       attributes: {},
     }, doc);
 
-    // Capture the content (the sidebar's next sibling)
-    const toolbarMainEl = makeEl("div", {
-      classes: ["main", "html-fill-container", "html-fill-item"],
-    }, doc);
-    const toolbarMainContentsEl = toolbarInputEl.querySelector(
-      `.${kToolbarContentClass}`,
-    );
-    if (toolbarMainContentsEl !== null) {
-      toolbarMainEl.appendChild(toolbarMainContentsEl);
-    }
-
     // convert to an aside (class sidebar)
     const toolbarEl = toolbarInputEl.querySelector(`.${kToolbarClass}`);
 
@@ -58,19 +47,27 @@ export function processToolbars(doc: Document) {
       toolbarContainerEl.appendChild(toolbarEl);
     }
 
-    toolbarContainerEl.appendChild(toolbarMainEl);
+    // Capture the content (the sidebar's next sibling)
+    const toolbarMainContentsEl = toolbarInputEl.querySelector(
+      `.${kToolbarContentClass}`,
+    );
+    if (toolbarMainContentsEl !== null) {
+      toolbarContainerEl.appendChild(toolbarMainContentsEl);
+    }
+
     recursiveApplyFillClasses(toolbarContainerEl);
 
     toolbarInputEl.replaceWith(toolbarContainerEl);
-    toolbarContainerEl.parentElement?.classList.add(
+    toolbarContainerEl.classList.add(
       "dashboard-toolbar-container",
     );
 
     // Decorate the body of the document if there is a top level toolbar panel
     const topLevelToolbar = doc.querySelector(
-      ".page-layout-custom > .bslib-grid-item > .dashboard-page > div > .toolbar",
+      ".page-layout-custom >  .dashboard-toolbar-container",
     );
     if (topLevelToolbar !== null) {
+      topLevelToolbar.classList.add("toolbar-toplevel");
       doc.body.classList.add("dashboard-toolbar");
     }
   }
