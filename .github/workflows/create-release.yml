@@ -534,6 +534,7 @@ jobs:
         make-installer-deb,
         make-installer-arm64-deb,
         make-installer-win,
+        make-installer-mac,
         make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
@@ -541,7 +542,7 @@ jobs:
         test-zip-win,
         test-zip-mac,
         test-tarball-linux,
-        publish-release,
+        publish-release
       ]
     runs-on: ubuntu-latest
     steps:
