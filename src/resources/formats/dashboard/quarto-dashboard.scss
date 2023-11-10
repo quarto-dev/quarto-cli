@@ -76,7 +76,9 @@ $valuebox-colors: (
     display: none;
   }
 
-  .dashboard-page:not(.dashboard-sidebar-container) {
+  .dashboard-page:not(.dashboard-sidebar-container):not(
+      .dashboard-toolbar-container
+    ) {
     padding: 0.7em;
   }
 
@@ -264,6 +266,7 @@ $valuebox-colors: (
     }
   }
 
+  &.dashboard-toolbar > .page-layout-custom,
   &.dashboard-sidebar > .page-layout-custom {
     padding: 0;
   }

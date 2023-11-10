@@ -65,5 +65,13 @@ export function processToolbars(doc: Document) {
     toolbarContainerEl.parentElement?.classList.add(
       "dashboard-toolbar-container",
     );
+
+    // Decorate the body of the document if there is a top level toolbar panel
+    const topLevelToolbar = doc.querySelector(
+      ".page-layout-custom > .bslib-grid-item > .dashboard-page > div > .toolbar",
+    );
+    if (topLevelToolbar !== null) {
+      doc.body.classList.add("dashboard-toolbar");
+    }
   }
 }
