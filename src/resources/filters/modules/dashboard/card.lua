@@ -359,14 +359,24 @@ local function makeCard(contents, classes, options)
   return cardEl
 end
 
-function addToHeader(card, content)
+function addToHeader(card, content, title)
   local cardHeader = utils.findChildDiv(card, isCardHeader)
   if cardHeader then
+    if title ~= nil then
+      cardHeader.content:insert(1, pandoc.Plain(title))
+    end
     cardHeader.content:insert(content)
   else
-    local newHeader = pandoc.Div(content, pandoc.Attr("", {kCardHeaderClass}))
+    local headerContent = pandoc.List(content)
+    if title ~= nil then
+      headerContent:insert(1, pandoc.Plan(title))
+    end
+    
+    local newHeader = pandoc.Div(headerContent, pandoc.Attr("", {kCardHeaderClass}))
     card.content:insert(1, newHeader)
   end
+
+  
 end
 
 function addToFooter(card, content)

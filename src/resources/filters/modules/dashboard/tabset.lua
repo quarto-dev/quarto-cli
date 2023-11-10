@@ -176,12 +176,19 @@ local function isTabFooter(el)
   return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabFooterClass)
 end
 
-function addToHeader(tabset, content)
+function addToHeader(tabset, content, title)
   local tabsetHeader = utils.findChildDiv(tabset, isTabHeader)
   if tabsetHeader then
+    if title ~= nil then
+      tabsetHeader.content:insert(1, pandoc.Plain(title))
+    end
     tabsetHeader.content:insert(content)
   else
-    local newHeader = pandoc.Div(content, pandoc.Attr("", {kTabHeaderClass}))
+    local headerContent = pandoc.List(content)
+    if title ~= nil then
+      headerContent:insert(1, pandoc.Plain(title))
+    end
+    local newHeader = pandoc.Div(headerContent, pandoc.Attr("", {kTabHeaderClass}))
     tabset.content:insert(1, newHeader)
   end
 end

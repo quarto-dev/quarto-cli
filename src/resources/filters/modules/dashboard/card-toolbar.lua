@@ -30,6 +30,7 @@ local kComponentAttr = "component"
 local kContentAttr = "content"
 local kComponentAttrs = pandoc.List({kComponentAttr, kContentAttr})
 local kComponentAttrVal = "card-toolbar"
+local kTitleAttr = "title"
 
 local function readOptions(el)
 
@@ -43,6 +44,7 @@ local function readOptions(el)
     if targetPosition ~= nil and targetPosition ~= kTargetPositionHeader and targetPosition ~= kTargetPositionFooter then
       fatal("Invalid value target-position '" .. targetPosition .. "' for a card toolbar.")
     end
+    
   end
 
   -- Read attributes into options
@@ -73,6 +75,10 @@ local function readOptions(el)
     options[kTargetElement] = kTargetElementNext
   end
 
+  if el.attributes ~= nil and el.attributes[kTitleAttr] ~= nil then
+    options[kTitleAttr] = el.attributes[kTitleAttr]
+  end
+
   return options  
 end
 
@@ -85,6 +91,10 @@ local function makeCardToolbar(contents, options)
 
   if options[kTargetPosition] then
     attributes[kTargetPosition] = options[kTargetPosition]
+  end
+
+  if options[kTitleAttr] then
+    attributes[kTitleAttr] = options[kTitleAttr]
   end
 
   -- if there is only a single cell as a child, forward its children to the top level
@@ -133,11 +143,11 @@ local function targetPositionInHeader(el)
   end
 end
 
-local function addToTarget(panel, target, fnAddToHeader, fnAddToFooter)
-  if targetPositionInHeader(panel) then
-    fnAddToHeader(target, panel)
+local function addToTarget(toolbar, target, fnAddToHeader, fnAddToFooter)
+  if targetPositionInHeader(toolbar) then
+    fnAddToHeader(target, toolbar, toolbar.attributes[kTitleAttr])
   else
-    fnAddToFooter(target, panel)
+    fnAddToFooter(target, toolbar)
   end
 end
 
