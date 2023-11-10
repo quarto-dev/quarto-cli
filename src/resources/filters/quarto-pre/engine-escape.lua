@@ -85,6 +85,7 @@ local kHighlightClasses = {
   "fortranfixed",
   "fortranfree",
   "fsharp",
+  "gap",
   "gcc",
   "glsl",
   "gnuassembler",
