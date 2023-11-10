@@ -389,10 +389,21 @@ function addToFooter(card, content)
   end
 end
 
+function cardBodyContents(card) 
+  local bodyEls = pandoc.List({})
+  for _i, v in ipairs(card.content) do
+    if isCardBody(v) then
+      bodyEls:extend(v.content)
+    end
+  end
+  return bodyEls
+end
+
 return {
   isCard = isCard,
   isCardBody = isCardBody,
   isCardFooter = isCardFooter,
+  cardBodyContents = cardBodyContents,
   isLiteralCard = isLiteralCard,
   readOptions = readOptions,
   makeCard = makeCard,

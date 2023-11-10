@@ -46,8 +46,8 @@ local function makeSidebar(sidebarEls, contentEls, options)
   local sidebarContentsFiltered = pandoc.List({})
   for i,v in ipairs(sidebarEls) do
     if card.isCard(v) then
-      -- TODO: really do a better job of de-composing the card
-      sidebarContentsFiltered:insert(v.content[1])
+      local cardContents = card.cardBodyContents(v)
+      sidebarContentsFiltered:extend(cardContents)
     else
       sidebarContentsFiltered:insert(v)
     end
