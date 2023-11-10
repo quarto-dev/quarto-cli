@@ -81,6 +81,8 @@ import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
+import { encodeBase64 } from "encoding/base64.ts";
+
 export interface OjsCompileOptions {
   source: string;
   format: Format;
@@ -816,7 +818,7 @@ export async function ojsCompile(
   // script to append
   const afterBody = [
     `<script type="ojs-module-contents">`,
-    JSON.stringify({ contents: moduleContents }),
+    encodeBase64(JSON.stringify({ contents: moduleContents })),
     `</script>`,
     `<script type="module">`,
     ...scriptContents,
