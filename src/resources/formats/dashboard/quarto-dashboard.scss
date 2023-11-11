@@ -1,6 +1,167 @@
 /*-- scss:defaults --*/
 $dashboard-card-toolbar-top-margin: 6px !default;
 
+/*-- scss:mixins --*/
+@mixin shiny-date-range {
+  .input-daterange {
+    width: inherit;
+    input[type="text"] {
+      height: 2.4em;
+      width: 10em;
+    }
+
+    .input-group-addon {
+      height: auto;
+      padding: 0;
+      margin-left: -5px !important;
+      margin-right: -5px;
+
+      .input-group-text {
+        padding-top: 0;
+        padding-bottom: 0;
+        height: 100%;
+      }
+    }
+  }
+}
+
+@mixin shiny-text-input {
+  input[type="text"] {
+    line-height: 1;
+    width: inherit;
+  }
+}
+
+@mixin shiny-input-checkboxgroup {
+  .shiny-input-checkboxgroup {
+    > label {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+    > .shiny-options-group {
+      margin-top: 0;
+      align-items: baseline;
+    }
+  }
+}
+
+@mixin shiny-input-radiogroup {
+  .shiny-input-radiogroup {
+    > label {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+  }
+
+  .shiny-input-radiogroup > .shiny-options-group {
+    align-items: baseline;
+    margin-top: 0;
+    > .radio {
+      margin-right: 0.3em;
+    }
+  }
+}
+
+@mixin shiny-input-checkbox {
+  div.checkbox {
+    margin-bottom: 0px;
+  }
+
+  > .checkbox:first-child {
+    margin-top: $dashboard-card-toolbar-top-margin;
+  }
+}
+
+@mixin shiny-input-slider {
+  span.irs.irs--shiny {
+    width: 10em;
+    .irs-line {
+      top: 9px;
+    }
+    .irs-min,
+    .irs-max,
+    .irs-from,
+    .irs-to,
+    .irs-single {
+      top: 20px;
+    }
+    .irs-bar {
+      top: 8px;
+    }
+    .irs-handle {
+      top: 0px;
+    }
+  }
+}
+
+@mixin shiny-input-select {
+  .form-select {
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+  }
+}
+
+@mixin shiny-input-container {
+  .shiny-input-container {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    > * {
+      flex-shrink: 0;
+      flex-grow: 0;
+    }
+  }
+
+  .form-group.shiny-input-container:not([role="group"]) > label {
+    margin-bottom: 0;
+  }
+
+  .shiny-input-container.no-baseline {
+    align-items: start;
+    padding-top: $dashboard-card-toolbar-top-margin;
+  }
+
+  .shiny-input-container {
+    display: flex;
+    align-items: baseline;
+
+    label {
+      padding-right: 0.4em;
+    }
+
+    .bslib-input-switch {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+  }
+}
+
+@mixin toolbar-layout {
+  .cell-output-display {
+    display: flex;
+  }
+
+  .shiny-input-container {
+    padding-bottom: 0.5em;
+    margin-bottom: 0.5em;
+    width: inherit;
+
+    > .checkbox:first-child {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+  }
+
+  > *:last-child {
+    margin-right: 0;
+  }
+
+  > * > * {
+    margin-right: 1em;
+    align-items: baseline;
+    > a {
+      text-decoration: none;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+  }
+}
+
 /*-- scss:rules --*/
 
 // Value Boxes
@@ -405,28 +566,6 @@ $valuebox-colors: (
   .bslib-card .bslib-navs-card-title {
     justify-content: stretch;
     align-items: end;
-
-    .card-toolbar {
-      flex-grow: 1;
-      width: 100%;
-    }
-  }
-
-  .card-toolbar {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    > * {
-      font-size: 0.8em;
-      flex-grow: 0;
-    }
-
-    > .card-title {
-      font-size: 1em;
-      flex-grow: 1;
-      align-self: flex-start;
-      margin-top: $dashboard-card-toolbar-top-margin;
-    }
   }
 
   .card-header {
@@ -448,150 +587,7 @@ $valuebox-colors: (
     }
   }
 
-  .card {
-    .shiny-input-container {
-      padding-bottom: 0.5em;
-      margin-bottom: 0.5em;
-      width: inherit;
-
-      > .checkbox:first-child {
-        margin-top: $dashboard-card-toolbar-top-margin;
-      }
-    }
-
-    .card-toolbar {
-      flex-wrap: wrap;
-
-      input[type="text"] {
-        line-height: 1;
-        width: inherit;
-      }
-
-      .input-daterange {
-        width: inherit;
-        input[type="text"] {
-          height: 2.4em;
-          width: 10em;
-        }
-
-        .input-group-addon {
-          height: auto;
-          padding: 0;
-          margin-left: -5px !important;
-          margin-right: -5px;
-
-          .input-group-text {
-            padding-top: 0;
-            padding-bottom: 0;
-            height: 100%;
-          }
-        }
-      }
-
-      .cell-output-display {
-        display: flex;
-      }
-
-      div.checkbox {
-        margin-bottom: 0px;
-      }
-
-      > *:last-child {
-        margin-right: 0;
-      }
-
-      > * {
-        margin-right: 1em;
-        .shiny-input-container {
-          padding-bottom: 0;
-          margin-bottom: 0;
-          > * {
-            flex-shrink: 0;
-            flex-grow: 0;
-          }
-        }
-        align-items: baseline;
-
-        .form-group.shiny-input-container:not([role="group"]) > label {
-          margin-bottom: 0;
-        }
-
-        .shiny-input-container.no-baseline {
-          align-items: start;
-          padding-top: $dashboard-card-toolbar-top-margin;
-        }
-
-        .shiny-input-container {
-          display: flex;
-          align-items: baseline;
-
-          label {
-            padding-right: 0.4em;
-          }
-
-          .bslib-input-switch {
-            margin-top: $dashboard-card-toolbar-top-margin;
-          }
-        }
-
-        span.irs.irs--shiny {
-          width: 10em;
-          .irs-line {
-            top: 9px;
-          }
-          .irs-min,
-          .irs-max,
-          .irs-from,
-          .irs-to,
-          .irs-single {
-            top: 20px;
-          }
-          .irs-bar {
-            top: 8px;
-          }
-          .irs-handle {
-            top: 0px;
-          }
-        }
-
-        > a {
-          text-decoration: none;
-          margin-top: auto;
-          margin-bottom: auto;
-        }
-
-        .shiny-input-checkboxgroup {
-          > label {
-            margin-top: $dashboard-card-toolbar-top-margin;
-          }
-          > .shiny-options-group {
-            margin-top: 0;
-            align-items: baseline;
-          }
-        }
-
-        .shiny-input-radiogroup {
-          > label {
-            margin-top: $dashboard-card-toolbar-top-margin;
-          }
-        }
-
-        .shiny-input-radiogroup > .shiny-options-group {
-          align-items: baseline;
-          margin-top: 0;
-          > .radio {
-            margin-right: 0.3em;
-          }
-        }
-      }
-
-      .form-select {
-        padding-top: 0.2em;
-        padding-bottom: 0.2em;
-      }
-    }
-  }
-
+  /* Sidebar */
   .sidebar {
     .card-body {
       margin-bottom: 2em;
@@ -612,6 +608,7 @@ $valuebox-colors: (
     align-items: stretch;
   }
 
+  /* Toolbar */
   .toolbar {
     font-size: 0.9em;
     display: flex;
@@ -619,6 +616,30 @@ $valuebox-colors: (
     background-color: $secondary-bg-subtle;
     border-top: solid 1px theme-dim($secondary-bg-subtle, 10%);
     padding: 1em;
+    flex-wrap: wrap;
+    flex-grow: 1;
+
+    @include toolbar-layout();
+    @include shiny-input-container();
+
+    @include shiny-text-input();
+    @include shiny-date-range();
+    @include shiny-input-slider();
+    @include shiny-input-checkboxgroup();
+    @include shiny-input-radiogroup();
+    @include shiny-input-select();
+    @include shiny-input-checkbox();
+
+    > * {
+      font-size: 0.9em;
+      flex-grow: 0;
+    }
+
+    .shiny-input-container {
+      label {
+        margin-bottom: 1px;
+      }
+    }
   }
 
   .toolbar-content {
@@ -639,5 +660,40 @@ $valuebox-colors: (
 
   .dashboard-toolbar-container {
     padding: 0;
+  }
+
+  /* Card Toolbar */
+  .card {
+    .card-toolbar {
+      display: flex;
+      flex-grow: 1;
+      flex-direction: row;
+      width: 100%;
+      > * {
+        font-size: 0.8em;
+        flex-grow: 0;
+      }
+
+      > .card-title {
+        font-size: 1em;
+        flex-grow: 1;
+        align-self: flex-start;
+        margin-top: $dashboard-card-toolbar-top-margin;
+      }
+
+      flex-wrap: wrap;
+
+      @include shiny-text-input();
+      @include shiny-date-range();
+      @include shiny-input-slider();
+      @include shiny-input-checkboxgroup();
+      @include shiny-input-radiogroup();
+      @include shiny-input-select();
+      @include shiny-input-checkbox();
+
+      @include shiny-input-container();
+
+      @include toolbar-layout();
+    }
   }
 }

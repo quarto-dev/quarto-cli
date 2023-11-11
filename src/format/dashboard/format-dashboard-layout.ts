@@ -89,7 +89,7 @@ const kFillContainerElements: FillDescriptor = {
   ],
 };
 
-const kFillDontRecurseInsideClasses = ["sidebar"];
+const kFillDontRecurseInsideClasses = ["sidebar", "toolbar"];
 
 // Process row Elements (computing the grid heights for the
 // row and applying bslib style classes)
