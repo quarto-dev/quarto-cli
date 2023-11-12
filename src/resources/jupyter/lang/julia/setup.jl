@@ -51,9 +51,10 @@ try
   # instead of saving to the ipynb file, so we don't do that.
   # https://github.com/quarto-dev/quarto-cli/issues/7548
   if fig_format == :pdf
-    fig_format = :png
+    CairoMakie.activate!(type = "png")
+  else
+    CairoMakie.activate!(type = string(fig_format))
   end
-  CairoMakie.activate!(type = string(fig_format))
   CairoMakie.update_theme!(resolution=(fig_width, fig_height))
 catch e
     # @warn "CairoMakie init" exception=(e, catch_backtrace())
