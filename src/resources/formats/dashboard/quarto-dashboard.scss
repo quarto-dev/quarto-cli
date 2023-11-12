@@ -618,6 +618,7 @@ $valuebox-colors: (
     padding: 1em;
     flex-wrap: wrap;
     flex-grow: 1;
+    background-color: $card-cap-bg;
 
     @include toolbar-layout();
     @include shiny-input-container();
