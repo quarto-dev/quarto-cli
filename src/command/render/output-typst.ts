@@ -18,7 +18,7 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe, RenderOptions } from "./types.ts";
-import { normalizeOutputPath } from "./output.ts";
+import { normalizeOutputPath } from "./output-shared.ts";
 import {
   typstCompile,
   validateRequiredTypstVersion,
