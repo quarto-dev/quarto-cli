@@ -20,7 +20,7 @@ import { OutputRecipe } from "./types.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { execProcess } from "../../core/process.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
-import { normalizeOutputPath } from "./output.ts";
+import { normalizeOutputPath } from "./output-shared.ts";
 
 export interface PdfGenerator {
   generate: (

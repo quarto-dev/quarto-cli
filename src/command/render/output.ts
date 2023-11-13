@@ -204,15 +204,4 @@ export function outputRecipe(
   }
 }
 
-export function normalizeOutputPath(input: string, output: string) {
-  if (isAbsolute(output)) {
-    return output;
-  } else {
-    return relative(
-      dirname(input),
-      output,
-    );
-  }
-}
-
 const kOutExt = "out";

@@ -13,8 +13,6 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 
 import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
-import { engineIgnoreGlobs } from "../execute/engine.ts";
-import { gitignoreEntries } from "./project-gitignore.ts";
 import {
   kProjectOutputDir,
   kProjectType,
@@ -34,12 +32,6 @@ export function projectExcludeDirs(context: ProjectContext): string[] {
   } else {
     return [];
   }
-}
-
-export function projectIgnoreGlobs(dir: string) {
-  return engineIgnoreGlobs().concat(
-    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
-  );
 }
 
 export function projectFormatOutputDir(
@@ -235,7 +227,7 @@ export function deleteProjectMetadata(metadata: Metadata) {
   );
   if (projType.metadataFields) {
     for (const field of projType.metadataFields().concat("project")) {
-      if (typeof (field) === "string") {
+      if (typeof field === "string") {
         delete metadata[field];
       } else {
         for (const key of Object.keys(metadata)) {
@@ -253,11 +245,11 @@ export function deleteProjectMetadata(metadata: Metadata) {
 
 export function normalizeFormatYaml(yamlFormat: unknown) {
   if (yamlFormat) {
-    if (typeof (yamlFormat) === "string") {
+    if (typeof yamlFormat === "string") {
       yamlFormat = {
         [yamlFormat]: {},
       };
-    } else if (typeof (yamlFormat) === "object") {
+    } else if (typeof yamlFormat === "object") {
       const formats = Object.keys(yamlFormat);
       for (const format of formats) {
         if (

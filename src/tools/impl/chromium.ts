@@ -2,10 +2,13 @@
  * chromium.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
 
-import { getPuppeteer } from "../../core/puppeteer.ts";
+import {
+  chromiumInstallDir,
+  fetcher,
+  getPuppeteer,
+} from "../../core/puppeteer.ts";
 import {
   clearLine,
   progressBar,
@@ -14,11 +17,6 @@ import {
 } from "../../core/console.ts";
 
 import { InstallableTool, InstallContext, PackageInfo } from "../types.ts";
-import { quartoDataDir } from "../../core/appdirs.ts";
-
-export function chromiumInstallDir(): string | undefined {
-  return quartoDataDir("chromium");
-}
 
 async function installDir() {
   if (await installed()) {
@@ -76,7 +74,7 @@ async function preparePackage(_ctx: InstallContext): Promise<PackageInfo> {
     `Downloading Chromium ${revision}`,
   );
   //  const spin = spinner("Installing");
-  let spinnerStatus: ((() => void) | undefined);
+  let spinnerStatus: (() => void) | undefined;
   const fetcherObj = await fetcher();
   const revisionInfo = await fetcherObj.download(
     revision,
@@ -118,14 +116,6 @@ async function uninstall(_ctx: InstallContext): Promise<void> {
     return fetcherObj.remove(version);
   });
   return Promise.resolve();
-}
-
-export async function fetcher() {
-  const options = {
-    path: chromiumInstallDir(),
-  };
-  const fetcher = (await getPuppeteer()).createBrowserFetcher(options);
-  return fetcher;
 }
 
 // TODO: https://github.com/puppeteer/puppeteer/blob/main/versions.js
