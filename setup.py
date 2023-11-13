@@ -6,6 +6,7 @@ from urllib.request import urlretrieve
 from pathlib import Path
 import os
 import shutil
+import subprocess
 
 output_location = ""
 quarto_data = []
@@ -30,14 +31,22 @@ def get_platform_suffix():
     else:
         raise Exception("Platform not supported")
 
-def download_quarto(version):
+def download_quarto(vers):
     global output_location
     global quarto_data
+    global version
 
     suffix = get_platform_suffix()
-    quarto_url = f"https://github.com/quarto-dev/quarto-cli/releases/download/v{version}/quarto-{version}-{suffix}"
+    quarto_url = f"https://github.com/quarto-dev/quarto-cli/releases/download/v{vers}/quarto-{vers}-{suffix}"
     print("Downloading", quarto_url)
-    name, resp = urlretrieve(quarto_url)
+    try:
+        name, resp = urlretrieve(quarto_url)
+    except Exception as e:
+        print("Error downloading Quarto:", e)
+        commit=subprocess.run(["git","log","-1","--skip=1","--pretty=format:'%h'","--","version.txt"], check=True, text=True, capture_output=True, shell=True).stdout
+        version = subprocess.run(["git","show", commit.replace("'", "")+":version.txt"], check=True, capture_output=True, text=True, shell=True).stdout.replace("\n", "")
+        quarto_url = f"https://github.com/quarto-dev/quarto-cli/releases/download/v{version}/quarto-{version}-{suffix}"
+        name, resp = urlretrieve(quarto_url)
 
     output_location = f"quarto_cli/quarto-{version}"
     os.makedirs(output_location, exist_ok=True)
@@ -60,6 +69,8 @@ def download_quarto(version):
 
 def cleanup_quarto():
     shutil.rmtree(output_location)
+
+global version
 
 version = open("version.txt").read().strip()
 download_quarto(version)
