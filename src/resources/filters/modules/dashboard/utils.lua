@@ -14,6 +14,28 @@ function findChildDiv(el, fnMatches)
   return childDiv
 end
 
+function escapeHeaders(blocks) 
+
+  local baseHeadingLevel = 10000
+  if contents ~= nil then
+    _quarto.ast.walk(blocks, {
+      Header = function(el)
+        baseHeadingLevel = math.min(el.level, baseHeadingLevel)
+      end
+    })
+  end
+  local headingOffset = math.max(math.min(4 - baseHeadingLevel, 10000), 0)
+
+  return _quarto.ast.walk(blocks, {
+      Header = function(header)
+        local level = math.min(header.level + headingOffset, 6)
+        local headerClz = "h" .. level;
+        return pandoc.Div(header.content, pandoc.Attr("", {headerClz}))    
+    end
+  })
+end
+
+
 
 -- Provides a list of element identifiers that are within the 
 -- given element
@@ -37,5 +59,6 @@ end
 
 return {
   idsWithinEl = idsWithinEl,
-  findChildDiv = findChildDiv
+  findChildDiv = findChildDiv,
+  escapeHeaders = escapeHeaders
 }

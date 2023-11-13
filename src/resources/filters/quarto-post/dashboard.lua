@@ -292,15 +292,32 @@ function render_dashboard()
       Div = function(el) 
         if el.classes:includes(kSectionClass) then
 
-          -- Allow arbitrary nesting of sections / heading levels to perform layouts
+            -- Allow arbitrary nesting of sections / heading levels to perform layouts
           local header = el.content[1]
+
           if header.t == "Header" then            
             local level = header.level
             local contents = tslice(el.content, 2)
 
             -- The first time we see a level, we should emit the rows and 
             -- flip the orientation
-            if level == 1 then
+            if dashboard.sidebar.isSidebar(header) then
+              -- resolve headers inside the sidebar
+              local resolved = dashboard.utils.escapeHeaders(pandoc.Blocks(contents))
+              el.content = pandoc.List({})
+              if resolved ~= nil then
+                el.content:extend(resolved)
+              end
+              return el, false
+
+            elseif dashboard.toolbar.isToolbar(header) then
+              local resolved = dashboard.utils.escapeHeaders(pandoc.Blocks(contents))
+              el.content = pandoc.List({})
+              if resolved ~= nil then
+                el.content:extend(resolved)
+              end
+              return el, false
+            elseif level == 1 then
                 -- A level 1 header marked as a sidebar is global, just let it
                 -- flow through and the sidebar collector will ingest it and convert it into 
                 -- a sidebar (which contains the other pages as its content)
@@ -494,7 +511,7 @@ function render_dashboard()
 
           if toolbar then
             local options = dashboard.toolbar.readOptions(sidebar)
-            return dashboard.toolbar.makeToolbar(toolbar.content, toolbarContent, options)  
+            return dashboard.toolbar.makeToolbar(toolbar.content, toolbarContent, options)
           end    
 
 
