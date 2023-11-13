@@ -68,11 +68,42 @@ local function pageToolbarPlaceholder(contents, options)
   return toolbarContainer
 end
 
+function toolbarInContents(content)
+  local hasToolbar = false
+  for i, v in ipairs(content) do
+    if v.t == "Header" then
+      if v.level == 1 and isToolbar(v) then
+        hasToolbar = true
+        break
+      end
+    elseif v.t == "Div" then
+      if isToolbar(v) then
+        hasToolbar = true
+        break
+      end
+    end
+  end
+  return hasToolbar
+end
+
+local function hasChildToolbar(el)
+  -- force the global orientation to columns if there is a toolbar present
+  local hasToolbar = false
+  local elType = pandoc.utils.type(el)
+  if elType == "Pandoc" then
+    hasToolbar = toolbarInContents(el.blocks)
+  else
+    hasToolbar = toolbarInContents(el.content)
+  end
+  return hasToolbar
+end
+
 return {
   isToolbar = isToolbar,
   readOptions = readOptions,
   makeToolbar = makeToolbar,
-  pageToolbarPlaceholder = pageToolbarPlaceholder
+  pageToolbarPlaceholder = pageToolbarPlaceholder,
+  hasChildToolbar = hasChildToolbar
 }
 
 

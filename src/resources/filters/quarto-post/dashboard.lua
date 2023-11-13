@@ -276,7 +276,7 @@ function render_dashboard()
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
         -- force the global orientation to columns if there is a sidebar present
-        local inferredOrientation = dashboard.sidebar.maybeUseSidebarOrientation(el)
+        local inferredOrientation = dashboard.suggestOrientation(el)
         if inferredOrientation ~= nil then 
           dashboard.layout.setOrientation(inferredOrientation)
         end
@@ -368,7 +368,7 @@ function render_dashboard()
                   lastLevel = level
 
                   -- force the global orientation to columns if there is a sidebar present
-                  local inferredOrientation = dashboard.sidebar.maybeUseSidebarOrientation(el)
+                  local inferredOrientation = dashboard.suggestOrientation(el)
                   if inferredOrientation ~= nil then 
                     toOrientation = dashboard.layout.setOrientation(inferredOrientation)
                   else

@@ -87,7 +87,7 @@ function sidebarInContents(content)
   return hasSidebar
 end
 
-function maybeUseSidebarOrientation(el)
+function hasChildSidebar(el)
 
   -- force the global orientation to columns if there is a sidebar present
   local hasSidebar = false
@@ -98,11 +98,7 @@ function maybeUseSidebarOrientation(el)
     hasSidebar = sidebarInContents(el.content)
   end
 
-  if hasSidebar then
-    return layout.orientations.columns
-  else
-    return nil
-  end
+  return hasSidebar
 end
 
 
@@ -111,7 +107,7 @@ return {
   readOptions = readOptions,
   makeSidebar = makeSidebar,
   pageSidebarPlaceholder = pageSidebarPlaceholder,
-  maybeUseSidebarOrientation = maybeUseSidebarOrientation
+  hasChildSidebar = hasChildSidebar
 }
 
 

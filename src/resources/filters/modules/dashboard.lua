@@ -110,6 +110,16 @@ local function organizer(contents, ignoreClasses)
   }
 end
 
+function suggestOrientation(el)
+  if sidebar.hasChildSidebar(el) then
+    return layout.orientations.columns
+  elseif toolbar.hasChildToolbar(el) then
+    return layout.orientations.rows
+  else
+    return nil
+  end
+end
+
 
 return {
   layout = layout,
@@ -125,5 +135,6 @@ return {
     organizer = organizer
   },
   escapeLeafNodeContents = escapeLeafNodeContents,
+  suggestOrientation = suggestOrientation,
   utils = utils
 }
