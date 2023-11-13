@@ -565,6 +565,7 @@ $valuebox-colors: (
   aside.sidebar {
     padding-left: 1em;
     padding-right: 1em;
+    background-color: $card-cap-bg;
   }
 
   .bslib-sidebar-layout {
@@ -614,7 +615,6 @@ $valuebox-colors: (
     font-size: 0.9em;
     display: flex;
     flex-direction: row;
-    background-color: $secondary-bg-subtle;
     border-top: solid 1px theme-dim($secondary-bg-subtle, 10%);
     padding: 1em;
     flex-wrap: wrap;
