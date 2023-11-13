@@ -14,6 +14,7 @@ import { extensionIdString } from "../../extension/extension-shared.ts";
 import { Extension, ExtensionContext } from "../../extension/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { outputTools } from "../../tools/tools-console.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const listCommand = new Command()
   .hidden()
@@ -56,8 +57,9 @@ async function outputExtensions(
   path: string,
   extensionContext: ExtensionContext,
 ) {
+  const nbContext = notebookContext();
   // Provide the with with a list
-  const project = await projectContext(path);
+  const project = await projectContext(path, nbContext);
   const extensions = await extensionContext.extensions(
     path,
     project?.config,

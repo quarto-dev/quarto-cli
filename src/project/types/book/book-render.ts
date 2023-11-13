@@ -313,7 +313,7 @@ export function bookPandocRenderer(
         return {
           files: renderedFiles,
           error: error
-            ? typeof (error) === "string" ? new Error(error) : error
+            ? typeof error === "string" ? new Error(error) : error
             : new Error(),
         };
       }
@@ -658,6 +658,7 @@ export async function bookIncrementalRenderAll(
       { path: files[i] },
       options,
       false,
+      context.notebookContext,
       context,
     );
 

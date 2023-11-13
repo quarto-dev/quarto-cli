@@ -1,21 +1,16 @@
+/*
+ * github.ts
+ *
+ * Copyright (C) 2021-2023 Posit Software, PBC
+ */
+
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 
 import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { isHttpUrl } from "./url.ts";
-
-export type GitHubContext = {
-  git: boolean;
-  repo: boolean;
-  originUrl?: string;
-  repoUrl?: string;
-  ghPages?: boolean;
-  siteUrl?: string;
-  browse?: boolean;
-  organization?: string;
-  repository?: string;
-};
+import { GitHubContext } from "./github-types.ts";
 
 export async function gitHubContext(dir: string) {
   // establish dir

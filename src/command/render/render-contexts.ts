@@ -1,7 +1,7 @@
 /*
- * render-info.ts
+ * render-contexts.ts
  *
- * Copyright (C) 2022 Posit Software, PBC
+ * Copyright (C) 2021-2023 Posit Software, PBC
  */
 
 import { Format, FormatExecute, Metadata } from "../../config/types.ts";
@@ -10,6 +10,7 @@ import {
   RenderFile,
   RenderFlags,
   RenderOptions,
+  RenderServices,
 } from "./types.ts";
 
 import { dirname, join, relative } from "path/mod.ts";
@@ -60,7 +61,10 @@ import {
 import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
-import { projectMetadataForInputFile } from "../../project/project-context.ts";
+import {
+  projectContext,
+  projectMetadataForInputFile,
+} from "../../project/project-context.ts";
 import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
@@ -90,7 +94,7 @@ import {
   parseFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
 import { ExtensionContext } from "../../extension/types.ts";
-import { renderServices } from "./render-services.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
 export async function resolveFormatsFromMetadata(
   metadata: Metadata,
@@ -208,6 +212,7 @@ export async function renderContexts(
   file: RenderFile,
   options: RenderOptions,
   forExecute: boolean,
+  notebookContext: NotebookContext,
   project?: ProjectContext,
   cloneOptions: boolean = true,
 ): Promise<Record<string, RenderContext>> {
@@ -229,7 +234,14 @@ export async function renderContexts(
   const engineClaimReason = fileEngineClaimReason(file.path);
 
   // resolve render target
-  const formats = await resolveFormats(file, target, engine, options, project);
+  const formats = await resolveFormats(
+    file,
+    target,
+    engine,
+    options,
+    notebookContext,
+    project,
+  );
 
   // remove --to (it's been resolved into contexts)
   options = removePandocTo(options);
@@ -314,39 +326,36 @@ export async function renderContexts(
 
 export async function renderFormats(
   file: string,
+  services: RenderServices,
   to = "all",
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  const services = renderServices();
-  try {
-    const contexts = await renderContexts(
-      { path: file },
-      { services, flags: { to } },
-      false,
-      project,
-    );
-    const formats: Record<string, Format> = {};
-    Object.keys(contexts).forEach((formatName) => {
-      // get the format
-      const context = contexts[formatName];
-      const format = context.format;
-      // remove other formats
-      delete format.metadata.format;
-      // remove project level metadata
-      deleteProjectMetadata(format.metadata);
-      // resolve output-file
-      if (!format.pandoc[kOutputFile]) {
-        const [_dir, stem] = dirAndStem(file);
-        format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
-      }
-      // provide engine
-      format.execute[kEngine] = context.engine.name;
-      formats[formatName] = format;
-    });
-    return formats;
-  } finally {
-    services.cleanup();
-  }
+  const contexts = await renderContexts(
+    { path: file },
+    { services, flags: { to } },
+    false,
+    services.notebook,
+    project,
+  );
+  const formats: Record<string, Format> = {};
+  Object.keys(contexts).forEach((formatName) => {
+    // get the format
+    const context = contexts[formatName];
+    const format = context.format;
+    // remove other formats
+    delete format.metadata.format;
+    // remove project level metadata
+    deleteProjectMetadata(format.metadata);
+    // resolve output-file
+    if (!format.pandoc[kOutputFile]) {
+      const [_dir, stem] = dirAndStem(file);
+      format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
+    }
+    // provide engine
+    format.execute[kEngine] = context.engine.name;
+    formats[formatName] = format;
+  });
+  return formats;
 }
 
 function mergeQuartoConfigs(
@@ -379,7 +388,7 @@ function mergeQuartoConfigs(
   // formats need to always be objects
   const fixupFormat = (config: Record<string, unknown>) => {
     const format = config[kMetadataFormat];
-    if (typeof (format) === "string") {
+    if (typeof format === "string") {
       config.format = { [format]: {} };
     } else if (format instanceof Object) {
       Object.keys(format).forEach((key) => {
@@ -404,6 +413,7 @@ async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   options: RenderOptions,
+  notebookContext: NotebookContext,
   project?: ProjectContext,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
@@ -420,8 +430,8 @@ async function resolveFormats(
   // project level metadata
   const projMetadata = await projectMetadataForInputFile(
     target.input,
-    options.flags,
-    project,
+    project ??
+      (await projectContext(target.input, notebookContext, options.flags))!,
   );
 
   // determine formats (treat dir format keys as part of 'input' format keys)

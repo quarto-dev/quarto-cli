@@ -39,13 +39,14 @@ import { allTools } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "path/mod.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
-  const services = renderServices();
+  const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
     if (target === "versions" || target === "all") {

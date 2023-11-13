@@ -37,7 +37,10 @@ import {
   render,
   renderToken,
 } from "../render/render-shared.ts";
-import { renderServices } from "../render/render-services.ts";
+import {
+  renderServices,
+  withRenderServices,
+} from "../render/render-services.ts";
 import {
   RenderFlags,
   RenderResult,
@@ -98,6 +101,7 @@ import {
   printBrowsePreviewMessage,
   rswURL,
 } from "../../core/previewurl.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -143,8 +147,9 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
+  const nbContext = notebookContext();
   // see if this is project file
-  const project = await projectContext(file);
+  const project = await projectContext(file, nbContext);
 
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
@@ -155,7 +160,7 @@ export async function preview(
   let isRendering = false;
   const render = async (to?: string) => {
     const renderFlags = { ...flags, to: to || flags.to };
-    const services = renderServices();
+    const services = renderServices(nbContext);
     try {
       HttpDevServerRenderMonitor.onRenderStart();
       isRendering = true;
@@ -362,7 +367,12 @@ export async function previewFormat(
   if (format) {
     return format;
   }
-  formats = formats || await renderFormats(file, "all", project);
+  formats = formats ||
+    await withRenderServices(
+      notebookContext(),
+      (services: RenderServices) =>
+        renderFormats(file, services, "all", project),
+    );
   format = Object.keys(formats)[0] || "html";
   return format;
 }

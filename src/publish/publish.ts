@@ -46,6 +46,7 @@ import { RenderResultFile } from "../command/render/types.ts";
 import { isHtmlContent, isPdfContent } from "../core/mime.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { normalizePath } from "../core/path.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
 
 export const kSiteContent = "site";
 export const kDocumentContent = "document";
@@ -65,7 +66,7 @@ export async function publishSite(
 
     if (options.render) {
       renderProgress("Rendering for publish:\n");
-      const services = renderServices();
+      const services = renderServices(notebookContext());
       try {
         const result = await render(project.dir, {
           services,
@@ -161,7 +162,7 @@ export async function publishDocument(
     const files: string[] = [];
     if (options.render) {
       renderProgress("Rendering for publish:\n");
-      const services = renderServices();
+      const services = renderServices(notebookContext());
       try {
         const result = await render(document, {
           services,

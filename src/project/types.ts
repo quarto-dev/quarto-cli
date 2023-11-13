@@ -7,13 +7,14 @@
 import { RenderServices } from "../command/render/types.ts";
 import { PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
-import { ProjectEnvironment } from "./project-environment.ts";
+import { ProjectEnvironment } from "./project-environment-types.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -49,9 +50,12 @@ export interface ProjectContext {
 
   renderFormats: (
     file: string,
+    services: RenderServices,
     to?: string,
     project?: ProjectContext,
   ) => Promise<Record<string, Format>>;
+
+  notebookContext: NotebookContext;
 
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
   environment: (project: ProjectContext) => Promise<ProjectEnvironment>;

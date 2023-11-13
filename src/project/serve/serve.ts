@@ -117,6 +117,7 @@ import {
   PreviewServer,
   runExternalPreviewServer,
 } from "../../preview/preview-server.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -129,11 +130,12 @@ export async function serveProject(
   noServe: boolean,
 ) {
   let project: ProjectContext | undefined;
-  if (typeof (target) === "string") {
+  const nbContext = notebookContext();
+  if (typeof target === "string") {
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, flags);
+    project = await projectContext(target, nbContext, flags);
     if (!project || !project?.config) {
       throw new Error(`${target} is not a project`);
     }
@@ -185,7 +187,7 @@ export async function serveProject(
   const pdfOutput = isPdfOutput(flags.to || "");
 
   // Configure render services
-  const services = renderServices();
+  const services = renderServices(nbContext);
 
   // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
@@ -541,7 +543,7 @@ async function internalPreviewServer(
               delete renderFlags?.clean;
             }
 
-            const services = renderServices();
+            const services = renderServices(notebookContext());
             try {
               result = await renderManager.submitRender(() =>
                 renderProject(
@@ -732,7 +734,7 @@ function previewControlChannelRequestHandler(
         (await previewRenderRequestIsCompatible(prevReq, flags.to, project))
       ) {
         if (isProjectInputFile(prevReq.path, project!)) {
-          const services = renderServices();
+          const services = renderServices(notebookContext());
           // if there is no specific format requested then 'all' needs
           // to become 'html' so we don't render all formats
           const to = flags.to === "all" ? (prevReq.format || "html") : flags.to;

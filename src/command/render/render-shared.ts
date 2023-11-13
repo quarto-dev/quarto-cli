@@ -32,6 +32,7 @@ import {
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
 import { normalizePath } from "../../core/path.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export async function render(
   path: string,
@@ -41,13 +42,15 @@ export async function render(
   setInitializer(initYamlIntelligenceResourcesFromFilesystem);
   await initState();
 
+  const nbContext = notebookContext();
+
   // determine target context/files
-  let context = await projectContext(path, options.flags);
+  let context = await projectContext(path, nbContext, options.flags);
 
   // if there is no project parent and an output-dir was passed, then force a project
   if (!context && options.flags?.outputDir) {
     // recompute context
-    context = await projectContextForDirectory(path, options.flags);
+    context = await projectContextForDirectory(path, nbContext, options.flags);
 
     // force clean as --output-dir implies fully overwrite the target
     options.forceClean = options.flags.clean !== false;
@@ -93,7 +96,7 @@ export async function render(
   validateDocumentRenderFlags(options.flags);
 
   // otherwise it's just a file render
-  const result = await renderFiles([{ path }], options);
+  const result = await renderFiles([{ path }], options, nbContext);
 
   // get partitioned markdown if we had result files
   const engine = fileExecutionEngine(path);

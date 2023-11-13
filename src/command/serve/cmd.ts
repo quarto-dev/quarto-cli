@@ -15,6 +15,9 @@ import { serve } from "./serve.ts";
 import { resolveHostAndPort } from "../../core/previewurl.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { previewFormat } from "../preview/preview.ts";
+import { withRenderServices } from "../render/render-services.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { RenderServices } from "../render/types.ts";
 
 export const serveCommand = new Command()
   .name("serve")
@@ -61,8 +64,13 @@ export const serveCommand = new Command()
 
     const { host, port } = await resolveHostAndPort(options);
 
-    const context = await projectContext(input);
-    const formats = await renderFormats(input, undefined, context);
+    const nbContext = notebookContext();
+    const context = await projectContext(input, nbContext);
+    const formats = await withRenderServices(
+      nbContext,
+      (services: RenderServices) =>
+        renderFormats(input, services, undefined, context),
+    );
     const format = await previewFormat(input, undefined, formats, context);
 
     const result = await serve({

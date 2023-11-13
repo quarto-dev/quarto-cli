@@ -4,10 +4,6 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { formatResourcePath } from "../../core/resources.ts";
-
-import { join } from "path/mod.ts";
-
 export const kJatsSubarticle = "jats-subarticle";
 export const kLintXml = "_lint-jats-xml-output";
 export const kSubArticles = "subarticles";
@@ -33,11 +29,6 @@ export function jatsTagset(to: string): JatsTagset {
 export function jatsDtd(tagset: JatsTagset) {
   return kDJatsDtds[tagset];
 }
-
-export const subarticleTemplatePath = formatResourcePath(
-  "jats",
-  join("pandoc", "subarticle", "template.xml"),
-);
 
 export type JatsTagset = "archiving" | "publishing" | "authoring";
 

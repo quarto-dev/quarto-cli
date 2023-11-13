@@ -112,6 +112,7 @@ import {
   projectIsWebsite,
   projectOutputDir,
 } from "../../project/project-shared.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -278,6 +279,7 @@ export async function renderExecute(
 export async function renderFiles(
   files: RenderFile[],
   options: RenderOptions,
+  notebookContext: NotebookContext,
   alwaysExecuteFiles?: string[],
   pandocRenderer?: PandocRenderer,
   project?: ProjectContext,
@@ -326,6 +328,7 @@ export async function renderFiles(
           tempContext,
           alwaysExecuteFiles,
           pandocQuiet,
+          notebookContext,
         );
       } finally {
         fileLifetime.cleanup();
@@ -382,6 +385,7 @@ export async function renderFile(
         services.temp,
         [],
         pandocQuiet,
+        services.notebook,
       );
     } finally {
       fileLifetime.cleanup();
@@ -412,6 +416,7 @@ async function renderFileInternal(
   tempContext: TempContext,
   alwaysExecuteFiles: string[] | undefined,
   pandocQuiet: boolean,
+  notebookContext: NotebookContext,
 ) {
   const outputs: Array<RenderedFormat> = [];
   let contexts: Record<string, RenderContext> | undefined;
@@ -420,6 +425,7 @@ async function renderFileInternal(
       file,
       options,
       true,
+      notebookContext,
       project,
       false,
     );
@@ -527,7 +533,7 @@ async function renderFileInternal(
       const resolveLang = () => {
         const lang = context.format.metadata[kLang] ||
           options.flags?.pandocMetadata?.[kLang];
-        if (typeof (lang) === "string") {
+        if (typeof lang === "string") {
           return lang;
         } else {
           return undefined;
