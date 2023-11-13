@@ -31,6 +31,34 @@ local function isLayoutContainer(el)
   return false
 end
 
+function escapeLeafNodeContents(blocks) 
+
+  local baseHeadingLevel = 10000
+  if contents ~= nil then
+    _quarto.ast.walk(blocks, {
+      Header = function(el)
+        baseHeadingLevel = math.min(el.level, baseHeadingLevel)
+      end
+    })
+  end
+  local headingOffset = math.max(math.min(4 - baseHeadingLevel, 10000), 0)
+
+  return _quarto.ast.walk(blocks, {
+      Header = function(header)
+        local level = math.min(header.level + headingOffset, 6)
+        local headerClz = "h" .. level;
+        return pandoc.Div(header.content, pandoc.Attr("", {headerClz}))    
+      end,    
+      Div = function(div)
+        -- pop any contents out of cards
+        if card.isCard(div) then
+          return card.cardBodyContents(div)
+        end
+      end
+  })
+end
+
+
 
 local function organizer(contents, ignoreClasses) 
 
@@ -96,5 +124,6 @@ return {
   layoutContainer = {
     organizer = organizer
   },
+  escapeLeafNodeContents = escapeLeafNodeContents,
   utils = utils
 }

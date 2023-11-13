@@ -303,7 +303,7 @@ function render_dashboard()
             -- flip the orientation
             if dashboard.sidebar.isSidebar(header) then
               -- resolve headers inside the sidebar
-              local resolved = dashboard.utils.escapeHeaders(pandoc.Blocks(contents))
+              local resolved = dashboard.escapeLeafNodeContents(pandoc.Blocks(contents))
               el.content = pandoc.List({})
               if resolved ~= nil then
                 el.content:extend(resolved)
@@ -311,7 +311,7 @@ function render_dashboard()
               return el, false
 
             elseif dashboard.toolbar.isToolbar(header) then
-              local resolved = dashboard.utils.escapeHeaders(pandoc.Blocks(contents))
+              local resolved = dashboard.escapeLeafNodeContents(pandoc.Blocks(contents))
               el.content = pandoc.List({})
               if resolved ~= nil then
                 el.content:extend(resolved)
