@@ -16,15 +16,25 @@ local kToolbarHeightOutAttr = "data-height"
 local kToolbarHeightAttr = "height"
 local kToolbarHeightAttrs = pandoc.List({kSidebarHeightAttr, kSidebarHeightOutAttr})
 
+local kToolbarPositionAttr = "position"
+local kToolbarPositionTop = "top"
+local kToolbarPositionBottom = "bottom"
+
 local function isToolbar(el) 
   return el.classes ~= nil and el.classes:includes(kToolbarClass)
 end 
 
 local function readOptions(el)  
   local options = {}
-  for _i, v in ipairs(kToolbarHeightAttrs) do
-    if el.attributes[v] ~= nil then
-      options[kToolbarHeightAttr] = el.attributes[v]
+  if el ~= nil then
+    for _i, v in ipairs(kToolbarHeightAttrs) do
+      if el.attributes[v] ~= nil then
+        options[kToolbarHeightAttr] = el.attributes[v]
+      end
+    end
+
+    if el.attributes[kToolbarPositionAttr] ~= nil then
+      options[kToolbarPositionAttr] = el.attributes[kToolbarPositionAttr]
     end
   end
   return options
@@ -34,6 +44,10 @@ local function toolbarAttr(options)
   local toolbarAttrs = {}
   if options[kToolbarHeightAttr] ~= nil then 
     toolbarAttrs[kToolbarHeightAttr] = options[kToolbarHeightAttr]
+  end
+  
+  if options[kToolbarPositionAttr] ~= nil then
+    toolbarAttrs[kToolbarPositionAttr] = options[kToolbarPositionAttr]
   end
 
   toolbarAttrs['layout'] = "flow"
@@ -98,12 +112,17 @@ local function hasChildToolbar(el)
   return hasToolbar
 end
 
+local function setPositionBottom(options)
+  options[kToolbarPositionAttr] = kToolbarPositionBottom
+end
+
 return {
   isToolbar = isToolbar,
   readOptions = readOptions,
   makeToolbar = makeToolbar,
   pageToolbarPlaceholder = pageToolbarPlaceholder,
-  hasChildToolbar = hasChildToolbar
+  hasChildToolbar = hasChildToolbar,
+  setPositionBottom = setPositionBottom
 }
 
 

@@ -13,9 +13,18 @@ const kToolbarPanelClass = "toolbar-panel";
 const kToolbarClass = "toolbar";
 const kToolbarContentClass = "toolbar-content";
 
+const kToolbarAttrHeight = "data-height";
+
+const kToolbarAttrPosition = "data-position";
+const kToolbarBottomClass = "toolbar-bottom";
+
+const kToolbarTopLevelClass = "toolbar-toplevel";
+const kDashboardToolbarClass = "dashboard-toolbar";
+
 export function processToolbars(doc: Document) {
   // use a counter to provision ids
   const toolbarNodes = doc.querySelectorAll(`.${kToolbarPanelClass}`);
+
   for (const toolbarNode of toolbarNodes) {
     const toolbarInputEl = toolbarNode as Element;
 
@@ -30,9 +39,20 @@ export function processToolbars(doc: Document) {
 
     // See if there is a width
     if (toolbarEl) {
+      // Read the position and apply class if needed
       processAndRemoveAttr(
         toolbarEl,
-        "data-height",
+        kToolbarAttrPosition,
+        (el: Element, value: string) => {
+          if (value === "bottom") {
+            el.classList.add(kToolbarBottomClass);
+          }
+        },
+      );
+
+      processAndRemoveAttr(
+        toolbarEl,
+        kToolbarAttrHeight,
         (_el: Element, value: string) => {
           const size = asCssSize(value);
 
@@ -67,8 +87,8 @@ export function processToolbars(doc: Document) {
       ".page-layout-custom >  .dashboard-toolbar-container",
     );
     if (topLevelToolbar !== null) {
-      topLevelToolbar.classList.add("toolbar-toplevel");
-      doc.body.classList.add("dashboard-toolbar");
+      topLevelToolbar.classList.add(kToolbarTopLevelClass);
+      doc.body.classList.add(kDashboardToolbarClass);
     }
   }
 }

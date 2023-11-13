@@ -501,16 +501,25 @@ function render_dashboard()
 
           local toolbar = nil
           local toolbarContent = pandoc.List({})
-          for _i, v in ipairs(el.content) do   
+          local toolbarBottom = false
+          for i, v in ipairs(el.content) do   
             if dashboard.toolbar.isToolbar(v) then         
               toolbar = v
             else
               toolbarContent:insert(v)
+              if i == 1 then
+                -- if we see content before the toolbar
+                -- then it should be placed at the bottom
+                toolbarBottom = true
+              end
             end
           end
 
           if toolbar then
             local options = dashboard.toolbar.readOptions(sidebar)
+            if toolbarBottom then
+              dashboard.toolbar.setPositionBottom(options)
+            end
             return dashboard.toolbar.makeToolbar(toolbar.content, toolbarContent, options)
           end    
 

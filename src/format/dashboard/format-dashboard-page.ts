@@ -11,6 +11,8 @@ import { kDashboardGridSkip, makeEl } from "./format-dashboard-shared.ts";
 const kPageClass = "dashboard-page";
 const kAttrTitle = "data-title";
 
+const kDashboardPagesClass = "quarto-dashboard-pages";
+
 interface NavItem {
   id: string;
   text: string;
@@ -23,6 +25,12 @@ export function processPages(doc: Document) {
   if (pageNodes.length === 0) {
     // No pages to process, audi 5000
     return;
+  }
+
+  // Decorate the container
+  const contentEl = doc.querySelector(".quarto-dashboard-content");
+  if (contentEl !== null) {
+    contentEl.classList.add(kDashboardPagesClass);
   }
 
   // Find the navbar, which will be using to make navigation

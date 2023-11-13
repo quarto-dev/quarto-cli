@@ -237,12 +237,6 @@ $valuebox-colors: (
     display: none;
   }
 
-  .dashboard-page:not(.dashboard-sidebar-container):not(
-      .dashboard-toolbar-container
-    ) {
-    padding: 0.7em;
-  }
-
   // Navbar / Navigation
   #quarto-header #quarto-dashboard-header {
     border-top: solid 1px theme-dim($navbar-bg, 10%);
@@ -429,6 +423,10 @@ $valuebox-colors: (
 
   &.dashboard-toolbar > .page-layout-custom,
   &.dashboard-sidebar > .page-layout-custom {
+    padding: 0;
+  }
+
+  .quarto-dashboard-content.quarto-dashboard-pages {
     padding: 0;
   }
 
@@ -682,17 +680,64 @@ $valuebox-colors: (
     }
   }
 
-  .page-layout-custom
-    > .dashboard-toolbar-container.toolbar-toplevel
+  // Positions the toolbar at the bottom of the flexbox
+  .toolbar-bottom {
+    margin-top: 1em;
+    margin-bottom: 0 !important;
+    order: 2;
+  }
+
+  // If there is are pages, move the padding down inside the
+  // the nested tab contents (Global)
+  .quarto-dashboard-content
+    > .dashboard-toolbar-container
     > .toolbar-content
-    > .bslib-grid
-    > .bslib-grid {
+    > .tab-content
+    > .tab-pane
+    > *:not(.bslib-sidebar-layout) {
     padding: 1em;
+  }
+
+  // If this is simple dashboard with a top level tool bar
+  .quarto-dashboard-content
+    > .dashboard-toolbar-container
+    > .toolbar-content
+    > *:not(.tab-content) {
+    padding: 1em;
+  }
+
+  // If there are pages, but no global toolbar
+  .quarto-dashboard-content
+    > .tab-content
+    > .dashboard-page
+    > .dashboard-toolbar-container
+    > .toolbar-content,
+  .quarto-dashboard-content
+    > .tab-content
+    > .dashboard-page
+    > *:not(.dashboard-toolbar-container) {
+    padding: 1em;
+  }
+
+  .toolbar-content {
+    padding: 0;
+  }
+
+  .quarto-dashboard-content.quarto-dashboard-pages
+    .tab-pane
+    > .dashboard-toolbar-container {
+    .toolbar {
+      border-radius: 0;
+      margin-bottom: 0;
+    }
   }
 
   .dashboard-toolbar-container.toolbar-toplevel {
     .toolbar {
       border-bottom: $card-border-width solid $card-border-color;
+    }
+    .toolbar-bottom {
+      margin-top: 0;
     }
   }
 
@@ -703,10 +748,6 @@ $valuebox-colors: (
       border-radius: $border-radius;
       border: $card-border-width solid $card-border-color;
     }
-  }
-
-  .toolbar-content {
-    padding: 0;
   }
 
   .dashboard-toolbar-container {
