@@ -562,6 +562,24 @@ $valuebox-colors: (
 
   /* Sidebar */
 
+  // .bslib-sidebar-layout > .sidebar
+  //
+
+  .bslib-grid > .bslib-sidebar-layout {
+    border: none;
+    gap: var(--bslib-spacer, 1rem);
+    > .main {
+      padding: 0;
+    }
+    > .sidebar {
+      border-radius: $card-border-radius;
+      border: $card-border-width solid $card-border-color;
+    }
+    > .collapse-toggle {
+      display: none;
+    }
+  }
+
   aside.sidebar {
     padding-left: 1em;
     padding-right: 1em;

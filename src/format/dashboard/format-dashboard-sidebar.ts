@@ -62,6 +62,9 @@ export function processSidebars(doc: Document) {
       );
     }
 
+    // Remove the sidebar class
+    sidebarContentsEl?.classList.remove(kSidebarClass);
+
     const sidebarAsideEl = makeEl("aside", {
       id: sidebarId,
       classes: [kSidebarClass, "html-fill-container", "html-fill-item"],
