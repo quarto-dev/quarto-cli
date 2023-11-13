@@ -432,21 +432,6 @@ $valuebox-colors: (
     padding: 0;
   }
 
-  aside.sidebar {
-    padding-left: 1em;
-    padding-right: 1em;
-  }
-
-  .bslib-sidebar-layout {
-    > div.main {
-      padding: 0.7em;
-    }
-
-    button.collapse-toggle {
-      margin-top: 0.3em;
-    }
-  }
-
   .callout {
     margin-bottom: 0;
     margin-top: 0;
@@ -551,18 +536,6 @@ $valuebox-colors: (
     margin-bottom: 0;
   }
 
-  .bslib-sidebar-layout .collapse-toggle {
-    top: 0;
-  }
-
-  .bslib-sidebar-layout:not(.sidebar-collapsed) .collapse-toggle {
-    right: 2px;
-  }
-
-  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning) .collapse-toggle {
-    left: 2px;
-  }
-
   .bslib-card .bslib-navs-card-title {
     justify-content: stretch;
     align-items: end;
@@ -588,6 +561,34 @@ $valuebox-colors: (
   }
 
   /* Sidebar */
+
+  aside.sidebar {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  .bslib-sidebar-layout {
+    > div.main {
+      padding: 0.7em;
+    }
+
+    button.collapse-toggle {
+      margin-top: 0.3em;
+    }
+  }
+
+  .bslib-sidebar-layout .collapse-toggle {
+    top: 0;
+  }
+
+  .bslib-sidebar-layout:not(.sidebar-collapsed) .collapse-toggle {
+    right: 2px;
+  }
+
+  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning) .collapse-toggle {
+    left: 2px;
+  }
+
   .sidebar {
     .card-body {
       margin-bottom: 2em;
@@ -652,6 +653,7 @@ $valuebox-colors: (
       margin-bottom: 1em;
       border-top: none;
       border-radius: $border-radius;
+      border: $card-border-width solid $card-border-color;
     }
 
     .toolbar-content {
