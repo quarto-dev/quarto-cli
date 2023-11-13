@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { extensionArtifactCreator } from "./artifacts/extension.ts";
 import { projectArtifactCreator } from "./artifacts/project.ts";
@@ -12,61 +11,11 @@ import { kEditorInfos, scanForEditors } from "./editor.ts";
 import { isInteractiveTerminal } from "../../core/platform.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
-import { CreateDirective } from "./artifacts/artifact-shared.ts";
-
 import { Command } from "cliffy/command/mod.ts";
-import {
-  prompt,
-  Select,
-  SelectValueOptions,
-} from "cliffy/prompt/mod.ts";
+import { prompt, Select, SelectValueOptions } from "cliffy/prompt/mod.ts";
 import { readLines } from "io/mod.ts";
 import { info } from "log/mod.ts";
-
-export interface CreateContext {
-  cwd: string;
-  options: Record<string, unknown>;
-}
-
-export interface CreateResult {
-  // Path to the directory or document
-  path: string;
-
-  // Files to open
-  openfiles: string[];
-}
-
-export interface ArtifactCreator {
-  // The name that is displayed to users
-  displayName: string;
-
-  // The identifier for this artifact type
-  type: string;
-
-  // artifact creators are passed any leftover args from the create command
-  // and may use those arguments to populate the options
-  resolveOptions: (args: string[]) => Record<string, unknown>;
-
-  // this will always be called, giving the artifact creator
-  // a change to finalize / transform options
-  finalizeOptions: (options: CreateContext) => CreateDirective;
-
-  // As long as prompting is allowed, allow the artifact creator prompting to populate
-  // the options. This will be called until it return undefined, at which point
-  // the artifact will be created using the options
-  // deno-lint-ignore no-explicit-any
-  nextPrompt: (options: CreateContext) => any | undefined; // TODO: this any is a nightmare
-
-  // Creates the artifact using the specified options
-  // Returns the path to the created artifact
-  createArtifact: (
-    directive: CreateDirective,
-    quiet?: boolean,
-  ) => Promise<CreateResult>;
-
-  // Set this to false to exclude this artifact type from the create command
-  enabled?: boolean;
-}
+import { ArtifactCreator, CreateDirective, CreateResult } from "./cmd-types.ts";
 
 // The registered artifact creators
 const kArtifactCreators: ArtifactCreator[] = [
@@ -209,7 +158,6 @@ const resolveArtifact = async (type?: string, prompt?: boolean) => {
     artifact,
   };
 };
-
 
 // Wrapper that will provide keyboard selection hint (if necessary)
 async function promptSelect(

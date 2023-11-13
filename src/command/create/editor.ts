@@ -1,11 +1,10 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { CreateResult } from "./cmd.ts";
+import { CreateResult } from "./cmd-types.ts";
 
 import { which } from "../../core/path.ts";
 import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";

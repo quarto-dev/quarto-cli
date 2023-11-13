@@ -1,13 +1,14 @@
 /*
-* project.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { ArtifactCreator, CreateContext } from "../cmd.ts";
-
-import { CreateDirective } from "./artifact-shared.ts";
+import {
+  ArtifactCreator,
+  CreateContext,
+  CreateDirective,
+} from "../cmd-types.ts";
 
 import { capitalizeTitle } from "../../../core/text.ts";
 import { kMarkdownEngine } from "../../../execute/types.ts";
