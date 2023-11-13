@@ -578,6 +578,19 @@ $valuebox-colors: (
     > .collapse-toggle {
       display: none;
     }
+
+    @include media-breakpoint-down(md) {
+      grid-template-columns: 1fr;
+      grid-template-rows: max-content 1fr;
+      > .main {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      .sidebar {
+        grid-column: 1;
+        grid-row: 1;
+      }
+    }
   }
 
   aside.sidebar {
