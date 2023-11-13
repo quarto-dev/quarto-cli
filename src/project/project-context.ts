@@ -93,9 +93,11 @@ import { renderFormats } from "../command/render/render-contexts.ts";
 import { debug } from "log/mod.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
+import { NotebookContext } from "../render/notebook/notebook-types.ts";
 
 export async function projectContext(
   path: string,
+  notebookContext: NotebookContext,
   flags?: RenderFlags,
   force = false,
 ): Promise<ProjectContext | undefined> {
@@ -123,7 +125,7 @@ export async function projectContext(
     if (cachedEnv) {
       return Promise.resolve(cachedEnv);
     } else {
-      cachedEnv = await computeProjectEnvironment(project);
+      cachedEnv = await computeProjectEnvironment(notebookContext, project);
       return cachedEnv;
     }
   };
@@ -276,6 +278,7 @@ export async function projectContext(
           // that causes a deno bundler bug;
           renderFormats,
           environment,
+          notebookContext,
         };
       } else {
         const { files, engines } = projectInputFiles(dir);
@@ -292,6 +295,7 @@ export async function projectContext(
           },
           renderFormats,
           environment,
+          notebookContext,
         };
       }
     } else {
@@ -315,6 +319,7 @@ export async function projectContext(
             },
             renderFormats,
             environment,
+            notebookContext,
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = projectInputFiles(originalDir);
@@ -534,22 +539,20 @@ async function resolveLanguageTranslations(
 // a context (i.e. implicitly treat directory as a project)
 export function projectContextForDirectory(
   path: string,
+  notebookContext: NotebookContext,
   flags?: RenderFlags,
 ): Promise<ProjectContext> {
-  return projectContext(path, flags, true) as Promise<ProjectContext>;
+  return projectContext(path, notebookContext, flags, true) as Promise<
+    ProjectContext
+  >;
 }
 
 export async function projectMetadataForInputFile(
   input: string,
-  flags?: RenderFlags,
-  project?: ProjectContext,
+  project: ProjectContext,
 ): Promise<Metadata> {
-  if (project) {
-    // don't mutate caller
-    project = ld.cloneDeep(project) as ProjectContext;
-  } else {
-    project = await projectContext(input, flags);
-  }
+  // don't mutate caller
+  project = ld.cloneDeep(project) as ProjectContext;
 
   if (project?.dir && project?.config) {
     // If there is directory and configuration information

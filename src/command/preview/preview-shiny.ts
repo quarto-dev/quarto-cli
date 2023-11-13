@@ -38,6 +38,7 @@ import { normalizePath } from "../../core/path.ts";
 import { previewMonitorResources } from "../../core/quarto.ts";
 import { renderServices } from "../render/render-services.ts";
 import { RenderFlags } from "../render/types.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export interface PreviewShinyOptions extends RunOptions {
   pandocArgs: string[];
@@ -53,7 +54,7 @@ export async function previewShiny(options: PreviewShinyOptions) {
   const render = async (to?: string) => {
     to = to || options.format;
     const renderFlags: RenderFlags = { to, execute: true };
-    const services = renderServices();
+    const services = renderServices(notebookContext());
     try {
       const result = await renderForPreview(
         options.input,

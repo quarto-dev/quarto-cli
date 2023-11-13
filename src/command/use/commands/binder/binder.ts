@@ -31,6 +31,7 @@ import { ProjectContext } from "../../../../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
+import { notebookContext } from "../../../../render/notebook/notebook-context.ts";
 
 export const useBinderCommand = new Command()
   .name("binder")
@@ -51,7 +52,8 @@ export const useBinderCommand = new Command()
     try {
       // compute the project context
       logProgress("Determining configuration");
-      const context = await projectContext(Deno.cwd());
+      const nbContext = notebookContext();
+      const context = await projectContext(Deno.cwd(), nbContext);
       if (!context) {
         throw new Error(
           "You must be in a Quarto project in order to configure Binder support.",

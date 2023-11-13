@@ -268,6 +268,7 @@ export async function renderProject(
   const fileResults = await renderFiles(
     filesToRender,
     options,
+    context.notebookContext,
     alwaysExecuteFiles,
     projType?.pandocRenderer
       ? projType.pandocRenderer(options, context)

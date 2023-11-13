@@ -18,10 +18,13 @@ import { ProjectEnvironment } from "./project-environment-types.ts";
 import { gitHubContext } from "../core/github.ts";
 import { SemVer } from "semver/mod.ts";
 import { QuartoEditor, QuartoTool } from "./project-environment-types.ts";
+import { withRenderServices } from "../command/render/render-services.ts";
+import { NotebookContext } from "../render/notebook/notebook-types.ts";
 
 const kDefaultContainerTitle = "Default Container";
 
 export const computeProjectEnvironment = async (
+  notebookContext: NotebookContext,
   context: ProjectContext,
 ) => {
   // Get the quarto version
@@ -57,7 +60,7 @@ export const computeProjectEnvironment = async (
   }
 
   // Determine what tools (if any) we should also install
-  const tools = await projectTools(context);
+  const tools = await projectTools(notebookContext, context);
   containerCtx.tools.push(...tools);
 
   // Determine environments
@@ -109,7 +112,10 @@ const environmentCommands: Record<string, EnvironmentOptions> = {
 // Regex used to determine whether file contents will require the installation of Chromium
 const kChromiumHint = /````*{mermaid}|{dot}/gm;
 
-const projectTools = async (context: ProjectContext) => {
+const projectTools = async (
+  notebookContext: NotebookContext,
+  context: ProjectContext,
+) => {
   // Determine what tools (if any) we should also install
   let tinytex = false;
   let chromium = false;
@@ -119,7 +125,10 @@ const projectTools = async (context: ProjectContext) => {
       // If we haven't yet found the need for tinytex,
       // go ahead and look for PDF format. Once a single
       // file needs, it we can stop looking
-      const formats = await context.renderFormats(input, "all", context);
+      const formats = await withRenderServices(
+        notebookContext,
+        (services) => context.renderFormats(input, services, "all", context),
+      );
 
       const hasPdf = Object.values(formats).some((format) => {
         return isPdfOutput(format.pandoc);

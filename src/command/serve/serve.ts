@@ -19,12 +19,13 @@ import {
 } from "../../core/previewurl.ts";
 import { isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export async function renderForServe(
   file: string,
   format?: string,
 ) {
-  const services = renderServices();
+  const services = renderServices(notebookContext());
   try {
     const result = await render(file, {
       services,

@@ -51,6 +51,7 @@ import { isServerShiny, isServerShinyPython } from "../../core/render.ts";
 import { previewShiny } from "./preview-shiny.ts";
 import { serve } from "../serve/serve.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -273,8 +274,21 @@ export const previewCommand = new Command()
     let projectTarget: string | ProjectContext = file;
     if (Deno.statSync(file).isFile) {
       // get project and preview format
-      const project = await projectContext(dirname(file));
-      const formats = await renderFormats(file, undefined, project);
+      const nbContext = notebookContext();
+      const project = await projectContext(dirname(file), nbContext);
+      const formats = await (async () => {
+        const services = renderServices(nbContext);
+        try {
+          return await renderFormats(
+            file!,
+            services,
+            undefined,
+            project,
+          );
+        } finally {
+          services.cleanup();
+        }
+      })();
       const format = await previewFormat(file, flags.to, formats, project);
 
       // see if this is server: shiny document and if it is then forward to previewShiny
@@ -336,7 +350,7 @@ export const previewCommand = new Command()
             projectPreviewServe(project)
           ) {
             setPreviewFormat(format, flags, args);
-            const services = renderServices();
+            const services = renderServices(notebookContext());
             try {
               const renderResult = await renderProject(project, {
                 services,

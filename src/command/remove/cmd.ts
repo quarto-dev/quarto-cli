@@ -21,6 +21,7 @@ import {
   removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const removeCommand = new Command()
   .hidden()
@@ -120,8 +121,9 @@ export const removeCommand = new Command()
               info("No matching extension found.");
             }
           } else {
+            const nbContext = notebookContext();
             // Provide the with with a list
-            const project = await projectContext(targetDir);
+            const project = await projectContext(targetDir, nbContext);
             const extensions = await extensionContext.extensions(
               targetDir,
               project?.config,

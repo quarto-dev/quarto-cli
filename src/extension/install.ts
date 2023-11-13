@@ -22,6 +22,7 @@ import { info } from "log/mod.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { InternalError } from "../core/lib/error.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
 
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
@@ -140,7 +141,8 @@ async function determineInstallDir(
   } else {
     // We're not embeddeding, check if we're in a project
     // and offer to use that directory if we are
-    const project = await projectContext(dir);
+    const nbContext = notebookContext();
+    const project = await projectContext(dir, nbContext);
     if (project && project.dir !== dir) {
       const question = "Install extension into project?";
       if (allowPrompt) {
