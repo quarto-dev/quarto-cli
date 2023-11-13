@@ -682,7 +682,11 @@ $valuebox-colors: (
     }
   }
 
-  .toolbar-content {
+  .page-layout-custom
+    > .dashboard-toolbar-container.toolbar-toplevel
+    > .toolbar-content
+    > .bslib-grid
+    > .bslib-grid {
     padding: 1em;
   }
 
@@ -699,10 +703,10 @@ $valuebox-colors: (
       border-radius: $border-radius;
       border: $card-border-width solid $card-border-color;
     }
+  }
 
-    .toolbar-content {
-      padding: 0;
-    }
+  .toolbar-content {
+    padding: 0;
   }
 
   .dashboard-toolbar-container {
