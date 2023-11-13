@@ -547,28 +547,6 @@ export function projectContextForDirectory(
   >;
 }
 
-export async function projectMetadataForInputFile(
-  input: string,
-  project: ProjectContext,
-): Promise<Metadata> {
-  // don't mutate caller
-  project = ld.cloneDeep(project) as ProjectContext;
-
-  if (project?.dir && project?.config) {
-    // If there is directory and configuration information
-    // process paths
-    return toInputRelativePaths(
-      projectType(project?.config?.project?.[kProjectType]),
-      project.dir,
-      dirname(input),
-      project.config,
-    ) as Metadata;
-  } else {
-    // Just return the config or empty metadata
-    return project?.config || {};
-  }
-}
-
 export function projectYamlFiles(dir: string): string[] {
   const files: string[] = [];
 

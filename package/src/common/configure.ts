@@ -19,7 +19,7 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { suggestUserBinPaths } from "../../../src/core/env.ts";
+import { suggestUserBinPaths } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
 export async function configure(

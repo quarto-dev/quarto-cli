@@ -62,13 +62,10 @@ import { defaultWriterFormat } from "../../format/formats.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import {
-  projectContext,
-  projectMetadataForInputFile,
-} from "../../project/project-context.ts";
-import {
   deleteProjectMetadata,
   directoryMetadataForInputFile,
   projectTypeIsWebsite,
+  toInputRelativePaths,
 } from "../../project/project-shared.ts";
 import {
   kProjectLibDir,
@@ -413,7 +410,7 @@ async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   options: RenderOptions,
-  notebookContext: NotebookContext,
+  _notebookContext: NotebookContext,
   project?: ProjectContext,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
@@ -428,12 +425,12 @@ async function resolveFormats(
     : {};
 
   // project level metadata
-  const projMetadata = await projectMetadataForInputFile(
-    target.input,
-    project ??
-      (await projectContext(target.input, notebookContext, options.flags))!,
-  );
-
+  const projMetadata = project === undefined
+    ? ({} as Metadata)
+    : await projectMetadataForInputFile(
+      target.input,
+      project,
+    );
   // determine formats (treat dir format keys as part of 'input' format keys)
   let formats: string[] = [];
   const projFormatKeys = formatKeys(projMetadata);
@@ -716,4 +713,26 @@ const readExtensionFormat = async (
 
 function hasIpynbFilters(execute: FormatExecute) {
   return execute[kIpynbFilters] && execute[kIpynbFilters]?.length;
+}
+
+export async function projectMetadataForInputFile(
+  input: string,
+  project: ProjectContext,
+): Promise<Metadata> {
+  // don't mutate caller
+  project = ld.cloneDeep(project) as ProjectContext;
+
+  if (project.dir && project.config) {
+    // If there is directory and configuration information
+    // process paths
+    return toInputRelativePaths(
+      projectType(project.config?.project?.[kProjectType]),
+      project.dir,
+      dirname(input),
+      project.config,
+    ) as Metadata;
+  } else {
+    // Just return the config or empty metadata
+    return project.config || {};
+  }
 }

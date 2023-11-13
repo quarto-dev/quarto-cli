@@ -29,7 +29,7 @@ import {
 import { getLatestRelease } from "../github.ts";
 import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
-import { suggestUserBinPaths } from "../../core/env.ts";
+import { suggestUserBinPaths } from "../../core/path.ts";
 
 import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { relative } from "path/mod.ts";
