@@ -38,9 +38,21 @@ jobs:
       - name: Get previous version
         id: read-version
         run: |
+          source ./configuration
           read_version=$(cat version.txt)
           version=$(echo $read_version | grep -o '[[:digit:]]*\.[[:digit:]]*' | head -1)
-          build_number=$(($(echo $read_version | grep -o '[[:digit:]]*' | tail -1)+1))
+          if [ "$version" == "$QUARTO_VERSION" ]; then
+            ## This should be the case only when we do a new patch release or for next pre-release to build.
+            build_number=$(($(echo $read_version | grep -o '[[:digit:]]*' | tail -1)+1))
+          else
+            ## This should be the case only when we do a new major/minor release, for next pre-release to build.
+            version=$QUARTO_VERSION
+            build_number=0
+            news="news/changelog-${version}.md"
+            if [ ! -f "$news" ]; then
+              echo -e "All changes included in ${version}:\n\n" > $news
+            fi
+          fi
           version_full=$version.$build_number
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "version_full=$version_full">> $GITHUB_OUTPUT
