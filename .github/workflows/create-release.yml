@@ -15,6 +15,10 @@ on:
         type: boolean
         default: true
 
+concurrency:
+  # make publishing release concurrent (but others trigger not)
+  group: building-releases-${{ inputs.publish-release && 'prerelease' || github.run_id }}
+
 jobs:
   configure:
     runs-on: ubuntu-latest
@@ -542,7 +546,7 @@ jobs:
         test-zip-win,
         test-zip-mac,
         test-tarball-linux,
-        publish-release
+        publish-release,
       ]
     runs-on: ubuntu-latest
     steps:
