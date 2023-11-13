@@ -48,7 +48,7 @@ import {
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
-import { projectIgnoreGlobs } from "../project/project-shared.ts";
+import { projectIgnoreGlobs } from "../execute/engine.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import {
@@ -603,7 +603,7 @@ function validateExtension(extension: Extension) {
     if (contrib) {
       if (Array.isArray(contrib)) {
         contribCount = contribCount + contrib.length;
-      } else if (typeof (contrib) === "object") {
+      } else if (typeof contrib === "object") {
         contribCount = contribCount + Object.keys(contrib).length;
       }
     }
@@ -774,7 +774,7 @@ function resolveRevealJSPlugin(
   dir: string,
   plugin: string | RevealPluginBundle | RevealPlugin,
 ) {
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     // First attempt to load this plugin from an embedded extension
     const extensionId = toExtensionId(plugin);
     const extensions = findExtensions(
@@ -811,7 +811,7 @@ function resolveRevealPlugin(
   plugin: string | RevealPluginBundle | RevealPluginInline,
 ): string | RevealPluginBundle | RevealPlugin {
   // Filters are expected to be absolute
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     return join(extensionDir, plugin);
   } else if (isPluginRaw(plugin)) {
     return resolveRevealPluginInline(plugin, extensionDir);
@@ -843,7 +843,7 @@ function resolveRevealPluginInline(
       ? plugin.script
       : [plugin.script];
     resolvedPlugin.script = pluginArr.map((plug) => {
-      if (typeof (plug) === "string") {
+      if (typeof plug === "string") {
         return {
           path: plug,
         } as RevealPluginScript;
@@ -911,7 +911,7 @@ function resolveFilter(
   dir: string,
   filter: QuartoFilter,
 ) {
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(
@@ -940,7 +940,7 @@ function resolveFilterPath(
   filter: QuartoFilter,
 ): QuartoFilter {
   // Filters are expected to be absolute
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     if (isAbsolute(filter)) {
       return filter;
     } else {

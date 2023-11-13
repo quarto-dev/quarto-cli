@@ -60,6 +60,7 @@ import {
   engineIgnoreDirs,
   executionEngineIntermediateFiles,
   fileExecutionEngine,
+  projectIgnoreGlobs,
 } from "../execute/engine.ts";
 import { kMarkdownEngine } from "../execute/types.ts";
 
@@ -69,9 +70,7 @@ import {
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
-  projectIgnoreGlobs,
   projectVarsFile,
-  toInputRelativePaths,
 } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";

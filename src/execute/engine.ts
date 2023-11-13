@@ -28,6 +28,7 @@ import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
+import { gitignoreEntries } from "../project/project-gitignore.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -237,4 +238,10 @@ export function engineIgnoreDirs() {
 
 export function engineIgnoreGlobs() {
   return engineIgnoreDirs().map((ignore) => `**/${ignore}/**`);
+}
+
+export function projectIgnoreGlobs(dir: string) {
+  return engineIgnoreGlobs().concat(
+    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
+  );
 }
