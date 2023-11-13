@@ -590,6 +590,17 @@ $valuebox-colors: (
     left: 2px;
   }
 
+  .sidebar > section > .h3:first-of-type {
+    margin-top: 0em;
+  }
+
+  .sidebar .h3,
+  .sidebar .h4,
+  .sidebar .h5,
+  .sidebar .h6 {
+    margin-top: 0.5em;
+  }
+
   .sidebar {
     .card-body {
       margin-bottom: 2em;
