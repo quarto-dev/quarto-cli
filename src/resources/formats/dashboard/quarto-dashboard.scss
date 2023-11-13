@@ -561,10 +561,6 @@ $valuebox-colors: (
   }
 
   /* Sidebar */
-
-  // .bslib-sidebar-layout > .sidebar
-  //
-
   .bslib-grid > .bslib-sidebar-layout {
     border: none;
     gap: var(--bslib-spacer, 1rem);
@@ -688,6 +684,12 @@ $valuebox-colors: (
 
   .toolbar-content {
     padding: 1em;
+  }
+
+  .dashboard-toolbar-container.toolbar-toplevel {
+    .toolbar {
+      border-bottom: $card-border-width solid $card-border-color;
+    }
   }
 
   .dashboard-toolbar-container:not(.toolbar-toplevel) {
