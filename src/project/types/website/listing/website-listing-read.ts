@@ -107,7 +107,7 @@ import {
   projectOutputDir,
 } from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { globToRegExp } from "../../../../core/lib/glob.ts";
+import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
@@ -203,7 +203,7 @@ export async function readListings(
   const categories = firstListingValue(kFieldCategories, false);
 
   const parseCategoryStyle = (categories: unknown) => {
-    if (typeof (categories) === "string") {
+    if (typeof categories === "string") {
       switch (categories) {
         case "unnumbered":
           return "category-unnumbered";
@@ -226,7 +226,7 @@ export async function readListings(
 
   const feed = firstListingValue(kFeed, undefined);
   if (feed !== undefined) {
-    if (typeof (feed) === "object") {
+    if (typeof feed === "object") {
       // If is an object, forward it along
       sharedOptions[kFeed] = feed as ListingFeedOptions;
     } else if (feed) {
@@ -317,7 +317,7 @@ export function completeListingItems(
         : [outputFile.format.metadata[kListing]];
 
       listings.forEach((listing) => {
-        if (typeof (listing) === "object") {
+        if (typeof listing === "object") {
           debug(`[listing] Processing listing`);
           const listingMetadata = listing as Metadata;
           // See if there is a default image
@@ -677,7 +677,7 @@ async function readContents(
   debug(`[listing] Reading listing '${listing.id}' from ${source}`);
   debug(`[listing] Contents: ${
     listing.contents.map((lst) => {
-      return typeof (lst) === "string" ? lst : "<yaml>";
+      return typeof lst === "string" ? lst : "<yaml>";
     }).join(",")
   }`);
 
@@ -747,11 +747,11 @@ async function readContents(
   };
 
   const contentGlobs = listing.contents.filter((content) => {
-    return typeof (content) === "string";
+    return typeof content === "string";
   }) as string[];
 
   const contentMetadatas = listing.contents.filter((content) => {
-    return typeof (content) !== "string";
+    return typeof content !== "string";
   }) as Metadata[];
 
   if (contentGlobs.length > 0) {
@@ -777,7 +777,7 @@ async function readContents(
         if (Array.isArray(yaml)) {
           const items = yaml as Array<unknown>;
           for (const yamlItem of items) {
-            if (typeof (yamlItem) === "object") {
+            if (typeof yamlItem === "object") {
               const { item, source } = await listItemFromMeta(
                 yamlItem as Metadata,
                 project,
@@ -795,7 +795,7 @@ async function readContents(
               );
             }
           }
-        } else if (typeof (yaml) === "object") {
+        } else if (typeof yaml === "object") {
           const { item, source } = await listItemFromMeta(
             yaml as Metadata,
             project,
@@ -857,7 +857,7 @@ async function readContents(
       listingValue: unknown,
     ) => {
       if (
-        typeof (itemValue) === "string" && typeof (listingValue) === "string"
+        typeof itemValue === "string" && typeof listingValue === "string"
       ) {
         const regex = globToRegExp(listingValue);
         return itemValue.match(regex);
@@ -1162,7 +1162,7 @@ function readDehydratedListings(
 ): ListingDehydrated[] {
   const listingConfig = format.metadata[kListing];
   const listings: ListingDehydrated[] = [];
-  if (typeof (listingConfig) == "string") {
+  if (typeof listingConfig == "string") {
     // Resolve this string
     const listing = listingForType(listingType(listingConfig));
     if (listing) {
@@ -1171,7 +1171,7 @@ function readDehydratedListings(
   } else if (Array.isArray(listingConfig)) {
     // Process an array of listings
     const listingConfigs = listingConfig.filter((listing) =>
-      typeof (listing) === "object"
+      typeof listing === "object"
     );
     let count = 0;
     listings.push(...listingConfigs.map((listing) => {
@@ -1184,7 +1184,7 @@ function readDehydratedListings(
         source,
       );
     }));
-  } else if (listingConfig && typeof (listingConfig) === "object") {
+  } else if (listingConfig && typeof listingConfig === "object") {
     // Process an individual listing
     listings.push(
       listingForMetadata(
@@ -1257,7 +1257,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
       return undefined;
     }
 
-    if (typeof (sortValue) === "string") {
+    if (typeof sortValue === "string") {
       const sortStr = sortValue as string;
       const parts = sortStr.split(" ");
       if (parts.length === 2) {
@@ -1274,7 +1274,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
     }
   };
 
-  if (typeof (rawValue) === "boolean") {
+  if (typeof rawValue === "boolean") {
     if (rawValue) {
       // Apply default sorting behavior
       return undefined;

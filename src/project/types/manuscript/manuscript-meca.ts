@@ -14,14 +14,9 @@ import { contentType } from "../../../core/mime.ts";
 import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
-import {
-  dirname,
-  globToRegExp,
-  isAbsolute,
-  join,
-  relative,
-  SEP,
-} from "path/mod.ts";
+import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+
+import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
 import { copySync, ensureDirSync, moveSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
@@ -70,7 +65,7 @@ export const shouldMakeMecaBundle = (
 
     // See if we're producing JATS, then enable it
     return formats.find((format) => {
-      if (typeof (format) === "string") {
+      if (typeof format === "string") {
         return isJatsOutput(format);
       } else {
         return isJatsOutput(format.pandoc);

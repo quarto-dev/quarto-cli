@@ -4,14 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import {
-  dirname,
-  globToRegExp,
-  isAbsolute,
-  join,
-  relative,
-  SEP,
-} from "path/mod.ts";
+import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
+import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
 
