@@ -1,7 +1,7 @@
 /*
- * devcontainer.ts
+ * project-environment.ts
  *
- * Copyright (C) 2021-2022 Posit Software, PBC
+ * Copyright (C) 2021-2023 Posit Software, PBC
  */
 
 import { extname } from "path/mod.ts";
@@ -14,24 +14,10 @@ import {
 import { isPdfOutput } from "../config/format.ts";
 import { ProjectContext } from "../project/types.ts";
 import { kLocalDevelopment, quartoConfig } from "../core/quarto.ts";
+import { ProjectEnvironment } from "./project-environment-types.ts";
+import { gitHubContext } from "../core/github.ts";
 import { SemVer } from "semver/mod.ts";
-import { GitHubContext, gitHubContext } from "../core/github.ts";
-
-export interface ProjectEnvironment {
-  title: string;
-  tools: Array<QuartoTool>;
-  codeEnvironment: QuartoEditor;
-  engines: string[];
-  quarto: QuartoVersion;
-  environments: string[];
-  openFiles: string[];
-  envVars: Record<string, string>;
-  github: GitHubContext;
-}
-
-export type QuartoEditor = "vscode" | "rstudio" | "jupyterlab";
-export type QuartoVersion = "release" | "prerelease" | SemVer;
-export type QuartoTool = "tinytex" | "chromium";
+import { QuartoEditor, QuartoTool } from "./project-environment-types.ts";
 
 const kDefaultContainerTitle = "Default Container";
 

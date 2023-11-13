@@ -91,10 +91,8 @@ import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
 import { debug } from "log/mod.ts";
-import {
-  computeProjectEnvironment,
-  ProjectEnvironment,
-} from "./project-environment.ts";
+import { computeProjectEnvironment } from "./project-environment.ts";
+import { ProjectEnvironment } from "./project-environment-types.ts";
 
 export async function projectContext(
   path: string,
@@ -473,9 +471,9 @@ async function resolveProjectExtension(
       // system supported project type (rather than the extension name)
       const extProjType = () => {
         const projectMeta = projectExt.project;
-        if (projectMeta && typeof (projectMeta) === "object") {
+        if (projectMeta && typeof projectMeta === "object") {
           const extType = (projectMeta as Record<string, unknown>).type;
-          if (typeof (extType) === "string") {
+          if (typeof extType === "string") {
             return extType;
           } else {
             return "default";
@@ -723,9 +721,9 @@ function projectConfigResources(
           // project type specific ignore (e.g. site-navbar, site-sidebar)
         } else if (Array.isArray(value)) {
           findResources(value);
-        } else if (typeof (value) === "object") {
+        } else if (typeof value === "object") {
           findResources(value as Record<string, unknown>, index);
-        } else if (typeof (value) === "string") {
+        } else if (typeof value === "string") {
           const path = isAbsolute(value) ? value : join(dir, value);
           // Paths could be invalid paths (e.g. with colons or other weird characters)
           try {

@@ -13,7 +13,7 @@ import {
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
-import { ProjectEnvironment } from "./project-environment.ts";
+import { ProjectEnvironment } from "./project-environment-types.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,

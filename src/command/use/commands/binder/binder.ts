@@ -23,10 +23,7 @@ import {
 import { execProcess } from "../../../../core/process.ts";
 import { safeFileWriter } from "./binder-utils.ts";
 import { projectContext } from "../../../../project/project-context.ts";
-import {
-  computeProjectEnvironment,
-  ProjectEnvironment,
-} from "../../../../project/project-environment.ts";
+import { ProjectEnvironment } from "../../../../project/project-environment-types.ts";
 import { withSpinner } from "../../../../core/console.ts";
 import { logProgress } from "../../../../core/log.ts";
 import { ProjectContext } from "../../../../project/types.ts";
