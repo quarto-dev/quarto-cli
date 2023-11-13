@@ -13,6 +13,10 @@ const kSidebarPanelClass = "sidebar-panel";
 const kSidebarClass = "sidebar";
 const kSidebarContentClass = "sidebar-content";
 
+const kToolbarAttrPosition = "data-position";
+const kToolbarAttrPositionEnd = "end";
+const kBsLibSidebarRight = "sidebar-right";
+
 export function processSidebars(doc: Document) {
   // use a counter to provision ids
   const sidebarNodes = doc.querySelectorAll(`.${kSidebarPanelClass}`);
@@ -48,6 +52,17 @@ export function processSidebars(doc: Document) {
 
     // See if there is a width
     if (sidebarContentsEl) {
+      // Read the position and apply class if needed
+      processAndRemoveAttr(
+        sidebarContentsEl,
+        kToolbarAttrPosition,
+        (_el: Element, value: string) => {
+          if (value === kToolbarAttrPositionEnd) {
+            sidebarContainerEl.classList.add(kBsLibSidebarRight);
+          }
+        },
+      );
+
       processAndRemoveAttr(
         sidebarContentsEl,
         "data-width",

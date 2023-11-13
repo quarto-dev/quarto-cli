@@ -16,6 +16,7 @@ const kToolbarContentClass = "toolbar-content";
 const kToolbarAttrHeight = "data-height";
 
 const kToolbarAttrPosition = "data-position";
+const kToolbarAttrPositionEnd = "end";
 const kToolbarBottomClass = "toolbar-bottom";
 
 const kToolbarTopLevelClass = "toolbar-toplevel";
@@ -44,7 +45,7 @@ export function processToolbars(doc: Document) {
         toolbarEl,
         kToolbarAttrPosition,
         (el: Element, value: string) => {
-          if (value === "bottom") {
+          if (value === kToolbarAttrPositionEnd) {
             el.classList.add(kToolbarBottomClass);
           }
         },

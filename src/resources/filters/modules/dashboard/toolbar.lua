@@ -17,8 +17,8 @@ local kToolbarHeightAttr = "height"
 local kToolbarHeightAttrs = pandoc.List({kSidebarHeightAttr, kSidebarHeightOutAttr})
 
 local kToolbarPositionAttr = "position"
-local kToolbarPositionTop = "top"
-local kToolbarPositionBottom = "bottom"
+local kToolbarPositionStart= "start"
+local kToolbarPositionEnd = "end"
 
 local function isToolbar(el) 
   return el.classes ~= nil and el.classes:includes(kToolbarClass)
@@ -112,8 +112,8 @@ local function hasChildToolbar(el)
   return hasToolbar
 end
 
-local function setPositionBottom(options)
-  options[kToolbarPositionAttr] = kToolbarPositionBottom
+local function setPositionEnd(options)
+  options[kToolbarPositionAttr] = kToolbarPositionEnd
 end
 
 return {
@@ -122,7 +122,7 @@ return {
   makeToolbar = makeToolbar,
   pageToolbarPlaceholder = pageToolbarPlaceholder,
   hasChildToolbar = hasChildToolbar,
-  setPositionBottom = setPositionBottom
+  setPositionEnd = setPositionEnd
 }
 
 

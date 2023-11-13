@@ -17,6 +17,10 @@ local kSidebarWidthOutAttr = "data-width"
 local kSidebarWidthAttr = "width"
 local kSidebarWidthAttrs = pandoc.List({kSidebarWidthAttr, kSidebarWidthOutAttr})
 
+local kSidebarPositionAttr = "position"
+local kSidebarPositionStart = "start"
+local kSidebarPositionEnd = "end"
+
 local function isSidebar(el) 
   return el.classes ~= nil and el.classes:includes(kSidebarClass)
 end 
@@ -28,6 +32,10 @@ local function readOptions(el)
       options[kSidebarWidthAttr] = el.attributes[v]
     end
   end
+
+  if el.attributes[kSidebarPositionAttr] ~= nil then
+    options[kSidebarPositionAttr] = el.attributes[kSidebarPositionAttr];
+  end
   return options
 end
 
@@ -35,6 +43,10 @@ local function sidebarAttr(options)
   local sidebarAttrs = {}
   if options[kSidebarWidthAttr] ~= nil then 
     sidebarAttrs[kSidebarWidthOutAttr] = options[kSidebarWidthAttr]
+  end
+
+  if options[kSidebarPositionAttr] ~= nil then
+    sidebarAttrs[kSidebarPositionAttr] = options[kSidebarPositionAttr]
   end
   return sidebarAttrs
 end
@@ -101,13 +113,18 @@ function hasChildSidebar(el)
   return hasSidebar
 end
 
+function setPositionEnd(options)
+  options[kSidebarPositionAttr] = kSidebarPositionEnd
+end
+
 
 return {
   isSidebar = isSidebar,
   readOptions = readOptions,
   makeSidebar = makeSidebar,
   pageSidebarPlaceholder = pageSidebarPlaceholder,
-  hasChildSidebar = hasChildSidebar
+  hasChildSidebar = hasChildSidebar,
+  setPositionEnd = setPositionEnd
 }
 
 

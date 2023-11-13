@@ -587,6 +587,20 @@ $valuebox-colors: (
     }
   }
 
+  .sidebar-right {
+    .sidebar {
+      padding-left: 2.5em;
+    }
+
+    .collapse-toggle {
+      left: 2px;
+    }
+  }
+
+  .quarto-dashboard .sidebar-right button.collapse-toggle:not(.transitioning) {
+    left: unset;
+  }
+
   aside.sidebar {
     padding-left: 1em;
     padding-right: 1em;
@@ -607,11 +621,10 @@ $valuebox-colors: (
     top: 0;
   }
 
-  .bslib-sidebar-layout:not(.sidebar-collapsed) .collapse-toggle {
-    right: 2px;
-  }
-
-  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning) .collapse-toggle {
+  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning):not(
+      .sidebar-right
+    )
+    .collapse-toggle {
     left: 2px;
   }
 
@@ -714,7 +727,7 @@ $valuebox-colors: (
     > .toolbar-content,
   .quarto-dashboard-content
     > .tab-content
-    > .dashboard-page
+    > .dashboard-page:not(.dashboard-sidebar-container)
     > *:not(.dashboard-toolbar-container) {
     padding: 1em;
   }

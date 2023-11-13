@@ -484,17 +484,25 @@ function render_dashboard()
         elseif dashboard.layout.isColumnContainer(el) then
 
           local sidebar = nil
+          local sidebarBottom = false
           local sidebarContent = pandoc.List({})
-          for _i, v in ipairs(el.content) do   
+          for i, v in ipairs(el.content) do   
             if dashboard.sidebar.isSidebar(v) then         
               sidebar = v
             else
               sidebarContent:insert(v)
+              if i == 1 then
+                sidebarBottom = true
+              end
             end
           end
-          
+
           if sidebar then
             local options = dashboard.sidebar.readOptions(sidebar)
+            if sidebarBottom then
+              
+              dashboard.sidebar.setPositionEnd(options)
+            end
             return dashboard.sidebar.makeSidebar(sidebar.content, sidebarContent, options)  
           end    
         elseif dashboard.layout.isRowContainer(el) then
@@ -518,7 +526,7 @@ function render_dashboard()
           if toolbar then
             local options = dashboard.toolbar.readOptions(sidebar)
             if toolbarBottom then
-              dashboard.toolbar.setPositionBottom(options)
+              dashboard.toolbar.setPositionEnd(options)
             end
             return dashboard.toolbar.makeToolbar(toolbar.content, toolbarContent, options)
           end    
