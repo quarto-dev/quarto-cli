@@ -3,66 +3,66 @@
 
 local dashboard = require 'modules/dashboard'
 
-local kSectionClass = "section"
-local kHiddenClass = "hidden"
-local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
+local constants = {
+  kSectionClass = "section",
+  kHiddenClass = "hidden",
+  kIgnoreWhenOrganizingClz = {"section", "hidden"},  
+}
 
-local kCellClass = "cell"
-local kCellOutputDisplayClass = "cell-output-display"
+local dashboardState = {
+  previousCardTarget = nil,
+  pendingCardToolbar = nil,
+  pendingCardSidebar = nil,
+  cardToolbarTargets = {
+  },
+  cardSidebarTargets = {
+  },
+  protectedBlocks = pandoc.List({})
+}
 
-local previousCardTarget = nil
-local pendingCardToolbar = nil
-local pendingCardSidebar = nil
 local function setPendingCardToolbar(el)
-  pendingCardToolbar = el
+  dashboardState.pendingCardToolbar = el
 end
+
 local function setPendingCardSidebar(el)
-  pendingCardSidebar = el
+  dashboardState.pendingCardSidebar = el
 end
 
 local function popPendingCardToolbar()
-  local pendingToolbar = pendingCardToolbar
-  pendingCardToolbar = nil
+  local pendingToolbar = dashboardState.pendingCardToolbar
+  dashboardState.pendingCardToolbar = nil
   return pendingToolbar
 end
 
 local function popPendingSidebar()
-  local pendingSidebar = pendingCardSidebar
-  pendingCardSidebar = nil
+  local pendingSidebar = dashboardState.pendingCardSidebar
+  dashboardState.pendingCardSidebar = nil
   return pendingSidebar
 end
 
-local cardToolbarTargets = {
-}
-local function noteTargetForCardToolbar(toolbar, id) 
+function noteTargetForCardToolbar(toolbar, id) 
   dashboard.card_toolbar.markProcessed(toolbar)
-  cardToolbarTargets[id] = cardToolbarTargets[id] or pandoc.List()
-  cardToolbarTargets[id]:insert(toolbar)
+  dashboardState.cardToolbarTargets[id] = dashboardState.cardToolbarTargets[id] or pandoc.List()
+  dashboardState.cardToolbarTargets[id]:insert(toolbar)
 end
 
-local function popCardTargetsForId(id) 
-  local cardTargets = cardToolbarTargets[id]
-  cardToolbarTargets[id] = nil
+function popCardTargetsForId(id) 
+  local cardTargets = dashboardState.cardToolbarTargets[id]
+  dashboardState.cardToolbarTargets[id] = nil
   return cardTargets
 end
 
-local cardSidebarTargets = {
-}
-local function noteTargetForCardSidebar(sidebar, id) 
+function noteTargetForCardSidebar(sidebar, id) 
   dashboard.card_sidebar.markProcessed(sidebar)
-  cardSidebarTargets[id] = cardSidebarTargets[id] or pandoc.List()
-  cardSidebarTargets[id]:insert(sidebar)
+  dashboardState.cardSidebarTargets[id] = dashboardState.cardSidebarTargets[id] or pandoc.List()
+  dashboardState.cardSidebarTargets[id]:insert(sidebar)
 end
 
-local function popCardSidebarTargetsForId(id) 
-  local cardTargets = cardSidebarTargets[id]
-  cardSidebarTargets[id] = nil
+function popCardSidebarTargetsForId(id) 
+  local cardTargets = dashboardState.cardSidebarTargets[id]
+  dashboardState.cardSidebarTargets[id] = nil
   return cardTargets
 end
-
-local protectedBlocks = pandoc.List({})
-
-
 
 function render_dashboard() 
 
@@ -122,7 +122,7 @@ function render_dashboard()
               end
             end
             if isHtmlPreserve then
-              protectedBlocks:insert(v)
+              dashboardState.protectedBlocks:insert(v)
             else
               blocks:insert(v)
             end
@@ -131,19 +131,20 @@ function render_dashboard()
             -- those comments will be protected (contiguously)
             if v.text == "<!--html_preserve-->" then
               collecting = true;
-              protectedBlocks:insert(v)
+              dashboardState.protectedBlocks:insert(v)
             elseif v.text == "<!--/html_preserve-->" then
               collecting = false;
-              protectedBlocks:insert(v)
+              dashboardState.protectedBlocks:insert(v)
             elseif collecting then
-              protectedBlocks:insert(v)
+              dashboardState.protectedBlocks:insert(v)
             else
               blocks:insert(v)
             end
           else
             -- stop collecting
             collecting = false
-            blocks:insert(v)          end  
+            blocks:insert(v)
+          end  
         end
         el.blocks = blocks
         return el
@@ -208,7 +209,7 @@ function render_dashboard()
           
           return dashboard.valuebox.makeValueBox(el), false
         
-        elseif el.classes:includes(kCellClass) and el.classes:includes("markdown") then
+        elseif el.classes:includes(dashboard.utils.constants.cell) and el.classes:includes("markdown") then
           
           -- See if this is explicitely a markdown cell (being preserved by a notebook)
           -- If so, provide some special handling which pops any markdown cell first header
@@ -246,7 +247,7 @@ function render_dashboard()
             end
           end
 
-        elseif el.classes:includes(kCellClass) then
+        elseif el.classes:includes(dashboard.utils.constants.cell) then
 
           -- Process a standard code cell. In particular, we should be 
           -- looking to try to determine the visibility and processing behavior
@@ -259,7 +260,7 @@ function render_dashboard()
           local bslibRawOutputs = pandoc.List()
           el = _quarto.ast.walk(el,  {
             Div = function(childDiv)  
-              if childDiv.classes:includes(kCellOutputDisplayClass) then
+              if childDiv.classes:includes(dashboard.utils.constants.cell_output_display) then
 
                   -- Note whether we see any markdown cells
                   if childDiv.classes:includes("cell-output-markdown") then
@@ -278,7 +279,7 @@ function render_dashboard()
               end
 
               -- Note whether there are hidden elements in the cell
-              isHidden = isHidden or childDiv.classes:includes(kHiddenClass)
+              isHidden = isHidden or childDiv.classes:includes(constants.kHiddenClass)
             end
           })
 
@@ -301,7 +302,7 @@ function render_dashboard()
             return result
           elseif isHidden then
             if el ~= nil then
-              el.classes:insert(kHiddenClass)
+              el.classes:insert(constants.kHiddenClass)
             end
             return el
           else
@@ -362,7 +363,7 @@ function render_dashboard()
         local sectionEls = pandoc.List()
         local visitedSectionOrCard = false
         for _i, v in ipairs(el.blocks) do
-          if v.classes ~= nil and (v.classes:includes(kSectionClass) or dashboard.card.isCard(v)) then
+          if v.classes ~= nil and (v.classes:includes(constants.kSectionClass) or dashboard.card.isCard(v)) then
             sectionEls:insert(v)
             visitedSectionOrCard = true
           else
@@ -384,7 +385,7 @@ function render_dashboard()
         end
 
         -- ensure that root level elements are containers
-        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List(kIgnoreWhenOrganizingClz))
+        local organizer = dashboard.layoutContainer.organizer(layoutEls, pandoc.List(constants.kIgnoreWhenOrganizingClz))
         local layoutContentEls = organizer.ensureInLayoutContainers()
         
         -- force the global orientation to columns if there is a sidebar present
@@ -402,7 +403,7 @@ function render_dashboard()
         return el
       end,
       Div = function(el) 
-        if el.classes:includes(kSectionClass) then
+        if el.classes:includes(constants.kSectionClass) then
 
             -- Allow arbitrary nesting of sections / heading levels to perform layouts
           local header = el.content[1]
@@ -443,7 +444,7 @@ function render_dashboard()
                 lastLevel = level
 
                 -- Make sure everything is in a card
-                local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
+                local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(constants.kIgnoreWhenOrganizingClz))
                 local layoutContentEls = organizer.ensureInLayoutContainers()
 
                 -- Convert this to a page
@@ -454,7 +455,7 @@ function render_dashboard()
             else
 
               -- Make sure everything is in a card
-              local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(kIgnoreWhenOrganizingClz))
+              local organizer = dashboard.layoutContainer.organizer(contents, pandoc.List(constants.kIgnoreWhenOrganizingClz))
               local layoutContentEls = organizer.ensureInLayoutContainers()
 
               -- see if this heading is marked as a tabset
@@ -540,7 +541,7 @@ function render_dashboard()
               end
 
               result:insert(v)
-              previousCardTarget = v
+              dashboardState.previousCardTarget = v
 
             elseif (dashboard.tabset.isTabset(v)) then
               -- If there is a pending card toolbar, then insert it into
@@ -579,21 +580,21 @@ function render_dashboard()
               end
               
               result:insert(v)
-              previousCardTarget = v
+              dashboardState.previousCardTarget = v
 
             elseif dashboard.card_toolbar.isCardToolbar(v) and dashboard.card_toolbar.isUnprocessed(v) then
               -- If this is an unprocessed card toolbar, mark it processed and handle it appropriately
               dashboard.card_toolbar.markProcessed(v)
               if dashboard.card_toolbar.targetPrevious(v) then
                 -- This is for a the card/tabset that appears above
-                if previousCardTarget == nil then
+                if dashboardState.previousCardTarget == nil then
                   fatal("A card toolbar specified to insert into previous card or tabset, but there was no previous card or tabset.")
-                elseif dashboard.card.isCard(previousCardTarget) then
-                  dashboard.card_toolbar.addToTarget(v, previousCardTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
-                elseif dashboard.tabset.isTabset(previousCardTarget) then
-                  dashboard.card_toolbar.addToTarget(v, previousCardTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                elseif dashboard.card.isCard(dashboardState.previousCardTarget) then
+                  dashboard.card_toolbar.addToTarget(v, dashboardState.previousCardTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                elseif dashboard.tabset.isTabset(dashboardState.previousCardTarget) then
+                  dashboard.card_toolbar.addToTarget(v, dashboardState.previousCardTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                 else
-                  fatal("Unexpected element " .. previousCardTarget.t .. "appearing as the target for a card toolbar.")
+                  fatal("Unexpected element " .. dashboardState.previousCardTarget.t .. "appearing as the target for a card toolbar.")
                 end
               elseif dashboard.card_toolbar.targetNext(v) then
                 -- This card toolbar belongs in the next card, hang onto it
@@ -611,14 +612,14 @@ function render_dashboard()
               dashboard.card_sidebar.markProcessed(v)
               if dashboard.card_sidebar.targetPrevious(v) then
                 -- This is for a the card/tabset that appears above
-                if previousCardTarget == nil then
+                if dashboardState.previousCardTarget == nil then
                   fatal("A card sidebar specified to insert into previous card or tabset, but there was no previous card or tabset.")
-                elseif dashboard.card.isCard(previousCardTarget) then
-                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.card.addSidebar)
-                elseif dashboard.tabset.isTabset(previousCardTarget) then
-                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.tabset.addSidebar)
+                elseif dashboard.card.isCard(dashboardState.previousCardTarget) then
+                  dashboard.card_sidebar.addToTarget(v, dashboardState.previousCardTarget, dashboard.card.addSidebar)
+                elseif dashboard.tabset.isTabset(dashboardState.previousCardTarget) then
+                  dashboard.card_sidebar.addToTarget(v, dashboardState.previousCardTarget, dashboard.tabset.addSidebar)
                 else
-                  fatal("Unexpected element " .. previousCardTarget.t .. "appearing as the target for a card sidebar.")
+                  fatal("Unexpected element " .. dashboardState.previousCardTarget.t .. "appearing as the target for a card sidebar.")
                 end
               elseif dashboard.card_sidebar.targetNext(v) then
                 -- This card toolbar belongs in the next card, hang onto it
@@ -718,10 +719,10 @@ function render_dashboard()
         -- If there are ids that haven't been resolved, that means that the user targeted ids with
         -- inputs and those ids were never found, so the card toolbar was never placed.
         local missingIds = pandoc.List()
-        for k,v in pairs(cardToolbarTargets) do
+        for k,v in pairs(dashboardState.cardToolbarTargets) do
           missingIds:insert(k)
         end
-        for l, v in pairs(cardSidebarTargets) do
+        for l, v in pairs(dashboardState.cardSidebarTargets) do
           missingIds:insert(l)
         end
         
@@ -729,8 +730,8 @@ function render_dashboard()
           fatal("A card toolbar or sidebar failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
         end
 
-        if #protectedBlocks > 0 then
-          doc.blocks:extend(protectedBlocks)
+        if #dashboardState.protectedBlocks > 0 then
+          doc.blocks:extend(dashboardState.protectedBlocks)
           return doc
         end
       end
