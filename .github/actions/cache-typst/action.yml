@@ -1,0 +1,32 @@
+name: "Cache Typst package"
+description: "Configures the caching for Typst packages"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Typst Cache path
+      run: |
+        case $RUNNER_OS in
+          "Linux")
+              echo "TYPST_CACHE=${XDG_CACHE_HOME:-~/.cache}/typst/packages/" >> $GITHUB_ENV
+              ;;
+          "macOS")
+              echo "TYPST_CACHE=~/Library/Caches/typst/packages/" >> $GITHUB_ENV
+              ;;
+          "Windows")
+              echo "TYPST_CACHE=$LOCALAPPDATA/typst/packages/" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "$RUNNER_OS not supported"
+              exit 1
+              ;;
+        esac
+      shell: bash
+
+    - name: Cache Typst package folder
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.TYPST_CACHE }}
+        key: ${{ runner.os }}-typst-1-${{ github.run_id }}
+        restore-keys: |
+          ${{ runner.os }}-typst-1-
