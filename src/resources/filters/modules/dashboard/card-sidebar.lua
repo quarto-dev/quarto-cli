@@ -17,8 +17,8 @@ local kWidthOutAttr = "data-width";
 -- Internal representation of the location to place this
 -- set of inputs
 local kTargetPosition = "position"
-local kTargetPositionStart = "start"
-local kTargetPositionEnd = "end"
+local kTargetPositionLeft = "left"
+local kTargetPositionRight = "right"
 
 -- Marks whether this input panel needs to be processed 
 -- (e.g. once it is determine whether panel has been placed in a card
@@ -37,7 +37,7 @@ local function readOptions(el)
   if el.attributes ~= nil then
 
     local targetPosition = el.attributes[kTargetPosition]
-    if targetPosition ~= nil and targetPosition ~= kTargetPositionStart and targetPosition ~= kTargetPositionEnd then
+    if targetPosition ~= nil and targetPosition ~= kTargetPositionLeft and targetPosition ~= kTargetPositionRight then
       fatal("Invalid value target-position '" .. targetPosition .. "' for a card sidebar.")
     end
     
@@ -60,9 +60,9 @@ local function readOptions(el)
     options[kTargetPosition] = el.attributes[kTargetPosition]
   else
     if options[kTarget] == kTargetElementPrevious then
-      options[kTargetPosition] = kTargetPositionEnd
+      options[kTargetPosition] = kTargetPositionRight
     else
-      options[kTargetPosition] = kTargetPositionStart
+      options[kTargetPosition] = kTargetPositionLeft
     end
   end
   return options  

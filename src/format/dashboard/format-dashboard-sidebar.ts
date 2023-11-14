@@ -14,7 +14,7 @@ const kSidebarClass = "sidebar";
 const kSidebarContentClass = "sidebar-content";
 
 const kSidebarAttrPosition = "data-position";
-const kSidebarAttrPositionEnd = "end";
+const kSidebarAttrPositionRight = "right";
 const kBsLibSidebarRight = "sidebar-right";
 
 export function makeSidebar(
@@ -46,7 +46,7 @@ export function makeSidebar(
     sidebar,
     kSidebarAttrPosition,
     (_el: Element, value: string) => {
-      if (value === kSidebarAttrPositionEnd) {
+      if (value === kSidebarAttrPositionRight) {
         sidebarContainerEl.classList.add(kBsLibSidebarRight);
       }
     },
