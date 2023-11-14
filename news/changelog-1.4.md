@@ -63,6 +63,7 @@
 - ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
 - ([#7175](https://github.com/quarto-dev/quarto-cli/issues/7175)): Fix an issue with code annotations when more than one digit is used for annotation number.
 - ([#7267](https://github.com/quarto-dev/quarto-cli/issues/7267)): Fix issue with longtable environments interfering with the `table` counter.
+- ([#7568](https://github.com/quarto-dev/quarto-cli/issues/7568)): Code annotation now works in LaTeX document when having other comments on same line.
 
 ## Docusaurus Format
 
