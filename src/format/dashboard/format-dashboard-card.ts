@@ -18,6 +18,7 @@ import {
   makeEl,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
+import { makeSidebar } from "./format-dashboard-sidebar.ts";
 
 // The html to generate the expand button
 const kExpandBtnHtml = `
@@ -37,6 +38,8 @@ const kCardFooterClass = "card-footer";
 const kCardTitleClass = "card-title";
 const kCardToolbarClass = "card-toolbar";
 const kCardTitleToolbarClass = "card-title-toolbar";
+
+const kCardSidebarClass = "card-sidebar";
 
 // Tabset classes
 const kTabsetClass = "tabset";
@@ -128,20 +131,26 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     cardCount++;
     const cardEl = cardNode as Element;
 
+    // Sort the children
     const cardBodyEls: Element[] = [];
     let cardHeaderEl = undefined;
+    let cardSidebarEl = undefined;
     for (const cardChildEl of cardEl.children) {
       if (cardChildEl.classList.contains(kCardBodyClass)) {
         cardBodyEls.push(cardChildEl);
       } else if (cardChildEl.classList.contains(kCardHeaderClass)) {
         cardHeaderEl = cardChildEl;
+      } else if (cardChildEl.classList.contains(kCardSidebarClass)) {
+        cardSidebarEl = cardChildEl;
       }
     }
 
-    // Loose text gets grouped into a div for alignment purposes
-    // Always place this element first no matter what else is going on
-    const looseText: string[] = [];
+    // Process the header
     if (cardHeaderEl) {
+      // Loose text gets grouped into a div for alignment purposes
+      // Always place this element first no matter what else is going on
+      const looseText: string[] = [];
+
       // See if there is a toolbar in the header
       const cardToolbarEl = cardHeaderEl.querySelector(`.${kCardToolbarClass}`);
 
@@ -214,6 +223,22 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
           recursiveApplyFillClasses(cardBodyEl);
         }
       }
+    }
+
+    // Process the sidebar into the card
+    if (cardSidebarEl) {
+      cardBodyEls.forEach((el) => el.remove);
+
+      const sidebarId = "asdasd";
+      const sidebarContainerEl = makeSidebar(
+        sidebarId,
+        cardSidebarEl,
+        cardBodyEls,
+        doc,
+      );
+
+      // Remove the body elements
+      cardEl.appendChild(sidebarContainerEl);
     }
 
     // Initialize the cards

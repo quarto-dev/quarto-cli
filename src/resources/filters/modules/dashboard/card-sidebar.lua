@@ -5,13 +5,15 @@ local kCardSidebarClass = "card-sidebar"
 
 -- Internal representation of the target for this set
 -- of inputs
-local kTargetElement = "target-element"
+local kTarget = "target"
+local kTargetOut = "data-target"
+local kTargetAttr = pandoc.List({kTarget, kTargetOut})
 local kTargetElementPrevious = "previous"
 local kTargetElementNext = "next"
 
 -- Internal representation of the location to place this
 -- set of inputs
-local kTargetPosition = "target-position"
+local kTargetPosition = "position"
 local kTargetPositionStart = "start"
 local kTargetPositionEnd = "end"
 
@@ -41,37 +43,33 @@ local function readOptions(el)
   -- Read attributes into options
   local options = {}
 
-  if el.attributes ~= nil and el.attributes[kTargetElement] then
-    options[kTargetElement] = el.attributes[kTargetElement]
+  if el.attributes ~= nil and el.attributes[kTarget] then
+    options[kTarget] = el.attributes[kTarget]
+  else 
+    options[kTarget] = kTargetElementNext
   end
 
   if el.attributes ~= nil and el.attributes[kTargetPosition] then
     options[kTargetPosition] = el.attributes[kTargetPosition]
+  else
+    if options[kTarget] == kTargetElementPrevious then
+      options[kTargetPosition] = kTargetPositionEnd
+    else
+      options[kTargetPosition] = kTargetPositionStart
+    end
   end
-
-  -- By default, this will target appearing in the next card if no
-  -- position information was specified
-  if options[kTargetPosition] == nil and options[kTargetElement] == nil then
-    options[kTargetPosition] = kTargetPositionHeader
-    options[kTargetElement] = kTargetElementNext
-  end
-
   return options  
 end
 
 -- Makes an input panel div
 local function makeCardSidebar(contents, options) 
   local attributes = {}
-  if options[kTargetElement] then
-    attributes[kTargetElement] = options[kTargetElement]
+  if options[kTarget] then
+    attributes[kTargetOut] = options[kTarget]
   end
 
   if options[kTargetPosition] then
     attributes[kTargetPosition] = options[kTargetPosition]
-  end
-
-  if options[kTitleAttr] then
-    attributes[kTitleAttr] = options[kTitleAttr]
   end
 
   -- if there is only a single cell as a child, forward its children to the top level
@@ -89,23 +87,26 @@ local function isCardSidebar(el)
   end) then
     return true
   end
-
   return (el.t == "Div") and el.classes:includes(kCardSidebarClass)
 end
 
 -- Target Processing
 local function targetPrevious(el) 
-  return el.attributes ~= nil and el.attributes[kTargetElement] == kTargetElementPrevious
+  return el.attributes ~= nil and kTargetAttr:find_if(function(attrName)
+    return el.attributes[attrName] == kTargetElementPrevious
+  end)
 end
 
 local function targetNext(el)
-  return el.attributes ~= nil and el.attributes[kTargetElement] == kTargetElementNext
+  return el.attributes ~= nil and kTargetAttr:find_if(function(attrName)
+    return el.attributes[attrName] == kTargetElementNext
+  end)
 end
 
 local function targetId(el)
-  if el.attributes ~= nil and el.attributes[kTargetElement] ~= nil then
+  if el.attributes ~= nil and el.attributes[kTargetOut] ~= nil then
     if not targetPrevious(el) and not targetNext(el) then
-      return el.attributes[kTargetElement]
+      return el.attributes[kTargetOut]
     end
   end
 end
