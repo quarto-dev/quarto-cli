@@ -68,20 +68,6 @@ function render_typst_fixups()
         local escaped_src = image.src:gsub("\\", "\\\\"):gsub("\"", "\\\"")
         return pandoc.RawInline("typst", "#box(" .. attr_str .. "image(\"" .. escaped_src .. "\"))")
       end
-    end,
-    Para = function(para)
-      return para:walk({
-        Image = function(image)
-          if image.attributes["width"] == nil and image.attributes["height"] == nil then
-            return nil
-          end
-          return pandoc.Inlines({
-            pandoc.RawInline("typst", "#box(["),
-            image,
-            pandoc.RawInline("typst", "])"),
-          })
-        end
-      })
     end
   }
 end
