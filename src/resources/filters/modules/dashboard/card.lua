@@ -101,7 +101,7 @@ local function hasRealLookingContent(contents)
       hasReal = true
     end
   end
-  return hasReal
+  return hasReal or #contents == 0
 end
 
 local function isLiteralCard(el)
