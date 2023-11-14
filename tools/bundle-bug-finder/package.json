@@ -1,0 +1,9 @@
+{
+  "name": "dummy",
+  "version": "1.0.0",
+  "dependencies": {
+    "@babel/eslint-parser": "^7.23.3",
+    "@babel/plugin-syntax-import-assertions": "^7.23.3",
+    "eslint": "^8.53.0"
+  }
+}

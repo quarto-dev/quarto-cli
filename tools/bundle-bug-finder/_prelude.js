@@ -1,0 +1,4 @@
+/*global Deno, globalThis, console, Uint8Array, URL, ArrayBuffer, setTimeout, clearTimeout, Promise, Symbol, TextEncoder, addEventListener, removeEventListener, Map, window, self, global, TransformStream, AggregateError, ReadableStream, WritableStream, TextDecoder, Set, Int32Array, performance, Response, WebAssembly, atob, reflect, EventTarget, DOMException, localStorage, fetch, FormData, btoa, Buffer, Headers, WebSocket, Node, File, Blob, Request, CompressionStream, URLSearchParams, AbortController, Atomics, SharedArrayBuffer, setInterval, clearInterval, BigInt, crypto, Uint32Array, Uint16Array, Float32Array, Float64Array, Int16Array, Int8Array, DataView, Document, Element, PATH, Proxy, noExitRuntime, Reflect, Intl, module, define, DocumentFragment, FinalizationRegistry, WeakMap */
+// these are globals that deno-dom is leaking currently and we need to ignore them
+/*global i, l, result, document */
+/*eslint no-undef: "error"*/
