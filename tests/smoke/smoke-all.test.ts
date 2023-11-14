@@ -31,7 +31,7 @@ import {
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
 
 async function fullInit() {
@@ -162,7 +162,8 @@ await initYamlIntelligenceResourcesFromFilesystem();
 // be silently ignored.)
 const files: WalkEntry[] = [];
 if (Deno.args.length === 0) {
-  files.push(...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}"));
+  // ignore file starting with `_`
+  files.push(...[...expandGlobSync("docs/smoke-all/**/*.{md,qmd,ipynb}")].filter((entry) => /^[^_]/.test(basename(entry.path))));
 } else {
   for (const arg of Deno.args) {
     files.push(...expandGlobSync(arg));
@@ -171,7 +172,7 @@ if (Deno.args.length === 0) {
 
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
-
+  
   const metadata = input.endsWith("md") // qmd or md
     ? readYamlFromMarkdown(Deno.readTextFileSync(input))
     : readYamlFromMarkdown(await jupyterNotebookToMarkdown(input, false));
