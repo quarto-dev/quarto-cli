@@ -11,6 +11,9 @@ local kTargetAttr = pandoc.List({kTarget, kTargetOut})
 local kTargetElementPrevious = "previous"
 local kTargetElementNext = "next"
 
+local kWidthAttr = "width";
+local kWidthOutAttr = "data-width";
+
 -- Internal representation of the location to place this
 -- set of inputs
 local kTargetPosition = "position"
@@ -43,13 +46,17 @@ local function readOptions(el)
   -- Read attributes into options
   local options = {}
 
-  if el.attributes ~= nil and el.attributes[kTarget] then
+  if el.attributes ~= nil and el.attributes[kTarget] ~= nil then
     options[kTarget] = el.attributes[kTarget]
   else 
     options[kTarget] = kTargetElementNext
   end
 
-  if el.attributes ~= nil and el.attributes[kTargetPosition] then
+  if el.attributes ~= nil and el.attributes[kWidthAttr] ~= nil then
+    options[kWidthAttr] = el.attributes[kWidthAttr]
+  end
+
+  if el.attributes ~= nil and el.attributes[kTargetPosition] ~= nil then
     options[kTargetPosition] = el.attributes[kTargetPosition]
   else
     if options[kTarget] == kTargetElementPrevious then
@@ -64,12 +71,16 @@ end
 -- Makes an input panel div
 local function makeCardSidebar(contents, options) 
   local attributes = {}
-  if options[kTarget] then
+  if options[kTarget] ~= nil then
     attributes[kTargetOut] = options[kTarget]
   end
 
-  if options[kTargetPosition] then
+  if options[kTargetPosition] ~= nil then
     attributes[kTargetPosition] = options[kTargetPosition]
+  end
+
+  if options[kWidthAttr] ~= nil then
+    attributes[kWidthOutAttr] = options[kWidthAttr]
   end
 
   -- if there is only a single cell as a child, forward its children to the top level
