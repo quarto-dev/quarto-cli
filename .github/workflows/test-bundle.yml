@@ -37,3 +37,10 @@ jobs:
           mv ../../src/quarto.ts ../../src/quarto1.ts
           pushd ../pkg-working/bin
           ./quarto check
+
+      - name: Validate Bundle
+        shell: bash
+        run: |
+          pushd package/src
+          ./quarto-bld validate-bundle
+     
