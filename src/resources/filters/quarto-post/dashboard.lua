@@ -95,7 +95,7 @@ function render_dashboard()
           -- per the user's request 
           local options = dashboard.card_sidebar.readOptions(el)
           local cardSidebar = dashboard.card_sidebar.makeCardSidebar(el.content, options)
-
+    
           local targetId = dashboard.card_sidebar.targetId(cardSidebar)
           if targetId ~= nil then
             noteTargetForCardSidebar(cardSidebar, targetId)
@@ -445,7 +445,7 @@ function render_dashboard()
               -- if thers is a pending card sidebar, inject that
               local pendingSidebar = popPendingSidebar()
               if pendingSidebar ~= nil then
-                dashboard.card_sidebar.addToTarget(pendingSidebar, v, dashboard.card.addToBody)
+                dashboard.card_sidebar.addToTarget(pendingSidebar, v, dashboard.card.addSidebar)
               end
 
               -- inject any specifically target card toolbars or sidebars
@@ -462,7 +462,7 @@ function render_dashboard()
                   local sidebarsForTarget = popCardSidebarTargetsForId(targetId)
                   if sidebarsForTarget ~= nil then
                     for _k,sidebar in ipairs(sidebarsForTarget) do
-                      dashboard.card_sidebar.addToTarget(sidebar, v, dashboard.card.addToBody)
+                      dashboard.card_sidebar.addToTarget(sidebar, v, dashboard.card.addSidebar)
                     end
                   end
                 end
@@ -484,10 +484,9 @@ function render_dashboard()
               -- if thers is a pending card sidebar, inject that
               local pendingSidebar = popPendingSidebar()
               if pendingSidebar ~= nil then
-                dashboard.card_sidebar.addToTarget(pendingSidebar, v, dashboard.tabset.addToBody)
+                dashboard.card_sidebar.addToTarget(pendingSidebar, v, dashboard.tabset.addSidebar)
               end
               
-
               -- inject an specifically target card toolbars
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
@@ -502,7 +501,7 @@ function render_dashboard()
                   local sidebarsForTarget = popCardSidebarTargetsForId(targetId)
                   if sidebarsForTarget ~= nil then
                     for _k,sidebar in ipairs(sidebarsForTarget) do
-                      dashboard.card_sidebar.addToTarget(sidebar, v, dashboard.tabset.addToBody)
+                      dashboard.card_sidebar.addToTarget(sidebar, v, dashboard.tabset.addSidebar)
                     end
                   end                  
                 end
@@ -544,9 +543,9 @@ function render_dashboard()
                 if previousCardTarget == nil then
                   fatal("A card sidebar specified to insert into previous card or tabset, but there was no previous card or tabset.")
                 elseif dashboard.card.isCard(previousCardTarget) then
-                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.card.addToBody)
+                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.card.addSidebar)
                 elseif dashboard.tabset.isTabset(previousCardTarget) then
-                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.tabset.addToBody)
+                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.tabset.addSidebar)
                 else
                   fatal("Unexpected element " .. previousCardTarget.t .. "appearing as the target for a card sidebar.")
                 end
@@ -652,7 +651,7 @@ function render_dashboard()
           missingIds:insert(k)
         end
         for l, v in pairs(cardSidebarTargets) do
-          missingIds:insert(v)
+          missingIds:insert(l)
         end
         
         if #missingIds > 0 then

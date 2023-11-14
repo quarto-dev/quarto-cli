@@ -188,7 +188,7 @@ function addToHeader(tabset, content, title)
     end
     tabsetHeader.content:insert(content)
   else
-    local headerContent = pandoc.List(content)
+    local headerContent = pandoc.List({content})
     if title ~= nil then
       headerContent:insert(1, pandoc.Plain(title))
     end
@@ -207,14 +207,8 @@ function addToFooter(tabset, content)
   end
 end
 
-function addToBody(tabset, content)
-  local tabsetBody = utils.findChildDiv(tabset, isTabBody)
-  if tabsetBody then
-    tabsetBody.content:insert(1, content)
-  else
-    local newBody = pandoc.Div(content, pandoc.Attr("", {kTabBodyClass}))
-    tabset.content:insert(newBody)
-  end
+function addSidebar(tabset, content)
+  tabset.content:insert(1, content)
 end
 
 return {
@@ -223,6 +217,6 @@ return {
   makeTabset = makeTabset,
   addToHeader = addToHeader,
   addToFooter = addToFooter,
-  addToBody = addToBody
+  addSidebar = addSidebar
 }
 

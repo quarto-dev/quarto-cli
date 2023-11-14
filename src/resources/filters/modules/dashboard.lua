@@ -28,6 +28,8 @@ local function isLayoutContainer(el)
     return true
   elseif card_toolbar.isCardToolbar(el) then
     return true
+  elseif card_sidebar.isCardSidebar(el) then
+    return true;
   end
   return false
 end

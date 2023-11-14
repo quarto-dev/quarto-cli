@@ -24,7 +24,7 @@ function idsWithinEl(el)
   _quarto.ast.walk(el, {
     Block = function(block)
       if block.identifier ~= nil and #block.identifier > 0 then
-        ids:insert(el.identifier)
+        ids:insert(block.identifier)
       end
     end,
     Inline = function(inline)
