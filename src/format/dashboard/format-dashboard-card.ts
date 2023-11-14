@@ -194,7 +194,21 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
         convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyEls, doc);
       }
       // Convert the body to tabs
-      convertToTabs(tabSetId, cardEl, cardBodyEls, doc);
+      convertToTabs(tabSetId, cardEl, cardBodyEls, cardSidebarEl, doc);
+    } else {
+      // Process a card sidebar, if present
+      if (cardSidebarEl) {
+        cardBodyEls.forEach((el) => el.remove);
+        // TODO: Make a cooler id if possible
+        const sidebarId = `card-${cardCount}-card-sidebar`;
+        const sidebarContainerEl = makeSidebar(
+          sidebarId,
+          cardSidebarEl,
+          cardBodyEls,
+          doc,
+        );
+        cardEl.appendChild(sidebarContainerEl);
+      }
     }
 
     // Process card attributes
@@ -223,22 +237,6 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
           recursiveApplyFillClasses(cardBodyEl);
         }
       }
-    }
-
-    // Process the sidebar into the card
-    if (cardSidebarEl) {
-      cardBodyEls.forEach((el) => el.remove);
-
-      const sidebarId = "asdasd";
-      const sidebarContainerEl = makeSidebar(
-        sidebarId,
-        cardSidebarEl,
-        cardBodyEls,
-        doc,
-      );
-
-      // Remove the body elements
-      cardEl.appendChild(sidebarContainerEl);
     }
 
     // Initialize the cards
@@ -322,15 +320,17 @@ function convertToTabs(
   tabSetId: string,
   cardEl: Element,
   cardBodyEls: Element[],
+  cardSidebarEl: Element | undefined,
   doc: Document,
 ) {
+  // Make sure we place this above the card footer
+  const cardFooterEl = findFooterEl(cardEl);
+
   const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
   if (tabContainerEl) {
     tabContainerEl.classList.add("tab-content");
     tabContainerEl.setAttribute("data-tabset-id", tabSetId);
 
-    // Make sure we place this above the card footer
-    const cardFooterEl = findFooterEl(cardEl);
     if (cardFooterEl) {
       cardEl.insertBefore(tabContainerEl, cardFooterEl);
     } else {
@@ -367,5 +367,22 @@ function convertToTabs(
 
   if (tabContainerEl) {
     recursiveApplyFillClasses(tabContainerEl);
+  }
+
+  // If there is a sidebar, wrap it around the tabset
+  if (cardSidebarEl && tabContainerEl) {
+    const sidebarId = `${tabSetId}-card-sidebar`;
+    const sidebarContainerEl = makeSidebar(
+      sidebarId,
+      cardSidebarEl,
+      [tabContainerEl],
+      doc,
+    );
+
+    if (cardFooterEl) {
+      cardEl.insertBefore(sidebarContainerEl, cardFooterEl);
+    } else {
+      cardEl.appendChild(sidebarContainerEl);
+    }
   }
 }
