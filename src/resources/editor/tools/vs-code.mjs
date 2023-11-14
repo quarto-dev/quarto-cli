@@ -7175,6 +7175,99 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Detect cache dependencies automatically via usage of global variables"
         }
       ],
+      "schema/cell-card.yml": [
+        {
+          name: "title",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Title displayed in dashboard card header"
+          }
+        },
+        {
+          name: "padding",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Padding around dashboard card content (default `8px`)"
+          }
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: {
+            short: "Make dashboard card content expandable (default: `true`)"
+          }
+        },
+        {
+          name: "width",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+          }
+        },
+        {
+          name: "height",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+          }
+        },
+        {
+          name: "context",
+          tags: {
+            formats: [
+              "dashboard"
+            ],
+            engine: [
+              "jupyter"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Context to execute cell within."
+          }
+        }
+      ],
       "schema/cell-codeoutput.yml": [
         {
           name: "eval",
@@ -12408,6 +12501,84 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Enables a hover popup for cross references that shows the item being referenced."
         }
       ],
+      "schema/document-dashboard.yml": [
+        {
+          name: "logo",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "path",
+          description: "Logo image (placed on the left side of the navigation bar)"
+        },
+        {
+          name: "orientation",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            enum: [
+              "rows",
+              "columns"
+            ]
+          },
+          description: "Default orientation for dashboard content (default `rows`)"
+        },
+        {
+          name: "scrolling",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: "Use scrolling rather than fill layout (default: `false`)"
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: "Make card content expandable (default: `true`)"
+        },
+        {
+          name: "nav-buttons",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            maybeArrayOf: {
+              anyOf: [
+                "string",
+                {
+                  object: {
+                    properties: {
+                      text: "string",
+                      href: "string",
+                      icon: "string",
+                      rel: "string",
+                      target: "string",
+                      title: "string",
+                      "aria-label": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          description: "Links to display on the dashboard navigation bar"
+        }
+      ],
       "schema/document-editor.yml": [
         {
           name: "editor",
@@ -14700,6 +14871,76 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: "The base url for Slideous presentations."
+        }
+      ],
+      "schema/document-lightbox.yml": [
+        {
+          name: "lightbox",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "auto"
+                ]
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    match: {
+                      schema: {
+                        enum: [
+                          "auto"
+                        ]
+                      },
+                      description: {
+                        short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
+                        long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
+                      }
+                    },
+                    effect: {
+                      schema: {
+                        enum: [
+                          "fade",
+                          "zoom",
+                          "none"
+                        ]
+                      },
+                      description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
+                    },
+                    "desc-position": {
+                      schema: {
+                        enum: [
+                          "top",
+                          "bottom",
+                          "left",
+                          "right"
+                        ]
+                      },
+                      description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
+                    },
+                    loop: {
+                      boolean: {
+                        description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
+                      }
+                    },
+                    "css-class": {
+                      string: {
+                        description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Enable or disable lightbox treatment for images in this document."
         }
       ],
       "schema/document-links.yml": [
@@ -20072,6 +20313,30 @@ var require_yaml_intelligence_resources = __commonJS({
         "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
         "Detect cache dependencies automatically via usage of global\nvariables",
         {
+          short: "Title displayed in dashboard card header",
+          long: ""
+        },
+        {
+          short: "Padding around dashboard card content (default <code>8px</code>)",
+          long: ""
+        },
+        {
+          short: "Make dashboard card content expandable (default:\n<code>true</code>)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
+          long: ""
+        },
+        {
+          short: "Context to execute cell within.",
+          long: ""
+        },
+        {
           short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
           long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
         },
@@ -20374,6 +20639,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
         "Enables a hover popup for cross references that shows the item being\nreferenced.",
+        "Logo image (placed on the left side of the navigation bar)",
+        "Default orientation for dashboard content (default\n<code>rows</code>)",
+        "Use scrolling rather than fill layout (default:\n<code>false</code>)",
+        "Make card content expandable (default: <code>true</code>)",
+        "Links to display on the dashboard navigation bar",
         "Visual editor configuration",
         "Default editing mode for document",
         "Markdown writing options for visual editor",
@@ -20851,6 +21121,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The base url for s5 presentations.",
         "The base url for Slidy presentations.",
         "The base url for Slideous presentations.",
+        "Enable or disable lightbox treatment for images in this document.",
+        {
+          short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+          long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+        },
+        "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+        "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+        "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+        "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
         "Show a special icon next to links that leave the current site.",
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
@@ -21633,45 +21912,6 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "Enable or disable lightbox treatment for images in this document.",
-        {
-          short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
-          long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
-        },
-        "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
-        "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
-        "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
-        "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
-        "Logo image (placed on the left side of the navigation bar)",
-        "Default orientation for dashboard content (default\n<code>rows</code>)",
-        "Use scrolling rather than fill layout (default:\n<code>false</code>)",
-        "Make card content expandable (default: <code>true</code>)",
-        "Links to display on the dashboard navigation bar",
-        "Title displayed in card header",
-        {
-          short: "Title displayed in dashboard card header",
-          long: ""
-        },
-        {
-          short: "Padding around dashboard card content (default <code>8px</code>)",
-          long: ""
-        },
-        {
-          short: "Make dashboard card content expandable (default:\n<code>true</code>)",
-          long: ""
-        },
-        {
-          short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
-          long: ""
-        },
-        {
-          short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
-          long: ""
-        },
-        {
-          short: "Context to execute cell within.",
-          long: ""
-        },
         "Project configuration.",
         "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
         "Files to render (defaults to all files)",
@@ -22210,12 +22450,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178127,
+        _internalId: 178122,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178119,
+            _internalId: 178114,
             type: "enum",
             enum: [
               "png",
@@ -22231,7 +22471,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178126,
+            _internalId: 178121,
             type: "anyOf",
             anyOf: [
               {
@@ -22271,260 +22511,7 @@ var require_yaml_intelligence_resources = __commonJS({
           "case-detection": true
         },
         $id: "handlers/mermaid"
-      },
-      "schema/document-lightbox.yml": [
-        {
-          name: "lightbox",
-          schema: {
-            anyOf: [
-              "boolean",
-              {
-                enum: [
-                  "auto"
-                ]
-              },
-              {
-                object: {
-                  closed: true,
-                  properties: {
-                    match: {
-                      schema: {
-                        enum: [
-                          "auto"
-                        ]
-                      },
-                      description: {
-                        short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
-                        long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
-                      }
-                    },
-                    effect: {
-                      schema: {
-                        enum: [
-                          "fade",
-                          "zoom",
-                          "none"
-                        ]
-                      },
-                      description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
-                    },
-                    "desc-position": {
-                      schema: {
-                        enum: [
-                          "top",
-                          "bottom",
-                          "left",
-                          "right"
-                        ]
-                      },
-                      description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
-                    },
-                    loop: {
-                      boolean: {
-                        description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
-                      }
-                    },
-                    "css-class": {
-                      string: {
-                        description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          },
-          tags: {
-            formats: [
-              "$html-doc"
-            ]
-          },
-          description: "Enable or disable lightbox treatment for images in this document."
-        }
-      ],
-      "schema/document-dashboard.yml": [
-        {
-          name: "logo",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "path",
-          description: "Logo image (placed on the left side of the navigation bar)"
-        },
-        {
-          name: "orientation",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            enum: [
-              "rows",
-              "columns"
-            ]
-          },
-          description: "Default orientation for dashboard content (default `rows`)"
-        },
-        {
-          name: "scrolling",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "boolean",
-          default: false,
-          description: "Use scrolling rather than fill layout (default: `false`)"
-        },
-        {
-          name: "expandable",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "boolean",
-          default: true,
-          description: "Make card content expandable (default: `true`)"
-        },
-        {
-          name: "nav-buttons",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            maybeArrayOf: {
-              anyOf: [
-                "string",
-                {
-                  object: {
-                    properties: {
-                      text: "string",
-                      href: "string",
-                      icon: "string",
-                      rel: "string",
-                      target: "string",
-                      title: "string",
-                      "aria-label": "string"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          description: "Links to display on the dashboard navigation bar"
-        }
-      ],
-      "schema/cell-dashboard.yml": [
-        {
-          name: "title",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "string",
-          description: "Title displayed in card header"
-        }
-      ],
-      "schema/cell-card.yml": [
-        {
-          name: "title",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "string",
-          description: {
-            short: "Title displayed in dashboard card header"
-          }
-        },
-        {
-          name: "padding",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
-          },
-          description: {
-            short: "Padding around dashboard card content (default `8px`)"
-          }
-        },
-        {
-          name: "expandable",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: "boolean",
-          default: true,
-          description: {
-            short: "Make dashboard card content expandable (default: `true`)"
-          }
-        },
-        {
-          name: "width",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
-          },
-          description: {
-            short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
-          }
-        },
-        {
-          name: "height",
-          tags: {
-            formats: [
-              "dashboard"
-            ]
-          },
-          schema: {
-            anyOf: [
-              "string",
-              "number"
-            ]
-          },
-          description: {
-            short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
-          }
-        },
-        {
-          name: "context",
-          tags: {
-            formats: [
-              "dashboard"
-            ],
-            engine: [
-              "jupyter"
-            ]
-          },
-          schema: "string",
-          description: {
-            short: "Context to execute cell within."
-          }
-        }
-      ]
+      }
     };
   }
 });
@@ -22564,186 +22551,6 @@ function glb(array, value, compare) {
     }
   }
   return left;
-}
-
-// ../ranged-text.ts
-function matchAll(str2, regex) {
-  let match;
-  regex = new RegExp(regex);
-  const result = [];
-  while ((match = regex.exec(str2)) != null) {
-    result.push(match);
-  }
-  return result;
-}
-function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
-  const result = [];
-  let startOffset = 0;
-  if (!includeNewLines) {
-    for (const r of matchAll(text, regex)) {
-      result.push({
-        substring: text.substring(startOffset, r.index),
-        range: {
-          start: startOffset,
-          end: r.index
-        }
-      });
-      startOffset = r.index + r[0].length;
-    }
-    result.push({
-      substring: text.substring(startOffset, text.length),
-      range: {
-        start: startOffset,
-        end: text.length
-      }
-    });
-    return result;
-  } else {
-    const matches = matchAll(text, regex);
-    let prevOffset = 0;
-    for (const r of matches) {
-      const stringEnd = r.index + r[0].length;
-      result.push({
-        substring: text.substring(prevOffset, stringEnd),
-        range: {
-          start: prevOffset,
-          end: stringEnd
-        }
-      });
-      prevOffset = stringEnd;
-    }
-    result.push({
-      substring: text.substring(prevOffset, text.length),
-      range: {
-        start: prevOffset,
-        end: text.length
-      }
-    });
-    return result;
-  }
-}
-
-// ../mapped-text.ts
-function mappedSubstring(source, start, end) {
-  if (typeof source === "string") {
-    source = asMappedString(source);
-  }
-  const value = source.value.substring(start, end);
-  const mappedSource2 = source;
-  return {
-    value,
-    map: (index, closest) => {
-      if (closest) {
-        index = Math.max(0, Math.min(value.length, index - 1));
-      }
-      if (index === 0 && index === value.length) {
-        return mappedSource2.map(index + start, closest);
-      }
-      if (index < 0 || index >= value.length) {
-        return void 0;
-      }
-      return mappedSource2.map(index + start, closest);
-    }
-  };
-}
-function mappedString(source, pieces, fileName) {
-  if (typeof source === "string") {
-    source = asMappedString(source, fileName);
-  }
-  const mappedPieces = pieces.map((piece) => {
-    if (typeof piece === "string") {
-      return asMappedString(piece);
-    } else if (piece.value !== void 0) {
-      return piece;
-    } else {
-      const { start, end } = piece;
-      return mappedSubstring(source, start, end);
-    }
-  });
-  return mappedConcat(mappedPieces);
-}
-function asMappedString(str2, fileName) {
-  if (typeof str2 === "string") {
-    return {
-      value: str2,
-      fileName,
-      map: function(index, closest) {
-        if (closest) {
-          index = Math.min(str2.length - 1, Math.max(0, index));
-        }
-        if (index < 0 || index >= str2.length) {
-          return void 0;
-        }
-        return {
-          index,
-          originalString: this
-        };
-      }
-    };
-  } else if (fileName !== void 0) {
-    throw new InternalError(
-      "can't change the fileName of an existing MappedString"
-    );
-  } else {
-    return str2;
-  }
-}
-function mappedConcat(strings) {
-  if (strings.length === 0) {
-    return {
-      value: "",
-      map: (_index, _closest) => void 0
-    };
-  }
-  if (strings.every((s) => typeof s === "string")) {
-    return asMappedString(strings.join(""));
-  }
-  const mappedStrings = strings.map((s) => {
-    if (typeof s === "string") {
-      return asMappedString(s);
-    } else
-      return s;
-  });
-  let currentOffset = 0;
-  const offsets = [0];
-  for (const s of mappedStrings) {
-    currentOffset += s.value.length;
-    offsets.push(currentOffset);
-  }
-  const value = mappedStrings.map((s) => s.value).join("");
-  return {
-    value,
-    map: (offset, closest) => {
-      if (closest) {
-        offset = Math.max(0, Math.min(offset, value.length - 1));
-      }
-      if (offset === 0 && offset == value.length && mappedStrings.length) {
-        return mappedStrings[0].map(0, closest);
-      }
-      if (offset < 0 || offset >= value.length) {
-        return void 0;
-      }
-      const ix = glb(offsets, offset);
-      const v = mappedStrings[ix];
-      return v.map(offset - offsets[ix]);
-    }
-  };
-}
-function mappedIndexToLineCol(eitherText) {
-  const text = asMappedString(eitherText);
-  return function(offset) {
-    const mapResult = text.map(offset, true);
-    if (mapResult === void 0) {
-      throw new InternalError("bad offset in mappedIndexRowCol");
-    }
-    const { index, originalString } = mapResult;
-    return indexToLineCol(originalString.value)(index);
-  };
-}
-function mappedLines(str2, keepNewLines = false) {
-  const lines2 = rangedLines(str2.value, keepNewLines);
-  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // ../error.ts
@@ -22866,7 +22673,7 @@ function locationString(loc) {
 function lines(text) {
   return text.split(/\r?\n/);
 }
-function* matchAll2(text, regexp) {
+function* matchAll(text, regexp) {
   if (!regexp.global) {
     throw new Error("matchAll requires global regexps");
   }
@@ -22877,7 +22684,7 @@ function* matchAll2(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll2(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r?\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -23050,6 +22857,186 @@ function toCapitalizationCase(str2) {
     /_(.)/g,
     (_match, p1) => p1.toLocaleUpperCase()
   );
+}
+
+// ../ranged-text.ts
+function matchAll2(str2, regex) {
+  let match;
+  regex = new RegExp(regex);
+  const result = [];
+  while ((match = regex.exec(str2)) != null) {
+    result.push(match);
+  }
+  return result;
+}
+function rangedLines(text, includeNewLines = false) {
+  const regex = /\r?\n/g;
+  const result = [];
+  let startOffset = 0;
+  if (!includeNewLines) {
+    for (const r of matchAll2(text, regex)) {
+      result.push({
+        substring: text.substring(startOffset, r.index),
+        range: {
+          start: startOffset,
+          end: r.index
+        }
+      });
+      startOffset = r.index + r[0].length;
+    }
+    result.push({
+      substring: text.substring(startOffset, text.length),
+      range: {
+        start: startOffset,
+        end: text.length
+      }
+    });
+    return result;
+  } else {
+    const matches = matchAll2(text, regex);
+    let prevOffset = 0;
+    for (const r of matches) {
+      const stringEnd = r.index + r[0].length;
+      result.push({
+        substring: text.substring(prevOffset, stringEnd),
+        range: {
+          start: prevOffset,
+          end: stringEnd
+        }
+      });
+      prevOffset = stringEnd;
+    }
+    result.push({
+      substring: text.substring(prevOffset, text.length),
+      range: {
+        start: prevOffset,
+        end: text.length
+      }
+    });
+    return result;
+  }
+}
+
+// ../mapped-text.ts
+function mappedSubstring(source, start, end) {
+  if (typeof source === "string") {
+    source = asMappedString(source);
+  }
+  const value = source.value.substring(start, end);
+  const mappedSource2 = source;
+  return {
+    value,
+    map: (index, closest) => {
+      if (closest) {
+        index = Math.max(0, Math.min(value.length, index - 1));
+      }
+      if (index === 0 && index === value.length) {
+        return mappedSource2.map(index + start, closest);
+      }
+      if (index < 0 || index >= value.length) {
+        return void 0;
+      }
+      return mappedSource2.map(index + start, closest);
+    }
+  };
+}
+function mappedString(source, pieces, fileName) {
+  if (typeof source === "string") {
+    source = asMappedString(source, fileName);
+  }
+  const mappedPieces = pieces.map((piece) => {
+    if (typeof piece === "string") {
+      return asMappedString(piece);
+    } else if (piece.value !== void 0) {
+      return piece;
+    } else {
+      const { start, end } = piece;
+      return mappedSubstring(source, start, end);
+    }
+  });
+  return mappedConcat(mappedPieces);
+}
+function asMappedString(str2, fileName) {
+  if (typeof str2 === "string") {
+    return {
+      value: str2,
+      fileName,
+      map: function(index, closest) {
+        if (closest) {
+          index = Math.min(str2.length - 1, Math.max(0, index));
+        }
+        if (index < 0 || index >= str2.length) {
+          return void 0;
+        }
+        return {
+          index,
+          originalString: this
+        };
+      }
+    };
+  } else if (fileName !== void 0) {
+    throw new InternalError(
+      "can't change the fileName of an existing MappedString"
+    );
+  } else {
+    return str2;
+  }
+}
+function mappedConcat(strings) {
+  if (strings.length === 0) {
+    return {
+      value: "",
+      map: (_index, _closest) => void 0
+    };
+  }
+  if (strings.every((s) => typeof s === "string")) {
+    return asMappedString(strings.join(""));
+  }
+  const mappedStrings = strings.map((s) => {
+    if (typeof s === "string") {
+      return asMappedString(s);
+    } else
+      return s;
+  });
+  let currentOffset = 0;
+  const offsets = [0];
+  for (const s of mappedStrings) {
+    currentOffset += s.value.length;
+    offsets.push(currentOffset);
+  }
+  const value = mappedStrings.map((s) => s.value).join("");
+  return {
+    value,
+    map: (offset, closest) => {
+      if (closest) {
+        offset = Math.max(0, Math.min(offset, value.length - 1));
+      }
+      if (offset === 0 && offset == value.length && mappedStrings.length) {
+        return mappedStrings[0].map(0, closest);
+      }
+      if (offset < 0 || offset >= value.length) {
+        return void 0;
+      }
+      const ix = glb(offsets, offset);
+      const v = mappedStrings[ix];
+      return v.map(offset - offsets[ix]);
+    }
+  };
+}
+function mappedIndexToLineCol(eitherText) {
+  const text = asMappedString(eitherText);
+  return function(offset) {
+    const mapResult = text.map(offset, true);
+    if (mapResult === void 0) {
+      throw new InternalError("bad offset in mappedIndexRowCol");
+    }
+    const { index, originalString } = mapResult;
+    return indexToLineCol(originalString.value)(index);
+  };
+}
+function mappedLines(str2, keepNewLines = false) {
+  const lines2 = rangedLines(str2.value, keepNewLines);
+  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // parsing.ts
@@ -26075,7 +26062,7 @@ function schemaCall(s, d, other) {
   if (other) {
     return other(s);
   }
-  throw new InternalError(`Dispatch failed for type ${st}`);
+  throw new Error(`Internal Error: Dispatch failed for type ${st}`);
 }
 function schemaDocString(d) {
   if (typeof d === "string") {
