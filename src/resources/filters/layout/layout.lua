@@ -76,7 +76,8 @@ function partition_cells(float)
   local cells = pandoc.List()
 
   local heading = nil
-  for _, block in ipairs(float.content) do    
+  local content = quarto.utils.as_blocks(float.content)
+  for _, block in ipairs(content) do    
     if isPreambleBlock(block) then
       if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
         preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
@@ -101,27 +102,6 @@ function partition_cells(float)
         cellDiv = pandoc.Div(block)
       end
 
-      -- -- ensure we are dealing with a div
-      -- local cellDiv = nil
-      -- if is_regular_node(block, "Div") then
-      --   -- if this has a single figure div then unwrap it
-      --   if #block.content == 1 and 
-      --      is_regular_node(block.content[#block.content], "Div") and
-      --      hasFigureOrTableRef(block.content[#block.content]) then
-      --     cellDiv = block.content[#block.content]
-      --   else
-      --     cellDiv = block
-      --   end
-      -- else
-      --   cellDiv = pandoc.Div(block)
-      -- end
-      
-      -- -- special behavior for cells with figures (including ones w/o captions)
-      -- local fig = figureImageFromLayoutCell(cellDiv)
-      -- if fig then
-      --   -- transfer width to cell
-      --   transferImageWidthToCell(fig, cellDiv)
-      -- end
       if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
         transfer_float_image_width_to_cell(subfloat, cellDiv)
       end
