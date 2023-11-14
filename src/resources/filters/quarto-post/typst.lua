@@ -39,7 +39,6 @@ function render_typst_fixups()
     if value == nil then
       return nil
     end
-    -- does this value have a percent in it
     if value:find("%%") then
       return true
     end
@@ -49,6 +48,7 @@ function render_typst_fixups()
   end
 
   return {
+    traverse = "topdown",
     Image = function(image)
       -- if the width or height are "ratio" or "relative", in typst parlance,
       -- then we currently need to hide it from Pandoc 3.1.9 until
@@ -68,6 +68,26 @@ function render_typst_fixups()
         local escaped_src = image.src:gsub("\\", "\\\\"):gsub("\"", "\\\"")
         return pandoc.RawInline("typst", "#box(" .. attr_str .. "image(\"" .. escaped_src .. "\"))")
       end
+    end,
+    Para = function(para)
+      if #para.content ~= 1 then
+        return nil
+      end
+      local img = quarto.utils.match("[1]/Image")(para)
+      if not img then 
+        return nil
+      end
+      local align = img.attributes["fig-align"]
+      if align == nil then
+        return nil
+      end
+
+      img.attributes["fig-align"] = nil
+      return pandoc.Inlines({
+        pandoc.RawInline("typst", "#align(" .. align .. ")["),
+        img,
+        pandoc.RawInline("typst", "]"),
+      })
     end
   }
 end
