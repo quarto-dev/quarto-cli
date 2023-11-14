@@ -543,7 +543,7 @@ jobs:
             quarto-${{needs.configure.outputs.version}}-checksums.txt
 
   cleanup-when-failure:
-    if: ${{ failure() && inputs.publish-release }}
+    if: ${{ (failure() || cancelled()) && inputs.publish-release }}
     needs:
       [
         configure,
