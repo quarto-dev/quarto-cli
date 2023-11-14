@@ -60,6 +60,9 @@ local function popCardSidebarTargetsForId(id)
   return cardTargets
 end
 
+local protectedBlocks = pandoc.List({})
+
+
 
 function render_dashboard() 
 
@@ -75,9 +78,77 @@ function render_dashboard()
   -- This happens in 2 passes:
   -- The first pass will resolve cards, valueboxes, etc...
   -- The second pass will layout the dashboard
-    return {    
+    return {  
     {
       traverse = 'topdown',
+      Pandoc = function(el)
+        -- Note that HTML dependencies can get mangled (I think) in pandoc
+        -- in particular when things are gathered into sections. So....
+        -- This pops them out and just hangs onto them and then we inject them 
+        -- afterwards to ensure they remain in place at the bottom of the document
+        --
+        --                __________________
+        --                \                 \
+        --                  \                 \
+        --                    \                 \
+        --                      \                 \
+        --        /-------------------------------------
+        --        //---------------//                  / |
+        --        //               //                  / __|
+        --        //               //                  / /  ||
+        --        //               //                  / /    ||
+        --        //_______________//   o o            / /      ||      ___/-\___
+        --        ------------------------------------/   ------- |     |---------|
+        --        | DO NOT PLAY |         | HOUSEHOLD |           |      | | | | |
+        --        | ON OR AROUND|         |WASTE ONLY |           |      | | | | |
+        --        |--------------         ------------|           |      | | | | |
+        --        |                                   |           |      | | | | |
+        --        -------------------------------------------------      |_______|
+        local preserveInlinePattern = "preserve[0-9a-fA-F]"
+        local blocks = pandoc.Blocks({})
+        local collecting = false;
+        for i, v in ipairs(el.blocks) do
+          if v.t == "Para" then
+            -- Any paragraphs that are composed only of HTML preserve strings
+            -- and soft breaks will protected
+            local isHtmlPreserve = true
+            for j, w in ipairs(v.content) do
+              if w.t ~= "Str" and w.t ~= "SoftBreak" then
+                isHtmlPreserve = false
+                break
+              elseif w.t == "Str" and not w.text:match(preserveInlinePattern) then
+                isHtmlPreserve = false
+                break
+              end
+            end
+            if isHtmlPreserve then
+              protectedBlocks:insert(v)
+            else
+              blocks:insert(v)
+            end
+          elseif is_regular_node(v, "RawBlock") then
+            -- Raw Blocks that are html_preserve comments or between
+            -- those comments will be protected (contiguously)
+            if v.text == "<!--html_preserve-->" then
+              collecting = true;
+              protectedBlocks:insert(v)
+            elseif v.text == "<!--/html_preserve-->" then
+              collecting = false;
+              protectedBlocks:insert(v)
+            elseif collecting then
+              protectedBlocks:insert(v)
+            else
+              blocks:insert(v)
+            end
+          else
+            -- stop collecting
+            collecting = false
+            blocks:insert(v)          end  
+        end
+        el.blocks = blocks
+        return el
+      end,
+
       PanelLayout = function(el)
         local options, userClasses = dashboard.card.readOptions(el)
         return dashboard.card.makeCard({ el }, userClasses, options), false
@@ -629,7 +700,7 @@ function render_dashboard()
 
       end,
     }, {
-      Pandoc = function(_pandoc) 
+      Pandoc = function(doc) 
 
         -- If there is still a pending card toolbar, that means that the user
         -- placed inputs at the end of the document with no cards or tabsets following
@@ -656,6 +727,11 @@ function render_dashboard()
         
         if #missingIds > 0 then
           fatal("A card toolbar or sidebar failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
+        end
+
+        if #protectedBlocks > 0 then
+          doc.blocks:extend(protectedBlocks)
+          return doc
         end
       end
     }
