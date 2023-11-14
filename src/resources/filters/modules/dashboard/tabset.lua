@@ -152,7 +152,7 @@ local function makeTabset(title, contents, classes, options)
 end
 
 local function isTabset(el)
-  return (el.t == "Div" or el.t == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
+  return (is_regular_node(el, "Div") or el.t == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
 end
 
 local function readOptions(el)
@@ -180,15 +180,15 @@ local function readOptions(el)
 end
 
 local function isTabHeader(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabHeaderClass)
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:includes(kTabHeaderClass)
 end
 
 local function isTabFooter(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabFooterClass)
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:includes(kTabFooterClass)
 end
 
 local function isTabBody(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabBodyClass)
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:includes(kTabBodyClass)
 end
 
 function addToHeader(tabset, content, title)

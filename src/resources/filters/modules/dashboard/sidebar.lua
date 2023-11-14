@@ -88,7 +88,7 @@ function sidebarInContents(content)
         hasSidebar = true
         break
       end
-    elseif v.t == "Div" then
+    elseif is_regular_node(v, "Div")  then
       
       if isSidebar(v) then
         hasSidebar = true

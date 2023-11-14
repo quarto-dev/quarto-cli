@@ -245,7 +245,7 @@ function render_dashboard()
             -- Try to read the title from any programmatic output
             -- in case it is showing up that way
             local cardContent = el.content
-            if #cardContent > 1 and cardContent[1].t == "Div" then
+            if #cardContent > 1 and is_regular_node(cardContent[1], "Div") and not is_custom_node(cardContent[1]) then
               if cardContent[1].classes:includes('cell-output-stdout') then
 
                 -- See if the content is a CodeBlock 
@@ -430,7 +430,7 @@ function render_dashboard()
         -- to cards
         local result = pandoc:Blocks()
         for _i, v in ipairs(blocks) do
-          if v.t == "Div" and not is_custom_node(v) then
+          if is_regular_node(v, "Div") then
           
             if dashboard.card.isCard(v) then
               -- If there is a pending card toolbar, then insert it into

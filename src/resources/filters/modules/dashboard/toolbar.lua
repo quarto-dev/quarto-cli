@@ -90,7 +90,7 @@ function toolbarInContents(content)
         hasToolbar = true
         break
       end
-    elseif v.t == "Div" then
+    elseif is_regular_node(v, "Div") then
       if isToolbar(v) then
         hasToolbar = true
         break

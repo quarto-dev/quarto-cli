@@ -98,7 +98,7 @@ local function makeCardToolbar(contents, options)
   end
 
   -- if there is only a single cell as a child, forward its children to the top level
-  if #contents == 1 and contents[1].t == "Div" and contents[1].classes:includes("cell") then
+  if #contents == 1 and is_regular_node(contents[1], "Div") and contents[1].classes:includes("cell") then
     contents = contents[1].content
   end
 
@@ -113,7 +113,7 @@ local function isCardToolbar(el)
     return true
   end
 
-  return (el.t == "Div") and el.classes:includes(kCardToolbarClass)
+  return is_regular_node(el, "Div") and el.classes:includes(kCardToolbarClass)
 end
 
 -- Target Processing

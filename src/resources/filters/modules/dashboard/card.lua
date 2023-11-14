@@ -72,20 +72,20 @@ local function hasCardDecoration(el)
 end
 
 local function isCard(el) 
-  return (el.t == "Div") and hasCardDecoration(el)
+  return is_regular_node(el, "Div") and hasCardDecoration(el)
 end
 
 local function isCardBody(el) 
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardBodyClz:includes(class)
   end) 
 end
 local function isCardFooter(el)
-  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
+  return el.t == "BlockQuote" or (is_regular_node(el, "Div") and el.classes:includes(kCardFooterClass))
 end
 
 local function isCardHeader(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardHeaderClz:includes(class)
   end) 
 end
