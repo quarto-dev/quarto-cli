@@ -176,6 +176,10 @@ local function isTabFooter(el)
   return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabFooterClass)
 end
 
+local function isTabBody(el)
+  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabBodyClass)
+end
+
 function addToHeader(tabset, content, title)
   local tabsetHeader = utils.findChildDiv(tabset, isTabHeader)
   if tabsetHeader then
@@ -199,7 +203,17 @@ function addToFooter(tabset, content)
     tabsetFooter.content:insert(content)
   else
     local newFooter = pandoc.Div(content, pandoc.Attr("", {kTabFooterClass}))
-    card.content:insert(newFooter)
+    tabset.content:insert(newFooter)
+  end
+end
+
+function addToBody(tabset, content)
+  local tabsetBody = utils.findChildDiv(tabset, isTabBody)
+  if tabsetBody then
+    tabsetBody.content:insert(1, content)
+  else
+    local newBody = pandoc.Div(content, pandoc.Attr("", {kTabBodyClass}))
+    tabset.content:insert(newBody)
   end
 end
 
@@ -208,6 +222,7 @@ return {
   readOptions = readOptions,
   makeTabset = makeTabset,
   addToHeader = addToHeader,
-  addToFooter = addToFooter
+  addToFooter = addToFooter,
+  addToBody = addToBody
 }
 

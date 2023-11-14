@@ -375,8 +375,6 @@ function addToHeader(card, content, title)
     local newHeader = pandoc.Div(headerContent, pandoc.Attr("", {kCardHeaderClass}))
     card.content:insert(1, newHeader)
   end
-
-  
 end
 
 function addToFooter(card, content)
@@ -386,6 +384,16 @@ function addToFooter(card, content)
   else
     local newFooter = pandoc.Div(content, pandoc.Attr("", {kCardFooterClass}))
     card.content:insert(newFooter)
+  end
+end
+
+function addToBody(card, content)
+  local cardBody = utils.findChildDiv(card, isCardBody)
+  if cardBody then
+      cardBody.content:insert(1, content)
+  else
+      local newBody = pandoc.Div(content, pandoc.Attr("", {kCardBodyClass}))
+      card.content:insert(newBody)
   end
 end
 
@@ -407,6 +415,7 @@ return {
   isLiteralCard = isLiteralCard,
   readOptions = readOptions,
   makeCard = makeCard,
+  addToBody = addToBody,
   addToFooter = addToFooter,
   addToHeader = addToHeader,
   hasCardDecoration = hasCardDecoration,

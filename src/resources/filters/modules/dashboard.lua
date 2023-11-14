@@ -9,6 +9,7 @@ local page = require 'modules/dashboard/page'
 local document = require 'modules/dashboard/document'
 local tabset = require 'modules/dashboard/tabset'
 local card_toolbar = require 'modules/dashboard/card-toolbar'
+local card_sidebar = require 'modules/dashboard/card-sidebar'
 local toolbar = require 'modules/dashboard/toolbar'
 
 
@@ -129,6 +130,7 @@ return {
   toolbar = toolbar,
   page = page,
   tabset = tabset,
+  card_sidebar = card_sidebar,
   card_toolbar = card_toolbar,
   document = document,
   layoutContainer = {

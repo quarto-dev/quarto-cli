@@ -10,10 +10,14 @@ local kIgnoreWhenOrganizingClz = {kSectionClass, kHiddenClass}
 local kCellClass = "cell"
 local kCellOutputDisplayClass = "cell-output-display"
 
-local previousCardToolbarTarget = nil
+local previousCardTarget = nil
 local pendingCardToolbar = nil
+local pendingCardSidebar = nil
 local function setPendingCardToolbar(el)
   pendingCardToolbar = el
+end
+local function setPendingCardSidebar(el)
+  pendingCardSidebar = el
 end
 
 local function popPendingCardToolbar()
@@ -22,12 +26,18 @@ local function popPendingCardToolbar()
   return pendingToolbar
 end
 
+local function popPendingSidebar()
+  local pendingSidebar = pendingCardSidebar
+  pendingCardSidebar = nil
+  return pendingSidebar
+end
+
 local cardToolbarTargets = {
 }
-local function noteTargetForCardToolbar(panel, id) 
-  dashboard.card_toolbar.markProcessed(panel)
+local function noteTargetForCardToolbar(toolbar, id) 
+  dashboard.card_toolbar.markProcessed(toolbar)
   cardToolbarTargets[id] = cardToolbarTargets[id] or pandoc.List()
-  cardToolbarTargets[id]:insert(panel)
+  cardToolbarTargets[id]:insert(toolbar)
 end
 
 local function popCardTargetsForId(id) 
@@ -36,6 +46,19 @@ local function popCardTargetsForId(id)
   return cardTargets
 end
 
+local cardSidebarTargets = {
+}
+local function noteTargetForCardSidebar(sidebar, id) 
+  dashboard.card_sidebar.markProcessed(sidebar)
+  cardSidebarTargets[id] = cardSidebarTargets[id] or pandoc.List()
+  cardSidebarTargets[id]:insert(sidebar)
+end
+
+local function popCardSidebarTargetsForId(id) 
+  local cardTargets = cardSidebarTargets[id]
+  cardSidebarTargets[id] = nil
+  return cardTargets
+end
 
 
 function render_dashboard() 
@@ -63,6 +86,24 @@ function render_dashboard()
 
         if el.attributes["output"] == "asis" then
           return nil
+
+        elseif dashboard.card_sidebar.isCardSidebar(el) then
+          
+          -- Convert any card sidebars into their standard representation
+          -- note that these will be process downstream to do things like 
+          -- convert them into a card, or merge them into other card header/footers
+          -- per the user's request 
+          local options = dashboard.card_sidebar.readOptions(el)
+          local cardSidebar = dashboard.card_sidebar.makeCardSidebar(el.content, options)
+
+          local targetId = dashboard.card_sidebar.targetId(cardSidebar)
+          if targetId ~= nil then
+            noteTargetForCardSidebar(cardSidebar, targetId)
+            return pandoc.Null(), false
+          else
+            return cardSidebar, false
+          end
+
         elseif dashboard.card_toolbar.isCardToolbar(el) then
           
           -- Convert any card toolbars into their standard representation
@@ -401,7 +442,13 @@ function render_dashboard()
                 dashboard.card_toolbar.addToTarget(pendingToolbar, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
               end
 
-              -- inject any specifically target card toolbars
+              -- if thers is a pending card sidebar, inject that
+              local pendingSidebar = popPendingSidebar()
+              if pendingSidebar ~= nil then
+                dashboard.card_sidebar.addToTarget(pendingSidebar, v, dashboard.card.addToBody)
+              end
+
+              -- inject any specifically target card toolbars or sidebars
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
                 for _j, targetId in ipairs(possibleTargetIds) do
@@ -411,11 +458,18 @@ function render_dashboard()
                       dashboard.card_toolbar.addToTarget(toolbar, v, dashboard.card.addToHeader, dashboard.card.addToFooter)
                     end
                   end    
+
+                  local sidebarsForTarget = popCardSidebarTargetsForId(targetId)
+                  if sidebarsForTarget ~= nil then
+                    for _k,sidebar in ipairs(sidebarsForTarget) do
+                      dashboard.card_sidebar.addToTarget(sidebar, v, dashboard.card.addToBody)
+                    end
+                  end
                 end
               end
 
               result:insert(v)
-              previousCardToolbarTarget = v
+              previousCardTarget = v
 
             elseif (dashboard.tabset.isTabset(v)) then
               -- If there is a pending card toolbar, then insert it into
@@ -427,6 +481,13 @@ function render_dashboard()
                 dashboard.card_toolbar.addToTarget(pendingToolbar, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
               end
 
+              -- if thers is a pending card sidebar, inject that
+              local pendingSidebar = popPendingSidebar()
+              if pendingSidebar ~= nil then
+                dashboard.card_sidebar.addToTarget(pendingSidebar, v, dashboard.tabset.addToBody)
+              end
+              
+
               -- inject an specifically target card toolbars
               local possibleTargetIds = dashboard.utils.idsWithinEl(v)
               if possibleTargetIds ~= nil then
@@ -437,25 +498,32 @@ function render_dashboard()
                       dashboard.card_toolbar.addToTarget(toolbar, v, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                     end
                   end    
+
+                  local sidebarsForTarget = popCardSidebarTargetsForId(targetId)
+                  if sidebarsForTarget ~= nil then
+                    for _k,sidebar in ipairs(sidebarsForTarget) do
+                      dashboard.card_sidebar.addToTarget(sidebar, v, dashboard.tabset.addToBody)
+                    end
+                  end                  
                 end
               end
               
               result:insert(v)
-              previousCardToolbarTarget = v
+              previousCardTarget = v
 
             elseif dashboard.card_toolbar.isCardToolbar(v) and dashboard.card_toolbar.isUnprocessed(v) then
               -- If this is an unprocessed card toolbar, mark it processed and handle it appropriately
               dashboard.card_toolbar.markProcessed(v)
               if dashboard.card_toolbar.targetPrevious(v) then
                 -- This is for a the card/tabset that appears above
-                if previousCardToolbarTarget == nil then
+                if previousCardTarget == nil then
                   fatal("A card toolbar specified to insert into previous card or tabset, but there was no previous card or tabset.")
-                elseif dashboard.card.isCard(previousCardToolbarTarget) then
-                  dashboard.card_toolbar.addToTarget(v, previousCardToolbarTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
-                elseif dashboard.tabset.isTabset(previousCardToolbarTarget) then
-                  dashboard.card_toolbar.addToTarget(v, previousCardToolbarTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
+                elseif dashboard.card.isCard(previousCardTarget) then
+                  dashboard.card_toolbar.addToTarget(v, previousCardTarget, dashboard.card.addToHeader, dashboard.card.addToFooter)
+                elseif dashboard.tabset.isTabset(previousCardTarget) then
+                  dashboard.card_toolbar.addToTarget(v, previousCardTarget, dashboard.tabset.addToHeader, dashboard.tabset.addToFooter)
                 else
-                  fatal("Unexpected element " .. previousCardToolbarTarget.t .. "appearing as the target for a card toolbar.")
+                  fatal("Unexpected element " .. previousCardTarget.t .. "appearing as the target for a card toolbar.")
                 end
               elseif dashboard.card_toolbar.targetNext(v) then
                 -- This card toolbar belongs in the next card, hang onto it
@@ -468,6 +536,32 @@ function render_dashboard()
                 cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
                 result:insert(dashboard.card.makeCard({v}, userClasses, cardOptions))
               end
+            elseif dashboard.card_sidebar.isCardSidebar(v) and dashboard.card_sidebar.isUnprocessed(v) then
+              -- If this is an unprocessed card sidebar, mark it processed and handle it appropriately
+              dashboard.card_sidebar.markProcessed(v)
+              if dashboard.card_sidebar.targetPrevious(v) then
+                -- This is for a the card/tabset that appears above
+                if previousCardTarget == nil then
+                  fatal("A card sidebar specified to insert into previous card or tabset, but there was no previous card or tabset.")
+                elseif dashboard.card.isCard(previousCardTarget) then
+                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.card.addToBody)
+                elseif dashboard.tabset.isTabset(previousCardTarget) then
+                  dashboard.card_sidebar.addToTarget(v, previousCardTarget, dashboard.tabset.addToBody)
+                else
+                  fatal("Unexpected element " .. previousCardTarget.t .. "appearing as the target for a card sidebar.")
+                end
+              elseif dashboard.card_sidebar.targetNext(v) then
+                -- This card toolbar belongs in the next card, hang onto it
+                -- don't inject it
+                setPendingCardSidebar(v)
+              else
+                -- Free floating card sidebar, place it in a card
+                local userClasses, cardOptions = dashboard.card.readOptions(v)
+                cardOptions[dashboard.card.optionKeys.expandable] = false
+                cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+                result:insert(dashboard.card.makeCard({v}, userClasses, cardOptions))
+              end
+
             else 
               result:insert(v)  
             end
@@ -540,10 +634,16 @@ function render_dashboard()
 
         -- If there is still a pending card toolbar, that means that the user
         -- placed inputs at the end of the document with no cards or tabsets following
-        local pendingPanel = popPendingCardToolbar()
-        if pendingPanel ~= nil then
+        local pendingToolbar = popPendingCardToolbar()
+        if pendingToolbar ~= nil then
           fatal("The card toolbar was unable to placed within the next card or tabset as there was no next card or tabset.")
         end
+
+        local pendingSidebar = popPendingSidebar()
+        if pendingSidebar ~= nil then
+          fatal("The card sidebar was unable to placed within the next card or tabset as there was no next card or tabset.")
+        end
+        
 
         -- If there are ids that haven't been resolved, that means that the user targeted ids with
         -- inputs and those ids were never found, so the card toolbar was never placed.
@@ -551,12 +651,13 @@ function render_dashboard()
         for k,v in pairs(cardToolbarTargets) do
           missingIds:insert(k)
         end
+        for l, v in pairs(cardSidebarTargets) do
+          missingIds:insert(v)
+        end
         
         if #missingIds > 0 then
-          fatal("A card toolbar failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
+          fatal("A card toolbar or sidebar failed to be placed within a card or tabset using an id. The following id(s) could not be found in the document:\n" .. table.concat(missingIds, ", "))
         end
-
-
       end
     }
   }
