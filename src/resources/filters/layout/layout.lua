@@ -76,7 +76,8 @@ function partition_cells(float)
   local cells = pandoc.List()
 
   local heading = nil
-  for _, block in ipairs(float.content) do    
+  local content = quarto.utils.as_blocks(float.content)
+  for _, block in ipairs(content) do    
     if isPreambleBlock(block) then
       if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
         preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
