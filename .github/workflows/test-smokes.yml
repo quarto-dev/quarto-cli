@@ -142,6 +142,9 @@ jobs:
         run: |
           quarto install tinytex
 
+      - name: Cache Typst packages
+        uses: ./.github/actions/cache-typst
+
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 
