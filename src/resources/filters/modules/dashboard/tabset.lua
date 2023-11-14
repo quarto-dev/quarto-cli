@@ -41,6 +41,7 @@ local function resolveTabs(contents)
   local tabFooterEls = pandoc.List()
   local tabBodyEls = pandoc.List()
   local tabHeaderEls = pandoc.List()
+  local ignoreEls = pandoc.List()
 
   -- Process the contents (figuring out the tab title, dealing with cards, etc...)
   for _i, v in ipairs(contents) do   
@@ -70,6 +71,10 @@ local function resolveTabs(contents)
       tabHeaderEls:insert(v)
       cardToolbar.markProcessed(v)
       tabContent = nil
+
+    elseif v.classes:includes('hidden') then
+      ignoreEls:insert(v)
+      tabContent = nil
     else
       -- If the direct descrendent of a tab isn't a card, see if it has a header within it
       -- that we can use as the tab title, then just allow the content to flow along
@@ -90,7 +95,7 @@ local function resolveTabs(contents)
     end
   end
 
-  return tabBodyEls, tabHeaderEls, tabFooterEls
+  return tabBodyEls, tabHeaderEls, tabFooterEls, ignoreEls
 end
 
 
@@ -108,7 +113,7 @@ local function makeTabset(title, contents, classes, options)
   end
 
   -- compute the card body(ies)
-  local tabEls, tabHeaderEls, tabFooterEls = resolveTabs(contents)
+  local tabEls, tabHeaderEls, tabFooterEls, ignoreEls = resolveTabs(contents)
   tabContents:extend(tabEls)
 
   -- add anything to header that needs to be added
@@ -121,6 +126,12 @@ local function makeTabset(title, contents, classes, options)
   if tabFooter ~= nil then
     tabContents:insert(tabFooter)
   end
+
+  -- place any other stuff there too
+  if ignoreEls ~= nil then
+    tabContents:extend(ignoreEls)
+  end
+
 
   -- add outer classes
   local clz = pandoc.List({kTabOutputClass, kTabsetClass})
