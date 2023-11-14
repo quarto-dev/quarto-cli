@@ -27,6 +27,7 @@ import {
   checkBinaryDependencies,
 } from "./common/archive-binary-dependencies.ts";
 import { updatePandoc } from "./common/update-pandoc.ts";
+import { validateBundle } from "./common/validate-bundle.ts";
 
 // Core command dispatch
 export async function quartoBld(args: string[]) {
@@ -86,6 +87,11 @@ function getCommands() {
     packageCommand(prepareDist)
       .name("prepare-dist")
       .description("Prepares the distribution directory for packaging."),
+  );
+  commands.push(
+    packageCommand(validateBundle)
+      .name("validate-bundle")
+      .description("Validate a JS bundle built using prepare-dist")
   );
   commands.push(
     packageCommand(makeInstallerMac)
