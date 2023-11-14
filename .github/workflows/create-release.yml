@@ -77,7 +77,7 @@ jobs:
         if: ${{ inputs.publish-release }}
         id: version_commit
         with:
-          add: "version.txt"
+          add: '["version.txt", "news/changelog-${{steps.read-version.outputs.version}}.md"]'
           tag: v${{ steps.read-version.outputs.version_full }}
           message: "Update version.txt"
           fetch: true
@@ -570,8 +570,9 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git pull origin $GITHUB_REF_NAME
+          git stash -u
           git revert -n ${{ needs.configure.outputs.version_commit }}
-          git add 'version.txt'
+          git add .
           git commit -m 'Revert version.txt update (${{ needs.configure.outputs.version_commit }})' -m 'Publishing release has failed.'
           git push origin $GITHUB_REF_NAME
 
