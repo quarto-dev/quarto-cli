@@ -10,12 +10,14 @@ import {
   extname,
   fromFileUrl,
   isAbsolute,
-  isGlob,
   join,
   normalize,
 } from "path/mod.ts";
 
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import {
+  globToRegExp,
+  isGlob,
+} from "https://deno.land/std@0.204.0/path/glob.ts";
 
 import { warning } from "log/mod.ts";
 
