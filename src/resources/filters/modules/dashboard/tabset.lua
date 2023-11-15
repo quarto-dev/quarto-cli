@@ -72,7 +72,7 @@ local function resolveTabs(contents)
       cardToolbar.markProcessed(v)
       tabContent = nil
 
-    elseif v.classes ~- nil and v.classes:includes('hidden') then
+    elseif v.classes ~= nil and v.classes:includes('hidden') then
       ignoreEls:insert(v)
       tabContent = nil
     else
