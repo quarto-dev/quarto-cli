@@ -277,6 +277,10 @@ $valuebox-colors: (
     .navbar {
       padding: 0;
 
+      .navbar-container {
+        padding-left: 1em;
+      }
+
       &.slim {
         .navbar-brand-container,
         .navbar-nav {
@@ -306,7 +310,7 @@ $valuebox-colors: (
       }
 
       .navbar-brand-container {
-        padding: 0.5em;
+        padding: 0.5em 0.5em 0.5em 0;
         display: flex;
         flex-direction: row;
         margin-right: 2em;
