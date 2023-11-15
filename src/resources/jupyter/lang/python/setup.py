@@ -50,6 +50,19 @@ if is_dashboard:
   except Exception:
     pass
 
+  try:
+    import altair as alt
+
+    # By default, dashboards will have container sized
+    # vega visualizations which allows them to flow reasonably
+    def quarto_dashboard_theme(*args, **kwargs):
+      return dict(width = 'container', height= 'container')
+    alt.themes.register('quarto-dashboard-theme', quarto_dashboard_theme)
+    alt.themes.enable('quarto-dashboard-theme')
+  
+  except Exception:
+    pass
+
 # enable pandas latex repr when targeting pdfs
 try:
   import pandas as pd
