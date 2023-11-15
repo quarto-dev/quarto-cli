@@ -19,20 +19,27 @@ export function typstBinaryPath() {
     architectureToolsPath("typst");
 }
 
-function fontPathsArgs() {
-  const fontPathsEnv = Deno.env.get("TYPST_FONT_PATHS");
+function fontPathsArgs(fontPaths?: string[]) {
+  // orders matter and fontPathsQuarto should be first for our template to work
   const fontPathsQuarto = ["--font-path", resourcePath("formats/typst/fonts")];
-  if (fontPathsEnv) {
-    return [...fontPathsQuarto, "--font-path", fontPathsEnv];
-  } else {
-    return fontPathsQuarto;
+  const fontPathsEnv = Deno.env.get("TYPST_FONT_PATHS");
+  let fontExtrasArgs: string[] = [];
+  if (fontPaths && fontPaths.length > 0) {
+    fontExtrasArgs = fontPaths.map((p) => ["--font-path", p]).flat();
+  } else if (fontPathsEnv) {
+    // Env var is used only if not specified in config by user
+    // to respect Typst behavior where `--font-path` has precedence over env var
+    return fontExtrasArgs = ["--font-path", fontPathsEnv];
   }
+
+  return fontPathsQuarto.concat(fontExtrasArgs);
 }
 
 export async function typstCompile(
   input: string,
   output: string,
   quiet = false,
+  fontPaths?: string[],
 ) {
   if (!quiet) {
     typstProgress(input, output);
@@ -41,7 +48,7 @@ export async function typstCompile(
     typstBinaryPath(),
     "compile",
     input,
-    ...fontPathsArgs(),
+    ...fontPathsArgs(fontPaths),
     output,
   ];
   const result = await execProcess({ cmd });
