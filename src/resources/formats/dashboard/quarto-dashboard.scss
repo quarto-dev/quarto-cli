@@ -769,6 +769,16 @@ $valuebox-colors: (
     }
   }
 
+  .vega-embed.has-actions {
+    details {
+      width: 1.7em;
+      height: 2em;
+      position: absolute !important;
+      top: 0;
+      right: 0;
+    }
+  }
+
   .dashboard-toolbar-container {
     padding: 0;
   }
