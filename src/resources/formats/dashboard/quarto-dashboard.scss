@@ -175,9 +175,11 @@ $dashboard-card-toolbar-top-margin: 6px !default;
     .dataTables_filter {
       label {
         font-size: 0.9em;
+        margin-bottom: 0.7em;
       }
       input[type="search"] {
-        padding: 1px;
+        padding: 1px 5px 1px 5px;
+        font-size: 0.9em;
       }
     }
   }
