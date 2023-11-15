@@ -16016,6 +16016,21 @@ try {
               short: "The mode to use when previewing this document.",
               long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n"
             }
+          },
+          {
+            name: "font-paths",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Adds additional directories to search for fonts when compiling with Typst.",
+              long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
+            }
           }
         ],
         "schema/document-pdfa.yml": [
@@ -22227,7 +22242,11 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -22451,12 +22470,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 178122,
+          _internalId: 178128,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 178114,
+              _internalId: 178120,
               type: "enum",
               enum: [
                 "png",
@@ -22472,7 +22491,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 178121,
+              _internalId: 178127,
               type: "anyOf",
               anyOf: [
                 {

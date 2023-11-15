@@ -323,3 +323,15 @@
     long: |
       The mode to use when previewing this document. To disable any special
       previewing features, pass `raw` as the preview-mode.
+
+- name: font-paths
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [typst]
+  description:
+    short: "Adds additional directories to search for fonts when compiling with Typst."
+    long: |
+      Locally, Typst uses installed system fonts. In addition, some custom path 
+      can be specified to add directories that should be scanned for fonts.
+      Setting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.
