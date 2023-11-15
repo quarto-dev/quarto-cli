@@ -57,6 +57,7 @@
 
 ## PDF Format
 
+- ([#4370](https://github.com/quarto-dev/quarto-cli/issues/4370)): Hoist code cells deep in the AST out of layout cells to avoid `\raisebox` issues with the `Shaded` environment.
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
 - ([#6077](https://github.com/quarto-dev/quarto-cli/issues/6077)): Make sure proof environments are tight around contents.
 - ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
