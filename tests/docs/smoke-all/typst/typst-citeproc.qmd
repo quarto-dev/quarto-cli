@@ -2,13 +2,13 @@
 title: "Citeproc and Typst"
 format: 
   typst:
-    output-ext: typ
+    keep-typ: true
 bibliography: refs.bib
 citeproc: true
 _quarto:
   tests: 
     typst:
-      ensureFileRegexMatches:
+      ensureTypstFileRegexMatches:
       - ['<refs>', '<ref-Cronbach_1951>']
       - ['\#bibliography\([^)]*\)']
 ---
