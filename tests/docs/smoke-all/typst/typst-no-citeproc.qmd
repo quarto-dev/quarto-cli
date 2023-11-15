@@ -2,15 +2,17 @@
 title: "Citeproc and Typst"
 format: 
   typst:
-    output-ext: typ
+    keep-typ: true
 bibliography: refs.bib
 bibliographystyle: "chicago-author-date"
 _quarto:
   tests: 
     typst:
-      ensureFileRegexMatches:
+      ensureTypstFileRegexMatches:
       - ['\#set bibliography\(style\: [^)]*\)', '\#bibliography\([^)]*\)', '\#cite\([^)]*\)']
       - ['<refs>', '<ref-Cronbach_1951>']
 ---
 
-Hello [@Cronbach_1951]
+Hello @Cronbach_1951
+
+Hello [@Cronbach_1951; @Cronbach_1952]
