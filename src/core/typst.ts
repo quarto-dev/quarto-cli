@@ -19,6 +19,16 @@ export function typstBinaryPath() {
     architectureToolsPath("typst");
 }
 
+function fontPathsArgs() {
+  const fontPathsEnv = Deno.env.get("TYPST_FONT_PATHS");
+  const fontPathsQuarto = ["--font-path", resourcePath("formats/typst/fonts")];
+  if (fontPathsEnv) {
+    return [...fontPathsQuarto, "--font-path", fontPathsEnv];
+  } else {
+    return fontPathsQuarto;
+  }
+}
+
 export async function typstCompile(
   input: string,
   output: string,
@@ -27,13 +37,11 @@ export async function typstCompile(
   if (!quiet) {
     typstProgress(input, output);
   }
-
   const cmd = [
     typstBinaryPath(),
     "compile",
     input,
-    "--font-path",
-    resourcePath("formats/typst/fonts"),
+    ...fontPathsArgs(),
     output,
   ];
   const result = await execProcess({ cmd });
