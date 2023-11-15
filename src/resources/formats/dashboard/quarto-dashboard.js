@@ -27,8 +27,20 @@ function ensureWidgetsFill() {
   }
 }
 
+function manageOverflow() {
+  // Don't let vega cells scroll internally
+  const cellOutputs = document.querySelectorAll(".cell-output-display div");
+  for (const cellOutput of cellOutputs) {
+    if (cellOutput.id.startsWith("altair-viz-")) {
+      cellOutput.parentElement.classList.add("no-overflow-x");
+    }
+  }
+}
+
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   ensureWidgetsFill();
+
+  manageOverflow();
 
   // Fixup any sharing links that require urls
   // Append url to any sharing urls
