@@ -52,7 +52,6 @@ cd tests
 ./run-tests.sh smoke/extensions/
 ```
 
-
 ## License
 
-Quarto is open source software licensed under v2 of the GNU GPL (<https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html>).
+Quarto is open source software available under the MIT license (<https://opensource.org/license/mit/>).
