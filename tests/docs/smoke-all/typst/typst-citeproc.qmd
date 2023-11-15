@@ -13,6 +13,6 @@ _quarto:
       - ['\#bibliography\([^)]*\)']
 ---
 
-Hello [@Cronbach_1951]
+Hello [@Cronbach_1951, @Cronbach_1952]
 
 # References
