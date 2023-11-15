@@ -13441,6 +13441,21 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          name: "font-paths",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Adds additional directories to search for fonts when compiling with Typst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
+          }
+        },
+        {
           name: "CJKoptions",
           schema: {
             maybeArrayOf: "string"
@@ -21276,6 +21291,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
         },
         {
+          short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+          long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
+        },
+        {
           short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
           long: 'Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.\nIf the value is set to <code>true</code>, <code>1b:2005</code> will\nbe used as default.\nTo successfully generate PDF/A the required ICC color profiles have\nto be available and the content and all included files (such as images)\nhave to be standard conforming. The ICC profiles and output intent may\nbe specified using the variables <code>pdfaiccprofile</code> and\n<code>pdfaintent</code>. See also <a href="https://wiki.contextgarden.net/PDF/A">ConTeXt PDFA</a> for more\ndetails.'
         },
@@ -22226,7 +22245,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+          long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -22450,12 +22473,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178122,
+        _internalId: 178550,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178114,
+            _internalId: 178542,
             type: "enum",
             enum: [
               "png",
@@ -22471,7 +22494,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178121,
+            _internalId: 178549,
             type: "anyOf",
             anyOf: [
               {

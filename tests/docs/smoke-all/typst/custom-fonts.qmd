@@ -1,0 +1,16 @@
+---
+title: font typst
+format: 
+  typst:
+      mainfont: "Agbalumo"
+      font-paths: myfonts
+#TODO: How to test the PDF for correct font usage ?
+---
+
+# Content 
+
+This is a sentence
+
+::: {.callout-note}
+Where the icon should be ok
+:::
