@@ -391,21 +391,6 @@ $valuebox-colors: (
     padding: 0;
     border: none;
   }
-
-  .card-header,
-  .card-footer {
-    p:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .card-body > .h4:first-child {
-    margin-top: 0;
-  }
-
-  .card-footer {
-    font-size: 0.9em;
-  }
 }
 
 .quarto-dashboard-img-contain {
@@ -784,7 +769,29 @@ $valuebox-colors: (
   }
 
   /* Card Toolbar */
+  /* Card */
   .card {
+    .card-header,
+    .card-footer {
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .card-body > .h4:first-child {
+      margin-top: 0;
+    }
+
+    // This ensures that elements in the card body (notably the expansion toggle)
+    // appear above the elements inside of it (notably itables, which cause issues)
+    .card-body {
+      z-index: 1000;
+    }
+
+    .card-footer {
+      font-size: 0.9em;
+    }
+
     .card-toolbar {
       display: flex;
       flex-grow: 1;
