@@ -77,13 +77,23 @@ function partition_cells(float)
 
   local heading = nil
   local content = quarto.utils.as_blocks(float.content)
-  for _, block in ipairs(content) do    
-    if isPreambleBlock(block) then
-      if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
-        preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
-      else
-        preamble:insert(block)
-      end
+
+  local function is_preamble_block(el)
+    return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
+           (is_regular_node(el, "Div") and el.attr.classes:includes("cell-output-stderr"))
+  end
+
+  local function handle_preamble_codeblock(block)
+    if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
+      preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
+    else
+      preamble:insert(block)
+    end
+  end
+
+  for _, block in ipairs(content) do
+    if is_preamble_block(block) then
+      handle_preamble_codeblock(block)
     elseif block.t == "Header" then
       if _quarto.format.isRevealJsOutput() then
         heading = pandoc.Para({ pandoc.Strong(block.content)})
@@ -91,67 +101,58 @@ function partition_cells(float)
         heading = block
       end
     else
-      local cellDiv = nil
+      local cell_div = nil
       local subfloat = _quarto.ast.resolve_custom_data(block)
 
       -- if we were given a scaffolding div like cell-output-display, etc,
       -- we use it.
       if subfloat == nil and is_regular_node(block, "Div") then
-        cellDiv = block
+        -- https://github.com/quarto-dev/quarto-cli/issues/4370
+        -- there can exist code blocks to be lifted into preamble deep inside divs, we need 
+        -- to walk the div to find them
+        cell_div = _quarto.ast.walk(block, {
+          CodeBlock = function(code_block)
+            if is_preamble_block(code_block) then
+              handle_preamble_codeblock(code_block)
+              return {}
+            end
+          end
+        }) or pandoc.Div({}) -- unnecessary but the Lua analyzer doesn't know it
       else
-        cellDiv = pandoc.Div(block)
+        cell_div = pandoc.Div(block)
       end
 
       if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
-        transfer_float_image_width_to_cell(subfloat, cellDiv)
+        transfer_float_image_width_to_cell(subfloat, cell_div)
       end
       
       -- if we have a heading then insert it
       if heading then 
-        cellDiv.content:insert(1, heading)
+        cell_div.content:insert(1, heading)
         heading = nil
       end
-
 
       -- if this is .cell-output-display that isn't a figure or table 
       -- then unroll multiple blocks
       local is_subfloat
-      _quarto.ast.walk(cellDiv, {
+      _quarto.ast.walk(cell_div, {
         FloatRefTarget = function(float)
           is_subfloat = true
           return nil
         end
       })
-      if cellDiv.attr.classes:find("cell-output-display") and is_subfloat == nil then
-        for _,outputBlock in ipairs(cellDiv.content) do
-          if is_regular_node(outputBlock, "Div") then
-            cells:insert(outputBlock)
+      if cell_div.attr.classes:find("cell-output-display") and is_subfloat == nil then
+        for _,output_block in ipairs(cell_div.content) do
+          if is_regular_node(output_block, "Div") then
+            cells:insert(output_block)
           else
-            cells:insert(pandoc.Div(outputBlock))
+            cells:insert(pandoc.Div(output_block))
           end
         end
       else
         -- add the div
-        cells:insert(cellDiv)
+        cells:insert(cell_div)
       end
-
-      -- -- if this is .cell-output-display that isn't a figure or table 
-      -- -- then unroll multiple blocks
-      -- if cellDiv.attr.classes:find("cell-output-display") and 
-      --    #cellDiv.content > 1 and 
-      --    not hasFigureOrTableRef(cellDiv) then
-      --   for _,outputBlock in ipairs(cellDiv.content) do
-      --     if is_regular_node(outputBlock, "Div") then
-      --       cells:insert(outputBlock)
-      --     else
-      --       cells:insert(pandoc.Div(outputBlock))
-      --     end
-      --   end
-      -- else
-      --   -- add the div
-      --   cells:insert(cellDiv)
-      -- end
-      
     end
   end
 
@@ -276,7 +277,3 @@ function requiresPanelLayout(divEl)
   
 end
 
-function isPreambleBlock(el)
-  return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
-         (is_regular_node(el, "Div") and el.attr.classes:includes("cell-output-stderr"))
-end
