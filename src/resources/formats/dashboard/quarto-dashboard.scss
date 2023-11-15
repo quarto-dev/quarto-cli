@@ -165,6 +165,24 @@ $dashboard-card-toolbar-top-margin: 6px !default;
   }
 }
 
+@mixin itables {
+  .itables {
+    .dataTables_info {
+      font-size: 0.9em;
+      padding-top: 0;
+      margin-bottom: 0.7em;
+    }
+    .dataTables_filter {
+      label {
+        font-size: 0.9em;
+      }
+      input[type="search"] {
+        padding: 1px;
+      }
+    }
+  }
+}
+
 /*-- scss:rules --*/
 
 // Value Boxes
@@ -786,6 +804,9 @@ $valuebox-colors: (
     // appear above the elements inside of it (notably itables, which cause issues)
     .card-body {
       z-index: 1000;
+
+      // Customize appearance of elements within cards
+      @include itables();
     }
 
     .card-footer {
