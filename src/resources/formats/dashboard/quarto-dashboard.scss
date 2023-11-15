@@ -97,6 +97,9 @@ $dashboard-card-toolbar-top-margin: 6px !default;
     padding-top: 0.2em;
     padding-bottom: 0.2em;
   }
+  .shiny-input-select {
+    min-width: 6em;
+  }
 }
 
 @mixin shiny-input-container {
@@ -671,7 +674,6 @@ $valuebox-colors: (
     border-top: solid 1px theme-dim($secondary-bg-subtle, 10%);
     padding: 1em;
     flex-wrap: wrap;
-    flex-grow: 1;
     background-color: $card-cap-bg;
 
     @include toolbar-layout();
