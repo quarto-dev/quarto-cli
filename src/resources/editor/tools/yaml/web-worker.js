@@ -13442,6 +13442,21 @@ try {
             }
           },
           {
+            name: "font-paths",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Adds additional directories to search for fonts when compiling with Typst.",
+              long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
+            }
+          },
+          {
             name: "CJKoptions",
             schema: {
               maybeArrayOf: "string"
@@ -16015,21 +16030,6 @@ try {
             description: {
               short: "The mode to use when previewing this document.",
               long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass `raw` as the preview-mode.\n"
-            }
-          },
-          {
-            name: "font-paths",
-            schema: {
-              maybeArrayOf: "string"
-            },
-            tags: {
-              formats: [
-                "typst"
-              ]
-            },
-            description: {
-              short: "Adds additional directories to search for fonts when compiling with Typst.",
-              long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
             }
           }
         ],
@@ -21292,6 +21292,10 @@ try {
             long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
           },
           {
+            short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
+          },
+          {
             short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
             long: 'Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.\nIf the value is set to <code>true</code>, <code>1b:2005</code> will\nbe used as default.\nTo successfully generate PDF/A the required ICC color profiles have\nto be available and the content and all included files (such as images)\nhave to be standard conforming. The ICC profiles and output intent may\nbe specified using the variables <code>pdfaiccprofile</code> and\n<code>pdfaintent</code>. See also <a href="https://wiki.contextgarden.net/PDF/A">ConTeXt PDFA</a> for more\ndetails.'
           },
@@ -22470,12 +22474,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 178128,
+          _internalId: 178550,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 178120,
+              _internalId: 178542,
               type: "enum",
               enum: [
                 "png",
@@ -22491,7 +22495,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 178127,
+              _internalId: 178549,
               type: "anyOf",
               anyOf: [
                 {
