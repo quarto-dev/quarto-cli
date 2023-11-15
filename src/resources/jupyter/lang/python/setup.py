@@ -52,15 +52,29 @@ if is_dashboard:
   
   try:
     import altair as alt
-
     # By default, dashboards will have container sized
     # vega visualizations which allows them to flow reasonably
-    if 'quarto-dashboard-theme' not in alt.themes.names():
-      def quarto_dashboard_theme(*args, **kwargs):
-        return dict(width = 'container', height= 'container')
-      alt.themes.register('quarto-dashboard-theme', quarto_dashboard_theme)
-      alt.themes.enable('quarto-dashboard-theme')
-  
+    theme_sentinel = '_quarto-dashboard-internal'
+    def make_theme(name):
+        nonTheme = alt.themes._plugins[name]    
+        def patch_theme(*args, **kwargs):
+            existingTheme = nonTheme()
+            if 'height' not in existingTheme:
+              existingTheme['height'] = 'container'
+            if 'width' not in existingTheme:
+              existingTheme['width'] = 'container'
+            return existingTheme
+        return patch_theme
+
+    # We can only do this once per session
+    if theme_sentinel not in alt.themes.names():
+      for name in alt.themes.names():
+        alt.themes.register(name, make_theme(name))
+      
+      # register a sentinel theme so we only do this once
+      alt.themes.register(theme_sentinel, make_theme('default'))
+      alt.themes.enable('default')
+
   except Exception:
     pass
 
