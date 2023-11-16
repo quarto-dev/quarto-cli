@@ -334,7 +334,6 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "attr.message", "attr.warning", "attr.error", "connection", "hash"
     )
     known_opts <- c(knitr_default_opts, quarto_knitr_opts, quarto_opts, other_opts)
-    dump("options", file = "dump.log", append = TRUE)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
     unknown_opts <- Filter(function(opt) !startsWith(opt, "."), unknown_opts)
