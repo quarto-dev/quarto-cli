@@ -1,9 +1,8 @@
 /*
-* deno-dom.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * deno-dom.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { debug } from "log/mod.ts";
 
@@ -148,4 +147,4 @@ export async function initDenoDom() {
 
 export * from "deno_dom/src/api.ts";
 export { DOMParser } from "deno_dom/src/dom/dom-parser.ts";
-export { NodeType } from "deno_dom/src/dom/node.ts";
+export { Node, NodeType } from "deno_dom/src/dom/node.ts";
