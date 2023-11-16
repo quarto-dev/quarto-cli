@@ -183,6 +183,7 @@
 - Update observablehq's runtime to version 5.6.0.
 - ([#5215](https://github.com/quarto-dev/quarto-cli/issues/5215)): Report CORS requests as plain text when serving single-file previews.
 - ([#6267](https://github.com/quarto-dev/quarto-cli/issues/6267)): Fix error message when running in `file://`.
+- ([#7537](https://github.com/quarto-dev/quarto-cli/issues/7537)): Code annotations works better with OJS cells.
 
 ## Mermaid diagrams
 
