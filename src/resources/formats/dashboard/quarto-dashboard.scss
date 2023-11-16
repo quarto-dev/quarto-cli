@@ -847,4 +847,9 @@ $valuebox-colors: (
       @include toolbar-layout();
     }
   }
+
+  /*-- Misc HTML elements --*/
+  .card-body > table > thead {
+    border-top: none;
+  }
 }
