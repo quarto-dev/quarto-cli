@@ -489,6 +489,9 @@ export async function updateHtmlDependencies(config: Configuration) {
   // Cookie-Consent
   await updateCookieConsent(config, "4.0.0", workingDir);
 
+  // Sticky table headers
+  await updateStickyThead(config, workingDir);
+
   // Clean existing directories
   [bsThemesDir, bsDistDir].forEach((dir) => {
     if (existsSync(dir)) {
@@ -587,6 +590,31 @@ async function updateCookieConsent(
     "projects",
     "website",
     "cookie-consent"
+  );
+  await ensureDir(targetDir);
+
+  await Deno.copyFile(tempPath, join(targetDir, fileName));
+  info("Done\n");
+}
+
+
+async function updateStickyThead(
+  config: Configuration,
+  working: string
+) {
+  const fileName = "stickythead.js";
+  const url = `https://raw.githubusercontent.com/rohanpujaris/stickythead/master/dist/${fileName}`;
+  const tempPath = join(working, fileName);
+
+  info(`Downloading ${url}`);
+  await download(url, tempPath);
+
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "dashboard",
+    "js"
   );
   await ensureDir(targetDir);
 

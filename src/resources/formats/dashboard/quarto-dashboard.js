@@ -42,6 +42,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   manageOverflow();
 
+  const markdownTables = document.querySelectorAll(".card-body > table");
+  for (const markdownTable of markdownTables) {
+    const scrollableArea = markdownTable.parentElement;
+    stickyThead.apply([markdownTable], { scrollableArea: scrollableArea });
+  }
+
   // Fixup any sharing links that require urls
   // Append url to any sharing urls
   const sharingLinks = window.document.querySelectorAll(

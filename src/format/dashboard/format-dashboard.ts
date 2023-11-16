@@ -35,11 +35,7 @@ import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
-import {
-  kBootstrapDependencyName,
-  kPageLayout,
-  kPageLayoutCustom,
-} from "../html/format-html-shared.ts";
+import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
@@ -60,7 +56,6 @@ import {
 import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
-import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
 import { processNavigation } from "./format-dashboard-website.ts";
 import { projectIsWebsite } from "../../project/project-shared.ts";
@@ -163,6 +158,12 @@ export function dashboardFormat() {
         scripts.push({
           name: "quarto-dashboard.js",
           path: formatResourcePath("dashboard", "quarto-dashboard.js"),
+        });
+
+        // Add the sticky headers script
+        scripts.push({
+          name: "stickythead.js",
+          path: formatResourcePath("dashboard", join("js", "stickythead.js")),
         });
 
         const componentDir = join(
