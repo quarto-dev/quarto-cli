@@ -599,6 +599,11 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   font-size: 0.7em;
   line-height: 1.2em;
   margin-top: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
 }
 
 .reveal code.sourceCode button.code-annotation-anchor {
