@@ -35,3 +35,5 @@ tests/docs/luacov/report.html
 tools/trace-viewer/edit-distance.js
 tools/trace-viewer/trace-viewer.html
 tools/trace-viewer/trace-viewer_files
+tools/bundle-bug-finder/node_modules
+tools/bundle-bug-finder/package-lock.json
