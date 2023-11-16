@@ -63,7 +63,67 @@ if is_dashboard:
               existingTheme['height'] = 'container'
             if 'width' not in existingTheme:
               existingTheme['width'] = 'container'
+
+            if 'config' not in existingTheme:
+              existingTheme['config'] = dict()
+            
+            # Configure the default font sizes
+            title_font_size = 15
+            header_font_size = 13
+            axis_font_size = 12
+            legend_font_size = 12
+            mark_font_size = 12
+            tooltip = False
+
+            config = existingTheme['config']
+
+            # The Axis
+            if 'axis' not in config:
+              config['axis'] = dict()
+            axis = config['axis']
+            if 'labelFontSize' not in axis:
+              axis['labelFontSize'] = axis_font_size
+            if 'titleFontSize' not in axis:
+              axis['titleFontSize'] = axis_font_size  
+
+            # The legend
+            if 'legend' not in config:
+              config['legend'] = dict()
+            legend = config['legend']
+            if 'labelFontSize' not in legend:
+              legend['labelFontSize'] = legend_font_size
+            if 'titleFontSize' not in legend:
+              legend['titleFontSize'] = legend_font_size  
+
+            # The header
+            if 'header' not in config:
+              config['header'] = dict()
+            header = config['header']
+            if 'labelFontSize' not in header:
+              header['labelFontSize'] = header_font_size
+            if 'titleFontSize' not in header:
+              header['titleFontSize'] = header_font_size    
+
+            # Title
+            if 'title' not in config:
+              config['title'] = dict()
+            title = config['title']
+            if 'fontSize' not in title:
+              title['fontSize'] = title_font_size
+
+            # Marks
+            if 'mark' not in config:
+              config['mark'] = dict()
+            mark = config['mark']
+            if 'fontSize' not in mark:
+              mark['fontSize'] = mark_font_size
+
+            # Mark tooltips
+            if tooltip and 'tooltip' not in mark:
+              mark['tooltip'] = dict(content="encoding")
+
             return existingTheme
+            
         return patch_theme
 
     # We can only do this once per session
