@@ -52,6 +52,9 @@ function table_classes()
 
       attr.classes = pandoc.List()
       tbl.caption.long[#tbl.caption.long] = pandoc.Plain(createTableCaption(caption_parsed, attr))
+      if #quarto.utils.as_inlines(tbl.caption.long) == 0 then
+        tbl.caption.long = nil
+      end
       return tbl
     end,
     FloatRefTarget = function(float)
