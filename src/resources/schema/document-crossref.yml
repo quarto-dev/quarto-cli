@@ -38,6 +38,10 @@
                     latex-list-of-description:
                       string:
                         description: The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.
+                    caption-location:
+                      enum: [top, bottom, margin]
+                      default: bottom
+                      description: The location of the caption relative to the crossreferenceable content.
 
             chapters:
               boolean:
