@@ -1,21 +1,6 @@
 ---
 title: Position citation
-references:
-- type: article-journal
-  id: Lovelace1842
-  author:
-  - family: Lovelace
-    given: Augusta Ada
-  issued:
-    date-parts:
-    - - 1842
-  title: >-
-    Sketch of the analytical engine invented by Charles Babbage, by LF Menabrea, 
-    officer of the military engineers, with notes upon the memoir by the translator
-  container-title: Taylor’s Scientific Memoirs
-  volume: 3
-  page: 666-731
-  language: en-GB
+bibliography: ref.bib
 format:
   html: default
   latex: default
