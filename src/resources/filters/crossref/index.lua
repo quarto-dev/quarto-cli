@@ -108,11 +108,7 @@ end
 
 local function index_caption(v)
   if #v.caption > 0 then
-    if pandoc.utils.type(v.caption[1]) == "Inline" then
-      return inlinesToString(pandoc.Inlines({v.caption[1]}))
-    else
-      return inlinesToString(pandoc.Inlines(v.caption[1].content))
-    end
+    return inlinesToString(quarto.utils.as_inlines(v.caption))
   else
     return ""
   end
