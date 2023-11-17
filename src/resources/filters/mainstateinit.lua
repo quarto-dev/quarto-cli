@@ -32,7 +32,7 @@ crossref = {
   categories = {
     all = {
       {
-        default_caption_location = "bottom",
+        caption_location = "bottom",
         kind = "float",
         name = "Figure",
         prefix = "Figure",
@@ -40,7 +40,7 @@ crossref = {
         ref_type = "fig",
       },
       {
-        default_caption_location = "top",
+        caption_location = "top",
         kind = "float",
         name = "Table",
         prefix = "Table",
@@ -48,7 +48,7 @@ crossref = {
         ref_type = "tbl",
       },
       {
-        default_caption_location = "top",
+        caption_location = "top",
         kind = "float",
         name = "Listing",
         prefix = "Listing",

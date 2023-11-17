@@ -12252,6 +12252,15 @@ try {
                                 string: {
                                   description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
                                 }
+                              },
+                              "caption-location": {
+                                enum: [
+                                  "top",
+                                  "bottom",
+                                  "margin"
+                                ],
+                                default: "bottom",
+                                description: "The location of the caption relative to the crossreferenceable content."
                               }
                             }
                           }
@@ -20606,6 +20615,7 @@ try {
           "In LaTeX output, the name of the custom environment to be used.",
           "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
           "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+          "The location of the caption relative to the crossreferenceable\ncontent.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
           "The title prefix used for figure captions.",
@@ -20807,6 +20817,10 @@ try {
           {
             short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
             long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+          },
+          {
+            short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
           },
           {
             short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -21290,10 +21304,6 @@ try {
           {
             short: "The mode to use when previewing this document.",
             long: "The mode to use when previewing this document. To disable any special\npreviewing features, pass <code>raw</code> as the preview-mode."
-          },
-          {
-            short: "Adds additional directories to search for fonts when compiling with\nTypst.",
-            long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
           },
           {
             short: "Adds the necessary setup to the document preamble to generate PDF/A\nof the type specified.",
@@ -22246,11 +22256,7 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack",
-          {
-            short: "Adds additional directories to search for fonts when compiling with\nTypst.",
-            long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
-          }
+          "internal-schema-hack"
         ],
         "schema/external-schemas.yml": [
           {
@@ -22474,12 +22480,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 178550,
+          _internalId: 178763,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 178542,
+              _internalId: 178755,
               type: "enum",
               enum: [
                 "png",
@@ -22495,7 +22501,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 178549,
+              _internalId: 178762,
               type: "anyOf",
               anyOf: [
                 {

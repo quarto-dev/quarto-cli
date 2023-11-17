@@ -59,7 +59,7 @@ function cap_location(float_or_layout)
     float_or_layout.attributes['cap-location'] or
     option_as_string(qualified_key) or
     option_as_string('cap-location') or
-    crossref.categories.by_ref_type[ref].default_caption_location)
+    crossref.categories.by_ref_type[ref].caption_location)
 
   if result ~= "margin" and result ~= "top" and result ~= "bottom" then
     -- luacov: disable

@@ -19,7 +19,7 @@ function initialize_custom_crossref_categories(meta)
     -- luacov: enable
   end
   local keys = {
-    ["default-caption-location"] = function(v) return pandoc.utils.stringify(v) end,
+    ["caption-location"] = function(v) return pandoc.utils.stringify(v) end,
     ["kind"] = function(v) return pandoc.utils.stringify(v) end,
     ["name"] = function(v) return pandoc.utils.stringify(v) end,
     ["prefix"] = function(v) return pandoc.utils.stringify(v) end,
@@ -30,7 +30,7 @@ function initialize_custom_crossref_categories(meta)
     ["space-before-numbering"] = function(v) return v end,
   }
   local obj_mapping = {
-    ["default-caption-location"] = "default_caption_location",
+    ["caption-location"] = "caption_location",
     ["latex-env"] = "latex_env",
     ["latex-list-of-file-extension"] = "latex_list_of_file_extension",
     ["latex-list-of-description"] = "latex_list_of_description",
@@ -44,8 +44,8 @@ function initialize_custom_crossref_categories(meta)
         entry[key] = xform(v[key])
       end
     end
-    if entry["default-caption-location"] == nil then
-      entry["default-caption-location"] = "bottom"
+    if entry["caption-location"] == nil then
+      entry["caption-location"] = "bottom"
     end
     -- slightly inefficient because we recompute the indices at
     -- every call, but should be totally ok for the number of categories
@@ -71,13 +71,11 @@ function initialize_custom_crossref_categories(meta)
         local ref_type = entry["ref-type"]
         local list_of_name = entry["latex-list-of-file-extension"] or ("lo" .. ref_type)
         local list_of_description = entry["latex-list-of-description"] or name
+        local cap_location = entry["caption-location"] or "bottom"
         local space_before_numbering = entry["space-before-numbering"]
         if space_before_numbering == nil then
           space_before_numbering = true
         end
-
-        -- FIXME do we need different "lop" extensions for each category?
-        -- we should be able to test this by creating a document with listings and diagrams
         
         inject(
         usePackage("float") .. "\n" ..
@@ -85,6 +83,10 @@ function initialize_custom_crossref_categories(meta)
         "\\@ifundefined{c@chapter}{\\newfloat{" .. env_name .. "}{h}{" .. list_of_name .. "}}{\\newfloat{" .. env_name .. "}{h}{" .. list_of_name .. "}[chapter]}\n" ..
         "\\floatname{".. env_name .. "}{" .. as_latex(title(ref_type, env_prefix)) .. "}\n"
         )
+
+        if cap_location == "top" then
+          inject("\\floatstyle{plaintop}\n\\restylefloat{" .. env_name .. "}\n")
+        end
 
         -- FIXME this is a bit of hack for the case of custom categories with
         -- space-before-numbering: false
