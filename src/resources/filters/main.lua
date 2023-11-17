@@ -426,7 +426,9 @@ table.insert(quarto_filter_list, { name = "pre-render", filter = {} }) -- entry 
 tappend(quarto_filter_list, quarto_layout_filters)
 tappend(quarto_filter_list, quarto_post_filters)
 table.insert(quarto_filter_list, { name = "post-render", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-finalize", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_finalize_filters)
+table.insert(quarto_filter_list, { name = "post-finalize", filter = {} }) -- entry point for user filters
 
 -- now inject user-defined filters on appropriate positions
 inject_user_filters_at_entry_points(quarto_filter_list)
