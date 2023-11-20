@@ -48,6 +48,8 @@ export DAY_JS=1.11.7
 export ZENSCROLL_JS=4.0.2
 export GITHUB_MARKDOWN_CSS=5.2.0
 export GLIGHTBOX_JS=3.2.0
+export DATATABLES_CONFIG=bs5/jszip-3.10.1/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/kt-2.11.0/r-2.5.0
+export PDF_MAKE=0.2.7
 
 # javascript search dependencies
 export AUTOCOMPLETE_JS=1.11.1
