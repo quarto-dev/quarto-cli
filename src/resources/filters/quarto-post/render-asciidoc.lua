@@ -55,10 +55,7 @@ function render_asciidoc()
     end,
     Callout = function(el) 
       -- callout -> admonition types pass through
-      local admonitionType = el.type:upper();
-
-      -- render the callout contents
-      local admonitionContents = pandoc.write(pandoc.Pandoc(el.content), "asciidoc")
+      local admonitionType = el.type:upper()
 
       local admonitionPre
       local admonitionPost = "====\n\n" 
