@@ -379,3 +379,23 @@ function render_latex()
     end    
   }
 end
+
+
+function render_latex_fixups()
+  if not _quarto.format.isLatexOutput() then
+    return {}
+  end
+
+  return {
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) then
+        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
+            not raw.text:match(_quarto.patterns.latexCaptionPattern)) then
+          raw.text = raw.text:gsub(
+            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+          return raw
+        end
+      end
+    end
+  }
+end

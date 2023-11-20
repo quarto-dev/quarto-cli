@@ -273,6 +273,9 @@ function parse_reftargets()
 
     -- respect single table in latex longtable fixups above
     if skip_outer_reftarget then
+      -- we also need to strip the div identifier here
+      -- or we end up with duplicate identifiers which latex doesn't like
+      div.identifier = ""
       div.content = content
       return div
     end

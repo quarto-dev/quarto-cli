@@ -266,10 +266,12 @@ end, function(float)
     arg = pandoc.Str(float.identifier)
   })
   latex_caption:insert(1, label_cmd)
+  local latex_caption_content = latex_caption
+
   latex_caption = quarto.LatexInlineCommand({
     name = caption_cmd_name,
     opt_arg = fig_scap,
-    arg = pandoc.Span(quarto.utils.as_inlines(latex_caption or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
+    arg = pandoc.Span(quarto.utils.as_inlines(latex_caption_content or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
   })
 
   if float.parent_id then
@@ -285,6 +287,56 @@ end, function(float)
         Table = handle_table
       }) or pandoc.Div({}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
     end
+  end
+
+  -- we need Pandoc to render its table ahead of time in order to
+  -- do the longtable fixups below
+  float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+    Table = function(tbl)
+      return pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+    end
+  })
+
+  if float_type == "tbl" then
+    local raw
+    -- have to redo this as_blocks() call here because assigning to float.content
+    -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
+    _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+      RawBlock = function(el)
+        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
+          raw = el
+        end
+      end
+    })
+    -- special case for singleton longtable floats
+    if raw then
+      local longtable_content = raw.text:gsub(_quarto.patterns.latexLongtablePattern, "%2", 1)
+      -- split the content into params and actual content
+      -- params are everything in the first line of longtable_content
+      -- actual content is everything else
+      local params, content = longtable_content:match("^(.-)\n(.*)$")
+      local cap_loc = cap_location(float)
+      if float.parent_id then
+        -- need to fixup subtables because longtables don't support subcaptions,
+        -- and longtable captions increment the wrong counter
+        -- we try our best here
+
+        fatal("longtables are not supported in subtables.\n" ..
+          "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
+        return {}
+      else
+        local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
+        -- if cap_loc is top, insert content on bottom
+        if cap_loc == "top" then
+          result:insert(pandoc.RawBlock("latex", content))        
+        else
+          result:insert(1, pandoc.RawBlock("latex", content))
+        end
+        result:insert(1, pandoc.RawBlock("latex", "\\begin{longtable}" .. params))
+        result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
+        return result
+      end
+    end 
   end
 
   local figure_content
