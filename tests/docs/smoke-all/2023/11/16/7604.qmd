@@ -1,0 +1,29 @@
+---
+title: "7604"
+format: pdf
+---
+
+```{r}
+library(kableExtra)
+```
+
+```{r}
+#| label: tbl-sad-broken
+#| tbl-cap: "This table is cross-referenceable but no longer breaks across pages because it's inside `\\centering{}`" 
+rbind(mtcars, mtcars) |>
+  kbl(longtable = TRUE, booktabs = TRUE) |>
+  kable_styling()
+```
+
+::: {#tbl-also-sad}
+```{r}
+rbind(mtcars, mtcars) |>
+  kbl(longtable = TRUE, booktabs = TRUE) |>
+  kable_styling()
+```
+
+This table is also cross-referenceable but also doesn't break across pages because of the same `\centering{}` problem
+:::
+
+
+see @tbl-sad-broken and @tbl-also-sad.
