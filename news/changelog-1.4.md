@@ -82,6 +82,7 @@
 ## Asciidoc Format
 
 - ([#6589](https://github.com/quarto-dev/quarto-cli/issues/6589)): Don't crash when `format: asciidoc` with a missing title.
+- ([#7632](https://github.com/quarto-dev/quarto-cli/issues/7632)): Render citations properly inside callouts
 
 ## Confluence Format
 
