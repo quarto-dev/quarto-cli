@@ -21,6 +21,8 @@ export const kLayoutFill = "fill";
 export const kLayoutFlow = "flow";
 export type Layout = "fill" | "flow" | string;
 
+export const kCardClass = "card";
+
 export const kDashboardGridSkip = "grid-skip";
 
 export const kNavButtons = "nav-buttons";

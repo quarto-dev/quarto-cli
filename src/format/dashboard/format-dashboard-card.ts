@@ -14,6 +14,10 @@ import {
   DashboardMeta,
   ensureCssUnits,
   hasFlowLayout,
+  kCardClass,
+  kLayoutAttr,
+  kLayoutFill,
+  kLayoutFlow,
   kValueboxClass,
   makeEl,
   processAndRemoveAttr,
@@ -31,7 +35,6 @@ const kExpandBtnHtml = `
 `;
 
 // Card classes
-const kCardClass = "card";
 const kCardBodyClass = "card-body";
 const kCardHeaderClass = "card-header";
 const kCardFooterClass = "card-footer";
@@ -242,6 +245,54 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     // Initialize the cards
     cardEl.appendChild(initCardScript(doc));
   }
+}
+
+export function isFlowCard(el: Element) {
+  const layouts = cardBodyLayouts(el);
+  return layouts.every((layout) => {
+    return layout === kLayoutFlow;
+  });
+}
+
+function cardBodyLayouts(el: Element) {
+  // Find card-bodies and inspect card bodies to see
+  // what is up
+  const cardBodyNodes = el.querySelectorAll(`.${kCardBodyClass}`);
+  const layouts: string[] = [];
+  for (const cardBodyNode of cardBodyNodes) {
+    const cardBodyEl = cardBodyNode as Element;
+
+    const explicitLayout = cardBodyEl.getAttribute(kLayoutAttr);
+    if (explicitLayout !== null) {
+      // If there is an explicitly specified layout, use that
+      layouts.push(explicitLayout);
+    } else if (shinyInputs(cardBodyEl)) {
+      // If the card only contains shiny inputs, that is a flow layout
+      layouts.push(kLayoutFlow);
+    } else {
+      // Otherwise assume this is a flow
+      layouts.push(kLayoutFill);
+    }
+  }
+  return layouts;
+}
+
+function shinyInputs(cardBodyEl: Element) {
+  for (const childEl of cardBodyEl.children) {
+    if (!childEl.classList.contains("cell-output")) {
+      return false;
+    }
+
+    if (childEl.childElementCount < 1) {
+      return false;
+    }
+
+    const firstChildEl = childEl.children.item(0);
+    if (!firstChildEl.classList.contains("shiny-input-container")) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function initCardScript(doc: Document) {

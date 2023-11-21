@@ -8,6 +8,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import { isValueBox } from "./format-dashboard-valuebox.ts";
 import { asCssSize } from "../../core/css.ts";
 import {
+  kCardClass,
   kDashboardGridSkip,
   kDontMutateTags,
   kLayoutAttr,
@@ -15,6 +16,7 @@ import {
   kLayoutFlow,
   Layout,
 } from "./format-dashboard-shared.ts";
+import { isFlowCard } from "./format-dashboard-card.ts";
 
 // Container type classes
 const kRowsClass = "rows";
@@ -236,10 +238,13 @@ function computeRowLayouts(rowEl: Element) {
           // based upon its own contents
           const layout = rowLayoutForColumn(childEl, parentLayout);
           layouts.push(layout);
+        } else if (childEl.classList.contains(kCardClass)) {
+          const isFlow = isFlowCard(childEl);
+          layouts.push(isFlow ? kLayoutFlow : kLayoutFill);
         } else {
-          // This isn't a row or column, if possible, just use
-          // the parent layout. Otherwise, just make it fill
           if (parentLayout !== null) {
+            // This isn't a row or column, if possible, just use
+            // the parent layout. Otherwise, just make it fill
             layouts.push(parentLayout);
           } else {
             // Just make a fill
@@ -319,13 +324,26 @@ function asLayout(layout: string): Layout {
   }
 }
 
+type FlowLayoutDetector = (el: Element) => boolean;
+
+const kFlowLayoutDetectors: FlowLayoutDetector[] = [
+  isValueBox,
+  isFlowCard,
+];
+
+function suggestsFlowLayout(el: Element) {
+  return kFlowLayoutDetectors.some((detector) => {
+    return detector(el);
+  });
+}
+
 // Suggest a layout for an element
 function suggestLayout(el: Element) {
   const explicitLayout = el.getAttribute(kLayoutAttr);
   if (explicitLayout !== null) {
     return explicitLayout;
   } else {
-    if (isValueBox(el)) {
+    if (suggestsFlowLayout(el)) {
       return kLayoutFlow;
     } else {
       return kLayoutFill;
