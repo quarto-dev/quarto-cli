@@ -167,19 +167,100 @@ $dashboard-card-toolbar-top-margin: 6px !default;
 
 @mixin itables {
   .itables {
-    .dataTables_info {
-      font-size: 0.9em;
-      padding-top: 0;
-      margin-bottom: 0.7em;
-    }
-    .dataTables_filter {
-      label {
-        font-size: 0.9em;
-        margin-bottom: 0.7em;
+    padding: 0.1em;
+
+    @include media-breakpoint-down(md) {
+      div.dataTables_wrapper div.dataTables_length,
+      div.dataTables_wrapper div.dataTables_info,
+      div.dataTables_wrapper div.dataTables_paginate {
+        text-align: initial;
       }
-      input[type="search"] {
-        padding: 1px 5px 1px 5px;
+
+      div.dataTables_wrapper div.dataTables_filter {
+        text-align: right;
+      }
+
+      div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+        justify-content: initial;
+      }
+    }
+
+    .dataTables_wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-top: 0;
+      table {
+        flex-shrink: 0;
+      }
+
+      // The buttons control (download/copy)
+      .btn-control {
+        flex-basis: 100%;
+        margin-bottom: 0.5em;
+        .dt-buttons {
+          float: right;
+          &.btn-group {
+            background: $body-bg;
+            border: none;
+          }
+
+          .btn-secondary {
+            background-color: $body-bg;
+            background-image: none;
+            border: solid $border-color $border-width;
+            padding: 0.2em 0.7em;
+          }
+
+          .btn span {
+            font-size: 0.8em;
+            color: $body-color;
+          }
+        }
+      }
+      // The number of items (info) text
+      .dataTables_info {
+        flex-basis: 50%;
+        margin-bottom: 0.5em;
         font-size: 0.9em;
+        padding-top: 0;
+      }
+
+      // The table filter / search
+      .dataTables_filter {
+        flex-basis: 50%;
+        margin-bottom: 0.5em;
+        font-size: 0.9em;
+        input[type="search"] {
+          padding: 1px 5px 1px 5px;
+          font-size: 0.9em;
+        }
+      }
+
+      // The pagination size selector
+      .dataTables_length {
+        flex-basis: 1 1 50%;
+        margin-bottom: 0.5em;
+        font-size: 0.9em;
+        select {
+          padding: 0.4em 3em 0.4em 0.5em;
+          font-size: 0.9em;
+          margin-left: 0.2em;
+          margin-right: 0.2em;
+        }
+      }
+
+      // The pagination control
+      .dataTables_paginate {
+        @include media-breakpoint-up(md) {
+          margin-left: auto;
+        }
+        flex-shrink: 0;
+
+        ul.pagination .paginate_button .page-link {
+          font-size: 0.8em;
+        }
       }
     }
   }

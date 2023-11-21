@@ -42,11 +42,19 @@ except Exception:
 if is_dashboard:
   try:
     from itables import options
-    options.dom = "Blifrtp"
+    options.dom = '<"btn-control"B>ifrtlp'
     options.maxBytes = 1024 * 1024
     options.language = dict(info = "Showing _TOTAL_ entries")
     options.classes = "display nowrap compact"
     options.paging = False
+    options.searching = True
+    options.ordering = True
+    options.info = True
+    options.lengthChange = False
+    options.autoWidth = False
+    options.responsive = True
+    options.keys = True
+    options.buttons = []
   except Exception:
     pass
   

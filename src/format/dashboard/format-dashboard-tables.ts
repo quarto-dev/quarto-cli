@@ -16,9 +16,6 @@ const kStripRegexes = [
   /^\s*dt\(\$\);/,
 ];
 
-// This signals the start of DT initialization
-const kDataConfigRegex = /^\s*dt_args\["data"\] = data;$/;
-
 // This is the table initialization
 const kDatatableInit =
   /\$\(document\).ready\(function \(\) \{(?:\s|.)*?\$\('#(.*?)'\)\.DataTable\(dt_args\);(?:\s|.)*?\}\);.*/g;
@@ -53,54 +50,6 @@ export function processDatatables(
       ) {
         hasConnectedDt = true;
         // ignore this line, we want to strip it
-      } else if (line.match(kDataConfigRegex)) {
-        // This is the configuration line, add additional configuration here
-        codeFiltered.push(line);
-
-        // TODO: Add an option to configure buttons for the table
-        // copy
-        // csv
-        // excel
-        // pdf
-        // print
-        const buttons: string[] = ["copy", "csv", "excel", "pdf", "print"]; // Default empty
-
-        //
-        codeFiltered.push(
-          `dt_args["buttons"] = [${
-            buttons.map((btn) => `"${btn}"`).join(", ")
-          }];`,
-        );
-
-        /*
-        format:
-          dashbord:
-            data-tables:
-
-
-        */
-        const booleanDefaults: Record<string, boolean> = {
-          paging: false, // false
-          searching: false, // true
-          ordering: false, // true
-          lengthChange: false, // false
-          info: false, // true
-          autoWidth: false, // false
-          responsive: true, // true
-          keys: true, // false
-        };
-
-        // TODO: Paging option? { "paging": false }
-        // TODO: Searching option? { "searching": false }
-        // TODO: Ordering option? { "ordering": false }
-        // TODO: length change option? { "lengthChange": false }
-        // TODO: info change option? { "info": false }
-        // TODO: autoWidth change option? { "autoWidth": false }
-        Object.keys(booleanDefaults).forEach((key) => {
-          codeFiltered.push(
-            `dt_args["${key}"] = ${booleanDefaults[key]};`,
-          );
-        });
       } else {
         codeFiltered.push(line);
       }
