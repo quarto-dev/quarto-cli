@@ -3,6 +3,70 @@
 
 local drop_class = require("modules/filters").drop_class
 
+local function split_longtable_start(content_str)
+  -- we use a hack here to split the content into params and actual content
+  -- see https://github.com/quarto-dev/quarto-cli/issues/7655#issuecomment-1821181132
+
+  -- we need to find a matching pair of braces
+  -- we do this by counting the number of open braces
+  
+  -- we need to do this through utf8 because lua strings are not unicode-aware
+  local codepoints = table.pack(utf8.codepoint(content_str, 1, #content_str))
+  local function find_codepoint(start_idx, ...)
+    if start_idx > #codepoints then
+      return nil
+    end
+    local target_codepoints = table.pack(...)
+    for i = start_idx, #codepoints do
+      local code_point = codepoints[i]
+      for _, target_codepoint in ipairs(target_codepoints) do
+        if code_point == target_codepoint then
+          return i, code_point
+        end
+      end
+    end
+    return nil
+  end
+  local function find_pair_of_braces(start_idx)
+    local count = 0
+    local open_brace_idx
+    local next_brace_idx, code_point
+    next_brace_idx = find_codepoint(start_idx, 123) -- {
+    if next_brace_idx == nil then
+      return nil
+    end
+    open_brace_idx = next_brace_idx
+    next_brace_idx = next_brace_idx + 1
+    count = count + 1
+    while count > 0 do
+      next_brace_idx, code_point = find_codepoint(next_brace_idx, 123, 125) -- {, }
+      if next_brace_idx == nil then
+        return nil
+      end
+      if code_point == 123 then
+        count = count + 1
+      else
+        count = count - 1
+      end
+      next_brace_idx = next_brace_idx + 1
+    end
+    return open_brace_idx, next_brace_idx - 1
+  end
+  -- first find the start of the environment
+  local start_idx, end_idx = find_pair_of_braces(1)
+  if start_idx == nil then
+    return nil
+  end
+  -- then find the start of the longtable params
+  start_idx, end_idx = find_pair_of_braces(end_idx + 1)
+  if start_idx == nil then
+    return nil
+  end
+  -- now split the string
+  return content_str:sub(1, end_idx), content_str:sub(end_idx + 1)
+end
+
+
 _quarto.ast.add_handler({
 
   -- empty table so this handler is only called programmatically
@@ -310,11 +374,18 @@ end, function(float)
     })
     -- special case for singleton longtable floats
     if raw then
-      local longtable_content = raw.text:gsub(_quarto.patterns.latexLongtablePattern, "%2", 1)
+      local longtable_content = raw.text:gsub(_quarto.patterns.latexLongtablePattern, "%1%2", 1)
       -- split the content into params and actual content
       -- params are everything in the first line of longtable_content
       -- actual content is everything else
-      local params, content = longtable_content:match("^(.-)\n(.*)$")
+      local start, content = split_longtable_start(longtable_content)
+      if start == nil then
+        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+        "triggered this error.")
+        return {}
+      end
       local cap_loc = cap_location(float)
       if float.parent_id then
         -- need to fixup subtables because longtables don't support subcaptions,
@@ -332,7 +403,7 @@ end, function(float)
         else
           result:insert(1, pandoc.RawBlock("latex", content))
         end
-        result:insert(1, pandoc.RawBlock("latex", "\\begin{longtable}" .. params))
+        result:insert(1, pandoc.RawBlock("latex", start))
         result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
         return result
       end
@@ -351,6 +422,7 @@ end, function(float)
     return {}
     -- luacov: enable
   end
+  assert(figure_content ~= nil)
 
   -- align the figure
   local align = figAlignAttribute(float)
