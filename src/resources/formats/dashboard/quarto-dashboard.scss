@@ -272,6 +272,34 @@ $dashboard-card-toolbar-top-margin: 6px !default;
   }
 }
 
+@mixin observable-toolbar-inputs {
+  form {
+    width: fit-content;
+
+    label {
+      padding-top: 0.2em;
+      padding-bottom: 0.2em;
+      width: fit-content;
+    }
+
+    input[type="date"] {
+      width: fit-content;
+    }
+
+    input[type="color"] {
+      width: 3em;
+    }
+
+    button {
+      padding: 0.4em;
+    }
+
+    select {
+      width: fit-content;
+    }
+  }
+}
+
 /*-- scss:rules --*/
 
 // Value Boxes
@@ -916,7 +944,7 @@ $valuebox-colors: (
         font-size: 1em;
         flex-grow: 1;
         align-self: flex-start;
-        margin-top: $dashboard-card-toolbar-top-margin;
+        margin-top: 0.1em;
       }
 
       flex-wrap: wrap;
@@ -932,6 +960,8 @@ $valuebox-colors: (
       @include shiny-input-container();
 
       @include toolbar-layout();
+
+      @include observable-toolbar-inputs();
     }
   }
 
