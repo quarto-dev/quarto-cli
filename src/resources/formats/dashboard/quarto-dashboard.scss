@@ -167,8 +167,6 @@ $dashboard-card-toolbar-top-margin: 6px !default;
 
 @mixin itables {
   .itables {
-    padding: 0.1em;
-
     @include media-breakpoint-down(md) {
       div.dataTables_wrapper div.dataTables_length,
       div.dataTables_wrapper div.dataTables_info,

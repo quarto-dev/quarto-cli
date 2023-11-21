@@ -37,16 +37,29 @@ function manageOverflow() {
   }
 }
 
-window.document.addEventListener("DOMContentLoaded", function (_event) {
-  ensureWidgetsFill();
-
-  manageOverflow();
-
+function refreshStickyHeaders() {
+  // Deal with markdown tables
   const markdownTables = document.querySelectorAll(".card-body > table");
   for (const markdownTable of markdownTables) {
     const scrollableArea = markdownTable.parentElement;
     stickyThead.apply([markdownTable], { scrollableArea: scrollableArea });
   }
+
+  // Deal with iTables tables
+  const cellOutputNodes = document.querySelectorAll(".card-body .cell-output");
+  for (const cellOutputNode of cellOutputNodes) {
+    const iTable = cellOutputNode.querySelector(".itables table");
+    if (iTable) {
+      stickyThead.apply([iTable], { scrollableArea: cellOutputNode });
+    }
+  }
+}
+
+window.document.addEventListener("DOMContentLoaded", function (_event) {
+  ensureWidgetsFill();
+
+  manageOverflow();
+  refreshStickyHeaders();
 
   // Fixup any sharing links that require urls
   // Append url to any sharing urls
