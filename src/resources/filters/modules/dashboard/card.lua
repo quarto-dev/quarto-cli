@@ -369,7 +369,7 @@ function addToHeader(card, content, title)
   else
     local headerContent = pandoc.List({content})
     if title ~= nil then
-      headerContent:insert(1, pandoc.Plan(title))
+      headerContent:insert(1, pandoc.Plain(title))
     end
     
     local newHeader = pandoc.Div(headerContent, pandoc.Attr("", {kCardHeaderClass}))
