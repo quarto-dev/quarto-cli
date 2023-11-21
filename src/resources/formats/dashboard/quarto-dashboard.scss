@@ -135,6 +135,18 @@ $dashboard-card-toolbar-top-margin: 6px !default;
   }
 }
 
+@mixin shiny-toolbar-customizations {
+  @include toolbar-layout();
+  @include shiny-input-container();
+  @include shiny-text-input();
+  @include shiny-date-range();
+  @include shiny-input-slider();
+  @include shiny-input-checkboxgroup();
+  @include shiny-input-radiogroup();
+  @include shiny-input-select();
+  @include shiny-input-checkbox();
+}
+
 @mixin toolbar-layout {
   .cell-output-display {
     display: flex;
@@ -297,6 +309,33 @@ $dashboard-card-toolbar-top-margin: 6px !default;
     select {
       width: fit-content;
     }
+  }
+}
+
+@mixin observable-sidebar-inputs {
+  form {
+    flex-direction: column;
+    align-items: start;
+    margin-bottom: 1em;
+
+    div[class*="oi-"][class$="-input"] {
+      flex-direction: column;
+    }
+
+    &[class*="oi-"][class$="-toggle"] {
+      flex-direction: row-reverse;
+      align-items: center;
+      justify-content: start;
+    }
+
+    input[type="range"] {
+      margin-top: 0.5em;
+      margin-right: 0.8em;
+      margin-left: 1em;
+    }
+  }
+  label {
+    width: fit-content;
   }
 }
 
@@ -767,6 +806,8 @@ $valuebox-colors: (
   }
 
   .sidebar {
+    @include observable-sidebar-inputs();
+
     .card-body {
       margin-bottom: 2em;
     }
@@ -796,16 +837,8 @@ $valuebox-colors: (
     flex-wrap: wrap;
     background-color: $card-cap-bg;
 
-    @include toolbar-layout();
-    @include shiny-input-container();
-
-    @include shiny-text-input();
-    @include shiny-date-range();
-    @include shiny-input-slider();
-    @include shiny-input-checkboxgroup();
-    @include shiny-input-radiogroup();
-    @include shiny-input-select();
-    @include shiny-input-checkbox();
+    @include shiny-toolbar-customizations();
+    @include observable-toolbar-inputs();
 
     > * {
       font-size: 0.9em;
@@ -949,19 +982,10 @@ $valuebox-colors: (
 
       flex-wrap: wrap;
 
-      @include shiny-text-input();
-      @include shiny-date-range();
-      @include shiny-input-slider();
-      @include shiny-input-checkboxgroup();
-      @include shiny-input-radiogroup();
-      @include shiny-input-select();
-      @include shiny-input-checkbox();
-
-      @include shiny-input-container();
-
       @include toolbar-layout();
 
       @include observable-toolbar-inputs();
+      @include shiny-toolbar-customizations();
     }
   }
 
