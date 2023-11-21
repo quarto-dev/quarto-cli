@@ -28,3 +28,5 @@ def displot():
         data=penguins, hue="species", multiple="stack",
         x=input.x(), rug=input.rug(), kind=input.dist())
 ```
+
+
