@@ -66,6 +66,7 @@
 - ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
 - ([#7175](https://github.com/quarto-dev/quarto-cli/issues/7175)): Fix an issue with code annotations when more than one digit is used for annotation number.
 - ([#7267](https://github.com/quarto-dev/quarto-cli/issues/7267)): Fix issue with longtable environments interfering with the `table` counter.
+- ([#7534](https://github.com/quarto-dev/quarto-cli/issues/7534)): Fix issue with multiple paragraph footnotes when using `reference-location: margin`.
 
 ## Docusaurus Format
 
