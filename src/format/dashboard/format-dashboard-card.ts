@@ -229,6 +229,11 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
 
     // Process card body attributes
     for (const cardBodyEl of cardBodyEls) {
+      const layout = cardBodyLayout(cardBodyEl);
+      if (layout === kLayoutFlow) {
+        cardBodyEl.classList.add(kLayoutFlow);
+      }
+
       for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
         processAndRemoveAttr(
           cardBodyEl,
@@ -260,21 +265,23 @@ function cardBodyLayouts(el: Element) {
   const cardBodyNodes = el.querySelectorAll(`.${kCardBodyClass}`);
   const layouts: string[] = [];
   for (const cardBodyNode of cardBodyNodes) {
-    const cardBodyEl = cardBodyNode as Element;
-
-    const explicitLayout = cardBodyEl.getAttribute(kLayoutAttr);
-    if (explicitLayout !== null) {
-      // If there is an explicitly specified layout, use that
-      layouts.push(explicitLayout);
-    } else if (shinyInputs(cardBodyEl)) {
-      // If the card only contains shiny inputs, that is a flow layout
-      layouts.push(kLayoutFlow);
-    } else {
-      // Otherwise assume this is a flow
-      layouts.push(kLayoutFill);
-    }
+    layouts.push(cardBodyLayout(cardBodyNode as Element));
   }
   return layouts;
+}
+
+function cardBodyLayout(cardBodyEl: Element) {
+  const explicitLayout = cardBodyEl.getAttribute(kLayoutAttr);
+  if (explicitLayout !== null) {
+    // If there is an explicitly specified layout, use that
+    return explicitLayout;
+  } else if (shinyInputs(cardBodyEl)) {
+    // If the card only contains shiny inputs, that is a flow layout
+    return kLayoutFlow;
+  } else {
+    // Otherwise assume this is a flow
+    return kLayoutFill;
+  }
 }
 
 function shinyInputs(cardBodyEl: Element) {
