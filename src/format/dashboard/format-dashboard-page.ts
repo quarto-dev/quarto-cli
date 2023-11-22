@@ -6,10 +6,15 @@
 
 import { Document, Element } from "../../core/deno-dom.ts";
 import { recursiveApplyFillClasses } from "./format-dashboard-layout.ts";
-import { kDashboardGridSkip, makeEl } from "./format-dashboard-shared.ts";
+import {
+  DashboardMeta,
+  kDashboardGridSkip,
+  makeEl,
+} from "./format-dashboard-shared.ts";
 
 const kPageClass = "dashboard-page";
 const kAttrTitle = "data-title";
+const kAttrScrolling = "data-scrolling";
 
 const kDashboardPagesClass = "quarto-dashboard-pages";
 
@@ -17,9 +22,10 @@ interface NavItem {
   id: string;
   text: string;
   active: boolean;
+  scrolling: boolean;
 }
 
-export function processPages(doc: Document) {
+export function processPages(doc: Document, dashboardMeta: DashboardMeta) {
   // Find the pages, if any
   const pageNodes = doc.querySelectorAll(`.${kPageClass}`);
   if (pageNodes.length === 0) {
@@ -61,8 +67,12 @@ export function processPages(doc: Document) {
   for (const pageNode of pageNodes) {
     const pageEl = pageNode as Element;
 
+    const scrolling = pageEl.getAttribute(kAttrScrolling) !== null
+      ? pageEl.getAttribute(kAttrScrolling) === "true"
+      : dashboardMeta.scrolling;
     const id = pageEl.id ? pageEl.id : "dashboard-page-" + counter;
     const text = pageEl.getAttribute(kAttrTitle);
+    pageEl.removeAttribute(kAttrTitle);
     const active = counter === 1;
 
     // Set up the page to be collapsible
@@ -82,6 +92,7 @@ export function processPages(doc: Document) {
       id,
       text: text !== null ? text : "Page " + counter,
       active,
+      scrolling,
     });
     counter++;
   }
@@ -123,6 +134,7 @@ function toNav(navItem: NavItem, doc: Document) {
       "data-bs-toggle": "tab",
       "role": "tab",
       "data-bs-target": `#${navItem.id}`,
+      [kAttrScrolling]: navItem.scrolling.toString(),
       "href": `#${navItem.id}`,
       "aria-controls": navItem.id,
       "aria-selected": navItem.active.toString(),

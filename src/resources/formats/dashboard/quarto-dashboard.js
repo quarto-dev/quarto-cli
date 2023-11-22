@@ -55,6 +55,34 @@ function refreshStickyHeaders() {
   }
 }
 
+function updatePageFlow(scrolling) {
+  const dashboardContainerEl = document.querySelector(
+    ".quarto-dashboard-content"
+  );
+  const tabContainerEl = document.querySelector(
+    ".quarto-dashboard-content > .tab-content"
+  );
+
+  // update the container and body classes
+  if (scrolling) {
+    dashboardContainerEl.classList.add("dashboard-scrolling");
+    document.body.classList.remove("dashboard-fill");
+    dashboardContainerEl.classList.remove("bslib-page-fill");
+
+    if (tabContainerEl !== null && tabContainerEl.gridTemplateRows !== null) {
+      tabContainerEl.style.gridTemplateRows = "minmax(3em, max-content)";
+    }
+  } else {
+    dashboardContainerEl.classList.remove("dashboard-scrolling");
+    document.body.classList.add("dashboard-fill");
+    dashboardContainerEl.classList.add("bslib-page-fill");
+
+    if (tabContainerEl !== null && tabContainerEl.gridTemplateRows !== null) {
+      tabContainerEl.style.gridTemplateRows = "minmax(3em, 1fr)";
+    }
+  }
+}
+
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   ensureWidgetsFill();
 
@@ -98,6 +126,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const hash = QuartoDashboardUtils.urlHash(linkHref);
       const href = baseUrl + hash;
       QuartoDashboardUtils.setLocation(href);
+
+      const scrolling = navItem.getAttribute("data-scrolling");
+      if (scrolling !== null) {
+        updatePageFlow(scrolling.toLowerCase() === "true");
+      }
+
       return false;
     });
   }
@@ -193,6 +227,11 @@ window.QuartoDashboardUtils = {
     for (const tabEl of tabNodes) {
       const target = tabEl.getAttribute("data-bs-target");
       if (target === hash) {
+        const scrolling = tabEl.getAttribute("data-scrolling");
+        if (scrolling !== null) {
+          updatePageFlow(scrolling.toLowerCase() === "true");
+        }
+
         tabEl.classList.add("active");
       } else {
         tabEl.classList.remove("active");

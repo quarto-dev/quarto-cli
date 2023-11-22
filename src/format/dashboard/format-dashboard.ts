@@ -348,7 +348,7 @@ function dashboardHtmlPostProcessor(
     processNavigation(doc);
 
     // Process pages that may be present in the document
-    processPages(doc);
+    processPages(doc, dashboardMeta);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);

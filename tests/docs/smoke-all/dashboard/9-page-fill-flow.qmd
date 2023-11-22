@@ -1,10 +1,12 @@
 ---
 title: Page Fill Flow
-format: dashboard
+format: 
+  dashboard:
+    scrolling: true
 theme: lux
 ---
 
-# Page 1
+# Page {scrolling=false}
 
 ```{r}
 plot(cars)
@@ -12,4 +14,13 @@ plot(cars)
 
 # Page 2
 
+```{r}
+plot(cars)
+```
+
+
 {{< lipsum 15 >}}
+
+
+
+
