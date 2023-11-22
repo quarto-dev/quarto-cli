@@ -312,6 +312,22 @@ async function afterInstall(context: InstallContext) {
       },
     );
 
+    // Reconfigure font paths for xetex (rstudio/tinytex#313)
+    await context.withSpinner(
+      { message: "Configuring font paths" },
+      async () => {
+        await exec(
+          tlmgrPath,
+          [
+            "postaction",
+            "install",
+            "script",
+            "xetex",
+          ],
+        );
+      },
+    );
+
     // Set the default repo to an https repo
     let restartRequired = false;
     const defaultRepo = textLiveRepo();
