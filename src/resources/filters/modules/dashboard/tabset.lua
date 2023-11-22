@@ -41,6 +41,7 @@ local function resolveTabs(contents)
   local tabFooterEls = pandoc.List()
   local tabBodyEls = pandoc.List()
   local tabHeaderEls = pandoc.List()
+  local ignoreEls = pandoc.List()
 
   -- Process the contents (figuring out the tab title, dealing with cards, etc...)
   for _i, v in ipairs(contents) do   
@@ -70,6 +71,10 @@ local function resolveTabs(contents)
       tabHeaderEls:insert(v)
       cardToolbar.markProcessed(v)
       tabContent = nil
+
+    elseif v.classes ~= nil and v.classes:includes('hidden') then
+      ignoreEls:insert(v)
+      tabContent = nil
     else
       -- If the direct descrendent of a tab isn't a card, see if it has a header within it
       -- that we can use as the tab title, then just allow the content to flow along
@@ -90,7 +95,7 @@ local function resolveTabs(contents)
     end
   end
 
-  return tabBodyEls, tabHeaderEls, tabFooterEls
+  return tabBodyEls, tabHeaderEls, tabFooterEls, ignoreEls
 end
 
 
@@ -108,7 +113,7 @@ local function makeTabset(title, contents, classes, options)
   end
 
   -- compute the card body(ies)
-  local tabEls, tabHeaderEls, tabFooterEls = resolveTabs(contents)
+  local tabEls, tabHeaderEls, tabFooterEls, ignoreEls = resolveTabs(contents)
   tabContents:extend(tabEls)
 
   -- add anything to header that needs to be added
@@ -121,6 +126,12 @@ local function makeTabset(title, contents, classes, options)
   if tabFooter ~= nil then
     tabContents:insert(tabFooter)
   end
+
+  -- place any other stuff there too
+  if ignoreEls ~= nil then
+    tabContents:extend(ignoreEls)
+  end
+
 
   -- add outer classes
   local clz = pandoc.List({kTabOutputClass, kTabsetClass})
@@ -141,7 +152,7 @@ local function makeTabset(title, contents, classes, options)
 end
 
 local function isTabset(el)
-  return (el.t == "Div" or el.t == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
+  return (is_regular_node(el, "Div") or el.t == "Header") and el.classes ~= nil and el.classes:includes(kTabsetClass)
 end
 
 local function readOptions(el)
@@ -169,11 +180,15 @@ local function readOptions(el)
 end
 
 local function isTabHeader(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabHeaderClass)
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:includes(kTabHeaderClass)
 end
 
 local function isTabFooter(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:includes(kTabFooterClass)
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:includes(kTabFooterClass)
+end
+
+local function isTabBody(el)
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:includes(kTabBodyClass)
 end
 
 function addToHeader(tabset, content, title)
@@ -184,7 +199,7 @@ function addToHeader(tabset, content, title)
     end
     tabsetHeader.content:insert(content)
   else
-    local headerContent = pandoc.List(content)
+    local headerContent = pandoc.List({content})
     if title ~= nil then
       headerContent:insert(1, pandoc.Plain(title))
     end
@@ -199,8 +214,12 @@ function addToFooter(tabset, content)
     tabsetFooter.content:insert(content)
   else
     local newFooter = pandoc.Div(content, pandoc.Attr("", {kTabFooterClass}))
-    card.content:insert(newFooter)
+    tabset.content:insert(newFooter)
   end
+end
+
+function addSidebar(tabset, content)
+  tabset.content:insert(1, content)
 end
 
 return {
@@ -208,6 +227,7 @@ return {
   readOptions = readOptions,
   makeTabset = makeTabset,
   addToHeader = addToHeader,
-  addToFooter = addToFooter
+  addToFooter = addToFooter,
+  addSidebar = addSidebar
 }
 

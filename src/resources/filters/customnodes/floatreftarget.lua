@@ -3,6 +3,70 @@
 
 local drop_class = require("modules/filters").drop_class
 
+local function split_longtable_start(content_str)
+  -- we use a hack here to split the content into params and actual content
+  -- see https://github.com/quarto-dev/quarto-cli/issues/7655#issuecomment-1821181132
+
+  -- we need to find a matching pair of braces
+  -- we do this by counting the number of open braces
+  
+  -- we need to do this through utf8 because lua strings are not unicode-aware
+  local codepoints = table.pack(utf8.codepoint(content_str, 1, #content_str))
+  local function find_codepoint(start_idx, ...)
+    if start_idx > #codepoints then
+      return nil
+    end
+    local target_codepoints = table.pack(...)
+    for i = start_idx, #codepoints do
+      local code_point = codepoints[i]
+      for _, target_codepoint in ipairs(target_codepoints) do
+        if code_point == target_codepoint then
+          return i, code_point
+        end
+      end
+    end
+    return nil
+  end
+  local function find_pair_of_braces(start_idx)
+    local count = 0
+    local open_brace_idx
+    local next_brace_idx, code_point
+    next_brace_idx = find_codepoint(start_idx, 123) -- {
+    if next_brace_idx == nil then
+      return nil
+    end
+    open_brace_idx = next_brace_idx
+    next_brace_idx = next_brace_idx + 1
+    count = count + 1
+    while count > 0 do
+      next_brace_idx, code_point = find_codepoint(next_brace_idx, 123, 125) -- {, }
+      if next_brace_idx == nil then
+        return nil
+      end
+      if code_point == 123 then
+        count = count + 1
+      else
+        count = count - 1
+      end
+      next_brace_idx = next_brace_idx + 1
+    end
+    return open_brace_idx, next_brace_idx - 1
+  end
+  -- first find the start of the environment
+  local start_idx, end_idx = find_pair_of_braces(1)
+  if start_idx == nil then
+    return nil
+  end
+  -- then find the start of the longtable params
+  start_idx, end_idx = find_pair_of_braces(end_idx + 1)
+  if start_idx == nil then
+    return nil
+  end
+  -- now split the string
+  return content_str:sub(1, end_idx), content_str:sub(end_idx + 1)
+end
+
+
 _quarto.ast.add_handler({
 
   -- empty table so this handler is only called programmatically
@@ -59,7 +123,7 @@ function cap_location(float_or_layout)
     float_or_layout.attributes['cap-location'] or
     option_as_string(qualified_key) or
     option_as_string('cap-location') or
-    crossref.categories.by_ref_type[ref].default_caption_location)
+    crossref.categories.by_ref_type[ref].caption_location)
 
   if result ~= "margin" and result ~= "top" and result ~= "bottom" then
     -- luacov: disable
@@ -266,10 +330,12 @@ end, function(float)
     arg = pandoc.Str(float.identifier)
   })
   latex_caption:insert(1, label_cmd)
+  local latex_caption_content = latex_caption
+
   latex_caption = quarto.LatexInlineCommand({
     name = caption_cmd_name,
     opt_arg = fig_scap,
-    arg = pandoc.Span(quarto.utils.as_inlines(latex_caption or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
+    arg = pandoc.Span(quarto.utils.as_inlines(latex_caption_content or {}) or {}) -- unnecessary to do the "or {}" bit but the Lua analyzer doesn't know that
   })
 
   if float.parent_id then
@@ -287,6 +353,63 @@ end, function(float)
     end
   end
 
+  -- we need Pandoc to render its table ahead of time in order to
+  -- do the longtable fixups below
+  float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+    Table = function(tbl)
+      return pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+    end
+  })
+
+  if float_type == "tbl" then
+    local raw
+    -- have to redo this as_blocks() call here because assigning to float.content
+    -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
+    _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+      RawBlock = function(el)
+        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
+          raw = el
+        end
+      end
+    })
+    -- special case for singleton longtable floats
+    if raw then
+      local longtable_content = raw.text:gsub(_quarto.patterns.latexLongtablePattern, "%1%2", 1)
+      -- split the content into params and actual content
+      -- params are everything in the first line of longtable_content
+      -- actual content is everything else
+      local start, content = split_longtable_start(longtable_content)
+      if start == nil then
+        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+        "triggered this error.")
+        return {}
+      end
+      local cap_loc = cap_location(float)
+      if float.parent_id then
+        -- need to fixup subtables because longtables don't support subcaptions,
+        -- and longtable captions increment the wrong counter
+        -- we try our best here
+
+        fatal("longtables are not supported in subtables.\n" ..
+          "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
+        return {}
+      else
+        local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
+        -- if cap_loc is top, insert content on bottom
+        if cap_loc == "top" then
+          result:insert(pandoc.RawBlock("latex", content))        
+        else
+          result:insert(1, pandoc.RawBlock("latex", content))
+        end
+        result:insert(1, pandoc.RawBlock("latex", start))
+        result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
+        return result
+      end
+    end 
+  end
+
   local figure_content
   local pt = pandoc.utils.type(float.content)
   if pt == "Block" then
@@ -299,6 +422,7 @@ end, function(float)
     return {}
     -- luacov: enable
   end
+  assert(figure_content ~= nil)
 
   -- align the figure
   local align = figAlignAttribute(float)

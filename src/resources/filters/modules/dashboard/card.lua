@@ -72,20 +72,20 @@ local function hasCardDecoration(el)
 end
 
 local function isCard(el) 
-  return (el.t == "Div") and hasCardDecoration(el)
+  return is_regular_node(el, "Div") and hasCardDecoration(el)
 end
 
 local function isCardBody(el) 
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardBodyClz:includes(class)
   end) 
 end
 local function isCardFooter(el)
-  return el.t == "BlockQuote" or (el.t == "Div" and el.classes:includes(kCardFooterClass))
+  return el.t == "BlockQuote" or (is_regular_node(el, "Div") and el.classes:includes(kCardFooterClass))
 end
 
 local function isCardHeader(el)
-  return el.t == "Div" and el.classes ~= nil and el.classes:find_if(function(class) 
+  return is_regular_node(el, "Div") and el.classes ~= nil and el.classes:find_if(function(class) 
     return kCardHeaderClz:includes(class)
   end) 
 end
@@ -101,7 +101,7 @@ local function hasRealLookingContent(contents)
       hasReal = true
     end
   end
-  return hasReal
+  return hasReal or #contents == 0
 end
 
 local function isLiteralCard(el)
@@ -367,16 +367,14 @@ function addToHeader(card, content, title)
     end
     cardHeader.content:insert(content)
   else
-    local headerContent = pandoc.List(content)
+    local headerContent = pandoc.List({content})
     if title ~= nil then
-      headerContent:insert(1, pandoc.Plan(title))
+      headerContent:insert(1, pandoc.Plain(title))
     end
     
     local newHeader = pandoc.Div(headerContent, pandoc.Attr("", {kCardHeaderClass}))
     card.content:insert(1, newHeader)
   end
-
-  
 end
 
 function addToFooter(card, content)
@@ -387,6 +385,10 @@ function addToFooter(card, content)
     local newFooter = pandoc.Div(content, pandoc.Attr("", {kCardFooterClass}))
     card.content:insert(newFooter)
   end
+end
+
+function addSidebar(card, content)
+  card.content:insert(1, content)
 end
 
 function cardBodyContents(card) 
@@ -407,6 +409,7 @@ return {
   isLiteralCard = isLiteralCard,
   readOptions = readOptions,
   makeCard = makeCard,
+  addSidebar = addSidebar,
   addToFooter = addToFooter,
   addToHeader = addToHeader,
   hasCardDecoration = hasCardDecoration,

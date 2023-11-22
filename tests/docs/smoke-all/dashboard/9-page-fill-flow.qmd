@@ -1,0 +1,15 @@
+---
+title: Page Fill Flow
+format: dashboard
+theme: lux
+---
+
+# Page 1
+
+```{r}
+plot(cars)
+```
+
+# Page 2
+
+{{< lipsum 15 >}}

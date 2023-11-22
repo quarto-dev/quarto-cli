@@ -8,6 +8,7 @@ import { dirname, join, normalize, relative } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import {
+  kFontPaths,
   kKeepTyp,
   kOutputExt,
   kOutputFile,
@@ -23,6 +24,7 @@ import {
   typstCompile,
   validateRequiredTypstVersion,
 } from "../../core/typst.ts";
+import { asArray } from "../../core/array.ts";
 
 export function useTypstPdfOutputRecipe(
   format: Format,
@@ -58,7 +60,12 @@ export function typstPdfOutputRecipe(
     // run typst
     await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
-    const result = await typstCompile(input, pdfOutput, options.flags?.quiet);
+    const result = await typstCompile(
+      input,
+      pdfOutput,
+      options.flags?.quiet,
+      asArray(format.metadata?.[kFontPaths]) as string[],
+    );
     if (!result.success) {
       throw new Error();
     }

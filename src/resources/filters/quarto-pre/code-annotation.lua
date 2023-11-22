@@ -108,11 +108,11 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     
     local outputs = pandoc.List({})
     local i = 1
+    local offset = codeBlockEl.attr.attributes['startFrom'] or 1
     for line in toLines(code) do
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
-
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -120,7 +120,8 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
         if lineNumbers == nil then
           lineNumbers = pandoc.List({})
         end
-        lineNumbers:insert(i)
+        -- line numbers stored for targetting annotations line needs to take into account possible startFrom attribute
+        lineNumbers:insert(offset - 1 + i)
         annotations[annoteId] = lineNumbers
         outputs:insert(processAnnotation(line, annoteNumber, annotationProvider))
       else

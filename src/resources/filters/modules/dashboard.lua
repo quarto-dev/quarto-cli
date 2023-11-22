@@ -9,6 +9,7 @@ local page = require 'modules/dashboard/page'
 local document = require 'modules/dashboard/document'
 local tabset = require 'modules/dashboard/tabset'
 local card_toolbar = require 'modules/dashboard/card-toolbar'
+local card_sidebar = require 'modules/dashboard/card-sidebar'
 local toolbar = require 'modules/dashboard/toolbar'
 
 
@@ -27,6 +28,8 @@ local function isLayoutContainer(el)
     return true
   elseif card_toolbar.isCardToolbar(el) then
     return true
+  elseif card_sidebar.isCardSidebar(el) then
+    return true;
   end
   return false
 end
@@ -129,6 +132,7 @@ return {
   toolbar = toolbar,
   page = page,
   tabset = tabset,
+  card_sidebar = card_sidebar,
   card_toolbar = card_toolbar,
   document = document,
   layoutContainer = {

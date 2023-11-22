@@ -22,7 +22,8 @@ function coalesce_raw()
       Div = function(div)
         -- only flatten out divs that have no classes or attributes
         -- (see https://github.com/quarto-dev/quarto-cli/issues/6936)
-        if #div.classes == 0 and #div.attributes == 0 then
+        -- or empty identifier (see https://github.com/quarto-dev/quarto-cli/issues/6867)
+        if #div.classes == 0 and #div.attributes == 0 and div.identifier == "" then
           return div.content
         end
       end

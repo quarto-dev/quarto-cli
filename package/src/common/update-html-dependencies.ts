@@ -489,6 +489,12 @@ export async function updateHtmlDependencies(config: Configuration) {
   // Cookie-Consent
   await updateCookieConsent(config, "4.0.0", workingDir);
 
+  // Sticky table headers
+  await updateStickyThead(config, workingDir);
+
+  // Datatables and PDF Make
+  await updateDatatables(config, workingDir);
+
   // Clean existing directories
   [bsThemesDir, bsDistDir].forEach((dir) => {
     if (existsSync(dir)) {
@@ -587,6 +593,73 @@ async function updateCookieConsent(
     "projects",
     "website",
     "cookie-consent"
+  );
+  await ensureDir(targetDir);
+
+  await Deno.copyFile(tempPath, join(targetDir, fileName));
+  info("Done\n");
+}
+
+async function updateDatatables(
+  config: Configuration,
+  working: string
+) {
+  // css: 
+  // script: https://cdn.datatables.net/v/bs5/jszip-3.10.1/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/kt-2.11.0/r-2.5.0/datatables.min.js
+
+  // pdfmake
+  // https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js
+  // https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js
+  const datatablesConfig = Deno.env.get("DATATABLES_CONFIG");;
+  const pdfMakeVersion = Deno.env.get("PDF_MAKE");;
+  const dtFiles = ["datatables.min.css", "datatables.min.js"];
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "dashboard",
+    "js",
+    "dt"
+  );
+  await ensureDir(targetDir);
+  
+  for (const file of dtFiles) {
+    const url = `https://cdn.datatables.net/v/${datatablesConfig}/${file}`;
+    const tempPath = join(working, file);
+    info(`Downloading ${url}`);
+    await download(url, tempPath);
+    await Deno.copyFile(tempPath, join(targetDir, file));
+  }
+
+  const pdfMakeFiles = ["pdfmake.min.js", "vfs_fonts.js"];
+  for (const file of pdfMakeFiles) {
+    const url = `https://cdnjs.cloudflare.com/ajax/libs/pdfmake/${pdfMakeVersion}/${file}`;
+    const tempPath = join(working, file);
+    info(`Downloading ${url}`);
+    await download(url, tempPath);
+    await Deno.copyFile(tempPath, join(targetDir, file));
+  }
+  
+  info("Done\n");
+}
+
+async function updateStickyThead(
+  config: Configuration,
+  working: string
+) {
+  const fileName = "stickythead.js";
+  const url = `https://raw.githubusercontent.com/rohanpujaris/stickythead/master/dist/${fileName}`;
+  const tempPath = join(working, fileName);
+
+  info(`Downloading ${url}`);
+  await download(url, tempPath);
+
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "dashboard",
+    "js"
   );
   await ensureDir(targetDir);
 

@@ -19,7 +19,6 @@ import {
   kWarning,
 } from "../../config/constants.ts";
 import {
-  DependencyFile,
   DependencyHtmlFile,
   Format,
   FormatExtras,
@@ -35,11 +34,7 @@ import { InternalError } from "../../core/lib/error.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
-import {
-  kBootstrapDependencyName,
-  kPageLayout,
-  kPageLayoutCustom,
-} from "../html/format-html-shared.ts";
+import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
 import { join } from "path/mod.ts";
@@ -60,12 +55,12 @@ import {
 import { processSidebars } from "./format-dashboard-sidebar.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { processPages } from "./format-dashboard-page.ts";
-import { sassLayer } from "../../core/sass.ts";
 import { processNavButtons } from "./format-dashboard-navbutton.ts";
 import { processNavigation } from "./format-dashboard-website.ts";
 import { projectIsWebsite } from "../../project/project-shared.ts";
 import { processShinyComponents } from "./format-dashboard-shiny.ts";
 import { processToolbars } from "./format-dashboard-toolbar.ts";
+import { processDatatables } from "./format-dashboard-tables.ts";
 
 const kDashboardClz = "quarto-dashboard";
 
@@ -156,13 +151,63 @@ export function dashboardFormat() {
         }
 
         const scripts: DependencyHtmlFile[] = [];
-        const stylesheets: DependencyFile[] = [];
+        const stylesheets: DependencyHtmlFile[] = [];
 
         // Add the js script which we can use in dashboard to make client side
         // adjustments
         scripts.push({
           name: "quarto-dashboard.js",
           path: formatResourcePath("dashboard", "quarto-dashboard.js"),
+        });
+
+        // Add the sticky headers script
+        scripts.push({
+          name: "stickythead.js",
+          path: formatResourcePath("dashboard", join("js", "stickythead.js")),
+        });
+
+        // Add the DT scripts and CSS
+        // Note that the `tables` processing may remove this if no connected / matching DT tables
+        // are detected
+        scripts.push({
+          name: "datatables.min.js",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "datatables.min.js"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
+        });
+        stylesheets.push({
+          name: "datatables.min.css",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "datatables.min.css"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
+        });
+        scripts.push({
+          name: "pdfmake.min.js",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "pdfmake.min.js"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
+        });
+        scripts.push({
+          name: "vfs_fonts.js",
+          path: formatResourcePath(
+            "dashboard",
+            join("js", "dt", "vfs_fonts.js"),
+          ),
+          attribs: {
+            kDTTableSentinel: "true",
+          },
         });
 
         const componentDir = join(
@@ -282,6 +327,22 @@ function dashboardHtmlPostProcessor(
         }
       }
     }
+
+    // Helper for forwarding supporting and resources
+    const addResults = (
+      res: {
+        resources: string[];
+        supporting: string[];
+      } | undefined,
+    ) => {
+      if (res) {
+        result.resources.push(...res.resources);
+        result.supporting.push(...res.supporting);
+      }
+    };
+
+    // Process Data Tables
+    addResults(processDatatables(doc));
 
     // Process navigation
     processNavigation(doc);

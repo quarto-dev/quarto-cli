@@ -14,10 +14,15 @@ import {
   DashboardMeta,
   ensureCssUnits,
   hasFlowLayout,
+  kCardClass,
+  kLayoutAttr,
+  kLayoutFill,
+  kLayoutFlow,
   kValueboxClass,
   makeEl,
   processAndRemoveAttr,
 } from "./format-dashboard-shared.ts";
+import { makeSidebar } from "./format-dashboard-sidebar.ts";
 
 // The html to generate the expand button
 const kExpandBtnHtml = `
@@ -30,13 +35,14 @@ const kExpandBtnHtml = `
 `;
 
 // Card classes
-const kCardClass = "card";
 const kCardBodyClass = "card-body";
 const kCardHeaderClass = "card-header";
 const kCardFooterClass = "card-footer";
 const kCardTitleClass = "card-title";
 const kCardToolbarClass = "card-toolbar";
 const kCardTitleToolbarClass = "card-title-toolbar";
+
+const kCardSidebarClass = "card-sidebar";
 
 // Tabset classes
 const kTabsetClass = "tabset";
@@ -128,20 +134,26 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     cardCount++;
     const cardEl = cardNode as Element;
 
+    // Sort the children
     const cardBodyEls: Element[] = [];
     let cardHeaderEl = undefined;
+    let cardSidebarEl = undefined;
     for (const cardChildEl of cardEl.children) {
       if (cardChildEl.classList.contains(kCardBodyClass)) {
         cardBodyEls.push(cardChildEl);
       } else if (cardChildEl.classList.contains(kCardHeaderClass)) {
         cardHeaderEl = cardChildEl;
+      } else if (cardChildEl.classList.contains(kCardSidebarClass)) {
+        cardSidebarEl = cardChildEl;
       }
     }
 
-    // Loose text gets grouped into a div for alignment purposes
-    // Always place this element first no matter what else is going on
-    const looseText: string[] = [];
+    // Process the header
     if (cardHeaderEl) {
+      // Loose text gets grouped into a div for alignment purposes
+      // Always place this element first no matter what else is going on
+      const looseText: string[] = [];
+
       // See if there is a toolbar in the header
       const cardToolbarEl = cardHeaderEl.querySelector(`.${kCardToolbarClass}`);
 
@@ -185,7 +197,21 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
         convertToTabsetHeader(tabSetId, cardHeaderEl, cardBodyEls, doc);
       }
       // Convert the body to tabs
-      convertToTabs(tabSetId, cardEl, cardBodyEls, doc);
+      convertToTabs(tabSetId, cardEl, cardBodyEls, cardSidebarEl, doc);
+    } else {
+      // Process a card sidebar, if present
+      if (cardSidebarEl) {
+        cardBodyEls.forEach((el) => el.remove);
+        // TODO: Make a cooler id if possible
+        const sidebarId = `card-${cardCount}-card-sidebar`;
+        const sidebarContainerEl = makeSidebar(
+          sidebarId,
+          cardSidebarEl,
+          cardBodyEls,
+          doc,
+        );
+        cardEl.appendChild(sidebarContainerEl);
+      }
     }
 
     // Process card attributes
@@ -203,6 +229,11 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
 
     // Process card body attributes
     for (const cardBodyEl of cardBodyEls) {
+      const layout = cardBodyLayout(cardBodyEl);
+      if (layout === kLayoutFlow) {
+        cardBodyEl.classList.add(kLayoutFlow);
+      }
+
       for (const cardBodyAttrHandler of cardBodyAttrHandlers()) {
         processAndRemoveAttr(
           cardBodyEl,
@@ -219,6 +250,56 @@ export function processCards(doc: Document, dashboardMeta: DashboardMeta) {
     // Initialize the cards
     cardEl.appendChild(initCardScript(doc));
   }
+}
+
+export function isFlowCard(el: Element) {
+  const layouts = cardBodyLayouts(el);
+  return layouts.every((layout) => {
+    return layout === kLayoutFlow;
+  });
+}
+
+function cardBodyLayouts(el: Element) {
+  // Find card-bodies and inspect card bodies to see
+  // what is up
+  const cardBodyNodes = el.querySelectorAll(`.${kCardBodyClass}`);
+  const layouts: string[] = [];
+  for (const cardBodyNode of cardBodyNodes) {
+    layouts.push(cardBodyLayout(cardBodyNode as Element));
+  }
+  return layouts;
+}
+
+function cardBodyLayout(cardBodyEl: Element) {
+  const explicitLayout = cardBodyEl.getAttribute(kLayoutAttr);
+  if (explicitLayout !== null) {
+    // If there is an explicitly specified layout, use that
+    return explicitLayout;
+  } else if (shinyInputs(cardBodyEl)) {
+    // If the card only contains shiny inputs, that is a flow layout
+    return kLayoutFlow;
+  } else {
+    // Otherwise assume this is a flow
+    return kLayoutFill;
+  }
+}
+
+function shinyInputs(cardBodyEl: Element) {
+  for (const childEl of cardBodyEl.children) {
+    if (!childEl.classList.contains("cell-output")) {
+      return false;
+    }
+
+    if (childEl.childElementCount < 1) {
+      return false;
+    }
+
+    const firstChildEl = childEl.children.item(0);
+    if (!firstChildEl.classList.contains("shiny-input-container")) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function initCardScript(doc: Document) {
@@ -297,15 +378,17 @@ function convertToTabs(
   tabSetId: string,
   cardEl: Element,
   cardBodyEls: Element[],
+  cardSidebarEl: Element | undefined,
   doc: Document,
 ) {
+  // Make sure we place this above the card footer
+  const cardFooterEl = findFooterEl(cardEl);
+
   const tabContainerEl = tabSetId ? doc.createElement("DIV") : undefined;
   if (tabContainerEl) {
     tabContainerEl.classList.add("tab-content");
     tabContainerEl.setAttribute("data-tabset-id", tabSetId);
 
-    // Make sure we place this above the card footer
-    const cardFooterEl = findFooterEl(cardEl);
     if (cardFooterEl) {
       cardEl.insertBefore(tabContainerEl, cardFooterEl);
     } else {
@@ -342,5 +425,22 @@ function convertToTabs(
 
   if (tabContainerEl) {
     recursiveApplyFillClasses(tabContainerEl);
+  }
+
+  // If there is a sidebar, wrap it around the tabset
+  if (cardSidebarEl && tabContainerEl) {
+    const sidebarId = `${tabSetId}-card-sidebar`;
+    const sidebarContainerEl = makeSidebar(
+      sidebarId,
+      cardSidebarEl,
+      [tabContainerEl],
+      doc,
+    );
+
+    if (cardFooterEl) {
+      cardEl.insertBefore(sidebarContainerEl, cardFooterEl);
+    } else {
+      cardEl.appendChild(sidebarContainerEl);
+    }
   }
 }

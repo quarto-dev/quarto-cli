@@ -131,6 +131,8 @@ export const kQuartoRequired = "quarto-required";
 export const kPreviewMode = "preview-mode";
 export const kPreviewModeRaw = "raw";
 
+export const kFontPaths = "font-paths";
+
 export const kHtmlTableProcessing = "html-table-processing";
 
 export const kIdentifierDefaultsKeys = [

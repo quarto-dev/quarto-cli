@@ -32,6 +32,7 @@ export interface DirectoryInfo {
   share: string;
   bin: string;
   out: string;
+  tools: string;
   pkgWorking: {
     root: string;
     bin: string;
@@ -65,6 +66,8 @@ export function readConfiguration(
   const bin = getEnv("QUARTO_BIN_PATH") ||
     join(dist, binName);
   const pkgWorkingBase = join(pkg, "pkg-working");
+  const toolsName = getEnv("QUARTO_TOOLS_NAME", "tools");
+  const tools = getEnv("QUARTO_TOOLS_PATH", join(root, toolsName));
 
   const directoryInfo = {
     root,
@@ -74,6 +77,7 @@ export function readConfiguration(
     src,
     out,
     bin,
+    tools,
     pkgWorking: {
       root: pkgWorkingBase,
       bin: join(pkgWorkingBase, binName),

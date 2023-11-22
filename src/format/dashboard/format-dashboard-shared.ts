@@ -13,11 +13,15 @@ import { kBootstrapDependencyName } from "../html/format-html-shared.ts";
 
 export const kDashboard = "dashboard";
 
+export const kDTTableSentinel = "data-dt-support";
+
 // Carries the layout for a given row or column
 export const kLayoutAttr = "data-layout";
 export const kLayoutFill = "fill";
 export const kLayoutFlow = "flow";
 export type Layout = "fill" | "flow" | string;
+
+export const kCardClass = "card";
 
 export const kDashboardGridSkip = "grid-skip";
 
@@ -72,7 +76,7 @@ export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
   const dashboardTitle = format.metadata[kTitle] as string | undefined;
 
   const processNavbarButton = async (buttonRaw: unknown) => {
-    if (typeof (buttonRaw) === "string") {
+    if (typeof buttonRaw === "string") {
       if (kNavButtonAliases[buttonRaw] !== undefined) {
         return kNavButtonAliases[buttonRaw](dashboardTitle);
       }

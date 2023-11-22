@@ -68,6 +68,11 @@ function render_html_fixups()
       -- CSS we use for FloatRefTargets
 
       local lst = quarto.utils.match(".cell-output-display/:child/{Para}/:child/{Image}")(div)
+      -- ideally, we'd do the lightbox processing after this fixup, but ordering matters,
+      -- so we need to check for a potential output of the lightbox filter here
+      if not lst or #lst == 0 then
+        lst = quarto.utils.match(".cell-output-display/:child/{Para}/:child/Link/:child/{Image}")(div)
+      end
       if not lst or #lst == 0 then
         return
       end

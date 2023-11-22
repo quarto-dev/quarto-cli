@@ -13,9 +13,79 @@ const kSidebarPanelClass = "sidebar-panel";
 const kSidebarClass = "sidebar";
 const kSidebarContentClass = "sidebar-content";
 
-const kToolbarAttrPosition = "data-position";
-const kToolbarAttrPositionEnd = "end";
+const kSidebarAttrPosition = "data-position";
+const kSidebarAttrPositionRight = "right";
 const kBsLibSidebarRight = "sidebar-right";
+
+export function makeSidebar(
+  id: string,
+  sidebar: Element,
+  contents: Element[],
+  doc: Document,
+) {
+  // Create the sidebar container
+  const sidebarContainerEl = makeEl("div", {
+    classes: ["bslib-sidebar-layout", "html-fill-item"],
+    attributes: {
+      "data-bslib-sidebar-open": "desktop",
+      "data-bslib-sidebar-init": "true",
+    },
+  }, doc);
+
+  // Capture the content (the sidebar's next sibling)
+  const sidebarMainEl = makeEl("div", {
+    classes: ["main", "html-fill-container"],
+  }, doc);
+  contents.forEach((content) => {
+    sidebarMainEl.appendChild(content);
+  });
+
+  // See if there is a width
+  // Read the position and apply class if needed
+  processAndRemoveAttr(
+    sidebar,
+    kSidebarAttrPosition,
+    (_el: Element, value: string) => {
+      if (value === kSidebarAttrPositionRight) {
+        sidebarContainerEl.classList.add(kBsLibSidebarRight);
+      }
+    },
+  );
+
+  processAndRemoveAttr(
+    sidebar,
+    "data-width",
+    (_el: Element, value: string) => {
+      const size = asCssSize(value);
+
+      const styleRaw = sidebarContainerEl.getAttribute("style");
+      const styleVal = styleRaw !== null ? styleRaw : "";
+      const newStyle = styleVal + " --bslib-sidebar-width: " + size;
+      sidebarContainerEl.setAttribute("style", newStyle);
+    },
+  );
+
+  // Remove the sidebar class
+  sidebar?.classList.remove(kSidebarClass);
+
+  const sidebarAsideEl = makeEl("aside", {
+    id,
+    classes: [kSidebarClass, "html-fill-container", "html-fill-item"],
+  }, doc);
+
+  // place contents inside
+  if (sidebar !== null) {
+    sidebar.classList.add("html-fill-container", "html-fill-item");
+    sidebarAsideEl.appendChild(sidebar);
+  }
+
+  sidebarContainerEl.appendChild(sidebarMainEl);
+  recursiveApplyFillClasses(sidebarContainerEl);
+
+  sidebarContainerEl.appendChild(sidebarAsideEl);
+  sidebarContainerEl.append(...sidebarToggle(id, doc));
+  return sidebarContainerEl;
+}
 
 export function processSidebars(doc: Document) {
   // use a counter to provision ids
@@ -27,80 +97,21 @@ export function processSidebars(doc: Document) {
       ? sidebarEl.id
       : `bslib-sidebar-${sidebarCount++}`;
 
-    // Create the sidebar container
-    const sidebarContainerEl = makeEl("div", {
-      classes: ["bslib-sidebar-layout", "html-fill-item"],
-      attributes: {
-        "data-bslib-sidebar-open": "desktop",
-        "data-bslib-sidebar-init": "true",
-      },
-    }, doc);
-
-    // Capture the content (the sidebar's next sibling)
-    const sidebarMainEl = makeEl("div", {
-      classes: ["main", "html-fill-container"],
-    }, doc);
+    const sidebarContentsEl = sidebarEl.querySelector(`.${kSidebarClass}`);
     const sidebarMainContentsEl = sidebarEl.querySelector(
       `.${kSidebarContentClass}`,
     );
-    if (sidebarMainContentsEl !== null) {
-      sidebarMainEl.appendChild(sidebarMainContentsEl);
-    }
 
-    // convert to an aside (class sidebar)
-    const sidebarContentsEl = sidebarEl.querySelector(`.${kSidebarClass}`);
-
-    // See if there is a width
-    if (sidebarContentsEl) {
-      // Read the position and apply class if needed
-      processAndRemoveAttr(
-        sidebarContentsEl,
-        kToolbarAttrPosition,
-        (_el: Element, value: string) => {
-          if (value === kToolbarAttrPositionEnd) {
-            sidebarContainerEl.classList.add(kBsLibSidebarRight);
-          }
-        },
-      );
-
-      processAndRemoveAttr(
-        sidebarContentsEl,
-        "data-width",
-        (_el: Element, value: string) => {
-          const size = asCssSize(value);
-
-          const styleRaw = sidebarEl.parentElement?.getAttribute("style");
-          const styleVal = styleRaw !== null ? styleRaw : "";
-          const newStyle = styleVal + " --bslib-sidebar-width: " + size;
-          sidebarEl.parentElement?.setAttribute("style", newStyle);
-        },
+    let sidebarContainerEl = undefined;
+    if (sidebarContentsEl !== null && sidebarMainContentsEl !== null) {
+      sidebarContainerEl = makeSidebar(sidebarId, sidebarContentsEl, [
+        sidebarMainContentsEl,
+      ], doc);
+      sidebarEl.replaceWith(sidebarContainerEl);
+      sidebarContainerEl.parentElement?.classList.add(
+        "dashboard-sidebar-container",
       );
     }
-
-    // Remove the sidebar class
-    sidebarContentsEl?.classList.remove(kSidebarClass);
-
-    const sidebarAsideEl = makeEl("aside", {
-      id: sidebarId,
-      classes: [kSidebarClass, "html-fill-container", "html-fill-item"],
-    }, doc);
-
-    // place contents inside
-    if (sidebarContentsEl !== null) {
-      sidebarContentsEl.classList.add("html-fill-container", "html-fill-item");
-      sidebarAsideEl.appendChild(sidebarContentsEl);
-    }
-
-    sidebarContainerEl.appendChild(sidebarMainEl);
-    recursiveApplyFillClasses(sidebarContainerEl);
-
-    sidebarContainerEl.appendChild(sidebarAsideEl);
-    sidebarContainerEl.append(...sidebarToggle(sidebarId, doc));
-
-    sidebarEl.replaceWith(sidebarContainerEl);
-    sidebarContainerEl.parentElement?.classList.add(
-      "dashboard-sidebar-container",
-    );
   }
 
   // Decorate the body of the document if there is a top level sidebar panel

@@ -376,6 +376,33 @@ function render_latex()
       end
       
       return pandoc.Div(calloutContents)
-    end    
+    end,
+    Note = function(n)
+      if marginReferences() then
+        -- This is to support multiple paragraphs in footnotes in margin as sidenotes CTAN has some issue (quarto-dev/quarto-cli#7534)
+        n.content = pandoc.Para(pandoc.utils.blocks_to_inlines(n.content, {pandoc.RawInline('latex', '\n\\endgraf\n')}))
+        return n
+      end
+    end
+  }
+end
+
+
+function render_latex_fixups()
+  if not _quarto.format.isLatexOutput() then
+    return {}
+  end
+
+  return {
+    RawBlock = function(raw)
+      if _quarto.format.isRawLatex(raw) then
+        if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
+            not raw.text:match(_quarto.patterns.latexCaptionPattern)) then
+          raw.text = raw.text:gsub(
+            _quarto.patterns.latexLongtablePattern, "\\begin{longtable*}%2\\end{longtable*}", 1)
+          return raw
+        end
+      end
+    end
   }
 end

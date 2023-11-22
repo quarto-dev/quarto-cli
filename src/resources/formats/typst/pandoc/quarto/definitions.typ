@@ -1,6 +1,3 @@
-// needed for callout support
-#import "@preview/fontawesome:0.1.0": *
-
 // Some definitions presupposed by pandoc's typst output.
 #let blockquote(body) = [
   #set text( size: 0.92em )

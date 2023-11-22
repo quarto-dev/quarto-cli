@@ -12251,6 +12251,15 @@ var require_yaml_intelligence_resources = __commonJS({
                               string: {
                                 description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
                               }
+                            },
+                            "caption-location": {
+                              enum: [
+                                "top",
+                                "bottom",
+                                "margin"
+                              ],
+                              default: "bottom",
+                              description: "The location of the caption relative to the crossreferenceable content."
                             }
                           }
                         }
@@ -13438,6 +13447,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "The math font options for use with `xelatex` or `lualatex`.",
             long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
+          }
+        },
+        {
+          name: "font-paths",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Adds additional directories to search for fonts when compiling with Typst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
           }
         },
         {
@@ -20590,6 +20614,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "In LaTeX output, the name of the custom environment to be used.",
         "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
         "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+        "The location of the caption relative to the crossreferenceable\ncontent.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
@@ -20791,6 +20816,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
           long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+        },
+        {
+          short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+          long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
         },
         {
           short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -22450,12 +22479,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178122,
+        _internalId: 178763,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178114,
+            _internalId: 178755,
             type: "enum",
             enum: [
               "png",
@@ -22471,7 +22500,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178121,
+            _internalId: 178762,
             type: "anyOf",
             anyOf: [
               {

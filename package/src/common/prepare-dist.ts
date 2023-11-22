@@ -20,7 +20,7 @@ Dependency,
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { copyPandocAliasScript, copyQuartoScript } from "./configure.ts";
+import { copyQuartoScript } from "./configure.ts";
 import { deno } from "./dependencies/deno.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 

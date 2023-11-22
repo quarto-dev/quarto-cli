@@ -11,17 +11,18 @@
 
 ## Dependencies
 
-- Update to Pandoc 3.1.8
-- Update to Typst 0.7.0
+- Update to Pandoc 3.1.9
+- Update to Typst 0.9.0
 
 ## HTML Format
 
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
 - Add support for displaying `keywords` in HTML page title block, when present.
-- Add support for `body-right` and `body-left` layouts for Website Table of Contents ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473))
+- ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473)): Add support for `body-right` and `body-left` layouts for Website Table of Contents.
 - ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
 - ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
+- ([#5403](https://github.com/quarto-dev/quarto-cli/issues/5403)): Fix accessibility issues with the `kbd` shortcode.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 - ([#5700](https://github.com/quarto-dev/quarto-cli/issues/5700)): Don't show scrollbars on Windows when hovering over hover code annotations.
 - ([#5708](https://github.com/quarto-dev/quarto-cli/issues/5708)): Fix hang when viewing pages with specific query parameter
@@ -39,6 +40,7 @@
 - ([#7137](https://github.com/quarto-dev/quarto-cli/discussions/7137)): Automatically set `rel="noopener"` when setting a target on external links
 - ([#7187](https://github.com/quarto-dev/quarto-cli/issues/7187)): Add `html-table-processing: none` to document- and project-level metadata to disable HTML table processing. Add `{html-table-processing="none"}` to a fenced div to disable HTML table processing for the elements in that div. Add `html-table-processing: none` on knitr or jupyter cell to disable HTML table processing for the cell output content.
 - ([#7441](https://github.com/quarto-dev/quarto-cli/issues/7441)): Links in hover box (e.g. links to DOI when hover for citations is opt-in) are now correctly process for external and new window processing (when `link-external-icon: true` and `link-external-newwindow: true`).
+- Ensure that code annotation buttons are not selectable text.
 
 ## Appendix
 
@@ -57,12 +59,14 @@
 
 ## PDF Format
 
+- ([#4370](https://github.com/quarto-dev/quarto-cli/issues/4370)): Hoist code cells deep in the AST out of layout cells to avoid `\raisebox` issues with the `Shaded` environment.
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
 - ([#6077](https://github.com/quarto-dev/quarto-cli/issues/6077)): Make sure proof environments are tight around contents.
 - ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
 - ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
 - ([#7175](https://github.com/quarto-dev/quarto-cli/issues/7175)): Fix an issue with code annotations when more than one digit is used for annotation number.
 - ([#7267](https://github.com/quarto-dev/quarto-cli/issues/7267)): Fix issue with longtable environments interfering with the `table` counter.
+- ([#7534](https://github.com/quarto-dev/quarto-cli/issues/7534)): Fix issue with multiple paragraph footnotes when using `reference-location: margin`.
 - ([#7568](https://github.com/quarto-dev/quarto-cli/issues/7568)): Code annotation now works in LaTeX document when having other comments on same line.
 
 ## Docusaurus Format
@@ -80,6 +84,7 @@
 ## Asciidoc Format
 
 - ([#6589](https://github.com/quarto-dev/quarto-cli/issues/6589)): Don't crash when `format: asciidoc` with a missing title.
+- ([#7632](https://github.com/quarto-dev/quarto-cli/issues/7632)): Render citations properly inside callouts
 
 ## Confluence Format
 
@@ -149,9 +154,9 @@
 - Display render output/progress for previews that take longer than 2 seconds
 - Ability to cancel an executing preview from within the progress UI
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
-- ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 - Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
 - Only re-use Jupyter kernels for languages that explicitly opt into it
+- ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 
 ## Jupyter
 
@@ -160,13 +165,13 @@
 - Correctly exclude `id` fields when converting Colab notebooks to qmd.
 - More thorough cleaning out of text artifacts created by matplotlib intermediate statements.
 - Added `ipynb-shell-interactivity` option (enables specification of IPython [`InteractiveShell.ast_node_interactivity`](https://ipython.readthedocs.io/en/stable/config/options/terminal.html#configtrait-InteractiveShell.ast_node_interactivity) option)
-- ([#6344](https://github.com/quarto-dev/quarto-cli/issues/6344)): Somewhat improve the error message in case of YAML parsing errors in metadata of Python code cells.
-- ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
-- ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - Only search for Julia conda installation when the engine language is Julia
 - Support for `plotly-connected` option to determine where Plotly is embedded or loaded from CDN
 - Reduce default margins for Plotly figures (t=30,r=0,b=0,l=0)
 - Restart kernel daemon when non-package Python modules change
+- ([#6344](https://github.com/quarto-dev/quarto-cli/issues/6344)): Somewhat improve the error message in case of YAML parsing errors in metadata of Python code cells.
+- ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
+- ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - ([#7512](https://github.com/quarto-dev/quarto-cli/issues/7512)): Improved error message listing known kernels, when a kernel set with `jupyter` key in YAML is not found.
 - ([#7548](https://github.com/quarto-dev/quarto-cli/issues/7548)): Don't use `fig_format="png"` in Julia's CairoMakie because of interaction with `display()`
 
@@ -182,6 +187,7 @@
 - Update observablehq's runtime to version 5.6.0.
 - ([#5215](https://github.com/quarto-dev/quarto-cli/issues/5215)): Report CORS requests as plain text when serving single-file previews.
 - ([#6267](https://github.com/quarto-dev/quarto-cli/issues/6267)): Fix error message when running in `file://`.
+- ([#7537](https://github.com/quarto-dev/quarto-cli/issues/7537)): Code annotations works better with OJS cells.
 
 ## Mermaid diagrams
 

@@ -58,8 +58,9 @@ testRender(knitrTablesQmd.input, "html", false, [
 
 /* caption is inserted in the right place in table environment*/
 renderVerifyLatexOutput(docs("crossrefs/knitr-tables-latex.qmd"), [
-  /\\begin{table}.*\\caption{\\label{tbl-1}.*}.*\\begin{longtable}\[.*\]{.*}.*\\end{longtable}/s,
-  /\\begin{table}.*\\caption{\\label{tbl-2}.*}.*\\centering.*\\begin{tabular}{.*}/s,
-  /\\begin{table}.*\\caption{\\label{tbl-3}.*}.*\\centering.*\\begin{longtable\*}{.*}/s,
-  /\\begin{table}.*\\caption{\\label{tbl-4}.*}.*\\centering\n\\begin{tabular}\[c\]{.*}/s,
+  /\\begin{longtable}\[.*\]{.*}.*\n+\\caption{\\label{tbl-1}.*}\n+.*\\tabularnewline/,
+  /\\begin{table}\n+\\caption{\\label{tbl-2}.*}.*\n+\\centering{?\n+\\begin{tabular}{.*}/,
+  /\\begin{longtable}{.*}.*\n+\\caption{\\label{tbl-3}.*}\n+.*\\tabularnewline/,
+  // two centering calls here is ugly, but we don't control the input we get
+  /\\begin{table}\n+\\caption{\\label{tbl-4}.*}.*\n+\\centering{?\n+\\centering\n+\\begin{tabular}\[c\]{.*}/,
 ]);

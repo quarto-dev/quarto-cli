@@ -253,11 +253,7 @@ local quarto_pre_filters = {
   { name = "pre-table-captions", 
     filter = table_captions(),
     flags = { "has_table_captions" } },
-
-  { name = "pre-longtable-no-caption-fixup", 
-    filter = longtable_no_caption_fixup(),
-    flags = { "has_longtable_no_caption_fixup" } },
-  
+ 
   { name = "pre-code-annotations", 
     filter = code_annotations(),
     flags = { "has_code_annotations" } },
@@ -346,6 +342,7 @@ local quarto_post_filters = {
   { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
 
   -- format fixups post rendering
+  { name = "post-render-latex-fixups", filter = render_latex_fixups() },
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
@@ -426,7 +423,9 @@ table.insert(quarto_filter_list, { name = "pre-render", filter = {} }) -- entry 
 tappend(quarto_filter_list, quarto_layout_filters)
 tappend(quarto_filter_list, quarto_post_filters)
 table.insert(quarto_filter_list, { name = "post-render", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-finalize", filter = {} }) -- entry point for user filters
 tappend(quarto_filter_list, quarto_finalize_filters)
+table.insert(quarto_filter_list, { name = "post-finalize", filter = {} }) -- entry point for user filters
 
 -- now inject user-defined filters on appropriate positions
 inject_user_filters_at_entry_points(quarto_filter_list)

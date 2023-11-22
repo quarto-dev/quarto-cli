@@ -175,13 +175,12 @@ export const ensureTypstFileRegexMatches = (
     name: `Inspecting ${file} for Regex matches`,
     verify: async (_output: ExecuteOutput[]) => {
       const keptTyp = file.replace(".pdf", ".typ");
-      const tex = await Deno.readTextFile(keptTyp);
+      const typ = await Deno.readTextFile(keptTyp);
 
       try {
-        // Move the docx to a temp dir and unzip it
         matches.forEach((regex) => {
           assert(
-            regex.test(tex),
+            regex.test(typ),
             `Required match ${String(regex)} is missing from file ${file}.`,
           );
         });
@@ -189,7 +188,7 @@ export const ensureTypstFileRegexMatches = (
         if (noMatches) {
           noMatches.forEach((regex) => {
             assert(
-              !regex.test(tex),
+              !regex.test(typ),
               `Illegal match ${String(regex)} was found in file ${file}.`,
             );
           });

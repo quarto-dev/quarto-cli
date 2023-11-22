@@ -97,6 +97,9 @@ $dashboard-card-toolbar-top-margin: 6px !default;
     padding-top: 0.2em;
     padding-bottom: 0.2em;
   }
+  .shiny-input-select {
+    min-width: 6em;
+  }
 }
 
 @mixin shiny-input-container {
@@ -132,6 +135,18 @@ $dashboard-card-toolbar-top-margin: 6px !default;
   }
 }
 
+@mixin shiny-toolbar-customizations {
+  @include toolbar-layout();
+  @include shiny-input-container();
+  @include shiny-text-input();
+  @include shiny-date-range();
+  @include shiny-input-slider();
+  @include shiny-input-checkboxgroup();
+  @include shiny-input-radiogroup();
+  @include shiny-input-select();
+  @include shiny-input-checkbox();
+}
+
 @mixin toolbar-layout {
   .cell-output-display {
     display: flex;
@@ -159,6 +174,168 @@ $dashboard-card-toolbar-top-margin: 6px !default;
       margin-top: auto;
       margin-bottom: auto;
     }
+  }
+}
+
+@mixin itables {
+  .itables {
+    @include media-breakpoint-down(md) {
+      div.dataTables_wrapper div.dataTables_length,
+      div.dataTables_wrapper div.dataTables_info,
+      div.dataTables_wrapper div.dataTables_paginate {
+        text-align: initial;
+      }
+
+      div.dataTables_wrapper div.dataTables_filter {
+        text-align: right;
+      }
+
+      div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+        justify-content: initial;
+      }
+    }
+
+    .dataTables_wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0;
+      table {
+        flex-shrink: 0;
+      }
+
+      // The buttons control (download/copy)
+      .dt-buttons {
+        margin-bottom: 0.5em;
+        margin-left: auto;
+
+        width: fit-content;
+
+        float: right;
+        &.btn-group {
+          background: $body-bg;
+          border: none;
+        }
+
+        .btn-secondary {
+          background-color: $body-bg;
+          background-image: none;
+          border: solid $border-color $border-width;
+          padding: 0.2em 0.7em;
+        }
+
+        .btn span {
+          font-size: 0.8em;
+          color: $body-color;
+        }
+      }
+
+      // The number of items (info) text
+      .dataTables_info {
+        margin-left: 0.5em;
+        margin-bottom: 0.5em;
+
+        @include media-breakpoint-up(md) {
+          font-size: 0.875em;
+        }
+        @include media-breakpoint-down(md) {
+          font-size: 0.8em;
+        }
+
+        padding-top: 0;
+      }
+
+      // The table filter / search
+      .dataTables_filter {
+        margin-bottom: 0.5em;
+        font-size: 0.875em;
+        input[type="search"] {
+          padding: 1px 5px 1px 5px;
+          font-size: 0.875em;
+        }
+      }
+
+      // The pagination size selector
+      .dataTables_length {
+        flex-basis: 1 1 50%;
+        margin-bottom: 0.5em;
+        font-size: 0.875em;
+        select {
+          padding: 0.4em 3em 0.4em 0.5em;
+          font-size: 0.875em;
+          margin-left: 0.2em;
+          margin-right: 0.2em;
+        }
+      }
+
+      // The pagination control
+      .dataTables_paginate {
+        @include media-breakpoint-up(md) {
+          margin-left: auto;
+        }
+        flex-shrink: 0;
+
+        ul.pagination .paginate_button .page-link {
+          font-size: 0.8em;
+        }
+      }
+    }
+  }
+}
+
+@mixin observable-toolbar-inputs {
+  form {
+    width: fit-content;
+
+    label {
+      padding-top: 0.2em;
+      padding-bottom: 0.2em;
+      width: fit-content;
+    }
+
+    input[type="date"] {
+      width: fit-content;
+    }
+
+    input[type="color"] {
+      width: 3em;
+    }
+
+    button {
+      padding: 0.4em;
+    }
+
+    select {
+      width: fit-content;
+    }
+  }
+}
+
+@mixin observable-sidebar-inputs {
+  form {
+    flex-direction: column;
+    align-items: start;
+    margin-bottom: 1em;
+
+    div[class*="oi-"][class$="-input"] {
+      flex-direction: column;
+    }
+
+    &[class*="oi-"][class$="-toggle"] {
+      flex-direction: row-reverse;
+      align-items: center;
+      justify-content: start;
+    }
+
+    input[type="range"] {
+      margin-top: 0.5em;
+      margin-right: 0.8em;
+      margin-left: 1em;
+    }
+  }
+  label {
+    width: fit-content;
   }
 }
 
@@ -277,6 +454,10 @@ $valuebox-colors: (
     .navbar {
       padding: 0;
 
+      .navbar-container {
+        padding-left: 1em;
+      }
+
       &.slim {
         .navbar-brand-container,
         .navbar-nav {
@@ -306,7 +487,7 @@ $valuebox-colors: (
       }
 
       .navbar-brand-container {
-        padding: 0.5em;
+        padding: 0.5em 0.5em 0.5em 0;
         display: flex;
         flex-direction: row;
         margin-right: 2em;
@@ -383,21 +564,6 @@ $valuebox-colors: (
   .page-layout-custom .tab-content {
     padding: 0;
     border: none;
-  }
-
-  .card-header,
-  .card-footer {
-    p:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .card-body > .h4:first-child {
-    margin-top: 0;
-  }
-
-  .card-footer {
-    font-size: 0.9em;
   }
 }
 
@@ -640,6 +806,8 @@ $valuebox-colors: (
   }
 
   .sidebar {
+    @include observable-sidebar-inputs();
+
     .card-body {
       margin-bottom: 2em;
     }
@@ -667,19 +835,10 @@ $valuebox-colors: (
     border-top: solid 1px theme-dim($secondary-bg-subtle, 10%);
     padding: 1em;
     flex-wrap: wrap;
-    flex-grow: 1;
     background-color: $card-cap-bg;
 
-    @include toolbar-layout();
-    @include shiny-input-container();
-
-    @include shiny-text-input();
-    @include shiny-date-range();
-    @include shiny-input-slider();
-    @include shiny-input-checkboxgroup();
-    @include shiny-input-radiogroup();
-    @include shiny-input-select();
-    @include shiny-input-checkbox();
+    @include shiny-toolbar-customizations();
+    @include observable-toolbar-inputs();
 
     > * {
       font-size: 0.9em;
@@ -763,12 +922,47 @@ $valuebox-colors: (
     }
   }
 
+  .vega-embed.has-actions {
+    details {
+      width: 1.7em;
+      height: 2em;
+      position: absolute !important;
+      top: 0;
+      right: 0;
+    }
+  }
+
   .dashboard-toolbar-container {
     padding: 0;
   }
 
   /* Card Toolbar */
+  /* Card */
   .card {
+    .card-header,
+    .card-footer {
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .card-body > .h4:first-child {
+      margin-top: 0;
+    }
+
+    // This ensures that elements in the card body (notably the expansion toggle)
+    // appear above the elements inside of it (notably itables, which cause issues)
+    .card-body {
+      z-index: 1000;
+
+      // Customize appearance of elements within cards
+      @include itables();
+    }
+
+    .card-footer {
+      font-size: 0.9em;
+    }
+
     .card-toolbar {
       display: flex;
       flex-grow: 1;
@@ -783,22 +977,20 @@ $valuebox-colors: (
         font-size: 1em;
         flex-grow: 1;
         align-self: flex-start;
-        margin-top: $dashboard-card-toolbar-top-margin;
+        margin-top: 0.1em;
       }
 
       flex-wrap: wrap;
 
-      @include shiny-text-input();
-      @include shiny-date-range();
-      @include shiny-input-slider();
-      @include shiny-input-checkboxgroup();
-      @include shiny-input-radiogroup();
-      @include shiny-input-select();
-      @include shiny-input-checkbox();
-
-      @include shiny-input-container();
-
       @include toolbar-layout();
+
+      @include observable-toolbar-inputs();
+      @include shiny-toolbar-customizations();
     }
+  }
+
+  /*-- Misc HTML elements --*/
+  .card-body > table > thead {
+    border-top: none;
   }
 }
