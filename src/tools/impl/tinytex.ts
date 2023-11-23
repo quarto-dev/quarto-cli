@@ -68,7 +68,7 @@ export const tinyTexInstallable: InstallableTool = {
     },
     os: ["linux"],
     message:
-      "This platform doesn't support installation at this time. Please install manually instead.",
+      "This platform doesn't support installation at this time. Please install manually instead. See https://yihui.org/tinytex/#installation.",
   }],
   installed,
   installDir,
