@@ -7,11 +7,17 @@
   # execute knitr::spin
   spin <- function(input) {
 
+    if (utils::packageVersion("knitr") < "1.44") {
+      stop(
+        "knitr >= 1.44 is required for rendering with Quarto from `.R` files. ",
+        "Please update knitr.", call. = FALSE)
+    }
+
     # read file
     text <- xfun::read_utf8(input)
 
     # spin and return
-    knitr::spin(text = text, knit = FALSE)
+    knitr::spin(text = text, knit = FALSE, format = "qmd")
 
   }
 
