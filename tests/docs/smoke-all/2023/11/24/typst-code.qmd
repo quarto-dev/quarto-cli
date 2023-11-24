@@ -1,0 +1,20 @@
+---
+format: typst
+---
+
+This is an inline code `x + 1`
+
+And this is a code block
+
+```
+1 + 1 
+```
+
+Now with lang attributes
+```r
+1 + 1
+```
+
+also inline `<div>`{.html}
+
+This is also suppose to work `#raw("x + y")`{=typst}
