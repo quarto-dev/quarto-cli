@@ -34,6 +34,8 @@
   description: The numbering depth for sections. (Use `number-depth` instead).
 
 - name: number-offset
+  ags:
+    formats: [$html-all]
   schema:
     maybeArrayOf: number
   default: [0, 0, 0, 0, 0, 0]

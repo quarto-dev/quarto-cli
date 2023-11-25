@@ -15476,6 +15476,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "number-offset",
+          ags: {
+            formats: [
+              "$html-all"
+            ]
+          },
           schema: {
             maybeArrayOf: "number"
           },
