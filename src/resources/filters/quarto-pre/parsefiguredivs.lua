@@ -489,7 +489,13 @@ function parse_reftargets()
         local img = link.content[1]
         local identifier = img.identifier
         if img.identifier == "" then
-          return nil
+          local caption = img.caption
+          if #caption > 0 then
+            img.caption = nil
+            return pandoc.Figure(link, { long = { caption } })
+          else
+            return pandoc.Figure(link)
+          end
         end
         img.identifier = ""
         local type = refType(identifier)
