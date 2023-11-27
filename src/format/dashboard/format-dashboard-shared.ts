@@ -17,6 +17,7 @@ export const kDTTableSentinel = "data-dt-support";
 
 // Carries the layout for a given row or column
 export const kLayoutAttr = "data-layout";
+export const kFillAttr = "data-fill";
 export const kLayoutFill = "fill";
 export const kLayoutFlow = "flow";
 export type Layout = "fill" | "flow" | string;

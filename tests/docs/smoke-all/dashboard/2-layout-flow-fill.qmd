@@ -39,7 +39,7 @@ plot(cars)
 ```
 :::
 
-Row {.flow}
+Row {fill=false}
 ------------------------
 
 :::{.valuebox .bg-primary icon="airplane" max-height=550px}

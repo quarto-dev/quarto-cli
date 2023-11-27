@@ -15,7 +15,7 @@ import {
   ensureCssUnits,
   hasFlowLayout,
   kCardClass,
-  kLayoutAttr,
+  kFillAttr,
   kLayoutFill,
   kLayoutFlow,
   kValueboxClass,
@@ -271,10 +271,10 @@ function cardBodyLayouts(el: Element) {
 }
 
 function cardBodyLayout(cardBodyEl: Element) {
-  const explicitLayout = cardBodyEl.getAttribute(kLayoutAttr);
-  if (explicitLayout !== null) {
+  const explicitFill = cardBodyEl.getAttribute(kFillAttr);
+  if (explicitFill !== null) {
     // If there is an explicitly specified layout, use that
-    return explicitLayout;
+    return explicitFill !== "false" ? kLayoutFill : kLayoutFlow;
   } else if (shinyInputs(cardBodyEl)) {
     // If the card only contains shiny inputs, that is a flow layout
     return kLayoutFlow;

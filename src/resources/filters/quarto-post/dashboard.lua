@@ -226,8 +226,8 @@ function render_dashboard()
             -- Otherwise, look more closely at the markdown contents and figure out 
             -- how to best handle
             local options, userClasses = dashboard.card.readOptions(el)
-            if options[dashboard.card.optionKeys.layout] == nil then
-              options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+            if options[dashboard.card.optionKeys.fill] == nil then
+              options[dashboard.card.optionKeys.fill] = false
             end
 
             local results = pandoc.List()
@@ -310,8 +310,8 @@ function render_dashboard()
             local options, userClasses = dashboard.card.readOptions(el)
 
             -- if not explicitly set, mark markdown cells as flow
-            if isMarkdownOutput and options[dashboard.card.optionKeys.layout] == nil then
-              options[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+            if isMarkdownOutput and options[dashboard.card.optionKeys.fill] == nil then
+              options[dashboard.card.optionKeys.fill] = false
             end
 
             -- Try to read the title from any programmatic output
@@ -604,7 +604,7 @@ function render_dashboard()
                 -- Free floating card toolbar, place it in a card
                 local userClasses, cardOptions = dashboard.card.readOptions(v)
                 cardOptions[dashboard.card.optionKeys.expandable] = false
-                cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+                cardOptions[dashboard.card.optionKeys.fill] = false
                 result:insert(dashboard.card.makeCard({v}, userClasses, cardOptions))
               end
             elseif dashboard.card_sidebar.isCardSidebar(v) and dashboard.card_sidebar.isUnprocessed(v) then
@@ -629,7 +629,7 @@ function render_dashboard()
                 -- Free floating card sidebar, place it in a card
                 local userClasses, cardOptions = dashboard.card.readOptions(v)
                 cardOptions[dashboard.card.optionKeys.expandable] = false
-                cardOptions[dashboard.card.optionKeys.layout] = dashboard.card.optionValues.flow
+                cardOptions[dashboard.card.optionKeys.fill] = false
                 result:insert(dashboard.card.makeCard({v}, userClasses, cardOptions))
               end
 
