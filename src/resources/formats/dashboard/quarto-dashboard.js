@@ -82,7 +82,7 @@ function updatePageFlow(scrolling) {
     }
   }
 }
-
+window.document.documentElement.classList.add("hidden");
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   ensureWidgetsFill();
 
@@ -108,7 +108,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Try to process the hash and activate a tab
   const hash = window.decodeURIComponent(window.location.hash);
   if (hash.length > 0) {
-    QuartoDashboardUtils.showPage(hash);
+    QuartoDashboardUtils.showPage(hash, () => {
+      window.document.documentElement.classList.remove("hidden");
+    });
+  } else {
+    window.document.documentElement.classList.remove("hidden");
   }
 
   // navigate to a tab when the history changes
@@ -213,7 +217,7 @@ window.QuartoDashboardUtils = {
     const tabPaneEl = document.querySelector(`.dashboard-page.tab-pane${hash}`);
     return tabPaneEl !== null;
   },
-  showPage: function (hash) {
+  showPage: function (hash, fnCallback) {
     // If the hash is empty, just select the first tab and activate that
     if (hash === "") {
       const firstTabPaneEl = document.querySelector(".dashboard-page.tab-pane");
@@ -246,6 +250,10 @@ window.QuartoDashboardUtils = {
       } else {
         tabPaneEl.classList.remove("active");
       }
+    }
+
+    if (fnCallback) {
+      fnCallback();
     }
   },
   showLinkedValue: function (href) {
