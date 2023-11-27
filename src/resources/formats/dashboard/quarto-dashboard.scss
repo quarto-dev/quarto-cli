@@ -426,7 +426,6 @@ $valuebox-colors: (
         padding-left: 0;
       }
     }
-
     .navbar-toggler {
       margin-right: 0;
     }
@@ -467,7 +466,12 @@ $valuebox-colors: (
         }
       }
 
+      .quarto-color-scheme-toggle {
+        order: 9;
+      }
+
       .navbar-toggler {
+        margin-left: 0.5em;
         order: 10;
       }
 
@@ -771,6 +775,7 @@ $valuebox-colors: (
     padding-left: 1em;
     padding-right: 1em;
     background-color: $card-cap-bg;
+    color: $card-cap-color or $body-color;
   }
 
   .bslib-sidebar-layout {
@@ -992,5 +997,10 @@ $valuebox-colors: (
   /*-- Misc HTML elements --*/
   .card-body > table > thead {
     border-top: none;
+  }
+
+  .card-body > .table > :not(caption) > * > * {
+    background-color: $card-bg;
+    color: $card-color;
   }
 }

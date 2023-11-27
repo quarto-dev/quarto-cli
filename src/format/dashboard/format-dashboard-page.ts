@@ -61,6 +61,22 @@ export function processPages(doc: Document, dashboardMeta: DashboardMeta) {
     navbarTogglerEl.classList.remove("hidden");
   }
 
+  // Add a dark mode toggle if needed
+  // If dark and light themes are provided, inject a toggle into the correct spot
+  if (dashboardMeta.hasDarkMode) {
+    const toggleEl = makeEl("a", {
+      classes: ["quarto-color-scheme-toggle"],
+      attributes: {
+        href: "",
+        onclick: "window.quartoToggleColorScheme(); return false;",
+      },
+    }, doc);
+
+    const iEl = makeEl("i", { classes: ["bi"] }, doc);
+    toggleEl.append(iEl);
+    navbarContainerEl.append(toggleEl);
+  }
+
   // Build up the navigation descriptors, marking up the pages as we go
   const navItems: NavItem[] = [];
   let counter = 1;

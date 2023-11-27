@@ -9,6 +9,7 @@ import { Document, Element } from "../../core/deno-dom.ts";
 import { gitHubContext } from "../../core/github.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sassLayer } from "../../core/sass.ts";
+import { formatDarkMode } from "../html/format-html-info.ts";
 import { kBootstrapDependencyName } from "../html/format-html-shared.ts";
 
 export const kDashboard = "dashboard";
@@ -44,6 +45,7 @@ export interface DashboardMeta {
   orientation: "rows" | "columns";
   scrolling: boolean;
   expandable: boolean;
+  hasDarkMode: boolean;
   [kNavButtons]: NavButton[];
 }
 
@@ -103,10 +105,13 @@ export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
     }
   }
 
+  const hasDarkMode = formatDarkMode(format) !== undefined;
+
   return {
     orientation,
     scrolling,
     expandable,
+    hasDarkMode,
     [kNavButtons]: navbarButtons,
   };
 }
