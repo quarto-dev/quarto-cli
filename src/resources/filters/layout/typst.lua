@@ -15,9 +15,11 @@ function make_typst_figure(tbl)
     separator = ""
   end
 
-  return pandoc.Blocks({
-    pandoc.RawInline("typst", "#figure(["),
-    content,
+  local result =  pandoc.Blocks({
+    pandoc.RawInline("typst", "#figure([")
+  })
+  result:extend(quarto.utils.as_blocks(content))
+  result:extend({
     pandoc.RawInline("typst", "], caption: figure.caption("),
     pandoc.RawInline("typst", separator and ("separator: \"" .. separator .. "\", ") or ""),
     pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
@@ -32,6 +34,7 @@ function make_typst_figure(tbl)
     pandoc.RawInline("typst", identifier and ("<" .. identifier .. ">") or ""),
     pandoc.RawInline("typst", "\n\n")
   })
+  return result
 end
 
 local function render_floatless_typst_layout(panel)
