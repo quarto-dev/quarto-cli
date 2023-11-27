@@ -16341,6 +16341,7 @@ try {
             },
             schema: "boolean",
             default: false,
+            hidden: true,
             description: {
               short: "Produce a standalone HTML file with no external dependencies",
               long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n"

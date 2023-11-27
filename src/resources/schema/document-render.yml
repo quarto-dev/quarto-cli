@@ -68,6 +68,7 @@
     formats: [$html-files]
   schema: boolean
   default: false
+  hidden: true
   description:
     short: "Produce a standalone HTML file with no external dependencies"
     long: |
