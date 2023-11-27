@@ -1,23 +1,19 @@
-$if(title)$
 <header id="quarto-dashboard-header">
 <nav class="navbar navbar-expand-md slim" data-bs-theme="dark">
   <div class="navbar-container container-fluid">
     <button class="navbar-toggler hidden" type="button" data-bs-toggle="collapse" data-bs-target="#dashboard-collapse" aria-controls="dashboard-collapse" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>    
-    <div class="navbar-brand-container">       
-$if(logo)$<a href="#"><img src="$logo$" alt="$logo-alt$" class="navbar-logo d-inline-block"></a>$endif$
-$if(title)$
-      <div class="navbar-title">
-        <div class="navbar-title-text"><a href="#">$title$</a></div>
-        $if(subtitle)$<div class="navbar-subtitle">$subtitle$</div>$endif$
-        $if(author)$<div class="navbar-author">$author$</div>$endif$
-      </div>
-$endif$
-    </div>
-</div>
 
+$if(title)$
+${_nav-container.html()}
+$elseif(logo)$
+${_nav-container.html()}
+$elseif(subtitle)$
+${_nav-container.html()}
+$elseif(author)$
+${_nav-container.html()}
+$endif$
 
 </nav>
 </header>
-$endif$

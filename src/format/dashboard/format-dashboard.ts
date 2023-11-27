@@ -78,9 +78,13 @@ export function dashboardFormat() {
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
-        [kTemplatePartials]: formatResourcePath(
-          "dashboard",
-          "title-block.html",
+        [kTemplatePartials]: ["title-block.html", "_nav-container.html"].map(
+          (file) => {
+            return formatResourcePath(
+              "dashboard",
+              file,
+            );
+          },
         ),
       },
       pandoc: {
