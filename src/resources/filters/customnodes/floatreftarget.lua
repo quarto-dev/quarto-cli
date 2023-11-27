@@ -137,7 +137,7 @@ function cap_location(float_or_layout)
   return result
 end
 
-local function get_node_from_float_and_type(float, type)
+local function get_node_from_float_and_type(float, type, filter_base)
   -- this explicit check appears necessary for the case where
   -- float.content is directly the node we want, and not a container that
   -- contains the node.
@@ -145,13 +145,19 @@ local function get_node_from_float_and_type(float, type)
     return float.content
   else
     local found_node = nil
-    float.content:walk({
+    local filter = {
       traverse = "topdown",
       [type] = function(node)
         found_node = node
         return nil, false -- don't recurse
       end
-    })
+    }
+    if filter_base ~= nil then
+      for k,v in pairs(filter_base) do
+        filter[k] = v
+      end
+    end
+    _quarto.ast.walk(float.content, filter)
     return found_node
   end
 end
@@ -616,9 +622,18 @@ function float_reftarget_render_html_figure(float)
   -- otherwise, we render the float as a div with the caption
   local div = pandoc.Div({})
 
-  local found_image = get_node_from_float_and_type(float, "Image") or pandoc.Div({})
+  local found_image = pandoc.Div({})
+  -- #7727: don't recurse into tables when searching for a figure from
+  -- which to get attributes
+  if float.content.t ~= "Table" then
+    found_image = get_node_from_float_and_type(float, "Image", {
+      Table = function(table)
+        return nil, false
+      end,
+    }) or pandoc.Div({})
+  end
   local figure_attrs = get_figure_attributes(found_image)
-  
+
   div.attr = merge_attrs(
     pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {}),
     pandoc.Attr("", {}, figure_attrs.figureAttr))
