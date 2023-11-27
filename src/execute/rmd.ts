@@ -376,8 +376,8 @@ export function isKnitrSpinScript(file: string) {
   const ext = extname(file).toLowerCase();
   if (ext == ".r") {
     const text = Deno.readTextFileSync(file);
-    // Consider a .R script that can be spinned if first line starts with a special `#'` comment
-    return /^\s*#'/.test(text);
+    // Consider a .R script that can be spinned if it contains a YAML header inside a special `#'` comment
+    return /^\s*#'\s*---[\s\S]+?\s*#'\s*---/.test(text);
   } else {
     return false;
   }
