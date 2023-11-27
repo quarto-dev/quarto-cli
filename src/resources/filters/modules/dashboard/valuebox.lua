@@ -102,9 +102,13 @@ local function parseStdOutToOptions(stdOut)
     end  
   elseif firstChar == '[' then
     local cleaned = stdOut:match(kRListValuePattern)
+
     value = cleaned
   else 
-    value = stdOut
+
+    -- python stdout strings are surrounded with single quotes, so 
+    -- remove these
+    value = stdOut:gsub("^'", ""):gsub("'$", "")
   end
 
 
