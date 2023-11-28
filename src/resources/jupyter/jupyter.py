@@ -42,6 +42,10 @@ class ExecuteHandler(StreamRequestHandler):
             trace('invalid secret (exiting server)')
             self.server.request_exit()
             return
+         if input["command"] == "file":
+            filename = input["options"]["file"]
+            input = json.load(open(filename, "r"))
+            os.unlink(filename)
 
          # if this is an abort command then request exit
          command = input["command"]
