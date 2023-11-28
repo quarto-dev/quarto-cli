@@ -388,6 +388,10 @@ $valuebox-colors: (
 
 // Dashboards
 .quarto-dashboard {
+  &.nav-fixed.dashboard-sidebar #quarto-content.quarto-dashboard-content {
+    padding: 0em;
+  }
+
   #quarto-content.quarto-dashboard-content {
     padding: 1em;
     > * {
