@@ -573,11 +573,23 @@ local function create_figcaption(float)
   if float.caption_long == nil or pandoc.utils.stringify(float.caption_long) == "" then
     cap = pandoc.Blocks({})
   end
-    local ref_type = refType(float.identifier)
+  local ref_type = refType(float.identifier)
+  local caption_location = cap_location(float)
+
   -- use a uuid to ensure that the figcaption ids won't conflict with real
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
-  local classes = { float.type:lower() }
+  
+  -- narrow workaround for table css breakage (see #7044)
+  -- we do this because bootstrap's css has a rule that 
+  -- applies to .table which we don't want to catch
+  -- the caption
+  local classes = { }
+  if float.type:lower() ~= "table" then
+    table.insert(classes, float.type:lower())
+  end
+  table.insert(classes, "quarto-float-caption-" .. caption_location)
+
   if float.parent_id then
     table.insert(classes, "quarto-subfloat-caption")
     table.insert(classes, "quarto-subfloat-" .. ref_type)
@@ -589,11 +601,12 @@ local function create_figcaption(float)
     -- this figcaption will only contain the crossreferenceable label
     table.insert(classes, "quarto-uncaptioned")
   end
+
   return quarto.HtmlTag({
     name = "figcaption",
     attr = pandoc.Attr(caption_id, classes, {}),
     content = float.caption_long,
-  }), caption_id
+  }), caption_id, caption_location
 end
 
 function float_reftarget_render_html_figure(float)
@@ -605,7 +618,7 @@ function float_reftarget_render_html_figure(float)
     -- luacov: enable
   end
 
-  local caption_content, caption_id = create_figcaption(float)
+  local caption_content, caption_id, caption_location = create_figcaption(float)
   local caption_location = cap_location(float)
 
   local float_content = pandoc.Div(_quarto.ast.walk(float.content, {
