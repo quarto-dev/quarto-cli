@@ -41,8 +41,8 @@ testRender(tablesQmd.input, "html", false, [
 const knitrTablesQmd = crossref("knitr-tables.qmd", "html");
 testRender(knitrTablesQmd.input, "html", false, [
   ensureHtmlElements(knitrTablesQmd.output.outputPath, [
-    "div.quarto-layout-panel div.quarto-layout-row div#tbl-cars > figure.quarto-subfloat-tbl >figcaption.table.quarto-subfloat-caption",
-    "div.quarto-layout-panel div.quarto-layout-row div#tbl-pressure > figure.quarto-subfloat-tbl > figcaption.table.quarto-subfloat-caption",
+    "div.quarto-layout-panel div.quarto-layout-row div#tbl-cars > figure.quarto-subfloat-tbl >figcaption.quarto-subfloat-tbl.quarto-subfloat-caption",
+    "div.quarto-layout-panel div.quarto-layout-row div#tbl-pressure > figure.quarto-subfloat-tbl > figcaption.quarto-subfloat-tbl.quarto-subfloat-caption",
   ]),
   ensureFileRegexMatches(knitrTablesQmd.output.outputPath, [
     /Table&nbsp;1: Tables/,
