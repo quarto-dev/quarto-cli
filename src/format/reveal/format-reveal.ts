@@ -666,6 +666,19 @@ function revealHtmlPostprocessor(
       removeClassesFromParentSlide(refs, ["center"]);
     }
 
+    // #6866: add .scrollable to all sections with ordered lists if format.scrollable is true
+    if (format.metadata[kScrollable] === true) {
+      const ol = doc.querySelectorAll("ol");
+      for (const olEl of ol) {
+        const olParent = findParent(olEl as Element, (el: Element) => {
+          return el.nodeName === "SECTION";
+        });
+        if (olParent) {
+          olParent.classList.add("scrollable");
+        }
+      }
+    }
+
     // handle citation links
     const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
     for (const cite of cites) {
@@ -683,9 +696,9 @@ function revealHtmlPostprocessor(
       supporting: [],
     };
     const chalkboard = format.metadata["chalkboard"];
-    if (typeof (chalkboard) === "object") {
+    if (typeof chalkboard === "object") {
       const chalkboardSrc = (chalkboard as Record<string, unknown>)["src"];
-      if (typeof (chalkboardSrc) === "string") {
+      if (typeof chalkboardSrc === "string") {
         result.resources.push(chalkboardSrc);
       }
     }
