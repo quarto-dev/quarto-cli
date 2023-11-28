@@ -20,13 +20,18 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # rmd input filename
   rmd_input <- paste0(xfun::sans_ext(input), ".rmarkdown")
       
-  # swap out the input
-  write(markdown, rmd_input)
+  # swap out the input by reading then writing content.
+  # This handles `\r\n` EOL on windows in `markdown` string
+  # by spliting in lines
+  xfun::write_utf8(
+    xfun::read_utf8(textConnection(markdown, encoding = "UTF-8")),
+    rmd_input
+  )
   input <- rmd_input
       
   # remove the rmd input on exit
   rmd_input_path <- rmarkdown:::abs_path(rmd_input)
-  on.exit(unlink(rmd_input_path))
+  on.exit(unlink(rmd_input_path), add = TRUE)
 
   # give the input an .Rmd extension if it doesn't already have one
   # (this is a temporary copy which we'll remove before exiting). note
@@ -77,6 +82,17 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     do.call(options, r_options)
   }
 
+  # set some default DT options for dashboards (if not otherwise specified)
+  if (is_dashboard_output(format)) {
+    if (is.na(getOption("DT.options", NA))) {
+      options(DT.options = list(
+        bPaginate = FALSE, 
+        dom = "ifrt", 
+        language = list(info = "Showing _TOTAL_ entries")
+      ))
+    }
+  }
+
   # get kntir options
   knitr <- knitr_options(format, resourceDir, handledLanguages)
 
@@ -96,7 +112,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     # This truly awful hack ensures that rmarkdown doesn't tell us we're
     # producing HTML widgets when targeting a non-html format (doing this
     # is triggered by the "prefer-html" options)
-    if (format$render$`prefer-html`) {
+    if (is_html_prefered(format)) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
     }
@@ -107,7 +123,11 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # determine df_print
   df_print <- format$execute$`df-print`
-  if (df_print == "paged" && !is_pandoc_html_format(format) && !format$render$`prefer-html`) {
+  if (
+    df_print == "paged" &&
+    !is_pandoc_html_format(format) &&
+    !is_html_prefered(format)
+  ) {
     df_print <- "kable"
   }
 
@@ -210,6 +230,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
 
   # results
   list(
+    engine = "knitr",
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),
@@ -284,7 +305,7 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
 
 
   # add screenshot force if prefer-html specified
-  if (isTRUE(format$render$`prefer-html`)) {
+  if (is_html_prefered(format)) {
     opts_chunk$screenshot.force <- FALSE
   }
 
@@ -414,8 +435,7 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
 
   # convert dependencies to in_header includes
   dependencies$includes <- list()
-
-  if (is_pandoc_html_format(format) || format$render$`prefer-html`) {
+  if (is_pandoc_html_format(format) || is_html_prefered(format)) {
     # get extras (e.g. html dependencies)
     # only include these html extras if we're targeting a format that
     # supports html (widgets) like this or that prefers html (e.g. Hugo)
@@ -426,12 +446,22 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
       list() # format deps
     )
 
+    
+    # We explicitly will inject dependencies for bslib (bootstrap and supporting 
+    # js / css) so we block those dependencies from making their way into the 
+    # document
+    filteredDependencies = c("bootstrap")
+    if (is_dashboard_output(format)) {
+      bslibDepNames <- c("bootstrap", "bslib-webComponents-js", "bslib-tag-require", "bslib-card-js", "bslib-card-styles", "htmltools-fill", "bslib-value_box-styles", "bs3compat", "bslib-sidebar-js", "bslib-sidebar-styles", "bslib-page_fillable-styles", "bslib-page_navbar-styles", "bslib-component-js", "bslib-component-css")
+      append(filteredDependencies, bslibDepNames)
+    }
+    
+    
     # filter out bootstrap
     extras$dependencies <- Filter(
-      function(dependency) dependency$name != "bootstrap",
+      function(dependency) !(dependency$name %in% filteredDependencies),
       extras$dependencies
     )
-
 
     if (length(extras$dependencies) > 0) {
       deps <- html_dependencies_as_string(extras$dependencies, files_dir)
@@ -449,7 +479,7 @@ dependencies_from_render <- function(input, files_dir, knit_meta, format) {
       }
     }
   } else if (
-    is_latex_output(format$pandoc$to) &&
+    is_pandoc_latex_output(format) &&
     rmarkdown:::has_latex_dependencies(knit_meta)
   ) {
     latex_dependencies <- rmarkdown:::flatten_latex_dependencies(knit_meta)
@@ -523,12 +553,49 @@ extract_preserve_chunks <- function(output_file, format) {
   }
 }
 
-is_pandoc_html_format <- function(format) {
-  knitr::is_html_output(format$pandoc$to, c("markdown", "epub", "gfm", "commonmark", "commonmark_x", "markua"))
+# inline knitr::pandoc_to from knitr 1.41
+# before that, the all format (w/ pandoc extension) was checked
+is_pandoc_to_format <- function(format, check_fmts) {
+  to <- gsub("[-+].*", "", format$pandoc$to)
+  to %in% check_fmts
 }
 
-is_latex_output <- function(to) {
-  knitr:::is_latex_output() || identical(to, "pdf")
+# check is pandoc$to is among html formats (html, slides, epub)
+is_pandoc_html_format <- function(format) {
+  knitr::is_html_output(
+    format$pandoc$to,
+    c("markdown", "epub", "gfm", "commonmark", "commonmark_x", "markua")
+  )
+}
+
+# check if pandoc$to is latex output
+is_pandoc_latex_output <- function(format) {
+  knitr:::is_latex_output() || is_pandoc_to_format(format, "pdf")
+}
+
+# check if pandoc$to is among markdown outputs
+is_pandoc_markdown_output <- function(format) {
+  markdown_formats <- c(
+    "markdown",
+    "markdown_github",
+    "markdown_mmd",
+    "markdown_phpextra",
+    "markdown_strict",
+    "gfm",
+    "commonmark",
+    "commonmark_x",
+    "markua"
+  )
+  is_pandoc_to_format(format, markdown_formats)
+}
+
+# `prefer-html: true` can be set in markdown format that supports HTML outputs
+is_html_prefered <- function(format) {
+  is_pandoc_markdown_output(format) && isTRUE(format$render$`prefer-html`)
+}
+
+is_dashboard_output <- function(format) {
+  identical(format$identifier[["base-format"]], "dashboard")
 }
 
 # apply patches to output as required

@@ -1,0 +1,13 @@
+---
+title: test
+filters:
+  - at: pre-quarto
+    path: pre.lua
+  - at: post-quarto
+    path: post.lua
+  - pre2.lua
+  - quarto
+  - post2.lua
+---
+
+## Hello.

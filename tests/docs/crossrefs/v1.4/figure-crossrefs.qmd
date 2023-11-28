@@ -1,0 +1,107 @@
+---
+title: All ways to get a figure crossref
+keep-md: true
+# format: pdf
+---
+
+## Floats
+
+### Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+### Simple Figure
+
+![Elephant](img/thinker.jpg){#fig-elephant}
+
+![another elephant](img/thinker.jpg){#fig-elephant-2}
+
+[![another elephant](img/thinker.jpg){#fig-linked-elephant-2}](https://www.example.com)
+
+### Figure Div
+
+::: {#fig-foo}
+![](img/surus.jpg)
+
+This is the figure
+:::
+
+### Linked Figure Div
+
+::: {#fig-linked-foo}
+[![](img/surus.jpg)](https://www.example.com)
+
+This is the figure
+:::
+
+See @fig-plot, @fig-elephant, @fig-elephant-2, @fig-foo, @fig-linked-foo, @fig-linked-elephant-2.
+
+## Subfloats
+
+### Simple subfloats
+
+::: {#fig-sub-elephant layout-ncol=2}
+
+![Elephant](img/thinker.jpg){#fig-sub-elephant-sub1}
+
+![another elephant](img/thinker.jpg){#fig-sub-elephant-sub2}
+
+Overall caption
+:::
+
+### Div subfloats
+
+::: {#fig-sub-elephant-2 layout-ncol=2}
+
+::: {#fig-sub-elephant-2-sub1}
+![](img/thinker.jpg)
+
+This is a subfigure
+:::
+
+::: {#fig-sub-elephant-2-sub2}
+![](img/thinker.jpg)
+
+another elephant
+:::
+
+Overall caption
+:::
+
+### Mixed subfloats
+
+::: {#fig-sub-elephant-3 layout-ncol=2}
+
+![This is a subfigure](img/thinker.jpg){#fig-sub-elephant-3-sub1}
+
+::: {#fig-sub-elephant-3-sub2}
+![](img/thinker.jpg)
+
+another elephant
+:::
+
+Overall caption
+:::
+
+::: {#fig-sub-elephant-3 layout-ncol=2}
+
+![This is a subfigure](img/thinker.jpg){#fig-sub-elephant-3-sub1}
+
+```{r}
+#| label: fig-sub-elephant-3-sub2
+#| fig-cap: "Not an elephant"
+
+plot(cars)
+```
+
+Overall caption
+:::
+
+
+
+

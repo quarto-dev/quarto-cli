@@ -1,0 +1,23 @@
+---
+title: Crossref Test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - []
+---
+
+## Simple Sub Figure
+
+::: {#fig-elephants layout-ncol=2}
+
+![Surus](img/surus.jpg){#fig-surus}
+
+![Abbas](img/abbas.jpg){#fig-abbas}
+
+Famous Elephants
+:::
+
+See @fig-elephants for examples. In particular, @fig-abbas and @fig-surus. 

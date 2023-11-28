@@ -5,14 +5,57 @@
 
 local profiler = require('profiler')
 
+-- locate or create the quarto vault,
+-- inserting the just-added nodes if needed, and mutating doc
+local ensure_vault = function(doc)
+  local vault = _quarto.ast.vault.locate(doc)
+ 
+  -- create if missing
+  if vault == nil then
+    vault = pandoc.Div({}, pandoc.Attr(_quarto.ast.vault._uuid, {"hidden"}, {}))
+    doc.blocks:insert(vault)
+  end
+
+  for k, v in pairs(_quarto.ast.vault._added) do
+    local div = pandoc.Div(quarto.utils.as_blocks(v), pandoc.Attr(k, {}, {}))
+    vault.content:insert(div)
+  end
+  vault.content = _quarto.ast.walk(vault.content, {
+    Div = function(div)
+      if _quarto.ast.vault._removed[div.identifier] then
+        return {}
+      end
+    end
+  }) or pandoc.Blocks({}) -- to satisfy the Lua analyzer
+
+  _quarto.ast.vault._added = {}
+  _quarto.ast.vault._removed = {}
+end
+
+local function remove_vault(doc)
+  -- attempt a fast lookup first
+  if #doc.blocks > 0 and doc.blocks[#doc.blocks].identifier == _quarto.ast.vault._uuid then
+    doc.blocks:remove(#doc.blocks)
+  else
+    -- otherwise search for it
+    for i, block in ipairs(doc.blocks) do
+      if block.identifier == _quarto.ast.vault._uuid then
+        doc.blocks:remove(i)
+        break
+      end
+    end
+  end
+end
+
 local function run_emulated_filter_chain(doc, filters, afterFilterPass, profiling)
   init_trace(doc)
-  -- print(os.clock(), " - starting")
   for i, v in ipairs(filters) do
     local function callback()
       if v.flags then
         if type(v.flags) ~= "table" then
+          -- luacov: disable
           fatal("filter " .. v.name .. " has invalid flags")
+          -- luacov: enable
         end
         local can_skip = true
         for _, index in ipairs(v.flags) do
@@ -21,25 +64,34 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
           end
         end
         if can_skip then
-          -- print("          - Skipping", v.name)
           return
         end
       end
-      -- print(os.clock(), " - running", v.name)
 
+      -- We don't seem to need coverage for profiling
+      -- luacov: disable
       if profiling then
         profiler.category = v.name
       end
+      -- luacov: enable
 
-      doc = run_emulated_filter(doc, v.filter)
+      if v.print_ast then
+        print(pandoc.write(doc, "native"))
+      else
+        _quarto.ast._current_doc = doc
+        doc = run_emulated_filter(doc, v.filter)
+        ensure_vault(doc)
 
-      add_trace(doc, v.name)
+        add_trace(doc, v.name)
 
-      if profiling then
-        profiler.category = ""
+        -- luacov: disable
+        if profiling then
+          profiler.category = ""
+        end
+        -- luacov: enable
       end
     end
-    if v.filter.scriptFile then
+    if v.filter and v.filter.scriptFile then
       _quarto.withScriptFile(v.filter.scriptFile, callback)
     else
       callback()
@@ -49,6 +101,7 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
     end
   end
   end_trace()
+  remove_vault(doc)
   return doc
 end
 
@@ -56,6 +109,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
   local cached_paths
   local profiler
 
+  -- luacov: disable
   local function get_paths(tmpdir)
     if cached_paths then
       return cached_paths
@@ -69,6 +123,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
     paths_file:close()
     return cached_paths
   end
+  -- luacov: enable
   
   return {
     traverse = 'topdown',
@@ -77,6 +132,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
       if not profiling then
         return run_emulated_filter_chain(doc, filters, afterFilterPass), false
       end
+      -- luacov: disable
       if profiler == nil then
         profiler = require('profiler')
       end
@@ -90,6 +146,7 @@ local function emulate_pandoc_filter(filters, afterFilterPass)
         return nil
       end)
       return doc, false
+      -- luacov: enable
     end
   }
 end
@@ -100,7 +157,7 @@ function run_as_extended_ast(specTable)
     local finalResult = {}
   
     for i, v in ipairs(filterList) do
-      if v.filter ~= nil then
+      if v.filter ~= nil or v.print_ast then
         -- v.filter._filter_name = v.name
         table.insert(finalResult, v)
       elseif v.filters ~= nil then
@@ -108,11 +165,14 @@ function run_as_extended_ast(specTable)
           innerV._filter_name = string.format("%s-%s", v.name, j)
           table.insert(finalResult, {
             filter = innerV,
-            name = innerV._filter_name
+            name = innerV._filter_name,
+            flags = v.flags
           })
         end
       else
-        print("Warning: filter " .. v.name .. " didn't declare filter or filters.")
+        -- luacov: disable
+        warn("filter " .. v.name .. " didn't declare filter or filters.")
+        -- luacov: enable
       end
     end
   

@@ -574,7 +574,7 @@ local function processFundingGroup(fundingGroup, authors, affiliations)
       elseif pandoc.utils.type(statement) == "Blocks" then
         result[kStatement] = pandoc.utils.blocks_to_inlines(statement)
       else
-        result[kStatement] = openAccess
+        result[kStatement] = statement
       end
     end
 

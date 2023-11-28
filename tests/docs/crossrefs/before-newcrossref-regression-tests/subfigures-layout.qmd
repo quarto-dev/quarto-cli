@@ -1,0 +1,13 @@
+---
+title: basic subfigure test
+---
+
+::: {#fig-1 layout-ncol=2}
+
+![Subcaption 1](./img/abbas.jpg){#fig-1-1}
+
+![Subcaption 2](./img/painter.jpg){#fig-1-2}
+
+Caption.
+
+:::

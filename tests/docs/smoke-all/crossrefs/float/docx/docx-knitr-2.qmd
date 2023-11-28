@@ -1,0 +1,30 @@
+---
+title: Knitr Crossref Test
+format: html
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:i"
+          - "//m:oMath"
+          - "//w:bookmarkStart[@w:name=\"fig-plot\"]"
+          - "//w:drawing"
+---
+
+
+This tests:
+
+- float figures from knitr
+- Markdown support for captions from knitr
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Fancy _caption_ with math: $e=mc^2$"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

@@ -1,0 +1,44 @@
+---
+title: "Sample dashboard"
+format: dashboard
+theme:
+  light: flatly
+  dark: darkly
+---
+
+#  {.sidebar}
+
+Some text in the sidebar.
+
+::: callout-note
+And a callout box with a title.
+:::
+
+# Page 1 {orientation="columns"}
+
+## Column 1
+
+Some text on Page 1.
+
+```{r}
+plot(cars)
+```
+
+## Column 2
+
+
+| hi    | hello  |
+|-------|--------|
+| mello | yellow |
+| jello | \--    |
+
+: Demonstration of pipe table syntax
+
+# Page 2
+
+Some text on Page 2.
+
+```{r}
+#| title: Hello World
+plot(cars)
+```

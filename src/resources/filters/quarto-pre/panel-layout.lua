@@ -5,7 +5,7 @@ function bootstrap_panel_layout()
 
   return {
     Div = function(el)
-      if (hasBootstrap() and el.t == "Div") then
+      if (hasBootstrap() and is_regular_node(el, "Div")) then
         local fill = el.attr.classes:find("panel-fill")
         local center = el.attr.classes:find("panel-center")
         if fill or center then
@@ -36,3 +36,20 @@ function bootstrap_panel_layout()
   
 end
 
+function panel_insert_preamble(result, preamble)
+  if preamble == nil then
+    return
+  end
+
+  local pt = pandoc.utils.type(preamble)
+  if preamble.content and #preamble.content > 0 then
+    result:extend(preamble.content)
+  elseif pt == "Inline" or pt == "Block" then
+    result:insert(preamble)
+  elseif pt == "Blocks" then
+    result:extend(preamble)
+  else
+    fail("Don't know what to do with preamble of type " .. pt)
+    return nil
+  end
+end

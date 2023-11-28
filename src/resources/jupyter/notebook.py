@@ -78,12 +78,34 @@ def notebook_execute(options, status):
    # read variables out of format
    execute = format["execute"]
 
+   # evaluation
    eval = execute["eval"]
    allow_errors = bool(execute["error"])
+
+   # figures
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]
    fig_format = execute["fig-format"]
    fig_dpi = execute["fig-dpi"]
+
+   # shell interactivity
+   interactivity = execute["ipynb-shell-interactivity"]
+   if interactivity == None: interactivity = ''
+
+   # plotly connected
+   plotly_connected = execute["plotly-connected"]
+
+   # server: shiny
+   metadata = format["metadata"]
+   if "server" in metadata and "type" in metadata["server"] and metadata["server"]["type"] == "shiny": 
+      is_shiny = True
+   else:
+      is_shiny = False
+
+   # dashboard
+   is_dashboard = format["identifier"]["base-format"] == "dashboard"
+
+   # caching
    if "cache" in execute:
       cache = execute["cache"]
    else:
@@ -108,7 +130,7 @@ def notebook_execute(options, status):
       nb_parameterize(nb, params)
 
    # insert setup cell
-   setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path)
+   setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny, is_dashboard, plotly_connected)
    nb.cells.insert(0, setup_cell)
 
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
@@ -203,19 +225,16 @@ def notebook_execute(options, status):
         
       # if this was the setup cell, see if we need to exit b/c dependencies are out of date
       if index == 0:
-         kernel_deps = nb_kernel_depenencies(cell)
-         if kernel_deps:
-            if hasattr(notebook_execute, "kernel_deps"):
+         # confirm kernel_deps haven't changed (restart if they have)
+         if hasattr(notebook_execute, "kernel_deps"):
+            kernel_deps = nb_kernel_depenencies(cell)
+            if kernel_deps:
                for path in kernel_deps.keys():
                   if path in notebook_execute.kernel_deps.keys():
                      if notebook_execute.kernel_deps[path] != kernel_deps[path]:
                         raise RestartKernel
                   else:
                      notebook_execute.kernel_deps[path] = kernel_deps[path]
-            else:
-               notebook_execute.kernel_deps = kernel_deps
-         else:
-            notebook_execute.kernel_deps = {}
 
          # we are done w/ setup (with no restarts) so it's safe to print 'Executing...'
          if not quiet:
@@ -254,20 +273,29 @@ def notebook_execute(options, status):
 
    # execute cleanup cell
    cleanup_cell = nb_cleanup_cell(nb.metadata.kernelspec, resource_dir)
-   nb.cells.append(cleanup_cell)
-   client.execute_cell(
-      cell = cleanup_cell, 
-      cell_index = len(client.nb.cells) - 1, 
-      store_history = False
-   )
-   nb.cells.pop()
+   if cleanup_cell:
+      nb.cells.append(cleanup_cell)
+      client.execute_cell(
+         cell = cleanup_cell, 
+         cell_index = len(client.nb.cells) - 1, 
+         store_history = False
+      )
+      nb.cells.pop()
+
+      # record kernel deps after execution (picks up imports that occurred
+      # witihn the notebook cells)
+      kernel_deps = nb_kernel_depenencies(cleanup_cell)
+      if kernel_deps:
+         notebook_execute.kernel_deps = kernel_deps
+      else:
+         notebook_execute.kernel_deps = {}
 
    # progress
    if not quiet:
       status("\n")
 
    # return flag indicating whether we should persist 
-   persist = notebook_execute.kernel_deps != None
+   persist = hasattr(notebook_execute, "kernel_deps")
    return persist
 
 def notebook_init(nb, resources, allow_errors):
@@ -319,13 +347,13 @@ def notebook_init(nb, resources, allow_errors):
 def nb_write(nb, input):
    nbformat.write(nb, input, version = NB_FORMAT_VERSION)
 
-def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path):
-   return nb_language_cell('setup', kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path)
+def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny, is_dashboard, plotly_connected):
+   return nb_language_cell('setup', kernelspec, resource_dir, True, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny, is_dashboard, plotly_connected)
 
 def nb_cleanup_cell(kernelspec, resource_dir):
-   return nb_language_cell('cleanup', kernelspec, resource_dir)
+   return nb_language_cell('cleanup', kernelspec, resource_dir, False)
 
-def nb_language_cell(name, kernelspec, resource_dir, *args):
+def nb_language_cell(name, kernelspec, resource_dir, allow_empty, *args):
    source = ''
    lang_dir = os.path.join(resource_dir, 'jupyter', 'lang',  kernelspec.language)
    if os.path.isdir(lang_dir):
@@ -335,9 +363,12 @@ def nb_language_cell(name, kernelspec, resource_dir, *args):
             source = file.read().format(*args)  
 
    # create cell
-   return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
-      source = source
-   )
+   if source != '' or allow_empty:
+      return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
+         source = source
+      )
+   else:
+      return None
 
 def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widgets")):
    try:

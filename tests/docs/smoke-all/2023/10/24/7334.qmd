@@ -1,0 +1,19 @@
+---
+title: "table in a div"
+format:
+  html: default
+  pdf: default
+---
+Table in a div
+
+::: callout-tip
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: tbl-table1
+#| tbl-cap: "A table"
+library(tidyverse)
+table <- tribble(~a, ~b, ~c,
+                "text", 1, "Long text",
+                "others", 2, "Long text") 
+knitr::kable(table)
+```
+:::

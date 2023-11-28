@@ -24,7 +24,7 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 Here are what is expected in the environment for the tests :
 
 - R should be installed and in PATH
-  - On Windows, Rtools should be to (for source package) e.g `winget install --id RProject.Rtools`
+  - On Windows, Rtools should be too (for source package installation) e.g `winget install --id RProject.Rtools`
 - Python should be installed and in PATH
   - On Windows, one can use [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage version or install from https://www.python.org/ manually or using `winget`.
 - Julia should be installed and in PATH
@@ -42,6 +42,14 @@ Dependencies are managed using the following tools:
 We use [**renv**](https://rstudio.github.io/renv/). `renv.lock` and `renv/` folders are the files used to recreate the environment for R.
 
 Updating `renv.lock` is done using `renv::snapshot()`. File shouldn't be modified manually.
+
+Our project is using [explicit dependencies discovery](https://rstudio.github.io/renv/reference/dependencies.html?q=dependen#explicit-dependencies) through a `DESCRIPTION` file. This is to avoid a costly scanning of all files in `tests/` to guess R dependencies. This means that if you need to add a test with a new R package dependencies:
+
+- Add package(s) to `DESCRIPTION` in `tests/`
+- `renv::install()` the package into the project library
+- Finish to work on your test
+- `renv::snapshot()` to record the new dependency in the `renv.lock`
+- Commit the new `DESCRIPTION` and `renv.lock`
 
 See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
 
@@ -99,7 +107,7 @@ $env:QUARTO_TESTS_NO_CONFIG=$true
 
 #### About smoke-all tests
 
-`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd` or `.ipynb` files. They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd` or `.ipynb` file.
+`docs/smoke-all/` is a specific folder to run some tests written directly within `.qmd`, `.md` or `.ipynb` files (but files starting with `_` will be ignored). They are run through the `smoke/smoke-all.tests.ts` script. To ease running smoke-all tests, `run-tests.sh` has a special behavior where it will run `./smoke/smoke-all.tests.ts` when passed a `.qmd`, `.md` or `.ipynb` file, not starting with `_`.
 
 ```bash
 # run tests for all documents in docs/smoke-all/
@@ -264,7 +272,7 @@ QUARTO_TEST_TIMING='timing.txt' ./run-tests.sh
 When this is done, any other argument will be ignored, and the following happens
 
 - All the `*.test.ts` file are found and run individually using `/usr/bin/time` to store timing in the file
-- When `smoke-all.test.ts` is found, all the `*.qmd` and `*.ipynb` in `docs/smoke-all/` are found and run individually using same logic. This means each `smoke-all` test is timed.
+- When `smoke-all.test.ts` is found, all the `*.qmd`, `*.md` and `*.ipynb` in `docs/smoke-all/` not starting with `_` are found and run individually using same logic. This means each `smoke-all` test is timed.
 
 The results is written in the `$QUARTO_TEST_TIMING` file. Here is an example:
 

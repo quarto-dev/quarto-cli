@@ -1,0 +1,21 @@
+---
+title: float test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[contains(text(), \"Table\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"fig-foo\"]//w:t[contains(text(), \"Figure\u00a01\")]"
+        - []
+---
+
+This tests:
+
+![This is the figure](../img/surus.jpg){#fig-foo}
+
+![This is the table](../img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.

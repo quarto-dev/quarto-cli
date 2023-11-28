@@ -11,6 +11,11 @@ matplotlib = "*"
 pexpect = {version = "*", sys_platform = "!= 'win32'"}
 ptyprocess = {version = "*", sys_platform = "!= 'win32'"}
 appnope = {version = "*", sys_platform = "== 'darwin'"}
+ipyleaflet = "*"
+seaborn = "*"
+shiny = "*"
+itables = "*"
+
 [dev-packages]
 
 [requires]

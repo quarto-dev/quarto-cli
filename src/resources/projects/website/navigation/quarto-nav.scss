@@ -139,12 +139,23 @@ header.headroom--unpinned {
   .navbar-toggler {
     order: $navbar-toggler-order;
   }
+
+  .navbar-container > .navbar-nav {
+    order: $navbar-menu-order;
+  }
+
+  .navbar-container > .navbar-brand-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
   .navbar-collapse {
     order: $navbar-menu-order;
   }
 
   #quarto-search {
     order: $navbar-search-order;
+    margin-left: auto;
   }
 }
 

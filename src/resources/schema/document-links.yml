@@ -81,7 +81,7 @@
   schema:
     anyOf:
       - enum: [false]
-      - ref: other-links
+      - ref: code-links-schema
   description: "A list of links that should be displayed below the table of contents in an `Code Links` section."
 
 - name: notebook-subarticles

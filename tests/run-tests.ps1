@@ -26,7 +26,7 @@ $QUARTO_SRC_DIR= Join-Path $QUARTO_ROOT "src"
 # e.g quarto-cli/package/dist/bin
 $QUARTO_BIN_PATH = Join-Path $QUARTO_ROOT "package" "dist" "bin"
 # Deno binary in tools/
-$QUARTO_DENO = Join-Path $QUARTO_BIN_PATH "tools" "deno.exe"
+$QUARTO_DENO = Join-Path $QUARTO_BIN_PATH "tools" "x86_64" "deno.exe"
 
 # Shared resource folder
 # e.g quarto-cli/src/resources
@@ -98,13 +98,14 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=@()
 
   ForEach ($file in $customArgs) {
-    If ($file -Like "*.qmd" -Or $file -Like "*.ipynb") {
+    $filename=$(Split-Path -Path $file -Leaf)
+    If ($filename -match "^^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file
     } else {
       Write-Host -ForegroundColor red "#### ERROR"
-      Write-Host -ForegroundColor red "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+      Write-Host -ForegroundColor red "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
       Write-Host -ForegroundColor red "####"
       Exit 1
     }
@@ -113,7 +114,7 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   If ($SMOKE_ALL_FILES.count -ne 0) {
     if ($TESTS_TO_RUN.count -ne 0) {
       Write-Host "#### WARNING"
-      Write-Host "  When passing .qmd and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
+      Write-Host "  When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
       Write-Host "  Ignoring $($TESTS_TO_RUN -join ' ')"
       Write-Host "####"
     }
@@ -137,12 +138,14 @@ $DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv
-# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtalenv manage by pipenv for the project
+# set QUARTO_TESTS_FORCE_NO_PIPENV env var to not activate the virtualenv managed by pipenv for the project
 If ($null -eq $Env:QUARTO_TESTS_FORCE_NO_PIPENV) {
   # Save possible activated virtualenv for later restauration
   $OLD_VIRTUAL_ENV=$VIRTUAL_ENV
   Write-Host "> Activating virtualenv for Python tests in Quarto"
   . "$(pipenv --venv)/Scripts/activate.ps1"
+  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   $quarto_venv_activated = $true
 }
 
@@ -159,11 +162,15 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 If($quarto_venv_activated) {
   Write-Host "> Exiting virtualenv activated for tests"
   deactivate
+  Write-Host "> Using Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   Remove-Variable quarto_venv_activated
 }
 If($null -ne $OLD_VIRTUAL_ENV) {
   Write-Host "> Reactivating original virtualenv"
   . "$OLD_VIRTUAL_ENV/Scripts/activate.ps1"
+  Write-Host "> New Python from " -NoNewline; Write-Host "$((gcm python).Source)" -ForegroundColor Blue;
+  Write-Host "> VIRTUAL_ENV: " -NoNewline; Write-Host "$($env:VIRTUAL_ENV)" -ForegroundColor Blue;
   Remove-Variable OLD_VIRTUAL_ENV
 }
 

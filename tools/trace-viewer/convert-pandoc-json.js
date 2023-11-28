@@ -42,7 +42,8 @@ const convertCaption = (caption) => caption;
 
 const convertColSpec = (colSpec) => {
   const align = colSpec[0].t;
-  const width = colSpec[1].t;
+  const width = colSpec[1].c;
+
   return `(${align}, ${width})`;
 };
 

@@ -1,0 +1,31 @@
+---
+title: Knitr Crossref Test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "\\.Fancy _caption_" # markdown processing test (*caption* -> _caption_)
+          - "\\..*latexmath:\\[e=mc\\^2\\]" # math processing test
+          - "<<fig-plot>>"
+          - "\\[#fig-plot\\]"
+          - "image:.*fig-plot-1.png"
+---
+
+
+This tests:
+
+- float figures from knitr
+- Markdown support for captions from knitr
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Fancy *caption* with math: $e=mc^2$"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

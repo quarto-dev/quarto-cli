@@ -117,6 +117,17 @@ export async function makeInstallerMac(config: Configuration) {
       if (existsSync(denoDomPath)) {
         signWithEntitlements.push(denoDomPath);
       }
+
+      const denoDomaarch64Path = join(
+        config.directoryInfo.pkgWorking.bin,
+        "tools",
+        "aarch64",
+        "deno_dom",
+        "libplugin.dylib",
+      );
+      if (existsSync(denoDomaarch64Path)) {
+        signWithEntitlements.push(denoDomaarch64Path);
+      }
     });
 
 

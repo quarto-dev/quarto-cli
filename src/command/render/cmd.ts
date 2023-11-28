@@ -18,6 +18,7 @@ import { renderServices } from "./render-services.ts";
 import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -36,7 +37,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--output-dir",
-    "Write project output to DIR (path is project relative)",
+    "Write output to DIR (path is input/project relative)",
   )
   .option(
     "-M, --metadata",
@@ -206,7 +207,7 @@ export const renderCommand = new Command()
     let renderResultInput: string | undefined;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
-        const services = renderServices();
+        const services = renderServices(notebookContext());
         try {
           renderResultInput = relative(Deno.cwd(), walk.path) || ".";
           renderResult = await render(renderResultInput, {

@@ -1,0 +1,24 @@
+---
+title: float test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "\\\\ref\\{fig-foo\\}"
+          - "\\\\ref\\{tbl-foo\\}"
+          - "\\\\label\\{fig-foo\\}"
+          - "\\\\label\\{tbl-foo\\}"
+        - []
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as linked images with identifiers
+
+[![This is the figure](img/surus.jpg){#fig-foo}](https://www.example.com/)
+
+[![This is the table](img/surus.jpg){#tbl-foo}](https://www.example.com/)
+
+See @fig-foo and @tbl-foo for more.

@@ -26,6 +26,7 @@ import { quartoConfig } from "../core/quarto.ts";
 
 import {
   kAuthor,
+  kBuiltInExtNames,
   kBuiltInExtOrg,
   kCommon,
   kExtensionDir,
@@ -47,7 +48,7 @@ import {
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
-import { projectIgnoreGlobs } from "../project/project-shared.ts";
+import { projectIgnoreGlobs } from "../execute/engine.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import {
@@ -187,7 +188,7 @@ function filterExtensionAndWarn(
   warnToRemoveExtensions(filterOutExtensions);
   // filter out the extensions that have become built in
   return extensions.filter((ext) => {
-    return filterOutExtensions.map((ext) => ext.id.name).includes(
+    return !filterOutExtensions.map((ext) => ext.id.name).includes(
       ext.id.name,
     );
   });
@@ -239,13 +240,14 @@ export function filterExtensions(
     // referenced in the yaml so we don't break code in the wild)
     const oldBuiltInExt = extensions?.filter((ext) => {
       return (ext.id.organization === kQuartoExtOrganization &&
-        kQuartoExtBuiltIn.includes(ext.id.name));
+        (kQuartoExtBuiltIn.includes(ext.id.name) ||
+          kBuiltInExtNames.includes(ext.id.name)));
     });
     if (oldBuiltInExt.length > 0) {
-      filterExtensionAndWarn(extensions, oldBuiltInExt);
+      return filterExtensionAndWarn(extensions, oldBuiltInExt);
+    } else {
+      return extensions;
     }
-
-    return extensions;
   } else {
     return extensions;
   }
@@ -601,7 +603,7 @@ function validateExtension(extension: Extension) {
     if (contrib) {
       if (Array.isArray(contrib)) {
         contribCount = contribCount + contrib.length;
-      } else if (typeof (contrib) === "object") {
+      } else if (typeof contrib === "object") {
         contribCount = contribCount + Object.keys(contrib).length;
       }
     }
@@ -772,7 +774,7 @@ function resolveRevealJSPlugin(
   dir: string,
   plugin: string | RevealPluginBundle | RevealPlugin,
 ) {
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     // First attempt to load this plugin from an embedded extension
     const extensionId = toExtensionId(plugin);
     const extensions = findExtensions(
@@ -809,7 +811,7 @@ function resolveRevealPlugin(
   plugin: string | RevealPluginBundle | RevealPluginInline,
 ): string | RevealPluginBundle | RevealPlugin {
   // Filters are expected to be absolute
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     return join(extensionDir, plugin);
   } else if (isPluginRaw(plugin)) {
     return resolveRevealPluginInline(plugin, extensionDir);
@@ -841,7 +843,7 @@ function resolveRevealPluginInline(
       ? plugin.script
       : [plugin.script];
     resolvedPlugin.script = pluginArr.map((plug) => {
-      if (typeof (plug) === "string") {
+      if (typeof plug === "string") {
         return {
           path: plug,
         } as RevealPluginScript;
@@ -909,7 +911,7 @@ function resolveFilter(
   dir: string,
   filter: QuartoFilter,
 ) {
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(
@@ -938,19 +940,29 @@ function resolveFilterPath(
   filter: QuartoFilter,
 ): QuartoFilter {
   // Filters are expected to be absolute
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     if (isAbsolute(filter)) {
       return filter;
     } else {
       return join(extensionDir, filter);
     }
   } else {
-    return {
+    // deno-lint-ignore no-explicit-any
+    const filterAt = ((filter as any).at) as string | undefined;
+    const result: QuartoFilter = {
       type: filter.type,
       path: isAbsolute(filter.path)
         ? filter.path
         : join(extensionDir, filter.path),
     };
+    if (filterAt === undefined) {
+      return result;
+    } else {
+      return {
+        ...result,
+        at: filterAt,
+      };
+    }
   }
 }
 

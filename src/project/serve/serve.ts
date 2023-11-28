@@ -8,8 +8,6 @@ import { info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, extname, join, relative } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
-import { MuxAsyncIterator } from "async/mod.ts";
-import { iterateReader } from "streams/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -72,8 +70,6 @@ import {
 } from "../../command/preview/preview.ts";
 import {
   previewUnableToRenderResponse,
-  previewURL,
-  printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
   renderToken,
@@ -95,11 +91,7 @@ import {
 import { isPdfOutput } from "../../config/format.ts";
 import { bookOutputStem } from "../../project/types/book/book-shared.ts";
 import { removePandocToArg } from "../../command/render/flags.ts";
-import {
-  isJupyterHubServer,
-  isRStudioServer,
-  isRStudioWorkbench,
-} from "../../core/platform.ts";
+import { isRStudioServer, isServerSession } from "../../core/platform.ts";
 import { ServeRenderManager } from "./render.ts";
 import { projectScratchPath } from "../project-scratch.ts";
 import {
@@ -116,6 +108,16 @@ import { touch } from "../../core/file.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
 import { kManuscriptType } from "../types/manuscript/manuscript-types.ts";
+import {
+  previewURL,
+  printBrowsePreviewMessage,
+} from "../../core/previewurl.ts";
+import {
+  noPreviewServer,
+  PreviewServer,
+  runExternalPreviewServer,
+} from "../../preview/preview-server.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -128,11 +130,12 @@ export async function serveProject(
   noServe: boolean,
 ) {
   let project: ProjectContext | undefined;
-  if (typeof (target) === "string") {
+  const nbContext = notebookContext();
+  if (typeof target === "string") {
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, flags);
+    project = await projectContext(target, nbContext, flags);
     if (!project || !project?.config) {
       throw new Error(`${target} is not a project`);
     }
@@ -184,7 +187,7 @@ export async function serveProject(
   const pdfOutput = isPdfOutput(flags.to || "");
 
   // Configure render services
-  const services = renderServices();
+  const services = renderServices(nbContext);
 
   // determines files to render and resourceFiles to monitor
   // if we are in render 'none' mode then only render files whose output
@@ -306,12 +309,7 @@ export async function serveProject(
       path,
     );
 
-    if (
-      options.browser &&
-      !isRStudioServer() &&
-      !isRStudioWorkbench() &&
-      !isJupyterHubServer()
-    ) {
+    if (options.browser && !isServerSession()) {
       await openUrl(previewURL(options.host!, options.port!, path));
     }
   }
@@ -326,26 +324,6 @@ export async function serveProject(
 
   // run the server
   await previewServer.serve();
-}
-
-interface PreviewServer {
-  // returns path to browse to
-  start: () => Promise<string | undefined>;
-  serve: () => Promise<void>;
-  stop: () => Promise<void>;
-}
-
-function noPreviewServer(): Promise<PreviewServer> {
-  return Promise.resolve({
-    start: () => Promise.resolve(undefined),
-    serve: () => {
-      return new Promise(() => {
-      });
-    },
-    stop: () => {
-      return Promise.resolve();
-    },
-  });
 }
 
 function externalPreviewServer(
@@ -409,49 +387,26 @@ function externalPreviewServer(
     cmd.push(...serve.args);
   }
 
-  // start the process
-  const process = Deno.run({
+  const readyPattern = new RegExp(serve.ready);
+  const server = runExternalPreviewServer({
     cmd,
+    readyPattern,
     env: serve.env,
     cwd: projectOutputDir(project),
-    stdout: "piped",
-    stderr: "piped",
   });
 
-  // merge and stream stdout and stderr
-  const readyPattern = new RegExp(serve.ready);
-  const multiplexIterator = new MuxAsyncIterator<
-    Uint8Array
-  >();
-  multiplexIterator.add(iterateReader(process.stdout));
-  multiplexIterator.add(iterateReader(process.stderr));
-
-  // wait for ready and then return from 'start'
-  const decoder = new TextDecoder();
   return Promise.resolve({
     start: async () => {
-      for await (const chunk of multiplexIterator) {
-        const text = decoder.decode(chunk);
-        if (readyPattern.test(text)) {
-          break;
-        }
-        Deno.stderr.writeSync(chunk);
-      }
-      return "";
+      return server.start();
     },
     serve: async () => {
-      for await (const chunk of multiplexIterator) {
-        Deno.stderr.writeSync(chunk);
-      }
-      await process.status();
+      return server.serve();
     },
     stop: () => {
-      process.kill("SIGTERM");
-      process.close();
       if (controlListener) {
         controlListener.close();
       }
-      return Promise.resolve();
+      return server.stop();
     },
   });
 }
@@ -588,7 +543,7 @@ async function internalPreviewServer(
               delete renderFlags?.clean;
             }
 
-            const services = renderServices();
+            const services = renderServices(notebookContext());
             try {
               result = await renderManager.submitRender(() =>
                 renderProject(
@@ -776,10 +731,10 @@ function previewControlChannelRequestHandler(
       );
       if (
         prevReq &&
-        (await previewRenderRequestIsCompatible(prevReq, flags, project))
+        (await previewRenderRequestIsCompatible(prevReq, flags.to, project))
       ) {
         if (isProjectInputFile(prevReq.path, project!)) {
-          const services = renderServices();
+          const services = renderServices(notebookContext());
           // if there is no specific format requested then 'all' needs
           // to become 'html' so we don't render all formats
           const to = flags.to === "all" ? (prevReq.format || "html") : flags.to;

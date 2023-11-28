@@ -7,7 +7,9 @@
 import { existsSync } from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { dirname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
+import { parseXmlDocument } from "slimdom";
+import xpath from "fontoxpath";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -154,6 +156,50 @@ export const directoryEmptyButFor = (
   };
 };
 
+// FIXME: do this properly without resorting on file having keep-typ
+export const ensureTypstFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const asRegexp = (m: string | RegExp) => {
+    if (typeof m === "string") {
+      return new RegExp(m);
+    } else {
+      return m;
+    }
+  };
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
+  return {
+    name: `Inspecting ${file} for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const keptTyp = file.replace(".pdf", ".typ");
+      const typ = await Deno.readTextFile(keptTyp);
+
+      try {
+        matches.forEach((regex) => {
+          assert(
+            regex.test(typ),
+            `Required match ${String(regex)} is missing from file ${file}.`,
+          );
+        });
+
+        if (noMatches) {
+          noMatches.forEach((regex) => {
+            assert(
+              !regex.test(typ),
+              `Illegal match ${String(regex)} was found in file ${file}.`,
+            );
+          });
+        }
+      } finally {
+        await Deno.remove(keptTyp);
+      }
+    },
+  };
+};
+
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
@@ -220,12 +266,51 @@ export const ensureFileRegexMatches = (
   };
 };
 
-export const ensureDocxRegexMatches = (
-  file: string,
-  regexes: (string | RegExp)[],
-): Verify => {
-  return {
-    name: "Inspecting Docx for Regex matches",
+export const verifyOdtDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Odt",
+    verify: async (_output: ExecuteOutput[]) => {
+      const [_dir, stem] = dirAndStem(file);
+      const temp = await Deno.makeTempDir();
+      try {
+        // Move the docx to a temp dir and unzip it
+        const zipFile = join(temp, stem + ".zip");
+        await Deno.rename(file, zipFile);
+        await unzip(zipFile);
+
+        // Open the core xml document and match the matches
+        const docXml = join(temp, "content.xml");
+        const xml = await Deno.readTextFile(docXml);
+        await callback(xml);
+      } finally {
+        await Deno.remove(temp, { recursive: true });
+      }
+    },
+  });
+};
+
+export const verifyJatsDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Jats",
+    verify: async (_output: ExecuteOutput[]) => {
+      const xml = await Deno.readTextFile(file);
+      await callback(xml);
+    },
+  });
+};
+
+export const verifyDocXDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Docx",
     verify: async (_output: ExecuteOutput[]) => {
       const [_dir, stem] = dirAndStem(file);
       const temp = await Deno.makeTempDir();
@@ -238,21 +323,126 @@ export const ensureDocxRegexMatches = (
         // Open the core xml document and match the matches
         const docXml = join(temp, "word", "document.xml");
         const xml = await Deno.readTextFile(docXml);
-        regexes.forEach((regex) => {
-          if (typeof regex === "string") {
-            regex = new RegExp(regex);
-          }
-          assert(
-            regex.test(xml),
-            `Required DocX Element ${String(regex)} is missing.`,
-          );
-        });
+        await callback(xml);
       } finally {
         await Deno.remove(temp, { recursive: true });
       }
     },
+  });
+};
+
+const xmlChecker = (
+  selectors: string[],
+  noMatchSelectors?: string[],
+): (xmlText: string) => Promise<void> => {
+  return (xmlText: string) => {
+    const xmlDoc = parseXmlDocument(xmlText);
+    for (const selector of selectors) {
+      const xpathResult = xpath.evaluateXPath(selector, xmlDoc);
+      const passes = (!Array.isArray(xpathResult) && xpathResult !== null) ||
+        (Array.isArray(xpathResult) && xpathResult.length > 0);
+      assert(
+        passes,
+        `Required XPath selector ${selector} returned empty array. Failing document follows:\n\n${xmlText}}`,
+      );
+    }
+    for (const falseSelector of noMatchSelectors ?? []) {
+      const xpathResult = xpath.evaluateXPath(falseSelector, xmlDoc);
+      const passes = (!Array.isArray(xpathResult) && xpathResult !== null) ||
+        (Array.isArray(xpathResult) && xpathResult.length > 0);
+      assert(
+        !passes,
+        `Illegal XPath selector ${falseSelector} returned non-empty array. Failing document follows:\n\n${xmlText}}`,
+      );
+    }
+    return Promise.resolve();
   };
 };
+
+export const ensureJatsXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyJatsDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Jats for XPath selectors",
+  )(file);
+};
+
+export const ensureOdtXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyOdtDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Odt for XPath selectors",
+  )(file);
+};
+
+export const ensureDocxXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyDocXDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Docx for XPath selectors",
+  )(file);
+};
+
+export const ensureDocxRegexMatches = (
+  file: string,
+  regexes: (string | RegExp)[],
+): Verify => {
+  return verifyDocXDocument((xml) => {
+    regexes.forEach((regex) => {
+      if (typeof regex === "string") {
+        regex = new RegExp(regex);
+      }
+      assert(
+        regex.test(xml),
+        `Required DocX Element ${String(regex)} is missing.`,
+      );
+    });
+    return Promise.resolve();
+  }, "Inspecting Docx for Regex matches")(file);
+};
+
+// export const ensureDocxRegexMatches = (
+//   file: string,
+//   regexes: (string | RegExp)[],
+// ): Verify => {
+//   return {
+//     name: "Inspecting Docx for Regex matches",
+//     verify: async (_output: ExecuteOutput[]) => {
+//       const [_dir, stem] = dirAndStem(file);
+//       const temp = await Deno.makeTempDir();
+//       try {
+//         // Move the docx to a temp dir and unzip it
+//         const zipFile = join(temp, stem + ".zip");
+//         await Deno.rename(file, zipFile);
+//         await unzip(zipFile);
+
+//         // Open the core xml document and match the matches
+//         const docXml = join(temp, "word", "document.xml");
+//         const xml = await Deno.readTextFile(docXml);
+//         regexes.forEach((regex) => {
+//           if (typeof regex === "string") {
+//             regex = new RegExp(regex);
+//           }
+//           assert(
+//             regex.test(xml),
+//             `Required DocX Element ${String(regex)} is missing.`,
+//           );
+//         });
+//       } finally {
+//         await Deno.remove(temp, { recursive: true });
+//       }
+//     },
+//   };
+// };
 
 export const ensurePptxRegexMatches = (
   file: string,
@@ -399,7 +589,7 @@ export const ensureXmlValidatesWithXsd = (
         const result = await execProcess(runOptions);
         assert(
           result.success,
-          `Failed XSD Validation\n${result.stderr}`,
+          `Failed XSD Validation for file ${file}\n${result.stderr}`,
         );
       }
     },
@@ -432,7 +622,6 @@ export const ensureMECAValidates = (
         } else {
           console.log("npm not present, skipping MECA validation");
         }
-  
       }
     },
   };

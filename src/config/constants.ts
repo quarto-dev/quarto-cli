@@ -53,6 +53,9 @@ export const kNotebookViewStyle = "notebook-view-style";
 export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
+export const kLightbox = "lightbox";
+
+export const kMath = "math";
 
 export const kNotebookPreviewOptions = "notebook-preview-options";
 export const kNotebookPreviewOptionBack = "back";
@@ -71,7 +74,9 @@ export const kExecuteDebug = "debug";
 
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
+export const kIpynbShellInteractivity = "ipynb-shell-interactivity";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
+export const kPlotlyConnected = "plotly-connected";
 
 export const kJatsSubarticleId = "jats-subarticle-id";
 
@@ -126,6 +131,10 @@ export const kQuartoRequired = "quarto-required";
 export const kPreviewMode = "preview-mode";
 export const kPreviewModeRaw = "raw";
 
+export const kFontPaths = "font-paths";
+
+export const kHtmlTableProcessing = "html-table-processing";
+
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
   kDisplayName,
@@ -158,6 +167,8 @@ export const kExecuteDefaultsKeys = [
   kExecuteDebug,
   kIpynbFilter,
   kIpynbFilters,
+  kIpynbShellInteractivity,
+  kPlotlyConnected,
 ];
 
 export const kRenderDefaultsKeys = [
@@ -209,6 +220,7 @@ export const kRenderDefaultsKeys = [
   kNotebookViewStyle,
   kNotebookPreserveCells,
   kClearCellOptions,
+  kHtmlTableProcessing,
 ];
 
 // language fields
@@ -731,3 +743,18 @@ export const kLayout = "layout";
 
 // https://github.com/quarto-dev/quarto-cli/issues/3581
 export const kCliffyImplicitCwd = "5a6d2e4f-f9a2-43bc-8019-8149fbb76c85";
+
+export const kSourceMappingRegexes = [
+  /^\/\/#\s*sourceMappingURL\=.*\.map$/gm,
+  /\/\*\# sourceMappingURL=.* \*\//g,
+];
+
+export const kFormatIdentifier = "format-identifier";
+
+// named lifetimes
+export const kRenderFileLifetime = "render-file";
+export const kRenderServicesLifetime = "render-services";
+
+// quarto entry point names for old-style filter declarations
+export const kQuartoPre = "pre-quarto";
+export const kQuartoPost = "post-render";

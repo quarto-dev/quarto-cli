@@ -170,6 +170,8 @@ export const kPandocExtensions = [
   "-tex_math_dollars",
   "+tex_math_double_backslash",
   "-tex_math_double_backslash",
+  "+tex_math_gfm",
+  "-tex_math_gfm",
   "+tex_math_single_backslash",
   "-tex_math_single_backslash",
   "+wikilinks_title_after_pipe",

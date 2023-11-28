@@ -1,0 +1,79 @@
+---
+title: test
+execute:
+  echo: true
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - 
+          - '[^\]]```python {6-8} showLineNumbers'
+          - '[^\]]```python {1-2[,]5-6} showLineNumbers'
+          - '[^\]]```python {1|4} showLineNumbers'
+          - '[^\]][`]r {1[,]3} showLineNumbers'
+        - []
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - div[data-code-line-numbers="6-8"]
+          - div[data-code-line-numbers="1-2,5-6"]
+          - div[data-code-line-numbers="1|4"]
+          - div.cell-code[data-code-line-numbers="1,3"]
+        - []
+---
+
+## range
+
+```{.python code-line-numbers="6-8"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+## two ranges
+
+```{.python code-line-numbers="1-2,5-6"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+
+## two ranges using step syntax
+
+```{.python code-line-numbers="1|4"}
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+## Using computation cell
+
+```{r}
+#| code-line-numbers: '1,3'
+#| results: hold
+1 + 1
+2 + 2
+3 + 3 
+```

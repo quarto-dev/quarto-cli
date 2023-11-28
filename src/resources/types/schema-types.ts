@@ -22,8 +22,17 @@ export type PandocFormatRequestHeaders = ((string)[])[];
 
 export type PandocFormatOutputFile = string | null;
 
-export type PandocFormatFilters =
-  ((string | { type: string; path: string } | { type: "citeproc" }))[];
+export type PandocFormatFilters = ((string | { path: string; type?: string } | {
+  at:
+    | "pre-ast"
+    | "post-ast"
+    | "pre-quarto"
+    | "post-quarto"
+    | "pre-render"
+    | "post-render";
+  path: string;
+  type?: string;
+} | { type: "citeproc" }))[];
 
 export type PandocShortcodes = (string)[];
 
@@ -406,7 +415,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | boolean
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
-  "code-links"?: boolean | OtherLinks;
+  "code-links"?: boolean | CodeLinksSchema;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;
@@ -1168,8 +1177,20 @@ export type NotebookViewSchema = {
   url?: string; /* The url to use when viewing this notebook. */
 };
 
+export type CodeLinksSchema =
+  | boolean
+  | MaybeArrayOf<
+    ({
+      href?: string /* The href for this code link. */;
+      icon?: string /* The bootstrap icon for this code link. */;
+      rel?: string /* The rel used in the `a` tag for this code link. */;
+      text?: string /* The text for this code link. */;
+      target?: string; /* The target used in the `a` tag for this code link. */
+    } | ("repo" | "binder" | "devcontainer"))
+  >;
+
 export type ManuscriptSchema = {
-  "code-links"?: boolean | MaybeArrayOf<(SchemaObject | string)>;
+  "code-links"?: CodeLinksSchema;
   "manuscript-url"?: string /* The deployed url for this manuscript */;
   "meca-bundle"?:
     | boolean

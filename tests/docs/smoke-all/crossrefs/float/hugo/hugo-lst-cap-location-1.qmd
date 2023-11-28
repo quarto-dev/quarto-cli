@@ -1,0 +1,26 @@
+---
+title: lst-cap-location-test
+format: hugo-md
+# TODO *-cap-location not supported in hugo-md yet; I don't even know
+#      how to test for this since we can only do line-by-line testing in hugo
+# _quarto:
+#   tests:
+#     html:
+#       ensureHtmlElements:
+#         - 
+#           - "div#lst-customers figcaption:nth-child(1)"
+#           - "div#lst-customers-2 figcaption:nth-child(2)"
+---
+
+```{#lst-customers .sql lst-cap="Customers _query_"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).
+
+
+```{#lst-customers-2 .sql lst-cap="Customers _query_" lst-cap-location="bottom"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database again (@lst-customers-2), with a caption in a different location.

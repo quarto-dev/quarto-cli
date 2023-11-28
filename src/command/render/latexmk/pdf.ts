@@ -205,6 +205,8 @@ async function initialCompileLatex(
         packagesUpdated = true;
       }
 
+      const logText = Deno.readTextFileSync(response.log);
+
       // Try to find and install packages
       const packagesInstalled = await findAndInstallPackages(
         pkgMgr,

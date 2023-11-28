@@ -251,7 +251,7 @@ end
 
 local function as_inlines(v)
   if v == nil then
-    return {}
+    return pandoc.Inlines({})
   end
   local t = pandoc.utils.type(v)
   if t == "Inlines" then
@@ -259,22 +259,28 @@ local function as_inlines(v)
   elseif t == "Blocks" then
     return pandoc.utils.blocks_to_inlines(v)
   elseif t == "Inline" then
-    return {v}
+    return pandoc.Inlines({v})
   elseif t == "Block" then
     return pandoc.utils.blocks_to_inlines({v})
   end
 
   if type(v) == "table" then
-    return pandoc.utils.blocks_to_inlines(v)
+    local result = pandoc.Inlines({})
+    for i, v in ipairs(v) do
+      tappend(result, as_inlines(v))
+    end
+    return result
   end
 
+  -- luacov: disable
   fatal("as_inlines: invalid type " .. t)
-  return nil
+  return pandoc.Inlines({})
+  -- luacov: enable
 end
 
 local function as_blocks(v)
   if v == nil then
-    return {}
+    return pandoc.Blocks({})
   end
   local t = pandoc.utils.type(v)
   if t == "Blocks" then
@@ -291,8 +297,247 @@ local function as_blocks(v)
     return pandoc.Blocks(v)
   end
 
+  -- luacov: disable
   fatal("as_blocks: invalid type " .. t)
-  return nil
+  return pandoc.Blocks({})
+  -- luacov: enable
+end
+
+local function match_fun(reset, ...)
+  local args = {...}
+  return function(v)
+    reset()
+    for _, f in ipairs(args) do
+      local r = f(v)
+      if r == false or r == nil then
+        return r
+      end
+      if r ~= true then
+        v = r
+      end
+    end
+    return v
+  end
+end
+
+
+-- ## syntax examples
+--
+-- match("Div")
+--   returns the node if it's a Div, otherwise false
+-- match("Div/[1]")
+--   returns the first child of a Div, otherwise false
+-- match(".class")
+--   returns the node if it has the class "class", otherwise false
+-- match("#id")
+--   returns the node if it has the id "id", otherwise false
+--
+-- match("Div/:child/Para") (in analogy to "div > p" in CSS)
+--   returns the div if it has a direct child Para, otherwise false
+--
+-- match("Div/:descendant/Para") (in analogy to "div p" in CSS)
+--   returns the div if it has a direct child Para, otherwise false
+--
+-- ## Node captures
+-- 
+-- match("{Div}/[1]/Para") (capture)
+--   returns a list with the div if the first child is a Para, otherwise false
+-- match("{Div}/[1]/{Para}/[1]/Img") (capture)
+--   returns a list with the div and Para if the first child is a Para whose 
+--   first child is an Image, otherwise false
+--
+-- ## custom matchers
+--
+-- match("Div", function(node) return node.content[1] end) 
+--   is equivalent to match("Div/[1]")
+-- match("Div", function(node) return node.content[1] end, "Para")
+--   is equivalent to match("Div/[1]/Para")
+--
+--
+
+-- Performance notes: :descendant is implemented with a walk, 
+-- so it's not very efficient. 
+--
+-- eg :descendant/#id walks the node set
+-- 
+-- repeated calls to :descendant in the same match are likely 
+-- to be quite slow
+
+-- TODO we probably need to consider recursive reentrancy here
+local function match(...)
+  local result = {}
+  local captured = false
+  local captures = {}
+  local capture_id = function(v) return v end
+  local capture_add = function(v) 
+    table.insert(captures, v) 
+    return v 
+  end
+  local function reset()
+    result = {}
+    captures = {}
+  end
+
+  -- canonicalize the arguments into split_args
+  local args = {...}
+  local split_args = {}
+  for _, v in ipairs(args) do
+    if type(v) == "string" then
+      local vs = split(v, "/", true)
+      tappend(split_args, vs)
+    else
+      table.insert(split_args, v)
+    end
+  end
+
+  local function process_nth_child(n, capture_fun)
+    table.insert(result, function(node)
+      if node == nil then
+        return false
+      end
+      local pt = pandoc.utils.type(node)
+      local content
+      if pt == "Blocks" or pt == "Inlines" then
+        content = node
+      else
+        content = node.content
+      end
+      return content ~= nil and 
+        content[n] and 
+        capture_fun(content[n])
+    end)
+  end
+
+  local function report_inner_result(r)
+    if r == nil or r == false or not captured then
+      return r
+    end
+    -- a table result indicates the child was captured
+    -- and we might need to return the parent
+    -- if we're also capturing
+    if type(r) == "table" then
+      for _, v in ipairs(r) do
+        table.insert(captures, v)
+      end
+    end    
+    return captures
+  end
+
+  local function process_child(index)
+    -- call match recursively, slicing the remaining args
+    local conf = table.pack(table.unpack(split_args, index))
+    local inner_match = match(table.unpack(split_args, index))
+    table.insert(result, function(node)
+      if node.content == nil then
+        return nil
+      end
+      local r
+      for _, v in ipairs(node.content) do
+        r = inner_match(v)
+        if r ~= nil and r ~= false then
+          break
+        end
+      end
+
+      return report_inner_result(r)
+    end)
+  end
+
+  local function process_descendant(index)
+    local inner_match = match(table.unpack(split_args, index))
+    table.insert(result, function(node)
+      local r
+      local function inner_process(inner_node)
+        if r ~= nil and r ~= false then
+          -- we've already found a match, so we can stop
+          return
+        end
+
+        r = inner_match(inner_node)
+      end
+      _quarto.ast.walk(node, {
+        Inline = inner_process,
+        Block = inner_process
+      })
+      return report_inner_result(r)
+    end)
+  end
+
+  for i, v in ipairs(split_args) do
+    if type(v) == "string" then
+      local first = v:sub(1, 1)
+      local last = v:sub(-1)
+      local capture_fun = capture_id
+      if first == "{" then -- capture
+        v = v:sub(2, -2)
+        if last ~= "}" then
+          fail("invalid match token: " .. v .. "(in " .. str .. ")")
+          return match_fun(reset, {})
+        end
+        first = v:sub(1, 1)
+        capture_fun = capture_add
+        captured = true
+      end
+      -- close over capture_fun in all cases
+      if v == "" then
+        -- empty case exists to support {} as a valid parameter,
+        -- which is useful to capture the result of the previous match when it's a function
+        table.insert(result, (function(capture_fun) 
+          return function(node) 
+            return capture_fun(node) 
+          end
+        end)(capture_fun))
+      elseif v == ":child" then
+        process_child(i + 1)
+        break
+      elseif v == ":descendant" then
+        process_descendant(i + 1)
+        break
+      elseif first == "." then
+        table.insert(result, (function(capture_fun, v)
+          return function(node) 
+            return node.classes ~= nil and tcontains(node.classes, v) and capture_fun(node) 
+          end
+        end)(capture_fun, v:sub(2)))
+      elseif first == "#" then
+        table.insert(result, (function(capture_fun, v)
+          return function(node) 
+            return node.identifier ~= nil and node.identifier == v and capture_fun(node) 
+          end
+        end)(capture_fun, v:sub(2)))
+      elseif first == "[" then -- [1]
+        local n = tonumber(v:sub(2, -2))
+        process_nth_child(n, capture_fun)
+      elseif first:upper() == first then -- Plain
+        table.insert(result, (function(capture_fun, v)
+          return function(node) 
+            return (is_regular_node(node, v) or is_custom_node(node, v)) and capture_fun(node) 
+          end
+        end)(capture_fun, v))
+      else
+        fail("invalid match token: " .. v .. "(in " .. str .. ")")
+        return match_fun(reset, {})
+      end
+    elseif type(v) == "number" then
+      process_nth_child(v, capture_id)
+    elseif type(v) == "function" then
+      table.insert(result, v)
+    else
+      fail("invalid match parameter: " .. tostring(v))
+      return match_fun(reset, {})
+    end
+  end
+
+  if captured then
+    local function send_capture(v)
+      if v then 
+        return captures
+      end
+      return v
+    end
+    table.insert(result, send_capture)
+  end
+  return match_fun(reset, table.unpack(result))
 end
 
 return {
@@ -304,5 +549,22 @@ return {
   },
   as_inlines = as_inlines,
   as_blocks = as_blocks,
+  match = match,
+  add_to_blocks = function(blocks, block)
+    if pandoc.utils.type(blocks) ~= "Blocks" then
+      fatal("add_to_blocks: invalid type " .. pandoc.utils.type(blocks))
+    end
+    if block == nil then
+      return
+    end
+    local t = pandoc.utils.type(block)
+    if t == "Blocks" or t == "Inlines" then
+      blocks:extend(block)
+    elseif t == "Block" then
+      table.insert(blocks, block)
+    else
+      fatal("add_to_blocks: invalid type " .. t)
+    end
+  end,
 }
 

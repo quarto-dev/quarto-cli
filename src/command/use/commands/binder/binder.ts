@@ -4,7 +4,6 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../../core/schema/utils.ts";
 import { createTempContext } from "../../../../core/temp.ts";
 
@@ -24,18 +23,20 @@ import {
 import { execProcess } from "../../../../core/process.ts";
 import { safeFileWriter } from "./binder-utils.ts";
 import { projectContext } from "../../../../project/project-context.ts";
-import {
-  computeProjectEnvironment,
-  ProjectEnvironment,
-} from "../../../../project/project-environment.ts";
+import { ProjectEnvironment } from "../../../../project/project-environment-types.ts";
 import { withSpinner } from "../../../../core/console.ts";
 import { logProgress } from "../../../../core/log.ts";
 import { ProjectContext } from "../../../../project/types.ts";
 
+import { Command } from "cliffy/command/mod.ts";
+import { Table } from "cliffy/table/mod.ts";
+import { Confirm } from "cliffy/prompt/mod.ts";
+import { notebookContext } from "../../../../render/notebook/notebook-context.ts";
+
 export const useBinderCommand = new Command()
   .name("binder")
   .description(
-    "Configure the current project to be deployable using Binder.",
+    "Configure the current project with Binder support.",
   )
   .option(
     "--no-prompt",
@@ -51,7 +52,8 @@ export const useBinderCommand = new Command()
     try {
       // compute the project context
       logProgress("Determining configuration");
-      const context = await projectContext(Deno.cwd());
+      const nbContext = notebookContext();
+      const context = await projectContext(Deno.cwd(), nbContext);
       if (!context) {
         throw new Error(
           "You must be in a Quarto project in order to configure Binder support.",
@@ -60,61 +62,16 @@ export const useBinderCommand = new Command()
 
       // Read the project environment
       const projEnv = await withSpinner(
-        { message: "Inspecting project" },
+        {
+          message: "Inspecting project configuration:",
+          doneMessage: "Detected Project configuration:\n",
+        },
         () => {
-          return computeProjectEnvironment(context);
+          return context.environment(context);
         },
       );
 
-      // Note whether there are depedencies restored
-      if (projEnv.environments.length === 0) {
-        // TODO: Provide a hyperlink to more information
-        info(
-          "\nNOTE: No files which declare dependencies were discovered. No dependencies will be restored when running this project on Binder.\n",
-        );
-      }
-
-      logProgress("Writing files");
-
-      // Write the post build to install Quarto
-      const quartoConfig: QuartoConfiguration = {
-        version: projEnv.quarto,
-        tinytex: projEnv.tools.includes("tinytex"),
-        chromium: projEnv.tools.includes("chromium"),
-      };
-
-      const vsCodeConfig: VSCodeConfiguration = {
-        version: projEnv.codeEnvironment === "vscode"
-          ? new SemVer("4.16.1")
-          : undefined, // Whether to install vscode
-        extensions: [
-          "ms-python.python",
-          "sumneko.lua",
-          "quarto.quarto",
-        ],
-      };
-
-      // See if we should configure for JL3 or 4
       const jupyterLab4 = jupyterLabVersion(context, projEnv);
-      const pythonConfig: PythonConfiguration = {
-        pip: [],
-      };
-      if (jupyterLab4) {
-        pythonConfig.pip?.push(
-          "git+https://github.com/trungleduc/jupyter-server-proxy@lab4",
-        );
-        pythonConfig.pip?.push("jupyterlab-quarto");
-      } else {
-        pythonConfig.pip?.push("jupyter-server-proxy");
-        pythonConfig.pip?.push("jupyterlab-quarto==0.1.45");
-      }
-
-      const environmentConfig: EnvironmentConfiguration = {
-        apt: ["zip"],
-      };
-
-      // Get a file write
-      const writeFile = safeFileWriter(context.dir, options.prompt);
 
       const rConfig: RConfiguration = {};
       if (projEnv.engines.includes("knitr")) {
@@ -143,69 +100,95 @@ export const useBinderCommand = new Command()
         }
       }
 
-      // Look for an renv.lock file
-      const renvPath = join(context.dir, "renv.lock");
-      if (existsSync(renvPath)) {
-        // Create an install.R file
-        const installRText = "install.packages('renv')\nrenv::activate()";
-        await writeFile(
-          "install.R",
-          installRText,
-        );
+      const quartoVersion = typeof (projEnv.quarto) === "string"
+        ? projEnv.quarto === "prerelease"
+          ? "most recent prerelease"
+          : "most recent release"
+        : projEnv.quarto.toString();
+
+      const table = new Table();
+      table.push(["Quarto", quartoVersion]);
+      table.push([
+        "JupyterLab",
+        jupyterLab4 ? "4.x" : "default",
+      ]);
+      if (projEnv.engines.length > 0) {
+        table.push([
+          projEnv.engines.length === 1 ? "Engine" : "Engines",
+          projEnv.engines.join("\n"),
+        ]);
       }
-
-      // Generate the postBuild text
-      const postBuildScriptText = createPostBuild(
-        quartoConfig,
-        vsCodeConfig,
-        pythonConfig,
-      );
-
-      // Write the postBuild text
-      await writeFile(
-        "postBuild",
-        postBuildScriptText,
-      );
-
-      // Configure JupyterLab to support VSCode
-      if (vsCodeConfig.version) {
-        const traitletsDir = ".jupyter";
-        ensureDirSync(join(context.dir, traitletsDir));
-
-        // Move traitlets configuration into place
-        // Traitlets are used to configure the vscode tile in jupyterlab
-        // as well as to start the port proxying that permits vscode to work
-        const resDir = resourcePath("use/binder/");
-        for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
-          const textContents = Deno.readTextFileSync(join(resDir, file));
-          await writeFile(join(traitletsDir, file), textContents);
-        }
-      }
-
-      // Generate an apt.txt file
-      if (environmentConfig.apt && environmentConfig.apt.length) {
-        const aptText = environmentConfig.apt.join("\n");
-
-        await writeFile(
-          "apt.txt",
-          aptText,
-        );
-      }
-
-      // Generate a file to configure R
       if (rConfig.version || rConfig.date) {
-        const runtime = ["r"];
+        const verStr = [];
         if (rConfig.version) {
-          runtime.push(`-${rConfig.version}`);
+          verStr.push(`${rConfig.version?.toString()}`);
+        }
+        if (rConfig.date) {
+          verStr.push(`(${rConfig.date})`);
         }
 
-        if (rConfig.date) {
-          runtime.push(`-${rConfig.date}`);
-        }
-        await writeFile(
-          "runtime.txt",
-          runtime.join(""),
+        table.push([
+          "R",
+          verStr.join(" "),
+        ]);
+      }
+      if (projEnv.tools.length > 0) {
+        table.push(["Tools", projEnv.tools.join("\n")]);
+      }
+      table.push(["Editor", projEnv.codeEnvironment]);
+      if (projEnv.environments.length > 0) {
+        table.push(["Environments", projEnv.environments.join("\n")]);
+      }
+      table.indent(4).minColWidth(12).render();
+
+      // Note whether there are depedencies restored
+      const isMarkdownEngineOnly = (engines: string[]) => {
+        return engines.length === 1 && engines.includes("markdown");
+      };
+      if (
+        projEnv.environments.length === 0 &&
+        !isMarkdownEngineOnly(projEnv.engines)
+      ) {
+        info(
+          "\nNo files which provide dependencies were discovered. If you continue, no dependencies will be restored when running this project with Binder.\n\nLearn more at:\nhttps://www.quarto.org/docs/prerelease/1.4/binder.html#dependencies\n",
         );
+        const proceed = await Confirm.prompt({
+          message: "Do you want to continue?",
+          default: true,
+        });
+        if (!proceed) {
+          return;
+        }
+      }
+
+      // Get the list of operations that need to be performed
+      const fileOperations = await binderFileOperations(
+        projEnv,
+        jupyterLab4,
+        context,
+        options,
+        rConfig,
+      );
+      info(
+        "\nThe following files will be written:",
+      );
+      const changeTable = new Table();
+      fileOperations.forEach((op) => {
+        changeTable.push([op.file, op.desc]);
+      });
+      changeTable.border(true).render();
+      info("");
+
+      const writeFiles = !options.prompt || await Confirm.prompt({
+        message: "Continue?",
+        default: true,
+      });
+
+      if (writeFiles) {
+        logProgress("\nWriting configuration files");
+        for (const fileOperation of fileOperations) {
+          await fileOperation.performOp();
+        }
       }
     } finally {
       temp.cleanup();
@@ -366,3 +349,155 @@ rm -rf $PYTHON_SCRIPT
 
 fi
 `;
+
+async function binderFileOperations(
+  projEnv: ProjectEnvironment,
+  jupyterLab4: boolean,
+  context: ProjectContext,
+  options: { prompt?: boolean | undefined },
+  rConfig: RConfiguration,
+) {
+  const operations: Array<
+    { file: string; desc: string; performOp: () => Promise<void> }
+  > = [];
+
+  // Write the post build to install Quarto
+  const quartoConfig: QuartoConfiguration = {
+    version: projEnv.quarto,
+    tinytex: projEnv.tools.includes("tinytex"),
+    chromium: projEnv.tools.includes("chromium"),
+  };
+
+  const vsCodeConfig: VSCodeConfiguration = {
+    version: projEnv.codeEnvironment === "vscode"
+      ? new SemVer("4.16.1")
+      : undefined,
+    extensions: [
+      "ms-python.python",
+      "sumneko.lua",
+      "quarto.quarto",
+    ],
+  };
+
+  // See if we should configure for JL3 or 4
+  const pythonConfig: PythonConfiguration = {
+    pip: [],
+  };
+  if (jupyterLab4) {
+    if (projEnv.codeEnvironment === "vscode") {
+      pythonConfig.pip?.push(
+        "git+https://github.com/trungleduc/jupyter-server-proxy@lab4",
+      );
+    }
+    pythonConfig.pip?.push("jupyterlab-quarto");
+  } else {
+    if (projEnv.codeEnvironment === "vscode") {
+      pythonConfig.pip?.push("jupyter-server-proxy");
+    }
+
+    pythonConfig.pip?.push("jupyterlab-quarto==0.1.45");
+  }
+
+  const environmentConfig: EnvironmentConfiguration = {
+    apt: ["zip"],
+  };
+
+  // Get a file writer
+  const writeFile = safeFileWriter(context.dir, options.prompt);
+
+  // Look for an renv.lock file
+  const renvPath = join(context.dir, "renv.lock");
+  if (existsSync(renvPath)) {
+    // Create an install.R file
+    const installRText = "install.packages('renv')\nrenv::activate()";
+    operations.push({
+      file: "install.R",
+      desc: "Activates the R environment described in renv.lock",
+      performOp: async () => {
+        await writeFile(
+          "install.R",
+          installRText,
+        );
+      },
+    });
+  }
+
+  // Generate the postBuild text
+  const postBuildScriptText = createPostBuild(
+    quartoConfig,
+    vsCodeConfig,
+    pythonConfig,
+  );
+
+  // Write the postBuild text
+  operations.push({
+    file: "postBuild",
+    desc: "Configures Quarto and supporting tools",
+    performOp: async () => {
+      await writeFile(
+        "postBuild",
+        postBuildScriptText,
+      );
+    },
+  });
+
+  // Configure JupyterLab to support VSCode
+  if (vsCodeConfig.version) {
+    operations.push({
+      file: ".jupyter",
+      desc: "Configures JupyterLab with necessary extensions",
+      performOp: async () => {
+        const traitletsDir = ".jupyter";
+        ensureDirSync(join(context.dir, traitletsDir));
+
+        // Move traitlets configuration into place
+        // Traitlets are used to configure the vscode tile in jupyterlab
+        // as well as to start the port proxying that permits vscode to work
+        const resDir = resourcePath("use/binder/");
+        for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
+          const textContents = Deno.readTextFileSync(join(resDir, file));
+          await writeFile(join(traitletsDir, file), textContents);
+        }
+      },
+    });
+  }
+
+  // Generate an apt.txt file
+  if (environmentConfig.apt && environmentConfig.apt.length) {
+    const aptText = environmentConfig.apt.join("\n");
+    operations.push({
+      file: "apt.txt",
+      desc: "Installs Quarto required packages",
+      performOp: async () => {
+        await writeFile(
+          "apt.txt",
+          aptText,
+        );
+      },
+    });
+  }
+
+  // Generate a file to configure R
+  if (rConfig.version || rConfig.date) {
+    const runtime = ["r"];
+    if (rConfig.version) {
+      runtime.push(`-${rConfig.version}`);
+    }
+
+    if (rConfig.date) {
+      runtime.push(`-${rConfig.date}`);
+    }
+    operations.push({
+      file: "runtime.txt",
+      desc: "Installs R and configures RStudio",
+      performOp: async () => {
+        await writeFile(
+          "runtime.txt",
+          runtime.join(""),
+        );
+      },
+    });
+  }
+
+  return operations;
+}

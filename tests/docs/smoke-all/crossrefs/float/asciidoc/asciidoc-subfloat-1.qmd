@@ -1,0 +1,30 @@
+---
+title: Crossref Test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        -
+          - "\\.Surus"
+          - "\\.Abbas"
+          - "\\. Famous Elephants" # TODO We should try to understand why some captions have spaces in front of them and others don't
+          - "\\[#fig-elephants\\]"
+          - "\\[#fig-surus\\]"
+          - "\\[#fig-abbas\\]"
+          - "image::img/surus.jpg"
+          - "image::img/abbas.jpg"
+---
+
+## Simple Sub Figure
+
+::: {#fig-elephants layout-ncol=2}
+
+![Surus](img/surus.jpg){#fig-surus}
+
+![Abbas](img/abbas.jpg){#fig-abbas}
+
+Famous Elephants
+:::
+
+See @fig-elephants for examples. In particular, @fig-abbas and @fig-surus. 

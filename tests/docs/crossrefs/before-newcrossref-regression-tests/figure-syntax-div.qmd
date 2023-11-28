@@ -1,0 +1,11 @@
+---
+title: Figure Syntax 1
+keep-tex: true
+---
+
+::: {#fig-foo}
+![](img/surus.jpg)
+
+This is the figure
+:::
+See @fig-foo for more.

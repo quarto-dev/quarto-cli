@@ -1,9 +1,8 @@
 /*
-* config.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * config.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "./lodash.ts";
 
@@ -40,7 +39,7 @@ export function mergeArrayCustomizer(objValue: unknown, srcValue: unknown) {
       srcValue as Array<unknown>,
     );
     return ld.uniqBy(combined, (value: unknown) => {
-      if (typeof (value) === "function") {
+      if (typeof value === "function") {
         return globalThis.crypto.randomUUID();
       } else {
         return JSON.stringify(value);
@@ -49,7 +48,26 @@ export function mergeArrayCustomizer(objValue: unknown, srcValue: unknown) {
   }
 }
 
+// the camelToKebab transform is not well-defined for
+// sequences of uppercase characters ("URL" being the
+// example that comes up in practice). For example,
+// the string "isURLHTML" can't be transformed to
+// the "correct" "is-url-html" because it's not clear
+// where the hyphens should go. As a heuristic,
+// we assume that a sequence of uppercase characters
+// that is followed by a lowercase character should
+// be treated as a single word, except for the last
+// uppercase character if it's followed by subsequent
+// lowercase characters. So "isURLHTML" becomes
+// "is-urlhtml", but "isURLHTMLString" becomes
+// "is-urlhtml-string".
 export function camelToKebab(camel: string) {
+  camel = camel.replace(/([A-Z])([A-Z]+)$/g, function (_, p1, p2) {
+    return p1 + p2.toLowerCase();
+  });
+  camel = camel.replaceAll(/([A-Z])([A-Z]+)([A-Z])/g, function (_, p1, p2, p3) {
+    return p1 + p2.toLowerCase() + p3;
+  });
   const kebab: string[] = [];
   for (let i = 0; i < camel.length; i++) {
     const ch = camel.charAt(i);

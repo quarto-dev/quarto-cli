@@ -17,11 +17,16 @@ function trim(s)
 end
 
 -- splits a string on a separator
-function split(str, sep)
+function split(str, sep, allow_empty)
   local fields = {}
-  
-  local sep = sep or " "
-  local pattern = string.format("([^%s]+)", sep)
+    sep = sep or " "
+  local pattern
+  if allow_empty == true then
+    pattern = string.format("([^%s]*)", patternEscape(sep))
+  else
+    pattern = string.format("([^%s]+)", patternEscape(sep))
+  end
+
   local _ignored = string.gsub(str, pattern, function(c) fields[#fields + 1] = c end)
   
   return fields
@@ -43,8 +48,28 @@ function patternEscape(str)
   return str:gsub("([^%w])", "%%%1")
 end
 
+function html_escape(s, in_attribute)
+  return s:gsub("[<>&\"']",
+          function(x)
+            if x == '<' then
+              return '&lt;'
+            elseif x == '>' then
+              return '&gt;'
+            elseif x == '&' then
+              return '&amp;'
+            elseif in_attribute and x == '"' then
+              return '&quot;'
+            elseif in_attribute and x == "'" then
+              return '&#39;'
+            else
+              return x
+            end
+          end)
+end
+
 -- Escape '%' in string by replacing by '%%'
 -- This is especially useful in Lua patterns to escape a '%'
 function percentEscape(str)
   return str:gsub("%%", "%%%%")
 end
+

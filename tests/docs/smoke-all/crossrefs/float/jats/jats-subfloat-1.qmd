@@ -1,0 +1,30 @@
+---
+title: Crossref Test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureFileRegexMatches:
+        -
+          - "\\(a\\) Surus"
+          - "\\(b\\) Abbas"
+      ensureJatsXpath:
+        - 
+          - '//fig[@id="fig-elephants"]/caption'
+          - '//fig//fig[@id="fig-surus"]/caption'
+          - '//fig//fig[@id="fig-abbas"]/caption'
+        - []
+---
+
+## Simple Sub Figure
+
+::: {#fig-elephants layout-ncol=2}
+
+![Surus](img/surus.jpg){#fig-surus}
+
+![Abbas](img/abbas.jpg){#fig-abbas}
+
+Famous Elephants
+:::
+
+See @fig-elephants for examples. In particular, @fig-abbas and @fig-surus. 

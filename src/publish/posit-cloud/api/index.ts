@@ -18,7 +18,7 @@ import {
 import { md5Hash } from "../../../core/hash.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 
-import { crypto } from "https://deno.land/std@0.185.0/crypto/mod.ts";
+import { crypto } from "crypto/mod.ts";
 
 import {
   decode as base64Decode,

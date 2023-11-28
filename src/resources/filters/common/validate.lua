@@ -16,8 +16,10 @@ function validateInList(value, list, attribute, default)
   if value == "default" then
     return default
   elseif value and not list:includes(value) then
+    -- luacov: disable
     warn("Invalid " .. attribute .. " attribute value: " .. value)
     return default
+    -- luacov: enable
   elseif value then
     return value
   else

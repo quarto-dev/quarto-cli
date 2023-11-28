@@ -166,6 +166,7 @@ export const parseFormatString = (formatStr: string): FormatDescriptor => {
 // Static container to hang on to aliases once they've been read once
 class FormatAliases {
   static pandoc: string[];
+  static custom: string[];
 }
 
 function ensureFormats() {
@@ -178,6 +179,11 @@ function ensureFormats() {
     ] as string[];
     FormatAliases.pandoc = pandocFormats;
   }
+
+  // Custom build in aliases
+  if (!FormatAliases.custom) {
+    FormatAliases.custom = ["dashboard", "email"];
+  }
 }
 
 export function pandocBuiltInFormats() {
@@ -189,6 +195,7 @@ function isBuiltInFormat(format: string) {
   // Allow either a built in format or a path to a LUA file
   ensureFormats();
   return FormatAliases.pandoc.includes(format) ||
+    FormatAliases.custom.includes(format) ||
     extname(format) === ".lua";
 }
 

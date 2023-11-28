@@ -20,6 +20,14 @@ function option(name, def)
   return parseOption(name, allOptions, def)
 end
 
+function option_as_string(name)
+  local result = option(name)
+  if result == nil then
+    return nil
+  end
+  return inlinesToString(result)
+end
+
 local kVarNamespace = "_quarto-vars"
 function var(name, def)
   local vars = allOptions[kVarNamespace]
@@ -52,7 +60,7 @@ function parseOption(name, options, def)
   end
 end
 
-function capLocation(scope, default)
+function cap_location_from_option(scope, default)
   local loc = option(scope .. '-cap-location', option('cap-location', nil))
   if loc ~= nil then
     return inlinesToString(loc)

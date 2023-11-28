@@ -28,6 +28,7 @@ import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
+import { gitignoreEntries } from "../project/project-gitignore.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -180,10 +181,20 @@ export function fileExecutionEngine(
   // if we were passed a transformed markdown, use that for the text instead
   // of the contents of the file.
   if (kMdExtensions.includes(ext) || kQmdExtensions.includes(ext)) {
-    return markdownExecutionEngine(
-      markdown ? markdown.value : Deno.readTextFileSync(file),
-      flags,
-    );
+    // https://github.com/quarto-dev/quarto-cli/issues/6825
+    // In case the YAML _parsing_ fails, we need to annotate the error
+    // with the filename so that the user knows which file is the problem.
+    try {
+      return markdownExecutionEngine(
+        markdown ? markdown.value : Deno.readTextFileSync(file),
+        flags,
+      );
+    } catch (error) {
+      if (error.name === "YAMLError") {
+        error.message = `${file}:\n${error.message}`;
+      }
+      throw error;
+    }
   } else {
     return undefined;
   }
@@ -227,4 +238,10 @@ export function engineIgnoreDirs() {
 
 export function engineIgnoreGlobs() {
   return engineIgnoreDirs().map((ignore) => `**/${ignore}/**`);
+}
+
+export function projectIgnoreGlobs(dir: string) {
+  return engineIgnoreGlobs().concat(
+    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
+  );
 }

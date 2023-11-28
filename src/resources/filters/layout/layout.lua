@@ -12,167 +12,162 @@ layoutState = {
 function layout_panels()
 
   return {
-    Div = function(el)
-      if requiresPanelLayout(el) then
-        
-        -- partition
-        local preamble, cells, caption = partitionCells(el)
-        
-        -- derive layout
-        local layout = layoutCells(el, cells)
-        
-        -- call the panel layout functions
-        local panel
-        if _quarto.format.isLatexOutput() then
-          panel = latexPanel(el, layout, caption)
-        elseif _quarto.format.isHtmlOutput() then
-          panel = htmlPanel(el, layout, caption)
-        elseif _quarto.format.isDocxOutput() then
-          panel = tableDocxPanel(el, layout, caption)
-        elseif _quarto.format.isOdtOutput() then
-          panel = tableOdtPanel(el, layout, caption)
-        elseif _quarto.format.isWordProcessorOutput() then
-          panel = tableWpPanel(el, layout, caption)
-        elseif _quarto.format.isPowerPointOutput() then
-          panel = pptxPanel(el, layout)
-        else
-          panel = tablePanel(el, layout, caption)
-        end
-
-        -- transfer attributes from el to panel
-        local keys = tkeys(el.attr.attributes)
-        for _,k in pairs(keys) do
-          if not isLayoutAttribute(k) then
-            panel.attr.attributes[k] = el.attr.attributes[k]
-          end
-        end
-        
-        if #preamble > 0 then
-          local div = pandoc.Div({})
-          if #preamble > 0 then
-            tappend(div.content, preamble)
-          end
-          div.content:insert(panel)
-          return div
-          
-        -- otherwise just return the panel
-        else
-          return panel
-        end
-        
+    Div = function(div)
+      if not attr_requires_panel_layout(div.attr) then
+        return nil
       end
-    end
+      local nested_layout = false
+      _quarto.ast.walk(div, {
+        PanelLayout = function()
+          nested_layout = true
+        end
+      })
+      -- if we are nested then we assume the layout
+      -- has been handled by the child
+      if nested_layout then
+        return nil
+      end
+      local preamble, cells = partition_cells(div)
+      local layout = layout_cells(div, cells)
+      return quarto.PanelLayout({
+        attr = div.attr,
+        preamble = preamble,
+        layout = layout,
+      })
+    end,
+    FloatRefTarget = function(float)
+      local attr = pandoc.Attr(float.identifier, float.classes, float.attributes)
+      if not attr_requires_panel_layout(attr) then
+        return nil
+      end
+      local nested_layout = false
+      _quarto.ast.walk(div, {
+        PanelLayout = function()
+          nested_layout = true
+        end
+      })
+      -- if we are nested then we assume the layout
+      -- has been handled by the child
+      if nested_layout then
+        return nil
+      end
+
+      local preamble, cells = partition_cells(float)
+      local layout = layout_cells(float, cells)
+      return quarto.PanelLayout({
+        float = float,
+        preamble = preamble,
+        layout = layout,
+      })
+    end,
   }  
 end
 
-
-function requiresPanelLayout(divEl)
-  
-  if hasLayoutAttributes(divEl) then
+function attr_requires_panel_layout(attr)
+  if attr_has_layout_attributes(attr) then
     return true
-  -- latex and html require special layout markup for subcaptions
-  elseif (_quarto.format.isLatexOutput() or _quarto.format.isHtmlOutput()) and 
-          divEl.attr.classes:includes("tbl-parent") then
-    return true
-  else 
-    return false
   end
-  
+  return (_quarto.format.isLatexOutput() or _quarto.format.isHtmlOutput()) and
+          attr.classes:includes("tbl-parent")
 end
 
-
-function partitionCells(divEl)
-  
+function partition_cells(float)
   local preamble = pandoc.List()
   local cells = pandoc.List()
-  local caption = nil
-  
-  -- extract caption if it's a table or figure div
-  if hasFigureOrTableRef(divEl) then
-    caption = refCaptionFromDiv(divEl)
-    divEl.content = tslice(divEl.content, 1, #divEl.content-1)
-  end
-  
+
   local heading = nil
-  for _,block in ipairs(divEl.content) do
-    
-    if isPreambleBlock(block) then
-      if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
-        preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
-      else
-        preamble:insert(block)
-      end
+  local content = quarto.utils.as_blocks(float.content)
+
+  local function is_preamble_block(el)
+    return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
+           (is_regular_node(el, "Div") and el.attr.classes:includes("cell-output-stderr"))
+  end
+
+  local function handle_preamble_codeblock(block)
+    if block.t == "CodeBlock" and #preamble > 0 and preamble[#preamble].t == "CodeBlock" then
+      preamble[#preamble].text = preamble[#preamble].text .. "\n" .. block.text
+    else
+      preamble:insert(block)
+    end
+  end
+
+  for _, block in ipairs(content) do
+    if is_preamble_block(block) then
+      handle_preamble_codeblock(block)
     elseif block.t == "Header" then
       if _quarto.format.isRevealJsOutput() then
         heading = pandoc.Para({ pandoc.Strong(block.content)})
       else
         heading = block
       end
-    else 
-      -- ensure we are dealing with a div
-      local cellDiv = nil
-      if block.t == "Div" then
-        -- if this has a single figure div then unwrap it
-        if #block.content == 1 and 
-           block.content[#block.content].t == "Div" and
-           hasFigureOrTableRef(block.content[#block.content]) then
-          cellDiv = block.content[#block.content]
-        else
-          cellDiv = block
-        end
-      
+    else
+      local cell_div = nil
+      local subfloat = _quarto.ast.resolve_custom_data(block)
+
+      -- if we were given a scaffolding div like cell-output-display, etc,
+      -- we use it.
+      if subfloat == nil and is_regular_node(block, "Div") then
+        -- https://github.com/quarto-dev/quarto-cli/issues/4370
+        -- there can exist code blocks to be lifted into preamble deep inside divs, we need 
+        -- to walk the div to find them
+        cell_div = _quarto.ast.walk(block, {
+          CodeBlock = function(code_block)
+            if is_preamble_block(code_block) then
+              handle_preamble_codeblock(code_block)
+              return {}
+            end
+          end
+        }) or pandoc.Div({}) -- unnecessary but the Lua analyzer doesn't know it
       else
-        cellDiv = pandoc.Div(block)
+        cell_div = pandoc.Div(block)
       end
-      
-      -- special behavior for cells with figures (including ones w/o captions)
-      local fig = figureImageFromLayoutCell(cellDiv)
-      if fig then
-        -- transfer width to cell
-        transferImageWidthToCell(fig, cellDiv)
+
+      if subfloat ~= nil and subfloat.t == "FloatRefTarget" then
+        transfer_float_image_width_to_cell(subfloat, cell_div)
       end
       
       -- if we have a heading then insert it
       if heading then 
-        cellDiv.content:insert(1, heading)
+        cell_div.content:insert(1, heading)
         heading = nil
       end
 
       -- if this is .cell-output-display that isn't a figure or table 
       -- then unroll multiple blocks
-      if cellDiv.attr.classes:find("cell-output-display") and 
-         #cellDiv.content > 1 and 
-         not hasFigureOrTableRef(cellDiv) then
-        for _,outputBlock in ipairs(cellDiv.content) do
-          if outputBlock.t == "Div" then
-            cells:insert(outputBlock)
+      local is_subfloat
+      _quarto.ast.walk(cell_div, {
+        FloatRefTarget = function(float)
+          is_subfloat = true
+          return nil
+        end
+      })
+      if cell_div.attr.classes:find("cell-output-display") and is_subfloat == nil then
+        for _,output_block in ipairs(cell_div.content) do
+          if is_regular_node(output_block, "Div") then
+            cells:insert(output_block)
           else
-            cells:insert(pandoc.Div(outputBlock))
+            cells:insert(pandoc.Div(output_block))
           end
         end
       else
         -- add the div
-        cells:insert(cellDiv)
+        cells:insert(cell_div)
       end
-      
     end
-    
   end
 
-  return preamble, cells, caption
-  
+  return preamble, cells
 end
 
-
-function layoutCells(divEl, cells)
+function layout_cells(float_or_div, cells)
   
   -- layout to return (list of rows)
   local rows = pandoc.List()
   
   -- note any figure layout attributes
-  local layoutRows = tonumber(attribute(divEl, kLayoutNrow, nil))
-  local layoutCols = tonumber(attribute(divEl, kLayoutNcol, nil))
-  local layout = attribute(divEl, kLayout, nil)
+  local layoutRows = tonumber(float_or_div.attributes[kLayoutNrow])
+  local layoutCols = tonumber(float_or_div.attributes[kLayoutNcol])
+  local layout = float_or_div.attributes[kLayout]
   
   -- default to 1 column if nothing is specified
   if not layoutCols and not layoutRows and not layout then
@@ -240,7 +235,7 @@ function layoutCells(divEl, cells)
   end
   
   -- determine alignment
-  local align = layoutAlignAttribute(divEl)
+  local align = layout_align_attribute(float_or_div)
   
   -- some width and alignment handling
   rows = rows:map(function(row)
@@ -267,7 +262,18 @@ function layoutCells(divEl, cells)
   
 end
 
-function isPreambleBlock(el)
-  return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
-         (el.t == "Div" and el.attr.classes:includes("cell-output-stderr"))
+
+function requiresPanelLayout(divEl)
+  
+  if hasLayoutAttributes(divEl) then
+    return true
+  -- latex and html require special layout markup for subcaptions
+  elseif (_quarto.format.isLatexOutput() or _quarto.format.isHtmlOutput()) and 
+          divEl.attr.classes:includes("tbl-parent") then
+    return true
+  else 
+    return false
+  end
+  
 end
+

@@ -63,7 +63,6 @@ import {
   kScrollable,
   kSlideFooter,
   kSlideLogo,
-  kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -811,7 +810,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           imageEl.classList.add("r-stretch");
         }
 
-        // If <img class="stetch"> is not a direct child of <section>, move it
+        // If <img class="stretch"> is not a direct child of <section>, move it
         if (
           hasStretchClass(imageEl) &&
           imageEl.parentNode?.nodeName !== "SECTION"

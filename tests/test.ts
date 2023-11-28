@@ -16,7 +16,7 @@ import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
 import { relative } from "path/mod.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
-import { fromFileUrl } from "path/win32.ts";
+import { fromFileUrl } from "path/mod.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -55,6 +55,9 @@ export interface TestContext {
 
   // control if test is ran or skipped
   ignore?: boolean;
+
+  // environment to pass to downstream processes
+  env?: Record<string, string>;
 }
 
 export function testQuartoCmd(
@@ -62,12 +65,21 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
+  name?: string
 ) {
-  const name = `quarto ${cmd} ${args.join(" ")}`;
+  if (name === undefined) {
+    name = `quarto ${cmd} ${args.join(" ")}`;
+  }
   test({
     name,
     execute: async () => {
-      await quarto([cmd, ...args]);
+      const timeout = new Promise((_resolve, reject) => {
+        setTimeout(reject, 600000, "timed out after 10 minutes");
+      });
+      await Promise.race([
+        quarto([cmd, ...args], undefined, context?.env),
+        timeout,
+      ]);
     },
     verify,
     context: context || {},

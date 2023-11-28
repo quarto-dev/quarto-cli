@@ -66,7 +66,12 @@ import { error, info } from "log/mod.ts";
 import * as ld from "../../core/lodash.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { Format } from "../../config/types.ts";
-import { figuresDir, inputFilesDir } from "../../core/render.ts";
+import {
+  figuresDir,
+  inputFilesDir,
+  isServerShiny,
+  isServerShinyKnitr,
+} from "../../core/render.ts";
 import {
   normalizePath,
   removeIfEmptyDir,
@@ -103,6 +108,11 @@ import {
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { ensureNotebookContext } from "../../core/jupyter/jupyter-embed.ts";
+import {
+  projectIsWebsite,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -269,6 +279,7 @@ export async function renderExecute(
 export async function renderFiles(
   files: RenderFile[],
   options: RenderOptions,
+  notebookContext: NotebookContext,
   alwaysExecuteFiles?: string[],
   pandocRenderer?: PandocRenderer,
   project?: ProjectContext,
@@ -317,6 +328,7 @@ export async function renderFiles(
           tempContext,
           alwaysExecuteFiles,
           pandocQuiet,
+          notebookContext,
         );
       } finally {
         fileLifetime.cleanup();
@@ -373,6 +385,7 @@ export async function renderFile(
         services.temp,
         [],
         pandocQuiet,
+        services.notebook,
       );
     } finally {
       fileLifetime.cleanup();
@@ -403,6 +416,7 @@ async function renderFileInternal(
   tempContext: TempContext,
   alwaysExecuteFiles: string[] | undefined,
   pandocQuiet: boolean,
+  notebookContext: NotebookContext,
 ) {
   const outputs: Array<RenderedFormat> = [];
   let contexts: Record<string, RenderContext> | undefined;
@@ -411,6 +425,7 @@ async function renderFileInternal(
       file,
       options,
       true,
+      notebookContext,
       project,
       false,
     );
@@ -481,6 +496,28 @@ async function renderFileInternal(
     pushTiming("render-context");
     const context = ld.cloneDeep(contexts[format]) as RenderContext; // since we're going to mutate it...
 
+    // disquality some documents from server: shiny
+    if (isServerShiny(context.format) && context.project) {
+      const src = relative(context.project?.dir!, context.target.source);
+      if (projectIsWebsite(context.project)) {
+        error(
+          `${src} uses server: shiny so cannot be included in a website project ` +
+            `(shiny documents require a backend server and so can't be published as static web content).`,
+        );
+        throw new Error();
+      } else if (
+        (projectOutputDir(context.project) !==
+          normalizePath(context.project.dir)) &&
+        isServerShinyKnitr(context.format, context.engine.name)
+      ) {
+        error(
+          `${src} is a knitr engine document that uses server: shiny so cannot be included in a project with an output-dir ` +
+            `(shiny document output must be rendered alongside its source document).`,
+        );
+        throw new Error();
+      }
+    }
+
     // get output recipe
     const recipe = outputRecipe(context);
     outputs.push({
@@ -496,7 +533,7 @@ async function renderFileInternal(
       const resolveLang = () => {
         const lang = context.format.metadata[kLang] ||
           options.flags?.pandocMetadata?.[kLang];
-        if (typeof (lang) === "string") {
+        if (typeof lang === "string") {
           return lang;
         } else {
           return undefined;

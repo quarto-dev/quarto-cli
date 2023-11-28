@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
+import { debug, warning } from "log/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 import { warnOnce } from "./log.ts";
@@ -15,7 +15,6 @@ import {
   kHKeyLocalMachine,
   registryReadString,
 } from "./registry.ts";
-import { debug } from "log/mod.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -30,13 +29,13 @@ export function formatResourcePath(format: string, resource: string) {
   return join(resourcePath("formats"), format, resource);
 }
 
-export function architectureToolsPath(path: string) {
+export function architectureToolsPath(binary: string) {
   const arch = Deno.build.arch;
-  const archDir = join(arch, path);
-  return toolsPath(archDir);
+  const archBinaryPath = join(arch, binary);
+  return toolsPath(binary, archBinaryPath);
 }
 
-export function toolsPath(binary: string): string {
+export function toolsPath(binary: string, defaultPath?: string): string {
   const displayWarning = () => {
     warnOnce(
       `Specified ${binaryEnvKey} does not exist, using built in ${binary}`,
@@ -73,8 +72,7 @@ export function toolsPath(binary: string): string {
       }
     }
   }
-
-  return join(quartoConfig.toolsPath(), binary);
+  return join(quartoConfig.toolsPath(), defaultPath || binary);
 }
 
 export function pandocBinaryPath(): string {
@@ -144,7 +142,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
         "InstallPath",
       );
       if (installPath) {
-        debug(`Found in PATH at ${join(installPath, "bin")}`);
+        debug(`Found in Windows Registry at ${join(installPath, "bin")}`);
         return join(installPath, "bin", binary);
       }
     }

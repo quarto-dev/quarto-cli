@@ -10,6 +10,7 @@ import { execProcess } from "./process.ts";
 import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
+import { debug } from "log/mod.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;
@@ -33,21 +34,45 @@ const pkgVersRequirement = {
   },
 };
 
-export async function knitrCapabilities() {
+export async function checkRBinary() {
+  const rBin = await rBinaryPath("Rscript");
   try {
     const result = await execProcess({
-      cmd: [
-        await rBinaryPath("Rscript"),
-        resourcePath("capabilities/knitr.R"),
-      ],
+      cmd: [rBin, "--version"],
       stdout: "piped",
     });
     if (result.success && result.stdout) {
-      const jsonLines = result.stdout
+      debug(`\n++R found at ${rBin} is working.`);
+      return rBin;
+    } else {
+      debug(`\n++R found at ${rBin} is not working properly.`);
+      return undefined;
+    }
+  } catch {
+    debug(
+      `\n++ Error while checking R binary found at ${rBin}`,
+    );
+    return undefined;
+  }
+}
+
+export async function knitrCapabilities(rBin: string | undefined) {
+  if (!rBin) return undefined;
+  try {
+    debug(`-- Checking knitr engine capabilities --`);
+    const result = await execProcess({
+      cmd: [rBin, resourcePath("capabilities/knitr.R")],
+      stdout: "piped",
+    });
+    if (result.success && result.stdout) {
+      debug(
+        "\n++ Parsing results to get informations about knitr capabilities",
+      );
+      const yamlLines = result.stdout
         .replace(/^.*--- YAML_START ---/sm, "")
         .replace(/--- YAML_END ---.*$/sm, "");
 
-      const caps = readYamlFromString(jsonLines) as KnitrCapabilities;
+      const caps = readYamlFromString(yamlLines) as KnitrCapabilities;
       // check knitr requirement
       const knitrVersion = caps.packages.knitr
         ? coerce(caps.packages.knitr)
@@ -60,9 +85,22 @@ export async function knitrCapabilities() {
         : false;
       return caps;
     } else {
+      debug("\n++ Problem with results of knitr capabilities check.");
+      debug(`    Return Code: ${result.code} (success is ${result.success})`);
+      result.stdout
+        ? debug(`    with stdout from R:\n${result.stdout}`)
+        : debug("    with no stdout");
+      if (result.stderr) {
+        debug(`    with stderr from R:\n${result.stderr}`);
+      }
       return undefined;
     }
   } catch {
+    debug(
+      `\n++ Error while running 'capabilities/knitr.R' ${
+        rBin ? "with " + rBin : ""
+      }`,
+    );
     return undefined;
   }
 }

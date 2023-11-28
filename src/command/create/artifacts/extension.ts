@@ -1,17 +1,16 @@
 /*
-* extension.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
-
-import { ArtifactCreator, CreateContext } from "../cmd.ts";
+ * extension.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
+  ArtifactCreator,
+  CreateContext,
   CreateDirective,
-  ejsData,
-  renderAndCopyArtifacts,
-} from "./artifact-shared.ts";
+} from "../cmd-types.ts";
+
+import { ejsData, renderAndCopyArtifacts } from "./artifact-shared.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 
@@ -46,7 +45,7 @@ const kExtensionSubtypes: Record<string, string[]> = {
   "format": ["html", "pdf", "docx", "revealjs", "typst"],
 };
 
-const kExtensionValues = kExtensionTypes.filter((t) => typeof (t) === "object")
+const kExtensionValues = kExtensionTypes.filter((t) => typeof t === "object")
   .map((t) => (t as { name: string; value: string }).value);
 
 export const extensionArtifactCreator: ArtifactCreator = {
@@ -183,7 +182,7 @@ async function createArtifact(
   // Find the type using the template
   const createType = typeFromTemplate(createDirective.template);
   const extType = kExtensionTypes.find((type) => {
-    if (typeof (type) === "object") {
+    if (typeof type === "object") {
       return type.value === createType;
     } else {
       return false;

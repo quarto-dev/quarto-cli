@@ -101,7 +101,7 @@ _quarto.ast.add_handler({
       appearance = appearance,
       icon = icon,
       type = t,
-      attr = tbl.attr,
+      attr = tbl.attr or pandoc.Attr(),
     }
   end
 })
@@ -117,51 +117,49 @@ function docx_callout_and_table_fixup()
   
     -- Insert paragraphs between consecutive callouts or tables for docx
     Blocks = function(blocks)
-      if _quarto.format.isDocxOutput() then
-        local lastWasCallout = false
-        local lastWasTableOrFigure = false
-        local newBlocks = pandoc.List()
-        for i,el in ipairs(blocks) do 
-          -- determine what this block is
-          local isCallout = el.t == "Callout"
-          local isTableOrFigure = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
-          local isCodeBlock = el.t == "CodeBlock"
+      local lastWasCallout = false
+      local lastWasTableOrFigure = false
+      local newBlocks = pandoc.Blocks({})
+      for i,el in ipairs(blocks) do 
+        -- determine what this block is
+        local isCallout = is_custom_node(el, "Callout")
+        local isTableOrFigure = is_custom_node(el, "FloatRefTarget") or el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
+        local isCodeBlock = el.t == "CodeBlock"
 
-          -- Determine whether this is a code cell that outputs a table
-          local isCodeCell = el.t == "Div" and el.attr.classes:find_if(isCodeCell)
-          if isCodeCell and (isCodeCellTable(el) or isCodeCellFigure(el)) then 
-            isTableOrFigure = true
-          end
-          
-          -- insert spacer if appropriate
-          local insertSpacer = false
-          if isCallout and (lastWasCallout or lastWasTableOrFigure) then
-            insertSpacer = true
-          end
-          if isCodeBlock and lastWasCallout then
-            insertSpacer = true
-          end
-          if isTableOrFigure and lastWasTableOrFigure then
-            insertSpacer = true
-          end
-
-          if insertSpacer then
-            newBlocks:insert(pandoc.Para(stringToInlines(" ")))
-          end
-
-          -- always insert
-          newBlocks:insert(el)
-
-          -- record last state
-          lastWasCallout = isCallout
-          lastWasTableOrFigure = isTableOrFigure
+        -- Determine whether this is a code cell that outputs a table
+        local isCodeCell = is_regular_node(el, "Div") and el.attr.classes:find_if(isCodeCell)
+        if isCodeCell and (isCodeCellTable(el) or isCodeCellFigure(el)) then 
+          isTableOrFigure = true
+        end
+        
+        -- insert spacer if appropriate
+        local insertSpacer = false
+        if isCallout and (lastWasCallout or lastWasTableOrFigure) then
+          insertSpacer = true
+        end
+        if isCodeBlock and lastWasCallout then
+          insertSpacer = true
+        end
+        if isTableOrFigure and lastWasTableOrFigure then
+          insertSpacer = true
         end
 
-        if #newBlocks > #blocks then
-          return newBlocks
-        else
-          return nil
+        if insertSpacer then
+          newBlocks:insert(pandoc.Para(stringToInlines(" ")))
         end
+
+        -- always insert
+        newBlocks:insert(el)
+
+        -- record last state
+        lastWasCallout = isCallout
+        lastWasTableOrFigure = isTableOrFigure
+      end
+
+      if #newBlocks > #blocks then
+        return newBlocks
+      else
+        return nil
       end
     end
 
@@ -218,8 +216,48 @@ function isCodeCellFigure(el)
   return isFigure
 end
 
+local function callout_title_prefix(callout, withDelimiter)
+  local category = crossref.categories.by_ref_type[refType(callout.attr.identifier)]
+  if category == nil then
+    fail("unknown callout prefix '" .. refType(callout.attr.identifier) .. "'")
+    return
+  end
+
+  return titlePrefix(category.ref_type, category.name, callout.order, withDelimiter)
+end
+
+function decorate_callout_title_with_crossref(callout)
+  callout = ensure_custom(callout)
+  if not param("enable-crossref", true) then
+    -- don't decorate captions with crossrefs information if crossrefs are disabled
+    return callout
+  end
+  -- nil should never happen here, but the Lua analyzer doesn't know it
+  if callout == nil then
+    -- luacov: disable
+    internal_error()
+    -- luacov: enable
+    return callout
+  end
+  if not is_valid_ref_type(refType(callout.attr.identifier)) then
+    return callout
+  end
+  local title = callout.title.content
+
+  -- unlabeled callouts do not get a title prefix
+  local is_uncaptioned = not ((title ~= nil) and (#title > 0))
+  -- this is a hack but we need it to control styling downstream
+  callout.is_uncaptioned = is_uncaptioned
+  local title_prefix = callout_title_prefix(callout, not is_uncaptioned)
+  tprepend(title, title_prefix)
+
+  return callout
+end
+
 -- an HTML callout div
 function calloutDiv(node)
+  node = decorate_callout_title_with_crossref(node)
+
   -- the first heading is the title
   local div = pandoc.Div({})
   local c = quarto.utils.as_blocks(node.content)
@@ -229,18 +267,27 @@ function calloutDiv(node)
     div.content:insert(c)
   end
   local title = quarto.utils.as_inlines(node.title)
-  local type = node.type
+  local callout_type = node.type
   local calloutAppearance = node.appearance
   local icon = node.icon
   local collapse = node.collapse
 
   if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == "" then
-    title = displayName(type)
+    title = quarto.utils.as_inlines(pandoc.Plain(displayName(node.type)))
+  end
+
+  local identifier = node.attr.identifier
+  if identifier ~= "" then
+    node.attr.identifier = ""
+    -- inject an anchor so callouts can be linked to
+    local attr = pandoc.Attr(identifier, {}, {})
+    local anchor = pandoc.Link({}, "", "", attr)
+    title:insert(1, anchor)
   end
 
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
-  calloutDiv.attr = (node.attr or pandoc.Attr()):clone()
+  calloutDiv.attr = node.attr:clone()
   div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
 
@@ -255,7 +302,7 @@ function calloutDiv(node)
   local noicon = ""
 
   -- Check to see whether this is a recognized type
-  if icon == false or not isBuiltInType(type) or type == nil then
+  if icon == false or not isBuiltInType(callout_type) or type == nil then
     noicon = " no-icon"
     calloutDiv.attr.classes:insert("no-icon")
   end
@@ -282,7 +329,7 @@ function calloutDiv(node)
     if collapse ~= nil then 
 
       -- collapse default value     
-      local expandedAttrVal= "true"
+      local expandedAttrVal = "true"
       if collapse == "true" or collapse == true then
         expandedAttrVal = "false"
       end
@@ -339,7 +386,7 @@ function epubCallout(node)
   local calloutAppearance = node.appearance
   local hasIcon = node.icon
 
-  if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == nil then
+  if calloutAppearance == constants.kCalloutAppearanceDefault and pandoc.utils.stringify(title) == "" then
     title = displayName(type)
   end
   
@@ -350,7 +397,7 @@ function epubCallout(node)
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
   -- title
-  if title ~= nil then
+  if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
     local callout_title = pandoc.Div({}, pandoc.Attr("", {"callout-title"}))
     if hasIcon then
       callout_title.content:insert(imgDiv)
@@ -376,18 +423,28 @@ function epubCallout(node)
   if hasIcon == false then
     attributes:insert("no-icon")
   end
-  if title ~= nil then
+  if title ~= nil and (pandoc.utils.type(title) == "string" or next(title) ~= nil) then
     attributes:insert("callout-titled")
   end
   attributes:insert("callout-style-" .. calloutAppearance)
 
-  return pandoc.Div({calloutBody}, pandoc.Attr(node.id or "", attributes))
+  local result = pandoc.Div({ calloutBody }, pandoc.Attr(node.attr.identifier or "", attributes))
+  -- in revealjs or epub, if the leftover attr is non-trivial, 
+  -- then we need to wrap the callout in a div (#5208, #6853)
+  if node.attr.identifier ~= "" or #node.attr.classes > 0 or #node.attr.attributes > 0 then
+    return pandoc.Div({ result }, node.attr)
+  else
+    return result
+  end
+
 end
 
-function simpleCallout(node) 
+function simpleCallout(node)
+  node = decorate_callout_title_with_crossref(node)
   local contents = resolveCalloutContents(node, true)
   local callout = pandoc.BlockQuote(contents)
-  return pandoc.Div(callout, pandoc.Attr(node.id or ""))
+  local result = pandoc.Div(callout, pandoc.Attr(node.attr.identifier or ""))
+  return result
 end
 
 function resolveCalloutContents(node, require_title)
@@ -488,35 +545,40 @@ local callout_attrs = {
     background_color = kBackgroundColorNote,
     latex_color = "quarto-callout-note-color",
     latex_frame_color = "quarto-callout-note-color-frame",
-    fa_icon = "faInfo"
+    fa_icon = "faInfo",
+    fa_icon_typst = "fa-info"
   },
   warning = {
     color = kColorWarning,
     background_color = kBackgroundColorWarning,
     latex_color = "quarto-callout-warning-color",
     latex_frame_color = "quarto-callout-warning-color-frame",
-    fa_icon = "faExclamationTriangle"
+    fa_icon = "faExclamationTriangle",
+    fa_icon_typst = "fa-exclamation-triangle"
   },
   important = {
     color = kColorImportant,
     background_color = kBackgroundColorImportant,
     latex_color = "quarto-callout-important-color",
     latex_frame_color = "quarto-callout-important-color-frame",
-    fa_icon = "faExclamation"
+    fa_icon = "faExclamation",
+    fa_icon_typst = "fa-exclamation"
   },
   caution = {
     color = kColorCaution,
     background_color = kBackgroundColorCaution,
     latex_color = "quarto-callout-caution-color",
     latex_frame_color = "quarto-callout-caution-color-frame",
-    fa_icon = "faFire"
+    fa_icon = "faFire",
+    fa_icon_typst = "fa-fire"
   },
   tip = {
     color = kColorTip,
     background_color = kBackgroundColorTip,
     latex_color = "quarto-callout-tip-color",
     latex_frame_color = "quarto-callout-tip-color-frame",
-    fa_icon = "faLightbulb"
+    fa_icon = "faLightbulb",
+    fa_icon_typst = "fa-lightbulb"
   },
 
   __other = {
@@ -524,7 +586,8 @@ local callout_attrs = {
     background_color = kColorUnknown,
     latex_color = "quarto-callout-color",
     latex_color_frame = "quarto-callout-color-frame",
-    fa_icon = nil
+    fa_icon = nil,
+    fa_icon_typst = nil
   }
 }
 
@@ -574,3 +637,123 @@ end, calloutDiv)
 _quarto.ast.add_renderer("Callout", function(_) 
   return _quarto.format.isEpubOutput() or _quarto.format.isRevealJsOutput()
 end, epubCallout)
+
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isGithubMarkdownOutput()
+end, function(callout)
+  local result = pandoc.Blocks({})
+  local header = "[!" .. callout.type:upper() .. "]"
+  result:insert(pandoc.RawBlock("markdown", header))
+  local tt = pandoc.utils.type(callout.title)
+  if tt ~= "nil" then 
+    result:insert(pandoc.Header(3, quarto.utils.as_inlines(callout.title)))
+  end
+  local ct = pandoc.utils.type(callout.content)
+  if ct == "Block" then
+    result:insert(callout.content)
+  elseif ct == "Blocks" then
+    result:extend(callout.content)
+  else
+    internal_error()
+  end
+  return pandoc.BlockQuote(result)
+end)
+
+local function typst_function_call(name, params)
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
+  -- needs to be array of pairs because order matters for typst
+  for i, pair in ipairs(params) do
+    local k = pair[1]
+    local v = pair[2]
+    result:insert(pandoc.RawInline("typst", k .. ": "))
+    result:extend(quarto.utils.as_blocks(v) or {})
+    result:insert(pandoc.RawInline("typst", ", "))
+  end
+  result:insert(pandoc.RawInline("typst", ")"))
+  return pandoc.Div(result)
+end
+
+local function as_typst_content(content)
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawInline("typst", "[\n"))
+  result:extend(quarto.utils.as_blocks(content) or {})
+  result:insert(pandoc.RawInline("typst", "]\n"))
+  return result
+end
+
+local included_font_awesome = false
+local function ensure_typst_font_awesome()
+  if included_font_awesome then
+    return
+  end
+  included_font_awesome = true
+  quarto.doc.include_text("in-header", "#import \"@preview/fontawesome:0.1.0\": *")
+end
+
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isTypstOutput()
+end, function(callout)
+  ensure_typst_font_awesome()
+
+  local attrs = callout_attrs[callout.type]
+  local background_color, icon_color, icon
+  if attrs == nil then
+    background_color = "white"
+    icon_color = "black"
+    icon = "fa-info"
+  else
+    background_color = "rgb(\"#" .. attrs.background_color .. "\")";
+    icon_color = "rgb(\"#" .. attrs.color .. "\")";
+    icon = attrs.fa_icon_typst
+  end
+
+  local title = callout.title
+  if title == nil then
+    title = pandoc.Plain(displayName(callout.type))
+  end
+
+  local typst_callout = typst_function_call("callout", { 
+    { "body", as_typst_content(callout.content) },
+    { "title", as_typst_content(title) },
+    { "background_color", pandoc.RawInline("typst", background_color) },
+    { "icon_color", pandoc.RawInline("typst", icon_color) },
+    { "icon", pandoc.RawInline("typst", "" .. icon .. "()")}
+  })
+
+  if callout.attr.identifier == "" then
+    return typst_callout
+  end
+
+  local category = crossref.categories.by_ref_type[refType(callout.attr.identifier)]
+  return make_typst_figure {
+    content = typst_callout,
+    caption_location = "top",
+    caption = pandoc.Plain(pandoc.Str("")),
+    kind = "quarto-callout-" .. callout.type,
+    supplement = category.name,
+    numbering = "1",
+    identifier = callout.attr.identifier
+  }
+end)
+
+_quarto.ast.add_renderer("Callout", function(_)
+  return _quarto.format.isDocxOutput()
+end, function(callout)
+  return calloutDocx(callout)
+end)
+
+function crossref_callouts()
+  return {
+    Callout = function(callout)
+      local type = refType(callout.attr.identifier)
+      if type == nil or not is_valid_ref_type(type) then
+        return nil
+      end
+      local label = callout.attr.identifier
+      local title = quarto.utils.as_blocks(callout.title)
+      callout.order = add_crossref(label, type, title)
+      return callout
+    end
+  }
+end

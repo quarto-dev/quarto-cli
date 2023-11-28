@@ -10,6 +10,9 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
+
+-- FIXME: needs updating for float-reftargets branch.
+
 import("../mainstateinit.lua")
 import("index.lua")
 import("preprocess.lua")
@@ -17,7 +20,6 @@ import("sections.lua")
 import("figures.lua")
 import("tables.lua")
 import("equations.lua")
-import("listings.lua")
 import("theorems.lua")
 import("qmd.lua")
 import("refs.lua")
@@ -46,7 +48,7 @@ initCrossrefIndex()
 -- chain of filters
 return {
   init_crossref_options(),
-  crossref_preprocess(),
+  crossref_mark_subfloats(),
   crossref_preprocess_theorems(),
   combineFilters({
     file_metadata(),
@@ -55,7 +57,6 @@ return {
     crossref_figures(),
     crossref_tables(),
     equations(),
-    listings(),
     crossref_theorems(),
   }),
   resolveRefs(),

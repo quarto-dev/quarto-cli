@@ -109,6 +109,7 @@ import {
   kError,
   kEval,
   kFigCapLoc,
+  kHtmlTableProcessing,
   kInclude,
   kLayout,
   kLayoutAlign,
@@ -210,6 +211,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCodeLineNumbers,
   kCodeSummary,
   kCodeOverflow,
+  kHtmlTableProcessing,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -511,7 +513,12 @@ export async function jupyterKernelspecFromMarkdown(
       return [kernelspec, {}];
     } else {
       return Promise.reject(
-        new Error("Jupyter kernel '" + kernel + "' not found."),
+        new Error(
+          `Jupyter kernel '${kernel}' not found. Known kernels: ${
+            Array.from((await jupyterKernelspecs()).values())
+              .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+          }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+        ),
       );
     }
   } else if (typeof (yamlJupyter) === "object") {
@@ -527,7 +534,12 @@ export async function jupyterKernelspecFromMarkdown(
         return [kernelspec, jupyter];
       } else {
         return Promise.reject(
-          new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
+          new Error(
+            `Jupyter kernel '${jupyter.kernel}' not found. Known kernels: ${
+              Array.from((await jupyterKernelspecs()).values())
+                .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+            }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+          ),
         );
       }
     } else {
@@ -1203,6 +1215,9 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // check if we have any image output
+  const haveImage = !!cell.outputs?.some((output) => isImage(output, options));
+
   // filter and transform outputs as needed
   const outputs = (cell.outputs || []).filter((output) => {
     // filter warnings if requested
@@ -1215,7 +1230,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output)) {
+    if (isDiscadableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1329,7 +1344,7 @@ async function mdFromCodeCell(
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
-      if (value) {
+      if (value !== undefined) {
         if (typeof (value) !== "string") {
           value = JSON.stringify(value);
         }
@@ -1379,7 +1394,7 @@ async function mdFromCodeCell(
       }
 
       if (typeof cell.options[kCellLstCap] === "string") {
-        md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
+        md.push(` lst-cap=\"${cell.options[kCellLstCap]}\"`);
       }
       if (typeof cell.options[kCodeFold] !== "undefined") {
         md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
@@ -1475,6 +1490,11 @@ async function mdFromCodeCell(
           md.push(`.${outputTypeCssClass(output.output_type)}`);
         }
 
+        // if this is markdown output then include a special class for that
+        if (isMarkdown(output, options)) {
+          md.push(` .${outputTypeCssClass("markdown")}`);
+        }
+
         // add hidden if necessary
         if (
           hideOutput(cell, options) ||
@@ -1486,6 +1506,10 @@ async function mdFromCodeCell(
         // add execution count if we have one
         if (typeof (output.execution_count) === "number") {
           md.push(` execution_count=${output.execution_count}`);
+        }
+
+        if (cell.options[kHtmlTableProcessing] === "none") {
+          md.push(" html-table-processing=none");
         }
 
         md.push("}\n");
@@ -1621,18 +1645,25 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(output: JupyterOutput) {
+function isDiscadableTextExecuteResult(
+  output: JupyterOutput,
+  haveImage: boolean,
+) {
   if (output.output_type === "execute_result") {
     const data = (output as JupyterOutputDisplayData).data;
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        return [
-          "[<matplotlib",
-          "<matplotlib",
-          "<seaborn.",
-          "<ggplot:",
-        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        if (haveImage && textPlain.length === 1) {
+          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        } else {
+          return [
+            "[<matplotlib",
+            "<matplotlib",
+            "<seaborn.",
+            "<ggplot:",
+          ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        }
       }
     }
   }
@@ -1666,7 +1697,6 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsImage);
 }
 
-// deno-lint-ignore no-unused-vars
 function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }

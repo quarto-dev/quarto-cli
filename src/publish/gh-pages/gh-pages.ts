@@ -17,10 +17,10 @@ import { execProcess } from "../../core/process.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
+  AccountTokenType,
   PublishFiles,
   PublishProvider,
 } from "../provider-types.ts";
-import { anonymousAccount } from "../provider.ts";
 import { PublishOptions, PublishRecord } from "../types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { sleep } from "../../core/wait.ts";
@@ -49,6 +49,15 @@ export const ghpagesProvider: PublishProvider = {
   isUnauthorized,
   isNotFound,
 };
+
+function anonymousAccount(): AccountToken {
+  return {
+    type: AccountTokenType.Anonymous,
+    name: "anonymous",
+    server: null,
+    token: "anonymous",
+  };
+}
 
 function accountTokens() {
   return Promise.resolve([anonymousAccount()]);
@@ -419,11 +428,11 @@ const throwUnableToPublish = (reason: string) => {
 
 async function gitHubContextForPublish(input: string | ProjectContext) {
   // Create the base context
-  const dir = typeof (input) === "string" ? dirname(input) : input.dir;
+  const dir = typeof input === "string" ? dirname(input) : input.dir;
   const context = await gitHubContext(dir);
 
   // always prefer configured website URL
-  if (typeof (input) !== "string") {
+  if (typeof input !== "string") {
     const configSiteUrl = websiteBaseurl(input?.config);
     if (configSiteUrl) {
       context.siteUrl = configSiteUrl;

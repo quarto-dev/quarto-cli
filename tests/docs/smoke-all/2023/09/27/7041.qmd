@@ -1,0 +1,17 @@
+---
+format: 
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    typst:
+      ensureFileRegexMatches:
+        - []
+        - ["#figure\\(\\["]
+---
+
+An image without captions.
+
+![](./elephant.jpg)
+
+This should work.

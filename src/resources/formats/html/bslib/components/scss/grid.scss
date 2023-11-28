@@ -1,0 +1,42 @@
+.bslib-grid {
+  display: grid !important;
+  gap: var(--bslib-spacer, 1rem);
+  height: var(--bslib-grid-height);
+  &.grid {
+    // Don't let intrinsic width of a column affect the width of grid cols
+    grid-template-columns: repeat(var(--bs-columns, 12), minmax(0, 1fr));
+    // For some reason, Bootstrap sets `grid-template-rows: 1fr` by default, which
+    // is problematic for a multi-row filling layout. This fixes it...
+    // > page_fillable(layout_columns(c(12, 12), plotly::plot_ly(), plotly::plot_ly()))
+    grid-template-rows: unset;
+    grid-auto-rows: var(--bslib-grid--row-heights);
+    @include bslib-breakpoints-css-vars('bslib-grid--row-heights', map-keys($grid-breakpoints));
+  }
+
+  & > * > .shiny-input-container {
+    width: 100%;
+  }
+}
+
+.bslib-grid-item {
+  grid-column: auto/span 1;
+}
+
+@include media-breakpoint-down(md) {
+  // collapse all columns to a single column below medium (by default only)
+  .bslib-grid-item {
+    grid-column: 1 / -1;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  // with each "row" taking its natural height
+  .bslib-grid {
+    grid-template-columns: 1fr !important;
+    height: var(--bslib-grid-height-mobile);
+    &.grid {
+      height: unset !important;
+      grid-auto-rows: var(--bslib-grid--row-heights--xs, auto);
+    }
+  }
+}

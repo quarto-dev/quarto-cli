@@ -1,0 +1,25 @@
+---
+title: Page Fill Flow
+format: 
+  dashboard:
+    orientation: columns
+theme: lux
+---
+
+# Page 1
+
+```{r}
+plot(cars)
+```
+
+```{r}
+plot(cars)
+```
+
+# Page 2 {scrolling=true}
+
+{{< lipsum 15 >}}
+
+
+
+

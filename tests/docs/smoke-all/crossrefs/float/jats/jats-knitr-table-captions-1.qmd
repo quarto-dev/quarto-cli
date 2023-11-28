@@ -1,0 +1,27 @@
+---
+title: Knitr Table Test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - '//fig//fig[@id="tbl-cars"]//table'
+          - '//fig//fig[@id="tbl-cars"]//caption'
+          - '//fig//fig[@id="tbl-pressure"]//table'
+          - '//fig//fig[@id="tbl-pressure"]//caption'
+          - '//fig[@id="tbl-tables"]/caption'
+        - []
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars {#tbl-cars}")
+kable(head(pressure), caption = "Pressure {#tbl-pressure}")
+```
+
+See @tbl-cars for more information.

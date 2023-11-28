@@ -28,8 +28,8 @@ import { dirAndStem } from "../../core/path.ts";
 import {
   kJatsSubarticle,
   kLintXml,
-  subarticleTemplatePath,
 } from "../../format/jats/format-jats-types.ts";
+import { subarticleTemplatePath } from "../../format/jats/format-jats-paths.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
 
@@ -111,7 +111,6 @@ async function renderJats(
           [kJatsSubarticleId]: subArticleToken,
           [kOutputFile]: outputFile(nbPath),
           [kTemplate]: subarticleTemplatePath,
-          [kNotebookPreserveCells]: true,
           [kNotebookPreserveCells]: true,
         },
         quiet: false,

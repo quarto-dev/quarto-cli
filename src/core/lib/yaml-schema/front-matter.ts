@@ -1,11 +1,10 @@
 /*
-* front-matter.ts
-*
-* JSON Schema for Quarto's YAML frontmatter
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * front-matter.ts
+ *
+ * JSON Schema for Quarto's YAML frontmatter
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { nullSchema as nullS } from "./constants.ts";
 
@@ -48,6 +47,8 @@ export async function makeFrontMatterFormatSchema(nonStrict = false) {
   const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
     "md", // alias for 'commonmark'
     "hugo", // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
+    "dashboard", // our built in format for dashboards
+    "email", // for the HTML email format (used with Posit Connect)
   )
     .map(
       (format) => {

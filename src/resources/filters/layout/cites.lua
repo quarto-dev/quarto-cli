@@ -3,8 +3,7 @@
   
 
 function cites_preprocess()
-  -- FIXME do we need parentheses here?
-  if not _quarto.format.isLatexOutput() and marginCitations() then
+  if (not _quarto.format.isLatexOutput()) and marginCitations() then
     return { }
   end
 
@@ -20,56 +19,62 @@ function cites_preprocess()
       end
     end,
 
-    Para = function(para)
-      local figure = discoverFigure(para, true)
-      if figure and _quarto.format.isLatexOutput() and hasFigureRef(figure) then
-        if hasMarginColumn(figure) or hasMarginCaption(figure) then
-          -- This is a figure in the margin itself, we need to append citations at the end of the caption
-          -- without any floating
-          para.content[1] = _quarto.ast.walk(figure, {
-              Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
-                appendAtEnd(citePlaceholderInlineWithProtection(citation))
-              end)
-            })
-          return para
-        elseif marginCitations() then
-          -- This is a figure is in the body, but the citation should be in the margin. Use 
-          -- protection to shift any citations over
-          para.content[1] = _quarto.ast.walk(figure, {
-            Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
-              appendInline(marginCitePlaceholderWithProtection(citation))
-            end)
-          })
-          return para
-        end   
+    FloatRefTarget = function(float)
+      local inlines_filter
+      local has_margin_column = hasMarginColumn(float)
+
+      -- general figure caption cites fixups
+      if (_quarto.format.isLatexOutput() and has_margin_column) or hasMarginCaption(float) then
+        -- This is a figure in the margin itself, we need to append citations at the end of the caption
+        -- without any floating
+        inlines_filter = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
+          appendAtEnd(citePlaceholderInlineWithProtection(citation))
+        end)
+      elseif marginCitations() then
+        -- This is a figure is in the body, but the citation should be in the margin. Use 
+        -- protection to shift any citations over
+        inlines_filter = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
+          appendInline(marginCitePlaceholderInlineWithProtection(citation))
+        end)
       end
+      if inlines_filter then
+        float.caption_long = _quarto.ast.walk(float.caption_long, {
+          Inlines = inlines_filter
+        })
+      end
+
+      -- table caption cites fixups
+      if (refType(float.identifier) == 'tbl' and _quarto.format.isLatexOutput() and hasMarginColumn(float)) or marginCitations() then
+        local ref_table
+        _quarto.ast.walk(float.content, {
+          Table = function(t)
+            ref_table = t
+          end
+        })       
+        if ref_table ~= nil then
+          -- we don't want to update this inside the float.content walk above
+          -- because the caption_long is part of the content and that
+          -- will cause weirdness
+          float.caption_long = _quarto.ast.walk(float.caption_long, {
+            Inlines = function(inlines)
+              return resolveCaptionCitations(inlines, has_margin_column)
+            end
+          })
+        end
+      end
+
+      return float
     end,
 
     Div = function(div)
-      if _quarto.format.isLatexOutput() and hasMarginColumn(div) or marginCitations() then
-        if hasTableRef(div) then 
-          -- inspect the table caption for refs and just mark them as resolved
-          local table = discoverTable(div)
-          if table ~= nil and table.caption ~= nil and table.caption.long ~= nil then
-            local cites = false
-            -- go through any captions and resolve citations into latex
-            for i, caption in ipairs(table.caption.long) do
-              cites = resolveCaptionCitations(caption.content, hasMarginColumn(div)) or cites
+      if (_quarto.format.isLatexOutput() and hasMarginColumn(div)) or marginCitations() then
+        return _quarto.ast.walk(div, {
+          Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
+            if hasMarginColumn(div) then
+              appendAtEnd(citePlaceholderInline(citation))
             end
-            if cites then
-              return div
-            end
-          end  
-        else
-          return _quarto.ast.walk(div, {
-            Inlines = walkUnresolvedCitations(function(citation, appendInline, appendAtEnd)
-              if hasMarginColumn(div) then
-                appendAtEnd(citePlaceholderInline(citation))
-              end
-            end)
-          })
-        end 
-
+          end)
+        })
       end
     end
     
@@ -83,9 +88,11 @@ function cites()
 
   return {
     -- go through inlines and resolve any unresolved citations
-    Inlines = walkUnresolvedCitations(function(citation, appendInline)
-      appendInline(marginCitePlaceholderInline(citation))
-    end)
+    Inlines = function(inlines)
+      return (walkUnresolvedCitations(function(citation, appendInline)
+        appendInline(marginCitePlaceholderInline(citation))
+      end)(inlines))
+    end
   }
 end
 

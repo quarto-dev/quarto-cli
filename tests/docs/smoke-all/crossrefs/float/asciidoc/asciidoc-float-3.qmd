@@ -1,0 +1,24 @@
+---
+title: float crossref test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "image::img/surus.jpg"
+          - "\\[#tbl-foo\\]"
+          - "\\[#fig-foo\\]"
+          - "<<tbl-foo>>"
+          - "<<fig-foo>>"
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as images with identifiers
+
+![This is a figure](img/surus.jpg){#fig-foo}
+
+![This is a table](img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.

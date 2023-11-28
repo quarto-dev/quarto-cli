@@ -1,0 +1,21 @@
+---
+title: Conditional spans and code blocks
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - [".be-here code", "span.be-here"]
+        - [".do-not-be-here"]
+---
+
+```{.content-visible when-format="html" .be-here}
+2+2
+```
+
+```{.content-hidden when-format="html" .do-not-be-here}
+2+2
+```
+
+[[Hi!]{.be-here}]{.content-visible when-format="html"}
+
+[[Hi!]{.do-not-be-here}]{.content-hidden when-format="html"}

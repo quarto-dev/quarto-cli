@@ -98,6 +98,7 @@ function makeWrappedJsonFilter(scriptFile, filterHandler)
         local custom_node_map = {}
         local has_custom_nodes = false
         doc = doc:walk({
+          -- FIXME: This is broken with new AST. Needs to go through Custom node instead.
           RawInline = function(raw)
             local custom_node, t, kind = _quarto.ast.resolve_custom_data(raw)
             if custom_node ~= nil then

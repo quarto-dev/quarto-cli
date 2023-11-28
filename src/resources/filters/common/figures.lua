@@ -11,7 +11,6 @@ kFigScap = "fig-scap"
 kResizeWidth = "resize.width"
 kResizeHeight = "resize.height"
 
-
 function isFigAttribute(name)
   return string.find(name, "^fig%-")
 end
@@ -27,111 +26,48 @@ function figAlignAttribute(el)
   return validatedAlign(align)
 end
 
--- is this an image containing a figure
-function isFigureImage(el)
-  return hasFigureRef(el) and #el.caption > 0
-end
-
 -- is this a Div containing a figure
-function isFigureDiv(el)
-  if el.t == "Div" and hasFigureRef(el) then
-    return refCaptionFromDiv(el) ~= nil
+function isFigureDiv(el, captionRequired)
+  if is_regular_node(el, "Div") and hasFigureRef(el) then
+    if captionRequired == nil then
+      captionRequired = true
+    end
+    if not captionRequired then
+      return true
+    end
+    return el.attributes[kFigCap] ~= nil or refCaptionFromDiv(el) ~= nil
   else
     return discoverLinkedFigureDiv(el) ~= nil
   end
 end
 
+local singleton_list = function(el) return #el.content == 1 end
 function discoverFigure(el, captionRequired)
-  if el.t ~= "Para" then
-    return nil
-  end
   if captionRequired == nil then
     captionRequired = true
   end
-  if #el.content == 1 and el.content[1].t == "Image" then
-    local image = el.content[1]
-    if not captionRequired or #image.caption > 0 then
-      return image
-    else
-      return nil
-    end
-  else
-    return nil
+  local function check_caption(image)
+    return #image.caption > 0 or not captionRequired
   end
+
+  return quarto.utils.match(
+    "Para", singleton_list, 1,
+    "Image",
+    check_caption)(el) or nil
 end
 
 function discoverLinkedFigure(el, captionRequired)
-  if el.t ~= "Para" then
-    return nil
+  local function check_caption(image)
+    return #image.caption > 0 or not captionRequired
   end
-  if #el.content == 1 then 
-    if el.content[1].t == "Link" then
-      local link = el.content[1]
-      if #link.content == 1 and link.content[1].t == "Image" then
-        local image = link.content[1]
-        if not captionRequired or #image.caption > 0 then
-          return image
-        end
-      end
-    end
-  end
-  return nil
-end
-
-function createFigureDiv(paraEl, fig)
-  flags.has_figure_divs = true
-  
-  -- create figure div
-  local figureDiv = pandoc.Div({})
- 
-  -- transfer identifier
-  figureDiv.attr.identifier = fig.attr.identifier
-  fig.attr.identifier = ""
-  
-  -- provide anonymous identifier if necessary
-  if figureDiv.attr.identifier == "" then
-    figureDiv.attr.identifier = anonymousFigId()
-  end
-  
-  -- transfer classes
-  figureDiv.attr.classes = fig.attr.classes:clone()
-  tclear(fig.attr.classes)
-  
-  -- transfer fig. attributes
-  for k,v in pairs(fig.attr.attributes) do
-    if isFigAttribute(k) then
-      figureDiv.attr.attributes[k] = v
-    end
-  end
-  local attribs = tkeys(fig.attr.attributes)
-  for _,k in ipairs(attribs) do
-    if isFigAttribute(k) then
-      fig.attr.attributes[k] = v
-    end
-  end
-    
-  --  collect caption
-  local caption = fig.caption:clone()
-  fig.caption = {}
-  
-  -- if the image is a .tex file we need to tex \input 
-  if latexIsTikzImage(fig) then
-    paraEl = pandoc.walk_block(paraEl, {
-      Image = latexFigureInline
-    })
-  end
-  
-  -- insert the paragraph and a caption paragraph
-  figureDiv.content:insert(paraEl)
-  figureDiv.content:insert(pandoc.Para(caption))
-  
-  -- return the div
-  return figureDiv
-  
+  return quarto.utils.match(
+    "Para", singleton_list, 1,
+    "Link", singleton_list, 1,
+    "Image", check_caption)(el) or nil
 end
 
 function discoverLinkedFigureDiv(el, captionRequired)
-  if el.t == "Div" and 
+  if is_regular_node(el, "Div") and 
      hasFigureRef(el) and
      #el.content == 2 and 
      el.content[1].t == "Para" and 
@@ -155,8 +91,6 @@ function isReferenceableFig(figEl)
   return figEl.attr.identifier ~= "" and 
          not isAnonymousFigId(figEl.attr.identifier)
 end
-
-
 
 function latexIsTikzImage(image)
   return _quarto.format.isLatexOutput() and string.find(image.src, "%.tex$")

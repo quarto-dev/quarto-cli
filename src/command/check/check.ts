@@ -19,6 +19,7 @@ import {
 } from "../../core/jupyter/jupyter-shared.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import {
+  checkRBinary,
   KnitrCapabilities,
   knitrCapabilities,
   knitrCapabilitiesMessage,
@@ -38,13 +39,14 @@ import { allTools } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "path/mod.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
-  const services = renderServices();
+  const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
     if (target === "versions" || target === "all") {
@@ -286,13 +288,15 @@ title: "Title"
 async function checkKnitrInstallation(services: RenderServices) {
   const kMessage = "Checking R installation...........";
   let caps: KnitrCapabilities | undefined;
+  let rBin: string | undefined;
   await withSpinner({
     message: kMessage,
     doneMessage: false,
   }, async () => {
-    caps = await knitrCapabilities();
+    rBin = await checkRBinary();
+    caps = await knitrCapabilities(rBin);
   });
-  if (caps) {
+  if (rBin && caps) {
     completeMessage(kMessage + "OK");
     info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
@@ -316,9 +320,17 @@ async function checkKnitrInstallation(services: RenderServices) {
       );
       info("");
     }
-  } else {
+  } else if (rBin === undefined) {
     completeMessage(kMessage + "(None)\n");
     info(rInstallationMessage(kIndent));
+    info("");
+  } else if (caps === undefined) {
+    completeMessage(kMessage + "(None)\n");
+    info(`R succesfully found at ${rBin}.`);
+    info(
+      "However, a problem was encountered when checking configurations of packages.",
+    );
+    info("Please check your installation of R.");
     info("");
   }
 }

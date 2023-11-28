@@ -1,0 +1,19 @@
+---
+format: 
+  typst:
+    output-ext: typ
+    prefer-html: true # should not be set usually but checking it does not have impact
+_quarto:
+  tests:
+    typst:
+      ensureFileRegexMatches:
+        - ['#image\(']
+        - ['<script']
+---
+
+This test will do snapshoting of the HTML widgets, so it requires chrome / chromium with **webshot2** or phantomjs with **webshot** to work. 
+TODO: See how to configure our test suites for this
+
+```{r}
+DT::datatable(cars)
+```

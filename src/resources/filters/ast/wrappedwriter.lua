@@ -128,7 +128,9 @@ function wrapped_writer()
         if tbl ~= nil then 
           local astHandler = _quarto.ast.resolve_handler(t)
           if astHandler == nil then
+            -- luacov: disable
             fatal("Internal error: no handler for " .. t)
+            -- luacov: enable
           end
           local nodeHandler = astHandler and handler[astHandler.ast_name] and handler[astHandler.ast_name].handle
           if nodeHandler == nil then

@@ -377,6 +377,10 @@ $panel-sidebar-padding: 0.5em;
 .reveal .slides section .callout {
   font-size: #{$presentation-font-smaller}em;
 }
+// avoid applying twice the reduction when using nested section
+.reveal.smaller .slides section section {
+  font-size: inherit;
+}
 
 .reveal.smaller .slides h1,
 .reveal .slides section.smaller h1 {
@@ -595,6 +599,11 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   font-size: 0.7em;
   line-height: 1.2em;
   margin-top: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
 }
 
 .reveal code.sourceCode button.code-annotation-anchor {
@@ -608,6 +617,10 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   cursor: default;
   height: 1.2em;
   width: 1.2em;
+}
+
+.reveal code.sourceCode.fragment a.code-annotation-anchor {
+  left: auto;
 }
 
 .reveal #code-annotation-line-highlight-gutter {
@@ -677,4 +690,10 @@ div.cell-output-display div.pagedtable-wrapper table.table {
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10),
 .reveal .scrollable ol li:first-child:nth-last-child(n + 10) ~ li {
   margin-left: 1em;
+}
+
+// Patch to revealjs' pdf.scss to avoid last blank slide
+// https://github.com/quarto-dev/quarto-cli/issues/3997
+html.print-pdf .reveal .slides .pdf-page:last-child {
+  page-break-after: avoid;
 }

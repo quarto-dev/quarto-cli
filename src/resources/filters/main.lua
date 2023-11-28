@@ -23,10 +23,13 @@ import("./ast/wrappedwriter.lua")
 import("./common/base64.lua")
 import("./common/citations.lua")
 import("./common/colors.lua")
+import("./common/collate.lua")
+import("./common/crossref.lua")
 import("./common/debug.lua")
 import("./common/error.lua")
 import("./common/figures.lua")
 import("./common/filemetadata.lua")
+import("./common/floats.lua")
 import("./common/format.lua")
 import("./common/latex.lua")
 import("./common/layout.lua")
@@ -60,6 +63,7 @@ import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
+import("./quarto-post/typst.lua")
 import("./quarto-post/latexdiv.lua")
 import("./quarto-post/meta.lua")
 import("./quarto-post/ojs.lua")
@@ -71,26 +75,29 @@ import("./quarto-post/pdf-images.lua")
 import("./quarto-post/cellcleanup.lua")
 import("./quarto-post/bibliography.lua")
 import("./quarto-post/code.lua")
+import("./quarto-post/html.lua")
+import("./quarto-post/dashboard.lua")
+import("./quarto-post/email.lua")
 
 import("./quarto-finalize/dependencies.lua")
 import("./quarto-finalize/book-cleanup.lua")
 import("./quarto-finalize/mediabag.lua")
 import("./quarto-finalize/meta-cleanup.lua")
+import("./quarto-finalize/coalesceraw.lua")
+import("./quarto-finalize/descaffold.lua")
+import("./quarto-finalize/typst.lua")
 
 import("./normalize/flags.lua")
 import("./normalize/normalize.lua")
 import("./normalize/parsehtml.lua")
-import("./normalize/pandoc3.lua")
 import("./normalize/extractquartodom.lua")
+import("./normalize/astpipeline.lua")
+import("./normalize/capturereaderstate.lua")
+import("./normalize/fixupdatauri.lua")
 
-import("./layout/asciidoc.lua")
 import("./layout/meta.lua")
 import("./layout/width.lua")
-import("./layout/latex.lua")
-import("./layout/html.lua")
 import("./layout/wp.lua")
-import("./layout/docx.lua")
-import("./layout/jats.lua")
 import("./layout/odt.lua")
 import("./layout/pptx.lua")
 import("./layout/table.lua")
@@ -98,16 +105,18 @@ import("./layout/figures.lua")
 import("./layout/cites.lua")
 import("./layout/columns.lua")
 import("./layout/manuscript.lua")
+import("./layout/pandoc3_figure.lua")
+import("./layout/lightbox.lua")
 
 import("./layout/columns-preprocess.lua")
 import("./layout/layout.lua")
+import("./crossref/custom.lua")
 import("./crossref/index.lua")
 import("./crossref/preprocess.lua")
 import("./crossref/sections.lua")
 import("./crossref/figures.lua")
 import("./crossref/tables.lua")
 import("./crossref/equations.lua")
-import("./crossref/listings.lua")
 import("./crossref/theorems.lua")
 import("./crossref/qmd.lua")
 import("./crossref/refs.lua")
@@ -133,9 +142,11 @@ import("./quarto-pre/outputs.lua")
 import("./quarto-pre/panel-input.lua")
 import("./quarto-pre/panel-layout.lua")
 import("./quarto-pre/panel-sidebar.lua")
+import("./quarto-pre/parsefiguredivs.lua")
 import("./quarto-pre/project-paths.lua")
 import("./quarto-pre/resourcefiles.lua")
 import("./quarto-pre/results.lua")
+import("./quarto-pre/shiny.lua")
 import("./quarto-pre/shortcodes-handlers.lua")
 import("./quarto-pre/table-classes.lua")
 import("./quarto-pre/table-captions.lua")
@@ -143,11 +154,31 @@ import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
 
+import("./customnodes/panellayout.lua")
+
+import("./layout/html.lua")
+import("./layout/latex.lua")
+import("./layout/docx.lua")
+import("./layout/jats.lua")
+import("./layout/asciidoc.lua")
+
+import("./customnodes/latexenv.lua")
+import("./customnodes/latexcmd.lua")
+import("./customnodes/htmltag.lua")
 import("./customnodes/shortcodes.lua")
 import("./customnodes/content-hidden.lua")
 import("./customnodes/decoratedcodeblock.lua")
 import("./customnodes/callout.lua")
 import("./customnodes/panel-tabset.lua")
+import("./customnodes/floatreftarget.lua")
+import("./customnodes/theorem.lua")
+
+import("./layout/confluence.lua")
+import("./layout/ipynb.lua")
+import("./layout/typst.lua")
+import("./layout/hugo.lua")
+
+import("./quarto-init/metainit.lua")
 
 -- [/import]
 
@@ -158,51 +189,46 @@ initShortcodeHandlers()
 -- see whether the cross ref filter is enabled
 local enableCrossRef = param("enable-crossref", true)
 
-local quartoInit = {
-  { name = "init-configure-filters", filter = configure_filters() },
-  { name = "init-read-includes", filter = read_includes() },
+local quarto_init_filters = {
+  { name = "init-quarto-meta-init", filter = quarto_meta_init() },
+  { name = "init-quarto-custom-meta-init", filter = {
+    Meta = function(meta)
+      content_hidden_meta(meta)
+    end
+  }},
+  -- FIXME this could probably be moved into the next combineFilters below,
+  -- in quartoNormalize
   { name = "init-metadata-resource-refs", filter = combineFilters({
     file_metadata(),
     resourceRefs()
   })},
 }
 
-local quartoNormalize = {
+-- v1.4 change: quartoNormalize is responsible for producing a
+-- "normalized" document that is ready for quarto-pre, etc.
+-- notably, user filters will run on the normalized document and
+-- see a "Quarto AST". For example, Figure nodes are no longer
+-- going to be present, and will instead be represented by
+-- our custom AST infrastructure (FloatRefTarget specifically).
+
+local quarto_normalize_filters = {
   { name = "normalize", filter = filterIf(function()
+    if quarto_global_state.active_filters == nil then
+      return false
+    end
     return quarto_global_state.active_filters.normalization
   end, normalize_filter()) },
 
-  { name = "pre-table-merge-raw-html", 
-    filter = table_merge_raw_html()
-  },
-
-  { name = "pre-content-hidden-meta",
-    filter = content_hidden_meta() },
-
-  -- 2023-04-11: We want to combine these filters but parse_md_in_html_rawblocks
-  -- can't be combined with parse_html_tables because combineFilters
-  -- doesn't inspect the contents of the results in the inner loop.
-  { name = "normalize-combined", filter = combineFilters({
-      parse_html_tables(),
-      parse_extended_nodes(),
-    })
-  },
-  { 
-    name = "normalize-extractQuartoDom", 
-    filter = parse_md_in_html_rawblocks(),
-  },
+  { name = "normalize-capture-reader-state", filter = normalize_capture_reader_state() }
 }
 
-local quartoPre = {
+tappend(quarto_normalize_filters, quarto_ast_pipeline())
+
+local quarto_pre_filters = {
   -- quarto-pre
-
-  -- TODO we need to compute flags on the results of the user filters
-  { name = "pre-run-user-filters", filters = make_wrapped_user_filters("beforeQuartoFilters") },
-
-  -- do this early so we can compute maxHeading while in the big traversal
-  { name = "crossref-init-crossref-options", filter = init_crossref_options() },
-
   { name = "flags", filter = compute_flags() },
+
+  { name = "pre-server-shiny", filter = server_shiny() },
 
   -- https://github.com/quarto-dev/quarto-cli/issues/5031
   -- recompute options object in case user filters have changed meta
@@ -210,20 +236,11 @@ local quartoPre = {
   -- when they mutate options
   { name = "pre-read-options-again", filter = init_options() },
 
-  { name = "pre-parse-pandoc3-figures", 
-    filter = parse_pandoc3_figures(), 
-    flags = { "has_pandoc3_figure" } 
-  },
-
   { name = "pre-bibliography-formats", filter = bibliography_formats() }, 
   
   { name = "pre-shortcodes-filter", 
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
-
-  { name = "pre-table-colwidth-cell", 
-    filter = table_colwidth_cell(),
-    flags = { "has_tbl_colwidths" } },
 
   { name = "pre-hidden", 
     filter = hidden(), 
@@ -236,11 +253,7 @@ local quartoPre = {
   { name = "pre-table-captions", 
     filter = table_captions(),
     flags = { "has_table_captions" } },
-
-  { name = "pre-longtable-no-caption-fixup", 
-    filter = longtable_no_caption_fixup(),
-    flags = { "has_longtable_no_caption_fixup" } },
-  
+ 
   { name = "pre-code-annotations", 
     filter = code_annotations(),
     flags = { "has_code_annotations" } },
@@ -264,7 +277,6 @@ local quartoPre = {
     quarto_pre_figures(),
     quarto_pre_theorems(),
     docx_callout_and_table_fixup(),
-    code_filename(),
     engine_escape(),
     line_numbers(),
     bootstrap_panel_input(),
@@ -282,16 +294,14 @@ local quartoPre = {
   { name = "pre-write-results", filter = write_results() },
 }
 
-local quartoPost = {
-  -- quarto-post
+local quarto_post_filters = {
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
     flags = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
-  { name = "post-foldCode", filter = foldCode() },
+  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
   { name = "post-bibliography", filter = bibliography() },
-  { name = "post-ipynb", filter = ipynbCode()},
-  { name = "post-ipynb", filter = ipynb()},
+  { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
     responsive(),
@@ -303,7 +313,7 @@ local quartoPost = {
     figCleanup(),
     responsive_table(),
   }) },
-  { name = "post-ojs", filter = ojs() },
+
   { name = "post-postMetaInject", filter = quartoPostMetaInject() },
   
   { name = "post-render-jats", filter = filterIf(function()
@@ -320,53 +330,60 @@ local quartoPost = {
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-docx", filter = render_docx() },
+  { name = "post-render-typst", filter = render_typst() },
+  { name = "post-render-dashboard", filters = render_dashboard() },
+
+  { name = "post-ojs", filter = ojs() },
 
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
-  { name = "post-render-pandoc-3-figures", filter = render_pandoc3_figures() },
-  { name = "post-userAfterQuartoFilters", filters = make_wrapped_user_filters("afterQuartoFilters") },
+  -- inject required packages post-rendering
+  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
+
+  -- format fixups post rendering
+  { name = "post-render-latex-fixups", filter = render_latex_fixups() },
+  { name = "post-render-html-fixups", filter = render_html_fixups() },
+  { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
+  { name = "post-render-typst-fixups", filter = render_typst_fixups() },
+  { name = "post-render-email", filter = render_email() },
 }
 
-local quartoFinalize = {
-    -- quarto-finalize
-    { name = "finalize-fileMetadataAndMediabag", filter =
+local quarto_finalize_filters = {
+  -- quarto-finalize
+  { name = "finalize-combined", filter =
     combineFilters({
       file_metadata(),
-      mediabag()
-    })
-  },
+      mediabag(),
+      inject_vault_content_into_rawlatex(),
+    })},
   { name = "finalize-bookCleanup", filter = bookCleanup() },
   { name = "finalize-cites", filter = writeCites() },
   { name = "finalize-metaCleanup", filter = metaCleanup() },
   { name = "finalize-dependencies", filter = dependencies() },
-  { name = "finalize-wrapped-writer", filter = wrapped_writer() }
+  { name = "finalize-coalesce-raw", filters = coalesce_raw() },
+  { name = "finalize-descaffold", filter = descaffold() },
+  { name = "finalize-wrapped-writer", filter = wrapped_writer() },
+  { name = "finalize-typst-state", filter = setup_typst_state() }
 }
 
-local quartoLayout = {
+local quarto_layout_filters = {
   { name = "manuscript filtering", filter = manuscript() },
   { name = "manuscript filtering", filter = manuscriptUnroll() },
+  { name = "layout-lightbox", filters = lightbox(), flags = { "has_lightbox" }},
+  { name = "layout-render-pandoc3-figure", filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" } },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "layout-panels", filter = layout_panels(), flags =
-    { "has_layout_attributes", "has_tbl_parent" } },
-  { name = "layout-extended-figures", filter = extended_figures(), flags = 
-    { "has_discoverable_figures", "has_figure_divs"} },
-  { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() }
+  { name = "layout-panels", filter = layout_panels() },
 }
 
-local quartoCrossref = {
+local quarto_crossref_filters = {
 
-  { name = "crossref-preprocess", filter = crossref_preprocess(),
-    flags = { 
-      "has_figure_or_table_ref", 
-      "has_discoverable_figures",
-      "has_table_with_long_captions",
-      "has_latex_table_captions"
-    } },
+  { name = "crossref-preprocess-floats", filter = crossref_mark_subfloats(),
+  },
 
   { name = "crossref-preprocessTheorems", 
     filter = crossref_preprocess_theorems(),
@@ -377,10 +394,9 @@ local quartoCrossref = {
     qmd(),
     sections(),
     crossref_figures(),
-    crossref_tables(),
     equations(),
-    listings(),
     crossref_theorems(),
+    crossref_callouts(),
   })},
 
   { name = "crossref-resolveRefs", filter = resolveRefs(),
@@ -390,17 +406,29 @@ local quartoCrossref = {
   { name = "crossref-writeIndex", filter = writeIndex() },
 }
 
-local filterList = {}
+local quarto_filter_list = {}
 
-tappend(filterList, quartoInit)
-tappend(filterList, quartoNormalize)
-tappend(filterList, quartoPre)
+table.insert(quarto_filter_list, { name = "pre-ast", filter = {} }) -- entry point for user filters
+tappend(quarto_filter_list, quarto_init_filters)
+tappend(quarto_filter_list, quarto_normalize_filters)
+table.insert(quarto_filter_list, { name = "post-ast", filter = {} }) -- entry point for user filters
+
+table.insert(quarto_filter_list, { name = "pre-quarto", filter = {} }) -- entry point for user filters
+tappend(quarto_filter_list, quarto_pre_filters)
 if enableCrossRef then
-  tappend(filterList, quartoCrossref)
+  tappend(quarto_filter_list, quarto_crossref_filters)
 end
-tappend(filterList, quartoLayout)
-tappend(filterList, quartoPost)
-tappend(filterList, quartoFinalize)
+table.insert(quarto_filter_list, { name = "post-quarto", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-render", filter = {} }) -- entry point for user filters
+tappend(quarto_filter_list, quarto_layout_filters)
+tappend(quarto_filter_list, quarto_post_filters)
+table.insert(quarto_filter_list, { name = "post-render", filter = {} }) -- entry point for user filters
+table.insert(quarto_filter_list, { name = "pre-finalize", filter = {} }) -- entry point for user filters
+tappend(quarto_filter_list, quarto_finalize_filters)
+table.insert(quarto_filter_list, { name = "post-finalize", filter = {} }) -- entry point for user filters
+
+-- now inject user-defined filters on appropriate positions
+inject_user_filters_at_entry_points(quarto_filter_list)
 
 local result = run_as_extended_ast({
   pre = {
@@ -411,7 +439,7 @@ local result = run_as_extended_ast({
     -- allowing state or other items to be handled
     resetFileMetadata()
   end,
-  filters = filterList,
+  filters = quarto_filter_list,
 })
 
 return result

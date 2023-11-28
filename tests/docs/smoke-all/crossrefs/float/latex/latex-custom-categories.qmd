@@ -1,0 +1,57 @@
+---
+title: Proposed syntax for custom crossrefs
+format: pdf
+keep-tex: true
+crossref:
+  custom:
+    - kind: float
+      prefix: Diagram
+      name: Diagram
+      ref-type: dia
+      latex-env: diagram
+      latex-list-of-file-extension: lod
+    - kind: float
+      prefix: Table S
+      space-before-numbering: false
+      name: Table S
+      ref-type: supptbl
+      latex-env: supptbl
+      latex-list-of-file-extension: lost
+      latex-list-of-description: Supplementary Table
+---
+
+## Lists test
+
+```{=latex}
+\listofsupptbls
+\listofdiagrams
+```
+
+## Content
+
+::: {#dia-1}
+![](../img/surus.jpg)
+
+A diagram
+:::
+
+See @dia-1.
+
+::: {#supptbl-1}
+
+```{=html}
+<table>
+  <thead>
+    <tr><td>a</td><td>b</td></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>2</td></tr>
+    <tr><td>3</td><td>4</td></tr>
+  </tbody>
+</table>
+```
+A caption.
+
+:::
+
+See @supptbl-1.

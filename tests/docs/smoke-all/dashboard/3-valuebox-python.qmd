@@ -1,0 +1,45 @@
+---
+title: ValueBoxes
+format: 
+  dashboard:
+    orientation: rows
+    fill: false
+
+---
+
+```{python}
+#| title: What is happening
+#| component: valuebox
+
+import random
+import json
+value = 100 * random.random()
+
+icon = "hand-thumbs-up"
+if value < 50:
+  icon = "hand-thumbs-down"
+
+dict(
+  value='%.0f'%(value),
+  icon=icon
+)
+```
+
+
+```{python}
+#| title: What is happening
+#| component: valuebox
+#| icon: twitter
+foo = 3 *493
+foo
+```
+
+
+```{python}
+#| title: What is happening
+#| component: valuebox
+#| icon: microsoft
+#| color: light
+text = "MSFT"
+text
+```

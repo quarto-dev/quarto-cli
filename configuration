@@ -8,17 +8,28 @@
 # deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
 # Binary dependencies
-export DENO=v1.33.4
+export DENO=v1.37.2
+# TODO figure out where 0.1.41 apple silicon libs are available
 export DENO_DOM=v0.1.35-alpha-artifacts
-export PANDOC=3.1.8
-export DARTSASS=1.55.0
-export ESBUILD=0.18.15
-export TYPST=0.7.0
+export PANDOC=3.1.9
+export DARTSASS=1.69.5
+export ESBUILD=0.19.5
+export TYPST=0.9.0
+
+
+# NB: we can't put comments in the same line as export statements because it
+# messes up our windows setup
 
 # Bootstrap dependencies from bslib
 # (use commit hash from bslib repo)
-export BOOTSTRAP=ff3e498179a066043ceb8f2cb3188f10d0d6ebc4
-export BOOTSTRAP_FONT=1.10.5
+
+# 0.5.1 + consolidated components
+export BOOTSTRAP=ad946cafdbf1c91cfd714cb39948bb203ae66e66 
+# NOTE: HTML TOOLS has a manually committed fill.css file which will be officially
+# released in htmltools 0.5.7
+
+export HTMLTOOLS=0.5.7
+export BOOTSTRAP_FONT=1.11.1
 export BOOTSWATCH=5.3.1
 
 # javascript HTML dependencies
@@ -36,9 +47,12 @@ export LIST_JS=2.3.1
 export DAY_JS=1.11.7
 export ZENSCROLL_JS=4.0.2
 export GITHUB_MARKDOWN_CSS=5.2.0
+export GLIGHTBOX_JS=3.2.0
+export DATATABLES_CONFIG=bs5/jszip-3.10.1/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/kt-2.11.0/r-2.5.0
+export PDF_MAKE=0.2.7
 
 # javascript search dependencies
-export AUTOCOMPLETE_JS=1.9.2
+export AUTOCOMPLETE_JS=1.11.1
 export FUSE_JS=6.6.2
 export ALGOLIA_SEARCH_JS=4.5.1
 export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
@@ -47,7 +61,6 @@ export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 # Quarto Info Version
 export QUARTO_VERSION=1.4
 export QUARTO_NAME=Quarto
-export QUARTO_BUILD_RUN_OFFSET=-2030
 
 # Folder names. These are not the same as paths (those variable names end in _PATH).
 #     See set_package_paths .sh and .bat for these in context of full paths.

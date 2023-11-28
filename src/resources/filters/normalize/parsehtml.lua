@@ -21,7 +21,28 @@ end
 
 function parse_html_tables()
   local filter
+  if param(constants.kHtmlTableProcessing) == "none" then
+    return {}
+  end
   filter = {
+    traverse = "topdown",
+    Div = function(div)
+      if div.attributes[constants.kHtmlTableProcessing] then
+        -- catch and remove attributes
+        local htmlTableProcessing = div.attributes[constants.kHtmlTableProcessing]
+        div.attributes[constants.kHtmlTableProcessing] = nil
+        if htmlTableProcessing == "none" then
+          quarto.log.output(div.attr == pandoc.Attr())
+          if div.attr == pandoc.Attr() then
+            -- if no other attributes are set on the div, don't keep it
+            return div.content, false
+          else
+            -- when set on a div like div.cell-output-display, we need to keep it
+            return div, false
+          end
+        end
+      end
+    end,
     RawBlock = function(el)
       if _quarto.format.isRawHtml(el) then
         -- if we have a raw html table in a format that doesn't handle raw_html
@@ -31,6 +52,13 @@ function parse_html_tables()
         if i == nil then
           return nil
         end
+
+        -- we're already at a state of sin here, cf https://stackoverflow.com/a/1732454
+        -- but this is important enough to do a little more work anyway
+        -- 
+        -- specifically, we should do our best not to break good HTML when it's there
+
+
 
         local tableBegin,tableBody,tableEnd = el.text:match(pat)
         if tableBegin then
@@ -54,7 +82,9 @@ function parse_html_tables()
           -- annotated td elements with th elements.
 
           tableHtml = preprocess_table_text(tableHtml)
-          local tableDoc = pandoc.read(tableHtml, "html")
+          -- process html with raw_html so that contents that are not parseable
+          -- by Pandoc end up as rawblock elements
+          local tableDoc = pandoc.read(tableHtml, "html+raw_html")
           local skip = false
           local found = false
           _quarto.ast.walk(tableDoc, {
@@ -64,8 +94,6 @@ function parse_html_tables()
                 skip = true
               end
             end,
-            Div = needs_dom_processing,
-            Span = needs_dom_processing,
           })
           if not found then
             warn("Unable to parse table from raw html block: skipping.")

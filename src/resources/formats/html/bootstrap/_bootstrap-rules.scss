@@ -501,7 +501,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-up(lg) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -526,7 +526,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(lg) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -544,7 +544,7 @@ img.img-fluid.column-screen-right {
   .page-columns.toc-left {
     .margin-caption,
     div.aside,
-    aside:not(.footnotes),
+    aside:not(.footnotes):not(.sidebar),
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
@@ -560,7 +560,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(md) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
@@ -666,23 +666,33 @@ mark {
   padding: 0em;
 }
 
-.panel-caption,
-caption,
-.figure-caption {
-  font-size: 0.9rem;
-}
-
+// The 1.4 figcaption classes are
+//
+// quarto-float-caption or quarto-subfloat-caption, depending
+// on whether it's a main or subfloat caption.
+//
+// In addition, the name of the float is added as a class
+// as well ("figure", "table", etc, including custom
+// float types like a hypothetical "diagram")
+//
+// this way, custom float types can be both supported and
+// offered good defaults.
+//
+// FIXME right now we're classing all of figcaption,
+// but we should clean this up.
 .panel-caption,
 .figure-caption,
-figcaption {
+.subfigure-caption,
+.table-caption,
+figcaption.quarto-float-caption,
+caption {
+  font-size: 0.9rem;
   @include body-secondary;
 }
 
-.table-caption,
-caption {
-  color: $body-color;
-}
-
+// as of 1.4, tables emitted by quarto shouldn't have caption
+// elements, but we keep this here in case some strange rawhtml
+// table sneaks through.
 .quarto-layout-cell[data-ref-parent] caption {
   @include body-secondary;
 }
@@ -704,7 +714,12 @@ aside,
   margin-bottom: 0;
 }
 
-.column-margin.column-container > *:not(.collapse) {
+.column-margin.column-container > *:not(.collapse):first-child {
+  padding-bottom: 0.5em;
+  display: block;
+}
+
+.column-margin.column-container > *:not(.collapse):not(:first-child) {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
   display: block;
@@ -1096,26 +1111,34 @@ figure .quarto-notebook-link {
   padding-left: 1em;
 }
 
-.quarto-notebook .cell-container {
-  display: flex;
-}
+.quarto-notebook {
+  h2 {
+    border-bottom: none;
+  }
+  .cell-container {
+    display: flex;
+    .cell {
+      flex-grow: 4;
+    }
+    .cell-decorator {
+      padding-top: 1.5em;
+      padding-right: 1em;
+      text-align: right;
+    }
 
-.quarto-notebook .cell-container .cell {
-  flex-grow: 4;
-}
+    &.code-fold .cell-decorator {
+      padding-top: 3em;
+    }
+  }
+  .cell-code code {
+    white-space: pre-wrap;
+  }
 
-.quarto-notebook .cell-container .cell-decorator {
-  padding-top: 1.5em;
-  padding-right: 1em;
-  text-align: right;
-}
-
-.quarto-notebook .cell-code code {
-  white-space: pre-wrap;
-}
-
-.quarto-notebook h2 {
-  border-bottom: none;
+  .cell .cell-output-stderr pre code,
+  .cell .cell-output-stdout pre code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
 }
 
 .toc-actions,
@@ -1332,7 +1355,6 @@ kbd,
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
-
   overflow-wrap: break-word;
 }
 
@@ -1614,6 +1636,11 @@ div.callout.callout-style-default > .callout-header {
 
 .sidebar-navigation {
   padding-left: 20px;
+}
+
+.navbar {
+  background-color: $navbar-bg;
+  color: $navbar-fg;
 }
 
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
@@ -1972,6 +1999,11 @@ code.sourceCode .code-annotation-anchor {
 
 code.sourceCode button.code-annotation-anchor {
   padding: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
 }
 
 code.sourceCode a.code-annotation-anchor {

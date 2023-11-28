@@ -18,8 +18,10 @@ function is_visible(node)
   elseif node.behavior == constants.kContentHidden then
     return not match
   else
+    -- luacov: disable
     fatal("Internal Error: invalid behavior for conditional block: " .. node.behavior)
     return false
+    -- luacov: enable
   end
 end
 
@@ -73,7 +75,9 @@ _quarto.ast.add_handler({
     };
     for i, v in ipairs(tbl.condition or {}) do
       if kConditions:find(v[1]) == nil then
+        -- luacov: disable
         error("Ignoring invalid condition in conditional block: " .. v[1])
+        -- luacov: enable
       else
         result.condition[v[1]] = v[2]
       end
@@ -93,12 +97,14 @@ _quarto.ast.add_handler({
 
 local _content_hidden_meta = nil
 
-function content_hidden_meta()
-  return {
-    Meta = function(meta)
-      _content_hidden_meta = meta
-    end
-  }
+-- we capture a copy of meta here for convenience;
+-- 
+function content_hidden_meta(meta)
+  -- return {
+  --   Meta = function(meta)
+  _content_hidden_meta = meta
+  --   end
+  -- }
 end
 
 local function get_meta(key)

@@ -1,0 +1,23 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div.cell div.sourceCode"
+        - []
+---
+
+::: {#lst-assign-2}
+
+```{r}
+x <- 10
+```
+
+Ok, I'm a listing too.
+
+:::
+
+See @lst-assign-2.
+

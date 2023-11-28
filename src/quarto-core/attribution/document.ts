@@ -394,7 +394,7 @@ export function documentCSL(
 
   // Process keywords
   const kwString = citationMetadata.keyword;
-  if (kwString && typeof (kwString) === "string") {
+  if (kwString && typeof kwString === "string") {
     extras.keywords = kwString.split(",");
   } else if (inputMetadata.keywords) {
     const kw = inputMetadata.keywords;
@@ -465,7 +465,9 @@ function synthesizeCitationUrl(
 function pages(citationMetadata: Metadata): PageRange {
   let firstPage = citationMetadata[kFirstPage];
   let lastPage = citationMetadata[kLastPage];
-  let pages = `${citationMetadata[kPage] as string}`; // Force pages to string in case user writes `page: 7`
+  let pages = citationMetadata[kPage]
+    ? `${citationMetadata[kPage] as string}` // Force pages to string in case user writes `page: 7`
+    : undefined;
   if (pages && pages.includes("-")) {
     const pagesSplit = pages.split("-");
     if (!firstPage) {

@@ -7175,6 +7175,99 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Detect cache dependencies automatically via usage of global variables"
         }
       ],
+      "schema/cell-card.yml": [
+        {
+          name: "title",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Title displayed in dashboard card header"
+          }
+        },
+        {
+          name: "padding",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Padding around dashboard card content (default `8px`)"
+          }
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: {
+            short: "Make dashboard card content expandable (default: `true`)"
+          }
+        },
+        {
+          name: "width",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+          }
+        },
+        {
+          name: "height",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              "number"
+            ]
+          },
+          description: {
+            short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+          }
+        },
+        {
+          name: "context",
+          tags: {
+            formats: [
+              "dashboard"
+            ],
+            engine: [
+              "jupyter"
+            ]
+          },
+          schema: "string",
+          description: {
+            short: "Context to execute cell within."
+          }
+        }
+      ],
       "schema/cell-codeoutput.yml": [
         {
           name: "eval",
@@ -7212,7 +7305,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           description: {
             short: "Include cell source code in rendered output.",
-            long: "Include cell source code in rendered output.\n\n- `true` (default): include source code in output\n- `false`: do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
+            long: "Include cell source code in rendered output.\n\n- `true` (default in most formats): include source code in output\n- `false` (default in presentation formats like `beamer`, `revealjs`, and `pptx`): do not include source code in output\n- `fenced`: in addition to echoing, include the cell delimiter as part of the output.\n- `[...]`: A list of positive or negative line numbers to selectively include or exclude lines\n  (explicit inclusion/excusion of lines is available only when using the knitr engine)\n"
           }
         },
         {
@@ -7320,7 +7413,17 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             engine: "knitr"
           },
-          schema: "boolean",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "styler",
+                  "formatR"
+                ]
+              }
+            ]
+          },
           default: false,
           description: "Whether to reformat R code."
         },
@@ -7954,6 +8057,15 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Apply explicit table column widths",
             long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than `columns` characters wide (72 by default). \n\nSome formats (e.g. HTML) do an excellent job automatically sizing\ntable columns and so don't benefit much from column width specifications.\nOther formats (e.g. LaTeX) require table column sizes in order to \ncorrectly flow longer cell content (this is a major reason why tables \n> 72 columns wide are assigned explicit widths by Pandoc).\n\nThis can be specified as:\n\n- `auto`: Apply markdown table column widths except when there is a\n  hyperlink in the table (which tends to throw off automatic\n  calculation of column widths based on the markdown text width of cells).\n  (`auto` is the default for HTML output formats)\n\n- `true`: Always apply markdown table widths (`true` is the default\n  for all non-HTML formats)\n\n- `false`: Never apply markdown table widths.\n\n- An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.\n"
           }
+        },
+        {
+          name: "html-table-processing",
+          schema: {
+            enum: [
+              "none"
+            ]
+          },
+          description: "If `none`, do not process raw HTML table in cell output and leave it as-is"
         }
       ],
       "schema/cell-textoutput.yml": [
@@ -8233,9 +8345,36 @@ var require_yaml_intelligence_resources = __commonJS({
             anyOf: [
               "path",
               {
-                record: {
-                  type: "string",
-                  path: "path"
+                object: {
+                  properties: {
+                    type: "string",
+                    path: "path"
+                  },
+                  required: [
+                    "path"
+                  ]
+                }
+              },
+              {
+                object: {
+                  properties: {
+                    type: "string",
+                    path: "path",
+                    at: {
+                      enum: [
+                        "pre-ast",
+                        "post-ast",
+                        "pre-quarto",
+                        "post-quarto",
+                        "pre-render",
+                        "post-render"
+                      ]
+                    }
+                  },
+                  required: [
+                    "path",
+                    "at"
+                  ]
                 }
               },
               {
@@ -9676,7 +9815,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   anyOf: [
                     "boolean",
                     {
-                      ref: "other-links"
+                      ref: "code-links-schema"
                     }
                   ]
                 },
@@ -11294,6 +11433,58 @@ var require_yaml_intelligence_resources = __commonJS({
           }
         },
         {
+          id: "code-links-schema",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                maybeArrayOf: {
+                  anyOf: [
+                    {
+                      object: {
+                        properties: {
+                          icon: {
+                            string: {
+                              description: "The bootstrap icon for this code link."
+                            }
+                          },
+                          text: {
+                            string: {
+                              description: "The text for this code link."
+                            }
+                          },
+                          href: {
+                            string: {
+                              description: "The href for this code link."
+                            }
+                          },
+                          rel: {
+                            string: {
+                              description: "The rel used in the `a` tag for this code link."
+                            }
+                          },
+                          target: {
+                            string: {
+                              description: "The target used in the `a` tag for this code link."
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      enum: [
+                        "repo",
+                        "binder",
+                        "devcontainer"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
           id: "manuscript-schema",
           schema: {
             object: {
@@ -11305,17 +11496,10 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 },
                 "code-links": {
-                  anyOf: [
-                    "boolean",
-                    {
-                      maybeArrayOf: {
-                        anyOf: [
-                          "object",
-                          "string"
-                        ]
-                      }
-                    }
-                  ]
+                  schema: {
+                    ref: "code-links-schema"
+                  },
+                  description: "Code links to display for this manuscript."
                 },
                 "manuscript-url": {
                   string: {
@@ -11401,7 +11585,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$html-all",
               "context",
               "muse",
-              "odt"
+              "odt",
+              "docx"
             ]
           },
           description: "Identifies the subtitle of the document."
@@ -11526,7 +11711,8 @@ var require_yaml_intelligence_resources = __commonJS({
               "$jats-all",
               "context",
               "ms",
-              "odt"
+              "odt",
+              "docx"
             ]
           },
           description: "Summary of document"
@@ -11537,7 +11723,8 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             formats: [
               "$html-doc",
-              "$epub-all"
+              "$epub-all",
+              "docx"
             ]
           },
           description: "Title used to label document abstract"
@@ -12011,6 +12198,73 @@ var require_yaml_intelligence_resources = __commonJS({
                 object: {
                   closed: true,
                   properties: {
+                    custom: {
+                      arrayOf: {
+                        object: {
+                          description: "A custom cross reference type.",
+                          closed: true,
+                          required: [
+                            "kind",
+                            "prefix",
+                            "name",
+                            "ref-type"
+                          ],
+                          properties: {
+                            kind: {
+                              enum: [
+                                "float"
+                              ],
+                              description: 'The kind of cross reference (currently only "float" is supported).'
+                            },
+                            prefix: {
+                              string: {
+                                description: "The prefix used in rendered citations when referencing this type."
+                              }
+                            },
+                            name: {
+                              string: {
+                                description: "The prefix used in captions when referencing this type."
+                              }
+                            },
+                            "space-before-numbering": {
+                              default: true,
+                              boolean: {
+                                description: "If false, use no space between crossref prefixes and numbering."
+                              }
+                            },
+                            "ref-type": {
+                              string: {
+                                description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                              }
+                            },
+                            "latex-env": {
+                              string: {
+                                description: "In LaTeX output, the name of the custom environment to be used."
+                              }
+                            },
+                            "latex-list-of-file-extension": {
+                              string: {
+                                description: 'In LaTeX output, the extension of the auxiliary file used by LaTeX to collect names to be used in the custom "list of" command. If omitted, a string with prefix `lo` and suffix with the value of `ref-type` is used.'
+                              }
+                            },
+                            "latex-list-of-description": {
+                              string: {
+                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
+                              }
+                            },
+                            "caption-location": {
+                              enum: [
+                                "top",
+                                "bottom",
+                                "margin"
+                              ],
+                              default: "bottom",
+                              description: "The location of the caption relative to the crossreferenceable content."
+                            }
+                          }
+                        }
+                      }
+                    },
                     chapters: {
                       boolean: {
                         description: "Use top level sections (H1) in this document as chapters.",
@@ -12254,6 +12508,84 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           default: true,
           description: "Enables a hover popup for cross references that shows the item being referenced."
+        }
+      ],
+      "schema/document-dashboard.yml": [
+        {
+          name: "logo",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "path",
+          description: "Logo image (placed on the left side of the navigation bar)"
+        },
+        {
+          name: "orientation",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            enum: [
+              "rows",
+              "columns"
+            ]
+          },
+          description: "Default orientation for dashboard content (default `rows`)"
+        },
+        {
+          name: "scrolling",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: false,
+          description: "Use scrolling rather than fill layout (default: `false`)"
+        },
+        {
+          name: "expandable",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: "boolean",
+          default: true,
+          description: "Make card content expandable (default: `true`)"
+        },
+        {
+          name: "nav-buttons",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            maybeArrayOf: {
+              anyOf: [
+                "string",
+                {
+                  object: {
+                    properties: {
+                      text: "string",
+                      href: "string",
+                      icon: "string",
+                      rel: "string",
+                      target: "string",
+                      title: "string",
+                      "aria-label": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          description: "Links to display on the dashboard navigation bar"
         }
       ],
       "schema/document-editor.yml": [
@@ -13115,6 +13447,21 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "The math font options for use with `xelatex` or `lualatex`.",
             long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
+          }
+        },
+        {
+          name: "font-paths",
+          schema: {
+            maybeArrayOf: "string"
+          },
+          tags: {
+            formats: [
+              "typst"
+            ]
+          },
+          description: {
+            short: "Adds additional directories to search for fonts when compiling with Typst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
           }
         },
         {
@@ -14550,6 +14897,76 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "The base url for Slideous presentations."
         }
       ],
+      "schema/document-lightbox.yml": [
+        {
+          name: "lightbox",
+          schema: {
+            anyOf: [
+              "boolean",
+              {
+                enum: [
+                  "auto"
+                ]
+              },
+              {
+                object: {
+                  closed: true,
+                  properties: {
+                    match: {
+                      schema: {
+                        enum: [
+                          "auto"
+                        ]
+                      },
+                      description: {
+                        short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
+                        long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
+                      }
+                    },
+                    effect: {
+                      schema: {
+                        enum: [
+                          "fade",
+                          "zoom",
+                          "none"
+                        ]
+                      },
+                      description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
+                    },
+                    "desc-position": {
+                      schema: {
+                        enum: [
+                          "top",
+                          "bottom",
+                          "left",
+                          "right"
+                        ]
+                      },
+                      description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
+                    },
+                    loop: {
+                      boolean: {
+                        description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
+                      }
+                    },
+                    "css-class": {
+                      string: {
+                        description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          description: "Enable or disable lightbox treatment for images in this document."
+        }
+      ],
       "schema/document-links.yml": [
         {
           name: "link-external-icon",
@@ -14690,7 +15107,7 @@ var require_yaml_intelligence_resources = __commonJS({
                 ]
               },
               {
-                ref: "other-links"
+                ref: "code-links-schema"
               }
             ]
           },
@@ -14833,7 +15250,9 @@ var require_yaml_intelligence_resources = __commonJS({
               "$asciidoc-all",
               "$html-files",
               "$pdf-all",
-              "context"
+              "context",
+              "odt",
+              "$office-all"
             ]
           },
           description: "List of keywords to be included in the document metadata."
@@ -14844,7 +15263,8 @@ var require_yaml_intelligence_resources = __commonJS({
           tags: {
             formats: [
               "$pdf-all",
-              "$office-all"
+              "$office-all",
+              "odt"
             ]
           },
           description: "The document subject"
@@ -14854,6 +15274,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           tags: {
             formats: [
+              "odt",
               "$office-all"
             ]
           },
@@ -15158,7 +15579,8 @@ var require_yaml_intelligence_resources = __commonJS({
             formats: [
               "$html-doc",
               "revealjs",
-              "beamer"
+              "beamer",
+              "dashboard"
             ]
           },
           schema: {
@@ -15436,7 +15858,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "beamer"
             ]
           },
-          description: "The logo image for slides."
+          description: "The logo image."
         },
         {
           name: "titlegraphic",
@@ -15918,6 +16340,7 @@ var require_yaml_intelligence_resources = __commonJS({
           },
           schema: "boolean",
           default: false,
+          hidden: true,
           description: {
             short: "Produce a standalone HTML file with no external dependencies",
             long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n"
@@ -15986,6 +16409,26 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Filters to pre-process ipynb files before rendering to markdown"
         },
         {
+          name: "ipynb-shell-interactivity",
+          schema: {
+            enum: [
+              null,
+              "all",
+              "last",
+              "last_expr",
+              "none",
+              "last_expr_or_assign"
+            ]
+          },
+          tags: {
+            contexts: [
+              "document-execute"
+            ],
+            engine: "jupyter"
+          },
+          description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
+        },
+        {
           name: "keep-typ",
           tags: {
             formats: [
@@ -16050,6 +16493,15 @@ var require_yaml_intelligence_resources = __commonJS({
             short: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa.\n",
             long: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa. (Technically, the correct term would be ppi: pixels per\ninch.) The default is `96`. When images contain information about dpi internally, the\nencoded value is used instead of the default specified by this option.\n"
           }
+        },
+        {
+          name: "html-table-processing",
+          schema: {
+            enum: [
+              "none"
+            ]
+          },
+          description: "If `none`, do not process tables in HTML input."
         }
       ],
       "schema/document-reveal-content.yml": [
@@ -17751,7 +18203,8 @@ var require_yaml_intelligence_resources = __commonJS({
           ],
           "html-files": [
             "$html-doc",
-            "$html-pres"
+            "$html-pres",
+            "dashboard"
           ],
           "html-all": [
             "$html-files",
@@ -17832,7 +18285,8 @@ var require_yaml_intelligence_resources = __commonJS({
             "typst",
             "xwiki",
             "zimwiki",
-            "md"
+            "md",
+            "dashboard"
           ]
         }
       },
@@ -17840,6 +18294,9 @@ var require_yaml_intelligence_resources = __commonJS({
         cell: {
           attributes: {
             title: "Attributes"
+          },
+          card: {
+            title: "Card"
           },
           codeoutput: {
             title: "Code Output"
@@ -17869,6 +18326,9 @@ var require_yaml_intelligence_resources = __commonJS({
         document: {
           attributes: {
             title: "Title & Author"
+          },
+          dashboard: {
+            title: "Dashboard"
           },
           options: {
             title: "Format Options"
@@ -19827,7 +20287,18 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title of the notebook when viewed.",
         "The url to use when viewing this notebook.",
         "The url to use when downloading the notebook from the preview",
+        "The bootstrap icon for this code link.",
+        "The text for this code link.",
+        "The href for this code link.",
+        "The rel used in the <code>a</code> tag for this code link.",
+        "The target used in the <code>a</code> tag for this code link.",
+        "The bootstrap icon for this code link.",
+        "The text for this code link.",
+        "The href for this code link.",
+        "The rel used in the <code>a</code> tag for this code link.",
+        "The target used in the <code>a</code> tag for this code link.",
         "The input document that will serve as the root document for this\nmanuscript",
+        "Code links to display for this manuscript.",
         "The deployed url for this manuscript",
         "Whether to generate a MECA bundle for this manuscript",
         "Additional file resources to be copied to output directory",
@@ -19866,6 +20337,30 @@ var require_yaml_intelligence_resources = __commonJS({
         "Prevent comment changes from invalidating the cache for a chunk",
         "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
         "Detect cache dependencies automatically via usage of global\nvariables",
+        {
+          short: "Title displayed in dashboard card header",
+          long: ""
+        },
+        {
+          short: "Padding around dashboard card content (default <code>8px</code>)",
+          long: ""
+        },
+        {
+          short: "Make dashboard card content expandable (default:\n<code>true</code>)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
+          long: ""
+        },
+        {
+          short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
+          long: ""
+        },
+        {
+          short: "Context to execute cell within.",
+          long: ""
+        },
         {
           short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
           long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
@@ -19979,6 +20474,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Apply explicit table column widths",
           long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than <code>columns</code> characters wide (72 by\ndefault).\nSome formats (e.g.&nbsp;HTML) do an excellent job automatically sizing\ntable columns and so don\u2019t benefit much from column width\nspecifications. Other formats (e.g.&nbsp;LaTeX) require table column sizes in\norder to correctly flow longer cell content (this is a major reason why\ntables &gt; 72 columns wide are assigned explicit widths by Pandoc).\nThis can be specified as:"
         },
+        "If <code>none</code>, do not process raw HTML table in cell output\nand leave it as-is",
         {
           short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
           long: "Include the results of executing the code in the output. Possible\nvalues:"
@@ -20110,6 +20606,16 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Configuration for document commenting.",
         "Configuration for crossref labels and prefixes.",
+        "A custom cross reference type.",
+        "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
+        "The prefix used in rendered citations when referencing this type.",
+        "The prefix used in captions when referencing this type.",
+        "If false, use no space between crossref prefixes and numbering.",
+        "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+        "In LaTeX output, the name of the custom environment to be used.",
+        "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
+        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+        "The location of the caption relative to the crossreferenceable\ncontent.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
         "The title prefix used for figure captions.",
@@ -20159,6 +20665,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "The title used for appendix.",
         "The delimiter beween appendix number and title.",
         "Enables a hover popup for cross references that shows the item being\nreferenced.",
+        "Logo image (placed on the left side of the navigation bar)",
+        "Default orientation for dashboard content (default\n<code>rows</code>)",
+        "Use scrolling rather than fill layout (default:\n<code>false</code>)",
+        "Make card content expandable (default: <code>true</code>)",
+        "Links to display on the dashboard navigation bar",
         "Visual editor configuration",
         "Default editing mode for document",
         "Markdown writing options for visual editor",
@@ -20306,6 +20817,10 @@ var require_yaml_intelligence_resources = __commonJS({
         {
           short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
           long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+        },
+        {
+          short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+          long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
         },
         {
           short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -20636,6 +21151,15 @@ var require_yaml_intelligence_resources = __commonJS({
         "The base url for s5 presentations.",
         "The base url for Slidy presentations.",
         "The base url for Slideous presentations.",
+        "Enable or disable lightbox treatment for images in this document.",
+        {
+          short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+          long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+        },
+        "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+        "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+        "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+        "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
         "Show a special icon next to links that leave the current site.",
         "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
         {
@@ -20756,7 +21280,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Whether to produce a Beamer article from this presentation.",
         "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
         "The aspect ratio for this presentation.",
-        "The logo image for slides.",
+        "The logo image.",
         "The image for the title slide.",
         "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
         "Whether to enable title pages for new sections.",
@@ -20851,6 +21375,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the markdown file generated by executing code",
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
+        "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
         "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
@@ -20870,6 +21395,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa.",
           long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
         },
+        "If <code>none</code>, do not process tables in HTML input.",
         "Logo image (placed in bottom right corner of slides)",
         {
           short: "Footer to include on all slides",
@@ -21954,12 +22480,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 164009,
+        _internalId: 178763,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 164001,
+            _internalId: 178755,
             type: "enum",
             enum: [
               "png",
@@ -21975,7 +22501,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 164008,
+            _internalId: 178762,
             type: "anyOf",
             anyOf: [
               {
@@ -22055,186 +22581,6 @@ function glb(array, value, compare) {
     }
   }
   return left;
-}
-
-// ../ranged-text.ts
-function matchAll(str2, regex) {
-  let match;
-  regex = new RegExp(regex);
-  const result = [];
-  while ((match = regex.exec(str2)) != null) {
-    result.push(match);
-  }
-  return result;
-}
-function rangedLines(text, includeNewLines = false) {
-  const regex = /\r?\n/g;
-  const result = [];
-  let startOffset = 0;
-  if (!includeNewLines) {
-    for (const r of matchAll(text, regex)) {
-      result.push({
-        substring: text.substring(startOffset, r.index),
-        range: {
-          start: startOffset,
-          end: r.index
-        }
-      });
-      startOffset = r.index + r[0].length;
-    }
-    result.push({
-      substring: text.substring(startOffset, text.length),
-      range: {
-        start: startOffset,
-        end: text.length
-      }
-    });
-    return result;
-  } else {
-    const matches = matchAll(text, regex);
-    let prevOffset = 0;
-    for (const r of matches) {
-      const stringEnd = r.index + r[0].length;
-      result.push({
-        substring: text.substring(prevOffset, stringEnd),
-        range: {
-          start: prevOffset,
-          end: stringEnd
-        }
-      });
-      prevOffset = stringEnd;
-    }
-    result.push({
-      substring: text.substring(prevOffset, text.length),
-      range: {
-        start: prevOffset,
-        end: text.length
-      }
-    });
-    return result;
-  }
-}
-
-// ../mapped-text.ts
-function mappedSubstring(source, start, end) {
-  if (typeof source === "string") {
-    source = asMappedString(source);
-  }
-  const value = source.value.substring(start, end);
-  const mappedSource2 = source;
-  return {
-    value,
-    map: (index, closest) => {
-      if (closest) {
-        index = Math.max(0, Math.min(value.length, index - 1));
-      }
-      if (index === 0 && index === value.length) {
-        return mappedSource2.map(index + start, closest);
-      }
-      if (index < 0 || index >= value.length) {
-        return void 0;
-      }
-      return mappedSource2.map(index + start, closest);
-    }
-  };
-}
-function mappedString(source, pieces, fileName) {
-  if (typeof source === "string") {
-    source = asMappedString(source, fileName);
-  }
-  const mappedPieces = pieces.map((piece) => {
-    if (typeof piece === "string") {
-      return asMappedString(piece);
-    } else if (piece.value !== void 0) {
-      return piece;
-    } else {
-      const { start, end } = piece;
-      return mappedSubstring(source, start, end);
-    }
-  });
-  return mappedConcat(mappedPieces);
-}
-function asMappedString(str2, fileName) {
-  if (typeof str2 === "string") {
-    return {
-      value: str2,
-      fileName,
-      map: function(index, closest) {
-        if (closest) {
-          index = Math.min(str2.length - 1, Math.max(0, index));
-        }
-        if (index < 0 || index >= str2.length) {
-          return void 0;
-        }
-        return {
-          index,
-          originalString: this
-        };
-      }
-    };
-  } else if (fileName !== void 0) {
-    throw new InternalError(
-      "can't change the fileName of an existing MappedString"
-    );
-  } else {
-    return str2;
-  }
-}
-function mappedConcat(strings) {
-  if (strings.length === 0) {
-    return {
-      value: "",
-      map: (_index, _closest) => void 0
-    };
-  }
-  if (strings.every((s) => typeof s === "string")) {
-    return asMappedString(strings.join(""));
-  }
-  const mappedStrings = strings.map((s) => {
-    if (typeof s === "string") {
-      return asMappedString(s);
-    } else
-      return s;
-  });
-  let currentOffset = 0;
-  const offsets = [0];
-  for (const s of mappedStrings) {
-    currentOffset += s.value.length;
-    offsets.push(currentOffset);
-  }
-  const value = mappedStrings.map((s) => s.value).join("");
-  return {
-    value,
-    map: (offset, closest) => {
-      if (closest) {
-        offset = Math.max(0, Math.min(offset, value.length - 1));
-      }
-      if (offset === 0 && offset == value.length && mappedStrings.length) {
-        return mappedStrings[0].map(0, closest);
-      }
-      if (offset < 0 || offset >= value.length) {
-        return void 0;
-      }
-      const ix = glb(offsets, offset);
-      const v = mappedStrings[ix];
-      return v.map(offset - offsets[ix]);
-    }
-  };
-}
-function mappedIndexToLineCol(eitherText) {
-  const text = asMappedString(eitherText);
-  return function(offset) {
-    const mapResult = text.map(offset, true);
-    if (mapResult === void 0) {
-      throw new InternalError("bad offset in mappedIndexRowCol");
-    }
-    const { index, originalString } = mapResult;
-    return indexToLineCol(originalString.value)(index);
-  };
-}
-function mappedLines(str2, keepNewLines = false) {
-  const lines2 = rangedLines(str2.value, keepNewLines);
-  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // ../error.ts
@@ -22357,7 +22703,7 @@ function locationString(loc) {
 function lines(text) {
   return text.split(/\r?\n/);
 }
-function* matchAll2(text, regexp) {
+function* matchAll(text, regexp) {
   if (!regexp.global) {
     throw new Error("matchAll requires global regexps");
   }
@@ -22368,7 +22714,7 @@ function* matchAll2(text, regexp) {
 }
 function* lineOffsets(text) {
   yield 0;
-  for (const match of matchAll2(text, /\r?\n/g)) {
+  for (const match of matchAll(text, /\r?\n/g)) {
     yield match.index + match[0].length;
   }
 }
@@ -22541,6 +22887,186 @@ function toCapitalizationCase(str2) {
     /_(.)/g,
     (_match, p1) => p1.toLocaleUpperCase()
   );
+}
+
+// ../ranged-text.ts
+function matchAll2(str2, regex) {
+  let match;
+  regex = new RegExp(regex);
+  const result = [];
+  while ((match = regex.exec(str2)) != null) {
+    result.push(match);
+  }
+  return result;
+}
+function rangedLines(text, includeNewLines = false) {
+  const regex = /\r?\n/g;
+  const result = [];
+  let startOffset = 0;
+  if (!includeNewLines) {
+    for (const r of matchAll2(text, regex)) {
+      result.push({
+        substring: text.substring(startOffset, r.index),
+        range: {
+          start: startOffset,
+          end: r.index
+        }
+      });
+      startOffset = r.index + r[0].length;
+    }
+    result.push({
+      substring: text.substring(startOffset, text.length),
+      range: {
+        start: startOffset,
+        end: text.length
+      }
+    });
+    return result;
+  } else {
+    const matches = matchAll2(text, regex);
+    let prevOffset = 0;
+    for (const r of matches) {
+      const stringEnd = r.index + r[0].length;
+      result.push({
+        substring: text.substring(prevOffset, stringEnd),
+        range: {
+          start: prevOffset,
+          end: stringEnd
+        }
+      });
+      prevOffset = stringEnd;
+    }
+    result.push({
+      substring: text.substring(prevOffset, text.length),
+      range: {
+        start: prevOffset,
+        end: text.length
+      }
+    });
+    return result;
+  }
+}
+
+// ../mapped-text.ts
+function mappedSubstring(source, start, end) {
+  if (typeof source === "string") {
+    source = asMappedString(source);
+  }
+  const value = source.value.substring(start, end);
+  const mappedSource2 = source;
+  return {
+    value,
+    map: (index, closest) => {
+      if (closest) {
+        index = Math.max(0, Math.min(value.length, index - 1));
+      }
+      if (index === 0 && index === value.length) {
+        return mappedSource2.map(index + start, closest);
+      }
+      if (index < 0 || index >= value.length) {
+        return void 0;
+      }
+      return mappedSource2.map(index + start, closest);
+    }
+  };
+}
+function mappedString(source, pieces, fileName) {
+  if (typeof source === "string") {
+    source = asMappedString(source, fileName);
+  }
+  const mappedPieces = pieces.map((piece) => {
+    if (typeof piece === "string") {
+      return asMappedString(piece);
+    } else if (piece.value !== void 0) {
+      return piece;
+    } else {
+      const { start, end } = piece;
+      return mappedSubstring(source, start, end);
+    }
+  });
+  return mappedConcat(mappedPieces);
+}
+function asMappedString(str2, fileName) {
+  if (typeof str2 === "string") {
+    return {
+      value: str2,
+      fileName,
+      map: function(index, closest) {
+        if (closest) {
+          index = Math.min(str2.length - 1, Math.max(0, index));
+        }
+        if (index < 0 || index >= str2.length) {
+          return void 0;
+        }
+        return {
+          index,
+          originalString: this
+        };
+      }
+    };
+  } else if (fileName !== void 0) {
+    throw new InternalError(
+      "can't change the fileName of an existing MappedString"
+    );
+  } else {
+    return str2;
+  }
+}
+function mappedConcat(strings) {
+  if (strings.length === 0) {
+    return {
+      value: "",
+      map: (_index, _closest) => void 0
+    };
+  }
+  if (strings.every((s) => typeof s === "string")) {
+    return asMappedString(strings.join(""));
+  }
+  const mappedStrings = strings.map((s) => {
+    if (typeof s === "string") {
+      return asMappedString(s);
+    } else
+      return s;
+  });
+  let currentOffset = 0;
+  const offsets = [0];
+  for (const s of mappedStrings) {
+    currentOffset += s.value.length;
+    offsets.push(currentOffset);
+  }
+  const value = mappedStrings.map((s) => s.value).join("");
+  return {
+    value,
+    map: (offset, closest) => {
+      if (closest) {
+        offset = Math.max(0, Math.min(offset, value.length - 1));
+      }
+      if (offset === 0 && offset == value.length && mappedStrings.length) {
+        return mappedStrings[0].map(0, closest);
+      }
+      if (offset < 0 || offset >= value.length) {
+        return void 0;
+      }
+      const ix = glb(offsets, offset);
+      const v = mappedStrings[ix];
+      return v.map(offset - offsets[ix]);
+    }
+  };
+}
+function mappedIndexToLineCol(eitherText) {
+  const text = asMappedString(eitherText);
+  return function(offset) {
+    const mapResult = text.map(offset, true);
+    if (mapResult === void 0) {
+      throw new InternalError("bad offset in mappedIndexRowCol");
+    }
+    const { index, originalString } = mapResult;
+    return indexToLineCol(originalString.value)(index);
+  };
+}
+function mappedLines(str2, keepNewLines = false) {
+  const lines2 = rangedLines(str2.value, keepNewLines);
+  return lines2.map((v) => mappedString(str2, [v.range]));
 }
 
 // parsing.ts
@@ -25566,7 +26092,7 @@ function schemaCall(s, d, other) {
   if (other) {
     return other(s);
   }
-  throw new InternalError(`Dispatch failed for type ${st}`);
+  throw new Error(`Internal Error: Dispatch failed for type ${st}`);
 }
 function schemaDocString(d) {
   if (typeof d === "string") {
@@ -31435,8 +31961,12 @@ async function makeFrontMatterFormatSchema(nonStrict = false) {
   const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
     "md",
     // alias for 'commonmark'
-    "hugo"
+    "hugo",
     // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
+    "dashboard",
+    // our built in format for dashboards
+    "email"
+    // for the HTML email format (used with Posit Connect)
   ).map(
     (format) => {
       const {
@@ -31980,6 +32510,8 @@ async function completionsFromGoodParseYAML(context) {
     });
     return rawCompletions;
   };
+  const trimEnd = line.trimEnd();
+  const trimEndCorrection = position.column - 1 >= trimEnd.length ? line.length - trimEnd.length : 0;
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
       parse: tree,
@@ -32000,7 +32532,7 @@ async function completionsFromGoodParseYAML(context) {
       }
       const index = lineColToIndex(mappedCode.value)({
         line: position.row,
-        column: position.column - deletions
+        column: position.column - deletions - trimEndCorrection
       });
       let { withError: locateFailed, value: maybePath } = locateCursor(
         doc,
@@ -32306,6 +32838,11 @@ function completions(obj) {
     completions2 = completions2.filter((c) => c.type === completionPosition);
   }
   completions2 = uniqBy(completions2, (completion) => completion.value);
+  if (context.line[context.position.column - 1] === ":") {
+    for (const completion of completions2) {
+      completion.value = " " + completion.value;
+    }
+  }
   return {
     // token to replace
     token: word,
@@ -32337,6 +32874,7 @@ async function automationFromGoodParseMarkdown(kind, context) {
     return size;
   };
   if (kind === "completions") {
+    debugger;
     let foundCell = void 0;
     for (const cell of result.cells) {
       const size = lines((cell.sourceWithYaml || cell.source).value).length;

@@ -143,6 +143,21 @@ export function websiteConfig(
   }
 }
 
+export function websiteConfigUnknown(
+  name: WebsiteConfigKey,
+  project?: ProjectConfig,
+) {
+  const site = project?.[kWebsite] as
+    | Record<string, unknown>
+    | undefined;
+
+  if (site) {
+    return site[name] as unknown;
+  } else {
+    return undefined;
+  }
+}
+
 export function websiteTitle(project?: ProjectConfig): string | undefined {
   return websiteConfigString(kSiteTitle, project);
 }
@@ -398,15 +413,18 @@ export function websiteProjectConfig(
 
   // move any `other links` into the main config so it is merged
   if (
-    websiteConfigArray(kOtherLinks, config) &&
+    websiteConfigUnknown(kOtherLinks, config) &&
     (config[kOtherLinks] === undefined)
   ) {
-    config[kOtherLinks] = websiteConfigArray(kOtherLinks, config);
+    config[kOtherLinks] = websiteConfigUnknown(kOtherLinks, config);
   }
 
   // move `code links` too
-  if (websiteConfigArray(kCodeLinks, config) && (config[kCodeLinks])) {
-    config[kCodeLinks] = websiteConfigArray(kCodeLinks, config);
+  if (
+    websiteConfigUnknown(kCodeLinks, config) &&
+    (config[kCodeLinks] === undefined)
+  ) {
+    config[kCodeLinks] = websiteConfigUnknown(kCodeLinks, config);
   }
 
   return Promise.resolve(config);

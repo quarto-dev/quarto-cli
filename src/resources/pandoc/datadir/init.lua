@@ -1789,7 +1789,12 @@ local function inputFile()
       if projectDir then
          return pandoc.path.join({projectDir, source})
       else
-         return pandoc.path.join({pandoc.system.get_working_directory(), source})
+         -- outside of a project, quarto already changes 
+         -- pwd to the file's directory prior to calling pandoc,
+         -- so we should just use the filename
+         -- https://github.com/quarto-dev/quarto-cli/issues/7424
+         local path_parts = pandoc.path.split(source)
+         return pandoc.path.join({pandoc.system.get_working_directory(), path_parts[#path_parts]})
       end   
    end
 end
@@ -1908,7 +1913,10 @@ _quarto.utils.string_to_inlines = function(s)
 end 
 _quarto.utils.string_to_blocks = function(s)
    return string_to_quarto_ast_blocks(s)
-end 
+end
+_quarto.utils.render = function(n)
+   return _quarto.ast.walk(n, render_extended_nodes())
+end
 
 -- The main exports of the quarto module
 quarto = {
@@ -2072,6 +2080,9 @@ quarto = {
    as_blocks = utils.as_blocks,
    string_to_blocks = utils.string_to_blocks,
    string_to_inlines = utils.string_to_inlines,
+   render = utils.render,
+   match = utils.match,
+   add_to_blocks = utils.add_to_blocks
   },
   json = json,
   base64 = base64,

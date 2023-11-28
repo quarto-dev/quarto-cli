@@ -75,11 +75,12 @@ $blockquote-footer-color:     $text-muted !default;
 
 $table-color:                 $white !default;
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Forms
 
 $input-bg:                              lighten($body-bg, 10%) !default;
+$input-disabled-color:                  $gray-500 !default;
 $input-disabled-bg:                     lighten($body-bg, 5%) !default;
 
 $input-color:                           $white !default;
@@ -87,6 +88,12 @@ $input-color:                           $white !default;
 $input-placeholder-color:               rgba($white, .4) !default;
 
 $input-group-addon-bg:                  $input-disabled-bg !default;
+
+$form-select-disabled-color:        $input-placeholder-color !default;
+$form-select-disabled-bg:           $input-disabled-bg !default;
+
+$form-file-button-bg:             $input-group-addon-bg !default;
+$form-file-button-hover-bg:       darken($form-file-button-bg, 2%) !default;
 
 $form-range-track-bg:             $input-bg !default;
 
@@ -97,6 +104,10 @@ $form-range-thumb-disabled-bg:             $purple !default;
 $nav-link-disabled-color:           $text-muted !default;
 
 $nav-tabs-link-active-color:        $component-active-bg !default;
+
+// Dropdowns
+
+$dropdown-link-hover-bg:            rgba($white, .15) !default;
 
 // Pagination
 
@@ -117,7 +128,6 @@ $card-color:                        $white !default;
 
 // Tooltips
 
-$tooltip-bg:                        $dark !default;
 $tooltip-opacity:                   1 !default;
 
 // Popovers
@@ -174,10 +184,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&disp
 
 $outrun: false !default;
 
-:root {
-  color-scheme: dark;
-}
-
 // Mixins
 
 @mixin text-shadow($color) {
@@ -216,6 +222,7 @@ $outrun: false !default;
 // Body
 
 body {
+  min-height: 100vh;
   background-image: linear-gradient(shade-color($body-bg, 10%) 0%, $body-bg 7%, $body-bg 80%, shade-color(#173e98, 50%) 100%);
   @include text-shadow-sm($body-color);
 
@@ -328,27 +335,27 @@ table,
       @include box-shadow($value);
     }
   }
-}
 
-.navbar-dark {
-  &,
-  a {
-    @include text-shadow-sm($navbar-dark-color);
+  &[data-bs-theme="dark"] {
+    &,
+    a {
+      @include text-shadow-sm($white);
+    }
+
+    .navbar-brand {
+      @include text-shadow($white);
+    }
   }
 
-  .navbar-brand {
-    @include text-shadow($navbar-dark-color);
-  }
-}
+  &[data-bs-theme="light"] {
+    &,
+    a {
+      @include text-shadow-sm($black);
+    }
 
-.navbar-light {
-  &,
-  a {
-    @include text-shadow-sm($navbar-light-color);
-  }
-
-  .navbar-brand {
-    @include text-shadow($navbar-light-color);
+    .navbar-brand {
+      @include text-shadow($black);
+    }
   }
 }
 
@@ -439,6 +446,8 @@ legend {
 }
 
 .tooltip {
+  --bs-tooltip-bg: var(--bs-body-bg);
+  --bs-tooltip-color: var(--bs-body-color);
 
   &-inner,
   .arrow {

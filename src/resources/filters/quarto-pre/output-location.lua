@@ -2,7 +2,7 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
 local function collectCellOutputLocation(el)
-  if el.t == "Div" and 
+  if is_regular_node(el, "Div") and 
      el.attr.classes:includes("cell")  then
     local outputLoc = el.attr.attributes["output-location"]
     el.attr.attributes["output-location"] = nil 

@@ -1,0 +1,20 @@
+---
+title: test simple figure crossref
+keep-typ: true
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<fig-simple>"
+          - "@fig-simple"
+          - "A simple figure"
+          - "#.*image\\(\"img/surus.jpg\"\\)"
+        - []
+---
+
+![A simple figure](img/surus.jpg){#fig-simple}
+
+See @fig-simple.
+

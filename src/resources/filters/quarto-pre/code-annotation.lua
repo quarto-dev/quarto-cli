@@ -7,7 +7,7 @@ local constants = require("modules/constants")
 local hasAnnotations = false
 
 function isAnnotationCell(el) 
-  return el and el.t == "Div" and el.attr.classes:includes(constants.kCellAnnotationClass)
+  return el and is_regular_node(el, "Div") and el.attr.classes:includes(constants.kCellAnnotationClass)
 end
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
@@ -108,11 +108,11 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     
     local outputs = pandoc.List({})
     local i = 1
+    local offset = codeBlockEl.attr.attributes['startFrom'] or 1
     for line in toLines(code) do
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
-
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -120,7 +120,8 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
         if lineNumbers == nil then
           lineNumbers = pandoc.List({})
         end
-        lineNumbers:insert(i)
+        -- line numbers stored for targetting annotations line needs to take into account possible startFrom attribute
+        lineNumbers:insert(offset - 1 + i)
         annotations[annoteId] = lineNumbers
         outputs:insert(processAnnotation(line, annoteNumber, annotationProvider))
       else
@@ -359,7 +360,7 @@ function code_annotations()
         end
 
         for i, block in ipairs(blocks) do
-          if block.t == 'Div' and block.attr.classes:find('cell') then
+          if is_regular_node(block, "Div") and block.attr.classes:find('cell') then
             -- Process executable code blocks 
             -- In the case of executable code blocks, we actually want
             -- to shift the OL up above the output, so we hang onto this outer

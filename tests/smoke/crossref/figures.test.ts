@@ -1,9 +1,8 @@
 /*
-* figures.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * figures.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureFileRegexMatches, ensureHtmlElements } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
@@ -13,10 +12,10 @@ const simpleQmd = crossref("simple.qmd", "html");
 testRender(simpleQmd.input, "html", false, [
   ensureHtmlElements(simpleQmd.output.outputPath, [
     "section#simple-figure > h2",
-    "div#fig-elephant > figure > figcaption.figure-caption",
+    "div#fig-elephant > figure > figcaption.figure.quarto-float-caption",
     "section#simple-sub-figure > h2",
-    "section#simple-sub-figure > div.quarto-layout-panel > figure > div.quarto-layout-row",
-    "section#simple-sub-figure > div.quarto-layout-panel > figure > figcaption.figure-caption",
+    "section#simple-sub-figure > div.quarto-layout-panel > figure div.quarto-layout-row",
+    "section#simple-sub-figure > div.quarto-layout-panel > figure > figcaption.figure.quarto-float-caption",
   ]),
   ensureFileRegexMatches(simpleQmd.output.outputPath, [
     /Figure&nbsp;1: Elephant/,
@@ -48,8 +47,8 @@ testRender(pythonQmd.input, "html", false, [
 const pythonSubfigQmd = crossref("python-subfig.qmd", "html");
 testRender(pythonSubfigQmd.input, "html", false, [
   ensureHtmlElements(pythonSubfigQmd.output.outputPath, [
-    "section#python-crossref-figure  div.quarto-layout-panel > figure > div.quarto-layout-row",
-    "section#python-crossref-figure  div.quarto-layout-panel > figure > figcaption.figure-caption",
+    "section#python-crossref-figure  div.quarto-layout-panel > figure div.quarto-layout-row",
+    "section#python-crossref-figure  div.quarto-layout-panel > figure > figcaption.figure.quarto-float-caption",
     "section#python-crossref-figure  div.quarto-layout-panel > figure  img.figure-img",
   ]),
   ensureFileRegexMatches(pythonSubfigQmd.output.outputPath, [
@@ -80,8 +79,8 @@ testRender(juliaQmd.input, "html", false, [
 const juliaSubfigQmd = crossref("julia-subfig.qmd", "html");
 testRender(juliaSubfigQmd.input, "html", false, [
   ensureHtmlElements(juliaSubfigQmd.output.outputPath, [
-    "section#julia-crossref-figure  div.quarto-layout-panel > figure > div.quarto-layout-row",
-    "section#julia-crossref-figure  div.quarto-layout-panel > figure > figcaption.figure-caption",
+    "section#julia-crossref-figure  div.quarto-layout-panel > figure div.quarto-layout-row",
+    "section#julia-crossref-figure  div.quarto-layout-panel > figure > figcaption.figure.quarto-float-caption",
   ]),
   ensureFileRegexMatches(juliaSubfigQmd.output.outputPath, [
     /Figure&nbsp;1: Plots/,

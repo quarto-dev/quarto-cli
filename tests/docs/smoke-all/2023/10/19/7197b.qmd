@@ -1,0 +1,33 @@
+---
+title: "Table subcaption issue"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "\\(a\\) Cars"
+          - "\\(b\\) Pressure"
+        - []
+      ensureHtmlElements:
+        -
+          - "a[href=\"#tbl-example\"].quarto-xref"
+          - "a[href=\"#tbl-example-1\"].quarto-xref"
+          - "a[href=\"#tbl-example-2\"].quarto-xref"
+---
+
+
+```{r}
+#| label: tbl-example
+#| tbl-cap: "Example"
+#| tbl-subcap: 
+#|   - "Cars"
+#|   - "Pressure"
+#| echo: fenced
+
+library(knitr)
+kable(head(cars))
+kable(head(pressure))
+```
+
+See @tbl-example-1, @tbl-example-2, @tbl-example.

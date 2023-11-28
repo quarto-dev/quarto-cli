@@ -1,11 +1,11 @@
 {
-  "version": "2",
-  "remote": {},
-  "npm": {
+  "version": "3",
+  "packages": {
     "specifiers": {
-      "vite@3.2.6": "vite@3.2.6"
+      "npm:typescript@4.9.5": "npm:typescript@4.9.5",
+      "npm:vite@3.2.6": "npm:vite@3.2.6"
     },
-    "packages": {
+    "npm": {
       "@esbuild/android-arm@0.15.18": {
         "integrity": "sha512-5GT+kcs2WVGjVs7+boataCkO5Fg0y4kCjzkB5bAip7H4jfnOS3dA6KPiww9W1OEKTKeAcUVhdZGvgI65OXmUnw==",
         "dependencies": {}
@@ -183,6 +183,10 @@
         "integrity": "sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==",
         "dependencies": {}
       },
+      "typescript@4.9.5": {
+        "integrity": "sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==",
+        "dependencies": {}
+      },
       "vite@3.2.6": {
         "integrity": "sha512-nTXTxYVvaQNLoW5BQ8PNNQ3lPia57gzsQU/Khv+JvzKPku8kNZL6NMUR/qwXhMG6E+g1idqEPanomJ+VZgixEg==",
         "dependencies": {
@@ -194,5 +198,6 @@
         }
       }
     }
-  }
+  },
+  "remote": {}
 }

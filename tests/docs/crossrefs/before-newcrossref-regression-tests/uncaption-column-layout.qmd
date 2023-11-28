@@ -1,0 +1,15 @@
+---
+title: uncaptioned column layouts
+keep-md: true
+---
+
+## Let's test this
+
+```{r}
+#| column: screen-inset-shaded
+#| layout-nrow: 1
+
+plot(cars)
+plot(iris)
+plot(pressure)
+```

@@ -112,17 +112,26 @@ Inline equations: $\sum_{i = 2}^\infty\{\alpha_i^\beta\}$
 
 ## Figures and tables
 
-Figure \ref{fig2} is generated using an R chunk.
+@fig-fig2 is generated using an R chunk.
 
-```{r fig2, fig.width = 5, fig.height = 5, fig.align='center', out.width="50%", fig.cap = "\\label{fig2}A meaningless scatterplot.", echo = FALSE}
+```{r}
+#| label: fig-fig2
+#| fig-width: 5
+#| fig-height: 5
+#| fig-align: center
+#| out-width: 50%
+#| fig-cap: A meaningless scatterplot.
+#| echo: false
 plot(runif(25), runif(25))
 ```
 
 ## Tables coming from R
 
-Tables can also be generated using R chunks, as shown in Table \ref{tab1} for example.
+Tables can also be generated using R chunks, as shown in @tbl-tab1 for example.
 
-```{r tab1, echo = TRUE}
+```{r}
+#| label: tbl-tab1
+#| echo: true
 knitr::kable(head(mtcars)[,1:4], 
     caption = "Caption centered above table"
 )

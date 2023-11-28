@@ -1,0 +1,29 @@
+---
+title: Knitr Table Test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:hyperlink[@w:anchor=\"tbl-cars\"]"
+          - "//w:hyperlink[@w:anchor=\"tbl-pressure\"]"
+          - "//w:tbl//w:r//w:t[text()=\"(a) Cars\"]"
+          - "//w:tbl//w:r//w:t[text()=\"(b) Pressure\"]"
+          - "//w:r//w:t[text()=\"Table\u00a01: Tables\"]"
+          - "//w:tbl//w:bookmarkStart[@w:name=\"tbl-cars\"]"
+          - "//w:tbl//w:bookmarkStart[@w:name=\"tbl-pressure\"]"
+          - "//w:bookmarkStart[@w:name=\"tbl-tables\"]"
+        - []
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars), caption = "Cars {#tbl-cars}")
+kable(head(pressure), caption = "Pressure {#tbl-pressure}")
+```
+
+See @tbl-cars and @tbl-pressure for more information.

@@ -1,0 +1,27 @@
+---
+title: float crossref test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"fig-foo\"]//caption"
+          - "//fig[@id=\"fig-foo\"]//graphic[@xlink:href=\"img/surus.jpg\"]"
+          - "//fig[@id=\"tbl-foo\"]//caption"
+          - "//fig[@id=\"tbl-foo\"]//graphic[@xlink:href=\"img/surus.jpg\"]"
+          - "//xref[@rid=\"fig-foo\"]"
+          - "//xref[@rid=\"tbl-foo\"]"
+        - []
+
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as images with identifiers
+
+![This is a figure](img/surus.jpg){#fig-foo}
+
+![This is a table](img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.

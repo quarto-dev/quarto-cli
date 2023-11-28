@@ -1,0 +1,1010 @@
+/*-- scss:defaults --*/
+$dashboard-card-toolbar-top-margin: 6px !default;
+
+/*-- scss:mixins --*/
+@mixin shiny-date-range {
+  .input-daterange {
+    width: inherit;
+    input[type="text"] {
+      height: 2.4em;
+      width: 10em;
+    }
+
+    .input-group-addon {
+      height: auto;
+      padding: 0;
+      margin-left: -5px !important;
+      margin-right: -5px;
+
+      .input-group-text {
+        padding-top: 0;
+        padding-bottom: 0;
+        height: 100%;
+      }
+    }
+  }
+}
+
+@mixin shiny-text-input {
+  input[type="text"] {
+    line-height: 1;
+    width: inherit;
+  }
+}
+
+@mixin shiny-input-checkboxgroup {
+  .shiny-input-checkboxgroup {
+    > label {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+    > .shiny-options-group {
+      margin-top: 0;
+      align-items: baseline;
+    }
+  }
+}
+
+@mixin shiny-input-radiogroup {
+  .shiny-input-radiogroup {
+    > label {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+  }
+
+  .shiny-input-radiogroup > .shiny-options-group {
+    align-items: baseline;
+    margin-top: 0;
+    > .radio {
+      margin-right: 0.3em;
+    }
+  }
+}
+
+@mixin shiny-input-checkbox {
+  div.checkbox {
+    margin-bottom: 0px;
+  }
+
+  > .checkbox:first-child {
+    margin-top: $dashboard-card-toolbar-top-margin;
+  }
+}
+
+@mixin shiny-input-slider {
+  span.irs.irs--shiny {
+    width: 10em;
+    .irs-line {
+      top: 9px;
+    }
+    .irs-min,
+    .irs-max,
+    .irs-from,
+    .irs-to,
+    .irs-single {
+      top: 20px;
+    }
+    .irs-bar {
+      top: 8px;
+    }
+    .irs-handle {
+      top: 0px;
+    }
+  }
+}
+
+@mixin shiny-input-select {
+  .form-select {
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+  }
+  .shiny-input-select {
+    min-width: 6em;
+  }
+}
+
+@mixin shiny-input-container {
+  .shiny-input-container {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    > * {
+      flex-shrink: 0;
+      flex-grow: 0;
+    }
+  }
+
+  .form-group.shiny-input-container:not([role="group"]) > label {
+    margin-bottom: 0;
+  }
+
+  .shiny-input-container.no-baseline {
+    align-items: start;
+    padding-top: $dashboard-card-toolbar-top-margin;
+  }
+
+  .shiny-input-container {
+    display: flex;
+    align-items: baseline;
+
+    label {
+      padding-right: 0.4em;
+    }
+
+    .bslib-input-switch {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+  }
+}
+
+@mixin shiny-toolbar-customizations {
+  @include toolbar-layout();
+  @include shiny-input-container();
+  @include shiny-text-input();
+  @include shiny-date-range();
+  @include shiny-input-slider();
+  @include shiny-input-checkboxgroup();
+  @include shiny-input-radiogroup();
+  @include shiny-input-select();
+  @include shiny-input-checkbox();
+}
+
+@mixin toolbar-layout {
+  .cell-output-display {
+    display: flex;
+  }
+
+  .shiny-input-container {
+    padding-bottom: 0.5em;
+    margin-bottom: 0.5em;
+    width: inherit;
+
+    > .checkbox:first-child {
+      margin-top: $dashboard-card-toolbar-top-margin;
+    }
+  }
+
+  > *:last-child {
+    margin-right: 0;
+  }
+
+  > * > * {
+    margin-right: 1em;
+    align-items: baseline;
+    > a {
+      text-decoration: none;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+  }
+}
+
+@mixin itables {
+  .itables {
+    @include media-breakpoint-down(md) {
+      div.dataTables_wrapper div.dataTables_length,
+      div.dataTables_wrapper div.dataTables_info,
+      div.dataTables_wrapper div.dataTables_paginate {
+        text-align: initial;
+      }
+
+      div.dataTables_wrapper div.dataTables_filter {
+        text-align: right;
+      }
+
+      div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+        justify-content: initial;
+      }
+    }
+
+    .dataTables_wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0;
+      table {
+        flex-shrink: 0;
+      }
+
+      // The buttons control (download/copy)
+      .dt-buttons {
+        margin-bottom: 0.5em;
+        margin-left: auto;
+
+        width: fit-content;
+
+        float: right;
+        &.btn-group {
+          background: $body-bg;
+          border: none;
+        }
+
+        .btn-secondary {
+          background-color: $body-bg;
+          background-image: none;
+          border: solid $border-color $border-width;
+          padding: 0.2em 0.7em;
+        }
+
+        .btn span {
+          font-size: 0.8em;
+          color: $body-color;
+        }
+      }
+
+      // The number of items (info) text
+      .dataTables_info {
+        margin-left: 0.5em;
+        margin-bottom: 0.5em;
+
+        @include media-breakpoint-up(md) {
+          font-size: 0.875em;
+        }
+        @include media-breakpoint-down(md) {
+          font-size: 0.8em;
+        }
+
+        padding-top: 0;
+      }
+
+      // The table filter / search
+      .dataTables_filter {
+        margin-bottom: 0.5em;
+        font-size: 0.875em;
+        input[type="search"] {
+          padding: 1px 5px 1px 5px;
+          font-size: 0.875em;
+        }
+      }
+
+      // The pagination size selector
+      .dataTables_length {
+        flex-basis: 1 1 50%;
+        margin-bottom: 0.5em;
+        font-size: 0.875em;
+        select {
+          padding: 0.4em 3em 0.4em 0.5em;
+          font-size: 0.875em;
+          margin-left: 0.2em;
+          margin-right: 0.2em;
+        }
+      }
+
+      // The pagination control
+      .dataTables_paginate {
+        @include media-breakpoint-up(md) {
+          margin-left: auto;
+        }
+        flex-shrink: 0;
+
+        ul.pagination .paginate_button .page-link {
+          font-size: 0.8em;
+        }
+      }
+    }
+  }
+}
+
+@mixin observable-toolbar-inputs {
+  form {
+    width: fit-content;
+
+    label {
+      padding-top: 0.2em;
+      padding-bottom: 0.2em;
+      width: fit-content;
+    }
+
+    input[type="date"] {
+      width: fit-content;
+    }
+
+    input[type="color"] {
+      width: 3em;
+    }
+
+    button {
+      padding: 0.4em;
+    }
+
+    select {
+      width: fit-content;
+    }
+  }
+}
+
+@mixin observable-sidebar-inputs {
+  form {
+    flex-direction: column;
+    align-items: start;
+    margin-bottom: 1em;
+
+    div[class*="oi-"][class$="-input"] {
+      flex-direction: column;
+    }
+
+    &[class*="oi-"][class$="-toggle"] {
+      flex-direction: row-reverse;
+      align-items: center;
+      justify-content: start;
+    }
+
+    input[type="range"] {
+      margin-top: 0.5em;
+      margin-right: 0.8em;
+      margin-left: 1em;
+    }
+  }
+  label {
+    width: fit-content;
+  }
+}
+
+/*-- scss:rules --*/
+
+// Value Boxes
+$valuebox-bg-primary: $primary !default;
+$valuebox-bg-secondary: $secondary !default;
+$valuebox-bg-success: $success !default;
+$valuebox-bg-info: $info !default;
+$valuebox-bg-warning: $warning !default;
+$valuebox-bg-danger: $danger !default;
+$valuebox-bg-light: $light !default;
+$valuebox-bg-dark: $dark !default;
+
+$valuebox-colors: (
+  "primary":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-primary",
+      $valuebox-bg-primary
+    ),
+  "secondary":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-secondary",
+      $valuebox-bg-secondary
+    ),
+  "success":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-success",
+      $valuebox-bg-success
+    ),
+  "info":
+    theme-override-value($theme-name, "valuebox-bg-info", $valuebox-bg-info),
+  "warning":
+    theme-override-value(
+      $theme-name,
+      "valuebox-bg-warning",
+      $valuebox-bg-warning
+    ),
+  "danger":
+    theme-override-value($theme-name, "valuebox-bg-danger", $valuebox-bg-danger),
+  "light":
+    theme-override-value($theme-name, "valuebox-bg-light", $valuebox-bg-light),
+  "dark":
+    theme-override-value($theme-name, "valuebox-bg-dark", $valuebox-bg-dark),
+);
+
+// Dashboards
+.quarto-dashboard {
+  &.nav-fixed.dashboard-sidebar #quarto-content.quarto-dashboard-content {
+    padding: 0em;
+  }
+
+  #quarto-content.quarto-dashboard-content {
+    padding: 1em;
+    > * {
+      padding-top: 0;
+    }
+  }
+
+  @include media-breakpoint-up(sm) {
+    height: 100%;
+  }
+
+  @each $valuebox-color, $valuebox-color-value in $valuebox-colors {
+    .card.valuebox.bslib-card.bg-#{$valuebox-color} {
+      background-color: $valuebox-color-value !important;
+    }
+  }
+
+  &.dashboard-fill {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #quarto-appendix {
+    display: none;
+  }
+
+  // Navbar / Navigation
+  #quarto-header #quarto-dashboard-header {
+    border-top: solid 1px theme-dim($navbar-bg, 10%);
+    border-bottom: solid 1px theme-dim($navbar-bg, 10%);
+
+    > nav {
+      padding-left: 1em;
+      padding-right: 1em;
+      .navbar-brand-container {
+        padding-left: 0;
+      }
+    }
+    .navbar-toggler {
+      margin-right: 0;
+    }
+
+    .navbar-toggler-icon {
+      height: 1em;
+      width: 1em;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($navbar-fg)}" class="bi bi-menu-button-wide" viewBox="0 0 16 16"><path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h13A1.5 1.5 0 0 1 16 1.5v2A1.5 1.5 0 0 1 14.5 5h-13A1.5 1.5 0 0 1 0 3.5v-2zM1.5 1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5h-13z"/><path d="M2 2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm10.823.323-.396-.396A.25.25 0 0 1 12.604 2h.792a.25.25 0 0 1 .177.427l-.396.396a.25.25 0 0 1-.354 0zM0 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8zm1 3v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2H1zm14-1V8a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2h14zM2 8.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z"/></svg>');
+    }
+
+    .navbar-brand-container {
+      padding-right: 1em;
+    }
+
+    .navbar-title {
+      font-size: 1.1em;
+    }
+
+    .navbar-nav {
+      font-size: 0.9em;
+    }
+  }
+
+  #quarto-dashboard-header {
+    .navbar {
+      padding: 0;
+
+      .navbar-container {
+        padding-left: 1em;
+      }
+
+      &.slim {
+        .navbar-brand-container,
+        .navbar-nav {
+          .nav-link {
+            padding: 0.7em;
+          }
+        }
+      }
+
+      .quarto-color-scheme-toggle {
+        order: 9;
+      }
+
+      .navbar-toggler {
+        margin-left: 0.5em;
+        order: 10;
+      }
+
+      .navbar-nav {
+        .nav-link {
+          padding: 0.5em;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          .nav-link-text {
+            white-space: nowrap;
+          }
+        }
+        & .active {
+          background-color: theme-dim($navbar-bg, 8%);
+        }
+      }
+
+      .navbar-brand-container {
+        padding: 0.5em 0.5em 0.5em 0;
+        display: flex;
+        flex-direction: row;
+        margin-right: 2em;
+        align-items: center;
+        @include media-breakpoint-down(md) {
+          margin-right: auto;
+        }
+      }
+
+      .navbar-collapse {
+        @include media-breakpoint-up(md) {
+          order: 8;
+        }
+        @include media-breakpoint-down(md) {
+          order: 1000;
+          padding-bottom: 0.5em;
+        }
+        align-self: stretch;
+        .navbar-nav {
+          align-self: stretch;
+        }
+      }
+
+      .navbar-title {
+        font-size: 1.25em;
+        line-height: 1.1em;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: baseline;
+        .navbar-title-text {
+          margin-right: 0.4em;
+        }
+        a {
+          text-decoration: none;
+          color: inherit;
+        }
+      }
+
+      .navbar-subtitle,
+      .navbar-author {
+        font-size: 0.9rem;
+        margin-right: 0.5em;
+      }
+
+      .navbar-author {
+        margin-left: auto;
+      }
+
+      .navbar-logo {
+        max-height: 48px;
+        min-height: 30px;
+        object-fit: cover;
+        margin-right: 1em;
+      }
+
+      .quarto-dashboard-links {
+        order: 9;
+        padding-right: 1em;
+      }
+      .quarto-dashboard-link-text {
+        margin-left: 0.25em;
+      }
+
+      .quarto-dashboard-link {
+        padding-right: 0em;
+        padding-left: 0.7em;
+        text-decoration: none;
+        color: $navbar-fg;
+      }
+    }
+  }
+
+  .page-layout-custom .tab-content {
+    padding: 0;
+    border: none;
+  }
+}
+
+.quarto-dashboard-img-contain {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.quarto-dashboard {
+  // Mobile sizes convert into 'scrolling' layouts
+  @include media-breakpoint-down(sm) {
+    .bslib-grid {
+      grid-template-rows: minmax(1em, max-content) !important;
+    }
+    .sidebar-content {
+      height: inherit;
+    }
+    .page-layout-custom {
+      min-height: 100vh;
+    }
+  }
+
+  &.dashboard-toolbar > .page-layout-custom,
+  &.dashboard-sidebar > .page-layout-custom {
+    padding: 0;
+  }
+
+  .quarto-dashboard-content.quarto-dashboard-pages {
+    padding: 0;
+  }
+
+  .callout {
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+
+  .html-fill-container figure {
+    overflow: hidden;
+  }
+
+  bslib-tooltip {
+    .rounded-pill {
+      .svg {
+        fill: $body-color;
+      }
+      border: solid $text-muted 1px;
+    }
+  }
+
+  .tabset .dashboard-card-no-title .nav-tabs {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .tabset .tab-content {
+    border: none;
+  }
+
+  .tabset .card-header {
+    .nav-link[role="tab"] {
+      margin-top: -6px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+  }
+
+  .card.valuebox,
+  .card.bslib-value-box {
+    min-height: 3rem;
+    .card-body {
+      padding: 0;
+    }
+  }
+
+  .bslib-value-box {
+    .value-box-value {
+      font-size: clamp(0.1em, 15cqw, 5em);
+    }
+
+    .value-box-showcase .bi {
+      font-size: clamp(0.1em, max(18cqw, 5.2cqh), 5em);
+
+      text-align: center;
+      height: 1em;
+    }
+
+    .value-box-showcase .bi::before {
+      vertical-align: 1em;
+    }
+
+    .value-box-area {
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+  }
+
+  .card figure.quarto-float {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dashboard-scrolling {
+    padding: 1em;
+  }
+
+  .full-height {
+    height: 100%;
+  }
+
+  .showcase-bottom {
+    .value-box-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+      grid-template-areas: "top" "bottom";
+
+      .value-box-showcase {
+        grid-area: bottom;
+        padding: 0;
+        margin: 0;
+        i.bi {
+          font-size: 4rem;
+        }
+      }
+      .value-box-area {
+        grid-area: top;
+      }
+    }
+  }
+
+  .tab-content {
+    margin-bottom: 0;
+  }
+
+  .bslib-card .bslib-navs-card-title {
+    justify-content: stretch;
+    align-items: end;
+  }
+
+  .card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    .card-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 0;
+    }
+  }
+
+  .tabset {
+    .card-toolbar {
+      margin-bottom: 1em;
+    }
+  }
+
+  /* Sidebar */
+  .bslib-grid > .bslib-sidebar-layout {
+    border: none;
+    gap: var(--bslib-spacer, 1rem);
+    > .main {
+      padding: 0;
+    }
+    > .sidebar {
+      border-radius: $card-border-radius;
+      border: $card-border-width solid $card-border-color;
+    }
+    > .collapse-toggle {
+      display: none;
+    }
+
+    @include media-breakpoint-down(md) {
+      grid-template-columns: 1fr;
+      grid-template-rows: max-content 1fr;
+      > .main {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      .sidebar {
+        grid-column: 1;
+        grid-row: 1;
+      }
+    }
+  }
+
+  .sidebar-right {
+    .sidebar {
+      padding-left: 2.5em;
+    }
+
+    .collapse-toggle {
+      left: 2px;
+    }
+  }
+
+  .quarto-dashboard .sidebar-right button.collapse-toggle:not(.transitioning) {
+    left: unset;
+  }
+
+  aside.sidebar {
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: $card-cap-bg;
+    color: $card-cap-color or $body-color;
+  }
+
+  .bslib-sidebar-layout {
+    > div.main {
+      padding: 0.7em;
+    }
+
+    button.collapse-toggle {
+      margin-top: 0.3em;
+    }
+  }
+
+  .bslib-sidebar-layout .collapse-toggle {
+    top: 0;
+  }
+
+  .bslib-sidebar-layout.sidebar-collapsed:not(.transitioning):not(
+      .sidebar-right
+    )
+    .collapse-toggle {
+    left: 2px;
+  }
+
+  .sidebar > section > .h3:first-of-type {
+    margin-top: 0em;
+  }
+
+  .sidebar .h3,
+  .sidebar .h4,
+  .sidebar .h5,
+  .sidebar .h6 {
+    margin-top: 0.5em;
+  }
+
+  .sidebar {
+    @include observable-sidebar-inputs();
+
+    .card-body {
+      margin-bottom: 2em;
+    }
+
+    .shiny-input-container {
+      margin-bottom: 1em;
+    }
+
+    .shiny-options-group {
+      margin-top: 0;
+    }
+    .control-label {
+      margin-bottom: 0.3em;
+    }
+  }
+  .card .card-body .quarto-layout-row {
+    align-items: stretch;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    font-size: 0.9em;
+    display: flex;
+    flex-direction: row;
+    border-top: solid 1px theme-dim($secondary-bg-subtle, 10%);
+    padding: 1em;
+    flex-wrap: wrap;
+    background-color: $card-cap-bg;
+
+    @include shiny-toolbar-customizations();
+    @include observable-toolbar-inputs();
+
+    > * {
+      font-size: 0.9em;
+      flex-grow: 0;
+    }
+
+    .shiny-input-container {
+      label {
+        margin-bottom: 1px;
+      }
+    }
+  }
+
+  // Positions the toolbar at the bottom of the flexbox
+  .toolbar-bottom {
+    margin-top: 1em;
+    margin-bottom: 0 !important;
+    order: 2;
+  }
+
+  // If there is are pages, move the padding down inside the
+  // the nested tab contents (Global)
+  .quarto-dashboard-content
+    > .dashboard-toolbar-container
+    > .toolbar-content
+    > .tab-content
+    > .tab-pane
+    > *:not(.bslib-sidebar-layout) {
+    padding: 1em;
+  }
+
+  // If this is simple dashboard with a top level tool bar
+  .quarto-dashboard-content
+    > .dashboard-toolbar-container
+    > .toolbar-content
+    > *:not(.tab-content) {
+    padding: 1em;
+  }
+
+  // If there are pages, but no global toolbar
+  .quarto-dashboard-content
+    > .tab-content
+    > .dashboard-page
+    > .dashboard-toolbar-container
+    > .toolbar-content,
+  .quarto-dashboard-content
+    > .tab-content
+    > .dashboard-page:not(.dashboard-sidebar-container)
+    > *:not(.dashboard-toolbar-container) {
+    padding: 1em;
+  }
+
+  .toolbar-content {
+    padding: 0;
+  }
+
+  .quarto-dashboard-content.quarto-dashboard-pages
+    .tab-pane
+    > .dashboard-toolbar-container {
+    .toolbar {
+      border-radius: 0;
+      margin-bottom: 0;
+    }
+  }
+
+  .dashboard-toolbar-container.toolbar-toplevel {
+    .toolbar {
+      border-bottom: $card-border-width solid $card-border-color;
+    }
+    .toolbar-bottom {
+      margin-top: 0;
+    }
+  }
+
+  .dashboard-toolbar-container:not(.toolbar-toplevel) {
+    .toolbar {
+      margin-bottom: 1em;
+      border-top: none;
+      border-radius: $border-radius;
+      border: $card-border-width solid $card-border-color;
+    }
+  }
+
+  .vega-embed.has-actions {
+    details {
+      width: 1.7em;
+      height: 2em;
+      position: absolute !important;
+      top: 0;
+      right: 0;
+    }
+  }
+
+  .dashboard-toolbar-container {
+    padding: 0;
+  }
+
+  /* Card Toolbar */
+  /* Card */
+  .card {
+    .card-header,
+    .card-footer {
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .card-body > .h4:first-child {
+      margin-top: 0;
+    }
+
+    // This ensures that elements in the card body (notably the expansion toggle)
+    // appear above the elements inside of it (notably itables, which cause issues)
+    .card-body {
+      z-index: 1000;
+
+      // Customize appearance of elements within cards
+      @include itables();
+    }
+
+    .card-footer {
+      font-size: 0.9em;
+    }
+
+    .card-toolbar {
+      display: flex;
+      flex-grow: 1;
+      flex-direction: row;
+      width: 100%;
+      > * {
+        font-size: 0.8em;
+        flex-grow: 0;
+      }
+
+      > .card-title {
+        font-size: 1em;
+        flex-grow: 1;
+        align-self: flex-start;
+        margin-top: 0.1em;
+      }
+
+      flex-wrap: wrap;
+
+      @include toolbar-layout();
+
+      @include observable-toolbar-inputs();
+      @include shiny-toolbar-customizations();
+    }
+  }
+
+  /*-- Misc HTML elements --*/
+  .card-body > table > thead {
+    border-top: none;
+  }
+
+  .card-body > .table > :not(caption) > * > * {
+    background-color: $card-bg;
+    color: $card-color;
+  }
+}

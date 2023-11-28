@@ -1,0 +1,19 @@
+Type: tests
+Description: Quarto tests projects
+Depends:
+    rmarkdown,
+    knitr,
+    shiny,
+    downlit,
+    tidyverse,
+    ggplot2,
+    ggExtra,
+    scales,
+    kableExtra,
+    gt,
+    flextable,
+    tibble,
+    DT,
+    DBI,
+    RSQLite,
+    webshot2

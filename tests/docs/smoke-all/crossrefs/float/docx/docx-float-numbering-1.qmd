@@ -1,0 +1,46 @@
+---
+title: "My Document"
+crossref:
+  fig-labels: alpha x # (default is arabic)
+  tbl-labels: alpha A # (default is arabic)
+  subref-labels: roman i # (default is alpha a)
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -  
+          - "//w:tbl//w:tr//w:r//w:t[text()=\"Figure\u00a0x: Elephant\"]"
+          - "//w:tbl//w:tr//w:r//w:t[text()=\"Table\u00a0A: My Caption\"]"
+          - "//w:r//w:t[text()=\"Figure\u00a0y: Famous Elephants\"]"
+          - "//w:tbl//w:tr//w:r//w:t[text()=\"(i) Surus\"]"
+          - "//w:tbl//w:tr//w:r//w:t[text()=\"(ii) Abbas\"]"
+        - []
+---
+
+# Introduction
+
+![Elephant](img/painter.jpg){#fig-elephant}
+
+See @fig-elephant for an illustration.
+
+| Col1 | Col2 | Col3 |
+| ---- | ---- | ---- |
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.
+
+## Simple Sub Figure
+
+::: {#fig-elephants layout-ncol="2"}
+![Surus](img/surus.jpg){#fig-surus}
+
+![Abbas](img/abbas.jpg){#fig-abbas}
+
+Famous Elephants
+:::
+
+See @fig-elephants for examples. In particular, @fig-abbas.

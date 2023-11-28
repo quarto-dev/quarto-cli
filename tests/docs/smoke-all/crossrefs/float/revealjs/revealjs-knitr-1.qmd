@@ -1,0 +1,21 @@
+---
+title: Knitr Crossref Test
+# _quarto:
+#   tests:
+#     revealjs:
+#       ensureHtmlElements:
+#         - 
+#           - "figure.quarto-float-fig figcaption.quarto-float-caption"
+# nothing to check here because autostretch butchers the DOM
+---
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

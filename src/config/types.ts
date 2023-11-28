@@ -87,6 +87,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -94,6 +95,7 @@ import {
   kInlineIncludes,
   kIpynbFilters,
   kIpynbProduceSourceNotebook,
+  kIpynbShellInteractivity,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -164,6 +166,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
   kQuartoFilters,
@@ -312,10 +315,21 @@ export type PandocFilter = {
   path: string;
 };
 
-export type QuartoFilter = string | PandocFilter;
+export type QuartoFilterEntryPoint = PandocFilter & { "at": string };
+
+export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
 
 export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
+}
+
+export function isFilterEntryPoint(
+  filter: QuartoFilter,
+): filter is QuartoFilterEntryPoint {
+  if (typeof filter === "string") {
+    return false;
+  }
+  return (<QuartoFilterEntryPoint> filter).at !== undefined;
 }
 
 export interface NotebookPreviewDescriptor {
@@ -459,6 +473,7 @@ export interface FormatRender {
   [kNotebookPreserveCells]?: boolean;
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
+  [kHtmlTableProcessing]?: "none";
 }
 
 export interface FormatExecute {
@@ -487,6 +502,14 @@ export interface FormatExecute {
   [kKeepMd]?: boolean;
   [kKeepIpynb]?: boolean;
   [kIpynbFilters]?: string[];
+  [kIpynbShellInteractivity]?:
+    | null
+    | "all"
+    | "last"
+    | "last_expr"
+    | "none"
+    | "last_expr_or_assign";
+  [kPlotlyConnected]?: boolean;
 }
 
 export interface FormatPandoc {

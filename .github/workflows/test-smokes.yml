@@ -42,8 +42,6 @@ jobs:
           - os: windows-latest
             time-test: true
     runs-on: ${{ matrix.os }}
-    env:
-      QUARTO_TESTS_FORCE_NO_PIPENV: true
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -60,6 +58,7 @@ jobs:
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: "4.2.2"
+          use-public-rspm: true
 
       - name: Install node (for Playwright, MECA)
         uses: actions/setup-node@v3
@@ -97,14 +96,17 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-${{ hashFiles('tests/renv.lock') }}
+          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
           restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-1-
+            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update -y && sudo apt-get install -y libcurl4-openssl-dev && sudo apt-get install -y libxml2-utils
+          sudo apt-get update -y
+          sudo apt-get install -y libcurl4-openssl-dev
+          sudo apt-get install -y libxml2-utils
+          sudo apt-get install -y libharfbuzz-dev libfribidi-dev
 
       - name: Restore R packages
         working-directory: tests
@@ -113,25 +115,24 @@ jobs:
           renv::restore()
           # Install dev versions for our testing 
           # Use r-universe to avoid github api calls
-          try(renv::install('knitr', repos = c('https://yihui.r-universe.dev')))
-          try(renv::install('rmarkdown', repos = c('https://rstudio.r-universe.dev')))
+          try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
+          try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
         shell: Rscript {0}
         env:
-          RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.rstudio.com/cran/latest
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
+          python-version: "3.11"
           cache: "pipenv"
           cache-dependency-path: "./tests/Pipfile.lock"
-          python-version-file: "./tests/.python-version"
 
       - name: Restore Python Dependencies
         working-directory: tests
         run: |
           python -m pip install pipenv
-          pipenv install --system
+          pipenv install
 
       - uses: ./.github/workflows/actions/quarto-dev
 
@@ -141,22 +142,33 @@ jobs:
         run: |
           quarto install tinytex
 
+      - name: Cache Typst packages
+        uses: ./.github/actions/cache-typst
+
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v1
         with:
-          version: 1.8.5
+          version: 1.9.3
 
       - name: Cache Julia Packages
         uses: julia-actions/cache@v1
+        with:
+          cache-name: version-1
+          cache-registries: true
 
       - name: Restore Julia Packages
         working-directory: tests
         shell: bash
         run: |
-          julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          # Setup IJulia with the jupyter from the Python environment
+          # https://julialang.github.io/IJulia.jl/stable/manual/installation/
+          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")        
+          pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+          echo "Julia Jupyter:"
+          julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
       - name: Setup timing file for timed test
         if: ${{ matrix.time-test == true }}
@@ -250,3 +262,9 @@ jobs:
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
           echo "Pull Request Action Performed - ${{ steps.cpr.outputs.pull-request-operation }}"
+
+      - uses: actions/upload-artifact@v3
+        if: matrix.time-test && ( failure() || cancelled())
+        with:
+          name: timed test file
+          path: tests/timing-for-ci.txt

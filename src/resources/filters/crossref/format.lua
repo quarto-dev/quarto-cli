@@ -14,12 +14,21 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, order)
-  local prefix = title(type, default)
-  table.insert(prefix, nbspString())
-  tappend(prefix, numberOption(type, order))
-  tappend(prefix, titleDelim())
-  table.insert(prefix, pandoc.Space())
+function titlePrefix(ref_type, default, order, with_title_delimiter)
+  if with_title_delimiter == nil then
+    with_title_delimiter = true
+  end
+
+  local prefix = title(ref_type, default)
+  local category = crossref.categories.by_ref_type[ref_type]
+  if category == nil or category.space_before_numbering ~= false then
+    table.insert(prefix, nbspString())
+  end
+  tappend(prefix, numberOption(ref_type, order))
+  if with_title_delimiter then
+    tappend(prefix, titleDelim())
+    table.insert(prefix, pandoc.Space())
+  end
   return prefix
 end
 
@@ -56,7 +65,17 @@ end
 
 function refPrefix(type, upper)
   local opt = type .. "-prefix"
-  local default = stringToInlines(param("crossref-" .. type .. "-prefix", type .. "."))
+  local default = param("crossref-" .. type .. "-prefix")
+  if default == nil then
+    default = crossref.categories.by_ref_type[type]
+    if default ~= nil then
+      default = default.prefix
+    end
+  end
+  if default == nil then
+    default = type .. "."
+  end
+  default = stringToInlines(default)
   local prefix = crossrefOption(opt, default)
   if upper then
     local el = pandoc.Plain(prefix)
@@ -141,7 +160,7 @@ function formatNumberOption(type, order, default)
       end
       num = sectionIndex .. "." .. num
     end
-    return { pandoc.Str(num) }
+    return pandoc.Inlines({ pandoc.Str(num) })
   end
   
   -- Compute option name and default value
@@ -166,12 +185,18 @@ function formatNumberOption(type, order, default)
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
     -- to start the numbering with (e.g. alpha a vs. alpha A)
-    local startIndexChar = string.sub(numberStyle, -1)
-    if (startIndexChar == " ") then
+    local s = split(numberStyle, " ") 
+    local startIndexChar = s[2]
+    if (startIndexChar == nil or startIndexChar == " ") then
       startIndexChar = "a"
     end
+    -- local startIndexChar = string.sub(numberStyle, -1)
+    -- if (startIndexChar == " ") then
+    --   startIndexChar = "a"
+    -- end
+    -- print(numberStyle)
     local startIndex = utf8.codepoint(startIndexChar)
-    return resolve(string.char(startIndex + num - 1))
+    return resolve(utf8.char(startIndex + num - 1))
   elseif (string.match(numberStyle, "^roman")) then
     -- permits the user to express `roman` or `roman i` or `roman I` to
     -- use lower / uppper case roman numerals
@@ -191,7 +216,7 @@ function formatNumberOption(type, order, default)
     if section then
       tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
-    return { option }
+    return pandoc.Inlines({ option })
   end
 
 end

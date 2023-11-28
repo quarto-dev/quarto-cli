@@ -337,6 +337,47 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+  <% if (linkExternalIcon || linkExternalNewwindow) { %>
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
+      <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
+    <% } else if (linkExternalFilter) { %>
+      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
+    <% } else { %>
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    <% } %>
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        <% if (linkExternalNewwindow) { %> 
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+        <% } %>
+
+        
+        <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
+          // external icon, if provided
+          var extIcon = window.document.createElement('i');
+          extIcon.classList.add('bi-<%=linkExternalIcon%>');
+          extIcon.classList.add('quarto-ext-icon');
+          link.parentNode.insertBefore(extIcon, link.nextSibling)
+        <% } else if (linkExternalIcon) { %>
+          // default icon
+          link.classList.add("external");
+        <% } %>
+      }
+    }
+  <% } %>
+
   <% if (tippy) { %>
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
@@ -408,24 +449,60 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     stripColumnClz(note)
 
-    if (id.startsWith('sec-')) {
+    const typesetMath = (el) => {
+      if (window.MathJax) {
+        // MathJax Typeset
+        window.MathJax.typeset([el]);
+      } else if (window.katex) {
+        // KaTeX Render
+        var mathElements = el.getElementsByClassName("math");
+        var macros = [];
+        for (var i = 0; i < mathElements.length; i++) {
+          var texText = mathElements[i].firstChild;
+          if (mathElements[i].tagName == "SPAN") {
+            window.katex.render(texText.data, mathElements[i], {
+              displayMode: mathElements[i].classList.contains('display'),
+              throwOnError: false,
+              macros: macros,
+              fleqn: false
+            });
+          }
+        }
+      }
+    }
+
+    if (id === null || id.startsWith('sec-')) {
       // Special case sections, only their first couple elements
       const container = document.createElement("div");
       if (note.children && note.children.length > 2) {
-        for (let i = 0; i < 2; i++) {
-          container.appendChild(note.children[i].cloneNode(true));
+
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
         }
+
+        typesetMath(container);
         return container.innerHTML
       } else {
+        typesetMath(note);
         return note.innerHTML;
       }
     } else {
 
+    
       // Remove any anchor links if they are present
       const anchorLink = note.querySelector('a.anchorjs-link');
       if (anchorLink) {
         anchorLink.remove();
       }
+
+      typesetMath(note);
       return note.innerHTML;
     }
   }
@@ -473,6 +550,30 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             instance.show();
           });
         }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
       }
     }, function(instance) {
     });
@@ -570,7 +671,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     window.addEventListener(
       "resize",
       throttle(() => {
-        console.log("RESIZE");
         elRect = undefined;
         if (selectedAnnoteEl) {
           selectCodeLines(selectedAnnoteEl);
@@ -734,43 +834,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-
-  <% if (linkExternalIcon || linkExternalNewwindow) { %>
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
-      <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
-    <% } else if (linkExternalFilter) { %>
-      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
-    <% } else { %>
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    <% } %>
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):(.quarto-navigation-tool)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-        <% if (linkExternalNewwindow) { %> 
-          // target, if specified
-          link.setAttribute("target", "_blank");
-        <% } %>
-
-        
-        <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
-          // external icon, if provided
-          var extIcon = window.document.createElement('i');
-          extIcon.classList.add('bi-<%=linkExternalIcon%>');
-          extIcon.classList.add('quarto-ext-icon');
-          link.parentNode.insertBefore(extIcon, link.nextSibling)
-        <% } else if (linkExternalIcon) { %>
-          // default icon
-          link.classList.add("external");
-        <% } %>
-      }
-    }
-  <% } %>
 });
 
 </script>

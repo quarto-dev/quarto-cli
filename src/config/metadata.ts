@@ -40,6 +40,7 @@ import {
   kPandocMetadata,
   kRenderDefaults,
   kRenderDefaultsKeys,
+  kServer,
   kTblColwidths,
   kVariant,
 } from "./constants.ts";
@@ -210,6 +211,13 @@ export function metadataAsFormat(metadata: Metadata): Format {
     }
   });
 
+  // normalize server type
+  if (typeof (format.metadata[kServer]) === "string") {
+    format.metadata[kServer] = {
+      type: format.metadata[kServer],
+    };
+  }
+
   // coalese ipynb-filter to ipynb-filters
   const filter = format.execute[kIpynbFilter];
   if (typeof (filter) === "string") {
@@ -335,18 +343,19 @@ export function mergeConfigsCustomized<T>(
 
 export function mergeDisablableArray(objValue: unknown, srcValue: unknown) {
   if (Array.isArray(objValue) && Array.isArray(srcValue)) {
-    return [
-      ...objValue,
-      ...srcValue,
-    ];
-  } else if (Array.isArray(objValue)) {
+    return mergeArrayCustomizer(objValue, srcValue);
+  } else {
     if (srcValue === false) {
       return [];
     } else {
-      return objValue;
+      const srcArr = srcValue !== undefined
+        ? Array.isArray(srcValue) ? srcValue : [srcValue]
+        : [];
+      const objArr = objValue !== undefined
+        ? Array.isArray(objValue) ? objValue : [objValue]
+        : [];
+      return mergeArrayCustomizer(objArr, srcArr);
     }
-  } else {
-    return srcValue;
   }
 }
 

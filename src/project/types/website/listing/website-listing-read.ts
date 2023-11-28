@@ -107,7 +107,7 @@ import {
   projectOutputDir,
 } from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { globToRegExp } from "../../../../core/lib/glob.ts";
+import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
@@ -203,7 +203,7 @@ export async function readListings(
   const categories = firstListingValue(kFieldCategories, false);
 
   const parseCategoryStyle = (categories: unknown) => {
-    if (typeof (categories) === "string") {
+    if (typeof categories === "string") {
       switch (categories) {
         case "unnumbered":
           return "category-unnumbered";
@@ -226,7 +226,7 @@ export async function readListings(
 
   const feed = firstListingValue(kFeed, undefined);
   if (feed !== undefined) {
-    if (typeof (feed) === "object") {
+    if (typeof feed === "object") {
       // If is an object, forward it along
       sharedOptions[kFeed] = feed as ListingFeedOptions;
     } else if (feed) {
@@ -296,14 +296,17 @@ export function completeListingItems(
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
 ) {
+  debug(`[listing] Completing listing items for ${outputFiles.length} files`);
   const options = {
     remove: { links: true, images: true },
   };
 
+  debug(`[listing] Creating content reader`);
   const contentReader = renderedContentReader(context, options);
 
   // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {
+    debug(`[listing] Completing listing items ${outputFile.input}`);
     // Does this output file contain a listing?
     if (outputFile.format.metadata[kListing]) {
       // Read the listing page
@@ -314,7 +317,8 @@ export function completeListingItems(
         : [outputFile.format.metadata[kListing]];
 
       listings.forEach((listing) => {
-        if (typeof (listing) === "object") {
+        if (typeof listing === "object") {
+          debug(`[listing] Processing listing`);
           const listingMetadata = listing as Metadata;
           // See if there is a default image
           const listingDefaultImage = listingMetadata !== undefined &&
@@ -327,6 +331,7 @@ export function completeListingItems(
           regex.lastIndex = 0;
           let match = regex.exec(fileContents);
           while (match) {
+            debug(`[listing] Processing description match`);
             // For each placeholder, get its target href, then read the contents of that
             // file and inject the contents.
             const maxDescLength = parseInt(match[1]);
@@ -369,6 +374,7 @@ export function completeListingItems(
           imgRegex.lastIndex = 0;
           let imgMatch = imgRegex.exec(fileContents);
           while (imgMatch) {
+            debug(`[listing] Processing image match`);
             const progressive = imgMatch[1] === "true";
             const imgHeight = imgMatch[2];
             const docRelativePath = imgMatch[3];
@@ -378,12 +384,17 @@ export function completeListingItems(
               progressive,
               imgHeight,
             );
+            debug(`[listing] ${docAbsPath}`);
+            debug(`[listing] ${imgPlaceholder}`);
+
             if (existsSync(docAbsPath)) {
+              debug(`[listing] exists: ${docAbsPath}`);
               const contents = contentReader(docAbsPath, {
                 remove: { links: true },
               });
 
               if (contents.previewImage) {
+                debug(`[listing] previewImage: ${docAbsPath}`);
                 const resolveUrl = (path: string) => {
                   if (isHttpUrl(path)) {
                     return path;
@@ -408,11 +419,13 @@ export function completeListingItems(
                   imgHeight,
                 );
 
+                debug(`[listing] replacing: ${docAbsPath}`);
                 fileContents = fileContents.replace(
                   imgPlaceholder,
                   imgHtml,
                 );
               } else if (listingDefaultImage) {
+                debug(`[listing] using default image: ${docAbsPath}`);
                 const imagePreview: PreviewImage = {
                   src: listingDefaultImage,
                 };
@@ -421,12 +434,14 @@ export function completeListingItems(
                   imageSrc(imagePreview, progressive, imgHeight),
                 );
               } else {
+                debug(`[listing] using empty div: ${docAbsPath}`);
                 fileContents = fileContents.replace(
                   imgPlaceholder,
                   emptyDiv(imgHeight),
                 );
               }
             } else {
+              debug(`[listing] does not exist: ${docAbsPath}`);
               fileContents = fileContents.replace(
                 imgPlaceholder,
                 emptyDiv(imgHeight),
@@ -520,7 +535,10 @@ function hydrateListing(
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
-      return itemFields;
+      const undisplayable = ["path"];
+      return itemFields.filter((field) => {
+        return !undisplayable.includes(field);
+      });
     } else {
       return defaultFields(type, itemFields);
     }
@@ -659,7 +677,7 @@ async function readContents(
   debug(`[listing] Reading listing '${listing.id}' from ${source}`);
   debug(`[listing] Contents: ${
     listing.contents.map((lst) => {
-      return typeof (lst) === "string" ? lst : "<yaml>";
+      return typeof lst === "string" ? lst : "<yaml>";
     }).join(",")
   }`);
 
@@ -729,77 +747,87 @@ async function readContents(
   };
 
   const contentGlobs = listing.contents.filter((content) => {
-    return typeof (content) === "string";
+    return typeof content === "string";
   }) as string[];
 
   const contentMetadatas = listing.contents.filter((content) => {
-    return typeof (content) !== "string";
+    return typeof content !== "string";
   }) as Metadata[];
 
   if (contentGlobs.length > 0) {
     const files = filterListingFiles(contentGlobs);
     debug(`[listing] matches ${files.include.length} files:`);
 
-    for (const file of files.include) {
-      if (!files.exclude.includes(file)) {
-        if (isYamlPath(file)) {
-          debug(`[listing] Reading YAML file ${file}`);
-          const yaml = readYaml(file);
-          if (Array.isArray(yaml)) {
-            const items = yaml as Array<unknown>;
-            for (const yamlItem of items) {
-              if (typeof (yamlItem) === "object") {
-                const { item, source } = await listItemFromMeta(
-                  yamlItem as Metadata,
-                  project,
-                  listing,
-                  dirname(file),
-                );
-                validateItem(listing, item, (field: string) => {
-                  return `An item from the file '${file}' is missing the required field '${field}'.`;
-                });
-                listingItemSources.add(source);
-                listingItems.push(item);
-              } else {
-                throw new Error(
-                  `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
-                );
-              }
-            }
-          } else if (typeof (yaml) === "object") {
-            const { item, source } = await listItemFromMeta(
-              yaml as Metadata,
-              project,
-              listing,
-              dirname(file),
-            );
-            validateItem(listing, item, (field: string) => {
-              return `The item defined in file '${file}' is missing the required field '${field}'.`;
-            });
-            listingItemSources.add(source);
-            listingItems.push(item);
-          } else {
-            throw new Error(
-              `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
-            );
-          }
-        } else {
-          const isFile = Deno.statSync(file).isFile;
-          if (isFile) {
-            debug(`[listing] Reading file ${file}`);
-            const item = await listItemFromFile(file, project, listing);
-            if (item) {
+    const readFiles = files.include.filter((file) => {
+      return !files.exclude.includes(file);
+    });
+    if (readFiles.length === 0) {
+      const projRelativePath = relative(project.dir, source);
+      throw new Error(
+        `The listing in '${projRelativePath}' using the following contents:\n- ${
+          contentGlobs.join("\n- ")
+        }\ndoesn't match any files or folders.`,
+      );
+    }
+
+    for (const file of readFiles) {
+      if (isYamlPath(file)) {
+        debug(`[listing] Reading YAML file ${file}`);
+        const yaml = readYaml(file);
+        if (Array.isArray(yaml)) {
+          const items = yaml as Array<unknown>;
+          for (const yamlItem of items) {
+            if (typeof yamlItem === "object") {
+              const { item, source } = await listItemFromMeta(
+                yamlItem as Metadata,
+                project,
+                listing,
+                dirname(file),
+              );
               validateItem(listing, item, (field: string) => {
-                return `The file ${file} is missing the required field '${field}'.`;
+                return `An item from the file '${file}' is missing the required field '${field}'.`;
               });
-
-              if (item.item.title === undefined) {
-                debug(`[listing] Missing Title in File ${file}`);
-              }
-
-              listingItemSources.add(item.source);
-              listingItems.push(item.item);
+              listingItemSources.add(source);
+              listingItems.push(item);
+            } else {
+              throw new Error(
+                `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
+              );
             }
+          }
+        } else if (typeof yaml === "object") {
+          const { item, source } = await listItemFromMeta(
+            yaml as Metadata,
+            project,
+            listing,
+            dirname(file),
+          );
+          validateItem(listing, item, (field: string) => {
+            return `The item defined in file '${file}' is missing the required field '${field}'.`;
+          });
+          listingItemSources.add(source);
+          listingItems.push(item);
+        } else {
+          throw new Error(
+            `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
+          );
+        }
+      } else {
+        const isFile = Deno.statSync(file).isFile;
+        if (isFile) {
+          debug(`[listing] Reading file ${file}`);
+          const item = await listItemFromFile(file, project, listing);
+          if (item) {
+            validateItem(listing, item, (field: string) => {
+              return `The file ${file} is missing the required field '${field}'.`;
+            });
+
+            if (item.item.title === undefined) {
+              debug(`[listing] Missing Title in File ${file}`);
+            }
+
+            listingItemSources.add(item.source);
+            listingItems.push(item.item);
           }
         }
       }
@@ -829,7 +857,7 @@ async function readContents(
       listingValue: unknown,
     ) => {
       if (
-        typeof (itemValue) === "string" && typeof (listingValue) === "string"
+        typeof itemValue === "string" && typeof listingValue === "string"
       ) {
         const regex = globToRegExp(listingValue);
         return itemValue.match(regex);
@@ -1134,7 +1162,7 @@ function readDehydratedListings(
 ): ListingDehydrated[] {
   const listingConfig = format.metadata[kListing];
   const listings: ListingDehydrated[] = [];
-  if (typeof (listingConfig) == "string") {
+  if (typeof listingConfig == "string") {
     // Resolve this string
     const listing = listingForType(listingType(listingConfig));
     if (listing) {
@@ -1143,7 +1171,7 @@ function readDehydratedListings(
   } else if (Array.isArray(listingConfig)) {
     // Process an array of listings
     const listingConfigs = listingConfig.filter((listing) =>
-      typeof (listing) === "object"
+      typeof listing === "object"
     );
     let count = 0;
     listings.push(...listingConfigs.map((listing) => {
@@ -1156,7 +1184,7 @@ function readDehydratedListings(
         source,
       );
     }));
-  } else if (listingConfig && typeof (listingConfig) === "object") {
+  } else if (listingConfig && typeof listingConfig === "object") {
     // Process an individual listing
     listings.push(
       listingForMetadata(
@@ -1229,7 +1257,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
       return undefined;
     }
 
-    if (typeof (sortValue) === "string") {
+    if (typeof sortValue === "string") {
       const sortStr = sortValue as string;
       const parts = sortStr.split(" ");
       if (parts.length === 2) {
@@ -1246,7 +1274,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
     }
   };
 
-  if (typeof (rawValue) === "boolean") {
+  if (typeof rawValue === "boolean") {
     if (rawValue) {
       // Apply default sorting behavior
       return undefined;

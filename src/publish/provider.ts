@@ -11,19 +11,10 @@ import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { positCloudProvider } from "./posit-cloud/posit-cloud.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
 import { PublishProvider } from "./provider-types.ts";
-import { AccountToken, AccountTokenType } from "./provider-types.ts";
+import { AccountToken } from "./provider-types.ts";
 
 export function accountTokenText(token: AccountToken) {
   return token.name + (token.server ? ` (${token.server})` : "");
-}
-
-export function anonymousAccount(): AccountToken {
-  return {
-    type: AccountTokenType.Anonymous,
-    name: "anonymous",
-    server: null,
-    token: "anonymous",
-  };
 }
 
 const kPublishProviders = [

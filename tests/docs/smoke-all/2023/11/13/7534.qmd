@@ -1,0 +1,17 @@
+---
+title: multiple paragraph in footnotes (#7534)
+reference-location: margin
+_quarto:
+  tests:
+    pdf: null
+    latex:
+      ensureFileRegexMatches:
+        - ['The first paragraph\.[\s\S]+\\endgraf[\s\S]+The second paragraph']
+        - []
+---
+
+Some text.[^note] Some more text.
+
+[^note]: The first paragraph.   
+    
+    The second paragraph.

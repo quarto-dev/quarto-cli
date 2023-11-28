@@ -1,0 +1,15 @@
+---
+title: listing within R chunks
+format: html
+keep-md: true
+---
+
+```{r}
+#| label: fig-code-source
+#| lst-label: lst-code-source
+#| lst-cap: A listing
+#| fig-cap: Some code source
+plot(cars)
+```
+
+See @fig-code-source and @lst-code-source.

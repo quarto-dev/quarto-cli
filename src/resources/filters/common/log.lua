@@ -5,6 +5,7 @@
 -- could write to named filed (e.g. <docname>.filter.log) and client could read warnings and delete (also delete before run)
 -- always append b/c multiple filters
 
+-- luacov: disable
 local function caller_info(offset)
   offset = offset or 3
   local caller = debug.getinfo(offset, "lS")
@@ -28,4 +29,4 @@ function fatal(message, offset)
   -- TODO write stack trace into log, and then exit.
   crash_with_stack_trace()  
 end
-
+-- luacov: enable

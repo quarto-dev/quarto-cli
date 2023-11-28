@@ -5,7 +5,7 @@ function sections()
   
   return {
     Header = function(el)
-      
+
       -- index the heading
       indexAddHeading(el.attr.identifier)
 
@@ -61,7 +61,7 @@ function sections()
           el.content:insert(1, pandoc.Space())
         end
 
-        if _quarto.format.isHtmlOutput() then
+        if _quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput() then
           el.content:insert(1, pandoc.Span(
             stringToInlines(section),
             pandoc.Attr("", { "header-section-number"})
@@ -99,7 +99,7 @@ end
 function numberSections()
   return not _quarto.format.isLatexOutput() and 
          not _quarto.format.isTypstOutput() and
-         not _quarto.format.isMarkdownOutput() 
+         (not _quarto.format.isMarkdownOutput() or _quarto.format.isMarkdownWithHtmlOutput())
          and numberSectionsOptionEnabled()
 end
 

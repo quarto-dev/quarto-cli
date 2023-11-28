@@ -7,7 +7,7 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { basename, extname, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 import {
   Format,
   FormatExtras,
@@ -17,7 +17,6 @@ import {
   kHtmlPostprocessors,
   Metadata,
   NotebookPreviewDescriptor,
-  OtherLink,
   PandocFlags,
 } from "../../../config/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
@@ -35,8 +34,7 @@ import {
   kKeepHidden,
   kKeepTex,
   kLanguageDefaults,
-  kLaunchBinderTitle,
-  kLaunchDevContainerTitle,
+  kLightbox,
   kManuscriptMecaBundle,
   kNotebookLinks,
   kNotebookPreserveCells,
@@ -48,6 +46,7 @@ import {
   kResources,
   kTheme,
   kToc,
+  kTocLocation,
   kUnrollMarkdownCells,
   kWarning,
 } from "../../../config/constants.ts";
@@ -62,7 +61,7 @@ import {
   RenderResultFile,
   RenderServices,
 } from "../../../command/render/types.ts";
-import { GitHubContext, gitHubContext } from "../../../core/github.ts";
+import { gitHubContext } from "../../../core/github.ts";
 import { projectInputFiles } from "../../project-context.ts";
 import { kGoogleScholar } from "../../../format/html/format-html-meta.ts";
 import { resolveInputTarget } from "../../project-index.ts";
@@ -113,6 +112,7 @@ import { safeExistsSync } from "../../../core/path.ts";
 
 import { dirname, isAbsolute } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -297,6 +297,12 @@ export const manuscriptProjectType: ProjectType = {
     // Default to cosmo theme
     config[kTheme] = "cosmo";
 
+    // Default to manuscript title block style
+    config[kTitleBlockStyle] = "manuscript";
+
+    // Default to lightbox auto
+    config[kLightbox] = "auto";
+
     return config;
   },
   create: (title: string): ProjectCreate => {
@@ -426,6 +432,10 @@ export const manuscriptProjectType: ProjectType = {
             // Target index.html as its output
             format.pandoc[kOutputFile] = "index.html";
           }
+
+          if (format.metadata[kTocLocation] === undefined) {
+            format.metadata[kTocLocation] = "left";
+          }
         }
       }
 
@@ -506,16 +516,8 @@ export const manuscriptProjectType: ProjectType = {
       manuscriptConfig,
     );
     if (isArticle && isHtmlOutput(format.pandoc)) {
-      // Inject code links
-      const outputCodeLinks = await computeCodeLinks(
-        source,
-        format,
-        manuscriptConfig,
-        context,
-      );
-      if (outputCodeLinks.length > 0) {
-        extras.metadata[kCodeLinks] = outputCodeLinks;
-      }
+      // Forward code links
+      extras.metadata[kCodeLinks] = manuscriptConfig[kCodeLinks];
 
       // If the user isn't explicitly providing a notebook list
       // then automatically create notebooks for the other items in
@@ -668,7 +670,7 @@ export const manuscriptProjectType: ProjectType = {
       );
       if (mecaBundle) {
         const target = projectOutputDir(context);
-        Deno.renameSync(
+        Deno.copyFileSync(
           mecaBundle,
           join(target, mecaFileName),
         );
@@ -717,116 +719,6 @@ const resolveNotebookDescriptors = (
     resolvedNbs.push(resolveNotebookDescriptor(nb));
   }
   return resolvedNbs;
-};
-
-const kCodeLinkTypes = ["repo", "binder", "devcontainer"];
-const kNoCodelinks: string[] = [];
-
-const computeCodeLinks = async (
-  source: string,
-  format: Format,
-  manuscriptConfig: ResolvedManuscriptConfig,
-  context: ProjectContext,
-) => {
-  if (format.metadata[kCodeLinks] === false) {
-    return [];
-  }
-
-  // Resolve the other links
-  const codeLinks = resolveCodeLinks(manuscriptConfig);
-
-  let cachedContext: GitHubContext | undefined = undefined;
-  const getGhContext = async () => {
-    if (cachedContext === undefined) {
-      cachedContext = await gitHubContext(context.dir);
-    }
-    return cachedContext;
-  };
-
-  const outputCodeLinks: OtherLink[] = [];
-  for (const codeLink of codeLinks) {
-    if (typeof (codeLink) === "string") {
-      if (kCodeLinkTypes.includes(codeLink)) {
-        const ghContext = await getGhContext();
-        if (ghContext) {
-          const repoUrl = ghContext.repoUrl;
-          if (codeLink === "repo" && repoUrl) {
-            const repoLink: OtherLink = {
-              icon: "github",
-              text: "GitHub Repo",
-              href: repoUrl,
-              target: "_blank",
-            };
-            outputCodeLinks.push(repoLink);
-          } else if (codeLink === "devcontainer" && repoUrl) {
-            if (
-              ghContext.organization && ghContext.repository &&
-              hasDevContainer(context.dir)
-            ) {
-              const containerUrl = codeSpacesUrl(repoUrl);
-              const containerLink: OtherLink = {
-                icon: "github",
-                text: format.language[kLaunchDevContainerTitle] ||
-                  "Launch Dev Container",
-                href: containerUrl,
-                target: "_blank",
-              };
-              outputCodeLinks.push(containerLink);
-            }
-          } else if (
-            codeLink === "binder" &&
-            ghContext.organization && ghContext.repository &&
-            hasBinderCompatibleEnvironment(context.dir)
-          ) {
-            // Compute the project environment and use that to customize the binder options
-            const projEnv = await computeProjectEnvironment(context);
-
-            const containerUrl = binderUrl(
-              ghContext.organization,
-              ghContext.repository,
-              {
-                openFile: extname(source) === ".ipynb" ? source : undefined,
-                editor: projEnv.codeEnvironment,
-              },
-            );
-            const containerLink: OtherLink = {
-              icon: "journals",
-              text: format.language[kLaunchBinderTitle] ||
-                "Launch Binder",
-              href: containerUrl,
-              target: "_blank",
-            };
-            outputCodeLinks.push(containerLink);
-          }
-        }
-      } else {
-        throw new Error(
-          `Unknown value '${codeLink}' for code-links. Allowed values include ${
-            kCodeLinkTypes.join(", ")
-          }`,
-        );
-      }
-    } else {
-      outputCodeLinks.push(codeLink);
-    }
-  }
-  return outputCodeLinks;
-};
-
-const resolveCodeLinks = (
-  config: ResolvedManuscriptConfig,
-): Array<string | OtherLink> => {
-  const codeLinks = config[kCodeLinks];
-  if (codeLinks !== undefined) {
-    if (typeof (codeLinks) === "boolean") {
-      return codeLinks ? kCodeLinkTypes : kNoCodelinks;
-    } else if (typeof (codeLinks) === "string") {
-      return [codeLinks];
-    } else {
-      return codeLinks;
-    }
-  }
-  return kCodeLinkTypes;
 };
 
 const kTexOutDir = "_tex";

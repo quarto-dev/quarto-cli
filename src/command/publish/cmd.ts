@@ -41,13 +41,14 @@ import { ProjectContext } from "../../project/types.ts";
 import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
 import { handleUnauthorized } from "../../publish/account.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const publishCommand =
   // deno-lint-ignore no-explicit-any
   new Command<any>()
     .name("publish")
     .description(
-      "Publish a document or project. Available providers include:\n\n" +
+      "Publish a document or project to a provider.\n\nAvailable providers include:\n\n" +
         " - Quarto Pub (quarto-pub)\n" +
         " - GitHub Pages (gh-pages)\n" +
         " - Posit Connect (connect)\n" +
@@ -302,6 +303,7 @@ async function createPublishOptions(
   options: PublishCommandOptions,
   path?: string,
 ): Promise<PublishOptions> {
+  const nbContext = notebookContext();
   // validate path exists
   path = path || Deno.cwd();
   if (!existsSync(path)) {
@@ -313,7 +315,7 @@ async function createPublishOptions(
   let input: ProjectContext | string | undefined;
 
   // check for directory (either website or single-file project)
-  const project = await projectContext(path);
+  const project = await projectContext(path, nbContext);
   if (Deno.statSync(path).isDirectory) {
     if (project) {
       if (projectIsWebsite(project)) {

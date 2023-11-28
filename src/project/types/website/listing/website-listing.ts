@@ -23,7 +23,7 @@ import { ProjectContext } from "../../../types.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
-} from "../website-pipeline-md.ts";
+} from "../../../../core/markdown-pipeline.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { kIncludeInHeader } from "../../../../config/constants.ts";
 import { sassLayer } from "../../../../core/sass.ts";
@@ -67,6 +67,7 @@ import {
 } from "./website-listing-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { formatHasBootstrap } from "../../../../format/html/format-html-info.ts";
+import { debug } from "log/mod.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,
@@ -178,6 +179,7 @@ export async function listingHtmlDependencies(
     );
   });
 
+  // This force math dependencies to be injected into the page.
   markdownHandlers.push({
     getUnrendered: () => {
       return {
@@ -294,12 +296,15 @@ export function completeListingGeneration(
   incremental: boolean,
 ) {
   // Complete any staged feeds
+  debug(`[listing] Completing staged feeds in ${context.dir}`);
   completeStagedFeeds(context, outputFiles, incremental);
 
   // Ensure any listing items have their rendered descriptions populated
+  debug(`[listing] Completing listing items in ${context.dir}`);
   completeListingItems(context, outputFiles, incremental);
 
   // Write a global listing index
+  debug(`[listing] Writing global listing index for ${context.dir}`);
   updateGlobalListingIndex(context, outputFiles, incremental);
 }
 
@@ -366,6 +371,7 @@ function listingPostProcess(
   options: ListingSharedOptions,
   format: Format,
 ) {
+  debug(`[listing] Post processing ${listingDescriptors.length} listings`);
   // Render categories, if necessary
   const categories = options[kFieldCategories];
   if (categories) {

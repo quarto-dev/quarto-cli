@@ -43,7 +43,7 @@ $min-contrast-ratio:   2.25 !default;
 // Body
 
 @function body-mix($weight) {
-    @return mix(#060606, $gray-400, $weight);
+  @return mix(#060606, $gray-400, $weight);
 }
 $body-bg:                   body-mix(100%) !default;
 $body-color:                body-mix(0%) !default;
@@ -65,7 +65,7 @@ $h2-font-size:            3rem !default;
 $h3-font-size:            2.5rem !default;
 $h4-font-size:            2rem !default;
 $h5-font-size:            1.5rem !default;
-$headings-color:          $white !default;
+$headings-color:          $contrast-bg !default;
 
 // Tables
 
@@ -76,7 +76,7 @@ $table-border-color:            body-mix(50%) !default;
 $table-dark-bg:                 body-mix(16%) !default;
 $table-dark-border-color:       body-mix(23%) !default;
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Buttons
 
@@ -84,7 +84,7 @@ $input-btn-padding-x:       1rem !default;
 
 // Forms
 
-$input-bg:                          $white !default;
+$input-bg:                          $contrast-bg !default;
 $input-disabled-bg:                 $body-color !default;
 
 $input-color:                       body-mix(85%) !default;
@@ -98,7 +98,9 @@ $input-group-addon-border-color:    transparent !default;
 $form-check-input-bg:                     $contrast-bg !default;
 $form-check-input-border:                 none !default;
 
-$form-file-button-color:          $contrast-bg !default;
+$form-file-button-color:          $input-group-addon-color !default;
+$form-file-button-bg:             $input-group-addon-bg !default;
+$form-file-button-hover-bg:       darken($form-file-button-bg, 2%) !default;
 
 // Dropdowns
 
@@ -137,7 +139,6 @@ $card-bg:                           body-mix(50%) !default;
 
 // Tooltips
 
-$tooltip-bg:                        body-mix(50%) !default;
 $tooltip-opacity:                   1 !default;
 
 // Popovers
@@ -201,10 +202,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&di
   @import url($web-font-path);
 }
 
-:root {
-  color-scheme: dark;
-}
-
 // Navbar
 
 .navbar {
@@ -251,8 +248,6 @@ legend {
 }
 
 .form-control {
-  background-clip: border-box;
-
   &:disabled,
   &[readonly] {
     border-color: transparent;
@@ -321,6 +316,11 @@ legend {
   &.bg-dark {
     color: $gray-900;
   }
+}
+
+.tooltip {
+  --bs-tooltip-bg: var(--bs-tertiary-bg);
+  --bs-tooltip-color: var(--bs-emphasis-color);
 }
 
 // Containers

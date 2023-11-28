@@ -14,7 +14,7 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   <header id="quarto-header" class="headroom fixed-top">
 
   <% if (nav.navbar) { %>  
-    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-dark <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
+    <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <% partial('navbrand.ejs', {
         navbar: nav.navbar
@@ -53,19 +53,19 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
       <button type="button" class="quarto-btn-toggle btn"
-      data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+      data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" 
       aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
       onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
       <% if (nav.showBreadCrumbs) { %>
         <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
-        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" 
         aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <% } else { %>
-        <a class="flex-grow-1 no-decor" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" 
+        <a class="flex-grow-1 no-decor" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" 
         aria-controls="quarto-sidebar" aria-expanded="false" aria-label="<%- nav.language['toggle-sidebar'] %>"
         onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
           <h1 class="quarto-secondary-nav-title"></h1>

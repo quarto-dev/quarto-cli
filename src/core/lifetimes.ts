@@ -49,8 +49,16 @@ export function createNamedLifetime(name: string): Lifetime {
   return lifetime;
 }
 
-export function getNamedLifetime(name: string): Lifetime | undefined {
-  return _globalLifetimes[name];
+export function getNamedLifetime(
+  name: string,
+  createIfMissing = false,
+): Lifetime | undefined {
+  if (_globalLifetimes[name] !== undefined) {
+    return _globalLifetimes[name];
+  }
+  if (createIfMissing) {
+    return createNamedLifetime(name);
+  }
 }
 
 export class Lifetime {

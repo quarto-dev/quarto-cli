@@ -50,7 +50,7 @@ function unrollDiv(div, fnSkip)
   -- unroll blocks contained in divs
   local blocks = pandoc.List()
   for _, childBlock in ipairs(div.content) do
-    if childBlock.t == "Div" then
+    if is_regular_node(childBlock, "Div") then
       if fnSkip and not fnSkip(div) then
         blocks:insert(childBlock)
       else
@@ -81,7 +81,7 @@ function jats()
       Meta = jatsMeta,
   
       -- clear out divs
-      Div = function(div)
+      Div = function(div) 
         if isTableDiv(div) then
           local tbl = div.content[1]
           if tbl.t == "Table" then
@@ -90,7 +90,9 @@ function jats()
           return tbl
         else
           -- otherwise, if this is a div, we can unroll its contents
-          return unrollDiv(div)
+
+          -- TODO can we replace this by a single return div.content?
+          return unrollDiv(div, is_custom_node)
         end
       end,
 
@@ -156,7 +158,7 @@ function jatsSubarticle()
     return {
       Meta = jatsMeta,
       Div = function(div)
-        
+
         -- this is a notebook cell, handle it
         if isCell(div) then
           if isCodeCell(div) then
@@ -175,7 +177,7 @@ function jatsSubarticle()
               local outputEls = pandoc.List()
               local otherEls = pandoc.List()
               for i, v in ipairs(div.content) do
-                if v.t == "Div" and isCodeCellOutput(v) then
+                if is_regular_node(v, "Div") and isCodeCellOutput(v) then
                   outputEls:extend({v})
                 else
                   otherEls:extend({v})

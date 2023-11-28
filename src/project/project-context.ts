@@ -4,14 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import {
-  dirname,
-  globToRegExp,
-  isAbsolute,
-  join,
-  relative,
-  SEP,
-} from "path/mod.ts";
+import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
+import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
 
@@ -60,6 +55,7 @@ import {
   engineIgnoreDirs,
   executionEngineIntermediateFiles,
   fileExecutionEngine,
+  projectIgnoreGlobs,
 } from "../execute/engine.ts";
 import { kMarkdownEngine } from "../execute/types.ts";
 
@@ -69,9 +65,7 @@ import {
   ignoreFieldsForProjectType,
   normalizeFormatYaml,
   projectConfigFile,
-  projectIgnoreGlobs,
   projectVarsFile,
-  toInputRelativePaths,
 } from "./project-shared.ts";
 import { RenderFlags } from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
@@ -91,9 +85,13 @@ import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
 import { debug } from "log/mod.ts";
+import { computeProjectEnvironment } from "./project-environment.ts";
+import { ProjectEnvironment } from "./project-environment-types.ts";
+import { NotebookContext } from "../render/notebook/notebook-types.ts";
 
 export async function projectContext(
   path: string,
+  notebookContext: NotebookContext,
   flags?: RenderFlags,
   force = false,
 ): Promise<ProjectContext | undefined> {
@@ -111,6 +109,20 @@ export async function projectContext(
     quartoYamlProjectConfigResolver(configSchema),
     await projectExtensionsConfigResolver(extensionContext, dir),
   ];
+
+  // Compute this on demand and only a single time per
+  // project context
+  let cachedEnv: ProjectEnvironment | undefined = undefined;
+  const environment = async (
+    project: ProjectContext,
+  ) => {
+    if (cachedEnv) {
+      return Promise.resolve(cachedEnv);
+    } else {
+      cachedEnv = await computeProjectEnvironment(notebookContext, project);
+      return cachedEnv;
+    }
+  };
 
   while (true) {
     // use the current resolver
@@ -259,6 +271,8 @@ export async function projectContext(
           // this is a relatively ugly hack to avoid a circular import chain
           // that causes a deno bundler bug;
           renderFormats,
+          environment,
+          notebookContext,
         };
       } else {
         const { files, engines } = projectInputFiles(dir);
@@ -274,6 +288,8 @@ export async function projectContext(
             configResources: projectConfigResources(dir, projectConfig),
           },
           renderFormats,
+          environment,
+          notebookContext,
         };
       }
     } else {
@@ -287,11 +303,17 @@ export async function projectContext(
           const context: ProjectContext = {
             dir: originalDir,
             engines: [],
-            config: { project: {} },
+            config: {
+              project: {
+                [kProjectOutputDir]: flags?.outputDir,
+              },
+            },
             files: {
               input: [],
             },
             renderFormats,
+            environment,
+            notebookContext,
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = projectInputFiles(originalDir);
@@ -448,9 +470,9 @@ async function resolveProjectExtension(
       // system supported project type (rather than the extension name)
       const extProjType = () => {
         const projectMeta = projectExt.project;
-        if (projectMeta && typeof (projectMeta) === "object") {
+        if (projectMeta && typeof projectMeta === "object") {
           const extType = (projectMeta as Record<string, unknown>).type;
-          if (typeof (extType) === "string") {
+          if (typeof extType === "string") {
             return extType;
           } else {
             return "default";
@@ -511,36 +533,12 @@ async function resolveLanguageTranslations(
 // a context (i.e. implicitly treat directory as a project)
 export function projectContextForDirectory(
   path: string,
+  notebookContext: NotebookContext,
   flags?: RenderFlags,
 ): Promise<ProjectContext> {
-  return projectContext(path, flags, true) as Promise<ProjectContext>;
-}
-
-export async function projectMetadataForInputFile(
-  input: string,
-  flags?: RenderFlags,
-  project?: ProjectContext,
-): Promise<Metadata> {
-  if (project) {
-    // don't mutate caller
-    project = ld.cloneDeep(project) as ProjectContext;
-  } else {
-    project = await projectContext(input, flags);
-  }
-
-  if (project?.dir && project?.config) {
-    // If there is directory and configuration information
-    // process paths
-    return toInputRelativePaths(
-      projectType(project?.config?.project?.[kProjectType]),
-      project.dir,
-      dirname(input),
-      project.config,
-    ) as Metadata;
-  } else {
-    // Just return the config or empty metadata
-    return project?.config || {};
-  }
+  return projectContext(path, notebookContext, flags, true) as Promise<
+    ProjectContext
+  >;
 }
 
 export function projectYamlFiles(dir: string): string[] {
@@ -698,9 +696,9 @@ function projectConfigResources(
           // project type specific ignore (e.g. site-navbar, site-sidebar)
         } else if (Array.isArray(value)) {
           findResources(value);
-        } else if (typeof (value) === "object") {
+        } else if (typeof value === "object") {
           findResources(value as Record<string, unknown>, index);
-        } else if (typeof (value) === "string") {
+        } else if (typeof value === "string") {
           const path = isAbsolute(value) ? value : join(dir, value);
           // Paths could be invalid paths (e.g. with colons or other weird characters)
           try {

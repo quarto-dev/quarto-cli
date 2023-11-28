@@ -108,7 +108,7 @@ export function httpDevServer(
     handle: (req: Request) => {
       // handle requests for quarto-preview.js
       const url = new URL(req.url);
-      if (url.pathname === `/${kQuartoPreviewJs}`) {
+      if (url.pathname.endsWith(kQuartoPreviewJs)) {
         return true;
       }
 
@@ -121,7 +121,7 @@ export function httpDevServer(
     },
     request: async (req: Request) => {
       const url = new URL(req.url);
-      if (url.pathname === `/${kQuartoPreviewJs}`) {
+      if (url.pathname.endsWith(kQuartoPreviewJs)) {
         const path = resourcePath(join("preview", kQuartoPreviewJs));
         const contents = await Deno.readFile(path);
         return httpContentResponse(contents, "text/javascript");

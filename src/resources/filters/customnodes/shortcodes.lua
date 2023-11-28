@@ -18,8 +18,10 @@ _quarto.ast.add_handler({
     end)
     local shortcode_content = span.content:map(function(el)
       if not el.classes:includes("quarto-shortcode__-param") then
+        -- luacov: disable
         quarto.log.output(el)
         fatal("Unexpected span in a shortcode parse")
+        -- luacov: enable
       end
 
       -- is it a recursive shortcode?
@@ -64,8 +66,10 @@ _quarto.ast.add_handler({
           }
         end
       else
+        -- luacov: disable
         quarto.log.output(el)
         fatal("Unexpected span in a shortcode parse")
+        -- luacov: enable
       end
     end)
     local name = shortcode_content:remove(1)
@@ -80,6 +84,7 @@ _quarto.ast.add_handler({
     local tbl = {
       __quarto_custom_node = node,
       name = name,
+      unparsed_content = span.attributes["data-raw"],
       params = shortcode_content
     }
     
@@ -87,7 +92,9 @@ _quarto.ast.add_handler({
   end,
 
   render = function(node)
-    fatal("Should not need to render a shortcode.")
+    -- luacov: disable
+    internal_error()
+    -- luacov: enable
   end,
 
   constructor = function(tbl)
@@ -109,8 +116,10 @@ local function handle_shortcode(shortcode_tbl, node)
     -- we need to handle this explicitly
 
     if type(shortcode_tbl.name) ~= "number" then
+      -- luacov: disable
       quarto.log.output(shortcode_tbl.name)
       fatal("Unexpected shortcode name type " .. type(shortcode_tbl.name))
+      -- luacov: enable
     end
 
     local shortcode_node = node.content[shortcode_tbl.name]
@@ -119,8 +128,10 @@ local function handle_shortcode(shortcode_tbl, node)
       local custom_data, t, kind = _quarto.ast.resolve_custom_data(v)
       if custom_data ~= nil then
         if t ~= "Shortcode" then
+          -- luacov: disable
           quarto.log.output(t)
           fatal("Unexpected shortcode content type " .. tostring(t))
+          -- luacov: enable
         end
         -- we are not resolved, so resolve
         shortcode_node.content[i] = handle_shortcode(custom_data, v)
@@ -151,9 +162,11 @@ local function handle_shortcode(shortcode_tbl, node)
       if custom_data == nil then
         result = pandoc.utils.stringify(shortcode_node)
       elseif t ~= "Shortcode" then
+        -- luacov: disable
         quarto.log.output(custom_data)
         quarto.log.output(t)
         fatal("Unexpected shortcode content type " .. tostring(t))
+        -- luacov: enable
       else
         local result = handle_shortcode(custom_data, shortcode_node)
         result = pandoc.utils.stringify(result)
@@ -164,15 +177,18 @@ local function handle_shortcode(shortcode_tbl, node)
       table.insert(args, { value = v.value })
       table.insert(raw_args, v.value)
     else
+      -- luacov: disable
       quarto.log.output(v)
       fatal("Unexpected shortcode param type " .. tostring(v.type))
+      -- luacov: enable
     end
   end
 
   local shortcode_struct = {
     args = args,
     raw_args = raw_args,
-    name = name
+    name = name,
+    unparsed_content = shortcode_tbl.unparsed_content
   }
 
   local handler = handlerForShortcode(shortcode_struct)
@@ -222,12 +238,12 @@ function shortcodes_filter()
       return nil
     end
     local result, struct = handle_shortcode(custom_data, node)
-    return shortcodeResultAsBlocks(result, struct.name)
+    return shortcodeResultAsBlocks(result, struct.name, custom_data)
   end
 
   local inline_handler = function(custom_data, node)
     local result, struct = handle_shortcode(custom_data, node)
-    return shortcodeResultAsInlines(result, struct.name)
+    return shortcodeResultAsInlines(result, struct.name, custom_data)
   end
 
   local code_handler = function(el)
@@ -316,10 +332,10 @@ function callShortcodeHandler(handler, shortCode)
   end
 end
 
-function shortcodeResultAsInlines(result, name)
+function shortcodeResultAsInlines(result, name, shortcode_tbl)
   if result == nil then
     warn("Shortcode '" .. name .. "' not found")
-    return {}
+    return pandoc.RawInline(FORMAT, shortcode_tbl.unparsed_content)
   end
   local type = quarto.utils.type(result)
   if type == "Inlines" then
@@ -342,16 +358,20 @@ function shortcodeResultAsInlines(result, name)
   elseif isBlockEl(result) then
     return pandoc.utils.blocks_to_inlines( { result }, { pandoc.Space() })
   else
+    -- luacov: disable
     error("Unexpected result from shortcode " .. name .. "")
     quarto.log.output(result)
     fatal("This is a bug in the shortcode. If this is a quarto shortcode, please report it at https://github.com/quarto-dev/quarto-cli")
+    -- luacov: enable
   end
 end
   
-function shortcodeResultAsBlocks(result, name)
+function shortcodeResultAsBlocks(result, name, shortcode_tbl)
   if result == nil then
-    warn("Shortcode '" .. name .. "' not found")
-    return {}
+    if name ~= 'include' then
+      warn("Shortcode '" .. name .. "' not found")
+    end
+    return pandoc.Blocks({pandoc.RawBlock(FORMAT, shortcode_tbl.unparsed_content)})
   end
   local type = quarto.utils.type(result)
   if type == "Blocks" then
@@ -374,8 +394,10 @@ function shortcodeResultAsBlocks(result, name)
   elseif isInlineEl(result) then
     return pandoc.Blocks( {pandoc.Para( {result} ) }) -- why not a plain?
   else
+    -- luacov: disable
     error("Unexpected result from shortcode " .. name .. "")
     quarto.log.output(result)
     fatal("This is a bug in the shortcode. If this is a quarto shortcode, please report it at https://github.com/quarto-dev/quarto-cli")
+    -- luacov: enable
   end
 end

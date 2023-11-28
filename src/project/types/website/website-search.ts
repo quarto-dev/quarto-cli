@@ -51,7 +51,7 @@ import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
-import { breadCrumbs, sidebarForHref } from "./website-navigation.ts";
+import { breadCrumbs, sidebarForHref } from "./website-shared.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -428,19 +428,19 @@ export function searchOptions(
 function searchInputLimit(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchConfig && typeof searchConfig === "object") {
     const limit = searchConfig[kLimit];
-    if (typeof (limit) === "number") {
+    if (typeof limit === "number") {
       return limit;
     }
   }
-  return 20;
+  return 50;
 }
 
 function searchKbdShortcut(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchConfig && typeof searchConfig === "object") {
     const kbd = searchConfig[kKbShortcutSearch];
     if (Array.isArray(kbd)) {
       return kbd;
@@ -454,7 +454,7 @@ function searchKbdShortcut(
 function searchShowItemContext(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchConfig && typeof searchConfig === "object") {
     return searchConfig[kShowItemContext] as
       | boolean
       | "tree"
@@ -469,7 +469,7 @@ function searchType(
   userType: unknown,
   location: SearchInputLocation,
 ): "overlay" | "textbox" {
-  if (userType && typeof (userType) === "string") {
+  if (userType && typeof userType === "string") {
     switch (userType) {
       case "overlay":
         return "overlay";
@@ -491,7 +491,7 @@ function algoliaOptions(
   project: ProjectContext,
 ) {
   const algoliaRaw = searchConfig[kAlgolia];
-  if (algoliaRaw && typeof (algoliaRaw) === "object") {
+  if (algoliaRaw && typeof algoliaRaw === "object") {
     const algoliaObj = algoliaRaw as SearchOptionsAlgolia;
     const applicationId = algoliaObj[kSearchApplicationId];
     const apiKey = algoliaObj[kSearchOnlyApiKey];
@@ -624,17 +624,6 @@ export function websiteSearchDependency(
         warning(
           "Algolia search is misconfigured. Please ensure that you provide an application-id, search-only-api-key, and index-name.",
         );
-      }
-
-      // See limit imposed at
-      // https://www.algolia.com/doc/rest-api/insights/#method-param-objectids
-      const limit = options[kLimit];
-      if (limit) {
-        if (typeof (limit) === "number" && limit > 20) {
-          warning(
-            "Algolia Insights is limited to 20 objectIds when recording the `Items Viewed` event. Please reduce the limit for your search to avoid a truncated event.",
-          );
-        }
       }
     }
 
