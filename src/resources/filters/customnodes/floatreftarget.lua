@@ -580,14 +580,7 @@ local function create_figcaption(float)
   -- ids in the document
   local caption_id = float.identifier .. "-caption-" .. figcaption_uuid
   
-  -- narrow workaround for table css breakage (see #7044)
-  -- we do this because bootstrap's css has a rule that 
-  -- applies to .table which we don't want to catch
-  -- the caption
   local classes = { }
-  if float.type:lower() ~= "table" then
-    table.insert(classes, float.type:lower())
-  end
   table.insert(classes, "quarto-float-caption-" .. caption_location)
 
   if float.parent_id then
