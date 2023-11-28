@@ -15814,7 +15814,7 @@ try {
             schema: "boolean",
             tags: {
               formats: [
-                "beamer"
+                "pdf"
               ]
             },
             description: "Whether to produce a Beamer article from this presentation."

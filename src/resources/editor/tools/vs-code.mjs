@@ -15813,7 +15813,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           tags: {
             formats: [
-              "beamer"
+              "pdf"
             ]
           },
           description: "Whether to produce a Beamer article from this presentation."
