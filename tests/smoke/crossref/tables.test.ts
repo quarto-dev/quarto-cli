@@ -20,10 +20,10 @@ testRender(tablesQmd.input, "html", false, [
     "section#sub-tables div.quarto-layout-panel > figure div.quarto-layout-row div#tbl-second > figure table",
 
     // table captions in figure elements (with and without subfloats)
-    "section#simple-crossref-table > div#tbl-letters > figure.quarto-float-tbl > figcaption.table.quarto-float-caption",
-    "section#sub-tables div#tbl-panel.quarto-layout-panel > figure.quarto-float-tbl > figcaption.table.quarto-float-caption",
-    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-first  > figure.quarto-subfloat-tbl > figcaption.table.quarto-subfloat-caption",
-    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-second > figure.quarto-subfloat-tbl > figcaption.table.quarto-subfloat-caption",
+    "section#simple-crossref-table > div#tbl-letters > figure.quarto-float-tbl > figcaption.quarto-float-tbl.quarto-float-caption",
+    "section#sub-tables div#tbl-panel.quarto-layout-panel > figure.quarto-float-tbl > figcaption.quarto-float-tbl.quarto-float-caption",
+    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-first  > figure.quarto-subfloat-tbl > figcaption.quarto-subfloat-tbl.quarto-subfloat-caption",
+    "section#sub-tables div.quarto-layout-panel div.quarto-layout-row div#tbl-second > figure.quarto-subfloat-tbl > figcaption.quarto-subfloat-tbl.quarto-subfloat-caption",
   ]),
   ensureFileRegexMatches(tablesQmd.output.outputPath, [
     /Table&nbsp;1: My Caption/,
