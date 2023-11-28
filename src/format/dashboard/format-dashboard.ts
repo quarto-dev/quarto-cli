@@ -151,7 +151,7 @@ export function dashboardFormat() {
         if (!isWebsiteProject) {
           // If this is a website project, it will inject the scss for dashboards
           extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-          extras.html[kSassBundles].push(dashboardScssLayer());
+          extras.html[kSassBundles].unshift(dashboardScssLayer());
         }
 
         const scripts: DependencyHtmlFile[] = [];

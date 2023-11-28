@@ -84,8 +84,10 @@
 $gray-300: #dee2e6 !default;
 $gray-500: #adb5bd !default;
 $gray-600: #6c757d !default;
+$gray-600: #6c757d !default;
+$gray-800: #343a40 !default;
 
-$card-cap-bg: $gray-500 !default;
+$card-cap-bg: rgba($gray-800, 0.25) !default;
 
 $border-color: $gray-300 !default;
 $border-radius: 0.25rem !default;
