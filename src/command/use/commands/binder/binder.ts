@@ -409,7 +409,7 @@ async function binderFileOperations(
   const renvPath = join(context.dir, "renv.lock");
   if (existsSync(renvPath)) {
     // Create an install.R file
-    const installRText = "install.packages('renv')\nrenv::activate()";
+    const installRText = "install.packages('renv')\nrenv::restore()";
     operations.push({
       file: "install.R",
       desc: "Activates the R environment described in renv.lock",
