@@ -2098,3 +2098,18 @@ code.sourceCode a.code-annotation-anchor {
 .table tbody {
   border-bottom-color: $table-group-separator-color;
 }
+
+// Special Cross Talk Handling
+#quarto-document-content {
+  .crosstalk-input .checkbox input[type="checkbox"],
+  .crosstalk-input .checkbox-inline input[type="checkbox"] {
+    position: unset;
+    margin-top: unset;
+    margin-left: unset;
+  }
+
+  .row {
+    margin-left: unset;
+    margin-right: unset;
+  }
+}
