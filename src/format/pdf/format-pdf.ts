@@ -958,7 +958,7 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{.* \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+  /(.*)\\CommentTok\{(.*?)[^\s]+? \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
 const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;
@@ -971,9 +971,14 @@ const codeAnnotationPostProcessor = () => {
     // Replace colorized code
     line = line.replaceAll(
       kCodeAnnotationRegex,
-      (_match, prefix: string, annotationNumber: string) => {
+      (_match, prefix: string, comment: string, annotationNumber: string) => {
         if (annotationNumber !== lastAnnotation) {
           lastAnnotation = annotationNumber;
+          if (comment.length > 0) {
+            // There is something else inside the comment line so
+            // We need to recreate the comment line without the annotation
+            prefix = `${prefix}\\CommentTok\{${comment}\}`;
+          }
           return `${prefix}\\hspace*{\\fill}\\NormalTok{\\circled{${annotationNumber}}}`;
         } else {
           return `${prefix}`;

@@ -223,7 +223,7 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
     if hasHighlighting then
       -- highlighting is enabled, allow the comment through
       local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
-      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, percentEscape(placeholderComment)) 
+      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, percentEscape(" " .. placeholderComment)) 
       return replaced
     else
       -- no highlighting enabled, ensure we use a standard comment character
