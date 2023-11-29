@@ -7336,20 +7336,6 @@ try {
             }
           },
           {
-            name: "code-summary",
-            tags: {
-              contexts: [
-                "document-code"
-              ],
-              formats: [
-                "$html-all"
-              ]
-            },
-            schema: "string",
-            default: "Code",
-            description: "Summary text to use for code blocks collapsed using `code-fold`"
-          },
-          {
             name: "code-overflow",
             tags: {
               contexts: [
@@ -22481,12 +22467,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 178763,
+          _internalId: 178761,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 178755,
+              _internalId: 178753,
               type: "enum",
               enum: [
                 "png",
@@ -22502,7 +22488,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 178762,
+              _internalId: 178760,
               type: "anyOf",
               anyOf: [
                 {

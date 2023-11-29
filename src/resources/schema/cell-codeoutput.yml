@@ -52,14 +52,6 @@
       - `false` (default): do not collapse code
       - `show`: use the `<details>` tag, but show the expanded code initially.
 
-- name: code-summary
-  tags:
-    contexts: [document-code]
-    formats: [$html-all]
-  schema: string
-  default: "Code"
-  description: "Summary text to use for code blocks collapsed using `code-fold`"
-
 - name: code-overflow
   tags:
     contexts: [document-code]
