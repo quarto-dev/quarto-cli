@@ -7336,6 +7336,20 @@ try {
             }
           },
           {
+            name: "code-summary",
+            tags: {
+              contexts: [
+                "document-code"
+              ],
+              formats: [
+                "$html-all"
+              ]
+            },
+            schema: "string",
+            default: "Code",
+            description: "Summary text to use for code blocks collapsed using `code-fold`"
+          },
+          {
             name: "code-overflow",
             tags: {
               contexts: [
@@ -20360,7 +20374,6 @@ try {
             short: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
             long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand."
           },
-          "Summary text to use for code blocks collapsed using\n<code>code-fold</code>",
           {
             short: "Choose whether to <code>scroll</code> or <code>wrap</code> when code\nlines are too wide for their container.",
             long: "Choose how to handle code overflow, when code lines are too wide for\ntheir container. One of:"
@@ -22243,7 +22256,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Summary text to use for code blocks collapsed using\n<code>code-fold</code>"
         ],
         "schema/external-schemas.yml": [
           {
@@ -22467,12 +22481,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 178761,
+          _internalId: 178607,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 178753,
+              _internalId: 178599,
               type: "enum",
               enum: [
                 "png",
@@ -22488,7 +22502,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 178760,
+              _internalId: 178606,
               type: "anyOf",
               anyOf: [
                 {

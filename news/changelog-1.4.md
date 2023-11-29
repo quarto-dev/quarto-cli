@@ -38,6 +38,7 @@
 - ([#6627](https://github.com/quarto-dev/quarto-cli/issues/6627)): Add a bit of margin-right to checkbox inputs.
 - ([#6714](https://github.com/quarto-dev/quarto-cli/issues/6714)): Display title block for HTML when other (non-title/author/subtitle) metadata is present.
 - ([#6833](https://github.com/quarto-dev/quarto-cli/issues/6833)): Handle partially-specified aspect ratio, width, and height attributes in `video` shortcode.
+- ([#6910](https://github.com/quarto-dev/quarto-cli/issues/6910)): Properly forward `code-summary` as a global HTML option
 - ([#7024](https://github.com/quarto-dev/quarto-cli/discussions/7024)): Ensure HTML documents can render properly even when installed Quarto files aren't writable
 - ([#7137](https://github.com/quarto-dev/quarto-cli/discussions/7137)): Automatically set `rel="noopener"` when setting a target on external links
 - ([#7187](https://github.com/quarto-dev/quarto-cli/issues/7187)): Add `html-table-processing: none` to document- and project-level metadata to disable HTML table processing. Add `{html-table-processing="none"}` to a fenced div to disable HTML table processing for the elements in that div. Add `html-table-processing: none` on knitr or jupyter cell to disable HTML table processing for the cell output content.

@@ -50,6 +50,7 @@ import {
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
+  Format,
   FormatLanguage,
   FormatPandoc,
   isFilterEntryPoint,
@@ -159,7 +160,7 @@ export async function filterParamsJson(
     ...crossrefFilterParams(options, defaults),
     ...citeIndexFilterParams(options, defaults),
     ...layoutFilterParams(options.format, defaults),
-    ...languageFilterParams(options.format.language),
+    ...languageFilterParams(options.format),
     ...jatsFilterParams(options),
     ...notebookContextFilterParams(options),
     ...filterParams,
@@ -431,11 +432,13 @@ function referenceLocationArg(args: string[]) {
   }
 }
 
-function languageFilterParams(language: FormatLanguage) {
+function languageFilterParams(format: Format) {
+  const language = format.language;
   const params: Metadata = {
-    [kCodeSummary]: language[kCodeSummary],
+    [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
+  console.log({ params });
   Object.keys(language).forEach((key) => {
     if (
       key.startsWith("callout-") || key.startsWith("crossref-") ||
@@ -811,7 +814,7 @@ async function resolveFilterExtension(
     // into the filters provided by the extension
     if (
       filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof (filter) === "string" &&
+      typeof filter === "string" &&
       !existsSync(filter)
     ) {
       const extensions = await options.services.extension?.find(
