@@ -530,7 +530,6 @@ async function completeInstallation(
     // Determine a staging location in the installDir
     // (to ensure we can use move without fear of spanning volumes)
     const stagingDir = join(installDir, "._extensions.staging");
-    ensureDirSync(stagingDir);
     try {
       // For each 'extension' in the install dir, perform a move
       const downloadedExtDir = join(downloadDir, kExtensionDir);
@@ -538,9 +537,11 @@ async function completeInstallation(
       // We'll stage the extension in a directory within the install dir
       // then move it to the install dir when ready
       const stagingExtDir = join(stagingDir, kExtensionDir);
+      ensureDirSync(stagingExtDir);
 
       // The final installation target
       const installExtDir = join(installDir, kExtensionDir);
+      ensureDirSync(installExtDir);
 
       // Read the extensions that have been downloaded and install them
       // one by bone
@@ -556,6 +557,9 @@ async function completeInstallation(
         if (existsSync(installPath)) {
           Deno.removeSync(installPath, { recursive: true });
         }
+
+        // Ensure the parent directory exists
+        ensureDirSync(dirname(installPath));
         Deno.renameSync(stagingPath, installPath);
       });
     } finally {
