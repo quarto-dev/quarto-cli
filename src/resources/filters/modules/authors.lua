@@ -631,12 +631,11 @@ local function processFundingGroup(fundingGroup, authors, affiliations)
     end
 
     return result
-  else
-    
+  else    
     -- this is a simple string / inlines, just 
     -- use it as the source
     return {
-      [kStatement] = fundingAward
+      [kStatement] = fundingGroup
     }
   end
 end
