@@ -270,3 +270,4 @@
 - ([#3599](https://github.com/quarto-dev/quarto-cli/issues/3599), [#5870](https://github.com/quarto-dev/quarto-cli/issues/5870)): Fix hash issue causing unexpected render when `freeze` is activated on Windows but re-rendered on Linux (e.g. in Github Action).
 - ([#7252](https://github.com/quarto-dev/quarto-cli/issues/7252)): Improve handling with `tlmgr` of some mismatched LaTeX support files, associated with `expl3.sty` loading.
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
+- ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
