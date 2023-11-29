@@ -7,7 +7,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
@@ -526,8 +526,43 @@ async function completeInstallation(
   await withSpinner({
     message: `Copying`,
     doneMessage: message(),
-  }, () => {
-    copyTo(downloadDir, installDir, { overwrite: true });
+  }, async () => {
+    // Determine a staging location in the installDir
+    // (to ensure we can use move without fear of spanning volumes)
+    const stagingDir = join(installDir, "._extensions.staging");
+    ensureDirSync(stagingDir);
+    try {
+      // For each 'extension' in the install dir, perform a move
+      const downloadedExtDir = join(downloadDir, kExtensionDir);
+
+      // We'll stage the extension in a directory within the install dir
+      // then move it to the install dir when ready
+      const stagingExtDir = join(stagingDir, kExtensionDir);
+
+      // The final installation target
+      const installExtDir = join(installDir, kExtensionDir);
+
+      // Read the extensions that have been downloaded and install them
+      // one by bone
+      const extensions = await readExtensions(downloadedExtDir);
+      extensions.forEach((extension) => {
+        const extensionRelativeDir = relative(downloadedExtDir, extension.path);
+        // Copy to the staging path
+        const stagingPath = join(stagingExtDir, extensionRelativeDir);
+        copyTo(extension.path, stagingPath);
+
+        // Move from the staging path to the install dir
+        const installPath = join(installExtDir, extensionRelativeDir);
+        if (existsSync(installPath)) {
+          Deno.removeSync(installPath, { recursive: true });
+        }
+        Deno.renameSync(stagingPath, installPath);
+      });
+    } finally {
+      // Clean up the staging directory
+      Deno.removeSync(stagingDir, { recursive: true });
+    }
+
     return Promise.resolve();
   });
 }

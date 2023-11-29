@@ -240,6 +240,10 @@
 
 - ([#7905](https://github.com/quarto-dev/quarto-cli/issues/7905)): Use `html+raw_html` as input format when processing HTML rawblocks for tables to avoid Pandoc converting SVG elements to images.
 
+## Extensions
+
+- ([#7375](https://github.com/quarto-dev/quarto-cli/issues/7375)): Updating extensions will now remove files that are not present in newer versions of an extension.
+
 ## Other Fixes and Improvements
 
 - Exit if project pre or post render script fails
