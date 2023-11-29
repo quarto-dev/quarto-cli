@@ -270,11 +270,25 @@ async function writeKernelCommand(
   secret: string,
   options: Record<string, unknown>,
 ) {
-  await conn.write(
-    new TextEncoder().encode(
-      kernelCommand(command, secret, options) + "\n",
-    ),
+  let messageBytes = new TextEncoder().encode(
+    kernelCommand(command, secret, options) + "\n",
   );
+
+  // don't send the message if it's big.
+  // Instead, write it to a file and send the file path
+  // This is disappointing, but something is deeply wrong with Deno.Conn:
+  // https://github.com/quarto-dev/quarto-cli/issues/7737#issuecomment-1830665357
+  if (messageBytes.length > 1024) {
+    const tempFile = Deno.makeTempFileSync();
+    Deno.writeFileSync(tempFile, messageBytes);
+    const msg = kernelCommand("file", secret, { file: tempFile }) + "\n";
+    messageBytes = new TextEncoder().encode(msg);
+  }
+
+  const bytesWritten = await conn.write(messageBytes);
+  if (bytesWritten !== messageBytes.length) {
+    throw new Error("Internal Error");
+  }
 }
 
 function kernelCommand(
