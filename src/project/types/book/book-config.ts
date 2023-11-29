@@ -42,6 +42,7 @@ import {
   kOpenGraph,
   kPageFooter,
   kSiteFavicon,
+  kSiteIssueUrl,
   kSiteNavbar,
   kSitePageNavigation,
   kSitePath,
@@ -130,6 +131,7 @@ export async function bookProjectConfig(
     site[kSiteRepoSubdir] = book[kSiteRepoSubdir];
     site[kSiteRepoBranch] = book[kSiteRepoBranch];
     site[kSiteRepoActions] = book[kSiteRepoActions];
+    site[kSiteIssueUrl] = book[kSiteIssueUrl];
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
@@ -230,7 +232,7 @@ export async function bookProjectConfig(
   const addFooterItems = (region?: PageFooterRegion) => {
     if (region) {
       for (const item of region) {
-        if (typeof (item) !== "string") {
+        if (typeof item !== "string") {
           const navItem = item as NavigationItemObject;
           if (navItem.href) {
             footerFiles.push(navItem.href);

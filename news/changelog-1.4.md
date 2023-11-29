@@ -141,6 +141,7 @@
 - ([#5454](https://github.com/quarto-dev/quarto-cli/issues/5454)): Fix errors previewing with formats such as `asciidoc` are added to book projects.
 - ([#5630](https://github.com/quarto-dev/quarto-cli/issues/5630)): Properly form sharing URL for books
 - ([#6708](https://github.com/quarto-dev/quarto-cli/issues/6708)): Prevent duplication of footnotes within the abstract or description within websites and books.
+- ([#7206](https://github.com/quarto-dev/quarto-cli/issues/7206)): Properly enabled `issue-url` for books
 
 ## Publishing
 
