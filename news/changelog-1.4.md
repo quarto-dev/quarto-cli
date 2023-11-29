@@ -190,6 +190,7 @@
 - ([#5215](https://github.com/quarto-dev/quarto-cli/issues/5215)): Report CORS requests as plain text when serving single-file previews.
 - ([#6267](https://github.com/quarto-dev/quarto-cli/issues/6267)): Fix error message when running in `file://`.
 - ([#7537](https://github.com/quarto-dev/quarto-cli/issues/7537)): Code annotations works better with OJS cells.
+- ([#7747](https://github.com/quarto-dev/quarto-cli/issues/7747)): Fix `FileAttachment` path resolution to work with `revealjs` format (and more generally, URLs that have a non-empty hash).
 
 ## Mermaid diagrams
 
