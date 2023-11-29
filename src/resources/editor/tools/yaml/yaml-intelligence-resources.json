@@ -10893,7 +10893,7 @@
       "schema": "boolean",
       "description": {
         "short": "Include an automatically generated table of contents",
-        "long": "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document. This option has no effect\nif `standalone` is `false`.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
+        "long": "Include an automatically generated table of contents (or, in\nthe case of `latex`, `context`, `docx`, `odt`,\n`opendocument`, `rst`, or `ms`, an instruction to create\none) in the output document.\n\nNote that if you are producing a PDF via `ms`, the table\nof contents will appear at the beginning of the\ndocument, before the title.  If you would prefer it to\nbe at the end of the document, use the option\n`pdf-engine-opt: --no-toc-relocation`.\n"
       }
     },
     {
