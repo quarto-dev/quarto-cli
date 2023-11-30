@@ -58,6 +58,7 @@ $reveal-title-slide-text-align: $presentation-title-slide-text-align !default;
 $code-block-bg: $body-bg !default;
 $code-block-border-color: lighten($body-color, 60%) !default;
 $code-block-font-size: 0.55em !default;
+$code-block-max-height: 500px !default;
 
 // inline code
 $code-color: var(--quarto-hl-fu-color) !default;
@@ -250,7 +251,7 @@ div.reveal div.slides section.quarto-title-block {
   }
   background-color: $code-block-bg;
   padding: 6px 9px;
-  max-height: 500px;
+  max-height: $code-block-max-height;
   white-space: pre;
 }
 
