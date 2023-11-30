@@ -179,7 +179,7 @@ export function metadataHtmlPostProcessor(
       }
 
       // find a preview image if one is not provided
-      if (metadata[kImage] === undefined) {
+      if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
         metadata[kImage] = findPreviewImg(doc, true) ||
           websiteImage(project.config);
       }
@@ -244,7 +244,7 @@ function opengraphMetadata(
   }
 
   // Read open graph data in
-  if (openGraph && typeof (openGraph) === "object") {
+  if (openGraph && typeof openGraph === "object") {
     [
       kTitle,
       kDescription,
@@ -267,7 +267,7 @@ function twitterMetadata(format: Format) {
 
   // populate defaults
   const twitterData = mergedSiteAndDocumentData(kTwitterCard, format);
-  if (twitterData && typeof (twitterData) === "object") {
+  if (twitterData && typeof twitterData === "object") {
     [kTitle, kDescription, kImage, kCreator, kTwitterSite, kCardStyle].forEach(
       (key) => {
         if (twitterData[key] !== undefined) {
@@ -285,7 +285,9 @@ function pageMetadata(
 ): Record<string, unknown> {
   const pageTitle = computePageTitle(format, extras) as string;
   const pageDescription = format.metadata[kDescription] as string;
-  const pageImage = format.metadata[kImage] as string;
+  const pageImage = format.metadata[kImage]
+    ? format.metadata[kImage] as string
+    : undefined;
 
   return {
     [kTitle]: pageTitle,
@@ -340,13 +342,13 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
-  if (typeof (siteMetadata) === "object" && format.metadata[kImage]) {
+  if (typeof siteMetadata === "object" && format.metadata[kImage]) {
     const siteMeta = siteMetadata as Metadata;
     siteMeta[kImage] = format.metadata[kImage];
   }
   if (
-    typeof (siteMetadata) === "object" &&
-    typeof (docMetadata) === "object"
+    typeof siteMetadata === "object" &&
+    typeof docMetadata === "object"
   ) {
     return mergeConfigs(
       siteMetadata,

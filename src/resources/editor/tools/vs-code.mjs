@@ -18108,7 +18108,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "image",
-          schema: "path",
+          schema: {
+            anyOf: [
+              "path",
+              "boolean"
+            ]
+          },
           tags: {
             formats: [
               "$html-doc"
@@ -21217,16 +21222,12 @@ var require_yaml_intelligence_resources = __commonJS({
         "The format that this link represents.",
         "The title for this link.",
         "The icon for this link.",
-        "The rel for this link.",
-        "The target for this link.",
         "The title for the link.",
         "The href for the link.",
         "The icon for the link.",
         "The format that this link represents.",
         "The title for this link.",
         "The icon for this link.",
-        "The rel for this link.",
-        "The target for this link.",
         {
           short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
@@ -22534,12 +22535,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 179968,
+        _internalId: 179698,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 179960,
+            _internalId: 179690,
             type: "enum",
             enum: [
               "png",
@@ -22555,7 +22556,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 179967,
+            _internalId: 179697,
             type: "anyOf",
             anyOf: [
               {
