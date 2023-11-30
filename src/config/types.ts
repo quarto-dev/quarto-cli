@@ -714,6 +714,13 @@ export interface FormatLink {
   attr?: Record<string, string>;
 }
 
+export interface FormatAliasLink {
+  icon?: string;
+  text: string;
+  format: string;
+  attr?: Record<string, string>;
+}
+
 export interface OtherLink {
   icon?: string;
   text: string;

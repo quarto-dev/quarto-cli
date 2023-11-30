@@ -15023,18 +15023,48 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           text: {
                             string: {
-                              description: "The title for this alternative link."
+                              description: "The title for the link."
                             }
                           },
                           href: {
                             string: {
-                              description: "The href for tihs alternative link."
+                              description: "The href for the link."
+                            }
+                          },
+                          icon: {
+                            string: {
+                              description: "The icon for the link."
                             }
                           }
                         },
                         required: [
-                          "title",
+                          "text",
                           "href"
+                        ]
+                      }
+                    },
+                    {
+                      object: {
+                        properties: {
+                          format: {
+                            string: {
+                              description: "The format that this link represents."
+                            }
+                          },
+                          text: {
+                            string: {
+                              description: "The title for this link."
+                            }
+                          },
+                          icon: {
+                            string: {
+                              description: "The icon for this link."
+                            }
+                          }
+                        },
+                        required: [
+                          "text",
+                          "format"
                         ]
                       }
                     }
@@ -21181,10 +21211,22 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
           long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
         },
-        "The title for this alternative link.",
-        "The href for tihs alternative link.",
-        "The title for this alternative link.",
-        "The href for tihs alternative link.",
+        "The title for the link.",
+        "The href for the link.",
+        "The icon for the link.",
+        "The format that this link represents.",
+        "The title for this link.",
+        "The icon for this link.",
+        "The rel for this link.",
+        "The target for this link.",
+        "The title for the link.",
+        "The href for the link.",
+        "The icon for the link.",
+        "The format that this link represents.",
+        "The title for this link.",
+        "The icon for this link.",
+        "The rel for this link.",
+        "The target for this link.",
         {
           short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
@@ -21446,6 +21488,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
         "Disables the default reveal.js slide layout (scaling and\ncentering)",
+        "Sets the maximum height for source code blocks that appear in the\npresentation.",
         {
           short: "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
           long: "Open links in an iframe preview overlay."
@@ -22267,8 +22310,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "Sets the maximum height for source code blocks that appear in the\npresentation."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22492,12 +22534,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178765,
+        _internalId: 179968,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178757,
+            _internalId: 179960,
             type: "enum",
             enum: [
               "png",
@@ -22513,7 +22555,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178764,
+            _internalId: 179967,
             type: "anyOf",
             anyOf: [
               {

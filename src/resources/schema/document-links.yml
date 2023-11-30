@@ -38,11 +38,27 @@
                 properties:
                   text:
                     string:
-                      description: "The title for this alternative link."
+                      description: "The title for the link."
                   href:
                     string:
-                      description: "The href for tihs alternative link."
-                required: [title, href]
+                      description: "The href for the link."
+                  icon:
+                    string:
+                      description: "The icon for the link."
+                required: [text, href]
+            - object:
+                properties:
+                  format:
+                    string:
+                      description: "The format that this link represents."
+                  text:
+                    string:
+                      description: "The title for this link."
+                  icon:
+                    string:
+                      description: "The icon for this link."
+                required: [text, format]
+
   description:
     short: "Controls whether links to other rendered formats are displayed in HTML output."
     long: |
