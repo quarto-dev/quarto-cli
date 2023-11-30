@@ -878,6 +878,12 @@ body .nav-footer {
   border-radius: 3px;
 }
 
+@include media-breakpoint-down(lg) {
+  .quarto-reader-toggle {
+    display: none;
+  }
+}
+
 .quarto-reader-toggle.reader.quarto-navigation-tool .quarto-reader-toggle-btn {
   background-color: $sidebar-fg;
   border-radius: 3px;

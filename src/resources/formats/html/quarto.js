@@ -33,7 +33,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Recompute the position of margin elements anytime the body size changes
   if (window.ResizeObserver) {
     const resizeObserver = new window.ResizeObserver(
-      throttle(layoutMarginEls, 50)
+      throttle(() => {
+        layoutMarginEls();
+
+        console.log(window.document.body.getBoundingClientRect());
+        if (
+          window.document.body.getBoundingClientRect().width < 990 &&
+          isReaderMode()
+        ) {
+          quartoToggleReader();
+        }
+      }, 50)
     );
     resizeObserver.observe(window.document.body);
   }
