@@ -438,7 +438,6 @@ function languageFilterParams(format: Format) {
     [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
-  console.log({ params });
   Object.keys(language).forEach((key) => {
     if (
       key.startsWith("callout-") || key.startsWith("crossref-") ||
