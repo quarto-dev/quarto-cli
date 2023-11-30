@@ -84,7 +84,7 @@ export function computePageTitle(
     } else if (title !== undefined) {
       return titlePrefix + " - " + title;
     } else {
-      return undefined;
+      return titlePrefix + "";
     }
   } else {
     return title as string;

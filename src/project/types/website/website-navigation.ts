@@ -113,7 +113,6 @@ import {
 import {
   flattenItems,
   inputFileHref,
-  Navigation,
   NavigationFooter,
   NavigationPagination,
   websiteNavigationConfig,
