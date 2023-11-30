@@ -512,6 +512,7 @@ export function createChangeHandler(
   render: (to?: string) => Promise<RenderForPreviewResult | undefined>,
   renderOnChange: boolean,
   reloadFileFilter: (file: string) => boolean = () => true,
+  ignoreChanges?: (files: string[]) => boolean,
 ): ChangeHandler {
   const renderQueue = new PromiseQueue<RenderForPreviewResult | undefined>();
   let watcher: Watcher | undefined;
@@ -594,7 +595,7 @@ export function createChangeHandler(
         }, 50),
       });
 
-      watcher = previewWatcher(watches);
+      watcher = previewWatcher(watches, ignoreChanges);
       watcher.start();
     }
   };
@@ -614,7 +615,10 @@ interface Watcher {
   stop: VoidFunction;
 }
 
-function previewWatcher(watches: Watch[]): Watcher {
+function previewWatcher(
+  watches: Watch[],
+  ignoreChanges?: (files: string[]) => boolean,
+): Watcher {
   existsSync;
   watches = watches.map((watch) => {
     return {
@@ -635,7 +639,10 @@ function previewWatcher(watches: Watch[]): Watcher {
   const watchForChanges = async () => {
     for await (const event of fsWatcher) {
       try {
-        if (event.kind === "modify") {
+        if (
+          event.kind === "modify" &&
+          (!ignoreChanges || !ignoreChanges(event.paths))
+        ) {
           const handlers = new Set<() => Promise<void>>();
           event.paths.forEach((path) => {
             const handler = handlerForFile(path);
