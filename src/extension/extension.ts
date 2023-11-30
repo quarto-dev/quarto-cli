@@ -912,6 +912,12 @@ function resolveFilter(
   filter: QuartoFilter,
 ) {
   if (typeof filter === "string") {
+    // First check for the sentinel quarto filter, and allow that through
+    // if it is present
+    if (filter === "quarto") {
+      return filter;
+    }
+
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(

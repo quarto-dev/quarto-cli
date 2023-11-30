@@ -244,6 +244,7 @@
 
 ## Extensions
 
+- ([#6747](https://github.com/quarto-dev/quarto-cli/issues/6747)): Properly support format extensions controlling the order of filters that they use
 - ([#7375](https://github.com/quarto-dev/quarto-cli/issues/7375)): Updating extensions will now remove files that are not present in newer versions of an extension.
 
 ## Other Fixes and Improvements
