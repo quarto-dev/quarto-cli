@@ -136,11 +136,12 @@ figure > p:first-child {
   margin-top: 0;
   margin-bottom: 0;
 }
-figure > figcaption {
-  margin-top: 0.5em;
-}
-figure.quarto-float-lst > figcaption {
+
+figure > figcaption.quarto-float-caption-bottom {
   margin-bottom: 0.5em;
+}
+figure > figcaption.quarto-float-caption-top {
+  margin-top: 0.5em;
 }
 
 // anchor
@@ -227,16 +228,27 @@ tr.header > th > p:last-of-type {
 }
 
 table,
-.table {
-  caption-side: $tbl-cap-location;
-  margin-bottom: 1.5rem;
+table.table {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-figure.quarto-float-tbl figcaption,
 caption,
 .table-caption {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  text-align: center;
+}
+
+figure.quarto-float-tbl figcaption.quarto-float-caption-top {
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  text-align: center;
+}
+
+figure.quarto-float-tbl figcaption.quarto-float-caption-bottom {
+  padding-top: 0.25rem;
+  margin-bottom: 0.5rem;
   text-align: center;
 }
 
