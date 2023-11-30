@@ -7957,7 +7957,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "bottom",
           description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
         },
         {
@@ -7979,7 +7979,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "bottom",
           description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
         },
         {
@@ -8001,7 +8001,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "top",
           description: "Where to place table captions (`top`, `bottom`, or `margin`)"
         }
       ],
@@ -16750,6 +16750,17 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           default: false,
           description: "Disables the default reveal.js slide layout (scaling and centering)\n"
+        },
+        {
+          name: "code-block-height",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "string",
+          default: "500px",
+          description: "Sets the maximum height for source code blocks that appear in the presentation.\n"
         }
       ],
       "schema/document-reveal-media.yml": [
@@ -20373,6 +20384,7 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand.",
           long: "Collapse code into an HTML <code>&lt;details&gt;</code> tag so the\nuser can display it on-demand."
         },
+        "Summary text to use for code blocks collapsed using\n<code>code-fold</code>",
         {
           short: "Choose whether to <code>scroll</code> or <code>wrap</code> when code\nlines are too wide for their container.",
           long: "Choose how to handle code overflow, when code lines are too wide for\ntheir container. One of:"
@@ -22256,7 +22268,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
         "internal-schema-hack",
-        "Summary text to use for code blocks collapsed using\n<code>code-fold</code>"
+        "Sets the maximum height for source code blocks that appear in the\npresentation."
       ],
       "schema/external-schemas.yml": [
         {
@@ -22480,12 +22492,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178607,
+        _internalId: 178765,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178599,
+            _internalId: 178757,
             type: "enum",
             enum: [
               "png",
@@ -22501,7 +22513,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178606,
+            _internalId: 178764,
             type: "anyOf",
             anyOf: [
               {

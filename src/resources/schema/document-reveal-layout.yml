@@ -94,3 +94,11 @@
   default: false
   description: |
     Disables the default reveal.js slide layout (scaling and centering)
+
+- name: code-block-height
+  tags:
+    formats: [revealjs]
+  schema: string
+  default: "500px"
+  description: |
+    Sets the maximum height for source code blocks that appear in the presentation.
