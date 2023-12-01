@@ -49,6 +49,7 @@
 ## Appendix
 
 - ([#6783](https://github.com/quarto-dev/quarto-cli/issues/6783)): Add additional CC licenses, improve link text
+- ([#5685](https://github.com/quarto-dev/quarto-cli/issues/5685)): Provide consistent ids for appendix sections
 
 ## RevealJS Format
 
