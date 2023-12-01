@@ -20,7 +20,7 @@ end
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
 local function annoteProvider(lang) 
-  local commentChars = constants.kLangCommentChars[lang]
+  local commentChars = constants.kLangCommentChars[lang] or constants.kDefaultCodeAnnotationComment
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])

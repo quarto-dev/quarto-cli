@@ -211,6 +211,7 @@
 ## Code Annotations
 
 - ([#6385](https://github.com/quarto-dev/quarto-cli/issues/6385)): Add support for code annotation in fenced code cells
+- ([#7435](https://github.com/quarto-dev/quarto-cli/issues/7435)): Use `#` as a fallback comment character for unknown languages
 
 ## Author and Affiliations
 

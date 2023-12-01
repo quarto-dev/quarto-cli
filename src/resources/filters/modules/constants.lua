@@ -126,27 +126,31 @@ local kLangCommentChars = {
   gap = { "#" },
   dockerfile = { "#" }
 }
+local kDefaultCodeAnnotationComment =  {"#"}
 
 return {
   kCitation = kCitation,
   kContainerId = kContainerId,
   kArticleId = kArticleId,
   kPage = kPage,
-  kPageFirst = kPageFirst,  kPageLast = kPageLast,
+  kPageFirst = kPageFirst,
+  kPageLast = kPageLast,
   kFigExtended = kFigExtended,
   kLstCap = kLstCap,
   kNotebook = kNotebook,
   kNotebookTitle = kNotebookTitle,
   kNotebookCellId = kNotebookCellId,
   kLangSourcePrefix = kLangSourcePrefix,
-  kManuscriptUrl = kManuscriptUrl,  kNotebookLinks = kNotebookLinks,
+  kManuscriptUrl = kManuscriptUrl,
+  kNotebookLinks = kNotebookLinks,
   kDisableProcessing = kDisableProcessing,
   kRefsIndentifier = kRefsIndentifier,
   kTags = kTags,
   kKeywords = kKeywords,
   kQuartoInternal = kQuartoInternal,
   kHasAuthorNotes = kHasAuthorNotes,
-  kHasPermissions = kHasPermissions,  kNoteBookCode = kNoteBookCode,
+  kHasPermissions = kHasPermissions,
+  kNoteBookCode = kNoteBookCode,
   kNoteBookContent = kNoteBookContent,
   kNoteBookOutput = kNoteBookOutput,
   kDelinkClass = kDelinkClass,
@@ -190,5 +194,6 @@ return {
   kLicense = kLicense,
 
   kLangCommentChars = kLangCommentChars,
+  kDefaultCodeAnnotationComment = kDefaultCodeAnnotationComment,
   kHtmlTableProcessing = kHtmlTableProcessing
 }
