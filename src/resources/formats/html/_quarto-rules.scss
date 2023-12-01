@@ -656,9 +656,8 @@ pre.sourceCode.code-annotation-code {
 
 code.sourceCode .code-annotation-anchor {
   z-index: 100;
-  position: absolute;
-  right: 0.5em;
-  left: inherit;
+  position: relative;
+  float: right;
   background-color: transparent;
 }
 
