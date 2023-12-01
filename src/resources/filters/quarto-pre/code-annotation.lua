@@ -94,13 +94,27 @@ end
 -- removes the annotations
 local function resolveCellAnnotes(codeBlockEl, processAnnotation) 
 
+  -- The start line, this may be shifted for cases like 
+  -- fenced code blocks, which will have additional code injected
+  -- and so require an adjusted start line
+  local defaultStartLine = 1 
+
   -- collect any annotations on this code cell
   local lang = codeBlockEl.attr.classes[1] 
   -- handle fenced-echo block which will have no language
   if lang == "cell-code" then 
     _, _, matchedLang = string.find(codeBlockEl.text, "^`+%{%{([^%}]*)%}%}")
     lang = matchedLang or lang
+  elseif startsWith(lang, '{{') then
+    _, _, matchedLang = string.find(lang, "{{+(.-)}}+")
+    if matchedLang then
+      lang = matchedLang
+      defaultStartLine = defaultStartLine + 1
+    end
   end
+
+
+
   local annotationProvider = annoteProvider(lang)
   if annotationProvider ~= nil then
     local annotations = {}
@@ -108,7 +122,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     
     local outputs = pandoc.List({})
     local i = 1
-    local offset = codeBlockEl.attr.attributes['startFrom'] or 1
+    local offset = codeBlockEl.attr.attributes['startFrom'] or defaultStartLine
     for line in toLines(code) do
   
       -- Look and annotation
@@ -135,7 +149,10 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     if annotations and next(annotations) ~= nil then
       local outputText = ""
       for i, output in ipairs(outputs) do
-        outputText = outputText .. output .. '\n'
+        outputText = outputText .. output
+        if i < #outputs then
+          outputText = outputText .. '\n'
+        end
       end
       codeBlockEl.text = outputText
       hasAnnotations = true

@@ -208,6 +208,10 @@
 - Upgrade to 10.2.0-rc.2
 - ([#5426](https://github.com/quarto-dev/quarto-cli/issues/5426)): Don't escape mermaid output in markdown formats (author: @rcannood).
 
+## Code Annotations
+
+- ([#6385](https://github.com/quarto-dev/quarto-cli/issues/6385)): Add support for code annotation in fenced code cells
+
 ## Author and Affiliations
 
 - Add support for specifying author `roles`, with optional support for degree of contribution and automatic normalization of CreDiT roles, when applicable.
