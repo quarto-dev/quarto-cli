@@ -1582,6 +1582,17 @@
   anyOf:
     - string
     - maybeArrayOf: number
+    - object:
+        properties:
+          year:
+            number:
+              description: The year
+          month:
+            number:
+              description: The month
+          day:
+            number:
+              description: The day
 
 - id: csl-person
   anyOf:

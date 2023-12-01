@@ -10531,6 +10531,27 @@ var require_yaml_intelligence_resources = __commonJS({
             "string",
             {
               maybeArrayOf: "number"
+            },
+            {
+              object: {
+                properties: {
+                  year: {
+                    number: {
+                      description: "The year"
+                    }
+                  },
+                  month: {
+                    number: {
+                      description: "The month"
+                    }
+                  },
+                  day: {
+                    number: {
+                      description: "The day"
+                    }
+                  }
+                }
+              }
             }
           ]
         },
@@ -22535,12 +22556,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 179698,
+        _internalId: 180061,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 179690,
+            _internalId: 180053,
             type: "enum",
             enum: [
               "png",
@@ -22556,7 +22577,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 179697,
+            _internalId: 180060,
             type: "anyOf",
             anyOf: [
               {

@@ -10532,6 +10532,27 @@ try {
               "string",
               {
                 maybeArrayOf: "number"
+              },
+              {
+                object: {
+                  properties: {
+                    year: {
+                      number: {
+                        description: "The year"
+                      }
+                    },
+                    month: {
+                      number: {
+                        description: "The month"
+                      }
+                    },
+                    day: {
+                      number: {
+                        description: "The day"
+                      }
+                    }
+                  }
+                }
               }
             ]
           },
@@ -22536,12 +22557,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 179698,
+          _internalId: 180061,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 179690,
+              _internalId: 180053,
               type: "enum",
               enum: [
                 "png",
@@ -22557,7 +22578,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 179697,
+              _internalId: 180060,
               type: "anyOf",
               anyOf: [
                 {

@@ -879,7 +879,11 @@ export type WebsiteListingContentsObject = {
   title?: string;
 };
 
-export type CslDate = string | MaybeArrayOf<number>;
+export type CslDate = string | MaybeArrayOf<number> | {
+  day?: number /* The day */;
+  month?: number /* The month */;
+  year?: number; /* The year */
+};
 
 export type CslPerson =
   | MaybeArrayOf<string>
