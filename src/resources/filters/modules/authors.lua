@@ -226,6 +226,7 @@ local kBiblioConfig = 'biblio-config'
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
+local kAuthorNameLiteralFields = { kFamilyName, kGivenName, kDroppingParticle, kNonDroppingParticle }
 local kAuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
 local kAuthorAttributeFields = { kCorresponding, kEqualContributor, kDeceased }
 local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
@@ -418,17 +419,26 @@ local function bibtexParseName(nameRaw)
   end
 end
 
+local function createNameLiteral(name)
+  local literalName = {}
+  if name[kFamilyName] and name[kGivenName] then
+    tappend(literalName, name[kGivenName])
+    tappend(literalName, {pandoc.Space()})
+    tappend(literalName, name[kFamilyName])
+  elseif name[kFamilyName] then
+    tappend(literalName, name[kFamilyName])
+  elseif name[kGivenName] then
+    tappend(literalName, name[kGivenName])
+  end
+  return literalName
+end
+
 -- normalizes a name value by parsing it into
 -- family and given names
 local function normalizeName(name)
   -- no literal name, create one
   if name[kLiteralName] == nil then
-    if name[kFamilyName] and name[kGivenName] then
-      name[kLiteralName] = {}
-      tappend(name[kLiteralName], name[kGivenName])
-      tappend(name[kLiteralName], {pandoc.Space()})
-      tappend(name[kLiteralName], name[kFamilyName])
-    end
+    name[kLiteralName] = createNameLiteral(name)
   end
 
   -- no family or given name, parse the literal and create one
@@ -962,6 +972,7 @@ local function processAuthor(value)
   else
     -- Process the field into the proper place in the author
     -- structure
+    local needsNameNormalization = false
     for authorKey, authorValue in pairs(value) do
       if tcontains(kAuthorNameFields, authorKey) then
         -- process any names
@@ -989,11 +1000,21 @@ local function processAuthor(value)
         processAuthorRoles(author, authorValue)
       elseif authorKey == kDegrees then
         processAuthorDegrees(author, authorValue)
+      elseif tcontains(kAuthorNameLiteralFields, authorKey) then       
+        -- Normalize literal field names that appear under author into the name
+        author.name = author.name or {}
+        author.name[authorKey] = authorValue
+        needsNameNormalization = true
       else
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 
         -- data structure
         setMetadata(author, authorKey, authorValue)
+      end
+    end
+    if needsNameNormalization then
+      if author.name[kLiteralName] == nil then
+        author.name[kLiteralName] = createNameLiteral(author.name)
       end
     end
   end
@@ -1040,7 +1061,6 @@ local function processAuthorMeta(meta)
 
   if authorsRaw then
     for i,v in ipairs(authorsRaw) do
-
       local authorAndAffiliations = processAuthor(v)
 
       -- initialize the author

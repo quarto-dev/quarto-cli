@@ -1,12 +1,14 @@
 /*
-* author.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * author.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+
+import { quarto } from "../quarto.ts";
+import { CSLName } from "./csl.ts";
 
 export interface Author {
-  name: string;
+  name: string | CSLName;
   affilliation?: Affiliation;
   url?: string;
   orcid?: string;
@@ -18,6 +20,10 @@ export interface Affiliation {
 }
 
 const kName = "name";
+const kGiven = "given";
+const kFamily = "family";
+const kDropping = "dropping-particle";
+const kNonDropping = "non-dropping-particle";
 const kAffiliation = "affiliation";
 const kAfilliationUrl = "affiliation-url";
 const kOrcid = "orcid";
@@ -29,12 +35,12 @@ export function parseAuthor(authorRaw: unknown, strict?: boolean) {
     const authors = Array.isArray(authorRaw) ? authorRaw : [authorRaw];
     let unrecognized = 0;
     authors.forEach((author) => {
-      if (typeof (author) === "string") {
+      if (typeof author === "string") {
         // Its a string, so make it a name
         parsed.push({
           name: author,
         });
-      } else if (typeof (author) === "object") {
+      } else if (typeof author === "object") {
         // Parse the author object
         // Currently this only supports simple 'Distill Style'
         // authors and affiliations
@@ -62,6 +68,19 @@ export function parseAuthor(authorRaw: unknown, strict?: boolean) {
           }
 
           parsed.push(auth);
+        } else if (author[kFamily]) {
+          const given = author[kGiven];
+          const family = author[kFamily];
+          const dropping = author[kDropping];
+          const nonDropping = author[kNonDropping];
+          parsed.push({
+            name: {
+              [kGiven]: given,
+              [kFamily]: family,
+              [kDropping]: dropping,
+              [kNonDropping]: nonDropping,
+            },
+          });
         } else {
           unrecognized = unrecognized + 1;
         }
