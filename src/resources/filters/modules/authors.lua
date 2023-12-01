@@ -182,6 +182,7 @@ local kCreditVocabTermIdentifiers = {
 -- an affiliation which will be structured into a standalone
 local kAffilName = 'name'
 local kDepartment = 'department'
+local kGroup = 'group'
 local kAddress = 'address'
 local kCity = 'city'
 local kRegion = 'region'
@@ -233,7 +234,7 @@ local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl, kISNI, kRinggold, kROR }
+local kAffiliationFields = { kId, kAffilName, kDepartment, kGroup, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl, kISNI, kRinggold, kROR }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')

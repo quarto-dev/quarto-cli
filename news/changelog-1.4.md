@@ -219,7 +219,9 @@
 
 - Add support for specifying author `roles`, with optional support for degree of contribution and automatic normalization of CreDiT roles, when applicable.
 - Improved support for affiliation metadata, including `ringgold`, `isni`, `ror`
-- Add support for `funding`, including support for simple strings or funding including `source`, `recipient`, and `investigator`. `source` and `recipient` may be one or more simple strings, `ref`s to an author or affiliation id, or an object following the `institution` schema.
+- Add support for `funding`, including support for simple strings or funding including `source`, `recipient`, and `investigator`. `source` and `recipient` may
+  -be one or more simple strings, `ref`s to an author or affiliation id, or an object following the `institution` schema.
+- ([#5764](https://github.com/quarto-dev/quarto-cli/issues/6138)): Add support for affiliations to include a `group` property to represent the team or research group within the affiliation
 - ([#6138](https://github.com/quarto-dev/quarto-cli/issues/6138)): Add support for `degrees` to specify academic titles or professional certifications displayed following a personal name (for example, "MD", "PhD").
 
 ## Lua filters
