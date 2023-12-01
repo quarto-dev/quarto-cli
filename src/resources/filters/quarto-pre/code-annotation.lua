@@ -313,7 +313,7 @@ function code_annotations()
         local pendingCellId = nil
         local pendingCodeCell = nil
 
-        local clearPending = function() 
+        local clearPending = function()          
           pendingAnnotations = nil
           pendingCellId = nil
           pendingCodeCell = nil
@@ -326,8 +326,8 @@ function code_annotations()
         local flushPending = function()
           if pendingCodeCell then
             outputBlock(pendingCodeCell)
-            clearPending()
           end
+          clearPending()
         end
 
         local outputBlockClearPending = function(block)
