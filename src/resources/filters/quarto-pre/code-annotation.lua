@@ -105,7 +105,7 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
   if lang == "cell-code" then 
     _, _, matchedLang = string.find(codeBlockEl.text, "^`+%{%{([^%}]*)%}%}")
     lang = matchedLang or lang
-  elseif startsWith(lang, '{{') then
+  elseif lang ~= nil and startsWith(lang, '{{') then
     _, _, matchedLang = string.find(lang, "{{+(.-)}}+")
     if matchedLang then
       lang = matchedLang
