@@ -612,7 +612,7 @@ function handleRepoLinks(
   );
 
   if (repoActions.length > 0 || elRepoSource) {
-    const repoInfo = websiteRepoInfo(config);
+    const repoInfo = websiteRepoInfo(format, config);
     if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc

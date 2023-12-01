@@ -138,6 +138,7 @@
 - ([#6708](https://github.com/quarto-dev/quarto-cli/issues/6708)): Prevent duplication of footnotes within the abstract or description within websites and books.
 - ([#7447](https://github.com/quarto-dev/quarto-cli/issues/7447)): Changing the `$primary` color in a SCSS theme will now properly change the navigation bar background color.
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
+- ([#4668](https://github.com/quarto-dev/quarto-cli/issues/4668)): Allow per page metadata (front matter or a `_metadata.yml` file) to overide the `repo-url` for a page by providing a `repo-url`
 
 ## Website Search
 
