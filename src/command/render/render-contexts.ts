@@ -523,17 +523,27 @@ async function resolveFormats(
       formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
-        if (inputFormat.metadata[kTheme] !== undefined) {
+        if (
+          inputFormat.metadata[kTheme] !== undefined &&
+          inputFormat.metadata[kTheme] !== projFormat.metadata[kTheme]
+        ) {
           warnOnce(
-            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+            `The file ${file.path} contains a theme property (${
+              inputFormat.metadata[kTheme]
+            }) which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
           );
         }
         delete inputFormat.metadata[kTheme];
       }
       if (formatHasBootstrap(directoryFormat)) {
-        if (directoryFormat.metadata[kTheme] !== undefined) {
+        if (
+          directoryFormat.metadata[kTheme] !== undefined &&
+          directoryFormat.metadata[kTheme] !== projFormat.metadata[kTheme]
+        ) {
           warnOnce(
-            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+            `The file ${file.path} contains a theme property (${
+              inputFormat.metadata[kTheme]
+            }) which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
           );
         }
         delete directoryFormat.metadata[kTheme];
