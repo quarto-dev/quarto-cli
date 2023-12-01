@@ -523,15 +523,19 @@ async function resolveFormats(
       formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
-        warnOnce(
-          `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-        );
+        if (inputFormat.metadata[kTheme] !== undefined) {
+          warnOnce(
+            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+          );
+        }
         delete inputFormat.metadata[kTheme];
       }
       if (formatHasBootstrap(directoryFormat)) {
-        warnOnce(
-          `A metadata file for the file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
-        );
+        if (directoryFormat.metadata[kTheme] !== undefined) {
+          warnOnce(
+            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+          );
+        }
         delete directoryFormat.metadata[kTheme];
       }
     }
