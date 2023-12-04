@@ -28,7 +28,7 @@ cd quarto-cli
 ./configure.sh
 ```
 
-To update to the latest development version, `git pull` from the local repo directory:
+To update to the latest development version, run `git pull` from the local repo directory:
 
 ```bash
 cd quarto-cli
