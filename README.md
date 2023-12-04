@@ -20,7 +20,7 @@ Learn more about Quarto at <https://quarto.org>.
 
 ## Development Version
 
-To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script for your platform (`configure.sh`, for Linux/Mac or `configure.cmd` for Windows). For example:
+To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script for your platform (`configure.sh`, for Linux/macOS or `configure.cmd` for Windows). For example:
 
 ```bash
 git clone https://github.com/quarto-dev/quarto-cli
