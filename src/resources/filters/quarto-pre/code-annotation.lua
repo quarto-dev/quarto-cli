@@ -406,6 +406,35 @@ function code_annotations()
               -- no annotations, just output it
               outputBlock(resolvedBlock)
             end
+
+          elseif block.t == "Div" then
+            local isDecoratedCodeBlock = is_custom_node(block, "DecoratedCodeBlock")
+            if isDecoratedCodeBlock then
+              -- If there is a pending code cell and we get here, just
+              -- output the pending code cell and continue
+              flushPending()
+
+              if #block.content == 1 and #block.content[1].content == 1 then
+                -- Find the code block and process that
+                local codeblock = block.content[1].content[1]
+                
+                local cellId = resolveCellId(codeblock.attr.identifier)
+                local codeCell = processCodeCell(codeblock, cellId)
+                if codeCell then
+                  if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+                    codeCell.attr.identifier = cellId;
+                  end
+                  block.content[1].content[1] = codeCell
+                  outputBlock(block)
+                else
+                  outputBlockClearPending(block)
+                end
+              else
+                outputBlockClearPending(block)
+              end
+            else
+              outputBlockClearPending(block)
+            end          
           elseif block.t == 'CodeBlock'  then
             -- don't process code cell output here - we'll get it above
             -- This processes non-executable code blocks
