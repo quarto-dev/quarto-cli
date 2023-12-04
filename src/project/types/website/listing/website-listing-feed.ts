@@ -46,6 +46,7 @@ import { resolveInputTarget } from "../../../project-index.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { imageContentType, imageSize } from "../../../../core/image.ts";
 import { warnOnce } from "../../../../core/log.ts";
+import { isHtmlOutput } from "../../../../config/format.ts";
 
 export const kDefaultItems = 20;
 
@@ -270,7 +271,10 @@ export function completeStagedFeeds(
     // Go through any output files and fix up any feeds associated with them
     outputFiles.forEach((outputFile) => {
       // Does this output file contain a listing?
-      if (outputFile.format.metadata[kListing]) {
+      if (
+        outputFile.format.metadata[kListing] &&
+        isHtmlOutput(outputFile.format.pandoc)
+      ) {
         // There is a listing here, look for unresolved feed files
         const [dir, stem] = dirAndStem(outputFile.file);
 

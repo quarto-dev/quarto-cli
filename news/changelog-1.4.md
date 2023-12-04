@@ -117,6 +117,7 @@
 - ([#7184](https://github.com/quarto-dev/quarto-cli/issues/7184)): Properly use the boostrap variable `pagination-active-color` for coloring pagination controls.
 - ([#7634](https://github.com/quarto-dev/quarto-cli/issues/7634)): Use an explicit width to ensure default listing layout doesn't grow outside its desired boundss
 - ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
+- ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
 
 ## Websites
 
