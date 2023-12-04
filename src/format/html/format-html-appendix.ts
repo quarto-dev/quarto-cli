@@ -160,6 +160,7 @@ export async function processDocumentAppendix(
       const footnoteEls = doc.querySelectorAll('aside[role="doc-endnotes"]');
       if (footnoteEls && footnoteEls.length === 1) {
         const footnotesEl = footnoteEls.item(0) as Element;
+        footnotesEl.tagName = "SECTION";
         insertFootnotesTitle(
           doc,
           footnotesEl,
