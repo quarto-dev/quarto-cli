@@ -82,7 +82,13 @@ export function outputRecipe(
   } else if (useContextPdfOutputRecipe(format, options.flags)) {
     return contextPdfOutputRecipe(input, output, options, format);
   } else if (useTypstPdfOutputRecipe(format)) {
-    return typstPdfOutputRecipe(input, output, options, format);
+    return typstPdfOutputRecipe(
+      input,
+      output,
+      options,
+      format,
+      context.project,
+    );
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
