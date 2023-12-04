@@ -210,6 +210,7 @@
 
 ## Code Annotations
 
+- ([#5339](https://github.com/quarto-dev/quarto-cli/issues/5339)): Improve behavior of code annotations when present on scrollable slides
 - ([#6016](https://github.com/quarto-dev/quarto-cli/issues/6016)): Ensure that annotations are on the correct line in Safari
 - ([#6385](https://github.com/quarto-dev/quarto-cli/issues/6385)): Add support for code annotation in fenced code cells
 - ([#7056](https://github.com/quarto-dev/quarto-cli/issues/7056)): Only make content of the hover annotation scrollable if it necessary
