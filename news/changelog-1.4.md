@@ -115,6 +115,7 @@
 - ([#6904](https://github.com/quarto-dev/quarto-cli/issues/6904)): Within feeds, remove `index.html` from urls which shouldn't include it.
 - ([#7088](https://github.com/quarto-dev/quarto-cli/issues/7088)): Don't emit extraneous link or whitespace in default listing template.
 - ([#7184](https://github.com/quarto-dev/quarto-cli/issues/7184)): Properly use the boostrap variable `pagination-active-color` for coloring pagination controls.
+- ([#7634](https://github.com/quarto-dev/quarto-cli/issues/7634)): Use an explicit width to ensure default listing layout doesn't grow outside its desired boundss
 - ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
 
 ## Websites
