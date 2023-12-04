@@ -4,7 +4,6 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { quarto } from "../quarto.ts";
 import { CSLName } from "./csl.ts";
 
 export interface Author {
@@ -28,6 +27,34 @@ const kAffiliation = "affiliation";
 const kAfilliationUrl = "affiliation-url";
 const kOrcid = "orcid";
 const kUrl = "url";
+
+export function cslNameToString(cslName: string | CSLName) {
+  if (typeof cslName === "string") {
+    return cslName;
+  } else {
+    if (cslName.literal) {
+      return cslName.literal;
+    } else {
+      const parts: string[] = [];
+
+      if (cslName.given) {
+        parts.push(cslName.given);
+      }
+
+      if (cslName["dropping-particle"]) {
+        parts.push(cslName["dropping-particle"]);
+      }
+      if (cslName["non-dropping-particle"]) {
+        parts.push(cslName["non-dropping-particle"]);
+      }
+      if (cslName.family) {
+        parts.push(cslName.family);
+      }
+
+      return parts.join(" ");
+    }
+  }
+}
 
 export function parseAuthor(authorRaw: unknown, strict?: boolean) {
   if (authorRaw) {

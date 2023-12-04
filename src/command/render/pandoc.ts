@@ -162,7 +162,7 @@ import {
   parseFormatString,
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
-import { parseAuthor } from "../../core/author.ts";
+import { cslNameToString, parseAuthor } from "../../core/author.ts";
 import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
@@ -721,7 +721,7 @@ export async function runPandoc(
 
     // make the filter paths windows safe
     allDefaults.filters = allDefaults.filters.map((filter) => {
-      if (typeof (filter) === "string") {
+      if (typeof filter === "string") {
         return pandocMetadataPath(filter);
       } else {
         return {
@@ -988,7 +988,9 @@ export async function runPandoc(
   if (authorsRaw) {
     const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
-      pandocMetadata[kAuthor] = authors.map((author) => author.name);
+      pandocMetadata[kAuthor] = authors.map((author) =>
+        cslNameToString(author.name)
+      );
       pandocMetadata[kAuthors] = Array.isArray(authorsRaw)
         ? authorsRaw
         : [authorsRaw];
