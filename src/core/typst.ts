@@ -35,22 +35,34 @@ function fontPathsArgs(fontPaths?: string[]) {
   return fontPathsQuarto.concat(fontExtrasArgs);
 }
 
+export type TypstCompileOptions = {
+  quiet?: boolean;
+  fontPaths?: string[];
+  rootDir?: string;
+};
+
 export async function typstCompile(
   input: string,
   output: string,
-  quiet = false,
-  fontPaths?: string[],
+  options: TypstCompileOptions = {},
 ) {
+  const quiet = options.quiet ?? false;
+  const fontPaths = options.fontPaths;
   if (!quiet) {
     typstProgress(input, output);
   }
   const cmd = [
     typstBinaryPath(),
     "compile",
+  ];
+  if (options.rootDir) {
+    cmd.push("--root", options.rootDir);
+  }
+  cmd.push(
     input,
     ...fontPathsArgs(fontPaths),
     output,
-  ];
+  );
   const result = await execProcess({ cmd });
   if (!quiet && result.success) {
     typstProgressDone();

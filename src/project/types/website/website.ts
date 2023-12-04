@@ -42,6 +42,7 @@ import {
   ensureIndexPage,
   initWebsiteNavigation,
   websiteNavigationExtras,
+  websiteNoThemeExtras,
 } from "./website-navigation.ts";
 
 import { updateSitemap } from "./website-sitemap.ts";
@@ -132,7 +133,13 @@ export const websiteProjectType: ProjectType = {
           format,
           services.temp,
         )
-        : {};
+        : await websiteNoThemeExtras(
+          project,
+          source,
+          flags,
+          format,
+          services.temp,
+        );
 
       // add some title related variables
       extras.pandoc = extras.pandoc || {};
