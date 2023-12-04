@@ -1032,11 +1032,26 @@ local function processAuthor(value)
 end
 
 local function processAuthorMeta(meta)
+
   -- prevents the front matter for markdown from containing
   -- all the rendered author information that we generate
   if _quarto.format.isMarkdownOutput() then
-    meta[kAuthors] = nil
-    return meta
+
+    -- see whether the metadata block will be preserved
+    -- if the YAML is being preserved, this should just no-op and leave
+    -- things as they were
+    local formatId = param("format-identifier", {})
+    quarto.log.output(formatId)
+    if formatId['target-format'] == "markdown" then
+      -- Don't normalize plain markdown as this preserves
+      -- YAML front matter by default
+      return nil
+    else
+      local parsed_format = _quarto.format.parse_format(formatId['target-format'])
+      if parsed_format['extensions']['yaml_metadata_block'] then
+        return nil
+      end
+    end
   end
 
   -- prefer to render 'authors' if it is available

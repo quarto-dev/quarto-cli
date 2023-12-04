@@ -223,6 +223,7 @@
   -be one or more simple strings, `ref`s to an author or affiliation id, or an object following the `institution` schema.
 - ([#5764](https://github.com/quarto-dev/quarto-cli/issues/6138)): Add support for affiliations to include a `group` property to represent the team or research group within the affiliation
 - ([#6138](https://github.com/quarto-dev/quarto-cli/issues/6138)): Add support for `degrees` to specify academic titles or professional certifications displayed following a personal name (for example, "MD", "PhD").
+- ([#6139](https://github.com/quarto-dev/quarto-cli/issues/6139)): For markdown output that will not include yaml front matter, still perform author normalization. When `yaml_metadata_block` is enabled (or for pandoc markdown) do not normalize author front matter since that will result in extraneous author keys.
 
 ## Lua filters
 
