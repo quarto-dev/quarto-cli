@@ -190,6 +190,28 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.pageMargin = pageMargin;
 }
 
+export async function websiteNoThemeExtras(
+  project: ProjectContext,
+  source: string,
+  _flags: PandocFlags,
+  _format: Format,
+  _temp: TempContext,
+): Promise<FormatExtras> {
+  return {
+    html: {
+      [kHtmlPostprocessors]: [
+        async (doc: Document): Promise<HtmlPostProcessResult> => {
+          await resolveProjectInputLinks(source, project, doc);
+          return Promise.resolve({
+            resources: [],
+            supporting: [],
+          });
+        },
+      ],
+    },
+  };
+}
+
 export async function websiteNavigationExtras(
   project: ProjectContext,
   source: string,
