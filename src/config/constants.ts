@@ -134,6 +134,7 @@ export const kPreviewModeRaw = "raw";
 export const kFontPaths = "font-paths";
 
 export const kHtmlTableProcessing = "html-table-processing";
+export const kValidateYaml = "validate-yaml";
 
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
@@ -221,6 +222,7 @@ export const kRenderDefaultsKeys = [
   kNotebookPreserveCells,
   kClearCellOptions,
   kHtmlTableProcessing,
+  kValidateYaml,
 ];
 
 // language fields

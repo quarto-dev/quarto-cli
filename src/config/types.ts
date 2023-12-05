@@ -225,6 +225,7 @@ import {
   kToggleSection,
   kToggleSidebar,
   kTopLevelDivision,
+  kValidateYaml,
   kVariables,
   kVariant,
   kWarning,
@@ -475,6 +476,7 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kValidateYaml]?: boolean;
 }
 
 export interface FormatExecute {
