@@ -268,3 +268,8 @@ valid_path = function(prefix, label) {
 }
 assignInNamespace("valid_path", valid_path, ns = "knitr")
 
+
+# add OJS comment option support in knitr
+knitr_comment_chars <- knitr:::comment_chars
+knitr_comment_chars$ojs <- "//"
+assignInNamespace("comment_chars", knitr_comment_chars, ns = "knitr")

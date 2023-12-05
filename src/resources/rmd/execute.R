@@ -55,6 +55,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   knitr::knit_engines$set(ojs = function(options) {
     knitr:::one_string(c(
       "```{ojs}",
+      options$yaml.code,
       options$code,
       "```"
     ))
