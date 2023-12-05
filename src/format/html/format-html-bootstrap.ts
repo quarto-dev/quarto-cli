@@ -279,6 +279,16 @@ function bootstrapHtmlPostprocessor(
       // }
     }
 
+    // Ensure that any magin figures / images are marked as fluid
+    // Attempt to fix https://github.com/quarto-dev/quarto-cli/issues/5516
+    const marginImgNodes = doc.querySelectorAll(
+      ".column-margin .cell-output-display img:not(.img-fluid)",
+    );
+    for (const marginImgNode of marginImgNodes) {
+      const marginImgEl = marginImgNode as Element;
+      marginImgEl.classList.add("img-fluid");
+    }
+
     // move the toc if there is a sidebar
     const toc = doc.querySelector('nav[role="doc-toc"]');
 
@@ -568,9 +578,9 @@ async function processOtherLinks(
       | string[]
       | OtherLink[];
     if (codeLinks !== undefined) {
-      if (typeof (codeLinks) === "boolean") {
+      if (typeof codeLinks === "boolean") {
         return [];
-      } else if (typeof (codeLinks) === "string") {
+      } else if (typeof codeLinks === "string") {
         if (!context) {
           throw new Error(
             `The code-link value '${codeLinks}' is only supported from within a project.`,
@@ -585,7 +595,7 @@ async function processOtherLinks(
       } else {
         const outputLinks: OtherLink[] = [];
         for (const codeLink of codeLinks) {
-          if (typeof (codeLink) === "string") {
+          if (typeof codeLink === "string") {
             if (!context) {
               throw new Error(
                 `The code-link value '${codeLink}' is only supported from within a project.`,
