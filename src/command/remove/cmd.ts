@@ -24,7 +24,6 @@ import {
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const removeCommand = new Command()
-  .hidden()
   .name("remove")
   .arguments("[target...]")
   .option(

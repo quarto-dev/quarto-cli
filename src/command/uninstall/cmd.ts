@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -16,7 +15,6 @@ import {
 } from "../../tools/tools-console.ts";
 
 export const uninstallCommand = new Command()
-  .hidden()
   .name("uninstall")
   .arguments("[tool]")
   .option(

@@ -12,7 +12,6 @@ const kUseCommands = [useTemplateCommand, useBinderCommand];
 
 export const makeUseCommand = () => {
   const theCommand = new Command()
-    .hidden()
     .name("use")
     .arguments("<type:string> [target:string]")
     .option(
