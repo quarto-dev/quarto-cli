@@ -1251,7 +1251,7 @@ async function resolveExtras(
   }
 
   // resolve format resources
-  writeFormatResources(
+  await writeFormatResources(
     inputDir,
     dependenciesFile,
     format.render[kFormatResources],
@@ -1271,7 +1271,7 @@ async function resolveExtras(
     );
 
     // resolve dependencies
-    writeDependencies(dependenciesFile, extras);
+    await writeDependencies(dependenciesFile, extras);
 
     const htmlDependenciesPostProcesor = (
       doc: Document,
