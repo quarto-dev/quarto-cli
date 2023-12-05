@@ -63,6 +63,7 @@
 - ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now works correctly with code annotation.
 - ([#7104](https://github.com/quarto-dev/quarto-cli/issues/7104)): Line highlighting progressive reveal now correctly has code annotation anchor on the right.
 - ([#7366](https://github.com/quarto-dev/quarto-cli/issues/7366)): `smaller: true` now applies correctly on nested slides.
+- ([#7394](https://github.com/quarto-dev/quarto-cli/issues/7394)): Fix issue with mermaid diagrams in revealjs slides when `output-location: fragment`.
 
 ## PDF Format
 
