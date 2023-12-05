@@ -111,6 +111,7 @@ import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
+import { isHtmlOutput } from "../../../../config/format.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -308,7 +309,10 @@ export function completeListingItems(
   outputFiles.forEach((outputFile) => {
     debug(`[listing] Completing listing items ${outputFile.input}`);
     // Does this output file contain a listing?
-    if (outputFile.format.metadata[kListing]) {
+    if (
+      outputFile.format.metadata[kListing] &&
+      isHtmlOutput(outputFile.format.pandoc, true)
+    ) {
       // Read the listing page
       let fileContents = Deno.readTextFileSync(outputFile.file);
 

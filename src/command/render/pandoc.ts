@@ -103,6 +103,7 @@ import {
   kInstitute,
   kInstitutes,
   kKeepSource,
+  kLatexAutoMk,
   kLinkColor,
   kMath,
   kMetadataFormat,
@@ -1251,7 +1252,7 @@ async function resolveExtras(
   }
 
   // resolve format resources
-  writeFormatResources(
+  await writeFormatResources(
     inputDir,
     dependenciesFile,
     format.render[kFormatResources],
@@ -1271,7 +1272,7 @@ async function resolveExtras(
     );
 
     // resolve dependencies
-    writeDependencies(dependenciesFile, extras);
+    await writeDependencies(dependenciesFile, extras);
 
     const htmlDependenciesPostProcesor = (
       doc: Document,
@@ -1305,11 +1306,19 @@ async function resolveExtras(
   }
 
   // Process format resources
-  const resourceDependenciesPostProcessor = async (_output: string) => {
-    return await processFormatResources(inputDir, dependenciesFile);
-  };
-  extras.postprocessors = extras.postprocessors || [];
-  extras.postprocessors.push(resourceDependenciesPostProcessor);
+
+  // If we're generating the PDF, we can move the format resources once the pandoc
+  // render has completed.
+  if (format.render[kLatexAutoMk] === false) {
+    // Process the format resouces right here on the spot
+    await processFormatResources(inputDir, dependenciesFile);
+  } else {
+    const resourceDependenciesPostProcessor = async (_output: string) => {
+      return await processFormatResources(inputDir, dependenciesFile);
+    };
+    extras.postprocessors = extras.postprocessors || [];
+    extras.postprocessors.push(resourceDependenciesPostProcessor);
+  }
 
   // Resolve the highlighting theme (if any)
   extras = resolveTextHighlightStyle(

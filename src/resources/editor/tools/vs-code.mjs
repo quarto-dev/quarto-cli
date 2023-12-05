@@ -10102,6 +10102,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "search-more-match-text": "string",
               "search-more-matches-text": "string",
               "search-clear-button-title": "string",
+              "search-text-placeholder": "string",
               "search-detached-cancel-button-title": "string",
               "search-submit-button-title": "string",
               "crossref-fig-title": "string",
@@ -19861,6 +19862,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Items with matching field values will be included in the listing.",
         "Items with matching field values will be excluded from the\nlisting.",
+        "The year",
+        "The month",
+        "The day",
         "The family name.",
         "The given name.",
         "The family name.",
@@ -22556,12 +22560,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180061,
+        _internalId: 180063,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180053,
+            _internalId: 180055,
             type: "enum",
             enum: [
               "png",
@@ -22577,7 +22581,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180060,
+            _internalId: 180062,
             type: "anyOf",
             anyOf: [
               {

@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
@@ -18,7 +17,6 @@ import {
 import { resolveCompatibleArgs } from "../remove/cmd.ts";
 
 export const updateCommand = new Command()
-  .hidden()
   .name("update")
   .arguments("[target...]")
   .option(

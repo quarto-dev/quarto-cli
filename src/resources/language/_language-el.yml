@@ -67,6 +67,7 @@ search-hide-matches-text: "Απόκρυψη επιπλέον αντιστοιχ�
 search-more-match-text: "επιπλέον αντιστοιχία σε αυτό το έγγραφο"
 search-more-matches-text: "επιπλέον αντιστοιχίες σε αυτό το έγγραφο"
 search-clear-button-title: "Καθαρισμός"
+search-text-placeholder: ""
 search-detached-cancel-button-title: "Ακύρωση"
 search-submit-button-title: "Υποβολή"
 search-label: "Αναζήτηση"

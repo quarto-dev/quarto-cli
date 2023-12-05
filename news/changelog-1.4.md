@@ -24,6 +24,7 @@
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
 - ([#5403](https://github.com/quarto-dev/quarto-cli/issues/5403)): Fix accessibility issues with the `kbd` shortcode.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
+- ([#5516](https://github.com/quarto-dev/quarto-cli/issues/5516)): Ensure that images which appear in the margin are properly marked as fluid.
 - ([#5700](https://github.com/quarto-dev/quarto-cli/issues/5700)): Don't show scrollbars on Windows when hovering over hover code annotations.
 - ([#5708](https://github.com/quarto-dev/quarto-cli/issues/5708)): Fix hang when viewing pages with specific query parameter
 - ([#5794](https://github.com/quarto-dev/quarto-cli/issues/5794)): Fix incorrect caching behavior when `import` is used in scss themes.
@@ -66,6 +67,7 @@
 ## PDF Format
 
 - ([#4370](https://github.com/quarto-dev/quarto-cli/issues/4370)): Hoist code cells deep in the AST out of layout cells to avoid `\raisebox` issues with the `Shaded` environment.
+- ([#5078](https://github.com/quarto-dev/quarto-cli/issues/5078)): Ensure format-resources are copied before PDF rendering when `latex-auto-mk` is `false`
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
 - ([#6077](https://github.com/quarto-dev/quarto-cli/issues/6077)): Make sure proof environments are tight around contents.
 - ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
@@ -117,6 +119,7 @@
 - ([#7184](https://github.com/quarto-dev/quarto-cli/issues/7184)): Properly use the boostrap variable `pagination-active-color` for coloring pagination controls.
 - ([#7634](https://github.com/quarto-dev/quarto-cli/issues/7634)): Use an explicit width to ensure default listing layout doesn't grow outside its desired boundss
 - ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
+- ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
 
 ## Websites
 
@@ -125,6 +128,8 @@
 - Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
 - ([#4739](https://github.com/quarto-dev/quarto-cli/issues/4739)): Improve handling of reader mode at mobile responsive sizes
+- ([#5204](https://github.com/quarto-dev/quarto-cli/issues/5204)): About pages rely upon TOC being positioned right, so force that to be true
+- ([#5212](https://github.com/quarto-dev/quarto-cli/issues/5212)): Ensure navbar search button respects `collapse-below` and remains aligned properly
 - ([#5251](https://github.com/quarto-dev/quarto-cli/issues/5251)): Allow individual pages to specify `image: false` to prevent image discover for Twitter and Open Graph metadata.
 - ([#5283](https://github.com/quarto-dev/quarto-cli/issues/5283)): Add support for setting `repo-actions: false` in a document to prevent the display of repository actions on a specific page.
 - ([#5389](https://github.com/quarto-dev/quarto-cli/issues/5389)): Allow a website project to provide a default image used in social metadata tags.
@@ -146,6 +151,7 @@
 - ([#7105](https://github.com/quarto-dev/quarto-cli/issues/7105)): Improve search results by raising default limit and fixing and removing warning that would appear for Algolia when limit was more than 20.
 - ([#7150](https://github.com/quarto-dev/quarto-cli/issues/7150)): Search keyboard shortcut will not intercept keys directed at inputs.
 - ([#7117](https://github.com/quarto-dev/quarto-cli/issues/7117)): Ensure that search works properly in mobile layouts when not scrolled to top of page (don't close search when scroll occurs because of keyboard being shown).
+- ([#7796](https://github.com/quarto-dev/quarto-cli/issues/7796)): Allow providing placeholder text using the language key `search-text-placeholder`
 
 ## Books
 
@@ -275,8 +281,10 @@
 - ([#1237](https://github.com/quarto-dev/quarto-cli/issues/1237)): Allow `include` shortcodes to be resolved from inside non-executable code cells and metadata blocks.
 - ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
+- ([#3599](https://github.com/quarto-dev/quarto-cli/issues/3599), [#5870](https://github.com/quarto-dev/quarto-cli/issues/5870)): Fix hash issue causing unexpected render when `freeze` is activated on Windows but re-rendered on Linux (e.g. in Github Action).
 - ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820)): Add support for setting the Giscus light/dark themes.
 - ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)): support `from: ` formats correctly.
+- ([#5421](https://github.com/quarto-dev/quarto-cli/pull/5421)): Correct `quarto --help` command to provide correct commands and descriptions
 - ([#5748](https://github.com/quarto-dev/quarto-cli/issues/5748)): Don't cleanup shared lib_dir files when using `embed-resources` within a project
 - ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
 - ([#5785](https://github.com/quarto-dev/quarto-cli/issues/5785)): Don't process juptyer notebook markdown into metadata when embedding notebooks into documents.
@@ -300,7 +308,7 @@
 - ([#7013](https://github.com/quarto-dev/quarto-cli/issues/7013)): Improve error message when there is an issue finding or running R and add more verbosity in [verbose mode](https://quarto.org/docs/troubleshooting/#verbose-mode).
 - ([#7032](https://github.com/quarto-dev/quarto-cli/issues/7032)): `quarto` is now correctly working when installed in a folder with spaces in path.
 - ([#7131](https://github.com/quarto-dev/quarto-cli/issues/7131)): Fix typo in ISBN entry for JATS subarticle template (author: @jasonaris).
-- ([#3599](https://github.com/quarto-dev/quarto-cli/issues/3599), [#5870](https://github.com/quarto-dev/quarto-cli/issues/5870)): Fix hash issue causing unexpected render when `freeze` is activated on Windows but re-rendered on Linux (e.g. in Github Action).
 - ([#7252](https://github.com/quarto-dev/quarto-cli/issues/7252)): Improve handling with `tlmgr` of some mismatched LaTeX support files, associated with `expl3.sty` loading.
+- ([#7502](https://github.com/quarto-dev/quarto-cli/pull/7502)): Correct `execute-debug` help text
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.

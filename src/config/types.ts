@@ -186,6 +186,7 @@ import {
   kSearchMoreMatchText,
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
+  kSearchTextPlaceholder,
   kSectionDivs,
   kSectionTitleAbstract,
   kSectionTitleAppendices,
@@ -224,6 +225,7 @@ import {
   kToggleSection,
   kToggleSidebar,
   kTopLevelDivision,
+  kValidateYaml,
   kVariables,
   kVariant,
   kWarning,
@@ -474,6 +476,7 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kValidateYaml]?: boolean;
 }
 
 export interface FormatExecute {
@@ -651,6 +654,7 @@ export interface FormatLanguage {
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
+  [kSearchTextPlaceholder]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
   [kCrossrefFigTitle]?: string;

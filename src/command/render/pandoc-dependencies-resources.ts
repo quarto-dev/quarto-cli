@@ -25,7 +25,7 @@ export interface Resource {
 
 // Populates the dependency file with format resources
 // from typescript.
-export function writeFormatResources(
+export async function writeFormatResources(
   inputDir: string,
   dependenciesFile: string,
   formatResources: string | string[] | undefined,
@@ -47,7 +47,7 @@ export function writeFormatResources(
         content: { file: absPath },
       };
     });
-    appendDependencies(dependenciesFile, dependencies);
+    await appendDependencies(dependenciesFile, dependencies);
   }
 }
 
