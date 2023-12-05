@@ -273,7 +273,7 @@ export function completeStagedFeeds(
       // Does this output file contain a listing?
       if (
         outputFile.format.metadata[kListing] &&
-        isHtmlOutput(outputFile.format.pandoc)
+        isHtmlOutput(outputFile.format.pandoc, true)
       ) {
         // There is a listing here, look for unresolved feed files
         const [dir, stem] = dirAndStem(outputFile.file);

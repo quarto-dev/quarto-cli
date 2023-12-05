@@ -311,7 +311,7 @@ export function completeListingItems(
     // Does this output file contain a listing?
     if (
       outputFile.format.metadata[kListing] &&
-      isHtmlOutput(outputFile.format.pandoc)
+      isHtmlOutput(outputFile.format.pandoc, true)
     ) {
       // Read the listing page
       let fileContents = Deno.readTextFileSync(outputFile.file);

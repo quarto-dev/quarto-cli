@@ -109,7 +109,7 @@ export function updateGlobalListingIndex(
   if (generateListings) {
     for (const outputFile of outputFiles) {
       const hasListing = !!outputFile.format.metadata[kListing];
-      if (hasListing && isHtmlOutput(outputFile.format.pandoc)) {
+      if (hasListing && isHtmlOutput(outputFile.format.pandoc, true)) {
         const indexPath = listingIndex(outputFile.file);
         if (existsSync(indexPath)) {
           const json = Deno.readTextFileSync(indexPath);
