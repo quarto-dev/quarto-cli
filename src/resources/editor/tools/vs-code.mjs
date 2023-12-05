@@ -15825,20 +15825,18 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            string: {
-              completions: [
-                "pdflatex",
-                "lualatex",
-                "xelatex",
-                "latexmk",
-                "tectonic",
-                "wkhtmltopdf",
-                "weasyprint",
-                "prince",
-                "context",
-                "pdfroff"
-              ]
-            }
+            enum: [
+              "pdflatex",
+              "lualatex",
+              "xelatex",
+              "latexmk",
+              "tectonic",
+              "wkhtmltopdf",
+              "weasyprint",
+              "prince",
+              "context",
+              "pdfroff"
+            ]
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
@@ -22560,12 +22558,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180063,
+        _internalId: 180066,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180055,
+            _internalId: 180058,
             type: "enum",
             enum: [
               "png",
@@ -22581,7 +22579,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180062,
+            _internalId: 180065,
             type: "anyOf",
             anyOf: [
               {
