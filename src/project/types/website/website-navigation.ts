@@ -140,6 +140,7 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
 import { navigation } from "./website-shared.ts";
+import { isAboutPage } from "./about/website-about.ts";
 
 export const kSidebarLogo = "logo";
 
@@ -235,6 +236,14 @@ export async function websiteNavigationExtras(
     }
   };
 
+  const tocLocation = () => {
+    if (isAboutPage(format)) {
+      return "right";
+    } else {
+      return format.metadata[kTocLocation] || "right";
+    }
+  };
+
   // find the relative path for this input
   const inputRelative = relative(project.dir, source);
 
@@ -272,7 +281,7 @@ export async function websiteNavigationExtras(
 
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
-    [kTocLocation]: format.metadata[kTocLocation] || "right",
+    [kTocLocation]: tocLocation(),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),

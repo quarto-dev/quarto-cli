@@ -6,7 +6,7 @@
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { dirname, join } from "path/mod.ts";
 import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
-import { kToc } from "../../../../config/constants.ts";
+import { kToc, kTocLocation } from "../../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -85,6 +85,10 @@ interface AboutPageEjsData {
   options: Record<string, unknown>;
 }
 
+export function isAboutPage(format: Format) {
+  return !!format.metadata[kAbout];
+}
+
 export async function aboutHtmlDependencies(
   source: string,
   project: ProjectContext,
@@ -98,6 +102,7 @@ export async function aboutHtmlDependencies(
   if (aboutPage) {
     // About pages do not allow TOCs
     format.pandoc[kToc] = false;
+    format.metadata[kTocLocation] = "right";
     format.metadata[kAnchorSections] = false;
   }
 
@@ -191,7 +196,7 @@ async function readAbout(
       return aboutPage;
     };
 
-    if (typeof (about) === "string") {
+    if (typeof about === "string") {
       // A string only about represents the template
       const [template, custom] = templatePath(about, source);
       const aboutPage: AboutPage = {
@@ -214,7 +219,7 @@ async function readAbout(
       // Resolve any options
       resolveOptions(about, {}, aboutPage);
       return aboutPage;
-    } else if (typeof (about) === "object") {
+    } else if (typeof about === "object") {
       // This is an object, read the fields out of it
       const aboutObj = about as Record<string, unknown>;
       const aboutTemplate = aboutObj[kType] as string ||

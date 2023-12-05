@@ -128,6 +128,7 @@
 - Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
 - ([#4739](https://github.com/quarto-dev/quarto-cli/issues/4739)): Improve handling of reader mode at mobile responsive sizes
+- ([#5204](https://github.com/quarto-dev/quarto-cli/issues/5204)): About pages rely upon TOC being positioned right, so force that to be true
 - ([#5212](https://github.com/quarto-dev/quarto-cli/issues/5212)): Ensure navbar search button respects `collapse-below` and remains aligned properly
 - ([#5251](https://github.com/quarto-dev/quarto-cli/issues/5251)): Allow individual pages to specify `image: false` to prevent image discover for Twitter and Open Graph metadata.
 - ([#5283](https://github.com/quarto-dev/quarto-cli/issues/5283)): Add support for setting `repo-actions: false` in a document to prevent the display of repository actions on a specific page.
