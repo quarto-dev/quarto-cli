@@ -73,7 +73,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--execute-debug",
-    "Show debug output for Jupyter kernel.",
+    "Show debug output when executing computations.",
   )
   .option(
     "--use-freezer",
