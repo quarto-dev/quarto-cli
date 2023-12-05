@@ -565,7 +565,6 @@ async function renderFileInternal(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
-        console.log(context.format);
         const validate = context.format.render?.["validate-yaml"];
         if (validate !== false) {
           const validationResult = await validateDocument(context);
