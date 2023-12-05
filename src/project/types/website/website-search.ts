@@ -442,10 +442,12 @@ function searchKbdShortcut(
 ) {
   if (searchConfig && typeof searchConfig === "object") {
     const kbd = searchConfig[kKbShortcutSearch];
-    if (Array.isArray(kbd)) {
-      return kbd;
-    } else {
-      return [kbd];
+    if (kbd) {
+      if (Array.isArray(kbd)) {
+        return kbd;
+      } else {
+        return [kbd];
+      }
     }
   }
   return ["f", "/", "s"];
