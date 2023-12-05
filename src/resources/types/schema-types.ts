@@ -664,6 +664,7 @@ export type FormatLanguage = {
   "search-more-match-text"?: string;
   "search-more-matches-text"?: string;
   "search-clear-button-title"?: string;
+  "search-text-placeholder"?: string;
   "search-detached-cancel-button-title"?: string;
   "search-submit-button-title"?: string;
   "crossref-fig-title"?: string;

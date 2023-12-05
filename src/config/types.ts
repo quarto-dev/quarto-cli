@@ -186,6 +186,7 @@ import {
   kSearchMoreMatchText,
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
+  kSearchTextPlaceholder,
   kSectionDivs,
   kSectionTitleAbstract,
   kSectionTitleAppendices,
@@ -651,6 +652,7 @@ export interface FormatLanguage {
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
+  [kSearchTextPlaceholder]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
   [kCrossrefFigTitle]?: string;

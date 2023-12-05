@@ -98,6 +98,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     classNames: {
       form: "d-flex",
     },
+    placeholder: language["search-text-placeholder"],
     translations: {
       clearButtonTitle: language["search-clear-button-title"],
       detachedCancelButtonText: language["search-detached-cancel-button-title"],
