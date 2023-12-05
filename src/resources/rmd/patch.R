@@ -270,8 +270,10 @@ assignInNamespace("valid_path", valid_path, ns = "knitr")
 
 
 # add special language comment options support in knitr
-knitr_comment_chars <- knitr:::comment_chars
-knitr_comment_chars$ojs <- "//"
-knitr_comment_chars$mermaid <- "%%"
-knitr_comment_chars$dot <- "//"
-assignInNamespace("comment_chars", knitr_comment_chars, ns = "knitr")
+if (knitr_has_yaml_chunk_options()) {
+  knitr_comment_chars <- knitr:::comment_chars
+  knitr_comment_chars$ojs <- "//"
+  knitr_comment_chars$mermaid <- "%%"
+  knitr_comment_chars$dot <- "//"
+  assignInNamespace("comment_chars", knitr_comment_chars, ns = "knitr")
+}
