@@ -1,15 +1,15 @@
 /*
-* format-html-meta.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * format-html-meta.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 import {
   PandocInputTraits,
   RenderedFormat,
 } from "../../command/render/types.ts";
+import { kCanonicalUrl } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import {
@@ -23,8 +23,11 @@ import {
 import { Document } from "../../core/deno-dom.ts";
 import { encodeAttributeValue } from "../../core/html.ts";
 import { kWebsite } from "../../project/types/website/website-constants.ts";
-import { documentCSL } from "../../quarto-core/attribution/document.ts";
-import { writeMetaTag } from "./format-html-shared.ts";
+import {
+  documentCSL,
+  synthesizeCitationUrl,
+} from "../../quarto-core/attribution/document.ts";
+import { writeLinkTag, writeMetaTag } from "./format-html-shared.ts";
 
 export const kGoogleScholar = "google-scholar";
 
@@ -38,6 +41,18 @@ export function metadataPostProcessor(
     inputTraits: PandocInputTraits;
     renderedFormats: RenderedFormat[];
   }) => {
+    // Generate a canonical tag if requested
+    if (format.render[kCanonicalUrl]) {
+      writeCanonicalUrl(
+        doc,
+        format.render[kCanonicalUrl],
+        input,
+        options.inputMetadata,
+        format.pandoc["output-file"],
+        offset,
+      );
+    }
+
     if (googleScholarEnabled(format)) {
       const { csl, extras } = documentCSL(
         input,
@@ -268,4 +283,29 @@ function metadataWriter(metadata: MetaTagData[]) {
     });
   };
   return write;
+}
+
+function writeCanonicalUrl(
+  doc: Document,
+  url: string | boolean,
+  input: string,
+  inputMetadata: Metadata,
+  outputFile?: string,
+  offset?: string,
+) {
+  if (typeof url === "string") {
+    // Use the explicitly provided URL
+    writeLinkTag("canonical", url, doc);
+  } else if (url) {
+    // Compute a canonical url and include that
+    const canonicalUrl = synthesizeCitationUrl(
+      input,
+      inputMetadata,
+      outputFile,
+      offset,
+    );
+    if (canonicalUrl) {
+      writeLinkTag("canonical", canonicalUrl, doc);
+    }
+  }
 }

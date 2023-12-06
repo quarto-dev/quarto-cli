@@ -703,6 +703,16 @@ function revealHtmlPostprocessor(
       }
     }
 
+    // Remove anchors on numbered code chunks as they can't work
+    // because ids are used for sections in revealjs
+    const codeLinesAnchors = doc.querySelectorAll(
+      "span[id^='cb'] > a[href^='#c']",
+    );
+    codeLinesAnchors.forEach((codeLineAnchor) => {
+      const codeLineAnchorEl = codeLineAnchor as Element;
+      codeLineAnchorEl.removeAttribute("href");
+    });
+
     // https://github.com/quarto-dev/quarto-cli/issues/3533
     // redirect anchors to the slide they refer to
     const anchors = doc.querySelectorAll("a[href^='#/']");

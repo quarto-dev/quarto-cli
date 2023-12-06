@@ -129,18 +129,19 @@
   tags:
     formats: [$pdf-all, ms, context]
   schema:
-    string:
-      completions:
-        - pdflatex
-        - lualatex
-        - xelatex
-        - latexmk
-        - tectonic
-        - wkhtmltopdf
-        - weasyprint
-        - prince
-        - context
-        - pdfroff
+    enum:
+      [
+        pdflatex,
+        lualatex,
+        xelatex,
+        latexmk,
+        tectonic,
+        wkhtmltopdf,
+        weasyprint,
+        prince,
+        context,
+        pdfroff,
+      ]
   description:
     short: "Use the specified engine when producing PDF output."
     long: |

@@ -1406,7 +1406,7 @@
                     description: |
                       The number of items to include in your feed. Defaults to 20.
                 type:
-                  enum: [full, partial]
+                  enum: [full, partial, metadata]
                   description:
                     short: Whether to include full or partial content in the feed.
                     long: |
@@ -1414,6 +1414,7 @@
 
                       - `full` (default): Include the complete content of the document in the feed.
                       - `partial`: Include only the first paragraph of the document in the feed.
+                      - `metadata`: Use only the title, description, and other document metadata in the feed.
                 title:
                   string:
                     description:

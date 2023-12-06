@@ -141,3 +141,19 @@
           boolean:
             description: "Whether to show a back button in the notebook preview."
   description: "Options for controlling the display and behavior of Notebook previews."
+
+- name: canonical-url
+  tags:
+    formats: [$html-doc]
+  schema:
+    anyOf:
+      - boolean
+      - string
+  description:
+    short: "Include a canonical link tag in website pages"
+    long: |
+      Include a canonical link tag in website pages. You may pass either `true` to 
+      automatically generate a canonical link, or pass a canonical url that you'd like
+      to have placed in the `href` attribute of the tag.
+
+      Canonical links can only be generated for websites with a known `site-url`.

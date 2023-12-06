@@ -240,7 +240,7 @@ window.addEventListener(
     for (const el of Array.from(document.querySelectorAll("pre.mermaid-js"))) {
       // &nbsp; doesn't appear to be treated as whitespace by mermaid
       // so we replace it with a space.
-      const text = el.innerText.replaceAll("&nbsp;", " ");
+      const text = el.textContent.replaceAll("&nbsp;", " ");
       const { svg: output } = await mermaid.mermaidAPI.render(
         `mermaid-${++i}`,
         text,

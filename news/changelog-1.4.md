@@ -19,6 +19,7 @@
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
 - Add support for displaying `keywords` in HTML page title block, when present.
 - ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473)): Add support for `body-right` and `body-left` layouts for Website Table of Contents.
+- ([#4882](https://github.com/quarto-dev/quarto-cli/issues/4882)): Add support for `canonical-url`, which when provided will include a link tag with rel='canonical' which will use an explictly provided or automatically generated canonical url for the document.
 - ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
 - ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
@@ -63,12 +64,15 @@
 - ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now works correctly with code annotation.
 - ([#7104](https://github.com/quarto-dev/quarto-cli/issues/7104)): Line highlighting progressive reveal now correctly has code annotation anchor on the right.
 - ([#7366](https://github.com/quarto-dev/quarto-cli/issues/7366)): `smaller: true` now applies correctly on nested slides.
+- ([#7394](https://github.com/quarto-dev/quarto-cli/issues/7394)): Fix issue with mermaid diagrams in revealjs slides when `output-location: fragment`.
+- ([#4988](https://github.com/quarto-dev/quarto-cli/issues/4988)): targets for links on numbered code lines are removed, as revealjs doesn't support them because navigation is done by slide only.
 
 ## PDF Format
 
 - ([#4370](https://github.com/quarto-dev/quarto-cli/issues/4370)): Hoist code cells deep in the AST out of layout cells to avoid `\raisebox` issues with the `Shaded` environment.
 - ([#5078](https://github.com/quarto-dev/quarto-cli/issues/5078)): Ensure format-resources are copied before PDF rendering when `latex-auto-mk` is `false`
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
+- ([#5690](https://github.com/quarto-dev/quarto-cli/issues/5690)): Improve validation of `pdf-engine`
 - ([#6077](https://github.com/quarto-dev/quarto-cli/issues/6077)): Make sure proof environments are tight around contents.
 - ([#6907](https://github.com/quarto-dev/quarto-cli/issues/6907)): Fix issue with footnote mark line processor not triggering.
 - ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
@@ -120,6 +124,7 @@
 - ([#7634](https://github.com/quarto-dev/quarto-cli/issues/7634)): Use an explicit width to ensure default listing layout doesn't grow outside its desired boundss
 - ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
 - ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
+- ([#7290](https://github.com/quarto-dev/quarto-cli/issues/7290)): Add support for `feed:type` of `metadata`, which will use only explicitly provided description metadata when generating an RSS feed. Additionally, note that `partial` feed types will prefer to use an explicit description over the first paragraph, when a description is available.
 
 ## Websites
 
@@ -201,6 +206,7 @@
 - ([#6775](https://github.com/quarto-dev/quarto-cli/pull/6775)): Avoid duplicating special internal `tools:quarto` R environment used for making `ojs_define()` accessible during knitting.
 - ([#6792](https://github.com/quarto-dev/quarto-cli/issues/6792)): `fig-asp` provided at YAML config level now correctly work to set `fig.asp` chunk option in **knitr**.
 - ([#7002](https://github.com/quarto-dev/quarto-cli/issues/7002)): `layout-valign` is correctly forwarded to HTML to tweak vertical figure layout alignment for computational figures.
+- ([#5994](https://github.com/quarto-dev/quarto-cli/issues/5994)): Options like `include` or `echo` for `ojs` or `mermaid` cells are now correctly handled with knitr engine.
 
 ## OJS engine
 

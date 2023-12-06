@@ -10,7 +10,11 @@ import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
-import { ProjectConfig, ProjectContext } from "../../types.ts";
+import {
+  NavigationItemObject,
+  ProjectConfig,
+  ProjectContext,
+} from "../../types.ts";
 import {
   Navbar,
   NavigationFooter,
@@ -320,6 +324,47 @@ export function sidebarForHref(href: string, format: Format) {
       }
     }
   }
+}
+
+// Given a sidebar, this function will look through the navbar items and attempt
+// to find a matching NavItem from the Navbar
+export function navbarItemForSidebar(sidebar: Sidebar, format: Format) {
+  const findNavItemWithSidebar = (navItems: NavItem[] | undefined) => {
+    if (navItems) {
+      const navItem = navItems.find((val: NavItem) => {
+        let href: string | undefined;
+        if (typeof val === "object") {
+          href = (val as NavigationItemObject).href;
+        } else {
+          href = val;
+        }
+        if (href) {
+          const navSidebar = sidebarForHref(
+            href,
+            format,
+          );
+          if (navSidebar === sidebar) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (navItem) {
+        return navItem;
+      }
+    }
+  };
+
+  const leftNavItem = findNavItemWithSidebar(navigation.navbar?.left);
+  if (leftNavItem) {
+    return leftNavItem;
+  }
+
+  const rightNavItem = findNavItemWithSidebar(navigation.navbar?.right);
+  if (rightNavItem) {
+    return rightNavItem;
+  }
+  return undefined;
 }
 
 export function containsHref(href: string, items: SidebarItem[]) {

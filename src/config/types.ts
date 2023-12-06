@@ -17,6 +17,7 @@ import {
   kCalloutNoteCaption,
   kCalloutTipCaption,
   kCalloutWarningCaption,
+  kCanonicalUrl,
   kCiteMethod,
   kCiteproc,
   kClearCellOptions,
@@ -477,6 +478,7 @@ export interface FormatRender {
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
   [kValidateYaml]?: boolean;
+  [kCanonicalUrl]?: boolean | string;
 }
 
 export interface FormatExecute {

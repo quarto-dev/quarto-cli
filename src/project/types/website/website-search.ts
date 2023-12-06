@@ -21,7 +21,11 @@ import {
   FormatDependency,
   FormatLanguage,
 } from "../../../config/types.ts";
-import { kProjectLibDir, ProjectContext } from "../../types.ts";
+import {
+  kProjectLibDir,
+  NavigationItemObject,
+  ProjectContext,
+} from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import {
@@ -32,7 +36,11 @@ import {
 import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 
-import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
+import {
+  inputFileHref,
+  navbarItemForSidebar,
+  websiteNavigationConfig,
+} from "./website-shared.ts";
 import {
   websiteConfig,
   websiteConfigMetadata,
@@ -223,6 +231,7 @@ export async function updateSearchIndex(
         // determine crumbs
         const navHref = `/${href}`;
         const sidebar = sidebarForHref(navHref, outputFile.format);
+
         const bc = breadCrumbs(navHref, sidebar);
 
         const crumbs = bc.length > 0
@@ -233,6 +242,23 @@ export async function updateSearchIndex(
           }) as string[]
           : undefined;
 
+        // If we found a sidebar, try to determine whether there is a navbar
+        // link that points to this page / sidebar. If so, inject that level
+        // into the crumbs as well. An attempt at improving #7803 and providing
+        // better crumbs
+        if (crumbs && sidebar) {
+          const navItem = navbarItemForSidebar(sidebar, outputFile.format);
+          if (navItem) {
+            if (typeof navItem === "object") {
+              const navbarParentText = (navItem as NavigationItemObject).text;
+              if (navbarParentText) {
+                if (crumbs.length > 0 && crumbs[0] !== navbarParentText) {
+                  crumbs.unshift(navbarParentText);
+                }
+              }
+            }
+          }
+        }
         const titleEl = findTitle();
         const title = titleEl
           ? titleEl.textContent

@@ -435,7 +435,7 @@ export function citationMeta(metadata: Metadata): Metadata {
   }
 }
 
-function synthesizeCitationUrl(
+export function synthesizeCitationUrl(
   input: string,
   metadata: Metadata,
   outputFile?: string,
