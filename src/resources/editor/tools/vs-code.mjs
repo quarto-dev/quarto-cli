@@ -10317,11 +10317,12 @@ var require_yaml_intelligence_resources = __commonJS({
                         type: {
                           enum: [
                             "full",
-                            "partial"
+                            "partial",
+                            "metadata"
                           ],
                           description: {
                             short: "Whether to include full or partial content in the feed.",
-                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n"
+                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n- `metadata`: Use only the title, description, and other document metadata in the feed.\n"
                           }
                         },
                         title: {
@@ -15239,7 +15240,7 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Options for controlling the display and behavior of Notebook previews."
         },
         {
-          "canonical-url": null,
+          name: "canonical-url",
           tags: {
             formats: [
               "$html-doc"
@@ -21283,6 +21284,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
         "Options for controlling the display and behavior of Notebook\npreviews.",
         "Whether to show a back button in the notebook preview.",
+        {
+          short: "Include a canonical link tag in website pages",
+          long: "Include a canonical link tag in website pages. You may pass either\n<code>true</code> to automatically generate a canonical link, or pass a\ncanonical url that you\u2019d like to have placed in the <code>href</code>\nattribute of the tag.\nCanonical links can only be generated for websites with a known\n<code>site-url</code>."
+        },
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
         "The mermaid built-in theme to use.",
@@ -22352,11 +22357,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        {
-          short: "Include a canonical link tag in website pages",
-          long: "Include a canonical link tag in website pages. You may pass either\n<code>true</code> to automatically generate a canonical link, or pass a\ncanonical url that you\u2019d like to have placed in the <code>href</code>\nattribute of the tag.\nCanonical links can only be generated for websites with a known\n<code>site-url</code>."
-        }
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22580,12 +22581,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180143,
+        _internalId: 180637,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180135,
+            _internalId: 180629,
             type: "enum",
             enum: [
               "png",
@@ -22601,7 +22602,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180142,
+            _internalId: 180636,
             type: "anyOf",
             anyOf: [
               {

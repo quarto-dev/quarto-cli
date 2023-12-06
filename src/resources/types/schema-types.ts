@@ -833,10 +833,12 @@ See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-l
 for a list of valid language codes. */;
     type?:
       | "full"
-      | "partial" /* Whether to include full or partial content in the feed.
+      | "partial"
+      | "metadata" /* Whether to include full or partial content in the feed.
 
 - `full` (default): Include the complete content of the document in the feed.
-- `partial`: Include only the first paragraph of the document in the feed. */;
+- `partial`: Include only the first paragraph of the document in the feed.
+- `metadata`: Use only the title, description, and other document metadata in the feed. */;
     title?:
       string; /* The title for this feed. Defaults to the site title provided the Quarto project. */
   } /* Enables an RSS feed for the listing. */;

@@ -181,7 +181,7 @@ export async function createFeed(
   // The core feed file is generated 'staged' with placeholders for
   // content that should be replaced with rendered version of the content
   // from fully rendered documents.
-  const stagedPath = feedPath(dir, stem, options.type === "full");
+  const stagedPath = feedPath(dir, stem, options.type);
 
   const feedFiles: string[] = [];
 
@@ -220,7 +220,7 @@ export async function createFeed(
       file: feedPath(
         dir,
         `${stem}-${category.toLocaleLowerCase()}`,
-        options.type === "full",
+        options.type,
       ),
       finalFile: finalRelPath,
       feedLink: absoluteUrl(siteUrl, finalRelPath),
@@ -293,7 +293,11 @@ export function completeStagedFeeds(
 
           try {
             // Whether the staged file should be filled with full contents of the file
-            const fullContents = feedFile.endsWith(kFullStagedExt);
+            const type = feedFile.endsWith(kFullStagedExt)
+              ? "full"
+              : feedFile.endsWith(kPartialStagedExt)
+              ? "partial"
+              : "metadata";
 
             // Read the staged file contents and replace any
             // content with the rendered version from the document
@@ -314,10 +318,14 @@ export function completeStagedFeeds(
                 tag: "description",
                 regex: kDescRegex,
                 replaceValue: (rendered: RenderedContents) => {
-                  if (fullContents) {
+                  if (type === "full") {
                     return `<![CDATA[ ${rendered.fullContents} ]]>`;
+                  } else if (type === "partial") {
+                    return `<![CDATA[ ${
+                      rendered.description || rendered.firstPara
+                    } ]]>`;
                   } else {
-                    return `<![CDATA[ ${rendered.firstPara} ]]>`;
+                    return `<![CDATA[ ${rendered.description || ""} ]]>`;
                   }
                 },
               },
@@ -577,7 +585,8 @@ function addLinkTagToDocument(doc: Document, feed: FeedMetadata, path: string) {
 }
 
 const kFullStagedExt = "feed-full-staged";
-const kPartialStageExt = "feed-partial-staged";
+const kPartialStagedExt = "feed-partial-staged";
+const kMetadataStagedExt = "feed-metadata-staged";
 const kFinalExt = "xml";
 const kStagedFileGlob = "*.feed-*-staged";
 
@@ -597,8 +606,16 @@ function tagplaceholderRegex(tag: string) {
   return new RegExp(`<${tag}>{B4F502887207\:(.*?)}<\/${tag}>`, "gm");
 }
 
-function feedPath(dir: string, stem: string, full: boolean) {
-  const ext = full ? kFullStagedExt : kPartialStageExt;
+function feedPath(
+  dir: string,
+  stem: string,
+  type: "full" | "partial" | "metadata",
+) {
+  const ext = type === "full"
+    ? kFullStagedExt
+    : type === "partial"
+    ? kPartialStagedExt
+    : kMetadataStagedExt;
   const file = `${stem}.${ext}`;
   return join(dir, file);
 }

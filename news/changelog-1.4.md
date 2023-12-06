@@ -124,6 +124,7 @@
 - ([#7634](https://github.com/quarto-dev/quarto-cli/issues/7634)): Use an explicit width to ensure default listing layout doesn't grow outside its desired boundss
 - ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
 - ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
+- ([#7290](https://github.com/quarto-dev/quarto-cli/issues/7290)): Add support for `feed:type` of `metadata`, which will use only explicitly provided description metadata when generating an RSS feed. Additionally, note that `partial` feed types will prefer to use an explicit description over the first paragraph, when a description is available.
 
 ## Websites
 
