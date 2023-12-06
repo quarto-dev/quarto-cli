@@ -23,6 +23,7 @@ import { ExtensionSource, extensionSource } from "./extension-host.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { InternalError } from "../core/lib/error.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { openUrl } from "../core/shell.ts";
 
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
@@ -74,7 +75,31 @@ export async function installExtension(
 
     if (confirmed) {
       // Complete the installation
-      await completeInstallation(extensionDir, installDir, source);
+      await completeInstallation(extensionDir, installDir);
+
+      await withSpinner(
+        { message: "Extension installation complete" },
+        () => {
+          return Promise.resolve();
+        },
+      );
+
+      if (source.learnMoreUrl) {
+        info("");
+        if (allowPrompt) {
+          const open = await Confirm.prompt({
+            message: "View documentation using default browser?",
+            default: true,
+          });
+          if (open) {
+            await openUrl(source.learnMoreUrl);
+          }
+        } else {
+          info(
+            `\nLearn more about this extension at:\n${source.learnMoreUrl}\n`,
+          );
+        }
+      }
     } else {
       // Not confirmed, cancel the installation
       cancelInstallation();
@@ -510,22 +535,11 @@ async function confirmInstallation(
 async function completeInstallation(
   downloadDir: string,
   installDir: string,
-  source: ExtensionSource,
 ) {
   info("");
 
-  const message = () => {
-    const baseMessage = `Extension installation complete.`;
-    if (source.learnMoreUrl) {
-      return `${baseMessage}\nLearn more about this extension at ${source.learnMoreUrl}`;
-    } else {
-      return baseMessage;
-    }
-  };
-
   await withSpinner({
     message: `Copying`,
-    doneMessage: message(),
   }, async () => {
     // Determine a staging location in the installDir
     // (to ensure we can use move without fear of spanning volumes)
@@ -566,7 +580,6 @@ async function completeInstallation(
       // Clean up the staging directory
       Deno.removeSync(stagingDir, { recursive: true });
     }
-
     return Promise.resolve();
   });
 }
