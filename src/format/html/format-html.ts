@@ -411,7 +411,8 @@ export async function htmlFormatExtras(
   }
 
   // add quarto sass bundle of we aren't in bootstrap
-  if (!bootstrap) {
+  const minimal = format.metadata[kMinimal] === true;
+  if (!bootstrap && !minimal) {
     if (scssOptions.quartoBase) {
       sassBundles.push({
         dependency: kQuartoHtmlDependency,

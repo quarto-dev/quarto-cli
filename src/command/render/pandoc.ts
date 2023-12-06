@@ -1264,7 +1264,7 @@ async function resolveExtras(
     extras = await resolveSassBundles(
       inputDir,
       extras,
-      format.pandoc,
+      format,
       temp,
       formatExtras.html?.[kSassBundles],
       projectExtras.html?.[kSassBundles],

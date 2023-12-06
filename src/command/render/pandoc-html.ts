@@ -8,6 +8,7 @@ import { join } from "path/mod.ts";
 import { cloneDeep, uniqBy } from "../../core/lodash.ts";
 
 import {
+  Format,
   FormatExtras,
   FormatPandoc,
   kDependencies,
@@ -34,6 +35,7 @@ import {
   cssHasDarkModeSentinel,
   generateCssKeyValues,
 } from "../../core/pandoc/css.ts";
+import { kMinimal } from "../../format/html/format-html-shared.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -46,7 +48,7 @@ interface SassTarget {
 export async function resolveSassBundles(
   inputDir: string,
   extras: FormatExtras,
-  pandoc: FormatPandoc,
+  format: Format,
   temp: TempContext,
   formatBundles?: SassBundle[],
   projectBundles?: SassBundle[],
@@ -199,7 +201,7 @@ export async function resolveSassBundles(
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
-    pandoc,
+    format,
     temp,
     hasDarkStyles ? "light" : "default",
     defaultStyle,
@@ -210,14 +212,14 @@ export async function resolveSassBundles(
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
-      pandoc,
+      format,
       temp,
       "dark",
       defaultStyle,
     );
   }
 
-  if (isHtmlOutput(pandoc, true)) {
+  if (isHtmlOutput(format.pandoc, true)) {
     // We'll take care of text highlighting for HTML
     setTextHighlightStyle("none", extras);
   }
@@ -229,11 +231,17 @@ export async function resolveSassBundles(
 async function resolveQuartoSyntaxHighlighting(
   inputDir: string,
   extras: FormatExtras,
-  pandoc: FormatPandoc,
+  format: Format,
   temp: TempContext,
   style: "dark" | "light" | "default",
   defaultStyle?: "dark" | "light",
 ) {
+  // if
+  const minimal = format.metadata[kMinimal] === true;
+  if (minimal) {
+    return extras;
+  }
+
   extras = cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
@@ -251,7 +259,7 @@ async function resolveQuartoSyntaxHighlighting(
   }.css`;
 
   // Read the highlight style (theme name)
-  const themeDescriptor = readHighlightingTheme(inputDir, pandoc, style);
+  const themeDescriptor = readHighlightingTheme(inputDir, format.pandoc, style);
   if (themeDescriptor) {
     // Other variables that need to be injected (if any)
     const extraVariables = extras.html?.[kQuartoCssVariables] || [];
