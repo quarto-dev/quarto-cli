@@ -443,6 +443,9 @@ div.ansi-escaped-output {
 *
 * ansi colors from IPython notebook's
 *
+* we also add `bright-[color]-` synonyms for the `-[color]-intense` classes since
+* that seems to be what ansi_up emits
+*
 */
 /* CSS font colors for translated ANSI escape sequences */
 /* The color values are a mix of
@@ -454,10 +457,12 @@ div.ansi-escaped-output {
 .ansi-black-bg {
   background-color: #3e424d;
 }
-.ansi-black-intense-fg {
+.ansi-black-intense-black,
+.ansi-bright-black-fg {
   color: #282c36;
 }
-.ansi-black-intense-bg {
+.ansi-black-intense-black,
+.ansi-bright-black-bg {
   background-color: #282c36;
 }
 .ansi-red-fg {
@@ -466,10 +471,12 @@ div.ansi-escaped-output {
 .ansi-red-bg {
   background-color: #e75c58;
 }
-.ansi-red-intense-fg {
+.ansi-red-intense-red,
+.ansi-bright-red-fg {
   color: #b22b31;
 }
-.ansi-red-intense-bg {
+.ansi-red-intense-red,
+.ansi-bright-red-bg {
   background-color: #b22b31;
 }
 .ansi-green-fg {
@@ -478,10 +485,12 @@ div.ansi-escaped-output {
 .ansi-green-bg {
   background-color: #00a250;
 }
-.ansi-green-intense-fg {
+.ansi-green-intense-green,
+.ansi-bright-green-fg {
   color: #007427;
 }
-.ansi-green-intense-bg {
+.ansi-green-intense-green,
+.ansi-bright-green-bg {
   background-color: #007427;
 }
 .ansi-yellow-fg {
@@ -490,10 +499,12 @@ div.ansi-escaped-output {
 .ansi-yellow-bg {
   background-color: #ddb62b;
 }
-.ansi-yellow-intense-fg {
+.ansi-yellow-intense-yellow,
+.ansi-bright-yellow-fg {
   color: #b27d12;
 }
-.ansi-yellow-intense-bg {
+.ansi-yellow-intense-yellow,
+.ansi-bright-yellow-bg {
   background-color: #b27d12;
 }
 .ansi-blue-fg {
@@ -502,10 +513,12 @@ div.ansi-escaped-output {
 .ansi-blue-bg {
   background-color: #208ffb;
 }
-.ansi-blue-intense-fg {
+.ansi-blue-intense-blue,
+.ansi-bright-blue-fg {
   color: #0065ca;
 }
-.ansi-blue-intense-bg {
+.ansi-blue-intense-blue,
+.ansi-bright-blue-bg {
   background-color: #0065ca;
 }
 .ansi-magenta-fg {
@@ -514,10 +527,12 @@ div.ansi-escaped-output {
 .ansi-magenta-bg {
   background-color: #d160c4;
 }
-.ansi-magenta-intense-fg {
+.ansi-magenta-intense-magenta,
+.ansi-bright-magenta-fg {
   color: #a03196;
 }
-.ansi-magenta-intense-bg {
+.ansi-magenta-intense-magenta,
+.ansi-bright-magenta-bg {
   background-color: #a03196;
 }
 .ansi-cyan-fg {
@@ -526,10 +541,12 @@ div.ansi-escaped-output {
 .ansi-cyan-bg {
   background-color: #60c6c8;
 }
-.ansi-cyan-intense-fg {
+.ansi-cyan-intense-cyan,
+.ansi-bright-cyan-fg {
   color: #258f8f;
 }
-.ansi-cyan-intense-bg {
+.ansi-cyan-intense-cyan,
+.ansi-bright-cyan-bg {
   background-color: #258f8f;
 }
 .ansi-white-fg {
@@ -538,10 +555,12 @@ div.ansi-escaped-output {
 .ansi-white-bg {
   background-color: #c5c1b4;
 }
-.ansi-white-intense-fg {
+.ansi-white-intense-white,
+.ansi-bright-white-fg {
   color: #a1a6b2;
 }
-.ansi-white-intense-bg {
+.ansi-white-intense-white,
+.ansi-bright-white-bg {
   background-color: #a1a6b2;
 }
 .ansi-default-inverse-fg {
