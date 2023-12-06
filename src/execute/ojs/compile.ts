@@ -9,10 +9,12 @@ import { dirname, join, relative, resolve } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { parseModule } from "observablehq/parser";
+import { escape } from "../../core/lodash.ts";
 
 import { Format, kDependencies } from "../../config/types.ts";
 import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
+  kCodeSummary,
   kEmbedResources,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -501,6 +503,12 @@ export async function ojsCompile(
           cell.options?.[kCodeFold]
       ) {
         srcAttrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
+      }
+
+      if (cell.options?.[kCodeSummary]) {
+        srcAttrs.push(
+          `${kCodeSummary}="${escape(cell.options?.[kCodeSummary])}"`,
+        );
       }
 
       if (cell.options?.[kCodeLineNumbers]) {
