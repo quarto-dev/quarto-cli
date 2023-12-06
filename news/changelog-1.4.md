@@ -107,6 +107,7 @@
 
 ## Website Listings
 
+- ([#3933](https://github.com/quarto-dev/quarto-cli/issues/3933)): Don't emit base Quarto CSS or theme highlighting CSS when `minimal` is selected.
 - ([#4800](https://github.com/quarto-dev/quarto-cli/issues/4800)): Add support for including an `xml-stylesheet` in listings. Use the `xml-stylesheet: example.xsl` under `feed:` to provide a path to an XSL style sheet to style your RSS feed.
 - ([#5371](https://github.com/quarto-dev/quarto-cli/issues/5371)): Properly compute the trimmed length of descriptions included in listings.
 - ([#5463](https://github.com/quarto-dev/quarto-cli/issues/5463)): Error if the `contents` of a listing match no items.
