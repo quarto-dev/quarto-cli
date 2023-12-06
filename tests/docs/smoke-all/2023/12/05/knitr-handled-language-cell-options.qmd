@@ -1,0 +1,53 @@
+---
+format: html
+engine: knitr
+execute:
+  include: false
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#ojs div#ojs-cell-1", "#mermaid pre.mermaid", "#dot svg"]
+        - []
+      ensureFileRegexMatches:
+        - [] 
+        - []
+---
+
+## OJS
+
+```{ojs}
+//| include: true
+1 + 1
+```
+
+## MERMAID
+```{mermaid}
+%%| include: true
+flowchart LR
+  A[Hard edge] --> B(Round edge)
+  B --> C{Decision}
+  C --> D[Result one]
+  C --> E[Result two]
+```
+
+## DOT
+```{dot}
+//| include: true
+graph G {
+  layout=neato
+  run -- intr;
+  intr -- runbl;
+  runbl -- run;
+  run -- kernel;
+  kernel -- zombie;
+  kernel -- sleep;
+  kernel -- runmem;
+  sleep -- swap;
+  swap -- runswap;
+  runswap -- new;
+  runswap -- runmem;
+  new -- runmem;
+  sleep -- runmem;
+}
+```
