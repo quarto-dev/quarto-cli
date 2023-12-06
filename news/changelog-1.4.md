@@ -64,6 +64,7 @@
 - ([#7104](https://github.com/quarto-dev/quarto-cli/issues/7104)): Line highlighting progressive reveal now correctly has code annotation anchor on the right.
 - ([#7366](https://github.com/quarto-dev/quarto-cli/issues/7366)): `smaller: true` now applies correctly on nested slides.
 - ([#7394](https://github.com/quarto-dev/quarto-cli/issues/7394)): Fix issue with mermaid diagrams in revealjs slides when `output-location: fragment`.
+- ([#4988](https://github.com/quarto-dev/quarto-cli/issues/4988)): targets for links on numbered code lines are removed, as revealjs doesn't support them because navigation is done by slide only.
 
 ## PDF Format
 
