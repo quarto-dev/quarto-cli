@@ -792,6 +792,9 @@ function getLinkTarget(
   // Now search for a place to put the links
   let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
   if (dlLinkTarget === null) {
+    dlLinkTarget = doc.getElementById("quarto-sidebar-toc-left");
+  }
+  if (dlLinkTarget === null) {
     dlLinkTarget = doc.getElementById(kMarginSidebarId);
   }
   if (dlLinkTarget !== null) {
