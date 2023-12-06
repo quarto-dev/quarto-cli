@@ -54,6 +54,7 @@ export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 export const kLightbox = "lightbox";
+export const kCanonicalUrl = "canonical-url";
 
 export const kMath = "math";
 
@@ -223,6 +224,7 @@ export const kRenderDefaultsKeys = [
   kClearCellOptions,
   kHtmlTableProcessing,
   kValidateYaml,
+  kCanonicalUrl,
 ];
 
 // language fields

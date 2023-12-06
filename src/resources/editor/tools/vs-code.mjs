@@ -15237,6 +15237,24 @@ var require_yaml_intelligence_resources = __commonJS({
             }
           },
           description: "Options for controlling the display and behavior of Notebook previews."
+        },
+        {
+          "canonical-url": null,
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          description: {
+            short: "Include a canonical link tag in website pages",
+            long: "Include a canonical link tag in website pages. You may pass either `true` to \nautomatically generate a canonical link, or pass a canonical url that you'd like\nto have placed in the `href` attribute of the tag.\n\nCanonical links can only be generated for websites with a known `site-url`.\n"
+          }
         }
       ],
       "schema/document-listing.yml": [
@@ -22334,7 +22352,11 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        {
+          short: "Include a canonical link tag in website pages",
+          long: "Include a canonical link tag in website pages. You may pass either\n<code>true</code> to automatically generate a canonical link, or pass a\ncanonical url that you\u2019d like to have placed in the <code>href</code>\nattribute of the tag.\nCanonical links can only be generated for websites with a known\n<code>site-url</code>."
+        }
       ],
       "schema/external-schemas.yml": [
         {
@@ -22558,12 +22580,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180066,
+        _internalId: 180143,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180058,
+            _internalId: 180135,
             type: "enum",
             enum: [
               "png",
@@ -22579,7 +22601,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180065,
+            _internalId: 180142,
             type: "anyOf",
             anyOf: [
               {

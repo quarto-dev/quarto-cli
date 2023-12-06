@@ -390,7 +390,7 @@ function prependHeading(
   classes: string[],
 ) {
   const heading = doc.createElement("h" + level);
-  if (typeof (title) == "string" && title !== "none") {
+  if (typeof title == "string" && title !== "none") {
     heading.innerHTML = title;
   }
   if (classes) {
@@ -512,6 +512,20 @@ export function writeMetaTag(name: string, content: string, doc: Document) {
 
   // Insert the nodes
   doc.querySelector("head")?.appendChild(m);
+  doc.querySelector("head")?.appendChild(nl);
+}
+
+export function writeLinkTag(rel: string, href: string, doc: Document) {
+  // Meta tag
+  const l = doc.createElement("LINK");
+  l.setAttribute("rel", rel);
+  l.setAttribute("href", href);
+
+  // New Line
+  const nl = doc.createTextNode("\n");
+
+  // Insert the nodes
+  doc.querySelector("head")?.appendChild(l);
   doc.querySelector("head")?.appendChild(nl);
 }
 
