@@ -37,6 +37,7 @@ import {
   ContentUpdate,
   LogPrefix,
   PAGE_TYPE,
+  PublishContentResult,
   PublishRenderer,
   PublishType,
   PublishTypeEnum,
@@ -94,6 +95,7 @@ import {
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
+import { info } from "log/mod.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -387,7 +389,7 @@ async function publish(
     titleToUpdate: string = title,
     fileName: string = "",
     uploadFileAttachments: boolean = true,
-  ): Promise<Content> => {
+  ): Promise<PublishContentResult> => {
     const previousPage = await client.getContent(id);
 
     const attachmentsToUpload: string[] = findAttachments(
@@ -449,7 +451,10 @@ async function publish(
       );
     }
 
-    return updatedContent;
+    return {
+      content: updatedContent,
+      hasAttachments: attachmentsToUpload.length > 0,
+    };
   };
 
   const createSiteParent = async (
@@ -527,7 +532,7 @@ async function publish(
     titleToCreate: string = title,
     createParent: ConfluenceParent = parent,
     fileNameParam: string = "",
-  ): Promise<Content> => {
+  ): Promise<PublishContentResult> => {
     const createTitle = await uniquifyTitle(titleToCreate);
 
     const fileName = pathWithForwardSlashes(fileNameParam);
@@ -571,11 +576,14 @@ async function publish(
       );
     }
 
-    return createdContent;
+    return {
+      content: createdContent,
+      hasAttachments: attachmentsToUpload.length > 0,
+    };
   };
 
   const publishDocument = async (): Promise<
-    [PublishRecord, URL | undefined]
+    [[PublishRecord, URL | undefined], boolean]
   > => {
     const publishFiles: PublishFiles = await renderDocument(render);
 
@@ -586,26 +594,34 @@ async function publish(
 
     trace("publishDocument", { publishFiles, body }, LogPrefix.RENDER);
 
-    let content: Content | undefined;
+    let publishResult: PublishContentResult | undefined;
     let message: string = "";
     let doOperation;
 
     if (publishRecord) {
       message = `Updating content at ${publishRecord.url}...`;
-      doOperation = async () => (content = await updateContent(
-        user,
-        publishFiles,
-        publishRecord.id,
-        body,
-      ));
+      doOperation = async () => {
+        const result = await updateContent(
+          user,
+          publishFiles,
+          publishRecord.id,
+          body,
+        );
+        publishResult = result;
+      };
     } else {
       message = `Creating content in space ${parent.space}...`;
-      doOperation =
-        async () => (content = await createContent(publishFiles, body));
+      doOperation = async () => {
+        const result = await createContent(publishFiles, body);
+        publishResult = result;
+      };
     }
     try {
       await doWithSpinner(message, doOperation);
-      return buildPublishRecordForContent(server, content);
+      return [
+        buildPublishRecordForContent(server, publishResult?.content),
+        !!publishResult?.hasAttachments,
+      ];
     } catch (error: any) {
       trace("Error Performing Operation", error);
       trace("Value to Update", body?.storage?.value);
@@ -613,7 +629,9 @@ async function publish(
     }
   };
 
-  const publishSite = async (): Promise<[PublishRecord, URL | undefined]> => {
+  const publishSite = async (): Promise<
+    [[PublishRecord, URL | undefined], boolean]
+  > => {
     let parentId: string = parent?.parent ?? space.homepage.id ?? "";
 
     parentId = await checkToCreateSiteParent(parentId);
@@ -706,6 +724,7 @@ async function publish(
         throw error;
       }
     };
+    let hasAttachments = false;
 
     const doChange = async (
       change: ConfluenceSpaceChange,
@@ -740,19 +759,19 @@ async function publish(
         );
 
         if (universalPath) {
-          pathsToId[universalPath] = result.id ?? "";
+          pathsToId[universalPath] = result.content.id ?? "";
         }
 
         const contentPropertyResult: Content = await client
-          .createContentProperty(result.id ?? "", {
+          .createContentProperty(result.content.id ?? "", {
             key: ContentPropertyKey.fileName,
             value: (change as ContentCreate).fileName,
           });
-
+        hasAttachments = hasAttachments || result.hasAttachments;
         return result;
       } else if (isContentUpdate(change)) {
         const update = change as ContentUpdate;
-        return await updateContent(
+        const result = await updateContent(
           user,
           publishFiles,
           update.id ?? "",
@@ -761,6 +780,8 @@ async function publish(
           update.fileName ?? "",
           uploadFileAttachments,
         );
+        hasAttachments = hasAttachments || result.hasAttachments;
+        return result;
       } else if (isContentDelete(change)) {
         if (DELETE_DISABLED) {
           console.warn("DELETE DISABELD");
@@ -768,7 +789,7 @@ async function publish(
         }
         const result = await client.deleteContent(change);
         await sleep(DELETE_SLEEP_MILLIS); // TODO replace with polling
-        return result;
+        return { content: result, hasAttachments: false };
       } else {
         console.error("Space Change not defined");
         return null;
@@ -828,13 +849,25 @@ async function publish(
     }
 
     const parentPage: Content = await client.getContent(parentId);
-    return buildPublishRecordForContent(server, parentPage);
+    return [buildPublishRecordForContent(server, parentPage), hasAttachments];
   };
 
   if (type === PublishTypeEnum.document) {
-    return await publishDocument();
+    const [publishResult, hasAttachments] = await publishDocument();
+    if (hasAttachments) {
+      info(
+        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or atachment.\n",
+      );
+    }
+    return publishResult;
   } else {
-    return await publishSite();
+    const [publishResult, hasAttachments] = await publishSite();
+    if (hasAttachments) {
+      info(
+        "\nNote: The published content includes attachments or images. You may see a placeholder for a few moments while Confluence processes the image or atachment.\n",
+      );
+    }
+    return publishResult;
   }
 }
 
