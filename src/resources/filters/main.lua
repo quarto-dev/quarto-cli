@@ -338,6 +338,9 @@ local quarto_post_filters = {
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
+  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" } },
+
   -- inject required packages post-rendering
   { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
 
@@ -371,8 +374,6 @@ local quarto_layout_filters = {
   { name = "manuscript filtering", filter = manuscript() },
   { name = "manuscript filtering", filter = manuscriptUnroll() },
   { name = "layout-lightbox", filters = lightbox(), flags = { "has_lightbox" }},
-  { name = "layout-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
   { name = "layout-columns-preprocess", filter = columns_preprocess() },
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
