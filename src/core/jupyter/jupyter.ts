@@ -1739,7 +1739,6 @@ async function mdOutputError(
     return mdCodeOutput([output.ename + ": " + output.evalue]);
   }
   const html = await convertToHtmlSpans(output.evalue);
-  console.log(output.evalue);
   return mdMarkdownOutput(
     [
       "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
