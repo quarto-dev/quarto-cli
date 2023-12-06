@@ -1853,7 +1853,7 @@ body.nav-sidebar {
   @include media-breakpoint-down(lg) {
     .quarto-title-banner {
       margin-bottom: 0;
-      padding-bottom: 0;
+      padding-bottom: 1em;
     }
     #title-block-header {
       margin-block-end: 0;
