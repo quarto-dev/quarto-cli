@@ -506,7 +506,7 @@ export async function jupyterKernelspecFromMarkdown(
         }).`,
       ),
     );
-  } else if (typeof (yamlJupyter) === "string") {
+  } else if (typeof yamlJupyter === "string") {
     const kernel = yamlJupyter;
     const kernelspec = await jupyterKernelspec(kernel);
     if (kernelspec) {
@@ -521,7 +521,7 @@ export async function jupyterKernelspecFromMarkdown(
         ),
       );
     }
-  } else if (typeof (yamlJupyter) === "object") {
+  } else if (typeof yamlJupyter === "object") {
     const jupyter = { ...yamlJupyter } as Record<string, unknown>;
     if (isJupyterKernelspec(jupyter.kernelspec)) {
       const kernelspec = jupyter.kernelspec;
@@ -1340,19 +1340,31 @@ async function mdFromCodeCell(
     ...cell.options,
   };
 
+  let forwardedAttrs = false;
   for (const key of Object.keys(cellOptions)) {
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
       if (value !== undefined) {
-        if (typeof (value) !== "string") {
+        if (typeof value !== "string") {
           value = JSON.stringify(value);
         }
         value = value.replaceAll("'", `\\'`);
         divMd.push(`${key}='${value}' `);
+        forwardedAttrs = true;
       }
     }
   }
+
+  // in analogy to src/resources/rmd/hooks.R:403--406
+  //
+  // if there is a label, additional classes, a forwardAttr, or a cell.cap
+  // then the user is deemed to have implicitly overridden results = "asis"
+  // (as those features don't work w/o an enclosing div)
+  const needCell = (label && labelCellContainer) || // isTRUE(nzchar(label))
+    classes.length > 0 || // length(classes) > 1
+    forwardedAttrs || // isTRUE(nzchar(forwardAttr))
+    (cellCaption !== undefined || outputCaptions.length > 0); // isTRUE(nzchar(cell.cap))
 
   // add execution_count if we have one
   if (typeof (cell.execution_count) === "number") {
@@ -1614,7 +1626,7 @@ async function mdFromCodeCell(
   }
 
   // write md w/ div enclosure (if there is any md to write)
-  if (md.length > 0 && !asis) {
+  if (md.length > 0 && (needCell || !asis)) {
     // begin
     md.unshift(divBeginMd);
 
