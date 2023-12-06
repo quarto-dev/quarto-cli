@@ -199,6 +199,7 @@
 - ([#7016](https://github.com/quarto-dev/quarto-cli/pull/7016)): Ignore directories for which we don't have permissions when searching for unactivated environments.
 - ([#7512](https://github.com/quarto-dev/quarto-cli/issues/7512)): Improved error message listing known kernels, when a kernel set with `jupyter` key in YAML is not found.
 - ([#7548](https://github.com/quarto-dev/quarto-cli/issues/7548)): Don't use `fig_format="png"` in Julia's CairoMakie because of interaction with `display()`
+- ([#7607](https://github.com/quarto-dev/quarto-cli/issues/7607)): Make `output: asis` behave the same way as the `knitr` engine, emitting div enclosures when necessary.
 
 ## Knitr
 
