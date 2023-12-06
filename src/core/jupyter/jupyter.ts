@@ -506,7 +506,7 @@ export async function jupyterKernelspecFromMarkdown(
         }).`,
       ),
     );
-  } else if (typeof (yamlJupyter) === "string") {
+  } else if (typeof yamlJupyter === "string") {
     const kernel = yamlJupyter;
     const kernelspec = await jupyterKernelspec(kernel);
     if (kernelspec) {
@@ -521,7 +521,7 @@ export async function jupyterKernelspecFromMarkdown(
         ),
       );
     }
-  } else if (typeof (yamlJupyter) === "object") {
+  } else if (typeof yamlJupyter === "object") {
     const jupyter = { ...yamlJupyter } as Record<string, unknown>;
     if (isJupyterKernelspec(jupyter.kernelspec)) {
       const kernelspec = jupyter.kernelspec;
@@ -1345,7 +1345,7 @@ async function mdFromCodeCell(
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
       if (value !== undefined) {
-        if (typeof (value) !== "string") {
+        if (typeof value !== "string") {
           value = JSON.stringify(value);
         }
         value = value.replaceAll("'", `\\'`);
@@ -1567,7 +1567,7 @@ async function mdFromCodeCell(
           md.push(mdOutputStream(stream));
         }
       } else if (output.output_type === "error") {
-        md.push(mdOutputError(output as JupyterOutputError));
+        md.push(await mdOutputError(output as JupyterOutputError, options));
       } else if (isDisplayData(output)) {
         const fixedOutput = cleanJupyterOutputDisplayData(output);
         if (Object.keys(fixedOutput.data).length > 0) {
@@ -1719,8 +1719,22 @@ function mdOutputStream(output: JupyterOutputStream) {
   return mdCodeOutput(output.text.map(colors.stripColor));
 }
 
-function mdOutputError(output: JupyterOutputError) {
-  return mdCodeOutput([output.ename + ": " + output.evalue]);
+async function mdOutputError(
+  output: JupyterOutputError,
+  options: JupyterToMarkdownOptions,
+) {
+  if (!options.toHtml || !hasAnsiEscapeCodes(output.evalue)) {
+    return mdCodeOutput([output.ename + ": " + output.evalue]);
+  }
+  const html = await convertToHtmlSpans(output.evalue);
+  console.log(output.evalue);
+  return mdMarkdownOutput(
+    [
+      "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
+      html,
+      "</pre>\n```\n:::\n",
+    ],
+  );
 }
 
 async function mdOutputDisplayData(
