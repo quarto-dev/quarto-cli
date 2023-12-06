@@ -303,6 +303,9 @@
               - object:
                   closed: true
                   properties:
+                    client-url:
+                      string:
+                        description: Override the default hypothesis client url with a custom client url.
                     openSidebar:
                       boolean:
                         default: false

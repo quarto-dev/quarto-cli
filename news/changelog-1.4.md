@@ -19,6 +19,7 @@
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
 - Add support for displaying `keywords` in HTML page title block, when present.
 - ([#3473](https://github.com/quarto-dev/quarto-cli/issues/3473)): Add support for `body-right` and `body-left` layouts for Website Table of Contents.
+- ([#4840](https://github.com/quarto-dev/quarto-cli/issues/4840)): Add support for specifying a custom Hypothesis client url using `client-url`
 - ([#4882](https://github.com/quarto-dev/quarto-cli/issues/4882)): Add support for `canonical-url`, which when provided will include a link tag with rel='canonical' which will use an explictly provided or automatically generated canonical url for the document.
 - ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
 - ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2

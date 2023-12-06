@@ -8698,6 +8698,11 @@ try {
                           object: {
                             closed: true,
                             properties: {
+                              "client-url": {
+                                string: {
+                                  description: "Override the default hypothesis client url with a custom client url."
+                                }
+                              },
                               openSidebar: {
                                 boolean: {
                                   default: false,
@@ -22582,12 +22587,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180637,
+          _internalId: 180639,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180629,
+              _internalId: 180631,
               type: "enum",
               enum: [
                 "png",
@@ -22603,7 +22608,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180636,
+              _internalId: 180638,
               type: "anyOf",
               anyOf: [
                 {

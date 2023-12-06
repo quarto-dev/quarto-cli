@@ -148,6 +148,8 @@ the discussions feature must be enabled. */;
       }; /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
+    "client-url"?:
+      string /* Override the default hypothesis client url with a custom client url. */;
     assetRoot?: string /* The root URL from which assets are loaded. */;
     branding?: {
       accentColor?:
