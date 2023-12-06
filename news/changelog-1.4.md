@@ -102,6 +102,7 @@
 
 ## Confluence Format
 
+- ([#5151](https://github.com/quarto-dev/quarto-cli/issues/5151)): Provide an informational message about attachment delays when publishing.
 - ([#7256](https://github.com/quarto-dev/quarto-cli/issues/7256)): No undesired newline are created anymore in Callouts.
 
 ## Website Listings
