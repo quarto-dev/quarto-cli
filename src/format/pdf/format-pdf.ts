@@ -902,7 +902,7 @@ const longtableBottomCaptionProcessor = () => {
   };
 };
 
-const kChapterRefNameRegex = /^\\chapter\*?{(.*?)}\\label{references}$/;
+const kChapterRefNameRegex = /^\\chapter\*?{(.*?)}\\label{references.*?}$/;
 const cleanReferencesChapter = () => {
   let refChapterName: string | undefined;
   let refChapterContentsRegex: RegExp | undefined;
