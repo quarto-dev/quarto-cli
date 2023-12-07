@@ -53,6 +53,7 @@ import("./common/wrapped-filter.lua")
 import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
+import("./quarto-init/knitr-fixup.lua")
 
 import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
@@ -202,6 +203,7 @@ local quarto_init_filters = {
     file_metadata(),
     resourceRefs()
   })},
+  { name = "init-knitr-syntax-fixup", filter = knitr_fixup()},
 }
 
 -- v1.4 change: quartoNormalize is responsible for producing a
