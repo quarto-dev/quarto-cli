@@ -964,16 +964,69 @@ const indexAndSuppressPandocBibliography = (
   };
 };
 
+const kInSideCaptionRegex = /^\\sidecaption{/;
+const kBeginFigureRegex = /^\\begin{figure}\[.*?\]$/;
+const kEndFigureRegex = /^\\end{figure}\%?$/;
+
 const placePandocBibliographyEntries = (
   renderedCites: Record<string, string[]>,
 ) => {
+  let biblioEntryState: "scanning" | "in-figure" | "in-sidecaption" =
+    "scanning";
+  let pendingCiteKeys: string[] = [];
+
   return (line: string): string | undefined => {
+    switch (biblioEntryState) {
+      case "scanning": {
+        if (line.match(kBeginFigureRegex)) {
+          biblioEntryState = "in-figure";
+        }
+        break;
+      }
+      case "in-figure": {
+        if (line.match(kInSideCaptionRegex)) {
+          biblioEntryState = "in-sidecaption";
+        } else {
+          if (line.match(kEndFigureRegex)) {
+            biblioEntryState = "scanning";
+          }
+        }
+        break;
+      }
+      case "in-sidecaption": {
+        if (line.match(kEndFigureRegex)) {
+          biblioEntryState = "scanning";
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    if (biblioEntryState === "scanning" && pendingCiteKeys.length > 0) {
+      const result = [
+        line,
+        "\n\\begin{CSLReferences}{2}{0}",
+        ...pendingCiteKeys,
+        "\\end{CSLReferences}\n",
+      ].join("\n");
+      pendingCiteKeys = [];
+      return result;
+    }
+
     return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       const citeLines = renderedCites[citeKey];
       if (citeLines) {
-        citeLines.unshift("\n\\begin{CSLReferences}{2}{0}");
-        citeLines.push("\\end{CSLReferences}\n");
-        return citeLines.join("\n");
+        if (biblioEntryState === "in-sidecaption" && citeLines.length > 0) {
+          pendingCiteKeys.push(citeLines[0]);
+          return ["", ...citeLines.slice(1)].join("\n");
+        } else {
+          return [
+            "\n\\begin{CSLReferences}{2}{0}",
+            ...citeLines,
+            "\\end{CSLReferences}\n",
+          ].join("\n");
+        }
       } else {
         return citeKey;
       }
