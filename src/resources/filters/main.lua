@@ -203,7 +203,12 @@ local quarto_init_filters = {
     file_metadata(),
     resourceRefs()
   })},
-  { name = "init-knitr-syntax-fixup", filter = knitr_fixup()},
+  { name = "init-knitr-syntax-fixup", filter = filterIf(
+      -- only do those fix-up when we know computation engine was knitr
+      function() return param('engine-name') == 'knitr' end, 
+      knitr_fixup()
+    )
+  },
 }
 
 -- v1.4 change: quartoNormalize is responsible for producing a

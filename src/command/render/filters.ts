@@ -111,6 +111,8 @@ const kQuartoCustomFormat = "quarto-custom-format";
 const kIsShinyPython = "is-shiny-python";
 const kShinyPythonExec = "shiny-python-exec";
 
+const kEngineName = "engine-name";
+
 export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
@@ -119,6 +121,7 @@ export async function filterParamsJson(
   resultsFile: string,
   dependenciesFile: string,
   timingFile: string,
+  engineName: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
@@ -176,6 +179,7 @@ export async function filterParamsJson(
     [kFormatIdentifier]: options.format.identifier,
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
+    [kEngineName]: engineName,
   };
   return JSON.stringify(params);
 }

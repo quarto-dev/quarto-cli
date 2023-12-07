@@ -205,6 +205,7 @@ let traceCount = 0;
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
+  engineName: string,
 ): Promise<RunPandocResult | null> {
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
@@ -816,6 +817,7 @@ export async function runPandoc(
     filterResultsFile,
     dependenciesFile,
     timingResultsFile,
+    engineName,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc

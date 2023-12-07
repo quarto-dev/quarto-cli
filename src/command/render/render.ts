@@ -199,7 +199,11 @@ export async function renderPandoc(
   }
 
   // run pandoc conversion (exit on failure)
-  const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
+  const pandocResult = await runPandoc(
+    pandocOptions,
+    executeResult.filters,
+    context.engine.name,
+  );
   if (!pandocResult) {
     return Promise.reject();
   }
