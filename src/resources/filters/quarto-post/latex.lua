@@ -204,27 +204,36 @@ function render_latex()
     end
   end
 
+  local function handle_panel_layout(panel)
+    panel.rows = _quarto.ast.walk(panel.rows, {
+      FloatRefTarget = function(float)
+        if float.attributes["ref-parent"] == nil then
+          -- we're about to mess up here, force a [H] position
+          local ref = refType(float.identifier)
+          if ref == nil then
+            -- don't know what to do with this
+            -- give up
+            return nil
+          end
+          float.attributes[ref .. "-pos"] = "H"
+          return float
+        end
+      end,
+      Figure = function(figure)
+        if figure.identifier ~= nil then
+          local ref = refType(figure.identifier) or "fig"
+          figure.attributes[ref .. "-pos"] = "H"
+        end
+        return figure
+      end
+    })
+  end
+
   return {
     traverse = "topdown",
     Div = column_margin,
     Span = column_margin,
-    PanelLayout = function(panel)
-      panel.rows = _quarto.ast.walk(panel.rows, {
-        FloatRefTarget = function(float)
-          if float.attributes["ref-parent"] == nil then
-            -- we're about to mess up here, force a [H] position
-            local ref = refType(float.identifier)
-            if ref == nil then
-              -- don't know what to do with this
-              -- give up
-              return nil
-            end
-            float.attributes[ref .. "-pos"] = "H"
-            return float
-          end
-        end
-      })
-    end,
+    PanelLayout = handle_panel_layout,
     
     -- Pandoc emits longtable environments by default;
     -- longtable environments increment the _table_ counter (!!)
@@ -238,22 +247,21 @@ function render_latex()
     -- but the alternative is worse.
     FloatRefTarget = function(float)
       -- don't look inside floats, they get their own rendering.
-      if float.type ~= "Table" then
-        return nil, false
+      if float.type == "Table" then
+        -- we have a separate fixup for longtables in our floatreftarget renderer
+        -- in the case of subfloat tables...
+        float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+          traverse = "topdown",
+          FloatRefTarget = function(float)
+            return nil, false
+          end,
+        })
       end
-      -- we have a separate fixup for longtables in our floatreftarget renderer
-      -- in the case of subfloat tables...
-      float.content = _quarto.ast.walk(float.content, {
-        traverse = "topdown",
-        FloatRefTarget = function(float)
-          return nil, false
-        end,
-        Table = function(table)
-          return pandoc.Blocks({
-            table,
-            pandoc.RawBlock('latex', '\\addtocounter{table}{-1}')
-          })
-        end
+      float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+        PanelLayout = function(panel)
+          panel.attributes["fig-pos"] = "H"
+          return panel
+        end 
       })
       return float, false
     end,
