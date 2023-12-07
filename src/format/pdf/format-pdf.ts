@@ -351,6 +351,7 @@ function pdfLatexPostProcessor(
         // to replace cites with the rendered versions.
         lineProcessors.push(
           indexAndSuppressPandocBibliography(renderedCites),
+          cleanReferencesChapter(),
         );
       }
     }
@@ -897,6 +898,35 @@ const longtableBottomCaptionProcessor = () => {
       scanning = !!line.match(/^\\begin{longtable}/);
     }
 
+    return line;
+  };
+};
+
+const kChapterRefNameRegex = /^\\chapter\*?{(.*?)}\\label{references}$/;
+const cleanReferencesChapter = () => {
+  let refChapterName: string | undefined;
+  let refChapterContentsRegex: RegExp | undefined;
+  let refChapterMarkRegex: RegExp | undefined;
+
+  return (line: string): string | undefined => {
+    const chapterRefMatch = line.match(kChapterRefNameRegex);
+    if (chapterRefMatch) {
+      refChapterName = chapterRefMatch[1];
+      refChapterContentsRegex = new RegExp(
+        `\\\\addcontentsline{toc}{chapter}{${refChapterName}}`,
+      );
+      refChapterMarkRegex = new RegExp(
+        `\\\\markboth{${refChapterName}}{${refChapterName}}`,
+      );
+      // Eat this line
+      return undefined;
+    } else if (refChapterContentsRegex && line.match(refChapterContentsRegex)) {
+      // Eat this line
+      return undefined;
+    } else if (refChapterMarkRegex && line.match(refChapterMarkRegex)) {
+      // Eat this line
+      return undefined;
+    }
     return line;
   };
 };
