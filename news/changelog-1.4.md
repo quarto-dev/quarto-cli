@@ -28,6 +28,7 @@
 - ([#5403](https://github.com/quarto-dev/quarto-cli/issues/5403)): Fix accessibility issues with the `kbd` shortcode.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 - ([#5516](https://github.com/quarto-dev/quarto-cli/issues/5516)): Ensure that images which appear in the margin are properly marked as fluid.
+- ([#5663](https://github.com/quarto-dev/quarto-cli/issues/5663)): Properly forward column grid position to sub grids with margin elements.
 - ([#5700](https://github.com/quarto-dev/quarto-cli/issues/5700)): Don't show scrollbars on Windows when hovering over hover code annotations.
 - ([#5708](https://github.com/quarto-dev/quarto-cli/issues/5708)): Fix hang when viewing pages with specific query parameter
 - ([#5789](https://github.com/quarto-dev/quarto-cli/issues/5789)): Correct appearance of languageless code cells in some contexts
