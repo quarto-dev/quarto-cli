@@ -932,6 +932,12 @@ pre {
   }
 }
 
+p pre code:not(.sourceCode),
+li pre code:not(.sourceCode),
+pre code:not(.sourceCode) {
+  background-color: initial;
+}
+
 // Default padding if background is set
 p code:not(.sourceCode),
 li code:not(.sourceCode),
