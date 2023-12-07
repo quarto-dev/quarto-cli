@@ -904,29 +904,21 @@ const longtableBottomCaptionProcessor = () => {
 const indexAndSuppressPandocBibliography = (
   renderedCites: Record<string, string[]>,
 ) => {
-  let consuming = false;
+  let readingBibliography = false;
   let currentCiteKey: string | undefined = undefined;
 
   return (line: string): string | undefined => {
-    if (!consuming && line.match(/^\\hypertarget{refs}{}$/)) {
-      consuming = true;
+    if (!readingBibliography && line.match(/^\\phantomsection\\label{refs}$/)) {
+      readingBibliography = true;
       return undefined;
-    } else if (consuming && line.match(/^\\end{CSLReferences}$/)) {
-      consuming = false;
+    } else if (readingBibliography && line.match(/^\\end{CSLReferences}$/)) {
+      readingBibliography = false;
       return undefined;
-    } else if (consuming) {
-      const matches = line.match(/pre{\\hypertarget{ref\-(.*?)}{}}\%/);
+    } else if (readingBibliography) {
+      const matches = line.match(/\\bibitem\[\\citeproctext\]{ref\-(.*?)}/);
       if (matches && matches[1]) {
         currentCiteKey = matches[1];
-
-        // protect the hypertarget command and the save this line
-        // protect is useful if the reference appears in a caption
-        renderedCites[currentCiteKey] = [
-          line.replace(
-            "pre{\\hypertarget{ref",
-            "pre{\\protect\\hypertarget{ref",
-          ),
-        ];
+        renderedCites[currentCiteKey] = [line];
       } else if (line.length === 0) {
         currentCiteKey = undefined;
       } else if (currentCiteKey) {
@@ -934,7 +926,7 @@ const indexAndSuppressPandocBibliography = (
       }
     }
 
-    if (consuming) {
+    if (readingBibliography) {
       return undefined;
     } else {
       return line;
@@ -949,6 +941,8 @@ const placePandocBibliographyEntries = (
     return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       const citeLines = renderedCites[citeKey];
       if (citeLines) {
+        citeLines.unshift("\n\\begin{CSLReferences}{2}{0}");
+        citeLines.push("\\end{CSLReferences}\n");
         return citeLines.join("\n");
       } else {
         return citeKey;
