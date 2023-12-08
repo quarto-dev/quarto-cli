@@ -425,10 +425,18 @@ $panel-sidebar-padding: 0.5em;
   }
 
   &.has-dark-background {
-    color: darken($dark-bg-text-color, 20%);
+    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
 
     a {
-      color: darken($dark-bg-link-color, 20%);
+      color: sass-color.scale($dark-bg-link-color, $whiteness: 30%);
+    }
+  }
+
+  &.has-light-background {
+    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+
+    a {
+      color: sass-color.scale($light-bg-link-color, $whiteness: 30%);
     }
   }
 }

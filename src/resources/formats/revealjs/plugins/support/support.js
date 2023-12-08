@@ -113,11 +113,16 @@ window.QuartoSupport = function () {
 
   // add footer text
   function addFooter(deck) {
-    const toggleDarkBackground = function(el, onDarkBackground) {
+    const toggleBackgroundTheme = function(el, onDarkBackground, onLightBackground) {
       if (onDarkBackground) {
         el.classList.add('has-dark-background')
       } else {
         el.classList.remove('has-dark-background')
+      }
+      if (onLightBackground) {
+        el.classList.add('has-light-background')
+      } else {
+        el.classList.remove('has-light-background')
       }
     }
     const revealParent = deck.getRevealElement();
@@ -135,15 +140,16 @@ window.QuartoSupport = function () {
           }
           const currentSlideFooter = ev.currentSlide.querySelector(".footer");
           const onDarkBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
+          const onLightBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-light-background')
           if (currentSlideFooter) {
             defaultFooterDiv.style.display = "none";
             const slideFooter = currentSlideFooter.cloneNode(true);
             handleLinkClickEvents(deck, slideFooter);
             deck.getRevealElement().appendChild(slideFooter);
-            toggleDarkBackground(slideFooter, onDarkBackground)
+            toggleBackgroundTheme(slideFooter, onDarkBackground, onLightBackground)
           } else {
             defaultFooterDiv.style.display = "block";
-            toggleDarkBackground(defaultFooterDiv, onDarkBackground)
+            toggleBackgroundTheme(defaultFooterDiv, onDarkBackground, onLightBackground)
           }
         });
       }
