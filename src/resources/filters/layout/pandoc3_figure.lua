@@ -33,6 +33,7 @@ function render_pandoc3_figure()
       return nil
     end
     div.identifier = ""
+    div.classes:extend(figure.classes)
     return htmlDivFigure(div)
   end
   local function html_handle_image(figure)
