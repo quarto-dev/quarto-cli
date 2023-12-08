@@ -347,7 +347,16 @@ function quartoYamlProjectConfigResolver(
   configSchema: ConcreteSchema,
 ) {
   return async (dir: string): Promise<ResolvedProjectConfig | undefined> => {
-    const configFile = projectConfigFile(dir);
+    let configFile: string | undefined = undefined;
+    try {
+      configFile = projectConfigFile(dir);
+    } catch (e) {
+      if (e instanceof Deno.errors.PermissionDenied) {
+        // ignore permission denied errors
+      } else {
+        throw e;
+      }
+    }
     if (configFile) {
       // read config file
       const files = [configFile];
