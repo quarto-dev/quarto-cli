@@ -1,9 +1,8 @@
 /*
-* book-crossrefs.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * book-crossrefs.ts
+ *
+ * Copyright (C) 2020-2023 Posit Software, PBC
+ */
 
 import { warning } from "log/mod.ts";
 import { dirname, join, relative } from "path/mod.ts";
@@ -124,7 +123,7 @@ function resolveCrossrefs(
         index.files[entry.file],
         entry,
         noPrefix,
-        format.language,
+        format,
         entry.parent ? index.entries[entry.parent] : undefined,
       );
       ref.removeAttribute("class");
@@ -187,6 +186,7 @@ interface BookCrossrefEntry {
   parent?: string;
   file: string;
   order: BookCrossrefOrder;
+  caption?: string;
 }
 
 interface BookCrossrefHeading {
@@ -284,9 +284,10 @@ function formatCrossref(
   options: BookCrossrefOptions,
   entry: BookCrossrefEntry,
   noPrefix: boolean,
-  language: FormatLanguage,
+  format: Format,
   parent?: BookCrossrefEntry,
 ) {
+  const { language } = format;
   if (parent) {
     const crossref: string[] = [];
     const parentType = refType(parent.key);
@@ -295,20 +296,24 @@ function formatCrossref(
     crossref.push(numberOption(entry.order, options, "subref", "alpha a"));
     crossref.push(")");
     return crossref.join("");
+  }
+
+  if (format.pandoc["number-sections"] === false) {
+    return entry.caption || entry.key;
+  }
+
+  // if this is a section we need a prefix
+  const refNumber = numberOption(entry.order, options, type);
+  if (type === "sec" && !noPrefix) {
+    const prefix = (options[kCrossrefChapters] && isChapterRef(entry))
+      ? options[kCrossrefChaptersAppendix]
+        ? language[kCrossrefApxPrefix]
+        : language[kCrossrefChPrefix]
+      : language[kCrossrefSecPrefix];
+    const crossref = prefix + "&nbsp;" + refNumber;
+    return crossref;
   } else {
-    // if this is a section we need a prefix
-    const refNumber = numberOption(entry.order, options, type);
-    if (type === "sec" && !noPrefix) {
-      const prefix = (options[kCrossrefChapters] && isChapterRef(entry))
-        ? options[kCrossrefChaptersAppendix]
-          ? language[kCrossrefApxPrefix]
-          : language[kCrossrefChPrefix]
-        : language[kCrossrefSecPrefix];
-      const crossref = prefix + "&nbsp;" + refNumber;
-      return crossref;
-    } else {
-      return refNumber;
-    }
+    return refNumber;
   }
 }
 
@@ -394,7 +399,7 @@ function numberStyle(
 
 function sectionNumber(options: BookCrossrefOptions, section: number[]) {
   let lastIndex = 0;
-  for (let i = (section.length - 1); i >= 0; i--) {
+  for (let i = section.length - 1; i >= 0; i--) {
     if (section[i] > 0) {
       lastIndex = i;
       break;

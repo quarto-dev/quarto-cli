@@ -1,3 +1,9 @@
+/*
+ * book-chapters.ts
+ *
+ * Copyright (C) 2020-2023 Posit Software, PBC
+ */
+
 import * as ld from "../../../core/lodash.ts";
 
 import { PandocAttr } from "../../../core/pandoc/types.ts";
@@ -133,22 +139,28 @@ export function formatChapterTitle(
     }
   };
 
-  if (info) {
-    if (info.appendix) {
-      const crossref = format.metadata?.crossref as Metadata;
-      const title = crossref?.[kCrossrefAppendixTitle] ||
-        format.language[kCrossrefApxPrefix] || "Appendix";
-      const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
-        ? crossref?.[kCrossrefAppendixDelim]
-        : " —";
-      return withIdSpan(`${title} ${info.labelPrefix}${delim} ${label}`);
+  if (!info) {
+    return withIdSpan(label);
+  }
+
+  if (info.appendix) {
+    const crossref = format.metadata?.crossref as Metadata;
+    const title = crossref?.[kCrossrefAppendixTitle] ||
+      format.language[kCrossrefApxPrefix] || "Appendix";
+    const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
+      ? crossref?.[kCrossrefAppendixDelim]
+      : " —";
+    return withIdSpan(`${title} ${info.labelPrefix}${delim} ${label}`);
+  } else {
+    if (format.pandoc[kNumberSections] === false) {
+      return withIdSpan(
+        `[${label}]{.chapter-title}`,
+      );
     } else {
       return withIdSpan(
         `[${info.labelPrefix}]{.chapter-number}\u00A0 [${label}]{.chapter-title}`,
       );
     }
-  } else {
-    return withIdSpan(label);
   }
 }
 
