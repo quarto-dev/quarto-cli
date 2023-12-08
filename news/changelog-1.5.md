@@ -30,6 +30,10 @@ All changes included in 1.5:
 - ([#4802](https://github.com/quarto-dev/quarto-cli/issues/4802)): Change name of temporary input notebook to avoid accidental overwriting.
 - ([#8433](https://github.com/quarto-dev/quarto-cli/issues/8433)): Escape jupyter widget states that contain `</script>` so they can be embedded in HTML documents.
 
+## Knitr
+
+- ([#7843](https://github.com/quarto-dev/quarto-cli/issues/7843)): fix an issue with Quarto figure specific css rules applying inside HTML widgets output.
+
 ## Website Listings
 
 - ([#8147](https://github.com/quarto-dev/quarto-cli/issues/8147)): Ensure that listings don't include the contents of the output directory
