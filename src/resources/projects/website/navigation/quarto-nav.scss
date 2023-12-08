@@ -66,6 +66,14 @@ footer.footer .nav-footer,
   padding-right: 1em;
 }
 
+footer.footer div.nav-footer p:first-child {
+  margin-top: 0;
+}
+
+footer.footer div.nav-footer p:last-child {
+  margin-bottom: 0;
+}
+
 // content padding
 #quarto-content > * {
   padding-top: $content-padding-top;
