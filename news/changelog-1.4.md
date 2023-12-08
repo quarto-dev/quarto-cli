@@ -213,6 +213,7 @@
 - ([#6792](https://github.com/quarto-dev/quarto-cli/issues/6792)): `fig-asp` provided at YAML config level now correctly work to set `fig.asp` chunk option in **knitr**.
 - ([#7002](https://github.com/quarto-dev/quarto-cli/issues/7002)): `layout-valign` is correctly forwarded to HTML to tweak vertical figure layout alignment for computational figures.
 - ([#5994](https://github.com/quarto-dev/quarto-cli/issues/5994)): Options like `include` or `echo` for `ojs` or `mermaid` cells are now correctly handled with knitr engine.
+- ([#4869](https://github.com/quarto-dev/quarto-cli/issues/4869)): `sql` cell output has now correct Quarto treatment so that specific features like `column: margin` works.
 
 ## OJS engine
 
