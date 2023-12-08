@@ -685,7 +685,7 @@ mark {
 .figure-caption,
 .subfigure-caption,
 .table-caption,
-figcaption.quarto-float-caption,
+figcaption,
 caption {
   font-size: 0.9rem;
   @include body-secondary;
