@@ -419,10 +419,18 @@ $panel-sidebar-padding: 0.5em;
 
 .reveal .footer {
   color: $text-muted;
-}
 
-.reveal .footer a {
-  color: $linkColor;
+  a {
+    color: $linkColor;
+  }
+
+  &.has-dark-background {
+    color: darken($dark-bg-text-color, 20%);
+
+    a {
+      color: darken($dark-bg-link-color, 20%);
+    }
+  }
 }
 
 .reveal .slide-number {

@@ -113,6 +113,13 @@ window.QuartoSupport = function () {
 
   // add footer text
   function addFooter(deck) {
+    const toggleDarkBackground = function(el, onDarkBackground) {
+      if (onDarkBackground) {
+        el.classList.add('has-dark-background')
+      } else {
+        el.classList.remove('has-dark-background')
+      }
+    }
     const revealParent = deck.getRevealElement();
     const defaultFooterDiv = document.querySelector(".footer-default");
     if (defaultFooterDiv) {
@@ -127,13 +134,16 @@ window.QuartoSupport = function () {
             prevSlideFooter.remove();
           }
           const currentSlideFooter = ev.currentSlide.querySelector(".footer");
+          const onDarkBackground = Reveal.getSlideBackground(ev.indexh, ev.indexv).classList.contains('has-dark-background')
           if (currentSlideFooter) {
             defaultFooterDiv.style.display = "none";
             const slideFooter = currentSlideFooter.cloneNode(true);
             handleLinkClickEvents(deck, slideFooter);
             deck.getRevealElement().appendChild(slideFooter);
+            toggleDarkBackground(slideFooter, onDarkBackground)
           } else {
             defaultFooterDiv.style.display = "block";
+            toggleDarkBackground(defaultFooterDiv, onDarkBackground)
           }
         });
       }
