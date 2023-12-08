@@ -478,6 +478,17 @@ function revealHtmlPostprocessor(
       slide.parentNode?.removeChild(slide);
     }
 
+    // remove from toc all slides that have no title
+    const tocEntries = Array.from(doc.querySelectorAll(
+      'nav[role="doc-toc"] a[href^="#/"]',
+    ));
+    for (const tocEntry of tocEntries) {
+      const tocEntryEl = tocEntry as Element;
+      if (tocEntryEl.textContent.trim() === "") {
+        tocEntryEl.parentElement?.remove();
+      }
+    }
+
     // remove all attributes from slide headings (pandoc has already moved
     // them to the enclosing section)
     const slideHeadings = doc.querySelectorAll("section.slide > :first-child");

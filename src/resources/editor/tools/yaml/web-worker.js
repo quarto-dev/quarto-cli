@@ -12234,9 +12234,8 @@ try {
                             closed: true,
                             required: [
                               "kind",
-                              "prefix",
-                              "name",
-                              "ref-type"
+                              "reference-prefix",
+                              "key"
                             ],
                             properties: {
                               kind: {
@@ -12245,14 +12244,14 @@ try {
                                 ],
                                 description: 'The kind of cross reference (currently only "float" is supported).'
                               },
-                              prefix: {
+                              "reference-prefix": {
                                 string: {
-                                  description: "The prefix used in rendered citations when referencing this type."
+                                  description: "The prefix used in rendered references when referencing this type."
                                 }
                               },
-                              name: {
+                              "caption-prefix": {
                                 string: {
-                                  description: "The prefix used in captions when referencing this type."
+                                  description: "The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used."
                                 }
                               },
                               "space-before-numbering": {
@@ -12261,9 +12260,9 @@ try {
                                   description: "If false, use no space between crossref prefixes and numbering."
                                 }
                               },
-                              "ref-type": {
+                              key: {
                                 string: {
-                                  description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                                  description: 'The key used to prefix reference labels of this type, such as "fig", "tbl", "lst", etc.'
                                 }
                               },
                               "latex-env": {
@@ -12278,7 +12277,7 @@ try {
                               },
                               "latex-list-of-description": {
                                 string: {
-                                  description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
+                                  description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If omitted, the field `reference-prefix` is used.'
                                 }
                               },
                               "caption-location": {
@@ -19340,6 +19339,7 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
+          "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
           "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
@@ -20702,13 +20702,13 @@ try {
           "Configuration for crossref labels and prefixes.",
           "A custom cross reference type.",
           "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
-          "The prefix used in rendered citations when referencing this type.",
-          "The prefix used in captions when referencing this type.",
+          "The prefix used in rendered references when referencing this\ntype.",
+          "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
           "If false, use no space between crossref prefixes and numbering.",
           "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
           "In LaTeX output, the name of the custom environment to be used.",
           "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
-          "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+          "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
           "The location of the caption relative to the crossreferenceable\ncontent.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
@@ -22587,12 +22587,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180639,
+          _internalId: 180641,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180631,
+              _internalId: 180633,
               type: "enum",
               enum: [
                 "png",
@@ -22608,7 +22608,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180638,
+              _internalId: 180640,
               type: "anyOf",
               anyOf: [
                 {

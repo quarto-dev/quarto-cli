@@ -10,6 +10,10 @@ function render_typst()
   end
 
   return {
+    Meta = function(m)
+      m["toc-depth"] = PANDOC_WRITER_OPTIONS["toc_depth"]
+      return m
+    end,
     Div = function(div)
       if div.classes:includes("block") then
         div.classes = div.classes:filter(function(c) return c ~= "block" end)

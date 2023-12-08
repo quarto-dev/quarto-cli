@@ -22,6 +22,20 @@ function render_html_fixups()
   end
 
   return {
+    Figure = function(fig)
+      if #fig.content ~= 1 then
+        return nil
+      end
+      local img = quarto.utils.match("Figure/[1]/Plain/[1]/Image")(fig) or quarto.utils.match("Figure/[1]/Plain/[1]/Link/[1]/Image")(fig)
+      if img == false then
+        return nil
+      end
+      if not needs_forward_align(img) then
+        return nil
+      end
+      forward_align(img, fig)
+      return fig
+    end,
     Image = function(el)
       -- FIXME we're not validating here, but we can't use figAlignAttribute because
       -- it picks up the default value from the document metadata, which is not
@@ -43,7 +57,7 @@ function render_html_fixups()
       if #para.content ~= 1 then
         return nil
       end
-      local img = quarto.utils.match("Para/[1]/Image")(para)
+      local img = quarto.utils.match("Para/[1]/Image")(para) or quarto.utils.match("Para/[1]/Link/[1]/Image")(para)
       if img == false then
         return nil
       end

@@ -53,6 +53,7 @@ import("./common/wrapped-filter.lua")
 import("./quarto-init/configurefilters.lua")
 import("./quarto-init/includes.lua")
 import("./quarto-init/resourcerefs.lua")
+import("./quarto-init/knitr-fixup.lua")
 
 import("./quarto-post/render-asciidoc.lua")
 import("./quarto-post/book.lua")
@@ -202,6 +203,12 @@ local quarto_init_filters = {
     file_metadata(),
     resourceRefs()
   })},
+  { name = "init-knitr-syntax-fixup", filter = filterIf(
+      -- only do those fix-up when we know computation engine was knitr
+      function() return param("execution-engine") == "knitr" end, 
+      knitr_fixup()
+    )
+  },
 }
 
 -- v1.4 change: quartoNormalize is responsible for producing a
@@ -338,9 +345,6 @@ local quarto_post_filters = {
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
-  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
-
   -- inject required packages post-rendering
   { name = "layout-meta-inject-latex-packages", filter = layout_meta_inject_latex_packages() },
 
@@ -349,6 +353,8 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
+  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" } },
   { name = "post-render-email", filter = render_email() },
 }
 
