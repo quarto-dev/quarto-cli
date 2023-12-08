@@ -205,7 +205,7 @@ local quarto_init_filters = {
   })},
   { name = "init-knitr-syntax-fixup", filter = filterIf(
       -- only do those fix-up when we know computation engine was knitr
-      function() return param('engine-name') == 'knitr' end, 
+      function() return param("execution-engine") == "knitr" end, 
       knitr_fixup()
     )
   },
