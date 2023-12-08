@@ -111,6 +111,8 @@ const kQuartoCustomFormat = "quarto-custom-format";
 const kIsShinyPython = "is-shiny-python";
 const kShinyPythonExec = "shiny-python-exec";
 
+const kExecutionEngine = "execution-engine";
+
 export async function filterParamsJson(
   args: string[],
   options: PandocOptions,
@@ -176,6 +178,7 @@ export async function filterParamsJson(
     [kFormatIdentifier]: options.format.identifier,
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
+    [kExecutionEngine]: options.executionEngine,
   };
   return JSON.stringify(params);
 }

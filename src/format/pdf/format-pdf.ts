@@ -351,6 +351,7 @@ function pdfLatexPostProcessor(
         // to replace cites with the rendered versions.
         lineProcessors.push(
           indexAndSuppressPandocBibliography(renderedCites),
+          cleanReferencesChapter(),
         );
       }
     }
@@ -901,32 +902,53 @@ const longtableBottomCaptionProcessor = () => {
   };
 };
 
+const kChapterRefNameRegex = /^\\chapter\*?{(.*?)}\\label{references.*?}$/;
+const cleanReferencesChapter = () => {
+  let refChapterName: string | undefined;
+  let refChapterContentsRegex: RegExp | undefined;
+  let refChapterMarkRegex: RegExp | undefined;
+
+  return (line: string): string | undefined => {
+    const chapterRefMatch = line.match(kChapterRefNameRegex);
+    if (chapterRefMatch) {
+      refChapterName = chapterRefMatch[1];
+      refChapterContentsRegex = new RegExp(
+        `\\\\addcontentsline{toc}{chapter}{${refChapterName}}`,
+      );
+      refChapterMarkRegex = new RegExp(
+        `\\\\markboth{${refChapterName}}{${refChapterName}}`,
+      );
+      // Eat this line
+      return undefined;
+    } else if (refChapterContentsRegex && line.match(refChapterContentsRegex)) {
+      // Eat this line
+      return undefined;
+    } else if (refChapterMarkRegex && line.match(refChapterMarkRegex)) {
+      // Eat this line
+      return undefined;
+    }
+    return line;
+  };
+};
+
 const indexAndSuppressPandocBibliography = (
   renderedCites: Record<string, string[]>,
 ) => {
-  let consuming = false;
+  let readingBibliography = false;
   let currentCiteKey: string | undefined = undefined;
 
   return (line: string): string | undefined => {
-    if (!consuming && line.match(/^\\hypertarget{refs}{}$/)) {
-      consuming = true;
+    if (!readingBibliography && line.match(/^\\phantomsection\\label{refs}$/)) {
+      readingBibliography = true;
       return undefined;
-    } else if (consuming && line.match(/^\\end{CSLReferences}$/)) {
-      consuming = false;
+    } else if (readingBibliography && line.match(/^\\end{CSLReferences}$/)) {
+      readingBibliography = false;
       return undefined;
-    } else if (consuming) {
-      const matches = line.match(/pre{\\hypertarget{ref\-(.*?)}{}}\%/);
+    } else if (readingBibliography) {
+      const matches = line.match(/\\bibitem\[\\citeproctext\]{ref\-(.*?)}/);
       if (matches && matches[1]) {
         currentCiteKey = matches[1];
-
-        // protect the hypertarget command and the save this line
-        // protect is useful if the reference appears in a caption
-        renderedCites[currentCiteKey] = [
-          line.replace(
-            "pre{\\hypertarget{ref",
-            "pre{\\protect\\hypertarget{ref",
-          ),
-        ];
+        renderedCites[currentCiteKey] = [line];
       } else if (line.length === 0) {
         currentCiteKey = undefined;
       } else if (currentCiteKey) {
@@ -934,7 +956,7 @@ const indexAndSuppressPandocBibliography = (
       }
     }
 
-    if (consuming) {
+    if (readingBibliography) {
       return undefined;
     } else {
       return line;
@@ -942,14 +964,69 @@ const indexAndSuppressPandocBibliography = (
   };
 };
 
+const kInSideCaptionRegex = /^\\sidecaption{/;
+const kBeginFigureRegex = /^\\begin{figure}\[.*?\]$/;
+const kEndFigureRegex = /^\\end{figure}\%?$/;
+
 const placePandocBibliographyEntries = (
   renderedCites: Record<string, string[]>,
 ) => {
+  let biblioEntryState: "scanning" | "in-figure" | "in-sidecaption" =
+    "scanning";
+  let pendingCiteKeys: string[] = [];
+
   return (line: string): string | undefined => {
+    switch (biblioEntryState) {
+      case "scanning": {
+        if (line.match(kBeginFigureRegex)) {
+          biblioEntryState = "in-figure";
+        }
+        break;
+      }
+      case "in-figure": {
+        if (line.match(kInSideCaptionRegex)) {
+          biblioEntryState = "in-sidecaption";
+        } else {
+          if (line.match(kEndFigureRegex)) {
+            biblioEntryState = "scanning";
+          }
+        }
+        break;
+      }
+      case "in-sidecaption": {
+        if (line.match(kEndFigureRegex)) {
+          biblioEntryState = "scanning";
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    if (biblioEntryState === "scanning" && pendingCiteKeys.length > 0) {
+      const result = [
+        line,
+        "\n\\begin{CSLReferences}{2}{0}",
+        ...pendingCiteKeys,
+        "\\end{CSLReferences}\n",
+      ].join("\n");
+      pendingCiteKeys = [];
+      return result;
+    }
+
     return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       const citeLines = renderedCites[citeKey];
       if (citeLines) {
-        return citeLines.join("\n");
+        if (biblioEntryState === "in-sidecaption" && citeLines.length > 0) {
+          pendingCiteKeys.push(citeLines[0]);
+          return ["", ...citeLines.slice(1)].join("\n");
+        } else {
+          return [
+            "\n\\begin{CSLReferences}{2}{0}",
+            ...citeLines,
+            "\\end{CSLReferences}\n",
+          ].join("\n");
+        }
       } else {
         return citeKey;
       }
