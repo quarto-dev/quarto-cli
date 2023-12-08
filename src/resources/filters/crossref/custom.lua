@@ -63,6 +63,7 @@ function initialize_custom_crossref_categories(meta)
     if obj_entry["prefix"] == nil then
       obj_entry["prefix"] = obj_entry["name"]
     end
+    quarto.utils.dump{obj_entry = obj_entry}
     add_crossref_category(obj_entry)
 
     if quarto.doc.isFormat("pdf") then
@@ -71,9 +72,9 @@ function initialize_custom_crossref_categories(meta)
       end
       metaInjectLatex(meta, function(inject)
         local env_name = entry["latex-env"]
-        local name = entry["name"]
-        local env_prefix = entry["prefix"]
-        local ref_type = entry["ref-type"]
+        local name = entry["reference-prefix"]
+        local env_prefix = entry["caption-prefix"] or name
+        local ref_type = entry["key"]
         local list_of_name = entry["latex-list-of-file-extension"] or ("lo" .. ref_type)
         local list_of_description = entry["latex-list-of-description"] or name
         local cap_location = entry["caption-location"] or "bottom"
