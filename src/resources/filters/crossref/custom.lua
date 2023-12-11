@@ -63,7 +63,6 @@ function initialize_custom_crossref_categories(meta)
     if obj_entry["prefix"] == nil then
       obj_entry["prefix"] = obj_entry["name"]
     end
-    quarto.utils.dump{obj_entry = obj_entry}
     add_crossref_category(obj_entry)
 
     if quarto.doc.isFormat("pdf") then
