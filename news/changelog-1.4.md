@@ -140,6 +140,7 @@
 - Add support for setting `page-navigation: true|false` in either a page or in `_metadata.yml`. This allows individual pages or sections of a website to control whether `page-navigaation` appears.
 - Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
+- ([#4668](https://github.com/quarto-dev/quarto-cli/issues/4668)): Allow per page metadata (front matter or a `_metadata.yml` file) to overide the `repo-url` for a page by providing a `repo-url`
 - ([#4739](https://github.com/quarto-dev/quarto-cli/issues/4739)): Improve handling of reader mode at mobile responsive sizes
 - ([#5204](https://github.com/quarto-dev/quarto-cli/issues/5204)): About pages rely upon TOC being positioned right, so force that to be true
 - ([#5212](https://github.com/quarto-dev/quarto-cli/issues/5212)): Ensure navbar search button respects `collapse-below` and remains aligned properly
@@ -149,6 +150,7 @@
 - ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
 - ([#5624](https://github.com/quarto-dev/quarto-cli/issues/5624)): Add support for localized Cookie Consent (using either the document's language or by specifying the language explicitly under the cookie consent key).
 - ([#5625](https://github.com/quarto-dev/quarto-cli/issues/5625)): Prefer the website image (if specified) over undecorated images that appear in the page.
+- ([#5689](https://github.com/quarto-dev/quarto-cli/issues/5689)): Don't use a single sidebar with an id as a global sidebar (the id explicitly means that the sidbar will match pages specifying that id or pages which the sidebar contains).
 - ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756)): Add `rel="..."` resolution to navbar tools.
 - ([#5763](https://github.com/quarto-dev/quarto-cli/issues/5763)): Add support for a keyboard shortcut to launch search (defaults to `f` or `/`). Use `search` > `keyboard-shortcut` to override with your own key(s).
 - ([#5932](https://github.com/quarto-dev/quarto-cli/issues/5932)): Correct Open Graph metadata key name for `og:site_name`
@@ -157,7 +159,6 @@
 - ([#6708](https://github.com/quarto-dev/quarto-cli/issues/6708)): Prevent duplication of footnotes within the abstract or description within websites and books.
 - ([#7447](https://github.com/quarto-dev/quarto-cli/issues/7447)): Changing the `$primary` color in a SCSS theme will now properly change the navigation bar background color.
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
-- ([#4668](https://github.com/quarto-dev/quarto-cli/issues/4668)): Allow per page metadata (front matter or a `_metadata.yml` file) to overide the `repo-url` for a page by providing a `repo-url`
 
 ## Website Search
 

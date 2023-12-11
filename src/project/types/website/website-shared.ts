@@ -305,7 +305,10 @@ export const navigation: Navigation = {
 
 export function sidebarForHref(href: string, format: Format) {
   // if there is a single sidebar then it applies to all hrefs
-  if (navigation.sidebars.length === 1) {
+  // (unless it has an id, in which restrict it)
+  if (
+    navigation.sidebars.length === 1 && navigation.sidebars[0].id === undefined
+  ) {
     return navigation.sidebars[0];
   } else {
     const explicitSidebar = navigation.sidebars.find((sidebar) => {
