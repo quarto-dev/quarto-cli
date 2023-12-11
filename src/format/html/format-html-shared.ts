@@ -11,6 +11,7 @@ import {
   kCitationLocation,
   kCodeOverflow,
   kCopyButtonTooltip,
+  kFigCapLoc,
   kLinkExternalIcon,
   kReferenceLocation,
   kSectionTitleFootnotes,
@@ -448,6 +449,10 @@ export function hasMarginRefs(format: Format, flags: PandocFlags) {
 export function hasMarginCites(format: Format) {
   // If margin cites are enabled, move them
   return format.metadata[kCitationLocation] === "margin";
+}
+
+export function hasMarginFigCaps(format: Format) {
+  return format.metadata[kFigCapLoc] === "margin";
 }
 
 export function computeUrl(
