@@ -12,6 +12,7 @@ import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 import {
   asMappedString,
   EitherString,
+  MappedString,
   mappedString,
   mappedSubstring,
 } from "./mapped-text.ts";
@@ -32,6 +33,7 @@ export async function breakQuartoMd(
   if (typeof src === "string") {
     src = asMappedString(src);
   }
+  const fileName = (src as MappedString).fileName;
 
   // notebook to return
   const nb: QuartoMdChunks = {
@@ -69,7 +71,11 @@ export async function breakQuartoMd(
         mappedChunks.push(line.range);
       }
 
-      const source = mappedString(src, mappedChunks);
+      const source = mappedString(
+        src,
+        mappedChunks,
+        fileName,
+      );
 
       const makeCellType = () => {
         if (cell_type === "code") {
@@ -135,12 +141,12 @@ export async function breakQuartoMd(
           codeStartRange!.range,
           ...mappedChunks,
           codeEndRange!.range,
-        ]);
+        ], fileName);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       } else if (cell_type === "directive") {
         // directives only carry tag source in sourceVerbatim, analogously to code
-        cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
       // if the source is empty then don't add it
       if (
@@ -186,7 +192,7 @@ export async function breakQuartoMd(
 
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const directiveMatch = isBlockShortcode(line.substring);
+    const directiveMatch = isBlockShortcode(line.substring, true);
     // yaml front matter
     if (
       isYamlDelimiter(line.substring, i, !inYaml) &&
