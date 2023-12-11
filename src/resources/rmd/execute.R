@@ -689,11 +689,13 @@ apply_responsive_patch <- function(format) {
 
 # from rmarkdown 
 # https://github.com/rstudio/rmarkdown/blob/0951a2fea7e317f77d27969c25f3194ead38805e/R/util.R#L318-L331
-has_crop_tools <- function (warn = TRUE) {
-  if (packageVersion("rmarkdown") >= "2.8") {
-    return(rmarkdown:::has_crop_tools(warn))
+has_crop_tools <- function(warn = TRUE) {
+  if (packageVersion("knitr") >= "1.44") {
+    return(knitr:::has_crop_tools(warn))
   }
-  # for older version we do inline the function
+  # for older version we do inline the function from rmarkdown
+  # but it does not have the knitr improvment for windows 
+  # https://github.com/yihui/knitr/issues/2246
   tools <- c(
     pdfcrop = unname(rmarkdown:::find_program("pdfcrop")),
     ghostscript = unname(tools::find_gs_cmd())
