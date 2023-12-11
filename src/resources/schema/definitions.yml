@@ -1045,7 +1045,7 @@
             - ref: code-links-schema
         tags:
           formats: [$html-doc]
-        description: "A list of codes links to appear with this document."
+        description: "A list of code links to appear with this document."
 
 - id: book-schema
   schema:
