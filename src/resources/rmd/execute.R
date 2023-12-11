@@ -321,7 +321,11 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
   if (opts_chunk$dev == 'pdf') {
     opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
     if (has_crop_tools(FALSE)) {
-      knit_hooks$crop <- knitr::hook_pdfcrop
+      knit_hooks$crop <- function(before, options, envir) {
+        if (isTRUE(options$crop)) {
+          knitr::hook_pdfcrop(before, options, envir)
+        }
+      }
       opts_chunk$crop <- TRUE
     }
   }
