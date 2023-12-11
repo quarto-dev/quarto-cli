@@ -47,6 +47,7 @@
 - ([#6910](https://github.com/quarto-dev/quarto-cli/issues/6910)): Properly forward `code-summary` as a global HTML option
 - ([#7024](https://github.com/quarto-dev/quarto-cli/discussions/7024)): Ensure HTML documents can render properly even when installed Quarto files aren't writable
 - ([#7137](https://github.com/quarto-dev/quarto-cli/discussions/7137)): Automatically set `rel="noopener"` when setting a target on external links
+- ([#7183](https://github.com/quarto-dev/quarto-cli/discussions/7183)): Mark asides that appear in the margin with a `margin-aside` class
 - ([#7187](https://github.com/quarto-dev/quarto-cli/issues/7187)): Add `html-table-processing: none` to document- and project-level metadata to disable HTML table processing. Add `{html-table-processing="none"}` to a fenced div to disable HTML table processing for the elements in that div. Add `html-table-processing: none` on knitr or jupyter cell to disable HTML table processing for the cell output content.
 - ([#7441](https://github.com/quarto-dev/quarto-cli/issues/7441)): Links in hover box (e.g. links to DOI when hover for citations is opt-in) are now correctly process for external and new window processing (when `link-external-icon: true` and `link-external-newwindow: true`).
 - ([#7542](https://github.com/quarto-dev/quarto-cli/discussions/7542)): Title block will properly present author affiliations when there is a mix of authors with affiliations and authors without affiliations
