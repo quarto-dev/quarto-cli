@@ -36,6 +36,9 @@ export function outputForInput(
   if (to === "confluence-publish") {
     ext = "xml";
   }
+  if (to === "docusaurus-md") {
+    ext = "mdx";
+  }
 
   
   const formatDesc = parseFormatString(to);
