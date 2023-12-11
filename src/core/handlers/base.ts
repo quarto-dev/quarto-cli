@@ -572,6 +572,9 @@ export const baseHandler: LanguageHandler = {
     }
     const inputLines = contentLines.slice(inputIndex);
     const { classes, attrs } = getDivAttributes({
+      ...({
+        [kFigAlign]: handlerContext.options.format.render[kFigAlign],
+      }),
       ...(extraCellOptions || {}),
       ...cell.options,
     }, skipOptions);
@@ -664,11 +667,9 @@ export const baseHandler: LanguageHandler = {
 
     cellBlock.push(cellOutputDiv);
 
-    let figureLikeOptions: Record<string, string> = {};
+    const figureLikeOptions: Record<string, unknown> = {};
     if (typeof cell.options?.label === "string") {
-      figureLikeOptions = {
-        id: cell.options?.label,
-      };
+      figureLikeOptions.id = cell.options?.label;
     }
     const figureLike = unrolledOutput ? cellBlock : divBlock(figureLikeOptions);
     const cellOutput = unrolledOutput ? cellBlock : divBlock();
@@ -680,9 +681,26 @@ export const baseHandler: LanguageHandler = {
       cellOutput.push(pandocRawStr(content));
     }
     if (cell.options?.[kCellFigCap]) {
+      // this is a hack to get around that if we have a figure caption but no label,
+      // nothing in our pipeline will recognize the caption and emit
+      // a figcaption element.
+      //
+      // necessary for https://github.com/quarto-dev/quarto-cli/issues/4376
+      let capOpen = "", capClose = "";
+      if (cell.options?.label === undefined) {
+        capOpen = "`<figcaption>`{=html} ";
+        capClose = "`</figcaption>`{=html} ";
+      }
+
       figureLike.push(
-        pandocRawStr(`\n\n${cell.options[kCellFigCap] as string}`),
+        pandocRawStr(
+          `\n\n${capOpen}${cell.options[kCellFigCap] as string}${capClose}`,
+        ),
       );
+    }
+    if (cell.options?.label === undefined) {
+      figureLike.unshift(pandocRawStr("`<figure class=''>`{=html}\n"));
+      figureLike.push(pandocRawStr("`</figure>`{=html}\n"));
     }
 
     return cellBlock.mappedString();
@@ -737,6 +755,9 @@ export function getDivAttributes(
   for (const [key, value] of Object.entries(options || {})) {
     if (!keysToNotSerialize.has(key)) {
       const t = typeof value;
+      if (t === "undefined") {
+        continue;
+      }
       if (t === "object") {
         attrs.push(`${key}="${JSON.stringify(value)}"`);
       } else if (t === "string") {
@@ -746,7 +767,9 @@ export function getDivAttributes(
       } else if (t === "boolean") {
         attrs.push(`${key}=${value}`);
       } else {
-        throw new Error(`Can't serialize yaml metadata value of type ${t}`);
+        throw new Error(
+          `Can't serialize yaml metadata value of type ${t}, key ${key}`,
+        );
       }
     }
   }

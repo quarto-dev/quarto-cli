@@ -1,0 +1,37 @@
+---
+title: "test"
+format: html 
+fig-align: right
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div.quarto-figure-left"
+          - "div.quarto-figure-center"
+          - "div.quarto-figure-right"
+---
+
+```{mermaid}
+%%| fig-align: left
+flowchart TB
+a --> b 
+b --> c
+```
+
+```{mermaid}
+%%| fig-align: center
+%%| fig-cap: A caption
+flowchart TB
+a --> b 
+b --> c
+```
+
+
+```{mermaid}
+%%| fig-cap: A caption
+%%| label: fig-1
+flowchart TB
+a --> b 
+b --> c
+```
