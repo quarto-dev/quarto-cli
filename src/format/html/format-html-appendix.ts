@@ -329,7 +329,6 @@ export async function processDocumentAppendix(
         if (appendSectionEl.id) {
           const selector = `#TOC a[href="#${appendSectionEl.id}"]`;
           const tocEl = doc.querySelector(selector);
-          console.log(selector);
           if (tocEl && tocEl.parentElement) {
             tocEl.parentElement.remove();
           }
