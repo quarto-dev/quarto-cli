@@ -27,6 +27,11 @@ end, function(panel_layout)
       cell_div.attr.attributes["width"] = nil
       local justify = flexAlign(align)
       cell_div_style = cell_div_style .. "justify-content: " .. justify .. ";"
+
+      local textAlign = textAlign(align)
+      if textAlign then
+        cell_div_style = cell_div_style .. "text-align: " .. textAlign .. ";"
+      end
       cell_div.attr.attributes["style"] = cell_div_style
       
       local has_table = false
@@ -233,6 +238,10 @@ function flexAlign(align)
   elseif align == "right" then
     return "flex-end"
   end
+end
+
+function textAlign(align)
+  return align
 end
 
 function vAlignClass(vAlign) 

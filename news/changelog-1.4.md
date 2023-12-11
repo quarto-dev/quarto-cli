@@ -51,6 +51,7 @@
 - ([#7441](https://github.com/quarto-dev/quarto-cli/issues/7441)): Links in hover box (e.g. links to DOI when hover for citations is opt-in) are now correctly process for external and new window processing (when `link-external-icon: true` and `link-external-newwindow: true`).
 - ([#7542](https://github.com/quarto-dev/quarto-cli/discussions/7542)): Title block will properly present author affiliations when there is a mix of authors with affiliations and authors without affiliations
 - Ensure that code annotation buttons are not selectable text.
+- ([#7364](https://github.com/quarto-dev/quarto-cli/discussions/7364)): Restore support for `layout-align` attribute in panels
 
 ## Appendix
 
