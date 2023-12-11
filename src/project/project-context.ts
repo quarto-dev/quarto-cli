@@ -678,8 +678,9 @@ export function projectInputFiles(
   }*/
 
   const renderFiles = metadata?.project[kProjectRender] ?? [];
+  // this triggers when renderFiles is empty as well, which is what we want
   if (renderFiles.every((file) => file.startsWith("!"))) {
-    renderFiles.unshift("**/*");
+    renderFiles.unshift(".");
   }
   const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
   const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
