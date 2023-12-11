@@ -289,6 +289,7 @@
 
 ## Extensions
 
+- ([#4889](https://github.com/quarto-dev/quarto-cli/issues/4889)): Improve error message when attempting to create a duplicate extension
 - ([#6759](https://github.com/quarto-dev/quarto-cli/issues/6759)): Properly support format extensions controlling the order of filters that they use
 - ([#7375](https://github.com/quarto-dev/quarto-cli/issues/7375)): Updating extensions will now remove files that are not present in newer versions of an extension.
 
