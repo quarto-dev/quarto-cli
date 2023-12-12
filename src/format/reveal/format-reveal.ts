@@ -460,6 +460,21 @@ function revealHtmlPostprocessor(
       }
     }
 
+    // bugfix for #6800
+    // if slides have content that was added by quarto then move that to the parent node
+    for (const slide of doc.querySelectorAll("section.slide")) {
+      const slideContentFromQuarto = (slide as Element).querySelector(
+        ".quarto-auto-generated-content",
+      );
+      if (slideContentFromQuarto) {
+        if (slideContentFromQuarto.childElementCount === 0) {
+          slideContentFromQuarto.remove();
+        } else {
+          slide.parentNode?.appendChild(slideContentFromQuarto);
+        }
+      }
+    }
+
     // remove slides with data-visibility=hidden
     const invisibleSlides = doc.querySelectorAll(
       'section.slide[data-visibility="hidden"]',
@@ -479,21 +494,6 @@ function revealHtmlPostprocessor(
 
       // remove slide
       slide.parentNode?.removeChild(slide);
-    }
-
-    // bugfix for #6800
-    // if slides have content that was added by quarto then move that to the parent node
-    for (const slide of doc.querySelectorAll("section.slide")) {
-      const slideContentFromQuarto = (slide as Element).querySelector(
-        ".quarto-auto-generated-content",
-      );
-      if (slideContentFromQuarto) {
-        if (slideContentFromQuarto.childElementCount === 0) {
-          slideContentFromQuarto.remove();
-        } else {
-          slide.parentNode?.appendChild(slideContentFromQuarto);
-        }
-      }
     }
 
     // remove from toc all slides that have no title
