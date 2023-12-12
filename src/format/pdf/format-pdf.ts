@@ -241,6 +241,7 @@ function createPdfFormat(
           "pandoc",
           "tables",
           "tightlist",
+          "before-title",
           "title",
           "toc",
         ];

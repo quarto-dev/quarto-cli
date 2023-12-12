@@ -369,7 +369,7 @@ end, function(float)
 
   if float_type == "tbl" then
     local raw
-    -- have to redo this as_blocks() call here because assigning to float.content
+    -- have to call as_blocks() again here because assigning to float.content
     -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
     _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
       RawBlock = function(el)
@@ -380,12 +380,20 @@ end, function(float)
     })
     -- special case for singleton longtable floats
     if raw then
-      local longtable_content = raw.text:gsub(_quarto.patterns.latexLongtablePattern, "%1%2", 1)
+      local extended_pattern = "(.-)" .. _quarto.patterns.latexLongtablePattern .. "(.*)"
+      local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = raw.text:match(extended_pattern)
+      if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
+        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+        "triggered this error.")
+        return {}
+      end
       -- split the content into params and actual content
       -- params are everything in the first line of longtable_content
       -- actual content is everything else
-      local start, content = split_longtable_start(longtable_content)
-      if start == nil then
+      local start, content = split_longtable_start(longtable_begin .. longtable_content)
+      if start == nil or content == nil then
         warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
         "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
         "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
@@ -410,7 +418,9 @@ end, function(float)
           result:insert(1, pandoc.RawBlock("latex", content))
         end
         result:insert(1, pandoc.RawBlock("latex", start))
+        result:insert(1, pandoc.RawBlock("latex", longtable_preamble))
         result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
+        result:insert(pandoc.RawBlock("latex", longtable_postamble))
         return result
       end
     end 

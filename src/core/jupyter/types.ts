@@ -233,6 +233,7 @@ export interface JupyterToMarkdownOptions {
   figDpi?: number;
   figPos?: string | null;
   fixups?: "minimal" | "default";
+  outputPrefix?: string;
 }
 
 export interface JupyterToMarkdownResult {

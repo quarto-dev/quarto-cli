@@ -68,8 +68,12 @@ import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
-import { isBlockShortcode } from "../lib/parse-shortcode.ts";
+import {
+  InvalidShortcodeError,
+  isBlockShortcode,
+} from "../lib/parse-shortcode.ts";
 import { standaloneInclude } from "./include-standalone.ts";
+import { LocalizedError } from "../lib/located-error.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -325,14 +329,26 @@ const processMarkdownIncludes = async (
     const lines = mappedLines(newCells[i], true);
     let foundShortcodes = false;
     for (let j = 0; j < lines.length; ++j) {
-      const shortcode = isBlockShortcode(lines[j].value);
-      if (shortcode && shortcode.name === "include") {
-        foundShortcodes = true;
-        const param = shortcode.params[0];
-        if (!param) {
-          throw new Error("Include directive needs filename as a parameter");
+      try {
+        const shortcode = isBlockShortcode(lines[j].value);
+        if (shortcode && shortcode.name === "include") {
+          foundShortcodes = true;
+          const param = shortcode.params[0];
+          if (!param) {
+            throw new Error("Include directive needs filename as a parameter");
+          }
+          lines[j] = await standaloneInclude(includeHandler.context, param);
         }
-        lines[j] = await standaloneInclude(includeHandler.context, param);
+      } catch (e) {
+        if (e instanceof InvalidShortcodeError) {
+          const mapResult = newCells[i].map(newCells[i].value.indexOf("{"));
+          throw new LocalizedError(
+            "Invalid Shortcode",
+            e.message,
+            mapResult!.originalString,
+            mapResult!.index,
+          );
+        }
       }
     }
     if (foundShortcodes) {

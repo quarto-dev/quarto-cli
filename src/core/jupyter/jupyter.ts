@@ -1450,8 +1450,9 @@ async function mdFromCodeCell(
       : ("cell-" + (cellIndex + 1));
 
     // strip spaces, special characters, etc. for latex friendly paths
-    const outputName = pandocAutoIdentifier(labelName, true) + "-output";
-
+    const outputName = `${
+      options.outputPrefix ? options.outputPrefix + "-" : ""
+    }${pandocAutoIdentifier(labelName, true)}-output`;
     let nextOutputSuffix = 1;
     const sortedOutputs = outputs.map((value, index) => ({
       index,

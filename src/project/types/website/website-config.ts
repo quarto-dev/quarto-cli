@@ -53,6 +53,8 @@ type WebsiteConfigKey =
   | "site-url"
   | "site-path"
   | "repo-url"
+  | "repo-link-target"
+  | "repo-link-rel"
   | "repo-subdir"
   | "repo-branch"
   | "repo-actions"

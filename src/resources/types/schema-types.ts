@@ -332,6 +332,9 @@ export type BaseWebsite = {
   "site-path"?:
     string /* Path to site (defaults to `/`). Not required if you specify `site-url`. */;
   "repo-url"?: string /* Base URL for website source code repository */;
+  "repo-link-target"?:
+    string /* The value of the target attribute for repo links */;
+  "repo-link-rel"?: string /* The value of the rel attribute for repo links */;
   "repo-subdir"?: string /* Subdirectory of repository containing website */;
   "repo-branch"?:
     string /* Branch of website source code (defaults to `main`) */;
@@ -412,6 +415,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   "bread-crumbs"?:
     boolean /* Whether to show navigation breadcrumbs for pages more than 1 level deep */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
+  "image-alt"?:
+    string /* Default site thumbnail image alt text for `twitter` /`open-graph` */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
     | boolean

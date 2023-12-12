@@ -648,6 +648,12 @@
       repo-url:
         string:
           description: "Base URL for website source code repository"
+      repo-link-target:
+        string:
+          description: "The value of the target attribute for repo links"
+      repo-link-rel:
+        string:
+          description: "The value of the rel attribute for repo links"
       repo-subdir:
         string:
           description: "Subdirectory of repository containing website"
@@ -1017,7 +1023,10 @@
         path:
           description: |
             Default site thumbnail image for `twitter` /`open-graph`
-
+      image-alt:
+        path:
+          description: |
+            Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
         schema:
           ref: comments

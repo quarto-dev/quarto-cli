@@ -94,6 +94,8 @@ import {
   kSitePageNavigation,
   kSiteReaderMode,
   kSiteRepoActions,
+  kSiteRepoLinkRel,
+  kSiteRepoLinkTarget,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
@@ -698,6 +700,9 @@ function handleRepoLinks(
         }
 
         if (repoTarget) {
+          const linkTarget = websiteConfigString(kSiteRepoLinkTarget, config);
+          const linkRel = websiteConfigString(kSiteRepoLinkRel, config);
+
           // get the action links
           const links = repoInfo
             ? repoActionLinks(
@@ -720,6 +725,12 @@ function handleRepoLinks(
           links.forEach((link) => {
             const a = doc.createElement("a");
             a.setAttribute("href", link.url);
+            if (linkTarget) {
+              a.setAttribute("target", linkTarget);
+            }
+            if (linkRel) {
+              a.setAttribute("rel", linkRel);
+            }
             a.classList.add("toc-action");
             a.innerHTML = link.text;
 

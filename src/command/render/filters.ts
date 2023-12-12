@@ -43,6 +43,7 @@ import {
   kReferenceLocation,
   kReferences,
   kRemoveHidden,
+  kResourcePath,
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
@@ -105,6 +106,8 @@ const kActiveFilters = "active-filters";
 const kQuartoVersion = "quarto-version";
 
 const kQuartoSource = "quarto-source";
+
+const kHasResourcePath = "has-resource-path";
 
 const kQuartoCustomFormat = "quarto-custom-format";
 
@@ -621,6 +624,11 @@ async function quartoFilterParams(
   params[kCiteMethod] = citeMethod(options);
   params[kPdfEngine] = pdfEngine(options);
   params[kHasBootstrap] = formatHasBootstrap(options.format);
+
+  // has resource params
+  const hasResourcePath = options.format.pandoc[kResourcePath] !== undefined ||
+    options.args.includes("--resource-path");
+  params[kHasResourcePath] = hasResourcePath;
 
   // The source document
   params[kQuartoSource] = options.source;

@@ -8039,6 +8039,10 @@ try {
               engine: [
                 "knitr",
                 "jupyter"
+              ],
+              formats: [
+                "$pdf-all",
+                "$html-all"
               ]
             },
             schema: {
@@ -9240,6 +9244,16 @@ try {
                     description: "Base URL for website source code repository"
                   }
                 },
+                "repo-link-target": {
+                  string: {
+                    description: "The value of the target attribute for repo links"
+                  }
+                },
+                "repo-link-rel": {
+                  string: {
+                    description: "The value of the rel attribute for repo links"
+                  }
+                },
                 "repo-subdir": {
                   string: {
                     description: "Subdirectory of repository containing website"
@@ -9782,6 +9796,11 @@ try {
                     description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                   }
                 },
+                "image-alt": {
+                  path: {
+                    description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                  }
+                },
                 comments: {
                   schema: {
                     ref: "comments"
@@ -9830,7 +9849,7 @@ try {
                       "$html-doc"
                     ]
                   },
-                  description: "A list of codes links to appear with this document."
+                  description: "A list of code links to appear with this document."
                 }
               }
             }
@@ -17307,7 +17326,7 @@ try {
             schema: "number",
             description: {
               short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-              long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+              long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
             }
           },
           {
@@ -18040,8 +18059,8 @@ try {
               ]
             },
             description: {
-              short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-              long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+              short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+              long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
             }
           },
           {
@@ -19580,10 +19599,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -19711,10 +19731,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -20705,7 +20726,7 @@ try {
           "The prefix used in rendered references when referencing this\ntype.",
           "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
           "If false, use no space between crossref prefixes and numbering.",
-          "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+          "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
           "In LaTeX output, the name of the custom environment to be used.",
           "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
           "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
@@ -21591,7 +21612,7 @@ try {
           "Play a subtle sound when changing slides",
           {
             short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+            long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
           },
           "Prints each fragment on a separate slide",
           {
@@ -21709,8 +21730,8 @@ try {
           },
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           {
-            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-            long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
+            long: "Location for table of contents:"
           },
           "The title used for the table of contents.",
           "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -21878,10 +21899,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22193,10 +22215,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22587,12 +22610,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180641,
+          _internalId: 180595,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180633,
+              _internalId: 180587,
               type: "enum",
               enum: [
                 "png",
@@ -22608,7 +22631,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180640,
+              _internalId: 180594,
               type: "anyOf",
               anyOf: [
                 {
@@ -23076,6 +23099,7 @@ ${heading}`;
     const mappedSource2 = source;
     return {
       value,
+      fileName: mappedSource2.fileName,
       map: (index, closest) => {
         if (closest) {
           index = Math.max(0, Math.min(value.length, index - 1));
@@ -31782,10 +31806,22 @@ ${tidyverseInfo(
   }
 
   // ../parse-shortcode.ts
-  function isBlockShortcode(content) {
+  var InvalidShortcodeError = class extends Error {
+    constructor(msg) {
+      super(msg);
+    }
+  };
+  function isBlockShortcode(content, lenient) {
     const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
     if (m) {
-      return parseShortcode(m[1]);
+      try {
+        return parseShortcode(m[1]);
+      } catch (_e) {
+        if (lenient) {
+          return false;
+        }
+        throw _e;
+      }
     }
   }
   function parseShortcodeCapture(capture) {
@@ -31835,14 +31871,14 @@ ${tidyverseInfo(
         paramStr = paramStr.slice(paramMatch[0].length).trim();
         continue;
       }
-      throw new Error("invalid shortcode: " + capture);
+      throw new InvalidShortcodeError("invalid shortcode: " + capture);
     }
     return { name, params, namedParams, rawParams };
   }
   function parseShortcode(shortCodeCapture) {
     const result = parseShortcodeCapture(shortCodeCapture);
     if (!result) {
-      throw new Error("invalid shortcode: " + shortCodeCapture);
+      throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
     }
     return result;
   }
@@ -31852,6 +31888,7 @@ ${tidyverseInfo(
     if (typeof src === "string") {
       src = asMappedString(src);
     }
+    const fileName = src.fileName;
     const nb = {
       cells: []
     };
@@ -31873,7 +31910,11 @@ ${tidyverseInfo(
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
         }
-        const source = mappedString(src, mappedChunks);
+        const source = mappedString(
+          src,
+          mappedChunks,
+          fileName
+        );
         const makeCellType = () => {
           if (cell_type === "code") {
             return { language };
@@ -31925,11 +31966,11 @@ ${tidyverseInfo(
             codeStartRange.range,
             ...mappedChunks,
             codeEndRange.range
-          ]);
+          ], fileName);
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
         } else if (cell_type === "directive") {
-          cell.source = mappedString(src, mappedChunks.slice(1, -1));
+          cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
         if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
           nb.cells.push(cell);
@@ -31952,7 +31993,7 @@ ${tidyverseInfo(
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
-      const directiveMatch = isBlockShortcode(line.substring);
+      const directiveMatch = isBlockShortcode(line.substring, true);
       if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
         if (inYaml) {
           lineBuffer.push(line);

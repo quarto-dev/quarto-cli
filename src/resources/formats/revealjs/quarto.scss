@@ -419,14 +419,38 @@ $panel-sidebar-padding: 0.5em;
 
 .reveal .footer {
   color: $text-muted;
-}
 
-.reveal .footer a {
-  color: $linkColor;
+  a {
+    color: $linkColor;
+  }
+
+  &.has-dark-background {
+    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+
+    a {
+      color: sass-color.scale($dark-bg-link-color, $whiteness: 30%);
+    }
+  }
+
+  &.has-light-background {
+    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+
+    a {
+      color: sass-color.scale($light-bg-link-color, $whiteness: 30%);
+    }
+  }
 }
 
 .reveal .slide-number {
   color: $text-muted;
+
+  &.has-dark-background {
+    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+  }
+
+  &.has-light-background {
+    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+  }
 }
 
 // handle caption for figures

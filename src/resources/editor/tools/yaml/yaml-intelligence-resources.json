@@ -1010,6 +1010,10 @@
         "engine": [
           "knitr",
           "jupyter"
+        ],
+        "formats": [
+          "$pdf-all",
+          "$html-all"
         ]
       },
       "schema": {
@@ -2211,6 +2215,16 @@
               "description": "Base URL for website source code repository"
             }
           },
+          "repo-link-target": {
+            "string": {
+              "description": "The value of the target attribute for repo links"
+            }
+          },
+          "repo-link-rel": {
+            "string": {
+              "description": "The value of the rel attribute for repo links"
+            }
+          },
           "repo-subdir": {
             "string": {
               "description": "Subdirectory of repository containing website"
@@ -2753,6 +2767,11 @@
               "description": "Default site thumbnail image for `twitter` /`open-graph`\n"
             }
           },
+          "image-alt": {
+            "path": {
+              "description": "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+            }
+          },
           "comments": {
             "schema": {
               "ref": "comments"
@@ -2801,7 +2820,7 @@
                 "$html-doc"
               ]
             },
-            "description": "A list of codes links to appear with this document."
+            "description": "A list of code links to appear with this document."
           }
         }
       }
@@ -10278,7 +10297,7 @@
       "schema": "number",
       "description": {
         "short": "Slides that are too tall to fit within a single page will expand onto multiple pages",
-        "long": "\"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option\"\n"
+        "long": "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
       }
     },
     {
@@ -11011,8 +11030,8 @@
         ]
       },
       "description": {
-        "short": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-        "long": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+        "short": "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+        "long": "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
       }
     },
     {
@@ -12551,10 +12570,11 @@
     "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+    "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
     "A list of other links to appear below the TOC.",
-    "A list of codes links to appear with this document.",
+    "A list of code links to appear with this document.",
     "Book title",
     "Description metadata for HTML version of book",
     "The path to the favicon for this website",
@@ -12682,10 +12702,11 @@
     "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+    "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
     "A list of other links to appear below the TOC.",
-    "A list of codes links to appear with this document.",
+    "A list of code links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -13676,7 +13697,7 @@
     "The prefix used in rendered references when referencing this\ntype.",
     "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
     "If false, use no space between crossref prefixes and numbering.",
-    "The prefix string used in references (“dia-”, etc.) when referencing\nthis type.",
+    "The key used to prefix reference labels of this type, such as “fig”,\n“tbl”, “lst”, etc.",
     "In LaTeX output, the name of the custom environment to be used.",
     "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom “list of” command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
     "The description of the crossreferenceable object to be used in the\ntitle of the “list of” command. If omitted, the field\n<code>reference-prefix</code> is used.",
@@ -14562,7 +14583,7 @@
     "Play a subtle sound when changing slides",
     {
       "short": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-      "long": "“Slides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option”"
+      "long": "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
     },
     "Prints each fragment on a separate slide",
     {
@@ -14680,8 +14701,8 @@
     },
     "Specify the number of section levels to include in the table of\ncontents. The default is 3",
     {
-      "short": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), ‘left-body’, ‘right-body’).",
-      "long": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), ‘left-body’, ‘right-body’).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+      "short": "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
+      "long": "Location for table of contents:"
     },
     "The title used for the table of contents.",
     "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -14849,10 +14870,11 @@
     "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+    "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
     "A list of other links to appear below the TOC.",
-    "A list of codes links to appear with this document.",
+    "A list of code links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -15164,10 +15186,11 @@
     "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
     "Shared page footer",
     "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+    "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
     "Publish open graph metadata",
     "Publish twitter card metadata",
     "A list of other links to appear below the TOC.",
-    "A list of codes links to appear with this document.",
+    "A list of code links to appear with this document.",
     "Book subtitle",
     "Author or authors of the book",
     "Author or authors of the book",
@@ -15558,12 +15581,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 180641,
+    "_internalId": 180595,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 180633,
+        "_internalId": 180587,
         "type": "enum",
         "enum": [
           "png",
@@ -15579,7 +15602,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 180640,
+        "_internalId": 180594,
         "type": "anyOf",
         "anyOf": [
           {
