@@ -165,6 +165,7 @@
 - ([#6703](https://github.com/quarto-dev/quarto-cli/issues/6703)): Warn users when a `theme` key in a document is being ignored.
 - ([#6704](https://github.com/quarto-dev/quarto-cli/issues/6704)): Use the correct title when there are duplicate sidebar `href` targets
 - ([#6708](https://github.com/quarto-dev/quarto-cli/issues/6708)): Prevent duplication of footnotes within the abstract or description within websites and books.
+- ([#6732](https://github.com/quarto-dev/quarto-cli/issues/6732)): Allow specifying global alt text for social metadata
 - ([#7447](https://github.com/quarto-dev/quarto-cli/issues/7447)): Changing the `$primary` color in a SCSS theme will now properly change the navigation bar background color.
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
 

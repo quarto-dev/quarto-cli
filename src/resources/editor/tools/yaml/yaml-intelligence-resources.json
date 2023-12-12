@@ -1010,6 +1010,10 @@
         "engine": [
           "knitr",
           "jupyter"
+        ],
+        "formats": [
+          "$pdf-all",
+          "$html-all"
         ]
       },
       "schema": {
@@ -2753,6 +2757,11 @@
               "description": "Default site thumbnail image for `twitter` /`open-graph`\n"
             }
           },
+          "image-alt": {
+            "path": {
+              "description": "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+            }
+          },
           "comments": {
             "schema": {
               "ref": "comments"
@@ -2801,7 +2810,7 @@
                 "$html-doc"
               ]
             },
-            "description": "A list of codes links to appear with this document."
+            "description": "A list of code links to appear with this document."
           }
         }
       }
@@ -10278,7 +10287,7 @@
       "schema": "number",
       "description": {
         "short": "Slides that are too tall to fit within a single page will expand onto multiple pages",
-        "long": "\"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option\"\n"
+        "long": "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
       }
     },
     {
@@ -11011,8 +11020,8 @@
         ]
       },
       "description": {
-        "short": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-        "long": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+        "short": "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+        "long": "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
       }
     },
     {
@@ -13676,7 +13685,7 @@
     "The prefix used in rendered references when referencing this\ntype.",
     "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
     "If false, use no space between crossref prefixes and numbering.",
-    "The prefix string used in references (“dia-”, etc.) when referencing\nthis type.",
+    "The key used to prefix reference labels of this type, such as “fig”,\n“tbl”, “lst”, etc.",
     "In LaTeX output, the name of the custom environment to be used.",
     "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom “list of” command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
     "The description of the crossreferenceable object to be used in the\ntitle of the “list of” command. If omitted, the field\n<code>reference-prefix</code> is used.",
@@ -15558,12 +15567,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 180641,
+    "_internalId": 180643,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 180633,
+        "_internalId": 180635,
         "type": "enum",
         "enum": [
           "png",
@@ -15579,7 +15588,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 180640,
+        "_internalId": 180642,
         "type": "anyOf",
         "anyOf": [
           {

@@ -249,6 +249,7 @@ function opengraphMetadata(
       kTitle,
       kDescription,
       kImage,
+      kImageAlt,
       kImageHeight,
       kImageWidth,
       kLocale,
@@ -268,7 +269,15 @@ function twitterMetadata(format: Format) {
   // populate defaults
   const twitterData = mergedSiteAndDocumentData(kTwitterCard, format);
   if (twitterData && typeof twitterData === "object") {
-    [kTitle, kDescription, kImage, kCreator, kTwitterSite, kCardStyle].forEach(
+    [
+      kTitle,
+      kDescription,
+      kImage,
+      kImageAlt,
+      kCreator,
+      kTwitterSite,
+      kCardStyle,
+    ].forEach(
       (key) => {
         if (twitterData[key] !== undefined) {
           metadata[key] = twitterData[key];

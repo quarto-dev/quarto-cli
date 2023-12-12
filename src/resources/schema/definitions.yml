@@ -1017,7 +1017,10 @@
         path:
           description: |
             Default site thumbnail image for `twitter` /`open-graph`
-
+      image-alt:
+        path:
+          description: |
+            Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
         schema:
           ref: comments

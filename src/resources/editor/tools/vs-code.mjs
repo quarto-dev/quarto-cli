@@ -8038,6 +8038,10 @@ var require_yaml_intelligence_resources = __commonJS({
             engine: [
               "knitr",
               "jupyter"
+            ],
+            formats: [
+              "$pdf-all",
+              "$html-all"
             ]
           },
           schema: {
@@ -9781,6 +9785,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                 }
               },
+              "image-alt": {
+                path: {
+                  description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                }
+              },
               comments: {
                 schema: {
                   ref: "comments"
@@ -9829,7 +9838,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     "$html-doc"
                   ]
                 },
-                description: "A list of codes links to appear with this document."
+                description: "A list of code links to appear with this document."
               }
             }
           }
@@ -17306,7 +17315,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "number",
           description: {
             short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-            long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+            long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
           }
         },
         {
@@ -18039,8 +18048,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+            short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+            long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
           }
         },
         {
@@ -20704,7 +20713,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The prefix used in rendered references when referencing this\ntype.",
         "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
         "If false, use no space between crossref prefixes and numbering.",
-        "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+        "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
         "In LaTeX output, the name of the custom environment to be used.",
         "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
         "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
@@ -22586,12 +22595,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180641,
+        _internalId: 180643,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180633,
+            _internalId: 180635,
             type: "enum",
             enum: [
               "png",
@@ -22607,7 +22616,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180640,
+            _internalId: 180642,
             type: "anyOf",
             anyOf: [
               {
@@ -23062,6 +23071,7 @@ function mappedSubstring(source, start, end) {
   const mappedSource2 = source;
   return {
     value,
+    fileName: mappedSource2.fileName,
     map: (index, closest) => {
       if (closest) {
         index = Math.max(0, Math.min(value.length, index - 1));
@@ -31768,10 +31778,22 @@ function escapeRegExp(str2) {
 }
 
 // ../parse-shortcode.ts
-function isBlockShortcode(content) {
+var InvalidShortcodeError = class extends Error {
+  constructor(msg) {
+    super(msg);
+  }
+};
+function isBlockShortcode(content, lenient) {
   const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
   if (m) {
-    return parseShortcode(m[1]);
+    try {
+      return parseShortcode(m[1]);
+    } catch (_e) {
+      if (lenient) {
+        return false;
+      }
+      throw _e;
+    }
   }
 }
 function parseShortcodeCapture(capture) {
@@ -31821,14 +31843,14 @@ function parseShortcodeCapture(capture) {
       paramStr = paramStr.slice(paramMatch[0].length).trim();
       continue;
     }
-    throw new Error("invalid shortcode: " + capture);
+    throw new InvalidShortcodeError("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
 }
 function parseShortcode(shortCodeCapture) {
   const result = parseShortcodeCapture(shortCodeCapture);
   if (!result) {
-    throw new Error("invalid shortcode: " + shortCodeCapture);
+    throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
   }
   return result;
 }
@@ -31838,6 +31860,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
+  const fileName = src.fileName;
   const nb = {
     cells: []
   };
@@ -31859,7 +31882,11 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
       for (const line of lineBuffer) {
         mappedChunks.push(line.range);
       }
-      const source = mappedString(src, mappedChunks);
+      const source = mappedString(
+        src,
+        mappedChunks,
+        fileName
+      );
       const makeCellType = () => {
         if (cell_type === "code") {
           return { language };
@@ -31911,11 +31938,11 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
           codeStartRange.range,
           ...mappedChunks,
           codeEndRange.range
-        ]);
+        ], fileName);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       } else if (cell_type === "directive") {
-        cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
       if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
         nb.cells.push(cell);
@@ -31938,7 +31965,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   const srcLines = rangedLines(src.value, true);
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const directiveMatch = isBlockShortcode(line.substring);
+    const directiveMatch = isBlockShortcode(line.substring, true);
     if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
       if (inYaml) {
         lineBuffer.push(line);
