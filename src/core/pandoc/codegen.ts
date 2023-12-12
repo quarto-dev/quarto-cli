@@ -1,11 +1,10 @@
 /*
-* codegen.ts
-*
-* A minimal API to build pandoc markdown text.
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * codegen.ts
+ *
+ * A minimal API to build pandoc markdown text.
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 /* We should really be using Pandoc's AST here
  */
@@ -21,6 +20,7 @@ export interface PandocNode {
   emit: (s: EitherString[]) => void;
   mappedString: () => MappedString;
   push: (n: PandocNode) => void;
+  unshift: (n: PandocNode) => void;
 }
 
 const basePandocNode = {
@@ -33,6 +33,9 @@ const basePandocNode = {
     return mappedConcat(ls);
   },
   push: () => {
+    throw new Error("unimplemented");
+  },
+  unshift: () => {
     throw new Error("unimplemented");
   },
 };
@@ -84,6 +87,11 @@ export function pandocHtmlBlock(elementName: string) {
           contents!.push(s);
         }
       },
+      unshift: function (s: PandocNode) {
+        if (this !== s) {
+          contents!.unshift(s);
+        }
+      },
       emit: function (ls: EitherString[]) {
         ls.push(`\n<${elementName} ${attrString()}>`);
         if (elementName !== "pre") {
@@ -113,6 +121,11 @@ export function pandocList(opts: {
     push: function (s: PandocNode) {
       if (this !== s) {
         contents!.push(s);
+      }
+    },
+    unshift: function (s: PandocNode) {
+      if (this !== s) {
+        contents!.unshift(s);
       }
     },
     emit: function (ls: EitherString[]) {
@@ -176,6 +189,11 @@ export function pandocBlock(delimiter: string) {
       push: function (s: PandocNode) {
         if (this !== s) {
           contents!.push(s);
+        }
+      },
+      unshift: function (s: PandocNode) {
+        if (this !== s) {
+          contents!.unshift(s);
         }
       },
       emit: function (ls: EitherString[]) {
