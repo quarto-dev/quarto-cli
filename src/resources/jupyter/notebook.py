@@ -11,7 +11,7 @@ import copy
 
 from pathlib import Path
 
-from poyo import parse_string
+from yaml import load, BaseLoader
 
 from log import trace
 import nbformat
@@ -37,6 +37,9 @@ NB_FORMAT_VERSION = 4
 # exception to indicate the kernel needs restarting
 class RestartKernel(Exception):
    pass
+
+def parse_string(yaml_string):
+   return load(yaml_string, BaseLoader)
 
 # execute a notebook
 def notebook_execute(options, status):
@@ -599,8 +602,7 @@ def nb_cell_yaml_options(lang, cell):
    
    # if we have yaml then parse it
    if len(yaml_lines) > 0:
-      # work around poyo bug: https://github.com/quarto-dev/quarto-cli/issues/4573
-      yaml_code = "\n".join(l.rstrip() for l in yaml_lines)
+      yaml_code = "\n".join(yaml_lines)
       yaml_options = parse_string(yaml_code)
       if (type(yaml_options) is dict):
          return yaml_options
