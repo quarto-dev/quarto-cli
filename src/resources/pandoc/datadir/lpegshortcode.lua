@@ -109,7 +109,8 @@ local function md_shortcode(open, space, lst, close)
   table.insert(shortcode, " data-is-shortcode=\"1\"")
   local raw = open .. space
   for i = 1, #lst do
-    raw = raw .. unshortcode:match(lst[i])
+    local un = unshortcode:match(lst[i]) 
+    raw = raw .. (un or lst[i])
   end
   raw = raw .. close
   table.insert(shortcode, " data-raw=\"")
