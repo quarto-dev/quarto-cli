@@ -245,8 +245,22 @@ export async function publishDocument(
           }
           files.push(...resultFile.resourceFiles.map(asRelative));
         }
+
+        // If there is an output dir, we need to resolve this into a base dir
+        // that roots in the output directory. So use the project path +
+        // the folder from the base dir + the output dir
+        let finalBaseDir = baseDir;
+        if (result.outputDir && result.context) {
+          const relBasePath = relative(result.context.dir, baseDir);
+          finalBaseDir = join(
+            result.context.dir,
+            result.outputDir,
+            relBasePath,
+          );
+        }
+
         return normalizePublishFiles({
-          baseDir: result.outputDir ? join(baseDir, result.outputDir) : baseDir,
+          baseDir: finalBaseDir,
           rootFile: rootFile!,
           files,
         });

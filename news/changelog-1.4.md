@@ -195,6 +195,7 @@
 ## Publishing
 
 - ([#5436](https://github.com/quarto-dev/quarto-cli/issues/5436)): Add support for publishing to Posit Cloud.
+- ([#5220](https://github.com/quarto-dev/quarto-cli/issues/5220)): Properly respect `output-dir` when publishin individual files in a default Quarto project
 
 ## Video (and Audio)
 
