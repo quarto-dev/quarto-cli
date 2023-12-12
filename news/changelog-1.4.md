@@ -14,6 +14,10 @@
 - Update to Pandoc 3.1.9
 - Update to Typst 0.9.0
 
+## Breaking Changes
+
+- In website projects, a single sidebar with a `id` property will no longer be used as a global sidebar. It will instead be used as a sidebar for only pages which specify that `id` or pages linked to from the sidebar.
+
 ## HTML Format
 
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
