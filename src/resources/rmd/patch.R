@@ -87,10 +87,8 @@ wrap_asis_output <- function(options, x) {
   if (length(options) == 0) {
     return(x)
   }
-  # if length(x) != 1, collapse x together first (#5506)
-  if (length(x) > 1) {
-    x <- paste(x, collapse = "")
-  }
+  # x needs to be collapses first as it could be a character vector (#5506)
+  x <- paste(x, collapse = "")
 
   # generate output div
   caption <- figure_cap(options)[[1]]
