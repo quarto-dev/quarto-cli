@@ -9244,6 +9244,16 @@ try {
                     description: "Base URL for website source code repository"
                   }
                 },
+                "repo-link-target": {
+                  string: {
+                    description: "The value of the target attribute for repo links"
+                  }
+                },
+                "repo-link-rel": {
+                  string: {
+                    description: "The value of the rel attribute for repo links"
+                  }
+                },
                 "repo-subdir": {
                   string: {
                     description: "Subdirectory of repository containing website"
@@ -19589,10 +19599,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -19720,10 +19731,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -21600,7 +21612,7 @@ try {
           "Play a subtle sound when changing slides",
           {
             short: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages",
-            long: "\u201CSlides that are too tall to fit within a single page will expand\nonto multiple pages. You can limit how many pages a slide may expand to\nusing this option\u201D"
+            long: "Slides that are too tall to fit within a single page will expand onto\nmultiple pages. You can limit how many pages a slide may expand to using\nthis option."
           },
           "Prints each fragment on a separate slide",
           {
@@ -21718,8 +21730,8 @@ try {
           },
           "Specify the number of section levels to include in the table of\ncontents. The default is 3",
           {
-            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).",
-            long: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), \u2018left-body\u2019, \u2018right-body\u2019).\n<code>body</code> - Show the Table of Contents in the center body of the\ndocument. <code>left</code> - Show the Table of Contents in left margin\nof the document. <code>right</code> - Show the Table of Contents in\nright margin of the document. <code>left-body</code> - Show two Tables\nof Contents in both the center body and the left margin of the document.\n<code>right-body</code> - Show two Tables of Contents in both the center\nbody and the right margin of the document."
+            short: "Location for table of contents (<code>body</code>, <code>left</code>,\n<code>right</code> (default), <code>left-body</code>,\n<code>right-body</code>).",
+            long: "Location for table of contents:"
           },
           "The title used for the table of contents.",
           "Specifies the depth of items in the table of contents that should be\ndisplayed as expanded in HTML output. Use <code>true</code> to expand\nall or <code>false</code> to collapse all.",
@@ -21887,10 +21899,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22202,10 +22215,11 @@ try {
           "Whether to show navigation breadcrumbs for pages more than 1 level\ndeep",
           "Shared page footer",
           "Default site thumbnail image for <code>twitter</code>\n/<code>open-graph</code>",
+          "Default site thumbnail image alt text for <code>twitter</code>\n/<code>open-graph</code>",
           "Publish open graph metadata",
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
-          "A list of codes links to appear with this document.",
+          "A list of code links to appear with this document.",
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22596,12 +22610,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180643,
+          _internalId: 180595,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180635,
+              _internalId: 180587,
               type: "enum",
               enum: [
                 "png",
@@ -22617,7 +22631,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180642,
+              _internalId: 180594,
               type: "anyOf",
               anyOf: [
                 {

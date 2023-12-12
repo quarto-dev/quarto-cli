@@ -332,6 +332,9 @@ export type BaseWebsite = {
   "site-path"?:
     string /* Path to site (defaults to `/`). Not required if you specify `site-url`. */;
   "repo-url"?: string /* Base URL for website source code repository */;
+  "repo-link-target"?:
+    string /* The value of the target attribute for repo links */;
+  "repo-link-rel"?: string /* The value of the rel attribute for repo links */;
   "repo-subdir"?: string /* Subdirectory of repository containing website */;
   "repo-branch"?:
     string /* Branch of website source code (defaults to `main`) */;

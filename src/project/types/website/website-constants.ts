@@ -1,9 +1,8 @@
 /*
-* website-constants.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * website-constants.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 export const kWebsite = "website";
 
@@ -14,6 +13,8 @@ export const kSiteFavicon = "favicon";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoSubdir = "repo-subdir";
 export const kSiteRepoBranch = "repo-branch";
+export const kSiteRepoLinkTarget = "repo-link-target";
+export const kSiteRepoLinkRel = "repo-link-rel";
 export const kSiteIssueUrl = "issue-url";
 export const kSiteRepoActions = "repo-actions";
 export const kSiteReaderMode = "reader-mode";

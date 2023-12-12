@@ -49,6 +49,8 @@ import {
   kSiteReaderMode,
   kSiteRepoActions,
   kSiteRepoBranch,
+  kSiteRepoLinkRel,
+  kSiteRepoLinkTarget,
   kSiteRepoSubdir,
   kSiteRepoUrl,
   kSiteSidebar,
@@ -128,6 +130,8 @@ export async function bookProjectConfig(
     site[kSiteUrl] = book[kSiteUrl];
     site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
+    site[kSiteRepoLinkTarget] = book[kSiteRepoLinkTarget];
+    site[kSiteRepoLinkRel] = book[kSiteRepoLinkRel];
     site[kSiteRepoSubdir] = book[kSiteRepoSubdir];
     site[kSiteRepoBranch] = book[kSiteRepoBranch];
     site[kSiteRepoActions] = book[kSiteRepoActions];
