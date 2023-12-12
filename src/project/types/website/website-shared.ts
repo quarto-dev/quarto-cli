@@ -76,6 +76,7 @@ export function computePageTitle(
   const meta = extras?.metadata || {};
   const pageTitle = meta[kPageTitle] || format.metadata[kPageTitle];
   const titlePrefix = extras?.pandoc?.[kTitlePrefix] ||
+    format.pandoc[kTitlePrefix] ||
     (format.metadata[kWebsite] as Record<string, unknown>)?.[kTitle];
   const title = format.metadata[kTitle];
 
