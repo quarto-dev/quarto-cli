@@ -703,7 +703,7 @@ function expandMarkdownFilePath(source: string, path: string): string {
   }
 }
 
-function mdSafeHref(href: string) {
+export function mdSafeHref(href: string) {
   href = href.replaceAll("---", "\\-\\-\\-");
   href = href.replaceAll("--", "\\-\\-");
   href = href.replaceAll("@", "\\@");
