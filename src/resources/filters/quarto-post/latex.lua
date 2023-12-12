@@ -109,7 +109,6 @@ function latexCalloutBoxSimple(title, type, icon, callout)
   else
     title = pandoc.write(pandoc.Pandoc(title), 'latex')
   end
-  print(title)
   -- generate options
   local options = {
     breakable = "",
