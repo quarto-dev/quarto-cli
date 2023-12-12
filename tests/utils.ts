@@ -54,7 +54,7 @@ export function outputForInput(
     outputExt = ext 
   } else {
     outputExt = baseFormat || "html";
-    if (baseFormat === "latex" || baseFormat == "context") {
+    if (baseFormat === "latex" || baseFormat == "context" || baseFormat == "beamer") {
       outputExt = "tex";
     }
     if (baseFormat === "revealjs") {

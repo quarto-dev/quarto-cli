@@ -139,6 +139,16 @@ export async function serveProject(
     if (!project || !project?.config) {
       throw new Error(`${target} is not a project`);
     }
+
+    // Default project types can't be served
+    const projType = projectType(project?.config?.project?.[kProjectType]);
+    if (projType.type === "default") {
+      throw new Error(
+        `The project '${
+          project.config.project.title || ""
+        }' is a default type project. Default Quarto projects don't support project wide previewing since there is no project wide navigation.\n\nPlease preview an individual file within this default project instead.`,
+      );
+    }
   } else {
     project = target;
   }

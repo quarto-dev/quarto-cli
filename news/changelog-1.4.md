@@ -27,6 +27,7 @@
 - ([#4840](https://github.com/quarto-dev/quarto-cli/issues/4840)): Add support for specifying a custom Hypothesis client url using `client-url`
 - ([#4882](https://github.com/quarto-dev/quarto-cli/issues/4882)): Add support for `canonical-url`, which when provided will include a link tag with rel='canonical' which will use an explictly provided or automatically generated canonical url for the document.
 - ([#5189](https://github.com/quarto-dev/quarto-cli/issues/5189)): Ensure appendix shows even when `page-layout` is custom.
+- ([#5196](https://github.com/quarto-dev/quarto-cli/discussions/5196)): Properly support `title-prefix` for HTML output
 - ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 - ([#5393](https://github.com/quarto-dev/quarto-cli/issues/5393)): Properly set color of headings without using opacity.
 - ([#5403](https://github.com/quarto-dev/quarto-cli/issues/5403)): Fix accessibility issues with the `kbd` shortcode.
@@ -77,11 +78,13 @@
 - ([#7366](https://github.com/quarto-dev/quarto-cli/issues/7366)): `smaller: true` now applies correctly on nested slides.
 - ([#7394](https://github.com/quarto-dev/quarto-cli/issues/7394)): Fix issue with mermaid diagrams in revealjs slides when `output-location: fragment`.
 - ([#4988](https://github.com/quarto-dev/quarto-cli/issues/4988)): targets for links on numbered code lines are removed, as revealjs doesn't support them because navigation is done by slide only.
+- ([#4156](https://github.com/quarto-dev/quarto-cli/issues/4156)): footer and slide number text on slide with dark background have now an adapted text muted color based on `$dark-bg-text-color`.
 
 ## PDF Format
 
 - ([#4370](https://github.com/quarto-dev/quarto-cli/issues/4370)): Hoist code cells deep in the AST out of layout cells to avoid `\raisebox` issues with the `Shaded` environment.
 - ([#5078](https://github.com/quarto-dev/quarto-cli/issues/5078)): Ensure format-resources are copied before PDF rendering when `latex-auto-mk` is `false`
+- ([#5058](https://github.com/quarto-dev/quarto-cli/issues/5058)): Add a `before-title.tex` partial to the PDF format. This partial will appear in the document premable just before the title block, allowing further customization of the document preamble. By default, this partial is empty.
 - ([#5969](https://github.com/quarto-dev/quarto-cli/issues/5969)): Correctly detect a required rerun for biblatex when using backref link options.
 - ([#5690](https://github.com/quarto-dev/quarto-cli/issues/5690)): Improve validation of `pdf-engine`
 - ([#6077](https://github.com/quarto-dev/quarto-cli/issues/6077)): Make sure proof environments are tight around contents.
@@ -105,6 +108,7 @@
 - ([#5536](https://github.com/quarto-dev/quarto-cli/issues/5536)): Correctly support Code Filename feature for Beamer output by fixing issue with float environment.
 - ([#6041](https://github.com/quarto-dev/quarto-cli/issues/6041)): Correctly support code block appearance options (`code-block-bg` and `code-block-border-left`).
 - ([#6226](https://github.com/quarto-dev/quarto-cli/issues/6226)): Correctly detect the need for an additional compilation for TOC layout when using `lualatex`
+- ([#6956](https://github.com/quarto-dev/quarto-cli/issues/6956)): Add support `number-section` to `format: beamer` to control whether sections are numbered.
 
 ## Asciidoc Format
 
@@ -199,6 +203,7 @@
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
 - Only re-use Jupyter kernels for languages that explicitly opt into it
+- ([#4801](https://github.com/quarto-dev/quarto-cli/issues/4801)): Provide a more specific error upon a directory preview of a default project type
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 
 ## Jupyter
@@ -345,4 +350,5 @@
 - ([#7502](https://github.com/quarto-dev/quarto-cli/pull/7502)): Correct `execute-debug` help text
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
+- ([#4673](https://github.com/quarto-dev/quarto-cli/issues/4673)): Quarto now report in check and error message if **rmarkdown** R package minimal requirement (>= 2.3) is not fullfilled, and it will ask to update the package.
 - ([#7793](https://github.com/quarto-dev/quarto-cli/issues/7793)): When a project render list includes only negative globs, use those to filter out the default render list.
