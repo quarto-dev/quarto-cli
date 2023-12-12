@@ -1,0 +1,53 @@
+---
+title: "plots and output equals asis"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.cell-output-display"]
+        - []
+      ensureFileRegexMatches:
+        - 
+          - "<td[^>]*>Mazda RX4</td>"
+          - "<li>one</li>"
+          - "<li>two</li>"
+          - "<li>three</li>"
+          - "<li>four</li>"
+        - ["::: cell-output-display"]
+---
+
+Simple plot:
+
+```{r}
+#| echo: false
+#| output: asis
+cat("## Title\n")
+cat("\n")
+plot(mtcars)
+```
+
+Render table:
+```{r}
+library(kableExtra)
+dt <- mtcars[1:5, 1:6]
+dt %>%
+  kbl() %>%
+  kable_styling()
+```
+
+`asis_output` with one string:
+
+```{r}
+knitr::asis_output("* one\n* two")
+```
+
+`asis_output` with two strings:
+
+```{r}
+knitr::asis_output(c("* three\n", "* four\n"))
+```
+
+`asis_output` with zero strings:
+```{r}
+knitr::asis_output(character(0))
+```

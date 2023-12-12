@@ -72,7 +72,12 @@ export async function stageTemplate(
   ) => {
     if (context) {
       if (context.template) {
-        copyTo(context.template, join(dir, template));
+        const targetFile = join(dir, template);
+        copyTo(context.template, targetFile);
+        // Ensure that file is writable
+        if (Deno.build.os !== "windows") {
+          Deno.chmodSync(targetFile, 0o666);
+        }
       }
 
       if (context.partials) {

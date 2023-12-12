@@ -142,6 +142,16 @@ function handleMeta(args)
     -- the args are the var name
     local varName = read_arg(args)
 
+    -- strip quotes if present
+    -- works around the real bug that we don't have
+    -- great control over quoting in shortcode params
+    -- see https://github.com/quarto-dev/quarto-cli/issues/7882
+    if varName:sub(1,1) == '"' and varName:sub(-1) == '"' then
+      varName = varName:sub(2,-2)
+    elseif varName:sub(1,1) == "'" and varName:sub(-1) == "'" then
+      varName = varName:sub(2,-2)
+    end
+
     -- read the option value
     local optionValue = option(varName, nil)
     if optionValue ~= nil then

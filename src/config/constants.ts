@@ -54,6 +54,7 @@ export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 export const kLightbox = "lightbox";
+export const kCanonicalUrl = "canonical-url";
 
 export const kMath = "math";
 
@@ -134,6 +135,7 @@ export const kPreviewModeRaw = "raw";
 export const kFontPaths = "font-paths";
 
 export const kHtmlTableProcessing = "html-table-processing";
+export const kValidateYaml = "validate-yaml";
 
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
@@ -221,6 +223,8 @@ export const kRenderDefaultsKeys = [
   kNotebookPreserveCells,
   kClearCellOptions,
   kHtmlTableProcessing,
+  kValidateYaml,
+  kCanonicalUrl,
 ];
 
 // language fields
@@ -283,6 +287,7 @@ export const kSearchHideMatchesText = "search-hide-matches-text";
 export const kSearchMoreMatchText = "search-more-match-text";
 export const kSearchMoreMatchesText = "search-more-matches-text";
 export const kSearchClearButtonTitle = "search-clear-button-title";
+export const kSearchTextPlaceholder = "search-text-placeholder";
 export const kSearchDetatchedCancelButtonTitle =
   "search-detached-cancel-button-title";
 export const kSearchSubmitButtonTitle = "search-submit-button-title";
@@ -400,6 +405,7 @@ export const kLanguageDefaultsKeys = [
   kSearchMoreMatchText,
   kSearchMoreMatchesText,
   kSearchClearButtonTitle,
+  kSearchTextPlaceholder,
   kSearchDetatchedCancelButtonTitle,
   kSearchSubmitButtonTitle,
   kCrossrefFigTitle,

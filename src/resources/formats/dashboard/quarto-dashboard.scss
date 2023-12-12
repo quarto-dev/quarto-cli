@@ -485,9 +485,6 @@ $valuebox-colors: (
           height: 100%;
           display: flex;
           align-items: center;
-          .nav-link-text {
-            white-space: nowrap;
-          }
         }
         & .active {
           background-color: theme-dim($navbar-bg, 8%);

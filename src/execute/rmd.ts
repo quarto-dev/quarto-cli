@@ -331,21 +331,30 @@ async function printCallRDiagnostics() {
     } else {
       if (
         !caps?.packages.rmarkdown || !caps?.packages.knitr ||
-        !caps?.packages.knitrVersOk
+        !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
       ) {
-        info("");
         info("R installation:");
         info(knitrCapabilitiesMessage(caps, "  "));
-        info("");
-        info(
-          knitrInstallationMessage(
-            "",
-            caps.packages.knitr && !caps?.packages.knitrVersOk
-              ? "knitr"
-              : "rmarkdown",
-            !!caps.packages.knitr && !caps.packages.knitrVersOk,
-          ),
-        );
+        if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
+          info("");
+          info(
+            knitrInstallationMessage(
+              "",
+              "knitr",
+              !!caps.packages.knitr && !caps.packages.knitrVersOk,
+            ),
+          );
+        }
+        if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
+          info("");
+          info(
+            knitrInstallationMessage(
+              "",
+              "rmarkdown",
+              !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
+            ),
+          );
+        }
         info("");
       }
     }

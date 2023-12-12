@@ -12,7 +12,7 @@ import { testRender } from "./render.ts";
 const input = docs("minimal.qmd");
 const htmlOutput = outputForInput(input, "html");
 
-testRender(input, "html", false, [
+testRender(input, "html", true, [
   ensureHtmlElements(htmlOutput.outputPath, [], [
     "script#quarto-html-after-body",
   ]),

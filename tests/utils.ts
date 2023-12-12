@@ -36,6 +36,9 @@ export function outputForInput(
   if (to === "confluence-publish") {
     ext = "xml";
   }
+  if (to === "docusaurus-md") {
+    ext = "mdx";
+  }
 
   
   const formatDesc = parseFormatString(to);
@@ -51,7 +54,7 @@ export function outputForInput(
     outputExt = ext 
   } else {
     outputExt = baseFormat || "html";
-    if (baseFormat === "latex" || baseFormat == "context") {
+    if (baseFormat === "latex" || baseFormat == "context" || baseFormat == "beamer") {
       outputExt = "tex";
     }
     if (baseFormat === "revealjs") {

@@ -7957,7 +7957,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "bottom",
           description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
         },
         {
@@ -7979,7 +7979,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "bottom",
           description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
         },
         {
@@ -8001,7 +8001,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "margin"
             ]
           },
-          default: "inline",
+          default: "top",
           description: "Where to place table captions (`top`, `bottom`, or `margin`)"
         }
       ],
@@ -8038,6 +8038,10 @@ var require_yaml_intelligence_resources = __commonJS({
             engine: [
               "knitr",
               "jupyter"
+            ],
+            formats: [
+              "$pdf-all",
+              "$html-all"
             ]
           },
           schema: {
@@ -8697,6 +8701,11 @@ var require_yaml_intelligence_resources = __commonJS({
                         object: {
                           closed: true,
                           properties: {
+                            "client-url": {
+                              string: {
+                                description: "Override the default hypothesis client url with a custom client url."
+                              }
+                            },
                             openSidebar: {
                               boolean: {
                                 default: false,
@@ -9776,6 +9785,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                 }
               },
+              "image-alt": {
+                path: {
+                  description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                }
+              },
               comments: {
                 schema: {
                   ref: "comments"
@@ -9824,7 +9838,7 @@ var require_yaml_intelligence_resources = __commonJS({
                     "$html-doc"
                   ]
                 },
-                description: "A list of codes links to appear with this document."
+                description: "A list of code links to appear with this document."
               }
             }
           }
@@ -10102,6 +10116,7 @@ var require_yaml_intelligence_resources = __commonJS({
               "search-more-match-text": "string",
               "search-more-matches-text": "string",
               "search-clear-button-title": "string",
+              "search-text-placeholder": "string",
               "search-detached-cancel-button-title": "string",
               "search-submit-button-title": "string",
               "crossref-fig-title": "string",
@@ -10316,11 +10331,12 @@ var require_yaml_intelligence_resources = __commonJS({
                         type: {
                           enum: [
                             "full",
-                            "partial"
+                            "partial",
+                            "metadata"
                           ],
                           description: {
                             short: "Whether to include full or partial content in the feed.",
-                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n"
+                            long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n- `metadata`: Use only the title, description, and other document metadata in the feed.\n"
                           }
                         },
                         title: {
@@ -10531,6 +10547,27 @@ var require_yaml_intelligence_resources = __commonJS({
             "string",
             {
               maybeArrayOf: "number"
+            },
+            {
+              object: {
+                properties: {
+                  year: {
+                    number: {
+                      description: "The year"
+                    }
+                  },
+                  month: {
+                    number: {
+                      description: "The month"
+                    }
+                  },
+                  day: {
+                    number: {
+                      description: "The day"
+                    }
+                  }
+                }
+              }
             }
           ]
         },
@@ -12205,9 +12242,8 @@ var require_yaml_intelligence_resources = __commonJS({
                           closed: true,
                           required: [
                             "kind",
-                            "prefix",
-                            "name",
-                            "ref-type"
+                            "reference-prefix",
+                            "key"
                           ],
                           properties: {
                             kind: {
@@ -12216,14 +12252,14 @@ var require_yaml_intelligence_resources = __commonJS({
                               ],
                               description: 'The kind of cross reference (currently only "float" is supported).'
                             },
-                            prefix: {
+                            "reference-prefix": {
                               string: {
-                                description: "The prefix used in rendered citations when referencing this type."
+                                description: "The prefix used in rendered references when referencing this type."
                               }
                             },
-                            name: {
+                            "caption-prefix": {
                               string: {
-                                description: "The prefix used in captions when referencing this type."
+                                description: "The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used."
                               }
                             },
                             "space-before-numbering": {
@@ -12232,9 +12268,9 @@ var require_yaml_intelligence_resources = __commonJS({
                                 description: "If false, use no space between crossref prefixes and numbering."
                               }
                             },
-                            "ref-type": {
+                            key: {
                               string: {
-                                description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                                description: 'The key used to prefix reference labels of this type, such as "fig", "tbl", "lst", etc.'
                               }
                             },
                             "latex-env": {
@@ -12249,7 +12285,7 @@ var require_yaml_intelligence_resources = __commonJS({
                             },
                             "latex-list-of-description": {
                               string: {
-                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
+                                description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If omitted, the field `reference-prefix` is used.'
                               }
                             },
                             "caption-location": {
@@ -15023,18 +15059,48 @@ var require_yaml_intelligence_resources = __commonJS({
                         properties: {
                           text: {
                             string: {
-                              description: "The title for this alternative link."
+                              description: "The title for the link."
                             }
                           },
                           href: {
                             string: {
-                              description: "The href for tihs alternative link."
+                              description: "The href for the link."
+                            }
+                          },
+                          icon: {
+                            string: {
+                              description: "The icon for the link."
                             }
                           }
                         },
                         required: [
-                          "title",
+                          "text",
                           "href"
+                        ]
+                      }
+                    },
+                    {
+                      object: {
+                        properties: {
+                          format: {
+                            string: {
+                              description: "The format that this link represents."
+                            }
+                          },
+                          text: {
+                            string: {
+                              description: "The title for this link."
+                            }
+                          },
+                          icon: {
+                            string: {
+                              description: "The icon for this link."
+                            }
+                          }
+                        },
+                        required: [
+                          "text",
+                          "format"
                         ]
                       }
                     }
@@ -15185,6 +15251,24 @@ var require_yaml_intelligence_resources = __commonJS({
             }
           },
           description: "Options for controlling the display and behavior of Notebook previews."
+        },
+        {
+          name: "canonical-url",
+          tags: {
+            formats: [
+              "$html-doc"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "boolean",
+              "string"
+            ]
+          },
+          description: {
+            short: "Include a canonical link tag in website pages",
+            long: "Include a canonical link tag in website pages. You may pass either `true` to \nautomatically generate a canonical link, or pass a canonical url that you'd like\nto have placed in the `href` attribute of the tag.\n\nCanonical links can only be generated for websites with a known `site-url`.\n"
+          }
         }
       ],
       "schema/document-listing.yml": [
@@ -15773,20 +15857,18 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           schema: {
-            string: {
-              completions: [
-                "pdflatex",
-                "lualatex",
-                "xelatex",
-                "latexmk",
-                "tectonic",
-                "wkhtmltopdf",
-                "weasyprint",
-                "prince",
-                "context",
-                "pdfroff"
-              ]
-            }
+            enum: [
+              "pdflatex",
+              "lualatex",
+              "xelatex",
+              "latexmk",
+              "tectonic",
+              "wkhtmltopdf",
+              "weasyprint",
+              "prince",
+              "context",
+              "pdfroff"
+            ]
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
@@ -15813,7 +15895,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           tags: {
             formats: [
-              "beamer"
+              "pdf"
             ]
           },
           description: "Whether to produce a Beamer article from this presentation."
@@ -16750,6 +16832,17 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "boolean",
           default: false,
           description: "Disables the default reveal.js slide layout (scaling and centering)\n"
+        },
+        {
+          name: "code-block-height",
+          tags: {
+            formats: [
+              "revealjs"
+            ]
+          },
+          schema: "string",
+          default: "500px",
+          description: "Sets the maximum height for source code blocks that appear in the presentation.\n"
         }
       ],
       "schema/document-reveal-media.yml": [
@@ -17222,7 +17315,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "number",
           description: {
             short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-            long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+            long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
           }
         },
         {
@@ -17955,8 +18048,8 @@ var require_yaml_intelligence_resources = __commonJS({
             ]
           },
           description: {
-            short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-            long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+            short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+            long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
           }
         },
         {
@@ -18067,7 +18160,12 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           name: "image",
-          schema: "path",
+          schema: {
+            anyOf: [
+              "path",
+              "boolean"
+            ]
+          },
           tags: {
             formats: [
               "$html-doc"
@@ -19249,6 +19347,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
+        "Override the default hypothesis client url with a custom client\nurl.",
         "Controls whether the sidebar opens automatically on startup.",
         "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
         "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
@@ -19794,6 +19893,9 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Items with matching field values will be included in the listing.",
         "Items with matching field values will be excluded from the\nlisting.",
+        "The year",
+        "The month",
+        "The day",
         "The family name.",
         "The given name.",
         "The family name.",
@@ -20608,13 +20710,13 @@ var require_yaml_intelligence_resources = __commonJS({
         "Configuration for crossref labels and prefixes.",
         "A custom cross reference type.",
         "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
-        "The prefix used in rendered citations when referencing this type.",
-        "The prefix used in captions when referencing this type.",
+        "The prefix used in rendered references when referencing this\ntype.",
+        "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
         "If false, use no space between crossref prefixes and numbering.",
-        "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+        "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
         "In LaTeX output, the name of the custom environment to be used.",
         "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
-        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+        "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
         "The location of the caption relative to the crossreferenceable\ncontent.",
         "Use top level sections (H1) in this document as chapters.",
         "The delimiter used between the prefix and the caption.",
@@ -21170,10 +21272,18 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
           long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
         },
-        "The title for this alternative link.",
-        "The href for tihs alternative link.",
-        "The title for this alternative link.",
-        "The href for tihs alternative link.",
+        "The title for the link.",
+        "The href for the link.",
+        "The icon for the link.",
+        "The format that this link represents.",
+        "The title for this link.",
+        "The icon for this link.",
+        "The title for the link.",
+        "The href for the link.",
+        "The icon for the link.",
+        "The format that this link represents.",
+        "The title for this link.",
+        "The icon for this link.",
         {
           short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
           long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
@@ -21188,6 +21298,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
         "Options for controlling the display and behavior of Notebook\npreviews.",
         "Whether to show a back button in the notebook preview.",
+        {
+          short: "Include a canonical link tag in website pages",
+          long: "Include a canonical link tag in website pages. You may pass either\n<code>true</code> to automatically generate a canonical link, or pass a\ncanonical url that you\u2019d like to have placed in the <code>href</code>\nattribute of the tag.\nCanonical links can only be generated for websites with a known\n<code>site-url</code>."
+        },
         "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
         "Mermaid diagram options",
         "The mermaid built-in theme to use.",
@@ -21435,6 +21549,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Bounds for largest possible scale to apply to content",
         "Vertical centering of slides",
         "Disables the default reveal.js slide layout (scaling and\ncentering)",
+        "Sets the maximum height for source code blocks that appear in the\npresentation.",
         {
           short: "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
           long: "Open links in an iframe preview overlay."
@@ -22480,12 +22595,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 178763,
+        _internalId: 180643,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 178755,
+            _internalId: 180635,
             type: "enum",
             enum: [
               "png",
@@ -22501,7 +22616,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 178762,
+            _internalId: 180642,
             type: "anyOf",
             anyOf: [
               {
@@ -22956,6 +23071,7 @@ function mappedSubstring(source, start, end) {
   const mappedSource2 = source;
   return {
     value,
+    fileName: mappedSource2.fileName,
     map: (index, closest) => {
       if (closest) {
         index = Math.max(0, Math.min(value.length, index - 1));
@@ -31662,10 +31778,22 @@ function escapeRegExp(str2) {
 }
 
 // ../parse-shortcode.ts
-function isBlockShortcode(content) {
+var InvalidShortcodeError = class extends Error {
+  constructor(msg) {
+    super(msg);
+  }
+};
+function isBlockShortcode(content, lenient) {
   const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
   if (m) {
-    return parseShortcode(m[1]);
+    try {
+      return parseShortcode(m[1]);
+    } catch (_e) {
+      if (lenient) {
+        return false;
+      }
+      throw _e;
+    }
   }
 }
 function parseShortcodeCapture(capture) {
@@ -31715,14 +31843,14 @@ function parseShortcodeCapture(capture) {
       paramStr = paramStr.slice(paramMatch[0].length).trim();
       continue;
     }
-    throw new Error("invalid shortcode: " + capture);
+    throw new InvalidShortcodeError("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
 }
 function parseShortcode(shortCodeCapture) {
   const result = parseShortcodeCapture(shortCodeCapture);
   if (!result) {
-    throw new Error("invalid shortcode: " + shortCodeCapture);
+    throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
   }
   return result;
 }
@@ -31732,6 +31860,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   if (typeof src === "string") {
     src = asMappedString(src);
   }
+  const fileName = src.fileName;
   const nb = {
     cells: []
   };
@@ -31753,7 +31882,11 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
       for (const line of lineBuffer) {
         mappedChunks.push(line.range);
       }
-      const source = mappedString(src, mappedChunks);
+      const source = mappedString(
+        src,
+        mappedChunks,
+        fileName
+      );
       const makeCellType = () => {
         if (cell_type === "code") {
           return { language };
@@ -31805,11 +31938,11 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
           codeStartRange.range,
           ...mappedChunks,
           codeEndRange.range
-        ]);
+        ], fileName);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       } else if (cell_type === "directive") {
-        cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
       if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
         nb.cells.push(cell);
@@ -31832,7 +31965,7 @@ async function breakQuartoMd(src, validate2 = false, lenient = false) {
   const srcLines = rangedLines(src.value, true);
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const directiveMatch = isBlockShortcode(line.substring);
+    const directiveMatch = isBlockShortcode(line.substring, true);
     if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
       if (inYaml) {
         lineBuffer.push(line);

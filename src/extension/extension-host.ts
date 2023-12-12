@@ -1,9 +1,8 @@
 /*
-* extension-host.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * extension-host.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { isWindows } from "../core/platform.ts";
@@ -50,16 +49,23 @@ export async function extensionSource(
     if (!resolved) {
       continue;
     }
-    const response = await resolved.response;
-    if (response.status === 200) {
-      return {
-        type: "remote",
-        resolvedTarget: response,
-        resolvedFile: resolved?.urlFile,
-        owner: resolved?.owner,
-        targetSubdir: resolved?.subdirectory,
-        learnMoreUrl: resolved?.learnMoreUrl,
-      };
+    try {
+      const response = await resolved.response;
+      if (response.status === 200) {
+        return {
+          type: "remote",
+          resolvedTarget: response,
+          resolvedFile: resolved?.urlFile,
+          owner: resolved?.owner,
+          targetSubdir: resolved?.subdirectory,
+          learnMoreUrl: resolved?.learnMoreUrl,
+        };
+      }
+    } catch (err) {
+      err.message =
+        `A network error occurred when attempting to inspect the extension '${target}'. Please try again.\n\n` +
+        err.message;
+      throw err;
     }
   }
 
@@ -114,7 +120,7 @@ const githubLatestUrlProvider = {
     }
   },
   learnMoreUrl: (host: ExtensionHost) => {
-    return `https://www.github.com/${host.organization}/${host.repo}`;
+    return `https://www.github.com/${host.organization}/${host.repo}#readme`;
   },
 };
 
@@ -133,7 +139,7 @@ const githubTagUrlProvider = {
     }
   },
   learnMoreUrl: (host: ExtensionHost) => {
-    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}`;
+    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}#readme`;
   },
 };
 
@@ -152,7 +158,7 @@ const githubBranchUrlProvider = {
     }
   },
   learnMoreUrl: (host: ExtensionHost) => {
-    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}`;
+    return `https://github.com/${host.organization}/${host.repo}/tree/${host.modifier}#readme`;
   },
 };
 

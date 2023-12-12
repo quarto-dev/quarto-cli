@@ -1,0 +1,17 @@
+---
+title: issue-7744
+format: typst
+keep-typ: true
+---
+
+$$
+\begin{aligned}
+\frac{dS_1}{dt} &= -\frac{\rho \beta S_1(c_{11} I_1 + c_{12} I_2)}{N} \\
+\frac{dS_2}{dt} &= -\frac{\beta S_2(c_{12} I_1 + c_{22} I_2)}{N} \\
+\frac{dI_1}{dt} &= \frac{ \rho \beta S_1(c_{11} I_1 + c_{12} I_2)}{N} - \gamma I_1 \\
+\frac{dI_2}{dt} &= \frac{\beta S_2(c_{12} I_1 + c_{22} I_2)}{N} - \gamma I_2 \\
+\frac{dR_1}{dt} &= \gamma I_1 \\
+\frac{dR_2}{dt} &= \gamma I_2
+\end{aligned}
+$$ {#eq-model}
+

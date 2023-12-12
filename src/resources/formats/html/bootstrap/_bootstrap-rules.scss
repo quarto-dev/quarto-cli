@@ -260,11 +260,12 @@ body,
 .page-columns.column-page > * {
   grid-column: page-start / page-end;
 }
-
+.page-columns.column-page-left .page-columns.page-full > *,
 .page-columns.column-page-left > * {
   grid-column: page-start / body-content-end;
 }
 
+.page-columns.column-page-right .page-columns.page-full > *,
 .page-columns.column-page-right > * {
   grid-column: body-content-start / page-end;
 }
@@ -684,7 +685,7 @@ mark {
 .figure-caption,
 .subfigure-caption,
 .table-caption,
-figcaption.quarto-float-caption,
+figcaption,
 caption {
   font-size: 0.9rem;
   @include body-secondary;
@@ -930,6 +931,12 @@ pre {
     background-color: $mono-background-color;
     padding: 0.2em;
   }
+}
+
+p pre code:not(.sourceCode),
+li pre code:not(.sourceCode),
+pre code:not(.sourceCode) {
+  background-color: initial;
 }
 
 // Default padding if background is set
@@ -1776,6 +1783,10 @@ nav[role="doc-toc"].slow > * {
     margin-bottom: 0;
   }
 
+  .footnotes ol {
+    margin-left: 0.5em;
+  }
+
   .quarto-appendix-secondary-label {
     margin-bottom: 0.4em;
   }
@@ -1849,7 +1860,7 @@ body.nav-sidebar {
   @include media-breakpoint-down(lg) {
     .quarto-title-banner {
       margin-bottom: 0;
-      padding-bottom: 0;
+      padding-bottom: 1em;
     }
     #title-block-header {
       margin-block-end: 0;
@@ -2079,6 +2090,14 @@ code.sourceCode a.code-annotation-anchor {
     border-top-width: 0;
   }
 
+  // This disables new styling taken from boostrap that overrides
+  // table level styling
+  // See https://github.com/quarto-dev/quarto-cli/issues/7566
+  > :not(caption) > * > * {
+    background-color: unset;
+    color: unset;
+  }
+
   > :not(caption) > *:not(:last-child) > * {
     border-bottom-color: $table-group-separator-color-lighter;
     border-bottom-style: solid;
@@ -2097,4 +2116,19 @@ code.sourceCode a.code-annotation-anchor {
 
 .table tbody {
   border-bottom-color: $table-group-separator-color;
+}
+
+// Special Cross Talk Handling
+#quarto-document-content {
+  .crosstalk-input .checkbox input[type="checkbox"],
+  .crosstalk-input .checkbox-inline input[type="checkbox"] {
+    position: unset;
+    margin-top: unset;
+    margin-left: unset;
+  }
+
+  .row {
+    margin-left: unset;
+    margin-right: unset;
+  }
 }

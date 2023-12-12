@@ -12,7 +12,7 @@ import {
   kFormatLinks,
   kTargetFormat,
 } from "../../config/constants.ts";
-import { Format, FormatLink } from "../../config/types.ts";
+import { Format, FormatAliasLink, FormatLink } from "../../config/types.ts";
 
 import { RenderedFormat } from "../../command/render/types.ts";
 import {
@@ -23,6 +23,7 @@ import {
   isMarkdownOutput,
   isPdfOutput,
   isPresentationOutput,
+  isTypstOutput,
 } from "../../config/format.ts";
 import { basename } from "path/mod.ts";
 import { extname } from "path/mod.ts";
@@ -43,14 +44,14 @@ export function otherFormatLinks(
 ) {
   const normalizedFormatLinks = (
     unnormalizedLinks: unknown,
-  ): Array<string | FormatLink> | undefined => {
-    if (typeof (unnormalizedLinks) === "boolean") {
+  ): Array<string | FormatLink | FormatAliasLink> | undefined => {
+    if (typeof unnormalizedLinks === "boolean") {
       return undefined;
     } else if (unnormalizedLinks !== undefined) {
       const linksArr: unknown[] = Array.isArray(unnormalizedLinks)
         ? unnormalizedLinks
         : [unnormalizedLinks];
-      return linksArr as Array<string | FormatLink>;
+      return linksArr as Array<string | FormatLink | FormatAliasLink>;
     } else {
       return undefined;
     }
@@ -74,19 +75,22 @@ export function otherFormatLinks(
 export function alternateLinks(
   input: string,
   formats: RenderedFormat[],
-  userLinks?: Array<string | FormatLink>,
+  userLinks?: Array<string | FormatLink | FormatAliasLink>,
 ): AlternateLink[] {
   const alternateLinks: AlternateLink[] = [];
 
   const alternateLinkForFormat = (
     renderedFormat: RenderedFormat,
     order: number,
+    title?: string,
+    icon?: string,
   ) => {
     const relPath = isAbsolute(renderedFormat.path)
       ? relative(dirname(input), renderedFormat.path)
       : renderedFormat.path;
     return {
       title: `${
+        title ||
         renderedFormat.format.identifier[kDisplayName] ||
         renderedFormat.format.pandoc.to
       }${
@@ -95,7 +99,7 @@ export function alternateLinks(
           : ""
       }`,
       href: relPath,
-      icon: fileBsIconName(renderedFormat.format),
+      icon: icon || fileBsIconName(renderedFormat.format),
       order,
       dlAttrValue: fileDownloadAttr(
         renderedFormat.format,
@@ -106,7 +110,7 @@ export function alternateLinks(
 
   let count = 1;
   for (const userLink of userLinks || []) {
-    if (typeof (userLink) === "string") {
+    if (typeof userLink === "string") {
       // We need to filter formats, otherwise, we'll deal
       // with them below
       const renderedFormat = formats.find((f) =>
@@ -117,22 +121,37 @@ export function alternateLinks(
         alternateLinks.push(alternateLinkForFormat(renderedFormat, count));
       }
     } else {
-      // This an explicit link
-      const alternate = {
-        title: userLink.text,
-        href: userLink.href,
-        icon: userLink.icon || fileBsIconForExt(userLink.href),
-        dlAttrValue: "",
-        order: userLink.order || count,
-        attr: userLink.attr,
-      };
-      alternateLinks.push(alternate);
+      const linkObj = userLink as FormatLink | FormatAliasLink;
+      if ("format" in linkObj) {
+        const thatLink = userLink as FormatAliasLink;
+        const rf = formats.find((f) =>
+          f.format.identifier[kTargetFormat] === thatLink.format
+        );
+        if (rf) {
+          // Just push through
+          alternateLinks.push(
+            alternateLinkForFormat(rf, count, thatLink.text, thatLink.icon),
+          );
+        }
+      } else {
+        // This an explicit link
+        const thisLink = userLink as FormatLink;
+        const alternate = {
+          title: thisLink.text,
+          href: thisLink.href,
+          icon: thisLink.icon || fileBsIconForExt(thisLink.href),
+          dlAttrValue: "",
+          order: thisLink.order || count,
+          attr: thisLink.attr,
+        };
+        alternateLinks.push(alternate);
+      }
     }
     count++;
   }
 
   const userLinksHasFormat = userLinks &&
-    userLinks.some((link) => typeof (link) === "string");
+    userLinks.some((link) => typeof link === "string");
   if (!userLinksHasFormat) {
     formats.forEach((renderedFormat) => {
       const baseFormat = renderedFormat.format.identifier["base-format"];
@@ -151,6 +170,8 @@ const fileBsIconName = (format: Format) => {
   if (isDocxOutput(format.pandoc)) {
     return "file-word";
   } else if (isPdfOutput(format.pandoc)) {
+    return "file-pdf";
+  } else if (isTypstOutput(format.pandoc)) {
     return "file-pdf";
   } else if (isIpynbOutput(format.pandoc)) {
     return "journal-code";

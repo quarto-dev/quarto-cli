@@ -97,7 +97,7 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return not _quarto.format.isLatexOutput() and 
+  return (not _quarto.format.isLatexOutput() or _quarto.format.isBeamerOutput()) and 
          not _quarto.format.isTypstOutput() and
          (not _quarto.format.isMarkdownOutput() or _quarto.format.isMarkdownWithHtmlOutput())
          and numberSectionsOptionEnabled()

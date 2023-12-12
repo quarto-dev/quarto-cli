@@ -182,6 +182,7 @@ local kCreditVocabTermIdentifiers = {
 -- an affiliation which will be structured into a standalone
 local kAffilName = 'name'
 local kDepartment = 'department'
+local kGroup = 'group'
 local kAddress = 'address'
 local kCity = 'city'
 local kRegion = 'region'
@@ -226,13 +227,14 @@ local kBiblioConfig = 'biblio-config'
 -- The field types for an author (maps the field in an author table)
 -- to the way the field should be processed
 local kAuthorNameFields = { kName }
+local kAuthorNameLiteralFields = { kFamilyName, kGivenName, kDroppingParticle, kNonDroppingParticle }
 local kAuthorSimpleFields = { kId, kUrl, kEmail, kFax, kPhone, kOrcid, kAcknowledgements }
 local kAuthorAttributeFields = { kCorresponding, kEqualContributor, kDeceased }
 local kAuthorAffiliationFields = { kAffiliation, kAffiliations }
 
 -- Fields for affiliations (either inline in authors or 
 -- separately in a affiliations key)
-local kAffiliationFields = { kId, kAffilName, kDepartment, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl, kISNI, kRinggold, kROR }
+local kAffiliationFields = { kId, kAffilName, kDepartment, kGroup, kAddress, kCity, kRegion, kCountry, kPostalCode, kUrl, kISNI, kRinggold, kROR }
 
 -- These affiliation fields will be mapped into 'region' 
 -- (so users may also write 'state')
@@ -418,17 +420,26 @@ local function bibtexParseName(nameRaw)
   end
 end
 
+local function createNameLiteral(name)
+  local literalName = {}
+  if name[kFamilyName] and name[kGivenName] then
+    tappend(literalName, name[kGivenName])
+    tappend(literalName, {pandoc.Space()})
+    tappend(literalName, name[kFamilyName])
+  elseif name[kFamilyName] then
+    tappend(literalName, name[kFamilyName])
+  elseif name[kGivenName] then
+    tappend(literalName, name[kGivenName])
+  end
+  return literalName
+end
+
 -- normalizes a name value by parsing it into
 -- family and given names
 local function normalizeName(name)
   -- no literal name, create one
   if name[kLiteralName] == nil then
-    if name[kFamilyName] and name[kGivenName] then
-      name[kLiteralName] = {}
-      tappend(name[kLiteralName], name[kGivenName])
-      tappend(name[kLiteralName], {pandoc.Space()})
-      tappend(name[kLiteralName], name[kFamilyName])
-    end
+    name[kLiteralName] = createNameLiteral(name)
   end
 
   -- no family or given name, parse the literal and create one
@@ -631,12 +642,11 @@ local function processFundingGroup(fundingGroup, authors, affiliations)
     end
 
     return result
-  else
-    
+  else    
     -- this is a simple string / inlines, just 
     -- use it as the source
     return {
-      [kStatement] = fundingAward
+      [kStatement] = fundingGroup
     }
   end
 end
@@ -963,6 +973,7 @@ local function processAuthor(value)
   else
     -- Process the field into the proper place in the author
     -- structure
+    local needsNameNormalization = false
     for authorKey, authorValue in pairs(value) do
       if tcontains(kAuthorNameFields, authorKey) then
         -- process any names
@@ -990,11 +1001,21 @@ local function processAuthor(value)
         processAuthorRoles(author, authorValue)
       elseif authorKey == kDegrees then
         processAuthorDegrees(author, authorValue)
+      elseif tcontains(kAuthorNameLiteralFields, authorKey) then       
+        -- Normalize literal field names that appear under author into the name
+        author.name = author.name or {}
+        author.name[authorKey] = authorValue
+        needsNameNormalization = true
       else
         -- since we don't recognize this value, place it under
         -- metadata to make it accessible to consumers of this 
         -- data structure
         setMetadata(author, authorKey, authorValue)
+      end
+    end
+    if needsNameNormalization then
+      if author.name[kLiteralName] == nil then
+        author.name[kLiteralName] = createNameLiteral(author.name)
       end
     end
   end
@@ -1011,11 +1032,26 @@ local function processAuthor(value)
 end
 
 local function processAuthorMeta(meta)
+
   -- prevents the front matter for markdown from containing
   -- all the rendered author information that we generate
   if _quarto.format.isMarkdownOutput() then
-    meta[kAuthors] = nil
-    return meta
+
+    -- see whether the metadata block will be preserved
+    -- if the YAML is being preserved, this should just no-op and leave
+    -- things as they were
+    local formatId = param("format-identifier", {})
+    quarto.log.output(formatId)
+    if formatId['target-format'] == "markdown" then
+      -- Don't normalize plain markdown as this preserves
+      -- YAML front matter by default
+      return nil
+    else
+      local parsed_format = _quarto.format.parse_format(formatId['target-format'])
+      if parsed_format['extensions']['yaml_metadata_block'] then
+        return nil
+      end
+    end
   end
 
   -- prefer to render 'authors' if it is available
@@ -1041,7 +1077,6 @@ local function processAuthorMeta(meta)
 
   if authorsRaw then
     for i,v in ipairs(authorsRaw) do
-
       local authorAndAffiliations = processAuthor(v)
 
       -- initialize the author

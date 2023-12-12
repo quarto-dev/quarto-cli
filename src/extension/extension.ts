@@ -59,6 +59,7 @@ import {
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 import { existsSync1 } from "../core/file.ts";
+import { kFormatResources } from "../config/constants.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -694,6 +695,20 @@ async function readExtension(
 
     const formatMeta = formats[key] as Metadata;
 
+    if (formatMeta[kFormatResources]) {
+      // Resolve any globs in format resources
+      const resolved = resolvePathGlobs(
+        extensionDir,
+        formatMeta[kFormatResources] as string[],
+        [],
+      );
+      if (resolved.include.length > 0) {
+        formatMeta[kFormatResources] = resolved.include.map((include) => {
+          return relative(extensionDir, include);
+        });
+      }
+    }
+
     // If this is a custom writer, set the writer for the format
     // using the full path to the lua file
     if (key.endsWith(".lua")) {
@@ -912,6 +927,12 @@ function resolveFilter(
   filter: QuartoFilter,
 ) {
   if (typeof filter === "string") {
+    // First check for the sentinel quarto filter, and allow that through
+    // if it is present
+    if (filter === "quarto") {
+      return filter;
+    }
+
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(

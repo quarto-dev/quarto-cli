@@ -28,7 +28,7 @@ function columns()
           el.classes = el.classes:filter(function(attr) 
             return attr ~= "aside"
           end)
-          tappend(el.classes, {'column-margin'})
+          tappend(el.classes, {'column-margin', 'margin-aside'})
           return el
         end
       end
@@ -66,7 +66,7 @@ function renderDivColumn(el)
       el.classes = el.classes:filter(function(attr) 
         return attr ~= "aside"
       end)
-      tappend(el.classes, {'column-margin'})
+      tappend(el.classes, {'column-margin', "margin-aside"})
       return el
     end
 

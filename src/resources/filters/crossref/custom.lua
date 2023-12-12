@@ -21,9 +21,9 @@ function initialize_custom_crossref_categories(meta)
   local keys = {
     ["caption-location"] = function(v) return pandoc.utils.stringify(v) end,
     ["kind"] = function(v) return pandoc.utils.stringify(v) end,
-    ["name"] = function(v) return pandoc.utils.stringify(v) end,
-    ["prefix"] = function(v) return pandoc.utils.stringify(v) end,
-    ["ref-type"] = function(v) return pandoc.utils.stringify(v) end,
+    ["reference-prefix"] = function(v) return pandoc.utils.stringify(v) end,
+    ["caption-prefix"] = function(v) return pandoc.utils.stringify(v) end,
+    ["key"] = function(v) return pandoc.utils.stringify(v) end,
     ["latex-env"] = function(v) return pandoc.utils.stringify(v) end,
     ["latex-list-of-file-extension"] = function(v) return pandoc.utils.stringify(v) end,
     ["latex-list-of-description"] = function(v) return pandoc.utils.stringify(v) end,
@@ -31,10 +31,12 @@ function initialize_custom_crossref_categories(meta)
   }
   local obj_mapping = {
     ["caption-location"] = "caption_location",
+    ["reference-prefix"] = "name",
+    ["caption-prefix"] = "prefix",
     ["latex-env"] = "latex_env",
     ["latex-list-of-file-extension"] = "latex_list_of_file_extension",
     ["latex-list-of-description"] = "latex_list_of_description",
-    ["ref-type"] = "ref_type",
+    ["key"] = "ref_type",
     ["space-before-numbering"] = "space_before_numbering",
   }
   for _, v in ipairs(custom) do
@@ -58,6 +60,9 @@ function initialize_custom_crossref_categories(meta)
         obj_entry[k] = v
       end
     end
+    if obj_entry["prefix"] == nil then
+      obj_entry["prefix"] = obj_entry["name"]
+    end
     add_crossref_category(obj_entry)
 
     if quarto.doc.isFormat("pdf") then
@@ -66,9 +71,9 @@ function initialize_custom_crossref_categories(meta)
       end
       metaInjectLatex(meta, function(inject)
         local env_name = entry["latex-env"]
-        local name = entry["name"]
-        local env_prefix = entry["prefix"]
-        local ref_type = entry["ref-type"]
+        local name = entry["reference-prefix"]
+        local env_prefix = entry["caption-prefix"] or name
+        local ref_type = entry["key"]
         local list_of_name = entry["latex-list-of-file-extension"] or ("lo" .. ref_type)
         local list_of_description = entry["latex-list-of-description"] or name
         local cap_location = entry["caption-location"] or "bottom"

@@ -63,6 +63,11 @@ local function render_floatless_typst_layout(panel)
       --   specifying a width in pixels, which overrides the
       --   column's relative constraint.
       local image = quarto.utils.match("[1]/Para/[1]/{Image}")(col.content)
+
+      -- we also need to check for Pandoc Figure AST nodes because these
+      -- still linger in our AST (captioned unidentified figures...)
+      image = image or quarto.utils.match("[1]/Figure/[1]/Plain/[1]/{Image}")(col.content)
+
       if image and #image[1].attributes == 0 then
         image[1].attributes["width"] = "100%"
       end

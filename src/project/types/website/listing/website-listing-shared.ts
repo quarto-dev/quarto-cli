@@ -141,7 +141,7 @@ export type CategoryStyle =
 export interface ListingFeedOptions {
   [kTitle]?: string;
   [kItems]?: number;
-  [kType]: "summary" | "full";
+  [kType]: "partial" | "full" | "metadata";
   [kDescription]?: string;
   [kFieldCategories]?: string | string[];
   [kImage]?: string;
@@ -219,6 +219,7 @@ export interface ListingItem extends Record<string, unknown> {
 
 export interface RenderedContents {
   title: string | undefined;
+  description: string | undefined;
   firstPara: string | undefined;
   fullContents: string | undefined;
   previewImage: PreviewImage | undefined;
@@ -321,6 +322,16 @@ export function readRenderedContents(
   const titleText = titleEl?.querySelector("h1.title")?.innerText;
   if (titleEl) {
     titleEl.remove();
+  }
+
+  // Read the explicit description, if present
+  let description = "";
+  const descEl = doc.querySelector("meta[name='description']");
+  if (descEl) {
+    const descAttrVal = descEl.getAttribute("content");
+    if (descAttrVal !== null) {
+      description = descAttrVal;
+    }
   }
 
   // Remove any navigation elements from the content region
@@ -573,6 +584,7 @@ export function readRenderedContents(
 
   return {
     title: titleText,
+    description,
     fullContents,
     firstPara,
     previewImage: computePreviewImage(),

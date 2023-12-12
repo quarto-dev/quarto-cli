@@ -8,6 +8,7 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import {
   kAbstract,
   kAuthor,
+  kAuthors,
   kCsl,
   kLang,
   kTitle,
@@ -110,7 +111,8 @@ export function documentCSL(
 
   // Author
   const authors = parseAuthor(
-    citationMetadata[kAuthor] || inputMetadata[kAuthor],
+    citationMetadata[kAuthor] || inputMetadata[kAuthor] ||
+      inputMetadata[kAuthors],
   );
   csl.author = cslNames(
     authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
@@ -433,7 +435,7 @@ export function citationMeta(metadata: Metadata): Metadata {
   }
 }
 
-function synthesizeCitationUrl(
+export function synthesizeCitationUrl(
   input: string,
   metadata: Metadata,
   outputFile?: string,

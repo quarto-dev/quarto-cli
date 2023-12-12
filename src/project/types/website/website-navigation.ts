@@ -113,7 +113,6 @@ import {
 import {
   flattenItems,
   inputFileHref,
-  Navigation,
   NavigationFooter,
   NavigationPagination,
   websiteNavigationConfig,
@@ -141,6 +140,7 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
 import { navigation } from "./website-shared.ts";
+import { isAboutPage } from "./about/website-about.ts";
 
 export const kSidebarLogo = "logo";
 
@@ -191,6 +191,28 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.pageMargin = pageMargin;
 }
 
+export async function websiteNoThemeExtras(
+  project: ProjectContext,
+  source: string,
+  _flags: PandocFlags,
+  _format: Format,
+  _temp: TempContext,
+): Promise<FormatExtras> {
+  return {
+    html: {
+      [kHtmlPostprocessors]: [
+        async (doc: Document): Promise<HtmlPostProcessResult> => {
+          await resolveProjectInputLinks(source, project, doc);
+          return Promise.resolve({
+            resources: [],
+            supporting: [],
+          });
+        },
+      ],
+    },
+  };
+}
+
 export async function websiteNavigationExtras(
   project: ProjectContext,
   source: string,
@@ -211,6 +233,14 @@ export async function websiteNavigationExtras(
       return false;
     } else {
       return true;
+    }
+  };
+
+  const tocLocation = () => {
+    if (isAboutPage(format)) {
+      return "right";
+    } else {
+      return format.metadata[kTocLocation] || "right";
     }
   };
 
@@ -251,7 +281,7 @@ export async function websiteNavigationExtras(
 
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
-    [kTocLocation]: format.metadata[kTocLocation] || "right",
+    [kTocLocation]: tocLocation(),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
@@ -613,7 +643,7 @@ function handleRepoLinks(
   );
 
   if (repoActions.length > 0 || elRepoSource) {
-    const repoInfo = websiteRepoInfo(config);
+    const repoInfo = websiteRepoInfo(format, config);
     if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc

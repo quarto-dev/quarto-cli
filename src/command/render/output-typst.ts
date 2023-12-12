@@ -22,9 +22,11 @@ import { OutputRecipe, RenderOptions } from "./types.ts";
 import { normalizeOutputPath } from "./output-shared.ts";
 import {
   typstCompile,
+  TypstCompileOptions,
   validateRequiredTypstVersion,
 } from "../../core/typst.ts";
 import { asArray } from "../../core/array.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 export function useTypstPdfOutputRecipe(
   format: Format,
@@ -38,6 +40,7 @@ export function typstPdfOutputRecipe(
   finalOutput: string,
   options: RenderOptions,
   format: Format,
+  project?: ProjectContext,
 ): OutputRecipe {
   // calculate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .typ)
@@ -60,11 +63,17 @@ export function typstPdfOutputRecipe(
     // run typst
     await validateRequiredTypstVersion();
     const pdfOutput = join(inputDir, inputStem + ".pdf");
+    const typstOptions: TypstCompileOptions = {
+      quiet: options.flags?.quiet,
+      fontPaths: asArray(format.metadata?.[kFontPaths]) as string[],
+    };
+    if (project?.dir) {
+      typstOptions.rootDir = project.dir;
+    }
     const result = await typstCompile(
       input,
       pdfOutput,
-      options.flags?.quiet,
-      asArray(format.metadata?.[kFontPaths]) as string[],
+      typstOptions,
     );
     if (!result.success) {
       throw new Error();

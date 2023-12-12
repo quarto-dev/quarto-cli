@@ -123,8 +123,10 @@ local kLangCommentChars = {
   vhdl = { "--"},
   html = { "<!--", "-->"},
   markdown = {"<!--", "-->"},
-  gap = { "#" }
+  gap = { "#" },
+  dockerfile = { "#" }
 }
+local kDefaultCodeAnnotationComment =  {"#"}
 
 return {
   kCitation = kCitation,
@@ -192,5 +194,6 @@ return {
   kLicense = kLicense,
 
   kLangCommentChars = kLangCommentChars,
+  kDefaultCodeAnnotationComment = kDefaultCodeAnnotationComment,
   kHtmlTableProcessing = kHtmlTableProcessing
 }

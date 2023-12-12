@@ -35,7 +35,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { insecureHash } from "../../core/hash.ts";
 
-export function writeDependencies(
+export async function writeDependencies(
   dependenciesFile: string,
   extras: FormatExtras,
 ) {
@@ -48,7 +48,7 @@ export function writeDependencies(
         };
       });
 
-    appendDependencies(dependenciesFile, dependencies);
+    await appendDependencies(dependenciesFile, dependencies);
   }
 }
 

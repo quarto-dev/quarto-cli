@@ -1,4 +1,4 @@
-// quarto-ojs-runtime v0.0.17 Copyright 2023 undefined
+// quarto-ojs-runtime v0.0.18 Copyright 2023 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -23769,7 +23769,10 @@ function createRuntime() {
     }
 
     let name;
-    const currentPath = window.location.href.replace(/[^/]*$/, '');
+
+    // we need to remove the hash from the current path
+    // for this to work in revealjs
+    const currentPath = window.location.href.split("#")[0].replace(/[^/]*$/, '');
 
     if (n.startsWith("/")) {
       // docToRoot can be empty, in which case naive concatenation creates

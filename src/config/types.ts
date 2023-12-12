@@ -17,6 +17,7 @@ import {
   kCalloutNoteCaption,
   kCalloutTipCaption,
   kCalloutWarningCaption,
+  kCanonicalUrl,
   kCiteMethod,
   kCiteproc,
   kClearCellOptions,
@@ -186,6 +187,7 @@ import {
   kSearchMoreMatchText,
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
+  kSearchTextPlaceholder,
   kSectionDivs,
   kSectionTitleAbstract,
   kSectionTitleAppendices,
@@ -224,6 +226,7 @@ import {
   kToggleSection,
   kToggleSidebar,
   kTopLevelDivision,
+  kValidateYaml,
   kVariables,
   kVariant,
   kWarning,
@@ -474,6 +477,8 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kValidateYaml]?: boolean;
+  [kCanonicalUrl]?: boolean | string;
 }
 
 export interface FormatExecute {
@@ -651,6 +656,7 @@ export interface FormatLanguage {
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
+  [kSearchTextPlaceholder]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
   [kCrossrefFigTitle]?: string;
@@ -711,6 +717,13 @@ export interface FormatLink {
   text: string;
   href: string;
   order?: number;
+  attr?: Record<string, string>;
+}
+
+export interface FormatAliasLink {
+  icon?: string;
+  text: string;
+  format: string;
   attr?: Record<string, string>;
 }
 

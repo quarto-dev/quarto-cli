@@ -43,6 +43,7 @@ import {
   kReferenceLocation,
   kReferences,
   kRemoveHidden,
+  kResourcePath,
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
@@ -50,6 +51,7 @@ import {
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
+  Format,
   FormatLanguage,
   FormatPandoc,
   isFilterEntryPoint,
@@ -105,10 +107,14 @@ const kQuartoVersion = "quarto-version";
 
 const kQuartoSource = "quarto-source";
 
+const kHasResourcePath = "has-resource-path";
+
 const kQuartoCustomFormat = "quarto-custom-format";
 
 const kIsShinyPython = "is-shiny-python";
 const kShinyPythonExec = "shiny-python-exec";
+
+const kExecutionEngine = "execution-engine";
 
 export async function filterParamsJson(
   args: string[],
@@ -159,7 +165,7 @@ export async function filterParamsJson(
     ...crossrefFilterParams(options, defaults),
     ...citeIndexFilterParams(options, defaults),
     ...layoutFilterParams(options.format, defaults),
-    ...languageFilterParams(options.format.language),
+    ...languageFilterParams(options.format),
     ...jatsFilterParams(options),
     ...notebookContextFilterParams(options),
     ...filterParams,
@@ -175,6 +181,7 @@ export async function filterParamsJson(
     [kFormatIdentifier]: options.format.identifier,
     [kIsShinyPython]: isShinyPython,
     [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
+    [kExecutionEngine]: options.executionEngine,
   };
   return JSON.stringify(params);
 }
@@ -431,9 +438,10 @@ function referenceLocationArg(args: string[]) {
   }
 }
 
-function languageFilterParams(language: FormatLanguage) {
+function languageFilterParams(format: Format) {
+  const language = format.language;
   const params: Metadata = {
-    [kCodeSummary]: language[kCodeSummary],
+    [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
   Object.keys(language).forEach((key) => {
@@ -616,6 +624,11 @@ async function quartoFilterParams(
   params[kCiteMethod] = citeMethod(options);
   params[kPdfEngine] = pdfEngine(options);
   params[kHasBootstrap] = formatHasBootstrap(options.format);
+
+  // has resource params
+  const hasResourcePath = options.format.pandoc[kResourcePath] !== undefined ||
+    options.args.includes("--resource-path");
+  params[kHasResourcePath] = hasResourcePath;
 
   // The source document
   params[kQuartoSource] = options.source;
@@ -811,7 +824,7 @@ async function resolveFilterExtension(
     // into the filters provided by the extension
     if (
       filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof (filter) === "string" &&
+      typeof filter === "string" &&
       !existsSync(filter)
     ) {
       const extensions = await options.services.extension?.find(

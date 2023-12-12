@@ -54,6 +54,7 @@ import {
   formatHasFullLayout,
   formatPageLayout,
   hasMarginCites,
+  hasMarginFigCaps,
   hasMarginRefs,
   kAppendixStyle,
   kBootstrapDependencyName,
@@ -277,6 +278,16 @@ function bootstrapHtmlPostprocessor(
       // for (let j = 0; j < captions.length; j++) {
       //   (captions[j] as Element).classList.add("figure-caption");
       // }
+    }
+
+    // Ensure that any magin figures / images are marked as fluid
+    // Attempt to fix https://github.com/quarto-dev/quarto-cli/issues/5516
+    const marginImgNodes = doc.querySelectorAll(
+      ".column-margin .cell-output-display img:not(.img-fluid)",
+    );
+    for (const marginImgNode of marginImgNodes) {
+      const marginImgEl = marginImgNode as Element;
+      marginImgEl.classList.add("img-fluid");
     }
 
     // move the toc if there is a sidebar
@@ -568,9 +579,9 @@ async function processOtherLinks(
       | string[]
       | OtherLink[];
     if (codeLinks !== undefined) {
-      if (typeof (codeLinks) === "boolean") {
+      if (typeof codeLinks === "boolean") {
         return [];
-      } else if (typeof (codeLinks) === "string") {
+      } else if (typeof codeLinks === "string") {
         if (!context) {
           throw new Error(
             `The code-link value '${codeLinks}' is only supported from within a project.`,
@@ -585,7 +596,7 @@ async function processOtherLinks(
       } else {
         const outputLinks: OtherLink[] = [];
         for (const codeLink of codeLinks) {
-          if (typeof (codeLink) === "string") {
+          if (typeof codeLink === "string") {
             if (!context) {
               throw new Error(
                 `The code-link value '${codeLink}' is only supported from within a project.`,
@@ -781,6 +792,9 @@ function getLinkTarget(
 
   // Now search for a place to put the links
   let dlLinkTarget = doc.querySelector(`nav[role="doc-toc"]`);
+  if (dlLinkTarget === null) {
+    dlLinkTarget = doc.getElementById("quarto-sidebar-toc-left");
+  }
   if (dlLinkTarget === null) {
     dlLinkTarget = doc.getElementById(kMarginSidebarId);
   }
@@ -1037,6 +1051,12 @@ function processColumnElements(
   const marginProcessors: MarginNodeProcessor[] = [
     simpleMarginProcessor,
   ];
+
+  // If figure captions are enabled, look out for them in callouts
+  if (hasMarginFigCaps(format)) {
+    marginProcessors.push(figCapInCalloutMarginProcessor);
+  }
+
   // If margin footnotes are enabled move them
   const refsInMargin = hasMarginRefs(format, flags);
   if (refsInMargin) {
@@ -1316,6 +1336,60 @@ const processMarginElsInCallouts = (doc: Document) => {
       });
     }
   });
+};
+
+const figCapInCalloutMarginProcessor: MarginNodeProcessor = {
+  selector: ".callout",
+  canProcess(el: Element) {
+    const hasFigCap = el.querySelector("figcaption");
+    return hasFigCap !== null;
+  },
+  process(el: Element, doc: Document) {
+    const collapseEl = el.querySelector(".callout-collapse");
+    const isSimple = el.classList.contains("callout-style-simple");
+    //Get the collapse classes (if any) to forward long
+    const collapseClasses: string[] = [];
+    if (collapseEl) {
+      collapseEl.classList.forEach((clz) => collapseClasses.push(clz));
+    }
+
+    const figNodes = el.querySelectorAll("figure");
+    for (const figNode of Array.from(figNodes).reverse()) {
+      const figEl = figNode as Element;
+      const figCaptionEl = figEl.querySelector("figcaption");
+
+      // Usually the figure id is on the parent div
+      let figureId = figEl.id;
+      if (figureId === "") {
+        figureId = figEl.parentElement?.id || "";
+      }
+
+      const captionId = figureId + "-caption";
+      figEl.setAttribute("aria-labelledby", captionId);
+
+      if (figCaptionEl !== null) {
+        // Move the caption contents into a div
+        figCaptionEl.remove();
+        const div = doc.createElement("DIV");
+        div.id = captionId;
+        div.classList.add("margin-figure-caption");
+        div.classList.add("column-margin");
+        collapseClasses.forEach((clz) => {
+          div.classList.add(clz);
+        });
+
+        div.classList.add("callout-margin-content");
+        if (isSimple) {
+          div.classList.add("callout-margin-content-simple");
+        }
+
+        figCaptionEl.childNodes.forEach((node) => {
+          div.append(node);
+        });
+        el.parentElement?.insertBefore(div, el.nextElementSibling);
+      }
+    }
+  },
 };
 
 const processFigureOutputs = (doc: Document) => {

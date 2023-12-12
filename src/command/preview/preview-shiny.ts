@@ -6,7 +6,7 @@
 
 import { info } from "log/mod.ts";
 
-import { dirname, extname } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join, joinGlobs } from "path/mod.ts";
 
 import { RunOptions } from "../../execute/types.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -39,6 +39,7 @@ import { previewMonitorResources } from "../../core/quarto.ts";
 import { renderServices } from "../render/render-services.ts";
 import { RenderFlags } from "../render/types.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { isIpynbOutput } from "../../config/format.ts";
 
 export interface PreviewShinyOptions extends RunOptions {
   pandocArgs: string[];
@@ -51,11 +52,16 @@ export async function previewShiny(options: PreviewShinyOptions) {
   previewMonitorResources();
 
   // render for preview
+  let rendering = false;
+  const renderingFile = isAbsolute(options.input)
+    ? options.input
+    : join(Deno.cwd(), options.input);
   const render = async (to?: string) => {
     to = to || options.format;
     const renderFlags: RenderFlags = { to, execute: true };
     const services = renderServices(notebookContext());
     try {
+      rendering = true;
       const result = await renderForPreview(
         options.input,
         services,
@@ -66,6 +72,7 @@ export async function previewShiny(options: PreviewShinyOptions) {
       return result;
     } finally {
       services.cleanup();
+      rendering = false;
     }
   };
   const result = await render();
@@ -90,6 +97,15 @@ export async function previewShiny(options: PreviewShinyOptions) {
     (file: string) => {
       const ext = extname(file);
       return ![".py", ".html", ".htm"].includes(ext);
+    },
+    (files: string[]) => {
+      if (
+        files.length === 1 && files[0] === renderingFile &&
+        extname(files[0]) === ".ipynb"
+      ) {
+        return rendering;
+      }
+      return false;
     },
   );
 

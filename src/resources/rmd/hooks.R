@@ -672,6 +672,7 @@ knitr_plot_hook <- function(format) {
       
       # result = "asis" specific
       if (identical(options[["results"]], "asis")) return(md)
+      
       # enclose in output div 
       output_div(md, NULL, classes)
     }

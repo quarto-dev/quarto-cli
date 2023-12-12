@@ -3,24 +3,21 @@ title: Proposed syntax for custom crossrefs
 crossref:
   custom:
     - kind: float
-      prefix: Diagram
-      name: Diagram
-      ref-type: dia
+      key: dia
+      reference-prefix: Diagram
       latex-env: diagram
-      latex-list-of-name: lod
+      latex-list-of-file-extension: lod
     - kind: float
-      prefix: Video
-      name: Video
-      ref-type: vid
+      key: vid
+      reference-prefix: Video
       latex-env: video
-      latex-list-of-name: lov
+      latex-list-of-file-extension: lov
     - kind: float
-      prefix: Table S
+      key: supptbl
+      reference-prefix: Table S
       space-before-numbering: false
-      name: Table S
-      ref-type: supptbl
       latex-env: supptbl
-      latex-list-of-name: lost
+      latex-list-of-file-extension: lost
 ---
 
 ::: {#dia-1}

@@ -303,6 +303,9 @@
               - object:
                   closed: true
                   properties:
+                    client-url:
+                      string:
+                        description: Override the default hypothesis client url with a custom client url.
                     openSidebar:
                       boolean:
                         default: false
@@ -1014,7 +1017,10 @@
         path:
           description: |
             Default site thumbnail image for `twitter` /`open-graph`
-
+      image-alt:
+        path:
+          description: |
+            Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
         schema:
           ref: comments
@@ -1042,7 +1048,7 @@
             - ref: code-links-schema
         tags:
           formats: [$html-doc]
-        description: "A list of codes links to appear with this document."
+        description: "A list of code links to appear with this document."
 
 - id: book-schema
   schema:
@@ -1220,6 +1226,7 @@
       search-more-match-text: string
       search-more-matches-text: string
       search-clear-button-title: string
+      search-text-placeholder: string
       search-detached-cancel-button-title: string
       search-submit-button-title: string
       crossref-fig-title: string
@@ -1405,7 +1412,7 @@
                     description: |
                       The number of items to include in your feed. Defaults to 20.
                 type:
-                  enum: [full, partial]
+                  enum: [full, partial, metadata]
                   description:
                     short: Whether to include full or partial content in the feed.
                     long: |
@@ -1413,6 +1420,7 @@
 
                       - `full` (default): Include the complete content of the document in the feed.
                       - `partial`: Include only the first paragraph of the document in the feed.
+                      - `metadata`: Use only the title, description, and other document metadata in the feed.
                 title:
                   string:
                     description:
@@ -1582,6 +1590,17 @@
   anyOf:
     - string
     - maybeArrayOf: number
+    - object:
+        properties:
+          year:
+            number:
+              description: The year
+          month:
+            number:
+              description: The month
+          day:
+            number:
+              description: The day
 
 - id: csl-person
   anyOf:

@@ -1,0 +1,19 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["Hello"]
+        - []
+---
+
+```.r
+{{< include file.r >}}
+```
+
+
+```{r}
+# Don't do anything here.
+cat("world.")
+```

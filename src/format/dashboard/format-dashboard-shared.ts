@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
+import { warning } from "log/mod.ts";
 import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
@@ -278,6 +279,9 @@ const kNavButtonAliases: Record<
         href: context.repoUrl,
       } as NavButton;
     } else {
+      warning(
+        "Unable to determine GitHub repository for the `github` nav-button. Is this directory a GitHub repository?",
+      );
       return undefined;
     }
   },

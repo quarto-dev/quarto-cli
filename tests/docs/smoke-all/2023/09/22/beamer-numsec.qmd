@@ -1,0 +1,21 @@
+---
+title: Number Sections
+format: 
+  beamer:
+    number-sections: true
+    output-ext: tex
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        - ['\{1 Section\}', '\{1[.]1 Subsection\}']
+        - []
+---
+
+## Section
+
+This is the content of the section
+
+### Subsection
+
+This is the content of the subsection

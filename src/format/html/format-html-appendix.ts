@@ -137,6 +137,7 @@ export async function processDocumentAppendix(
         const existingTitle = findRefTitle(refsEl);
         addSection((sectionEl) => {
           sectionEl.setAttribute("role", "doc-bibliography");
+          sectionEl.id = "quarto-bibliography";
           sectionEl.appendChild(refsEl);
 
           if (existingTitle) {
@@ -159,6 +160,7 @@ export async function processDocumentAppendix(
       const footnoteEls = doc.querySelectorAll('aside[role="doc-endnotes"]');
       if (footnoteEls && footnoteEls.length === 1) {
         const footnotesEl = footnoteEls.item(0) as Element;
+        footnotesEl.tagName = "SECTION";
         insertFootnotesTitle(
           doc,
           footnotesEl,
@@ -174,7 +176,7 @@ export async function processDocumentAppendix(
     if (format.metadata[kLicense]) {
       addSection((sectionEl) => {
         const contentsDiv = doc.createElement("DIV");
-        contentsDiv.id = "quarto-reuse";
+        sectionEl.id = "quarto-reuse";
         contentsDiv.classList.add(
           kAppendixContentsClass,
         );
@@ -252,7 +254,7 @@ export async function processDocumentAppendix(
       if (copyright) {
         addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
-          contentsDiv.id = "quarto-copyright";
+          sectionEl.id = "quarto-copyright";
           contentsDiv.classList.add(
             kAppendixContentsClass,
           );
@@ -274,6 +276,7 @@ export async function processDocumentAppendix(
         addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
           sectionEl.appendChild(contentsDiv);
+          sectionEl.id = "quarto-citation";
 
           if (cite?.bibtex) {
             // Add the bibtext representation to the appendix
@@ -326,7 +329,6 @@ export async function processDocumentAppendix(
         if (appendSectionEl.id) {
           const selector = `#TOC a[href="#${appendSectionEl.id}"]`;
           const tocEl = doc.querySelector(selector);
-          console.log(selector);
           if (tocEl && tocEl.parentElement) {
             tocEl.parentElement.remove();
           }

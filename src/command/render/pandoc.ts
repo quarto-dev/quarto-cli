@@ -103,6 +103,7 @@ import {
   kInstitute,
   kInstitutes,
   kKeepSource,
+  kLatexAutoMk,
   kLinkColor,
   kMath,
   kMetadataFormat,
@@ -162,7 +163,7 @@ import {
   parseFormatString,
   splitPandocFormatString,
 } from "../../core/pandoc/pandoc-formats.ts";
-import { parseAuthor } from "../../core/author.ts";
+import { cslNameToString, parseAuthor } from "../../core/author.ts";
 import { logLevel } from "../../core/log.ts";
 
 import { cacheCodePage, clearCodePageCache } from "../../core/windows.ts";
@@ -721,7 +722,7 @@ export async function runPandoc(
 
     // make the filter paths windows safe
     allDefaults.filters = allDefaults.filters.map((filter) => {
-      if (typeof (filter) === "string") {
+      if (typeof filter === "string") {
         return pandocMetadataPath(filter);
       } else {
         return {
@@ -988,7 +989,9 @@ export async function runPandoc(
   if (authorsRaw) {
     const authors = parseAuthor(pandocMetadata[kAuthor], true);
     if (authors) {
-      pandocMetadata[kAuthor] = authors.map((author) => author.name);
+      pandocMetadata[kAuthor] = authors.map((author) =>
+        cslNameToString(author.name)
+      );
       pandocMetadata[kAuthors] = Array.isArray(authorsRaw)
         ? authorsRaw
         : [authorsRaw];
@@ -1249,7 +1252,7 @@ async function resolveExtras(
   }
 
   // resolve format resources
-  writeFormatResources(
+  await writeFormatResources(
     inputDir,
     dependenciesFile,
     format.render[kFormatResources],
@@ -1261,7 +1264,7 @@ async function resolveExtras(
     extras = await resolveSassBundles(
       inputDir,
       extras,
-      format.pandoc,
+      format,
       temp,
       formatExtras.html?.[kSassBundles],
       projectExtras.html?.[kSassBundles],
@@ -1269,7 +1272,7 @@ async function resolveExtras(
     );
 
     // resolve dependencies
-    writeDependencies(dependenciesFile, extras);
+    await writeDependencies(dependenciesFile, extras);
 
     const htmlDependenciesPostProcesor = (
       doc: Document,
@@ -1303,11 +1306,19 @@ async function resolveExtras(
   }
 
   // Process format resources
-  const resourceDependenciesPostProcessor = async (_output: string) => {
-    return await processFormatResources(inputDir, dependenciesFile);
-  };
-  extras.postprocessors = extras.postprocessors || [];
-  extras.postprocessors.push(resourceDependenciesPostProcessor);
+
+  // If we're generating the PDF, we can move the format resources once the pandoc
+  // render has completed.
+  if (format.render[kLatexAutoMk] === false) {
+    // Process the format resouces right here on the spot
+    await processFormatResources(inputDir, dependenciesFile);
+  } else {
+    const resourceDependenciesPostProcessor = async (_output: string) => {
+      return await processFormatResources(inputDir, dependenciesFile);
+    };
+    extras.postprocessors = extras.postprocessors || [];
+    extras.postprocessors.push(resourceDependenciesPostProcessor);
+  }
 
   // Resolve the highlighting theme (if any)
   extras = resolveTextHighlightStyle(
