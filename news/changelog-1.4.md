@@ -170,6 +170,7 @@
 - ([#5689](https://github.com/quarto-dev/quarto-cli/issues/5689)): Don't use a single sidebar with an id as a global sidebar (the id explicitly means that the sidbar will match pages specifying that id or pages which the sidebar contains).
 - ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756)): Add `rel="..."` resolution to navbar tools.
 - ([#5763](https://github.com/quarto-dev/quarto-cli/issues/5763)): Add support for a keyboard shortcut to launch search (defaults to `f` or `/`). Use `search` > `keyboard-shortcut` to override with your own key(s).
+- ([#5818](https://github.com/quarto-dev/quarto-cli/issues/5818)): Ensure that `repo-actions` for websites (and books) appear responsively in the footer if the TOC isn't visible.
 - ([#5932](https://github.com/quarto-dev/quarto-cli/issues/5932)): Correct Open Graph metadata key name for `og:site_name`
 - ([#5964](https://github.com/quarto-dev/quarto-cli/issues/5964)): Add support for `repo-link-target` and `repo-link-rel` to control the corresponding attributes of repo-action links.
 - ([#6432](https://github.com/quarto-dev/quarto-cli/issues/6432)): Don't decorate navigation tools with external link icon (we generally don't decorate navigation chrome in this way)

@@ -649,57 +649,80 @@ function handleRepoLinks(
     if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
-        let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
-        if (repoTarget === null && forceRepoActions) {
-          repoTarget = doc.querySelector("#quarto-margin-sidebar");
-        } else if (repoTarget === null) {
-          repoTarget = doc.querySelector(".nav-footer .nav-footer-center");
-          if (!repoTarget) {
-            const ensureEl = (
-              doc: Document,
-              tagname: string,
-              classname: string,
-              parent: Element,
-              afterEl?: Element | null,
-            ) => {
-              let el = parent.querySelector(`${tagname}.${classname}`);
-              if (!el) {
-                el = doc.createElement(tagname);
-                el.classList.add(classname);
-                if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
-                  parent.insertBefore(el, afterEl.nextElementSibling);
-                } else {
-                  parent.appendChild(el);
-                }
-              }
-              return el;
-            };
 
-            const footerEl = ensureEl(
-              doc,
-              "footer",
-              "footer",
-              doc.body,
-              doc.querySelector("div#quarto-content"),
-            );
-            const footerContainer = ensureEl(
-              doc,
-              "div",
-              "nav-footer",
-              footerEl,
-            );
-            const footerCenterEl = ensureEl(
-              doc,
-              "div",
-              "nav-footer-center",
-              footerContainer,
-              footerContainer.querySelector(".nav-footer-left"),
-            );
-            repoTarget = footerCenterEl;
+        // Collect the places to write the repo actions
+        const repoTargets: Array<{ el: Element; clz?: string[] }> = [];
+        const tocRepoTarget = doc.querySelector(`nav[role="doc-toc"]`);
+        if (tocRepoTarget) {
+          repoTargets.push({ el: tocRepoTarget });
+        }
+        if (repoTargets.length === 0 && forceRepoActions) {
+          const sidebarRepoTarget = doc.querySelector("#quarto-margin-sidebar");
+          if (sidebarRepoTarget) {
+            repoTargets.push({ el: sidebarRepoTarget });
           }
         }
 
-        if (repoTarget) {
+        const footerRepoTarget = doc.querySelector(
+          ".nav-footer .nav-footer-center",
+        );
+        if (footerRepoTarget) {
+          repoTargets.push({
+            el: footerRepoTarget,
+            clz: repoTargets.length > 0
+              ? ["d-sm-block", "d-md-none"]
+              : undefined,
+          });
+        } else {
+          const ensureEl = (
+            doc: Document,
+            tagname: string,
+            classname: string,
+            parent: Element,
+            afterEl?: Element | null,
+          ) => {
+            let el = parent.querySelector(`${tagname}.${classname}`);
+            if (!el) {
+              el = doc.createElement(tagname);
+              el.classList.add(classname);
+              if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
+                parent.insertBefore(el, afterEl.nextElementSibling);
+              } else {
+                parent.appendChild(el);
+              }
+            }
+            return el;
+          };
+
+          const footerEl = ensureEl(
+            doc,
+            "footer",
+            "footer",
+            doc.body,
+            doc.querySelector("div#quarto-content"),
+          );
+          const footerContainer = ensureEl(
+            doc,
+            "div",
+            "nav-footer",
+            footerEl,
+          );
+          const footerCenterEl = ensureEl(
+            doc,
+            "div",
+            "nav-footer-center",
+            footerContainer,
+            footerContainer.querySelector(".nav-footer-left"),
+          );
+          repoTargets.push({
+            el: footerCenterEl,
+            clz: repoTargets.length > 0
+              ? ["d-sm-block", "d-md-none"]
+              : undefined,
+          });
+        }
+
+        if (repoTargets.length > 0) {
           const linkTarget = websiteConfigString(kSiteRepoLinkTarget, config);
           const linkRel = websiteConfigString(kSiteRepoLinkRel, config);
 
@@ -718,39 +741,46 @@ function handleRepoLinks(
               url: issueUrl!,
               icon: "chat-right",
             }];
-          const actionsDiv = doc.createElement("div");
-          actionsDiv.classList.add("toc-actions");
+          repoTargets.forEach((repoTarget) => {
+            const actionsDiv = doc.createElement("div");
+            actionsDiv.classList.add("toc-actions");
 
-          const ulEl = doc.createElement("ul");
-          links.forEach((link) => {
-            const a = doc.createElement("a");
-            a.setAttribute("href", link.url);
-            if (linkTarget) {
-              a.setAttribute("target", linkTarget);
+            const ulEl = doc.createElement("ul");
+            links.forEach((link) => {
+              const a = doc.createElement("a");
+              a.setAttribute("href", link.url);
+              if (linkTarget) {
+                a.setAttribute("target", linkTarget);
+              }
+              if (linkRel) {
+                a.setAttribute("rel", linkRel);
+              }
+              a.classList.add("toc-action");
+              a.innerHTML = link.text;
+
+              const i = doc.createElement("i");
+              i.classList.add("bi");
+              if (link.icon) {
+                i.classList.add(`bi-${link.icon}`);
+              } else {
+                i.classList.add(`empty`);
+              }
+
+              a.prepend(i);
+
+              const liEl = doc.createElement("li");
+              liEl.appendChild(a);
+
+              ulEl.appendChild(liEl);
+            });
+            actionsDiv.appendChild(ulEl);
+            repoTarget.el.appendChild(actionsDiv);
+            if (repoTarget.clz) {
+              repoTarget.clz.forEach((cls) => {
+                actionsDiv.classList.add(cls);
+              });
             }
-            if (linkRel) {
-              a.setAttribute("rel", linkRel);
-            }
-            a.classList.add("toc-action");
-            a.innerHTML = link.text;
-
-            const i = doc.createElement("i");
-            i.classList.add("bi");
-            if (link.icon) {
-              i.classList.add(`bi-${link.icon}`);
-            } else {
-              i.classList.add(`empty`);
-            }
-
-            a.prepend(i);
-
-            const liEl = doc.createElement("li");
-            liEl.appendChild(a);
-
-            ulEl.appendChild(liEl);
           });
-          actionsDiv.appendChild(ulEl);
-          repoTarget.appendChild(actionsDiv);
         }
       }
       if (elRepoSource && repoInfo) {
