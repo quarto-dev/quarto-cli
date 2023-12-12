@@ -68,9 +68,11 @@
 
 - ([#1943](https://github.com/quarto-dev/quarto-cli/issues/1943)): Allow setting `code-block-height` in presentation front matter.
 - ([#3671](https://github.com/quarto-dev/quarto-cli/issues/3671)): Remove untitled slides from the table of contents.
+- ([#5210](https://github.com/quarto-dev/quarto-cli/issues/5210)): Update to Bootstrap 5.2.2
 - ([#5546](https://github.com/quarto-dev/quarto-cli/issues/5546)): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
 - ([#5783](https://github.com/quarto-dev/quarto-cli/issues/5783)): Ensure fenced code blocks work with line numbers.
 - ([#6120](https://github.com/quarto-dev/quarto-cli/issues/6120)): `pdf-max-pages-per-slide` is now correctly setting [`pdfMaxPagesPerSlide` config](https://revealjs.com/pdf-export/#page-size) for RevealJS.
+- ([#6800](https://github.com/quarto-dev/quarto-cli/issues/6800)): Move automatically-added content (slide footers, etc) to top-level of DOM when last slide is `hidden`, to avoid inadvertently removing it.
 - ([#6827](https://github.com/quarto-dev/quarto-cli/issues/6120)): Correctly layout callout in revealjs slides when changing appearance.
 - ([#6853](https://github.com/quarto-dev/quarto-cli/issues/6853), [#5208](https://github.com/quarto-dev/quarto-cli/issues/5208)): Wrap callout in div when attr is non-empty.
 - ([#7042](https://github.com/quarto-dev/quarto-cli/issues/7042)): Line highligthting now works correctly with code annotation.

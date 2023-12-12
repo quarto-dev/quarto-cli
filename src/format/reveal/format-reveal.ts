@@ -311,6 +311,7 @@ export function revealjsFormat() {
 
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
+  lines.push("::: {.quarto-auto-generated-content}\n");
   if (format.metadata[kSlideLogo]) {
     lines.push(
       `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
@@ -323,6 +324,8 @@ function revealMarkdownAfterBody(format: Format) {
   } else {
     lines.push("");
   }
+  lines.push(":::");
+  lines.push("\n");
   lines.push(":::");
   lines.push("\n");
 
@@ -454,6 +457,21 @@ function revealHtmlPostprocessor(
           "Reveal.initialize({",
           `Reveal.initialize({\n${configStr},\n`,
         );
+      }
+    }
+
+    // bugfix for #6800
+    // if slides have content that was added by quarto then move that to the parent node
+    for (const slide of doc.querySelectorAll("section.slide")) {
+      const slideContentFromQuarto = (slide as Element).querySelector(
+        ".quarto-auto-generated-content",
+      );
+      if (slideContentFromQuarto) {
+        if (slideContentFromQuarto.childElementCount === 0) {
+          slideContentFromQuarto.remove();
+        } else {
+          slide.parentNode?.appendChild(slideContentFromQuarto);
+        }
       }
     }
 
