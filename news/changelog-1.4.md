@@ -92,6 +92,7 @@
 - ([#7434](https://github.com/quarto-dev/quarto-cli/issues/7434)): Support `resource-path` when resolving images in PDF
 - ([#7534](https://github.com/quarto-dev/quarto-cli/issues/7534)): Fix issue with multiple paragraph footnotes when using `reference-location: margin`.
 - ([#7568](https://github.com/quarto-dev/quarto-cli/issues/7568)): Code annotation now works in LaTeX document when having other comments on same line.
+- ([#6716](https://github.com/quarto-dev/quarto-cli/issues/6716)): Fix `marginpar` error when placing citations in the margin
 
 ## Docusaurus Format
 
