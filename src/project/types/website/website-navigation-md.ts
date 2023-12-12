@@ -310,7 +310,9 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
             markdown[`${kNavbarIdPrefix}${entry.text.trim()}`] = entry.text;
           }
           if (entry.href) {
-            markdown[`${kNavbarIdPrefix}${entry.href.trim()}`] = entry.href;
+            markdown[`${kNavbarIdPrefix}${entry.href.trim()}`] = mdSafeHref(
+              entry.href,
+            );
           }
 
           if (entry.menu?.entries) {
@@ -328,7 +330,9 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
         if (tools) {
           tools.forEach((tool) => {
             if (tool.href) {
-              markdown[`${kToolsPrefix}${tool.href.trim()}`] = tool.href;
+              markdown[`${kToolsPrefix}${tool.href.trim()}`] = mdSafeHref(
+                tool.href,
+              );
             }
           });
         }
@@ -697,4 +701,11 @@ function expandMarkdownFilePath(source: string, path: string): string {
   } else {
     return path;
   }
+}
+
+function mdSafeHref(href: string) {
+  href = href.replaceAll("---", "\\-\\-\\-");
+  href = href.replaceAll("--", "\\-\\-");
+  href = href.replaceAll("@", "\\@");
+  return href;
 }

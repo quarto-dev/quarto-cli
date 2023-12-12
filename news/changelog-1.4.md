@@ -177,6 +177,7 @@
 - ([#6732](https://github.com/quarto-dev/quarto-cli/issues/6732)): Allow specifying global alt text for social metadata
 - ([#7447](https://github.com/quarto-dev/quarto-cli/issues/7447)): Changing the `$primary` color in a SCSS theme will now properly change the navigation bar background color.
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
+- ([#5503](https://github.com/quarto-dev/quarto-cli/issues/5503)): Fix issue with markdown rendering of href text converting dashes to en/em dashes.
 
 ## Website Search
 
