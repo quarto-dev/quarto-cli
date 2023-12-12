@@ -1041,7 +1041,6 @@ local function processAuthorMeta(meta)
     -- if the YAML is being preserved, this should just no-op and leave
     -- things as they were
     local formatId = param("format-identifier", {})
-    quarto.log.output(formatId)
     if formatId['target-format'] == "markdown" then
       -- Don't normalize plain markdown as this preserves
       -- YAML front matter by default
