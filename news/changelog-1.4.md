@@ -346,4 +346,5 @@
 - ([#7502](https://github.com/quarto-dev/quarto-cli/pull/7502)): Correct `execute-debug` help text
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
+- ([#4673](https://github.com/quarto-dev/quarto-cli/issues/4673)): Quarto now report in check and error message if **rmarkdown** R package minimal requirement (>= 2.3) is not fullfilled, and it will ask to update the package.
 - ([#7793](https://github.com/quarto-dev/quarto-cli/issues/7793)): When a project render list includes only negative globs, use those to filter out the default render list.
