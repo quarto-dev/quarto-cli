@@ -47,6 +47,7 @@
 - ([#6163](https://github.com/quarto-dev/quarto-cli/issues/6163)): Wrap `svg` output of `dot` cells in RawBlock `html` elements.
 - ([#6430](https://github.com/quarto-dev/quarto-cli/issues/6430)): Fix layout issue with banner style title block authors when `page-layout:
 - ([#6627](https://github.com/quarto-dev/quarto-cli/issues/6627)): Add a bit of margin-right to checkbox inputs.
+- ([#6693](https://github.com/quarto-dev/quarto-cli/discussions/6693)): Fine tune table appearance to improve consistency
 - ([#6714](https://github.com/quarto-dev/quarto-cli/issues/6714)): Display title block for HTML when other (non-title/author/subtitle) metadata is present.
 - ([#6833](https://github.com/quarto-dev/quarto-cli/issues/6833)): Handle partially-specified aspect ratio, width, and height attributes in `video` shortcode.
 - ([#6910](https://github.com/quarto-dev/quarto-cli/issues/6910)): Properly forward `code-summary` as a global HTML option

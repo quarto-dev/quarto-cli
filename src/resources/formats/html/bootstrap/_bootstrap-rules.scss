@@ -1325,16 +1325,6 @@ kbd,
   margin-bottom: 0;
 }
 
-.table a {
-  word-break: break-word;
-}
-
-.table > thead {
-  border-top-width: 1px;
-  border-top-color: $table-border-color;
-  border-bottom: 1px solid $table-group-separator-color;
-}
-
 @if $code-block-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {
@@ -2085,9 +2075,20 @@ code.sourceCode a.code-annotation-anchor {
 }
 
 .table {
-  // we don't want border tops on thead unless there are captions on top
+  // Tables get a light top and bottom border (whether or not they have a head
+  // and independent of caption position)
+  border-top: $table-border-width solid $table-group-separator-color-lighter;
+  border-bottom: $table-border-width solid $table-group-separator-color-lighter;
+
+  // The heading gets a heavier line to differentiate it
   > thead {
     border-top-width: 0;
+    border-bottom: 1px solid $table-group-separator-color;
+  }
+
+  // Allow breaking inside tables
+  a {
+    word-break: break-word;
   }
 
   // This disables new styling taken from boostrap that overrides
@@ -2097,25 +2098,6 @@ code.sourceCode a.code-annotation-anchor {
     background-color: unset;
     color: unset;
   }
-
-  > :not(caption) > *:not(:last-child) > * {
-    border-bottom-color: $table-group-separator-color-lighter;
-    border-bottom-style: solid;
-    border-bottom-width: $table-border-width;
-  }
-
-  // bootstrap uses 2*$table-border-width,
-  // we like thinner borders
-  > :not(:first-child) {
-    border-top: $table-border-width solid $table-group-separator-color;
-    border-bottom-width: $table-border-width;
-    border-bottom-style: solid;
-    border-bottom-color: inherit;
-  }
-}
-
-.table tbody {
-  border-bottom-color: $table-group-separator-color;
 }
 
 // Special Cross Talk Handling
