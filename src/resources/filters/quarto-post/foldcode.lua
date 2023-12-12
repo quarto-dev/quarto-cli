@@ -99,7 +99,9 @@ function fold_code_and_lift_codeblocks()
       return nil, false
     end,
 
-    CodeBlock = render_folded_block
+    CodeBlock = function(block)
+      return render_folded_block(block), false
+    end
   }
 end
 
