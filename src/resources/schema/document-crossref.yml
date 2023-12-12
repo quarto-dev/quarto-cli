@@ -1,5 +1,7 @@
 - name: crossref
-  description: Configuration for crossref labels and prefixes.
+  description: 
+    short: Configuration for crossref labels and prefixes.
+    long: Configuration for crossref labels and prefixes. See [Cross-Reference Options](https://quarto.org/docs/reference/metadata/crossref.html) for more details.
   schema:
     anyOf:
       - enum: [false]
@@ -9,7 +11,7 @@
             custom:
               arrayOf:
                 object:
-                  description: A custom cross reference type.
+                  description: A custom cross reference type. See [Custom](#custom) for more details.
                   closed: true
                   required: ["kind", "reference-prefix", "key"]
                   properties:
