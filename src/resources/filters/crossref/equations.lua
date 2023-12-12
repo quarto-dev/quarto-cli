@@ -16,7 +16,7 @@ function process_equations(blockEl)
 
   -- do nothing if there is no math herein
   if inlines:find_if(isDisplayMath) == nil then
-    return blockEl
+    return nil
   end
 
   local mathInlines = nil
@@ -54,10 +54,12 @@ function process_equations(blockEl)
           targetInlines:insert(pandoc.RawInline("latex", "\\end{equation}"))
           
         elseif _quarto.format.isTypstOutput() then
+          local is_block = eq.mathtype == "DisplayMath" and "true" or "false"
           targetInlines:insert(pandoc.RawInline("typst", 
-            "#set math.equation(numbering: \"(" .. inlinesToString(numberOption("eq", order)) .. ")\"); " ..
-            "$ " .. eq.text .. " $ <" .. label .. "> #set math.equation(numbering: none)"
-          ))
+            "#math.equation(block: " .. is_block .. ", numbering: \"(" .. inlinesToString(numberOption("eq", order)) .. ")\", " ..
+            "[ "))
+          targetInlines:insert(eq)
+          targetInlines:insert(pandoc.RawInline("typst", " ])<" .. label .. ">"))
         else
           local eqNumber = eqQquad
           local mathMethod = param("html-math-method", nil)

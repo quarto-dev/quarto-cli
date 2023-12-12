@@ -1,9 +1,8 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Command } from "cliffy/command/mod.ts";
 import {
@@ -11,82 +10,61 @@ import {
   removeTool,
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
-import { installableTools, printToolInfo } from "../../tools/tools.ts";
-import { error } from "log/mod.ts";
-
-// quarto tools install tinytex
-// quarto tools uninstall tinytex
-// quarto tools update tinytex
+import { printToolInfo } from "../../tools/tools.ts";
+import { info } from "log/mod.ts";
 
 // The quarto install command
 export const toolsCommand = new Command()
   .name("tools")
-  .hidden()
-  .arguments("[command:string] [tool:string]")
   .description(
-    `Installation and update of ancillary tools.
-    
-  tools:\n  ${
-      installableTools().map((name: string) => "  " + name).join("\n  ")
-    }
-
-  commands:
-    install
-    uninstall
-    update
-    
-Use 'quarto tools' with no arguments to show the status of all tools.`,
-  )
-  .example(
-    "Install TinyTex",
-    "quarto tools install tinytex",
-  )
-  .example(
-    "Uninstall TinyTex",
-    "quarto tools uninstall tinytex",
-  )
-  .example(
-    "Update TinyTex",
-    "quarto tools update tinytex",
+    `Display the status of Quarto installed dependencies`,
   )
   .example(
     "Show tool status",
-    "quarto tools list",
+    "quarto tools",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, command?: string, tool?: string) => {
-    command = command || "list";
-    switch (command) {
-      case "info":
-        if (tool) {
-          await printToolInfo(tool);
-        }
-        break;
-      case "install":
-        if (tool) {
-          await updateOrInstallTool(
-            tool,
-            "install",
-          );
-        }
-        break;
-      case "uninstall":
-        if (tool) {
-          await removeTool(tool);
-        }
-        break;
-      case "update":
-        if (tool) {
-          await updateOrInstallTool(
-            tool,
-            "update",
-          );
-        }
-        break;
-      case "list":
-        await outputTools();
-        break;
-      default:
-        error(`Tools command "${command}" not supported.`);
-    }
+  .action(async (_options: any) => {
+    await outputTools();
+  })
+  .command("install <tool:string>").hidden().action(
+    async (_options: any, tool: string) => {
+      info(
+        "This command has been superseded. Please use `quarto install` instead.\n",
+      );
+      await updateOrInstallTool(
+        tool,
+        "install",
+      );
+    },
+  )
+  .command("info <tool:string>").hidden().action(
+    async (_options: any, tool: string) => {
+      await printToolInfo(tool);
+    },
+  )
+  .command("uninstall <tool:string>").hidden().action(
+    async (_options: any, tool: string) => {
+      info(
+        "This command has been superseded. Please use `quarto uninstall` instead.\n",
+      );
+      await removeTool(tool);
+    },
+  )
+  .command("update <tool:string>").hidden().action(
+    async (_options: any, tool: string) => {
+      info(
+        "This command has been superseded. Please use `quarto update` instead.\n",
+      );
+      await updateOrInstallTool(
+        tool,
+        "update",
+      );
+    },
+  )
+  .command("list").hidden().action(async () => {
+    info(
+      "This command has been superseded. Please use `quarto tools` with no arguments to list tools and status.\n",
+    );
+    await outputTools();
   });

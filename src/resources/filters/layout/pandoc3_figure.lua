@@ -33,6 +33,7 @@ function render_pandoc3_figure()
       return nil
     end
     div.identifier = ""
+    div.classes:extend(figure.classes)
     return htmlDivFigure(div)
   end
   local function html_handle_image(figure)
@@ -95,6 +96,17 @@ function render_pandoc3_figure()
           end
         end,
         Figure = function(figure)
+          -- this is a figure that is not cross-referenceable
+          -- if this ends up in a layout without fig-pos = H, it'll fail
+          -- 'H' forces it to not float
+          if figure.identifier == "" then
+            figure = _quarto.ast.walk(figure, {
+              Image = function(image)
+                image.attributes['fig-pos'] = 'H'
+                return image
+              end
+            })
+          end
           local image
           _quarto.ast.walk(figure, {
             Image = function(img)
@@ -127,7 +139,7 @@ function render_pandoc3_figure()
           content = figure.content[1],
           caption = figure.caption.long[1],
           kind = "quarto-float-fig",
-          caption_location = crossref.categories.by_ref_type["fig"].default_caption_location,
+          caption_location = crossref.categories.by_ref_type["fig"].caption_location,
           supplement = "Figure",
         })
       end

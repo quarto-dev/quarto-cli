@@ -20,7 +20,7 @@ Learn more about Quarto at <https://quarto.org>.
 
 ## Development Version
 
-To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script for your platform (`configure.sh`, for linux/mac or `configure.cmd` for Windows). For example:
+To install the development version of the Quarto CLI, clone the quarto-cli repository then run the configure script for your platform (`configure.sh` for Linux/macOS or `configure.cmd` for Windows). For example:
 
 ```bash
 git clone https://github.com/quarto-dev/quarto-cli
@@ -28,7 +28,7 @@ cd quarto-cli
 ./configure.sh
 ```
 
-To update to the latest development version, just `git pull` from the local repo directory:
+To update to the latest development version, run `git pull` from the local repo directory:
 
 ```bash
 cd quarto-cli
@@ -52,7 +52,6 @@ cd tests
 ./run-tests.sh smoke/extensions/
 ```
 
-
 ## License
 
-Quarto is open source software licensed under v2 of the GNU GPL (<https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html>).
+Quarto is open source software available under the MIT license (<https://opensource.org/license/mit/>).

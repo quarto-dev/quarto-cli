@@ -17,6 +17,7 @@ import {
   kCalloutNoteCaption,
   kCalloutTipCaption,
   kCalloutWarningCaption,
+  kCanonicalUrl,
   kCiteMethod,
   kCiteproc,
   kClearCellOptions,
@@ -87,6 +88,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -94,6 +96,7 @@ import {
   kInlineIncludes,
   kIpynbFilters,
   kIpynbProduceSourceNotebook,
+  kIpynbShellInteractivity,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -164,6 +167,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
   kQuartoFilters,
@@ -183,6 +187,7 @@ import {
   kSearchMoreMatchText,
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
+  kSearchTextPlaceholder,
   kSectionDivs,
   kSectionTitleAbstract,
   kSectionTitleAppendices,
@@ -221,6 +226,7 @@ import {
   kToggleSection,
   kToggleSidebar,
   kTopLevelDivision,
+  kValidateYaml,
   kVariables,
   kVariant,
   kWarning,
@@ -470,6 +476,9 @@ export interface FormatRender {
   [kNotebookPreserveCells]?: boolean;
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
+  [kHtmlTableProcessing]?: "none";
+  [kValidateYaml]?: boolean;
+  [kCanonicalUrl]?: boolean | string;
 }
 
 export interface FormatExecute {
@@ -498,6 +507,14 @@ export interface FormatExecute {
   [kKeepMd]?: boolean;
   [kKeepIpynb]?: boolean;
   [kIpynbFilters]?: string[];
+  [kIpynbShellInteractivity]?:
+    | null
+    | "all"
+    | "last"
+    | "last_expr"
+    | "none"
+    | "last_expr_or_assign";
+  [kPlotlyConnected]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -639,6 +656,7 @@ export interface FormatLanguage {
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
+  [kSearchTextPlaceholder]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
   [kCrossrefFigTitle]?: string;
@@ -699,6 +717,13 @@ export interface FormatLink {
   text: string;
   href: string;
   order?: number;
+  attr?: Record<string, string>;
+}
+
+export interface FormatAliasLink {
+  icon?: string;
+  text: string;
+  format: string;
   attr?: Record<string, string>;
 }
 

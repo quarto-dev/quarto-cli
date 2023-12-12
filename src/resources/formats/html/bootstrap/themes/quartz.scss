@@ -78,7 +78,7 @@ $blockquote-footer-color:     $text-muted !default;
 $table-dark-bg:               $dark !default;
 $table-dark-border-color:     darken($dark, 5%) !default;
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Buttons + Forms
 
@@ -102,6 +102,9 @@ $input-focus-box-shadow:                none !default;
 
 $input-placeholder-color:               $text-muted !default;
 
+$form-select-disabled-color:        $input-placeholder-color !default;
+$form-select-disabled-bg:           $input-disabled-bg !default;
+
 $form-switch-color:               $white !default;
 
 $form-switch-focus-color:         $form-switch-color !default;
@@ -115,8 +118,6 @@ $form-select-indicator-color:       $white !default;
 $form-select-focus-box-shadow:    none !default;
 
 $form-range-track-bg:             rgba($black, .2) !default;
-
-$form-range-thumb-disabled-bg:             $gray-500 !default;
 
 // Navs
 
@@ -133,14 +134,6 @@ $nav-pills-link-active-color:       $white !default;
 $nav-pills-link-active-bg:          $primary !default;
 
 // Navbars
-
-$navbar-dark-color:                 rgba($white, .8) !default;
-$navbar-dark-hover-color:           $white !default;
-
-$navbar-light-color:                rgba($gray-800, .8) !default;
-$navbar-light-hover-color:          $gray-800 !default;
-$navbar-light-active-color:         $gray-800 !default;
-$navbar-light-disabled-color:       rgba($gray-800, .3) !default;
 
 // Dropdowns
 
@@ -237,10 +230,6 @@ $btn-close-color:            $white !default;
 $body-bg-image: linear-gradient(90deg, shade-color($cyan, 10%), shade-color($purple, 10%), shade-color($pink, 5%)) !default;
 $frosted-opacity: .3 !default;
 
-:root {
-  color-scheme: light;
-}
-
 // Mixins
 
 @mixin glass($opacity: $frosted-opacity, $bg: $white) {
@@ -271,6 +260,12 @@ $frosted-opacity: .3 !default;
 
 body {
   background-image: $body-bg-image;
+}
+
+@include color-mode(dark) {
+  body {
+    color: $white;
+  }
 }
 
 // Tables
@@ -317,12 +312,16 @@ body {
 .form-control::file-selector-button {
   background-color: transparent;
   background-image: linear-gradient(125deg, rgba($white, .3), rgba($white, .2) 70%);
-  border: none;
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   -moz-backdrop-filter: blur(5px);
   -ms-backdrop-filter: blur(5px);
   -o-backdrop-filter: blur(5px);
+  border: none;
+}
+
+.form-control:hover:not(:disabled):not([readonly])::file-selector-button {
+  background-color: rgba($white, .1);
 }
 
 .input-group-text {

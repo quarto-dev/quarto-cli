@@ -35,6 +35,8 @@ import {
 import { kDefaultProjectFileContents } from "./types/project-default.ts";
 import { formatOutputFile } from "../core/render.ts";
 import { projectType } from "./types/project-types.ts";
+import { withRenderServices } from "../command/render/render-services.ts";
+import { RenderServices } from "../command/render/types.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -91,7 +93,11 @@ export async function readBaseInputIndex(
   }
 
   // otherwise read the metadata and index it
-  const formats = await project.renderFormats(inputFile, "all", project);
+  const formats = await withRenderServices(
+    project.notebookContext,
+    (services: RenderServices) =>
+      project.renderFormats(inputFile, services, "all", project),
+  );
   const firstFormat = Object.values(formats)[0];
   const markdown = await engine.partitionedMarkdown(inputFile, firstFormat);
   const index: InputTargetIndex = {

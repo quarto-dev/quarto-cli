@@ -218,7 +218,7 @@ end
 
 -- is this a Div containing a table?
 function isTableDiv(el)
-  return el.t == "Div" and hasTableRef(el)
+  return is_regular_node(el, "Div") and hasTableRef(el)
 end
 
 

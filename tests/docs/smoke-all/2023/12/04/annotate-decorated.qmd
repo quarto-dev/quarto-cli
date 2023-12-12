@@ -1,0 +1,31 @@
+---
+title: hi
+format: revealjs
+code-annotations: select
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - [".code-with-filename .code-annotation-anchor"]
+---
+
+## what
+
+```{.scss filename="perso.scss" code-line-numbers="|1,7|2-3|5,10|8-10"}
+
+/*-- scss:defaults --*/ //<1>
+$h2-font-size:          1.6rem !default;
+$headings-font-weight:  500 !default;
+
+$custom-color: blue;
+
+/*-- scss:rules --*/ //<2>
+h1, h2, h3, h4, h5, h6 {
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, .3);
+  color: $custom-color;
+}
+```
+1. Désigne la partie des variables
+2. Désigne la partie des règles
+
+

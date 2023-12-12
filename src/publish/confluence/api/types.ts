@@ -139,6 +139,11 @@ export type Content = {
   body: ContentBody;
 };
 
+export type PublishContentResult = {
+  content: Content;
+  hasAttachments: boolean;
+};
+
 export interface WrappedResult<T> {
   results: T[];
   start?: number;

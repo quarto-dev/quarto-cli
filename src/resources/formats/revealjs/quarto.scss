@@ -58,6 +58,7 @@ $reveal-title-slide-text-align: $presentation-title-slide-text-align !default;
 $code-block-bg: $body-bg !default;
 $code-block-border-color: lighten($body-color, 60%) !default;
 $code-block-font-size: 0.55em !default;
+$code-block-height: 500px !default;
 
 // inline code
 $code-color: var(--quarto-hl-fu-color) !default;
@@ -250,7 +251,7 @@ div.reveal div.slides section.quarto-title-block {
   }
   background-color: $code-block-bg;
   padding: 6px 9px;
-  max-height: 500px;
+  max-height: $code-block-height;
   white-space: pre;
 }
 
@@ -377,6 +378,10 @@ $panel-sidebar-padding: 0.5em;
 .reveal .slides section .callout {
   font-size: #{$presentation-font-smaller}em;
 }
+// avoid applying twice the reduction when using nested section
+.reveal.smaller .slides section section {
+  font-size: inherit;
+}
 
 .reveal.smaller .slides h1,
 .reveal .slides section.smaller h1 {
@@ -414,14 +419,38 @@ $panel-sidebar-padding: 0.5em;
 
 .reveal .footer {
   color: $text-muted;
-}
 
-.reveal .footer a {
-  color: $linkColor;
+  a {
+    color: $linkColor;
+  }
+
+  &.has-dark-background {
+    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+
+    a {
+      color: sass-color.scale($dark-bg-link-color, $whiteness: 30%);
+    }
+  }
+
+  &.has-light-background {
+    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+
+    a {
+      color: sass-color.scale($light-bg-link-color, $whiteness: 30%);
+    }
+  }
 }
 
 .reveal .slide-number {
   color: $text-muted;
+
+  &.has-dark-background {
+    color: sass-color.scale($dark-bg-text-color, $whiteness: 30%);
+  }
+
+  &.has-light-background {
+    color: sass-color.scale($light-bg-text-color, $whiteness: 30%);
+  }
 }
 
 // handle caption for figures
@@ -595,6 +624,11 @@ div.cell-output-display div.pagedtable-wrapper table.table {
   font-size: 0.7em;
   line-height: 1.2em;
   margin-top: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
 }
 
 .reveal code.sourceCode button.code-annotation-anchor {

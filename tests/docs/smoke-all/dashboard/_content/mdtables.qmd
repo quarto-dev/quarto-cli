@@ -1,0 +1,17 @@
+---
+title: Yo Dawg
+subtitle: I heard you like cards
+format: dashboard
+theme: yeti
+---
+
+
+
+```{python}
+import pandas as pd
+import seaborn as sns
+from itables import show
+
+penguins = sns.load_dataset("penguins")
+show(penguins, buttons=["copy", "print", "excel"], autoWidth=False, responsive=False)
+```

@@ -46,8 +46,15 @@ end
 # Initialize CairoMakie with default fig width/height
 try
   import CairoMakie
-  
-  CairoMakie.activate!(type = string(fig_format))
+
+  # CairoMakie's display() in PDF format opens an interactive window
+  # instead of saving to the ipynb file, so we don't do that.
+  # https://github.com/quarto-dev/quarto-cli/issues/7548
+  if fig_format == :pdf
+    CairoMakie.activate!(type = "png")
+  else
+    CairoMakie.activate!(type = string(fig_format))
+  end
   CairoMakie.update_theme!(resolution=(fig_width, fig_height))
 catch e
     # @warn "CairoMakie init" exception=(e, catch_backtrace())

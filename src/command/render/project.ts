@@ -68,6 +68,7 @@ import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isSubdir } from "fs/_util.ts";
 import { Format } from "../../config/types.ts";
+import { fileExecutionEngine } from "../../execute/engine.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -172,7 +173,8 @@ export async function renderProject(
   // if there is an output dir then remove it if clean is specified
   if (
     renderAll && hasProjectOutputDir(context) &&
-    (options.flags?.clean == true) && (projType.cleanOutputDir === true)
+    (options.forceClean ||
+      (options.flags?.clean == true) && (projType.cleanOutputDir === true))
   ) {
     // ouptut dir
     const realProjectDir = normalizePath(context.dir);
@@ -266,6 +268,7 @@ export async function renderProject(
   const fileResults = await renderFiles(
     filesToRender,
     options,
+    context.notebookContext,
     alwaysExecuteFiles,
     projType?.pandocRenderer
       ? projType.pandocRenderer(options, context)
@@ -590,8 +593,18 @@ export async function renderProject(
   // forward error to projResults
   projResults.error = fileResults.error;
 
-  // call project post-render
+  // call engine and project post-render
   if (!projResults.error) {
+    // engine post-render
+    for (const file of projResults.files) {
+      const path = join(context.dir, file.input);
+      const engine = fileExecutionEngine(path, options.flags);
+      if (engine?.postRender) {
+        await engine.postRender(file, projResults.context);
+      }
+    }
+
+    // compute output files
     const outputFiles = projResults.files
       .filter((x) => !x.isTransient)
       .map((result) => {

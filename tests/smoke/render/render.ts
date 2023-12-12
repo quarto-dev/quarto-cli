@@ -74,8 +74,14 @@ export function testRender(
   );
 }
 
-export function cleanoutput(input: string, to: string, projectOutDir?: string) {
-  const out = outputForInput(input, to, projectOutDir);
+export function cleanoutput(
+  input: string, 
+  to: string, 
+  projectOutDir?: string,
+  // deno-lint-ignore no-explicit-any
+  metadata?: Record<string, any>,
+) {
+  const out = outputForInput(input, to, projectOutDir, metadata);
   if (existsSync(out.outputPath)) {
     Deno.removeSync(out.outputPath);
   }

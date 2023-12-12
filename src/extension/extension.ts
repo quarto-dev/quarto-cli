@@ -48,7 +48,7 @@ import {
 import { cloneDeep } from "../core/lodash.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { getExtensionConfigSchema } from "../core/lib/yaml-schema/project-config.ts";
-import { projectIgnoreGlobs } from "../project/project-shared.ts";
+import { projectIgnoreGlobs } from "../execute/engine.ts";
 import { ProjectType } from "../project/types/types.ts";
 import { copyResourceFile } from "../project/project-resources.ts";
 import {
@@ -59,6 +59,7 @@ import {
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 import { existsSync1 } from "../core/file.ts";
+import { kFormatResources } from "../config/constants.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -603,7 +604,7 @@ function validateExtension(extension: Extension) {
     if (contrib) {
       if (Array.isArray(contrib)) {
         contribCount = contribCount + contrib.length;
-      } else if (typeof (contrib) === "object") {
+      } else if (typeof contrib === "object") {
         contribCount = contribCount + Object.keys(contrib).length;
       }
     }
@@ -694,6 +695,20 @@ async function readExtension(
 
     const formatMeta = formats[key] as Metadata;
 
+    if (formatMeta[kFormatResources]) {
+      // Resolve any globs in format resources
+      const resolved = resolvePathGlobs(
+        extensionDir,
+        formatMeta[kFormatResources] as string[],
+        [],
+      );
+      if (resolved.include.length > 0) {
+        formatMeta[kFormatResources] = resolved.include.map((include) => {
+          return relative(extensionDir, include);
+        });
+      }
+    }
+
     // If this is a custom writer, set the writer for the format
     // using the full path to the lua file
     if (key.endsWith(".lua")) {
@@ -774,7 +789,7 @@ function resolveRevealJSPlugin(
   dir: string,
   plugin: string | RevealPluginBundle | RevealPlugin,
 ) {
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     // First attempt to load this plugin from an embedded extension
     const extensionId = toExtensionId(plugin);
     const extensions = findExtensions(
@@ -811,7 +826,7 @@ function resolveRevealPlugin(
   plugin: string | RevealPluginBundle | RevealPluginInline,
 ): string | RevealPluginBundle | RevealPlugin {
   // Filters are expected to be absolute
-  if (typeof (plugin) === "string") {
+  if (typeof plugin === "string") {
     return join(extensionDir, plugin);
   } else if (isPluginRaw(plugin)) {
     return resolveRevealPluginInline(plugin, extensionDir);
@@ -843,7 +858,7 @@ function resolveRevealPluginInline(
       ? plugin.script
       : [plugin.script];
     resolvedPlugin.script = pluginArr.map((plug) => {
-      if (typeof (plug) === "string") {
+      if (typeof plug === "string") {
         return {
           path: plug,
         } as RevealPluginScript;
@@ -911,7 +926,13 @@ function resolveFilter(
   dir: string,
   filter: QuartoFilter,
 ) {
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
+    // First check for the sentinel quarto filter, and allow that through
+    // if it is present
+    if (filter === "quarto") {
+      return filter;
+    }
+
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(
@@ -940,19 +961,29 @@ function resolveFilterPath(
   filter: QuartoFilter,
 ): QuartoFilter {
   // Filters are expected to be absolute
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     if (isAbsolute(filter)) {
       return filter;
     } else {
       return join(extensionDir, filter);
     }
   } else {
-    return {
+    // deno-lint-ignore no-explicit-any
+    const filterAt = ((filter as any).at) as string | undefined;
+    const result: QuartoFilter = {
       type: filter.type,
       path: isAbsolute(filter.path)
         ? filter.path
         : join(extensionDir, filter.path),
     };
+    if (filterAt === undefined) {
+      return result;
+    } else {
+      return {
+        ...result,
+        at: filterAt,
+      };
+    }
   }
 }
 

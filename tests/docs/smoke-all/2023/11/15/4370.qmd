@@ -1,0 +1,19 @@
+---
+format: pdf
+---
+
+::: {#fig-12 layout-ncol=2}
+
+```{r}
+#| fig-cap: "f1"
+#| echo: false
+plot(1)
+```
+
+```{r}
+#| fig-cap: "f2"
+plot(2)
+```
+
+Figure
+:::

@@ -1,0 +1,18 @@
+---
+title: test simple figure crossref
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<img src=\"img/surus.jpg\" id=\"fig-simple\""
+          - "alt=\"Figure 1: A simple figure\"" # TODO: no nbsp?
+        - []
+
+---
+
+![A simple figure](img/surus.jpg){#fig-simple}
+
+See @fig-simple.
+

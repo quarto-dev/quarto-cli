@@ -1,0 +1,14 @@
+---
+title: "7259b"
+_quarto:
+  tests:
+    editor-support-crossref: 
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+::: {#exr-a-b}
+This is a named exercise.
+:::

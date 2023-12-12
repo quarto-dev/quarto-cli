@@ -54,6 +54,7 @@ export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 export const kLightbox = "lightbox";
+export const kCanonicalUrl = "canonical-url";
 
 export const kMath = "math";
 
@@ -74,7 +75,9 @@ export const kExecuteDebug = "debug";
 
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
+export const kIpynbShellInteractivity = "ipynb-shell-interactivity";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
+export const kPlotlyConnected = "plotly-connected";
 
 export const kJatsSubarticleId = "jats-subarticle-id";
 
@@ -129,6 +132,11 @@ export const kQuartoRequired = "quarto-required";
 export const kPreviewMode = "preview-mode";
 export const kPreviewModeRaw = "raw";
 
+export const kFontPaths = "font-paths";
+
+export const kHtmlTableProcessing = "html-table-processing";
+export const kValidateYaml = "validate-yaml";
+
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
   kDisplayName,
@@ -161,6 +169,8 @@ export const kExecuteDefaultsKeys = [
   kExecuteDebug,
   kIpynbFilter,
   kIpynbFilters,
+  kIpynbShellInteractivity,
+  kPlotlyConnected,
 ];
 
 export const kRenderDefaultsKeys = [
@@ -212,6 +222,9 @@ export const kRenderDefaultsKeys = [
   kNotebookViewStyle,
   kNotebookPreserveCells,
   kClearCellOptions,
+  kHtmlTableProcessing,
+  kValidateYaml,
+  kCanonicalUrl,
 ];
 
 // language fields
@@ -274,6 +287,7 @@ export const kSearchHideMatchesText = "search-hide-matches-text";
 export const kSearchMoreMatchText = "search-more-match-text";
 export const kSearchMoreMatchesText = "search-more-matches-text";
 export const kSearchClearButtonTitle = "search-clear-button-title";
+export const kSearchTextPlaceholder = "search-text-placeholder";
 export const kSearchDetatchedCancelButtonTitle =
   "search-detached-cancel-button-title";
 export const kSearchSubmitButtonTitle = "search-submit-button-title";
@@ -391,6 +405,7 @@ export const kLanguageDefaultsKeys = [
   kSearchMoreMatchText,
   kSearchMoreMatchesText,
   kSearchClearButtonTitle,
+  kSearchTextPlaceholder,
   kSearchDetatchedCancelButtonTitle,
   kSearchSubmitButtonTitle,
   kCrossrefFigTitle,

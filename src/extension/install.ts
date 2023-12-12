@@ -7,7 +7,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
@@ -22,6 +22,8 @@ import { info } from "log/mod.ts";
 import { ExtensionSource, extensionSource } from "./extension-host.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { InternalError } from "../core/lib/error.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { openUrl } from "../core/shell.ts";
 
 const kUnversionedFrom = "  (?)";
 const kUnversionedTo = "(?)  ";
@@ -73,7 +75,31 @@ export async function installExtension(
 
     if (confirmed) {
       // Complete the installation
-      await completeInstallation(extensionDir, installDir, source);
+      await completeInstallation(extensionDir, installDir);
+
+      await withSpinner(
+        { message: "Extension installation complete" },
+        () => {
+          return Promise.resolve();
+        },
+      );
+
+      if (source.learnMoreUrl) {
+        info("");
+        if (allowPrompt) {
+          const open = await Confirm.prompt({
+            message: "View documentation using default browser?",
+            default: true,
+          });
+          if (open) {
+            await openUrl(source.learnMoreUrl);
+          }
+        } else {
+          info(
+            `\nLearn more about this extension at:\n${source.learnMoreUrl}\n`,
+          );
+        }
+      }
     } else {
       // Not confirmed, cancel the installation
       cancelInstallation();
@@ -140,7 +166,8 @@ async function determineInstallDir(
   } else {
     // We're not embeddeding, check if we're in a project
     // and offer to use that directory if we are
-    const project = await projectContext(dir);
+    const nbContext = notebookContext();
+    const project = await projectContext(dir, nbContext);
     if (project && project.dir !== dir) {
       const question = "Install extension into project?";
       if (allowPrompt) {
@@ -508,24 +535,51 @@ async function confirmInstallation(
 async function completeInstallation(
   downloadDir: string,
   installDir: string,
-  source: ExtensionSource,
 ) {
   info("");
 
-  const message = () => {
-    const baseMessage = `Extension installation complete.`;
-    if (source.learnMoreUrl) {
-      return `${baseMessage}\nLearn more about this extension at ${source.learnMoreUrl}`;
-    } else {
-      return baseMessage;
-    }
-  };
-
   await withSpinner({
     message: `Copying`,
-    doneMessage: message(),
-  }, () => {
-    copyTo(downloadDir, installDir, { overwrite: true });
+  }, async () => {
+    // Determine a staging location in the installDir
+    // (to ensure we can use move without fear of spanning volumes)
+    const stagingDir = join(installDir, "._extensions.staging");
+    try {
+      // For each 'extension' in the install dir, perform a move
+      const downloadedExtDir = join(downloadDir, kExtensionDir);
+
+      // We'll stage the extension in a directory within the install dir
+      // then move it to the install dir when ready
+      const stagingExtDir = join(stagingDir, kExtensionDir);
+      ensureDirSync(stagingExtDir);
+
+      // The final installation target
+      const installExtDir = join(installDir, kExtensionDir);
+      ensureDirSync(installExtDir);
+
+      // Read the extensions that have been downloaded and install them
+      // one by bone
+      const extensions = await readExtensions(downloadedExtDir);
+      extensions.forEach((extension) => {
+        const extensionRelativeDir = relative(downloadedExtDir, extension.path);
+        // Copy to the staging path
+        const stagingPath = join(stagingExtDir, extensionRelativeDir);
+        copyTo(extension.path, stagingPath);
+
+        // Move from the staging path to the install dir
+        const installPath = join(installExtDir, extensionRelativeDir);
+        if (existsSync(installPath)) {
+          Deno.removeSync(installPath, { recursive: true });
+        }
+
+        // Ensure the parent directory exists
+        ensureDirSync(dirname(installPath));
+        Deno.renameSync(stagingPath, installPath);
+      });
+    } finally {
+      // Clean up the staging directory
+      Deno.removeSync(stagingDir, { recursive: true });
+    }
     return Promise.resolve();
   });
 }

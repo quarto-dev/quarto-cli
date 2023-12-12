@@ -8,7 +8,6 @@
 
 import { MappedString } from "../text-types.ts";
 import { ErrorLocation, TidyverseError } from "../errors-types.ts";
-import { InternalError } from "../error.ts";
 
 // https://github.com/microsoft/TypeScript/issues/1897#issuecomment-822032151
 export type JSONValue =
@@ -302,7 +301,9 @@ export function schemaCall<T>(
   if (other) {
     return other(s);
   }
-  throw new InternalError(`Dispatch failed for type ${st}`);
+  // TODO this should be InternalError but we don't want
+  // to introduce a dependency on error.ts
+  throw new Error(`Internal Error: Dispatch failed for type ${st}`);
 }
 
 // note that we intentionally never use d.long, since that's

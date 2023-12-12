@@ -7,9 +7,6 @@ _quarto:
       ensureFileRegexMatches:
         - 
           - "\\label{tbl-test}"
-          - "\\label{tbl-test-two-tables}"
-          - "\\label{tbl-test-two-tables-1}"
-          - "\\label{tbl-test-two-tables-2}"
         - []
 ---
 
@@ -37,23 +34,3 @@ kable(df,
 ```
 
 See @tbl-test.
-
-```{r}
-#| echo: false
-#| label: tbl-test-two-tables
-#| tbl-cap: Overall caption
-
-kable(df, 
-  format = "latex", 
-  longtable = TRUE, 
-  booktabs = TRUE, 
-  caption = "Table one")
-
-kable(df, 
-  format = "latex", 
-  longtable = TRUE, 
-  booktabs = TRUE, 
-  caption = "Table two because screw you, that's why")
-```
-
-See @tbl-test-two-tables, @tbl-test-two-tables-1, and @tbl-test-two-tables-2.

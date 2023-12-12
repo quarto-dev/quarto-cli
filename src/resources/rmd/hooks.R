@@ -109,7 +109,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
     
     # use gifski as default animation hook for non-latex output
     if (identical(fig.show, "animate")) {
-      if (!is_latex_output(format$pandoc$to) && is.null(options[["animation.hook"]])) {
+      if (!is_pandoc_latex_output(format) && is.null(options[["animation.hook"]])) {
         options[["animation.hook"]] <- "gifski"
       }
       
@@ -316,7 +316,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "tbl-column", "tbl-cap-location", "cap-location", "code-fold",
       "code-summary", "code-overflow", "code-line-numbers",
       "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign",
-      "output",
+      "output", "html-table-processing",
       # duplicating options as they were normalized in knitr < 1.44
       "fig-column", "fig.column", "fig-cap-location", "fig.cap-location",
       # those options have been aliased in knitr 1.44
@@ -331,7 +331,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "fenced.echo", "chunk.echo", "lang", "out.width.px", "out.height.px",
       "indent", "class.source", "class.output", "class.message",
       "class.warning", "class.error", "attr.source", "attr.output",
-      "attr.message", "attr.warning", "attr.error", "connection"
+      "attr.message", "attr.warning", "attr.error", "connection", "hash"
     )
     known_opts <- c(knitr_default_opts, quarto_knitr_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
@@ -512,7 +512,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
 knitr_plot_hook <- function(format) {
 
   htmlOutput <- knitr:::is_html_output(format$pandoc$to)
-  latexOutput <- is_latex_output(format$pandoc$to)
+  latexOutput <- is_pandoc_latex_output(format)
   defaultFigPos <- format$render[["fig-pos"]]
 
   function(x, options) {
@@ -621,7 +621,7 @@ knitr_plot_hook <- function(format) {
       options[["fig.subcap"]] <- NULL
       
       # check for latex
-      if (is_latex_output(format$pandoc$to)) {
+      if (is_pandoc_latex_output(format)) {
         
         # include dependency on animate package
         knitr::knit_meta_add(list(
@@ -672,6 +672,7 @@ knitr_plot_hook <- function(format) {
       
       # result = "asis" specific
       if (identical(options[["results"]], "asis")) return(md)
+      
       # enclose in output div 
       output_div(md, NULL, classes)
     }
@@ -968,7 +969,7 @@ output_div <- function(x, label, classes, attr = NULL) {
   }
   paste0(
     div,
-    paste(paste0(".", classes), collapse = " ") ,
+    paste(paste0(".", classes), collapse = " "),
     ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",
     x,

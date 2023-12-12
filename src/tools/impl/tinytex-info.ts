@@ -23,7 +23,12 @@ export function hasTinyTex(): boolean {
 export function tinyTexInstallDir(): string | undefined {
   switch (Deno.build.os) {
     case "windows":
-      return expandPath(join(getenv("APPDATA", undefined), "TinyTeX"));
+      let appDir = getenv("APPDATA", undefined);
+      // use ProgramData if APPDATA is not set or contains spaces or non-ASCII characters
+      if (!appDir || !appDir.match(/^[!-~]+$/)) {
+        appDir = getenv("ProgramData", undefined);
+      }
+      return expandPath(join(appDir, "TinyTeX"));
     case "linux":
       return expandPath("~/.TinyTeX");
     case "darwin":

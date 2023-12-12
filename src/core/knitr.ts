@@ -25,12 +25,17 @@ export interface KnitrRequiredPackages {
   knitr: string | null;
   knitrVersOk?: boolean;
   rmarkdown: string | null;
+  rmarkdownVersOk?: boolean;
 }
 
 const pkgVersRequirement = {
   knitr: {
     type: ">=",
     version: "1.30",
+  },
+  rmarkdown: {
+    type: ">=",
+    version: "2.3",
   },
 };
 
@@ -83,9 +88,25 @@ export async function knitrCapabilities(rBin: string | undefined) {
           Object.values(pkgVersRequirement["knitr"]).join(" "),
         )
         : false;
+      const rmarkdownVersion = caps.packages.rmarkdown
+        ? coerce(caps.packages.rmarkdown)
+        : undefined;
+      caps.packages.rmarkdownVersOk = rmarkdownVersion
+        ? satisfies(
+          rmarkdownVersion,
+          Object.values(pkgVersRequirement["rmarkdown"]).join(" "),
+        )
+        : false;
       return caps;
     } else {
       debug("\n++ Problem with results of knitr capabilities check.");
+      debug(`    Return Code: ${result.code} (success is ${result.success})`);
+      result.stdout
+        ? debug(`    with stdout from R:\n${result.stdout}`)
+        : debug("    with no stdout");
+      if (result.stderr) {
+        debug(`    with stderr from R:\n${result.stderr}`);
+      }
       return undefined;
     }
   } catch {
@@ -114,6 +135,11 @@ export function knitrCapabilitiesMessage(caps: KnitrCapabilities, indent = "") {
     );
   }
   lines.push(`rmarkdown: ${caps.packages.rmarkdown || "(None)"}`);
+  if (caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk) {
+    lines.push(
+      `NOTE: rmarkdown version ${caps.packages.rmarkdown} is too old. Please upgrade to ${pkgVersRequirement.rmarkdown.version} or later.`,
+    );
+  }
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 

@@ -1,0 +1,19 @@
+---
+title: Listings Test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<div id=\"lst-customers\">"
+          - "<a href=\"#lst-customers\" class=\"quarto-xref\">"
+          - "Listing 1: Customers Query"
+        - []
+---
+
+```{#lst-customers .sql lst-cap="Customers Query"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

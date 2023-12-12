@@ -184,6 +184,7 @@ export async function renderPandoc(
     mediabagDir,
     libDir: context.libDir,
     format,
+    executionEngine: executeResult.engine,
     project: context.project,
     args: recipe.args,
     services: context.options.services,

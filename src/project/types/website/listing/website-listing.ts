@@ -67,7 +67,7 @@ import {
 } from "./website-listing-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { formatHasBootstrap } from "../../../../format/html/format-html-info.ts";
-import { debug } from "https://deno.land/std@0.185.0/log/mod.ts";
+import { debug } from "log/mod.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,

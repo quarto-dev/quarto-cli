@@ -66,6 +66,14 @@ footer.footer .nav-footer,
   padding-right: 1em;
 }
 
+footer.footer div.nav-footer p:first-child {
+  margin-top: 0;
+}
+
+footer.footer div.nav-footer p:last-child {
+  margin-bottom: 0;
+}
+
 // content padding
 #quarto-content > * {
   padding-top: $content-padding-top;
@@ -139,12 +147,23 @@ header.headroom--unpinned {
   .navbar-toggler {
     order: $navbar-toggler-order;
   }
+
+  .navbar-container > .navbar-nav {
+    order: $navbar-menu-order;
+  }
+
+  .navbar-container > .navbar-brand-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
   .navbar-collapse {
     order: $navbar-menu-order;
   }
 
   #quarto-search {
     order: $navbar-search-order;
+    margin-left: auto;
   }
 }
 
@@ -329,11 +348,10 @@ $sidebar-section-bottom-margin: 0.2em;
 .sidebar-item {
   margin-bottom: $sidebar-items-gap-spacing;
   line-height: 1rem;
-  margin-top: 0.7rem;
+  margin-top: 0.4rem;
 }
 
 .sidebar-section {
-  margin-top: $sidebar-items-gap-spacing;
   padding-left: $sidebar-section-indent;
   padding-bottom: $sidebar-section-bottom-margin;
 }
@@ -570,6 +588,17 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
       background-color: $body-bg;
     }
     border-bottom: 1px solid $table-border-color;
+  }
+
+  .quarto-banner nav.quarto-secondary-nav {
+    @if variable-exists(navbar-bg) {
+      background-color: $navbar-bg;
+    }
+
+    @if (variable-exists(navbar-fg)) {
+      color: $navbar-fg;
+    }
+    border-top: 1px solid $table-border-color;
   }
 
   .sidebar .sidebar-footer {
@@ -865,6 +894,12 @@ body .nav-footer {
 .navbar .quarto-reader-toggle.reader .quarto-reader-toggle-btn {
   background-color: $navbar-fg;
   border-radius: 3px;
+}
+
+@include media-breakpoint-down(lg) {
+  .quarto-reader-toggle {
+    display: none;
+  }
 }
 
 .quarto-reader-toggle.reader.quarto-navigation-tool .quarto-reader-toggle-btn {

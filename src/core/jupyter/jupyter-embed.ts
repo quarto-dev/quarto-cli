@@ -52,7 +52,7 @@ import {
 import { globalTempContext } from "../temp.ts";
 import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { normalizePath, safeExistsSync } from "../path.ts";
+import { dirAndStem, normalizePath, safeExistsSync } from "../path.ts";
 import { basename } from "path/mod.ts";
 import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
@@ -63,6 +63,7 @@ import {
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../log.ts";
 import * as ld from "../../../src/core/lodash.ts";
+import { texSafeFilename } from "../tex.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -597,6 +598,11 @@ async function getCachedNotebookInfo(
       previewServer: context.options.previewServer,
       handledLanguages: languages(),
     };
+
+    const [dir, stem] = dirAndStem(nbAddress.path);
+    const outputPrefix = texSafeFilename(
+      `${dir !== "." ? dir + "-" : ""}${stem}`,
+    );
     const result = await jupyterToMarkdown(
       notebook,
       {
@@ -615,6 +621,7 @@ async function getCachedNotebookInfo(
         figDpi: format.execute[kFigDpi],
         figPos: format.render[kFigPos],
         fixups: "minimal",
+        outputPrefix,
       },
     );
 

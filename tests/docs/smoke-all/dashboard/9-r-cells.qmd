@@ -1,0 +1,14 @@
+---
+title: Hello World
+format: dashboard
+---
+
+```{r}
+foo = 57
+```
+
+```{r}
+cat("title=", foo)
+
+plot(cars)
+```

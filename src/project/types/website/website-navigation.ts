@@ -17,6 +17,11 @@ import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
 import { removeChapterNumber } from "./website-utils.ts";
+import {
+  breadCrumbs,
+  itemHasNavTarget,
+  sidebarForHref,
+} from "./website-shared.ts";
 
 import {
   Format,
@@ -108,7 +113,6 @@ import {
 import {
   flattenItems,
   inputFileHref,
-  Navigation,
   NavigationFooter,
   NavigationPagination,
   websiteNavigationConfig,
@@ -133,11 +137,10 @@ import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
 import { resolveProjectInputLinks } from "../project-utilities.ts";
+import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
-// static navigation (initialized during project preRender)
-const navigation: Navigation = {
-  sidebars: [],
-};
+import { navigation } from "./website-shared.ts";
+import { isAboutPage } from "./about/website-about.ts";
 
 export const kSidebarLogo = "logo";
 
@@ -188,6 +191,28 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.pageMargin = pageMargin;
 }
 
+export async function websiteNoThemeExtras(
+  project: ProjectContext,
+  source: string,
+  _flags: PandocFlags,
+  _format: Format,
+  _temp: TempContext,
+): Promise<FormatExtras> {
+  return {
+    html: {
+      [kHtmlPostprocessors]: [
+        async (doc: Document): Promise<HtmlPostProcessResult> => {
+          await resolveProjectInputLinks(source, project, doc);
+          return Promise.resolve({
+            resources: [],
+            supporting: [],
+          });
+        },
+      ],
+    },
+  };
+}
+
 export async function websiteNavigationExtras(
   project: ProjectContext,
   source: string,
@@ -208,6 +233,14 @@ export async function websiteNavigationExtras(
       return false;
     } else {
       return true;
+    }
+  };
+
+  const tocLocation = () => {
+    if (isAboutPage(format)) {
+      return "right";
+    } else {
+      return format.metadata[kTocLocation] || "right";
     }
   };
 
@@ -232,6 +265,9 @@ export async function websiteNavigationExtras(
     includeInHeader.push(websiteSearchIncludeInHeader(project, format, temp));
   }
 
+  // Inject dashboard dependencies so they are present if necessary
+  sassBundles.push(dashboardScssLayer());
+
   // Check to see whether the navbar or sidebar have been disabled on this page
   const disableNavbar = format.metadata[kSiteNavbar] !== undefined &&
     format.metadata[kSiteNavbar] === false;
@@ -245,7 +281,7 @@ export async function websiteNavigationExtras(
 
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
-    [kTocLocation]: format.metadata[kTocLocation] || "right",
+    [kTocLocation]: tocLocation(),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
@@ -607,7 +643,7 @@ function handleRepoLinks(
   );
 
   if (repoActions.length > 0 || elRepoSource) {
-    const repoInfo = websiteRepoInfo(config);
+    const repoInfo = websiteRepoInfo(format, config);
     if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
@@ -831,7 +867,7 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
           if (item.href) {
             const linkEl = doc.createElement("a");
             linkEl.setAttribute("href", item.href);
-            if (typeof (contents) === "string") {
+            if (typeof contents === "string") {
               linkEl.innerHTML = contents;
             } else {
               linkEl.appendChild(contents);
@@ -840,7 +876,7 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
             liEl.appendChild(linkEl);
             return liEl;
           } else {
-            if (typeof (contents) === "string") {
+            if (typeof contents === "string") {
               liEl.innerHTML = item.text || "";
             } else {
               liEl.appendChild(contents);
@@ -1040,54 +1076,12 @@ function validateTool(tool: SidebarTool) {
   }
 }
 
-export function sidebarForHref(href: string, format: Format) {
-  // if there is a single sidebar then it applies to all hrefs
-  if (navigation.sidebars.length === 1) {
-    return navigation.sidebars[0];
-  } else {
-    const explicitSidebar = navigation.sidebars.find((sidebar) => {
-      return sidebar.id === format.metadata[kSiteSidebar];
-    });
-    if (explicitSidebar) {
-      return explicitSidebar;
-    } else {
-      const containingSidebar = navigation.sidebars.find((sidebar) => {
-        return containsHref(href, sidebar.contents);
-      });
-      if (containingSidebar) {
-        return containingSidebar;
-      } else {
-        return undefined;
-      }
-    }
-  }
-}
-
 function sidebarStyle() {
   if (navigation.sidebars.length > 0) {
     return navigation.sidebars[0].style;
   } else {
     return undefined;
   }
-}
-
-function containsHref(href: string, items: SidebarItem[]) {
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].href && items[i].href === href) {
-      return true;
-    } else if (Object.keys(items[i]).includes("contents")) {
-      const subItems = items[i].contents || [];
-      const subItemsHasHref = containsHref(href, subItems);
-      if (subItemsHasHref) {
-        return true;
-      }
-    } else {
-      if (itemHasNavTarget(items[i], href)) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
@@ -1118,11 +1112,6 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
     resolveExpandedItems(href, expandedSidebar.contents);
     return expandedSidebar;
   }
-}
-
-function itemHasNavTarget(item: SidebarItem, href: string) {
-  return item.href === href ||
-    item.href === href.replace(/\/index\.html/, "/");
 }
 
 function isSeparator(item?: SidebarItem) {
@@ -1167,48 +1156,6 @@ function nextAndPrevious(
     };
   } else {
     return {};
-  }
-}
-
-export function breadCrumbs(href: string, sidebar?: Sidebar) {
-  if (sidebar?.contents) {
-    const crumbs: SidebarItem[] = [];
-
-    // find the href in the sidebar
-    const makeBreadCrumbs = (href: string, sidebarItems?: SidebarItem[]) => {
-      if (sidebarItems) {
-        for (const item of sidebarItems) {
-          if (item.href === href) {
-            crumbs.push(item);
-            return true;
-          } else {
-            if (item.contents) {
-              if (makeBreadCrumbs(href, item.contents)) {
-                // If this 'section' doesn't have an href, then just use the first
-                // child as the href
-                const breadCrumbItem = { ...item };
-                if (
-                  !breadCrumbItem.href && breadCrumbItem.contents &&
-                  breadCrumbItem.contents.length > 0
-                ) {
-                  breadCrumbItem.href = breadCrumbItem.contents[0].href;
-                }
-
-                crumbs.push(breadCrumbItem);
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      } else {
-        return false;
-      }
-    };
-    makeBreadCrumbs(href, sidebar.contents);
-    return crumbs.reverse();
-  } else {
-    return [];
   }
 }
 
@@ -1541,17 +1488,17 @@ function resolveNavReferences(
       collection: Array<unknown> | Record<string, unknown>,
     ) => {
       const assign = (value: unknown) => {
-        if (typeof (index) === "number") {
+        if (typeof index === "number") {
           (collection as Array<unknown>)[index] = value;
-        } else if (typeof (index) === "string") {
+        } else if (typeof index === "string") {
           (collection as Record<string, unknown>)[index] = value;
         }
       };
       if (Array.isArray(value)) {
         assign(resolveNavReferences(value));
-      } else if (typeof (value) === "object") {
+      } else if (typeof value === "object") {
         assign(resolveNavReferences(value as Record<string, unknown>));
-      } else if (typeof (value) === "string") {
+      } else if (typeof value === "string") {
         const navRef = resolveNavReference(value);
         if (navRef) {
           const navItem = collection as Record<string, unknown>;

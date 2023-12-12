@@ -51,6 +51,14 @@ function combineFilters(filters)
         for _, fn in ipairs(fns) do
           local result = fn(current)
           if result ~= nil then
+            if (pandoc.utils.type(result) ~= pandoc.utils.type(current) or
+                result.t ~= current.t) then
+              -- luacov: disable
+              quarto.log.info("combineFilters: expected " .. (current.t or pandoc.utils.type(current)) .. " got " .. (result.t or pandoc.utils.type(result)))
+              quarto.log.info("Exiting filter early. (This is a potential bug in Quarto.)")
+              return result
+              -- luacov: enable
+            end
             -- if there is a result from this function
             -- update the current value with the result
             current = result
@@ -122,7 +130,7 @@ end
 -- the first heading in a div is sometimes the caption
 function resolveHeadingCaption(div) 
   local capEl = div.content[1]
-  if capEl ~= nil and capEl.t == 'Header' then
+  if capEl ~= nil and is_regular_node(capEl, "Header") then
     div.content:remove(1)
     return capEl.content
   else 

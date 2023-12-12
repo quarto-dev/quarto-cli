@@ -15,9 +15,11 @@ function make_typst_figure(tbl)
     separator = ""
   end
 
-  return pandoc.Blocks({
-    pandoc.RawInline("typst", "#figure(["),
-    content,
+  local result =  pandoc.Blocks({
+    pandoc.RawInline("typst", "#figure([")
+  })
+  result:extend(quarto.utils.as_blocks(content))
+  result:extend({
     pandoc.RawInline("typst", "], caption: figure.caption("),
     pandoc.RawInline("typst", separator and ("separator: \"" .. separator .. "\", ") or ""),
     pandoc.RawInline("typst", "position: " .. caption_location .. ", "),
@@ -32,14 +34,56 @@ function make_typst_figure(tbl)
     pandoc.RawInline("typst", identifier and ("<" .. identifier .. ">") or ""),
     pandoc.RawInline("typst", "\n\n")
   })
+  return result
+end
+
+local function render_floatless_typst_layout(panel)
+  local result = pandoc.Blocks({})
+  if panel.preamble then
+    result:insert(panel.preamble)
+  end
+
+  -- render a grid per row of the layout
+  -- https://typst.app/docs/reference/layout/grid/
+
+  for i, row in ipairs(panel.layout) do
+    -- synthesize column spec from row
+    local col_spec = {}
+    for j, col in ipairs(row) do
+      table.insert(col_spec, col.attributes["width"])
+    end
+    -- TODO allow configurable gutter
+    local col_spec_str = "columns: (" .. table.concat(col_spec, ", ") .. "), gutter: 1em, rows: 1,"
+    result:insert(pandoc.RawBlock("typst", "#grid("))
+    result:insert(pandoc.RawBlock("typst", col_spec_str))
+    for j, col in ipairs(row) do
+      result:insert(pandoc.RawBlock("typst", "  rect(stroke: none, width: 100%)["))
+      -- #7718: if content is a single image with no attributes,
+      --   we need to set the width to 100% to avoid Pandoc from
+      --   specifying a width in pixels, which overrides the
+      --   column's relative constraint.
+      local image = quarto.utils.match("[1]/Para/[1]/{Image}")(col.content)
+
+      -- we also need to check for Pandoc Figure AST nodes because these
+      -- still linger in our AST (captioned unidentified figures...)
+      image = image or quarto.utils.match("[1]/Figure/[1]/Plain/[1]/{Image}")(col.content)
+
+      if image and #image[1].attributes == 0 then
+        image[1].attributes["width"] = "100%"
+      end
+      result:extend(col.content)
+      result:insert(pandoc.RawBlock("typst", "],"))
+    end
+    result:insert(pandoc.RawBlock("typst", ")\n"))
+  end
+  return result
 end
 
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isTypstOutput()
 end, function(layout)
   if layout.float == nil then
-    fail_and_ask_for_bug_report("PanelLayout renderer requires a float in typst output")
-    return pandoc.Div({})
+    return render_floatless_typst_layout(layout)
   end
 
   local ref = refType(layout.float.identifier)
@@ -88,15 +132,4 @@ end, function(layout)
     numbering = info.numbering,
     identifier = layout.float.identifier
   }
-  -- result:extend({
-  --   pandoc.RawInline("typst", "\n\n#figure(["),
-  --   typst_figure_content,
-  --   pandoc.RawInline("typst", "], caption: ["),
-  --   layout.float.caption_long,
-  --   -- apparently typst doesn't allow separate prefix and name
-  --   pandoc.RawInline("typst", "], kind: \"" .. kind .. "\", supplement: \"" .. info.prefix .. "\""),
-  --   pandoc.RawInline("typst", ", caption-pos: " .. caption_location),
-  --   pandoc.RawInline("typst", ")<" .. layout.float.identifier .. ">\n\n")
-  -- })
-  -- return result
 end)

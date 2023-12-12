@@ -23,10 +23,7 @@ import {
 import { execProcess } from "../../../../core/process.ts";
 import { safeFileWriter } from "./binder-utils.ts";
 import { projectContext } from "../../../../project/project-context.ts";
-import {
-  computeProjectEnvironment,
-  ProjectEnvironment,
-} from "../../../../project/project-environment.ts";
+import { ProjectEnvironment } from "../../../../project/project-environment-types.ts";
 import { withSpinner } from "../../../../core/console.ts";
 import { logProgress } from "../../../../core/log.ts";
 import { ProjectContext } from "../../../../project/types.ts";
@@ -34,6 +31,7 @@ import { ProjectContext } from "../../../../project/types.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
+import { notebookContext } from "../../../../render/notebook/notebook-context.ts";
 
 export const useBinderCommand = new Command()
   .name("binder")
@@ -54,7 +52,8 @@ export const useBinderCommand = new Command()
     try {
       // compute the project context
       logProgress("Determining configuration");
-      const context = await projectContext(Deno.cwd());
+      const nbContext = notebookContext();
+      const context = await projectContext(Deno.cwd(), nbContext);
       if (!context) {
         throw new Error(
           "You must be in a Quarto project in order to configure Binder support.",
@@ -410,7 +409,7 @@ async function binderFileOperations(
   const renvPath = join(context.dir, "renv.lock");
   if (existsSync(renvPath)) {
     // Create an install.R file
-    const installRText = "install.packages('renv')\nrenv::activate()";
+    const installRText = "install.packages('renv')\nrenv::restore()";
     operations.push({
       file: "install.R",
       desc: "Activates the R environment described in renv.lock",

@@ -7,7 +7,7 @@
 
 import { docs, fileLoader, inTempDirectory } from "../../utils.ts";
 import { join } from "path/mod.ts";
-import { ensureHtmlSelectorSatisfies, fileExists } from "../../verify.ts";
+import { ensureHtmlElements, ensureHtmlSelectorSatisfies, fileExists } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 inTempDirectory((dir) => {
@@ -72,3 +72,18 @@ testRender(knitrOptions.input, "html", false, [
 
 const sqlEngine = fileLoader()("test-knitr-sql.qmd", "html");
 testRender(sqlEngine.input, "html", false);
+
+
+const toSpin = fileLoader()("knitr-spin.R", "html");
+testRender(toSpin.input, "html", false, [
+  ensureHtmlElements(
+    toSpin.output.outputPath, ["#block img"]
+  ),
+  ensureHtmlSelectorSatisfies(
+    toSpin.output.outputPath,
+    "#inline code",
+    (nodeList) => {
+      return /^3\.14+/.test(nodeList[0].textContent);
+    },
+  ),
+]);

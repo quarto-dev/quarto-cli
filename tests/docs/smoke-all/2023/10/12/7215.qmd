@@ -1,0 +1,9 @@
+---
+title: issue-7215
+format: html
+filters:
+  - at: post-render
+    path: 7215.lua
+---
+
+An inline image that we should not fixup in non-typst formats: ![](./an-image.png){width=200}

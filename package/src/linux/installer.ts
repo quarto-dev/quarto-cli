@@ -111,7 +111,7 @@ export async function makeInstallerDeb(
   copyrightLines.push("");
   copyrightLines.push("Files: *");
   copyrightLines.push("Copyright: Posit, PBC.");
-  copyrightLines.push("License: GPL-2+");
+  copyrightLines.push("License: MIT");
   const copyrightText = copyrightLines.join("\n");
   Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);
 

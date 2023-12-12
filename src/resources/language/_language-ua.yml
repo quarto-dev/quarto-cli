@@ -67,6 +67,7 @@ search-hide-matches-text: "Сховати додаткові результат�
 search-more-match-text: "додатковий результат у цьому документі"
 search-more-matches-text: "додаткових результатів у цьому документі"
 search-clear-button-title: "Очистити"
+search-text-placeholder: ""
 search-detached-cancel-button-title: "Відмінити"
 search-submit-button-title: "Надіслати"
 search-label: "Пошук"

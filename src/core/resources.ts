@@ -29,13 +29,13 @@ export function formatResourcePath(format: string, resource: string) {
   return join(resourcePath("formats"), format, resource);
 }
 
-export function architectureToolsPath(path: string) {
+export function architectureToolsPath(binary: string) {
   const arch = Deno.build.arch;
-  const archDir = join(arch, path);
-  return toolsPath(archDir);
+  const archBinaryPath = join(arch, binary);
+  return toolsPath(binary, archBinaryPath);
 }
 
-export function toolsPath(binary: string): string {
+export function toolsPath(binary: string, defaultPath?: string): string {
   const displayWarning = () => {
     warnOnce(
       `Specified ${binaryEnvKey} does not exist, using built in ${binary}`,
@@ -72,8 +72,7 @@ export function toolsPath(binary: string): string {
       }
     }
   }
-
-  return join(quartoConfig.toolsPath(), binary);
+  return join(quartoConfig.toolsPath(), defaultPath || binary);
 }
 
 export function pandocBinaryPath(): string {

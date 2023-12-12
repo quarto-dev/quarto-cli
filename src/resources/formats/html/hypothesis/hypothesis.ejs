@@ -1,9 +1,11 @@
+<% let srcHref = "https://hypothes.is/embed.js"; %>
 <% if (typeof(hypothesis) === "object") { %>
+  <% if (hypothesis['client-url']) { srcHref = hypothesis['client-url']; } %>
 <script type="application/json" class="js-hypothesis-config">
 <%= JSON.stringify(hypothesis, undefined, 2) %>
 </script>
 <% } %>
-<script async src="https://hypothes.is/embed.js"></script>
+<script async src="<%= srcHref %>"></script>
 <script>
   window.document.addEventListener("DOMContentLoaded", function (_event) {
     document.body.classList.add('hypothesis-enabled');

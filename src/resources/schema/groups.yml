@@ -1,6 +1,8 @@
 cell:
   attributes:
     title: "Attributes"
+  card:
+    title: "Card"
   codeoutput:
     title: "Code Output"
   textoutput:
@@ -21,6 +23,8 @@ cell:
 document:
   attributes:
     title: "Title & Author"
+  dashboard:
+    title: "Dashboard"
   options:
     title: "Format Options"
   toc:

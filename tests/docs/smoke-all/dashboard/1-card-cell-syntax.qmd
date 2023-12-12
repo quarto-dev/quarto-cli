@@ -1,0 +1,13 @@
+---
+title: Test R
+format: dashboard
+theme: lux
+---
+
+```{r}
+#| title: Hello World
+#| padding: 0
+#| max-height: 500px
+plot(cars)
+```
+

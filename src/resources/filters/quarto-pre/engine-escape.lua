@@ -8,7 +8,7 @@ function engine_escape()
     CodeBlock = function(el)
 
       -- handle code block with 'escaped' language engine
-      if #el.attr.classes == 1 then
+      if #el.attr.classes == 1 or #el.attr.classes == 2 and el.attr.classes[2] == 'code-annotation-code' then
         local engine, lang = el.attr.classes[1]:match(patterns.engine_escape)
         if engine then
           el.text = "```" .. engine .. "\n" .. el.text .. "\n" .. "```"
@@ -85,6 +85,7 @@ local kHighlightClasses = {
   "fortranfixed",
   "fortranfree",
   "fsharp",
+  "gap",
   "gcc",
   "glsl",
   "gnuassembler",

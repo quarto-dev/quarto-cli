@@ -10,7 +10,7 @@ _quarto:
           - "<fig-plot>"
           - "@fig-plot"
           - "Plot"
-          - "#image\\(\"typst-jupyter-1_files/figure-typst/fig-plot-output-1.svg\"\\)"
+          - "#.*image\\(\"typst-jupyter-1_files/figure-typst/fig-plot-output-1.svg\"\\)"
         - []
 ---
 

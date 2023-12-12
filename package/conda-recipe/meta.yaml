@@ -47,7 +47,7 @@ test:
 
 about:
   home: https://quarto.org/
-  license: GPLv2
+  license: MIT
   license_file:
     - COPYRIGHT
     - COPYING.md

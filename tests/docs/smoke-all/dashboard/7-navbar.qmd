@@ -1,0 +1,35 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    orientation: columns
+    theme: journal
+---
+
+
+Global Sidebar {.sidebar}
+==================================
+
+Sidebar controls
+
+
+Page 1
+==================================
+
+```{r}
+list(
+  value = 45.5,
+  color = "red"
+)
+```
+
+
+Page 2 {orientation="rows"}
+==================================
+
+## row
+
+## row
+
+
+

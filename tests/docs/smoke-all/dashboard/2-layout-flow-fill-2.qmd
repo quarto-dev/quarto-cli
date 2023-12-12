@@ -1,0 +1,21 @@
+---
+title: Dashboard
+format: 
+  dashboard:
+    fill: true
+---
+
+## Plots
+
+```{r}
+plot(cars)
+```
+
+```{r}
+plot(mtcars)
+```
+
+## Other Stuff {fill="false"}
+
+{{< lipsum 1 >}}
+

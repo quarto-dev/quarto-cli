@@ -28,6 +28,9 @@ import { projectExcludeDirs } from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/constants.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
+import { withRenderServices } from "../command/render/render-services.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { RenderServices } from "../command/render/types.ts";
 
 export interface InspectedConfig {
   quarto: {
@@ -73,8 +76,9 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
     version = "99.9.9";
   }
 
+  const nbContext = notebookContext();
   // get project context (if any)
-  const context = await projectContext(path);
+  const context = await projectContext(path, nbContext);
 
   const inspectedProjectConfig = () => {
     if (context?.config) {
@@ -108,8 +112,12 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
       const partitioned = await engine.partitionedMarkdown(path);
 
       // get formats
-      const context = await projectContext(path);
-      const formats = await renderFormats(path, "all", context);
+      const context = await projectContext(path, nbContext);
+      const formats = await withRenderServices(
+        nbContext,
+        (services: RenderServices) =>
+          renderFormats(path!, services, "all", context),
+      );
 
       // accumulate resources from formats then resolve them
       const resourceConfig: string[] = Object.values(formats).reduce(

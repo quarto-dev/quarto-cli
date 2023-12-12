@@ -1,0 +1,26 @@
+---
+title: Input Panel
+format: dashboard
+---
+
+
+
+```{r}
+#| label: fig-cars
+plot(cars)
+```
+
+```{r}
+#| component: inputs
+#| for: fig-cars
+#| in: header
+print("COOL BEANS!")
+```
+
+:::{.inputs for="fig-cars" in="footer"}
+
+What up dog
+
+:::
+
+

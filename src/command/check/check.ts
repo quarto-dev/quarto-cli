@@ -39,13 +39,14 @@ import { allTools } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
 import { dirname } from "path/mod.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "versions" | "all";
 
 export async function check(target: Target): Promise<void> {
-  const services = renderServices();
+  const services = renderServices(notebookContext());
   try {
     info(`Quarto ${quartoConfig.version()}`);
     if (target === "versions" || target === "all") {
@@ -299,7 +300,7 @@ async function checkKnitrInstallation(services: RenderServices) {
     completeMessage(kMessage + "OK");
     info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
-    if (caps.packages.rmarkdown && caps.packages.knitrVersOk) {
+    if (caps.packages.rmarkdownVersOk && caps.packages.knitrVersOk) {
       const kKnitrMessage = "Checking Knitr engine render......";
       await withSpinner({
         message: kKnitrMessage,
@@ -308,15 +309,26 @@ async function checkKnitrInstallation(services: RenderServices) {
         await checkKnitrRender(services);
       });
     } else {
-      info(
-        knitrInstallationMessage(
-          kIndent,
-          caps.packages.knitr && !caps.packages.knitrVersOk
-            ? "knitr"
-            : "rmarkdown",
-          !!caps.packages.knitr && !caps.packages.knitrVersOk,
-        ),
-      );
+      // show install message if not available
+      // or update message if not up to date
+      if (!!!caps.packages.knitr || !caps.packages.knitrVersOk) {
+        info(
+          knitrInstallationMessage(
+            kIndent,
+            "knitr",
+            !!caps.packages.knitr && !caps.packages.knitrVersOk,
+          ),
+        );
+      }
+      if (!!!caps.packages.rmarkdown || !caps.packages.rmarkdownVersOk) {
+        info(
+          knitrInstallationMessage(
+            kIndent,
+            "rmarkdown",
+            !!caps.packages.rmarkdown && !caps.packages.rmarkdownVersOk,
+          ),
+        );
+      }
       info("");
     }
   } else if (rBin === undefined) {

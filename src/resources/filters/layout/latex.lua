@@ -81,7 +81,7 @@ function latexPanelEnv(layout)
   
   -- defaults
   local env = latexFigureEnv(layout)
-  local pos = attribute(layout.float or { attributes = {} }, kFigPos)
+  local pos = attribute(layout.float or { attributes = layout.attributes or {} }, kFigPos)
   
   return env, pos
 end
@@ -328,13 +328,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local miniPageVAlign = latexMinipageValign(vAlign)
   latexAppend(prefix, "\\begin{minipage}" .. miniPageVAlign .. "{" .. width .. "}\n")
 
-  local capType = "fig"
-  local locDefault = "bottom"
-  if isTable then
-    capType = "tbl"
-    locDefault = "top"
-  end
-  local capLoc = capLocation(capType, locDefault)
+  local capLoc = cap_location(cell)
 
   if (capLoc == "top") then
     tappend(prefix, subcap)
@@ -516,7 +510,8 @@ function latexFigurePosition(el, env)
   if env == kMarginFigureEnv then
     return attribute(el, kOffset, nil)
   else
-    return attribute(el, kFigPos, nil)
+    local prefix = refType(el.identifier) or "fig"
+    return attribute(el, prefix .. "-pos", nil)
   end
 end
 
@@ -623,7 +618,9 @@ function latexImageFigure(image)
     
     -- get align
     local align = figAlignAttribute(image)
-   
+    if align ~= nil then
+      image.attributes[kFigAlign] = nil
+    end
     -- insert the figure without the caption
     local figureContent = { pandoc.Para({
       pandoc.RawInline("latex", latexBeginAlign(align)),
@@ -652,7 +649,7 @@ function renderLatexFigure(el, render)
   -- get the figure content and caption inlines
   local figureContent, captionInlines = render(figure)  
 
-  local capLoc = capLocation("fig", "bottom")  
+  local capLoc = cap_location_from_option("fig", "bottom")
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then

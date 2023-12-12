@@ -1,22 +1,22 @@
 /*
-* extension.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
-
-import { ArtifactCreator, CreateContext } from "../cmd.ts";
+ * extension.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import {
+  ArtifactCreator,
+  CreateContext,
   CreateDirective,
-  ejsData,
-  renderAndCopyArtifacts,
-} from "./artifact-shared.ts";
+} from "../cmd-types.ts";
+
+import { ejsData, renderAndCopyArtifacts } from "./artifact-shared.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
 import { join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -46,7 +46,7 @@ const kExtensionSubtypes: Record<string, string[]> = {
   "format": ["html", "pdf", "docx", "revealjs", "typst"],
 };
 
-const kExtensionValues = kExtensionTypes.filter((t) => typeof (t) === "object")
+const kExtensionValues = kExtensionTypes.filter((t) => typeof t === "object")
   .map((t) => (t as { name: string; value: string }).value);
 
 export const extensionArtifactCreator: ArtifactCreator = {
@@ -183,7 +183,7 @@ async function createArtifact(
   // Find the type using the template
   const createType = typeFromTemplate(createDirective.template);
   const extType = kExtensionTypes.find((type) => {
-    if (typeof (type) === "object") {
+    if (typeof type === "object") {
       return type.value === createType;
     } else {
       return false;
@@ -211,6 +211,13 @@ async function createExtension(
 
   // The target directory
   const target = createDirective.directory;
+
+  if (existsSync(target)) {
+    // The target directory already exists
+    throw new Error(
+      `The directory ${target} already exists. Quarto extensions must have unique names - please modify the existing extension or use a unique name.`,
+    );
+  }
 
   // Data for this extension
   const data = await ejsData(createDirective);

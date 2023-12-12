@@ -9,10 +9,12 @@ import { dirname, join, relative, resolve } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { parseModule } from "observablehq/parser";
+import { escape } from "../../core/lodash.ts";
 
 import { Format, kDependencies } from "../../config/types.ts";
 import { MappedExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
+  kCodeSummary,
   kEmbedResources,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -81,6 +83,8 @@ import { getDivAttributes } from "../../core/handlers/base.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
+import { encodeBase64 } from "encoding/base64.ts";
+
 export interface OjsCompileOptions {
   source: string;
   format: Format;
@@ -101,6 +105,18 @@ export interface OjsCompileResult {
 interface SubfigureSpec {
   caption?: string;
 }
+
+const ojsHasOutputs = (parse: any) => {
+  let hasOutputs = false;
+  ojsSimpleWalker(parse, {
+    Cell(node: any) {
+      if (node.id === null) {
+        hasOutputs = true;
+      }
+    },
+  });
+  return hasOutputs;
+};
 
 // TODO decide how source code is presented, we've lost this
 // feature from the ojs-engine move
@@ -317,9 +333,11 @@ export async function ojsCompile(
 
       let nCells = 0;
       const parsedCells: ParsedCellInfo[] = [];
+      let hasOutputs = true;
 
       try {
         const parse = parseModule(cellSrcStr.value);
+        hasOutputs = ojsHasOutputs(parse);
         let info: SourceInfo[] = [];
         const flushSeqSrc = () => {
           parsedCells.push({ info });
@@ -419,10 +437,17 @@ export async function ojsCompile(
         }
       };
 
-      const outputVal = cell.options?.[kOutput] ??
-        options.format.execute[kOutput] ?? true;
-      if (outputVal === "all") {
-        attrs.push(`output="all"`);
+      let outputVal: any = cell.options?.[kOutput] ??
+        options.format.execute[kOutput];
+      // if (
+      //   options.format.identifier["base-format"] == "dashboard" &&
+      //   !hasOutputs
+      // ) {
+      //   outputVal = false;
+      // }
+      outputVal = outputVal ?? true;
+      if (outputVal === "all" || outputVal === "asis") {
+        attrs.push(`output="${outputVal}"`);
       }
       const {
         classes,
@@ -435,10 +460,15 @@ export async function ojsCompile(
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
 
+      const ojsCellClasses = ["cell"];
+      if (!outputVal) {
+        ojsCellClasses.push("hidden");
+      }
+
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
         classes: [
-          "cell",
+          ...ojsCellClasses,
           ...classes,
         ],
         attrs,
@@ -473,6 +503,12 @@ export async function ojsCompile(
           cell.options?.[kCodeFold]
       ) {
         srcAttrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
+      }
+
+      if (cell.options?.[kCodeSummary]) {
+        srcAttrs.push(
+          `${kCodeSummary}="${escape(cell.options?.[kCodeSummary])}"`,
+        );
       }
 
       if (cell.options?.[kCodeLineNumbers]) {
@@ -790,7 +826,7 @@ export async function ojsCompile(
   // script to append
   const afterBody = [
     `<script type="ojs-module-contents">`,
-    JSON.stringify({ contents: moduleContents }),
+    encodeBase64(JSON.stringify({ contents: moduleContents })),
     `</script>`,
     `<script type="module">`,
     ...scriptContents,

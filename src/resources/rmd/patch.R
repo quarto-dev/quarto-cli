@@ -87,6 +87,8 @@ wrap_asis_output <- function(options, x) {
   if (length(options) == 0) {
     return(x)
   }
+  # x needs to be collapsed first as it could be a character vector (#5506)
+  x <- paste(x, collapse = "")
 
   # generate output div
   caption <- figure_cap(options)[[1]]
@@ -94,8 +96,13 @@ wrap_asis_output <- function(options, x) {
     x <- paste0(x, "\n\n", caption)
   }
   classes <- paste0("cell-output-display")
+  attrs <- NULL
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
+
+  if (identical(options[["html-table-processing"]], "none")) {
+    attrs <- paste(attrs, "html-table-processing=none")
+  }
   
   # if this is an html table then wrap it further in ```{=html}
   # (necessary b/c we no longer do this by overriding kable_html,
@@ -106,8 +113,12 @@ wrap_asis_output <- function(options, x) {
     x <- paste0("`````{=html}\n", x, "\n`````")
   }
   
-  output_div(x, output_label_placeholder(options), classes)
+  # If asis output, don't include the output div
+  if (identical(options[["results"]], "asis")) return(x)
+
+  output_div(x, output_label_placeholder(options), classes, attrs)
 }
+
 add_html_caption <- function(options, x, ...) {
   if (inherits(x, 'knit_asis_htmlwidget')) {
     wrap_asis_output(options, x)
@@ -262,3 +273,15 @@ valid_path = function(prefix, label) {
 }
 assignInNamespace("valid_path", valid_path, ns = "knitr")
 
+
+# add special language comment options support in knitr
+# it was added in 1.46 but we need to support older version too
+# https://github.com/quarto-dev/quarto-cli/pull/7799
+# FIXME: can be cleaned when knitr 1.45 is considered too old
+if (knitr_has_yaml_chunk_options() && utils::packageVersion("knitr") <= "1.45") {
+  knitr_comment_chars <- knitr:::comment_chars
+  knitr_comment_chars$ojs <- "//"
+  knitr_comment_chars$mermaid <- "%%"
+  knitr_comment_chars$dot <- "//"
+  assignInNamespace("comment_chars", knitr_comment_chars, ns = "knitr")
+}

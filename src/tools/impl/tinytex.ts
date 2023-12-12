@@ -29,7 +29,7 @@ import {
 import { getLatestRelease } from "../github.ts";
 import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
-import { suggestUserBinPaths } from "../../core/env.ts";
+import { suggestUserBinPaths } from "../../core/path.ts";
 
 import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { relative } from "path/mod.ts";
@@ -68,7 +68,7 @@ export const tinyTexInstallable: InstallableTool = {
     },
     os: ["linux"],
     message:
-      "This platform doesn't support installation at this time. Please install manually instead.",
+      "This platform doesn't support installation at this time. Please install manually instead. See https://yihui.org/tinytex/#installation.",
   }],
   installed,
   installDir,
@@ -309,6 +309,22 @@ async function afterInstall(context: InstallContext) {
             ],
           );
         }
+      },
+    );
+
+    // Reconfigure font paths for xetex (rstudio/tinytex#313)
+    await context.withSpinner(
+      { message: "Configuring font paths" },
+      async () => {
+        await exec(
+          tlmgrPath,
+          [
+            "postaction",
+            "install",
+            "script",
+            "xetex",
+          ],
+        );
       },
     );
 

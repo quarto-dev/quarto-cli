@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
@@ -31,8 +31,14 @@ export async function updateHtmlDependencies(config: Configuration) {
   if (!bsIconVersion) {
     throw new Error(`BOOTSTRAP_FONT is not defined`);
   }
+  const htmlToolsVersion = Deno.env.get("HTMLTOOLS");
+  if (!htmlToolsVersion) {
+    throw new Error("HTMLTOOLS is not defined");
+  }
+
   info(`Boostrap: ${bsCommit}`);
   info(`Boostrap Icon: ${bsIconVersion}`);
+  info(`Html Tools: ${htmlToolsVersion}`);
 
   // the bootstrap and dist/themes dir
   const formatDir = join(
@@ -47,6 +53,9 @@ export async function updateHtmlDependencies(config: Configuration) {
   const bsThemesDir = join(bsDir, "themes");
 
   const bsDistDir = join(bsDir, "dist");
+
+  const htmlToolsDir = join(formatDir, "htmltools");
+  const bslibDir = join(formatDir, "bslib");
 
   // For applying git patch to what we retreive
   const patchesDir = join(config.directoryInfo.pkg, "src", "common", "patches");
@@ -207,7 +216,7 @@ export async function updateHtmlDependencies(config: Configuration) {
   const glightboxDir = join(formatDir, "glightbox");
   const glightBoxVersion = Deno.env.get("GLIGHTBOX_JS");;
 
-  info("Updating gloghtbox");
+  info("Updating glightbox");
   const basename = `glightbox-master`;
   const fileName = `${basename}.zip`;
   const distUrl = `https://github.com/biati-digital/glightbox/releases/download/${glightBoxVersion}/${fileName}`;
@@ -238,6 +247,7 @@ export async function updateHtmlDependencies(config: Configuration) {
       join(glightboxDir, depends.to)
     );
   });
+  info("");
 
   // Fuse
   const fuseJs = join(
@@ -479,6 +489,12 @@ export async function updateHtmlDependencies(config: Configuration) {
   // Cookie-Consent
   await updateCookieConsent(config, "4.0.0", workingDir);
 
+  // Sticky table headers
+  await updateStickyThead(config, workingDir);
+
+  // Datatables and PDF Make
+  await updateDatatables(config, workingDir);
+
   // Clean existing directories
   [bsThemesDir, bsDistDir].forEach((dir) => {
     if (existsSync(dir)) {
@@ -498,8 +514,18 @@ export async function updateHtmlDependencies(config: Configuration) {
     bsCommit,
     workingSubDir("bsdist"),
     bsDistDir,
-    bsThemesDir
+    bsThemesDir,
+    bslibDir
   );
+
+  // Update Html Tools
+  await updateHtmlTools(
+    htmlToolsVersion,
+    workingSubDir("htmltools"),
+    htmlToolsDir
+  )
+
+  // Update Bootstrap icons
   await updateBoostrapIcons(bsIconVersion, workingSubDir("bsicons"), bsDistDir);
 
   // Update Pandoc themes
@@ -571,13 +597,109 @@ async function updateCookieConsent(
   await ensureDir(targetDir);
 
   await Deno.copyFile(tempPath, join(targetDir, fileName));
+  info("Done\n");
+}
+
+async function updateDatatables(
+  config: Configuration,
+  working: string
+) {
+  // css: 
+  // script: https://cdn.datatables.net/v/bs5/jszip-3.10.1/dt-1.13.8/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/kt-2.11.0/r-2.5.0/datatables.min.js
+
+  // pdfmake
+  // https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js
+  // https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js
+  const datatablesConfig = Deno.env.get("DATATABLES_CONFIG");;
+  const pdfMakeVersion = Deno.env.get("PDF_MAKE");;
+  const dtFiles = ["datatables.min.css", "datatables.min.js"];
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "dashboard",
+    "js",
+    "dt"
+  );
+  await ensureDir(targetDir);
+  
+  for (const file of dtFiles) {
+    const url = `https://cdn.datatables.net/v/${datatablesConfig}/${file}`;
+    const tempPath = join(working, file);
+    info(`Downloading ${url}`);
+    await download(url, tempPath);
+    await Deno.copyFile(tempPath, join(targetDir, file));
+  }
+
+  const pdfMakeFiles = ["pdfmake.min.js", "vfs_fonts.js"];
+  for (const file of pdfMakeFiles) {
+    const url = `https://cdnjs.cloudflare.com/ajax/libs/pdfmake/${pdfMakeVersion}/${file}`;
+    const tempPath = join(working, file);
+    info(`Downloading ${url}`);
+    await download(url, tempPath);
+    await Deno.copyFile(tempPath, join(targetDir, file));
+  }
+  
+  info("Done\n");
+}
+
+async function updateStickyThead(
+  config: Configuration,
+  working: string
+) {
+  const fileName = "stickythead.js";
+  const url = `https://raw.githubusercontent.com/rohanpujaris/stickythead/master/dist/${fileName}`;
+  const tempPath = join(working, fileName);
+
+  info(`Downloading ${url}`);
+  await download(url, tempPath);
+
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "dashboard",
+    "js"
+  );
+  await ensureDir(targetDir);
+
+  await Deno.copyFile(tempPath, join(targetDir, fileName));
+  info("Done\n");
+}
+
+async function updateHtmlTools(
+  version: string,
+  working: string,
+  distDir: string
+) {
+  // https://github.com/rstudio/htmltools/archive/refs/tags/v0.5.6.zip
+  info("Updating Html Tools...");
+  const dirName = `htmltools-${version}`;
+  const fileName = `v${version}.zip`;
+  const distUrl = `https://github.com/rstudio/htmltools/archive/refs/tags/${fileName}`;
+  const zipFile = join(working, fileName);
+
+  // Download and unzip the release
+  info(`Downloading ${distUrl}`);
+  await download(distUrl, zipFile);
+  await unzip(zipFile, working);
+
+  // Copy the fill css file
+  ensureDirSync(distDir);
+  Deno.copyFileSync(
+    join(working, dirName, "inst", "fill", "fill.css"),
+    join(distDir, "fill.css")
+  );
+
+  info("Done\n");
 }
 
 async function updateBootstrapFromBslib(
   commit: string,
   working: string,
   distDir: string,
-  themesDir: string
+  themesDir: string,
+  bsLibDir: string
 ) {
   info("Updating Bootstrap Scss Files...");
   await withRepo(
@@ -586,6 +708,36 @@ async function updateBootstrapFromBslib(
     async (repo: Repo) => {
       // Checkout the appropriate version
       await repo.checkout(commit);
+
+      // Build the required JS files
+      info("Copying Components");
+
+      // Get the components
+      const componentsFrom = join(repo.dir, "inst", "components", "dist");
+      const componentsTo = join(distDir, "components");
+      const components = ["accordion", "card", "grid", "sidebar", "valuebox"];
+      for (const component of components) {
+        info(` - ${component}`);
+        const componentDir = join(componentsTo, component);
+        ensureDirSync(componentDir);
+
+        const files = [
+          `${component}.min.js`,
+          `${component}.css`
+        ];
+
+        for (const file of files) {
+          const fromPath = join(componentsFrom, component, file);
+          if (existsSync(fromPath)) {
+            const toPath = join(componentsTo, component, file);
+            ensureDirSync(dirname(toPath));
+            Deno.copyFileSync(fromPath, toPath);
+
+            // Clean the source path
+            cleanSourceMap(toPath);
+          }
+        }        
+      }
 
       // Copy the scss files
       info("Copying scss files");
@@ -621,15 +773,68 @@ async function updateBootstrapFromBslib(
       const varContents = lines(Deno.readTextFileSync(bootstrapVariablesFile));
       const outLines: string[] = [];
       for (let line of varContents) {
-        line = line.replace(
+        line = line.replaceAll(
           "var(--#{$prefix}font-sans-serif)",
           "$font-family-sans-serif"
         );
-        line = line.replace(
+        line = line.replaceAll(
           "var(--#{$prefix}font-monospace)",
           "$font-family-monospace"
         );
-        line = line.replace(/var\(--#\{\$prefix\}(.*)\)/, "$$$1");
+        line = line.replaceAll(
+          "var(--#{$prefix}success-rgb)",
+          "$success"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}danger-rgb)",
+          "$danger"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}body-color-rgb)",
+          "$body-color"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}body-bg-rgb)",
+          "$body-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}emphasis-color-rgb)",
+          "$body-emphasis-color"
+        );
+        line = line.replaceAll(
+          /RGBA?\(var\(--#\{\$prefix\}emphasis-color-rgb,(.*?)\).*?\)/gm,
+          "$body-emphasis-color"
+        );        
+        line = line.replaceAll(
+          "var(--#{$prefix}secondary-color)",
+          "$body-secondary-color"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}secondary-bg)",
+          "$body-secondary-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}tertiary-bg)",
+          "$body-tertiary-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}tertiary-color)",
+          "$body-tertiary-color"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}emphasis-bg)",
+          "$body-emphasis-bg"
+        );
+        line = line.replaceAll(
+          "var(--#{$prefix}emphasis-color)",
+          "$body-emphasis-color"
+        );
+        line = line.replaceAll(
+          "$emphasis-color-rgb", 
+          "$body-emphasis-color"
+        );
+
+        line = line.replaceAll(/var\(--#\{\$prefix\}(.*?)\)/gm, "$$$1");
         outLines.push(line);
       }
       Deno.writeTextFileSync(bootstrapVariablesFile, outLines.join("\n"));
@@ -642,6 +847,34 @@ async function updateBootstrapFromBslib(
       const utilsTo = join(distDir, "sass-utils");
       info(`Copying ${utilsFrom} to ${utilsTo}`);
       copySync(utilsFrom, utilsTo);
+
+      // Copy bslib
+      info("Copying BSLIB scss files");
+      const bslibScssFrom = join(repo.dir, "inst", "bslib-scss");
+      const bslibScssTo = join(bsLibDir, "bslib-scss");
+      info(`Copying ${bslibScssFrom} to ${bslibScssTo}`);
+      Deno.removeSync(bslibScssTo, { recursive: true});
+      copySync(bslibScssFrom, bslibScssTo);
+
+      // Copy componennts
+      info("Copying BSLIB component scss files");
+      const componentFrom = join(repo.dir, "inst", "components", "scss");
+      const componentTo = join(bsLibDir, "components", "scss");
+      info(`Copying ${componentFrom} to ${componentTo}`);
+      copySync(componentFrom, componentTo, {overwrite: true});
+
+      info("Copying BSLIB dist files");
+      const componentDistFrom = join(repo.dir, "inst", "components", "dist");
+      const componentDistTo = join(bsLibDir, "components", "dist");
+      info(`Copying ${componentDistFrom} to ${componentDistTo}`);
+      ensureDirSync(componentDistTo);
+      copySync(componentDistFrom, componentDistTo, {overwrite: true});      
+      // Clean map references
+      for (const entry of walkSync(componentDistTo)) {
+        if (entry.isFile) {
+          cleanSourceMap(entry.path);
+        }
+      }
 
       // Grab the js file that we need
       info("Copying dist files");
@@ -693,6 +926,8 @@ async function updateBootstrapFromBslib(
           Deno.writeTextFileSync(themeOut, patchedScss);
         }
       }
+
+
       info("Done\n");
     }
   );
@@ -971,7 +1206,11 @@ const themePatches: Record<string, ThemePatch[]> = {
     {
       from: ".navbar {\n  @include shadow();",
       to: ".navbar {\n  @include shadow();\n  border-color: shade-color($navbar-bg, 10%);",
-    },
+    }, 
+    {
+      from: "$nav-link-color:                    var(--#{$prefix}link-color) !default;",
+      to: "$nav-link-color:                    $primary !default;"
+    }
   ],
   simplex: [
     {

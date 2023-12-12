@@ -260,11 +260,12 @@ body,
 .page-columns.column-page > * {
   grid-column: page-start / page-end;
 }
-
+.page-columns.column-page-left .page-columns.page-full > *,
 .page-columns.column-page-left > * {
   grid-column: page-start / body-content-end;
 }
 
+.page-columns.column-page-right .page-columns.page-full > *,
 .page-columns.column-page-right > * {
   grid-column: body-content-start / page-end;
 }
@@ -501,7 +502,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-up(lg) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -526,7 +527,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(lg) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-end / page-end !important;
     z-index: $zindex-pagelayout;
@@ -544,7 +545,7 @@ img.img-fluid.column-screen-right {
   .page-columns.toc-left {
     .margin-caption,
     div.aside,
-    aside:not(.footnotes),
+    aside:not(.footnotes):not(.sidebar),
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
@@ -560,7 +561,7 @@ img.img-fluid.column-screen-right {
 @include media-breakpoint-down(md) {
   .margin-caption,
   div.aside,
-  aside:not(.footnotes),
+  aside:not(.footnotes):not(.sidebar),
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
@@ -684,7 +685,7 @@ mark {
 .figure-caption,
 .subfigure-caption,
 .table-caption,
-figcaption.quarto-float-caption,
+figcaption,
 caption {
   font-size: 0.9rem;
   @include body-secondary;
@@ -932,6 +933,12 @@ pre {
   }
 }
 
+p pre code:not(.sourceCode),
+li pre code:not(.sourceCode),
+pre code:not(.sourceCode) {
+  background-color: initial;
+}
+
 // Default padding if background is set
 p code:not(.sourceCode),
 li code:not(.sourceCode),
@@ -1111,26 +1118,34 @@ figure .quarto-notebook-link {
   padding-left: 1em;
 }
 
-.quarto-notebook .cell-container {
-  display: flex;
-}
+.quarto-notebook {
+  h2 {
+    border-bottom: none;
+  }
+  .cell-container {
+    display: flex;
+    .cell {
+      flex-grow: 4;
+    }
+    .cell-decorator {
+      padding-top: 1.5em;
+      padding-right: 1em;
+      text-align: right;
+    }
 
-.quarto-notebook .cell-container .cell {
-  flex-grow: 4;
-}
+    &.code-fold .cell-decorator {
+      padding-top: 3em;
+    }
+  }
+  .cell-code code {
+    white-space: pre-wrap;
+  }
 
-.quarto-notebook .cell-container .cell-decorator {
-  padding-top: 1.5em;
-  padding-right: 1em;
-  text-align: right;
-}
-
-.quarto-notebook .cell-code code {
-  white-space: pre-wrap;
-}
-
-.quarto-notebook h2 {
-  border-bottom: none;
+  .cell .cell-output-stderr pre code,
+  .cell .cell-output-stdout pre code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
 }
 
 .toc-actions,
@@ -1347,7 +1362,6 @@ kbd,
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
-
   overflow-wrap: break-word;
 }
 
@@ -1631,6 +1645,11 @@ div.callout.callout-style-default > .callout-header {
   padding-left: 20px;
 }
 
+.navbar {
+  background-color: $navbar-bg;
+  color: $navbar-fg;
+}
+
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-light-color)}" class="bi bi-toggle-off" viewBox="0 0 16 16"><path d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/></svg>');
 }
@@ -1764,6 +1783,10 @@ nav[role="doc-toc"].slow > * {
     margin-bottom: 0;
   }
 
+  .footnotes ol {
+    margin-left: 0.5em;
+  }
+
   .quarto-appendix-secondary-label {
     margin-bottom: 0.4em;
   }
@@ -1837,7 +1860,7 @@ body.nav-sidebar {
   @include media-breakpoint-down(lg) {
     .quarto-title-banner {
       margin-bottom: 0;
-      padding-bottom: 0;
+      padding-bottom: 1em;
     }
     #title-block-header {
       margin-block-end: 0;
@@ -1987,6 +2010,11 @@ code.sourceCode .code-annotation-anchor {
 
 code.sourceCode button.code-annotation-anchor {
   padding: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
 }
 
 code.sourceCode a.code-annotation-anchor {
@@ -2062,6 +2090,14 @@ code.sourceCode a.code-annotation-anchor {
     border-top-width: 0;
   }
 
+  // This disables new styling taken from boostrap that overrides
+  // table level styling
+  // See https://github.com/quarto-dev/quarto-cli/issues/7566
+  > :not(caption) > * > * {
+    background-color: unset;
+    color: unset;
+  }
+
   > :not(caption) > *:not(:last-child) > * {
     border-bottom-color: $table-group-separator-color-lighter;
     border-bottom-style: solid;
@@ -2080,4 +2116,19 @@ code.sourceCode a.code-annotation-anchor {
 
 .table tbody {
   border-bottom-color: $table-group-separator-color;
+}
+
+// Special Cross Talk Handling
+#quarto-document-content {
+  .crosstalk-input .checkbox input[type="checkbox"],
+  .crosstalk-input .checkbox-inline input[type="checkbox"] {
+    position: unset;
+    margin-top: unset;
+    margin-left: unset;
+  }
+
+  .row {
+    margin-left: unset;
+    margin-right: unset;
+  }
 }

@@ -10,6 +10,10 @@ function render_typst()
   end
 
   return {
+    Meta = function(m)
+      m["toc-depth"] = PANDOC_WRITER_OPTIONS["toc_depth"]
+      return m
+    end,
     Div = function(div)
       if div.classes:includes("block") then
         div.classes = div.classes:filter(function(c) return c ~= "block" end)
@@ -35,20 +39,72 @@ function render_typst()
 end
 
 function render_typst_fixups()
+  local function is_ratio_or_relative(value)
+    if value == nil then
+      return nil
+    end
+    if value:find("%%") then
+      return true
+    end
+  end
+  if not _quarto.format.isTypstOutput() then
+    return {}
+  end
+
   return {
-    Para = function(para)
-      return para:walk({
-        Image = function(image)
-          if image.attributes["width"] == nil and image.attributes["height"] == nil then
-            return nil
-          end
-          return pandoc.Inlines({
-            pandoc.RawInline("typst", "#box(["),
-            image,
-            pandoc.RawInline("typst", "])"),
-          })
+    traverse = "topdown",
+    Image = function(image)
+      -- if the width or height are "ratio" or "relative", in typst parlance,
+      -- then we currently need to hide it from Pandoc 3.1.9 until
+      -- https://github.com/jgm/pandoc/issues/9104 is properly fixed
+      if is_ratio_or_relative(image.attributes["width"]) or is_ratio_or_relative(image.attributes["height"]) then
+        local width = image.attributes["width"]
+        local height = image.attributes["height"]
+        image.attributes["width"] = nil
+        image.attributes["height"] = nil
+        local attr_str = ""
+        if width ~= nil then
+          attr_str = attr_str .. "width: " .. width .. ","
         end
+        if height ~= nil then
+          attr_str = attr_str .. "height: " .. height .. ","
+        end
+        local escaped_src = image.src:gsub("\\", "\\\\"):gsub("\"", "\\\"")
+        return pandoc.RawInline("typst", "#box(" .. attr_str .. "image(\"" .. escaped_src .. "\"))")
+      end
+    end,
+    Para = function(para)
+      if #para.content ~= 1 then
+        return nil
+      end
+      local img = quarto.utils.match("[1]/Image")(para)
+      if not img then 
+        return nil
+      end
+      local align = img.attributes["fig-align"]
+      if align == nil then
+        return nil
+      end
+
+      img.attributes["fig-align"] = nil
+      return pandoc.Inlines({
+        pandoc.RawInline("typst", "#align(" .. align .. ")["),
+        img,
+        pandoc.RawInline("typst", "]"),
       })
+    end,
+    Cite = function(cite)
+      if PANDOC_VERSION <= pandoc.types.Version('3.1.9') then
+        -- Patch for https://github.com/quarto-dev/quarto-cli/issues/7586
+        -- TODO: Remove when Pandoc > 3.1.9 is used https://github.com/jgm/pandoc/issues/9188
+        if PANDOC_WRITER_OPTIONS.extensions:includes("citations") then
+          citations = pandoc.List()
+          for _, citation in pairs(cite.citations) do
+            citations:insert(pandoc.RawInline('typst', "#cite(<" .. citation.id .. ">)"))
+          end
+          return citations
+        end
+      end
     end
   }
 end

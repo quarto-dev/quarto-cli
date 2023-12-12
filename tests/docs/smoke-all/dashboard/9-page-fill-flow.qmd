@@ -1,0 +1,26 @@
+---
+title: Page Fill Flow
+format: 
+  dashboard:
+    scrolling: true
+theme: lux
+---
+
+# Page {scrolling=false}
+
+```{r}
+plot(cars)
+```
+
+# Page 2
+
+```{r}
+plot(cars)
+```
+
+
+{{< lipsum 15 >}}
+
+
+
+

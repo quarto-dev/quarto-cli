@@ -148,6 +148,8 @@ the discussions feature must be enabled. */;
       }; /* The giscus theme to use when displaying comments. */
   };
   hypothesis?: boolean | {
+    "client-url"?:
+      string /* Override the default hypothesis client url with a custom client url. */;
     assetRoot?: string /* The root URL from which assets are loaded. */;
     branding?: {
       accentColor?:
@@ -410,6 +412,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   "bread-crumbs"?:
     boolean /* Whether to show navigation breadcrumbs for pages more than 1 level deep */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
+  "image-alt"?:
+    string /* Default site thumbnail image alt text for `twitter` /`open-graph` */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
     | boolean
@@ -664,6 +668,7 @@ export type FormatLanguage = {
   "search-more-match-text"?: string;
   "search-more-matches-text"?: string;
   "search-clear-button-title"?: string;
+  "search-text-placeholder"?: string;
   "search-detached-cancel-button-title"?: string;
   "search-submit-button-title"?: string;
   "crossref-fig-title"?: string;
@@ -832,10 +837,12 @@ See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-l
 for a list of valid language codes. */;
     type?:
       | "full"
-      | "partial" /* Whether to include full or partial content in the feed.
+      | "partial"
+      | "metadata" /* Whether to include full or partial content in the feed.
 
 - `full` (default): Include the complete content of the document in the feed.
-- `partial`: Include only the first paragraph of the document in the feed. */;
+- `partial`: Include only the first paragraph of the document in the feed.
+- `metadata`: Use only the title, description, and other document metadata in the feed. */;
     title?:
       string; /* The title for this feed. Defaults to the site title provided the Quarto project. */
   } /* Enables an RSS feed for the listing. */;
@@ -879,7 +886,11 @@ export type WebsiteListingContentsObject = {
   title?: string;
 };
 
-export type CslDate = string | MaybeArrayOf<number>;
+export type CslDate = string | MaybeArrayOf<number> | {
+  day?: number /* The day */;
+  month?: number /* The month */;
+  year?: number; /* The year */
+};
 
 export type CslPerson =
   | MaybeArrayOf<string>

@@ -1,6 +1,7 @@
 <% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow || hoverXrefs) { %> 
 <script id = "quarto-html-after-body" type="application/javascript">
 
+
 window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
@@ -52,7 +53,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
     }
   }
-
 
   const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
     const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
@@ -337,6 +337,47 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+  <% if (linkExternalIcon || linkExternalNewwindow) { %>
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
+      <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
+    <% } else if (linkExternalFilter) { %>
+      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
+    <% } else { %>
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    <% } %>
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        <% if (linkExternalNewwindow) { %> 
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+        <% } %>
+
+        
+        <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
+          // external icon, if provided
+          var extIcon = window.document.createElement('i');
+          extIcon.classList.add('bi-<%=linkExternalIcon%>');
+          extIcon.classList.add('quarto-ext-icon');
+          link.parentNode.insertBefore(extIcon, link.nextSibling)
+        <% } else if (linkExternalIcon) { %>
+          // default icon
+          link.classList.add("external");
+        <% } %>
+      }
+    }
+  <% } %>
+
   <% if (tippy) { %>
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
@@ -408,39 +449,30 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     stripColumnClz(note)
 
-    const typesetMath = (el) => {
-      if (window.MathJax) {
-        // MathJax Typeset
-        window.MathJax.typeset([el]);
-      } else if (window.katex) {
-        // KaTeX Render
-        var mathElements = el.getElementsByClassName("math");
-        var macros = [];
-        for (var i = 0; i < mathElements.length; i++) {
-          var texText = mathElements[i].firstChild;
-          if (mathElements[i].tagName == "SPAN") {
-            window.katex.render(texText.data, mathElements[i], {
-              displayMode: mathElements[i].classList.contains('display'),
-              throwOnError: false,
-              macros: macros,
-              fleqn: false
-            });
-          }
-        }
-      }
-    }
-
     if (id === null || id.startsWith('sec-')) {
       // Special case sections, only their first couple elements
       const container = document.createElement("div");
       if (note.children && note.children.length > 2) {
-        for (let i = 0; i < 2; i++) {
-          container.appendChild(note.children[i].cloneNode(true));
+
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
         }
-        typesetMath(container);
+
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
         return container.innerHTML
       } else {
-        typesetMath(note);
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
         return note.innerHTML;
       }
     } else {
@@ -451,8 +483,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (anchorLink) {
         anchorLink.remove();
       }
-
-      typesetMath(note);
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
       return note.innerHTML;
     }
   }
@@ -721,7 +754,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
               options: {
                 flipVariations: false, // true by default
                 allowedAutoPlacements: ['right'],
-                fallbackPlacements: ['right', 'top', 'top-start', 'top-end'],
+                fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
               },
             },
             {
@@ -784,44 +817,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-
-  <% if (linkExternalIcon || linkExternalNewwindow) { %>
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    var mailtoRegex = new RegExp(/^mailto:/);
-    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
-      <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
-    <% } else if (linkExternalFilter) { %>
-      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
-    <% } else { %>
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    <% } %>
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-        <% if (linkExternalNewwindow) { %> 
-          // target, if specified
-          link.setAttribute("target", "_blank");
-        <% } %>
-
-        
-        <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
-          // external icon, if provided
-          var extIcon = window.document.createElement('i');
-          extIcon.classList.add('bi-<%=linkExternalIcon%>');
-          extIcon.classList.add('quarto-ext-icon');
-          link.parentNode.insertBefore(extIcon, link.nextSibling)
-        <% } else if (linkExternalIcon) { %>
-          // default icon
-          link.classList.add("external");
-        <% } %>
-      }
-    }
-  <% } %>
 });
 
 </script>

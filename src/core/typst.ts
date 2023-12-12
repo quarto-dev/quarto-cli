@@ -12,21 +12,57 @@ import { satisfies } from "semver/mod.ts";
 
 import { execProcess } from "./process.ts";
 import { architectureToolsPath } from "./resources.ts";
+import { resourcePath } from "./resources.ts";
 
 export function typstBinaryPath() {
   return Deno.env.get("QUARTO_TYPST") ||
     architectureToolsPath("typst");
 }
 
+function fontPathsArgs(fontPaths?: string[]) {
+  // orders matter and fontPathsQuarto should be first for our template to work
+  const fontPathsQuarto = ["--font-path", resourcePath("formats/typst/fonts")];
+  const fontPathsEnv = Deno.env.get("TYPST_FONT_PATHS");
+  let fontExtrasArgs: string[] = [];
+  if (fontPaths && fontPaths.length > 0) {
+    fontExtrasArgs = fontPaths.map((p) => ["--font-path", p]).flat();
+  } else if (fontPathsEnv) {
+    // Env var is used only if not specified in config by user
+    // to respect Typst behavior where `--font-path` has precedence over env var
+    return fontExtrasArgs = ["--font-path", fontPathsEnv];
+  }
+
+  return fontPathsQuarto.concat(fontExtrasArgs);
+}
+
+export type TypstCompileOptions = {
+  quiet?: boolean;
+  fontPaths?: string[];
+  rootDir?: string;
+};
+
 export async function typstCompile(
   input: string,
   output: string,
-  quiet = false,
+  options: TypstCompileOptions = {},
 ) {
+  const quiet = options.quiet ?? false;
+  const fontPaths = options.fontPaths;
   if (!quiet) {
     typstProgress(input, output);
   }
-  const cmd = [typstBinaryPath(), "compile", input, output];
+  const cmd = [
+    typstBinaryPath(),
+    "compile",
+  ];
+  if (options.rootDir) {
+    cmd.push("--root", options.rootDir);
+  }
+  cmd.push(
+    input,
+    ...fontPathsArgs(fontPaths),
+    output,
+  );
   const result = await execProcess({ cmd });
   if (!quiet && result.success) {
     typstProgressDone();
@@ -58,7 +94,7 @@ export async function validateRequiredTypstVersion() {
   if (Deno.env.get("QUARTO_TYPST")) {
     const version = await typstVersion();
     if (version) {
-      const required = ">=0.5";
+      const required = ">=0.8";
       if (!satisfies(version, required)) {
         error(
           "An updated version of the Typst CLI is required for rendering typst documents.\n",

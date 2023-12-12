@@ -7176,6 +7176,99 @@ try {
             description: "Detect cache dependencies automatically via usage of global variables"
           }
         ],
+        "schema/cell-card.yml": [
+          {
+            name: "title",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Title displayed in dashboard card header"
+            }
+          },
+          {
+            name: "padding",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
+            description: {
+              short: "Padding around dashboard card content (default `8px`)"
+            }
+          },
+          {
+            name: "expandable",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: {
+              short: "Make dashboard card content expandable (default: `true`)"
+            }
+          },
+          {
+            name: "width",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
+            description: {
+              short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+            }
+          },
+          {
+            name: "height",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                "number"
+              ]
+            },
+            description: {
+              short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+            }
+          },
+          {
+            name: "context",
+            tags: {
+              formats: [
+                "dashboard"
+              ],
+              engine: [
+                "jupyter"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Context to execute cell within."
+            }
+          }
+        ],
         "schema/cell-codeoutput.yml": [
           {
             name: "eval",
@@ -7865,7 +7958,7 @@ try {
                 "margin"
               ]
             },
-            default: "inline",
+            default: "bottom",
             description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
           },
           {
@@ -7887,7 +7980,7 @@ try {
                 "margin"
               ]
             },
-            default: "inline",
+            default: "bottom",
             description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
           },
           {
@@ -7909,7 +8002,7 @@ try {
                 "margin"
               ]
             },
-            default: "inline",
+            default: "top",
             description: "Where to place table captions (`top`, `bottom`, or `margin`)"
           }
         ],
@@ -7946,6 +8039,10 @@ try {
               engine: [
                 "knitr",
                 "jupyter"
+              ],
+              formats: [
+                "$pdf-all",
+                "$html-all"
               ]
             },
             schema: {
@@ -7965,6 +8062,15 @@ try {
               short: "Apply explicit table column widths",
               long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than `columns` characters wide (72 by default). \n\nSome formats (e.g. HTML) do an excellent job automatically sizing\ntable columns and so don't benefit much from column width specifications.\nOther formats (e.g. LaTeX) require table column sizes in order to \ncorrectly flow longer cell content (this is a major reason why tables \n> 72 columns wide are assigned explicit widths by Pandoc).\n\nThis can be specified as:\n\n- `auto`: Apply markdown table column widths except when there is a\n  hyperlink in the table (which tends to throw off automatic\n  calculation of column widths based on the markdown text width of cells).\n  (`auto` is the default for HTML output formats)\n\n- `true`: Always apply markdown table widths (`true` is the default\n  for all non-HTML formats)\n\n- `false`: Never apply markdown table widths.\n\n- An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.\n"
             }
+          },
+          {
+            name: "html-table-processing",
+            schema: {
+              enum: [
+                "none"
+              ]
+            },
+            description: "If `none`, do not process raw HTML table in cell output and leave it as-is"
           }
         ],
         "schema/cell-textoutput.yml": [
@@ -8596,6 +8702,11 @@ try {
                           object: {
                             closed: true,
                             properties: {
+                              "client-url": {
+                                string: {
+                                  description: "Override the default hypothesis client url with a custom client url."
+                                }
+                              },
                               openSidebar: {
                                 boolean: {
                                   default: false,
@@ -9675,6 +9786,11 @@ try {
                     description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                   }
                 },
+                "image-alt": {
+                  path: {
+                    description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                  }
+                },
                 comments: {
                   schema: {
                     ref: "comments"
@@ -9723,7 +9839,7 @@ try {
                       "$html-doc"
                     ]
                   },
-                  description: "A list of codes links to appear with this document."
+                  description: "A list of code links to appear with this document."
                 }
               }
             }
@@ -10001,6 +10117,7 @@ try {
                 "search-more-match-text": "string",
                 "search-more-matches-text": "string",
                 "search-clear-button-title": "string",
+                "search-text-placeholder": "string",
                 "search-detached-cancel-button-title": "string",
                 "search-submit-button-title": "string",
                 "crossref-fig-title": "string",
@@ -10215,11 +10332,12 @@ try {
                           type: {
                             enum: [
                               "full",
-                              "partial"
+                              "partial",
+                              "metadata"
                             ],
                             description: {
                               short: "Whether to include full or partial content in the feed.",
-                              long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n"
+                              long: "Whether to include full or partial content in the feed.\n\n- `full` (default): Include the complete content of the document in the feed.\n- `partial`: Include only the first paragraph of the document in the feed.\n- `metadata`: Use only the title, description, and other document metadata in the feed.\n"
                             }
                           },
                           title: {
@@ -10430,6 +10548,27 @@ try {
               "string",
               {
                 maybeArrayOf: "number"
+              },
+              {
+                object: {
+                  properties: {
+                    year: {
+                      number: {
+                        description: "The year"
+                      }
+                    },
+                    month: {
+                      number: {
+                        description: "The month"
+                      }
+                    },
+                    day: {
+                      number: {
+                        description: "The day"
+                      }
+                    }
+                  }
+                }
               }
             ]
           },
@@ -12102,6 +12241,11 @@ try {
                           object: {
                             description: "A custom cross reference type.",
                             closed: true,
+                            required: [
+                              "kind",
+                              "reference-prefix",
+                              "key"
+                            ],
                             properties: {
                               kind: {
                                 enum: [
@@ -12109,30 +12253,50 @@ try {
                                 ],
                                 description: 'The kind of cross reference (currently only "float" is supported).'
                               },
-                              prefix: {
+                              "reference-prefix": {
                                 string: {
-                                  description: "The prefix used in rendered citations when referencing this type."
+                                  description: "The prefix used in rendered references when referencing this type."
                                 }
                               },
-                              name: {
+                              "caption-prefix": {
                                 string: {
-                                  description: "The prefix used in captions when referencing this type."
+                                  description: "The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used."
                                 }
                               },
-                              "ref-type": {
+                              "space-before-numbering": {
+                                default: true,
+                                boolean: {
+                                  description: "If false, use no space between crossref prefixes and numbering."
+                                }
+                              },
+                              key: {
                                 string: {
-                                  description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                                  description: 'The key used to prefix reference labels of this type, such as "fig", "tbl", "lst", etc.'
                                 }
                               },
                               "latex-env": {
                                 string: {
-                                  description: "The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output."
+                                  description: "In LaTeX output, the name of the custom environment to be used."
                                 }
                               },
-                              "latex-list-of-name": {
+                              "latex-list-of-file-extension": {
                                 string: {
-                                  description: 'The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.'
+                                  description: 'In LaTeX output, the extension of the auxiliary file used by LaTeX to collect names to be used in the custom "list of" command. If omitted, a string with prefix `lo` and suffix with the value of `ref-type` is used.'
                                 }
+                              },
+                              "latex-list-of-description": {
+                                string: {
+                                  description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If omitted, the field `reference-prefix` is used.'
+                                }
+                              },
+                              "caption-location": {
+                                enum: [
+                                  "top",
+                                  "bottom",
+                                  "margin"
+                                ],
+                                default: "bottom",
+                                description: "The location of the caption relative to the crossreferenceable content."
                               }
                             }
                           }
@@ -12381,6 +12545,84 @@ try {
             },
             default: true,
             description: "Enables a hover popup for cross references that shows the item being referenced."
+          }
+        ],
+        "schema/document-dashboard.yml": [
+          {
+            name: "logo",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "path",
+            description: "Logo image (placed on the left side of the navigation bar)"
+          },
+          {
+            name: "orientation",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              enum: [
+                "rows",
+                "columns"
+              ]
+            },
+            description: "Default orientation for dashboard content (default `rows`)"
+          },
+          {
+            name: "scrolling",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "boolean",
+            default: false,
+            description: "Use scrolling rather than fill layout (default: `false`)"
+          },
+          {
+            name: "expandable",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: "boolean",
+            default: true,
+            description: "Make card content expandable (default: `true`)"
+          },
+          {
+            name: "nav-buttons",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              maybeArrayOf: {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      properties: {
+                        text: "string",
+                        href: "string",
+                        icon: "string",
+                        rel: "string",
+                        target: "string",
+                        title: "string",
+                        "aria-label": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            description: "Links to display on the dashboard navigation bar"
           }
         ],
         "schema/document-editor.yml": [
@@ -13242,6 +13484,21 @@ try {
             description: {
               short: "The math font options for use with `xelatex` or `lualatex`.",
               long: "The math font options for use with `xelatex` or `lualatex` allowing\nany options available through [`fontspec`](https://ctan.org/pkg/fontspec).\n"
+            }
+          },
+          {
+            name: "font-paths",
+            schema: {
+              maybeArrayOf: "string"
+            },
+            tags: {
+              formats: [
+                "typst"
+              ]
+            },
+            description: {
+              short: "Adds additional directories to search for fonts when compiling with Typst.",
+              long: "Locally, Typst uses installed system fonts. In addition, some custom path \ncan be specified to add directories that should be scanned for fonts.\nSetting this configuration will take precedence over any path set in TYPST_FONT_PATHS environment variable.\n"
             }
           },
           {
@@ -14677,6 +14934,76 @@ try {
             description: "The base url for Slideous presentations."
           }
         ],
+        "schema/document-lightbox.yml": [
+          {
+            name: "lightbox",
+            schema: {
+              anyOf: [
+                "boolean",
+                {
+                  enum: [
+                    "auto"
+                  ]
+                },
+                {
+                  object: {
+                    closed: true,
+                    properties: {
+                      match: {
+                        schema: {
+                          enum: [
+                            "auto"
+                          ]
+                        },
+                        description: {
+                          short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
+                          long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
+                        }
+                      },
+                      effect: {
+                        schema: {
+                          enum: [
+                            "fade",
+                            "zoom",
+                            "none"
+                          ]
+                        },
+                        description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
+                      },
+                      "desc-position": {
+                        schema: {
+                          enum: [
+                            "top",
+                            "bottom",
+                            "left",
+                            "right"
+                          ]
+                        },
+                        description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
+                      },
+                      loop: {
+                        boolean: {
+                          description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
+                        }
+                      },
+                      "css-class": {
+                        string: {
+                          description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            description: "Enable or disable lightbox treatment for images in this document."
+          }
+        ],
         "schema/document-links.yml": [
           {
             name: "link-external-icon",
@@ -14733,18 +15060,48 @@ try {
                           properties: {
                             text: {
                               string: {
-                                description: "The title for this alternative link."
+                                description: "The title for the link."
                               }
                             },
                             href: {
                               string: {
-                                description: "The href for tihs alternative link."
+                                description: "The href for the link."
+                              }
+                            },
+                            icon: {
+                              string: {
+                                description: "The icon for the link."
                               }
                             }
                           },
                           required: [
-                            "title",
+                            "text",
                             "href"
+                          ]
+                        }
+                      },
+                      {
+                        object: {
+                          properties: {
+                            format: {
+                              string: {
+                                description: "The format that this link represents."
+                              }
+                            },
+                            text: {
+                              string: {
+                                description: "The title for this link."
+                              }
+                            },
+                            icon: {
+                              string: {
+                                description: "The icon for this link."
+                              }
+                            }
+                          },
+                          required: [
+                            "text",
+                            "format"
                           ]
                         }
                       }
@@ -14895,6 +15252,24 @@ try {
               }
             },
             description: "Options for controlling the display and behavior of Notebook previews."
+          },
+          {
+            name: "canonical-url",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "boolean",
+                "string"
+              ]
+            },
+            description: {
+              short: "Include a canonical link tag in website pages",
+              long: "Include a canonical link tag in website pages. You may pass either `true` to \nautomatically generate a canonical link, or pass a canonical url that you'd like\nto have placed in the `href` attribute of the tag.\n\nCanonical links can only be generated for websites with a known `site-url`.\n"
+            }
           }
         ],
         "schema/document-listing.yml": [
@@ -15289,7 +15664,8 @@ try {
               formats: [
                 "$html-doc",
                 "revealjs",
-                "beamer"
+                "beamer",
+                "dashboard"
               ]
             },
             schema: {
@@ -15482,20 +15858,18 @@ try {
               ]
             },
             schema: {
-              string: {
-                completions: [
-                  "pdflatex",
-                  "lualatex",
-                  "xelatex",
-                  "latexmk",
-                  "tectonic",
-                  "wkhtmltopdf",
-                  "weasyprint",
-                  "prince",
-                  "context",
-                  "pdfroff"
-                ]
-              }
+              enum: [
+                "pdflatex",
+                "lualatex",
+                "xelatex",
+                "latexmk",
+                "tectonic",
+                "wkhtmltopdf",
+                "weasyprint",
+                "prince",
+                "context",
+                "pdfroff"
+              ]
             },
             description: {
               short: "Use the specified engine when producing PDF output.",
@@ -15522,7 +15896,7 @@ try {
             schema: "boolean",
             tags: {
               formats: [
-                "beamer"
+                "pdf"
               ]
             },
             description: "Whether to produce a Beamer article from this presentation."
@@ -15567,7 +15941,7 @@ try {
                 "beamer"
               ]
             },
-            description: "The logo image for slides."
+            description: "The logo image."
           },
           {
             name: "titlegraphic",
@@ -16049,6 +16423,7 @@ try {
             },
             schema: "boolean",
             default: false,
+            hidden: true,
             description: {
               short: "Produce a standalone HTML file with no external dependencies",
               long: "Produce a standalone HTML file with no external dependencies. Note that\nthis option has been deprecated in favor of `embed-resources`.\n"
@@ -16117,6 +16492,26 @@ try {
             description: "Filters to pre-process ipynb files before rendering to markdown"
           },
           {
+            name: "ipynb-shell-interactivity",
+            schema: {
+              enum: [
+                null,
+                "all",
+                "last",
+                "last_expr",
+                "none",
+                "last_expr_or_assign"
+              ]
+            },
+            tags: {
+              contexts: [
+                "document-execute"
+              ],
+              engine: "jupyter"
+            },
+            description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
+          },
+          {
             name: "keep-typ",
             tags: {
               formats: [
@@ -16181,6 +16576,15 @@ try {
               short: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa.\n",
               long: "Specify the default dpi (dots per inch) value for conversion from pixels to inch/\ncentimeters and vice versa. (Technically, the correct term would be ppi: pixels per\ninch.) The default is `96`. When images contain information about dpi internally, the\nencoded value is used instead of the default specified by this option.\n"
             }
+          },
+          {
+            name: "html-table-processing",
+            schema: {
+              enum: [
+                "none"
+              ]
+            },
+            description: "If `none`, do not process tables in HTML input."
           }
         ],
         "schema/document-reveal-content.yml": [
@@ -16429,6 +16833,17 @@ try {
             schema: "boolean",
             default: false,
             description: "Disables the default reveal.js slide layout (scaling and centering)\n"
+          },
+          {
+            name: "code-block-height",
+            tags: {
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: "string",
+            default: "500px",
+            description: "Sets the maximum height for source code blocks that appear in the presentation.\n"
           }
         ],
         "schema/document-reveal-media.yml": [
@@ -16901,7 +17316,7 @@ try {
             schema: "number",
             description: {
               short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-              long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+              long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
             }
           },
           {
@@ -17634,8 +18049,8 @@ try {
               ]
             },
             description: {
-              short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-              long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+              short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+              long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
             }
           },
           {
@@ -17746,7 +18161,12 @@ try {
           },
           {
             name: "image",
-            schema: "path",
+            schema: {
+              anyOf: [
+                "path",
+                "boolean"
+              ]
+            },
             tags: {
               formats: [
                 "$html-doc"
@@ -17882,7 +18302,8 @@ try {
             ],
             "html-files": [
               "$html-doc",
-              "$html-pres"
+              "$html-pres",
+              "dashboard"
             ],
             "html-all": [
               "$html-files",
@@ -17963,7 +18384,8 @@ try {
               "typst",
               "xwiki",
               "zimwiki",
-              "md"
+              "md",
+              "dashboard"
             ]
           }
         },
@@ -17971,6 +18393,9 @@ try {
           cell: {
             attributes: {
               title: "Attributes"
+            },
+            card: {
+              title: "Card"
             },
             codeoutput: {
               title: "Code Output"
@@ -18000,6 +18425,9 @@ try {
           document: {
             attributes: {
               title: "Title & Author"
+            },
+            dashboard: {
+              title: "Dashboard"
             },
             options: {
               title: "Format Options"
@@ -18920,6 +19348,7 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
+          "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
           "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
@@ -19465,6 +19894,9 @@ try {
           },
           "Items with matching field values will be included in the listing.",
           "Items with matching field values will be excluded from the\nlisting.",
+          "The year",
+          "The month",
+          "The day",
           "The family name.",
           "The given name.",
           "The family name.",
@@ -20009,6 +20441,30 @@ try {
           "Explicitly specify cache dependencies for this chunk (one or more\nchunk labels)",
           "Detect cache dependencies automatically via usage of global\nvariables",
           {
+            short: "Title displayed in dashboard card header",
+            long: ""
+          },
+          {
+            short: "Padding around dashboard card content (default <code>8px</code>)",
+            long: ""
+          },
+          {
+            short: "Make dashboard card content expandable (default:\n<code>true</code>)",
+            long: ""
+          },
+          {
+            short: "Percentage or absolute pixel width for dashboard card (defaults to\nevenly spaced across row)",
+            long: ""
+          },
+          {
+            short: "Percentage or absolute pixel height for dashboard card (defaults to\nevenly spaced across column)",
+            long: ""
+          },
+          {
+            short: "Context to execute cell within.",
+            long: ""
+          },
+          {
             short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
             long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
           },
@@ -20121,6 +20577,7 @@ try {
             short: "Apply explicit table column widths",
             long: "Apply explicit table column widths for markdown grid tables and pipe\ntables that are more than <code>columns</code> characters wide (72 by\ndefault).\nSome formats (e.g.&nbsp;HTML) do an excellent job automatically sizing\ntable columns and so don\u2019t benefit much from column width\nspecifications. Other formats (e.g.&nbsp;LaTeX) require table column sizes in\norder to correctly flow longer cell content (this is a major reason why\ntables &gt; 72 columns wide are assigned explicit widths by Pandoc).\nThis can be specified as:"
           },
+          "If <code>none</code>, do not process raw HTML table in cell output\nand leave it as-is",
           {
             short: "Include the results of executing the code in the output (specify\n<code>asis</code> to treat output as raw markdown with no enclosing\ncontainers).",
             long: "Include the results of executing the code in the output. Possible\nvalues:"
@@ -20254,11 +20711,14 @@ try {
           "Configuration for crossref labels and prefixes.",
           "A custom cross reference type.",
           "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
-          "The prefix used in rendered citations when referencing this type.",
-          "The prefix used in captions when referencing this type.",
-          "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
-          "The name of the custom LaTeX environment that quarto will use to\ncreate this type of crossreferenceable object in LaTeX output.",
-          "The name of the custom LaTeX \u201Clist of\u201D command that quarto will use\nto create this type of crossreferenceable object in LaTeX output.",
+          "The prefix used in rendered references when referencing this\ntype.",
+          "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
+          "If false, use no space between crossref prefixes and numbering.",
+          "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
+          "In LaTeX output, the name of the custom environment to be used.",
+          "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
+          "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
+          "The location of the caption relative to the crossreferenceable\ncontent.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
           "The title prefix used for figure captions.",
@@ -20308,6 +20768,11 @@ try {
           "The title used for appendix.",
           "The delimiter beween appendix number and title.",
           "Enables a hover popup for cross references that shows the item being\nreferenced.",
+          "Logo image (placed on the left side of the navigation bar)",
+          "Default orientation for dashboard content (default\n<code>rows</code>)",
+          "Use scrolling rather than fill layout (default:\n<code>false</code>)",
+          "Make card content expandable (default: <code>true</code>)",
+          "Links to display on the dashboard navigation bar",
           "Visual editor configuration",
           "Default editing mode for document",
           "Markdown writing options for visual editor",
@@ -20455,6 +20920,10 @@ try {
           {
             short: "The math font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
             long: 'The math font options for use with <code>xelatex</code> or\n<code>lualatex</code> allowing any options available through <a href="https://ctan.org/pkg/fontspec"><code>fontspec</code></a>.'
+          },
+          {
+            short: "Adds additional directories to search for fonts when compiling with\nTypst.",
+            long: "Locally, Typst uses installed system fonts. In addition, some custom\npath can be specified to add directories that should be scanned for\nfonts. Setting this configuration will take precedence over any path set\nin TYPST_FONT_PATHS environment variable."
           },
           {
             short: "The CJK font options for use with <code>xelatex</code> or\n<code>lualatex</code>.",
@@ -20785,6 +21254,15 @@ try {
           "The base url for s5 presentations.",
           "The base url for Slidy presentations.",
           "The base url for Slideous presentations.",
+          "Enable or disable lightbox treatment for images in this document.",
+          {
+            short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
+            long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
+          },
+          "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
+          "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
+          "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
+          "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
           "Show a special icon next to links that leave the current site.",
           "Open external links in a new browser window or tab (rather than\nnavigating the current tab).",
           {
@@ -20795,10 +21273,18 @@ try {
             short: "Controls whether links to other rendered formats are displayed in\nHTML output.",
             long: "Controls whether links to other rendered formats are displayed in\nHTML output.\nPass <code>false</code> to disable the display of format lengths or\npass a list of format names for which you\u2019d like links to be shown."
           },
-          "The title for this alternative link.",
-          "The href for tihs alternative link.",
-          "The title for this alternative link.",
-          "The href for tihs alternative link.",
+          "The title for the link.",
+          "The href for the link.",
+          "The icon for the link.",
+          "The format that this link represents.",
+          "The title for this link.",
+          "The icon for this link.",
+          "The title for the link.",
+          "The href for the link.",
+          "The icon for the link.",
+          "The format that this link represents.",
+          "The title for this link.",
+          "The icon for this link.",
           {
             short: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.",
             long: "Controls the display of links to notebooks that provided embedded\ncontent or are created from documents.\nSpecify <code>false</code> to disable linking to source Notebooks.\nSpecify <code>inline</code> to show links to source notebooks beneath\nthe content they provide. Specify <code>global</code> to show a set of\nglobal links to source notebooks."
@@ -20813,6 +21299,10 @@ try {
           "The style of document to render. Setting this to\n<code>notebook</code> will create additional notebook style\naffordances.",
           "Options for controlling the display and behavior of Notebook\npreviews.",
           "Whether to show a back button in the notebook preview.",
+          {
+            short: "Include a canonical link tag in website pages",
+            long: "Include a canonical link tag in website pages. You may pass either\n<code>true</code> to automatically generate a canonical link, or pass a\ncanonical url that you\u2019d like to have placed in the <code>href</code>\nattribute of the tag.\nCanonical links can only be generated for websites with a known\n<code>site-url</code>."
+          },
           "Automatically generate the contents of a page from a list of Quarto\ndocuments or other custom data.",
           "Mermaid diagram options",
           "The mermaid built-in theme to use.",
@@ -20905,7 +21395,7 @@ try {
           "Whether to produce a Beamer article from this presentation.",
           "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
           "The aspect ratio for this presentation.",
-          "The logo image for slides.",
+          "The logo image.",
           "The image for the title slide.",
           "Controls navigation symbols for the presentation (<code>empty</code>,\n<code>frame</code>, <code>vertical</code>, or\n<code>horizontal</code>)",
           "Whether to enable title pages for new sections.",
@@ -21000,6 +21490,7 @@ try {
           "Keep the markdown file generated by executing code",
           "Keep the notebook file generated from executing code.",
           "Filters to pre-process ipynb files before rendering to markdown",
+          "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
           "Keep the intermediate typst file used during render.",
           "Keep the intermediate tex file used during render.",
           {
@@ -21019,6 +21510,7 @@ try {
             short: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa.",
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
+          "If <code>none</code>, do not process tables in HTML input.",
           "Logo image (placed in bottom right corner of slides)",
           {
             short: "Footer to include on all slides",
@@ -21058,6 +21550,7 @@ try {
           "Bounds for largest possible scale to apply to content",
           "Vertical centering of slides",
           "Disables the default reveal.js slide layout (scaling and\ncentering)",
+          "Sets the maximum height for source code blocks that appear in the\npresentation.",
           {
             short: "Open links in an iframe preview overlay (<code>true</code>,\n<code>false</code>, or <code>auto</code>)",
             long: "Open links in an iframe preview overlay."
@@ -21565,15 +22058,6 @@ try {
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
           "internal-schema-hack",
-          "Enable or disable lightbox treatment for images in this document.",
-          {
-            short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
-            long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
-          },
-          "The effect that should be used when opening and closing the lightbox.\nOne of <code>fade</code>, <code>zoom</code>, <code>none</code>. Defaults\nto <code>zoom</code>.",
-          "The position of the title and description when displaying a lightbox.\nOne of <code>top</code>, <code>bottom</code>, <code>left</code>,\n<code>right</code>. Defaults to <code>bottom</code>.",
-          "Whether galleries should \u2018loop\u2019 to first image in the gallery if the\nuser continues past the last image of the gallery. Boolean that defaults\nto <code>true</code>.",
-          "A class name to apply to the lightbox to allow css targeting. This\nwill replace the lightbox class with your custom class name.",
           "Project configuration.",
           "Project type (<code>default</code>, <code>website</code>,\n<code>book</code>, or <code>manuscript</code>)",
           "Files to render (defaults to all files)",
@@ -22112,12 +22596,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 167874,
+          _internalId: 180643,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 167866,
+              _internalId: 180635,
               type: "enum",
               enum: [
                 "png",
@@ -22133,7 +22617,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 167873,
+              _internalId: 180642,
               type: "anyOf",
               anyOf: [
                 {
@@ -22173,80 +22657,40 @@ try {
             "case-detection": true
           },
           $id: "handlers/mermaid"
-        },
-        "schema/document-lightbox.yml": [
-          {
-            name: "lightbox",
-            schema: {
-              anyOf: [
-                "boolean",
-                {
-                  enum: [
-                    "auto"
-                  ]
-                },
-                {
-                  object: {
-                    closed: true,
-                    properties: {
-                      match: {
-                        schema: {
-                          enum: [
-                            "auto"
-                          ]
-                        },
-                        description: {
-                          short: "Set this to `auto` if you'd like any image to be given lightbox treatment.",
-                          long: "Set this to `auto` if you'd like any image to be given lightbox treatment. If you omit this, only images with the class `lightbox` will be given the lightbox treatment.\n"
-                        }
-                      },
-                      effect: {
-                        schema: {
-                          enum: [
-                            "fade",
-                            "zoom",
-                            "none"
-                          ]
-                        },
-                        description: "The effect that should be used when opening and closing the lightbox. One of `fade`, `zoom`, `none`. Defaults to `zoom`."
-                      },
-                      "desc-position": {
-                        schema: {
-                          enum: [
-                            "top",
-                            "bottom",
-                            "left",
-                            "right"
-                          ]
-                        },
-                        description: "The position of the title and description when displaying a lightbox. One of `top`, `bottom`, `left`, `right`. Defaults to `bottom`."
-                      },
-                      loop: {
-                        boolean: {
-                          description: "Whether galleries should 'loop' to first image in the gallery if the user continues past the last image of the gallery. Boolean that defaults to `true`."
-                        }
-                      },
-                      "css-class": {
-                        string: {
-                          description: "A class name to apply to the lightbox to allow css targeting. This will replace the lightbox class with your custom class name."
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            },
-            tags: {
-              formats: [
-                "$html-doc"
-              ]
-            },
-            description: "Enable or disable lightbox treatment for images in this document."
-          }
-        ]
+        }
       };
     }
   });
+
+  // ../error.ts
+  var InternalError = class extends Error {
+    constructor(message, printName = true, printStack = true) {
+      super(message);
+      this.name = "Internal Error";
+      this.printName = printName;
+      this.printStack = printStack;
+    }
+    printName;
+    printStack;
+  };
+  var UnreachableError = class extends InternalError {
+    constructor() {
+      super("Unreachable code was reached.", true, true);
+    }
+  };
+
+  // web-worker-manager.ts
+  function workerCallback(calls) {
+    return async function(e) {
+      const { callName, args, id } = e.data;
+      try {
+        const result = await calls[callName](...args);
+        postMessage({ result, id });
+      } catch (e2) {
+        postMessage({ exception: e2, id });
+      }
+    };
+  }
 
   // ../binary-search.ts
   function glb(array, value, compare) {
@@ -22283,64 +22727,6 @@ try {
       }
     }
     return left;
-  }
-
-  // ../ranged-text.ts
-  function matchAll(str2, regex) {
-    let match;
-    regex = new RegExp(regex);
-    const result = [];
-    while ((match = regex.exec(str2)) != null) {
-      result.push(match);
-    }
-    return result;
-  }
-  function rangedLines(text, includeNewLines = false) {
-    const regex = /\r?\n/g;
-    const result = [];
-    let startOffset = 0;
-    if (!includeNewLines) {
-      for (const r of matchAll(text, regex)) {
-        result.push({
-          substring: text.substring(startOffset, r.index),
-          range: {
-            start: startOffset,
-            end: r.index
-          }
-        });
-        startOffset = r.index + r[0].length;
-      }
-      result.push({
-        substring: text.substring(startOffset, text.length),
-        range: {
-          start: startOffset,
-          end: text.length
-        }
-      });
-      return result;
-    } else {
-      const matches = matchAll(text, regex);
-      let prevOffset = 0;
-      for (const r of matches) {
-        const stringEnd = r.index + r[0].length;
-        result.push({
-          substring: text.substring(prevOffset, stringEnd),
-          range: {
-            start: prevOffset,
-            end: stringEnd
-          }
-        });
-        prevOffset = stringEnd;
-      }
-      result.push({
-        substring: text.substring(prevOffset, text.length),
-        range: {
-          start: prevOffset,
-          end: text.length
-        }
-      });
-      return result;
-    }
   }
 
   // ../external/colors.ts
@@ -22446,7 +22832,7 @@ ${heading}`;
   function lines(text) {
     return text.split(/\r?\n/);
   }
-  function* matchAll2(text, regexp) {
+  function* matchAll(text, regexp) {
     if (!regexp.global) {
       throw new Error("matchAll requires global regexps");
     }
@@ -22457,7 +22843,7 @@ ${heading}`;
   }
   function* lineOffsets(text) {
     yield 0;
-    for (const match of matchAll2(text, /\r?\n/g)) {
+    for (const match of matchAll(text, /\r?\n/g)) {
       yield match.index + match[0].length;
     }
   }
@@ -22632,6 +23018,64 @@ ${heading}`;
     );
   }
 
+  // ../ranged-text.ts
+  function matchAll2(str2, regex) {
+    let match;
+    regex = new RegExp(regex);
+    const result = [];
+    while ((match = regex.exec(str2)) != null) {
+      result.push(match);
+    }
+    return result;
+  }
+  function rangedLines(text, includeNewLines = false) {
+    const regex = /\r?\n/g;
+    const result = [];
+    let startOffset = 0;
+    if (!includeNewLines) {
+      for (const r of matchAll2(text, regex)) {
+        result.push({
+          substring: text.substring(startOffset, r.index),
+          range: {
+            start: startOffset,
+            end: r.index
+          }
+        });
+        startOffset = r.index + r[0].length;
+      }
+      result.push({
+        substring: text.substring(startOffset, text.length),
+        range: {
+          start: startOffset,
+          end: text.length
+        }
+      });
+      return result;
+    } else {
+      const matches = matchAll2(text, regex);
+      let prevOffset = 0;
+      for (const r of matches) {
+        const stringEnd = r.index + r[0].length;
+        result.push({
+          substring: text.substring(prevOffset, stringEnd),
+          range: {
+            start: prevOffset,
+            end: stringEnd
+          }
+        });
+        prevOffset = stringEnd;
+      }
+      result.push({
+        substring: text.substring(prevOffset, text.length),
+        range: {
+          start: prevOffset,
+          end: text.length
+        }
+      });
+      return result;
+    }
+  }
+
   // ../mapped-text.ts
   function mappedSubstring(source, start, end) {
     if (typeof source === "string") {
@@ -22641,6 +23085,7 @@ ${heading}`;
     const mappedSource2 = source;
     return {
       value,
+      fileName: mappedSource2.fileName,
       map: (index, closest) => {
         if (closest) {
           index = Math.max(0, Math.min(value.length, index - 1));
@@ -22752,36 +23197,6 @@ ${heading}`;
   function mappedLines(str2, keepNewLines = false) {
     const lines2 = rangedLines(str2.value, keepNewLines);
     return lines2.map((v) => mappedString(str2, [v.range]));
-  }
-
-  // ../error.ts
-  var InternalError = class extends Error {
-    constructor(message, printName = true, printStack = true) {
-      super(message);
-      this.name = "Internal Error";
-      this.printName = printName;
-      this.printStack = printStack;
-    }
-    printName;
-    printStack;
-  };
-  var UnreachableError = class extends InternalError {
-    constructor() {
-      super("Unreachable code was reached.", true, true);
-    }
-  };
-
-  // web-worker-manager.ts
-  function workerCallback(calls) {
-    return async function(e) {
-      const { callName, args, id } = e.data;
-      try {
-        const result = await calls[callName](...args);
-        postMessage({ result, id });
-      } catch (e2) {
-        postMessage({ exception: e2, id });
-      }
-    };
   }
 
   // parsing.ts
@@ -25807,7 +26222,7 @@ ${heading}`;
     if (other) {
       return other(s);
     }
-    throw new InternalError(`Dispatch failed for type ${st}`);
+    throw new Error(`Internal Error: Dispatch failed for type ${st}`);
   }
   function schemaDocString(d) {
     if (typeof d === "string") {
@@ -31377,10 +31792,22 @@ ${tidyverseInfo(
   }
 
   // ../parse-shortcode.ts
-  function isBlockShortcode(content) {
+  var InvalidShortcodeError = class extends Error {
+    constructor(msg) {
+      super(msg);
+    }
+  };
+  function isBlockShortcode(content, lenient) {
     const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
     if (m) {
-      return parseShortcode(m[1]);
+      try {
+        return parseShortcode(m[1]);
+      } catch (_e) {
+        if (lenient) {
+          return false;
+        }
+        throw _e;
+      }
     }
   }
   function parseShortcodeCapture(capture) {
@@ -31430,14 +31857,14 @@ ${tidyverseInfo(
         paramStr = paramStr.slice(paramMatch[0].length).trim();
         continue;
       }
-      throw new Error("invalid shortcode: " + capture);
+      throw new InvalidShortcodeError("invalid shortcode: " + capture);
     }
     return { name, params, namedParams, rawParams };
   }
   function parseShortcode(shortCodeCapture) {
     const result = parseShortcodeCapture(shortCodeCapture);
     if (!result) {
-      throw new Error("invalid shortcode: " + shortCodeCapture);
+      throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
     }
     return result;
   }
@@ -31447,6 +31874,7 @@ ${tidyverseInfo(
     if (typeof src === "string") {
       src = asMappedString(src);
     }
+    const fileName = src.fileName;
     const nb = {
       cells: []
     };
@@ -31468,7 +31896,11 @@ ${tidyverseInfo(
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
         }
-        const source = mappedString(src, mappedChunks);
+        const source = mappedString(
+          src,
+          mappedChunks,
+          fileName
+        );
         const makeCellType = () => {
           if (cell_type === "code") {
             return { language };
@@ -31520,11 +31952,11 @@ ${tidyverseInfo(
             codeStartRange.range,
             ...mappedChunks,
             codeEndRange.range
-          ]);
+          ], fileName);
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
         } else if (cell_type === "directive") {
-          cell.source = mappedString(src, mappedChunks.slice(1, -1));
+          cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
         if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
           nb.cells.push(cell);
@@ -31547,7 +31979,7 @@ ${tidyverseInfo(
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
-      const directiveMatch = isBlockShortcode(line.substring);
+      const directiveMatch = isBlockShortcode(line.substring, true);
       if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
         if (inYaml) {
           lineBuffer.push(line);
@@ -31676,8 +32108,12 @@ ${tidyverseInfo(
     const formatSchemaDescriptorList = (await pandocFormatsResource()).concat(
       "md",
       // alias for 'commonmark'
-      "hugo"
+      "hugo",
       // tolerage for compatibility: initially built-in, now referrred to as 'hugo-md'
+      "dashboard",
+      // our built in format for dashboards
+      "email"
+      // for the HTML email format (used with Posit Connect)
     ).map(
       (format) => {
         const {
@@ -32061,6 +32497,8 @@ ${tidyverseInfo(
       });
       return rawCompletions;
     };
+    const trimEnd = line.trimEnd();
+    const trimEndCorrection = position.column - 1 >= trimEnd.length ? line.length - trimEnd.length : 0;
     for (const parseResult of attemptParsesAtLine(context, parser)) {
       const {
         parse: tree,
@@ -32081,7 +32519,7 @@ ${tidyverseInfo(
         }
         const index = lineColToIndex(mappedCode.value)({
           line: position.row,
-          column: position.column - deletions
+          column: position.column - deletions - trimEndCorrection
         });
         let { withError: locateFailed, value: maybePath } = locateCursor(
           doc,
@@ -32387,6 +32825,11 @@ ${tidyverseInfo(
       completions2 = completions2.filter((c) => c.type === completionPosition);
     }
     completions2 = uniqBy(completions2, (completion) => completion.value);
+    if (context.line[context.position.column - 1] === ":") {
+      for (const completion of completions2) {
+        completion.value = " " + completion.value;
+      }
+    }
     return {
       // token to replace
       token: word,
@@ -32418,6 +32861,7 @@ ${tidyverseInfo(
       return size;
     };
     if (kind === "completions") {
+      debugger;
       let foundCell = void 0;
       for (const cell of result.cells) {
         const size = lines((cell.sourceWithYaml || cell.source).value).length;

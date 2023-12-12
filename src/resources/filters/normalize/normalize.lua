@@ -20,11 +20,20 @@ local authors = require 'modules/authors'
 local license = require 'modules/license'
 local shortcode_ast = require 'modules/astshortcode'
 
+local function stripNotes(el) 
+  local result = _quarto.ast.walk(el, {
+    Note = function(_el)
+      return pandoc.Null()
+    end
+  })
+  return result
+end
+
 function normalize_filter() 
   return {
     Meta = function(meta)
       -- normalizes the author/affiliation metadata
-      local normalized = authors.processAuthorMeta(meta)
+      local normalized = authors.processAuthorMeta(meta) or meta
 
       -- normalizes the citation metadata
       normalized = processCitationMeta(normalized)
@@ -50,6 +59,22 @@ function normalize_filter()
       normalized = shortcode_ast.parse(normalized)
 
       return normalized
+    end,
+    Div = function(div)
+      -- Don't allow footnotes in the hidden element (markdown pipeline)
+      -- since that will result in duplicate footnotes
+      -- in the rendered output
+      if div.classes:includes('hidden') then
+        return stripNotes(div)
+      end
+    end,
+    Span = function(span)
+      -- Don't allow footnotes in the hidden element (markdown pipeline)
+      -- since that will result in duplicate footnotes
+      -- in the rendered output      
+      if span.classes:includes('hidden') then
+        return stripNotes(span)
+      end
     end
   }
 end

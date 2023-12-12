@@ -14,55 +14,74 @@ on:
         required: false
         type: boolean
         default: true
-      draft:
-        description: "Draft"
-        required: false
-        type: boolean
-        default: false
+
+concurrency:
+  # make publishing release concurrent (but others trigger not)
+  group: building-releases-${{ inputs.publish-release && 'prerelease' || github.run_id }}
 
 jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number}}
-      version_base: ${{steps.config.outputs.version}}
-      tag_name: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
-      release: v${{steps.config.outputs.version}}.${{ steps.config.outputs.build_number }}
-      changes: ${{ steps.config.outputs.changes }}
+      version: ${{ steps.read-version.outputs.version_full }}
+      version_base: ${{ steps.read-version.outputs.version }}
+      tag_name: v${{ steps.read-version.outputs.version_full }}
+      version_commit: ${{ steps.version_commit.outputs.commit_long_sha }}
+      pushed: ${{ steps.version_commit.outputs.pushed }}
+      tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - name: Install libc6-div
-        run: sudo apt-get install libc6-dev
-
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: config
-        id: config
+      - name: Get previous version
+        id: read-version
         run: |
           source ./configuration
-
-          CHANGES=
-          # CHANGES=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
-          # Escape \n, \r to preserve multiline variable
-          # See https://github.community/t/set-output-truncates-multiline-strings/16852/2
-          # CHANGES="${CHANGES//'%'/'%25'}"
-          # CHANGES="${CHANGES//$'\n'/'%0A'}"
-          # CHANGES="${CHANGES//$'\r'/'%0D'}"
-          # echo "changes=$CHANGES" >> $GITHUB_OUTPUT
-
-          QUARTO_BUILD_NUMBER=$(($QUARTO_BUILD_RUN_OFFSET + $GITHUB_RUN_NUMBER))
-
-          echo "version=$QUARTO_VERSION" >> $GITHUB_OUTPUT
-          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
-          echo "build_number=$QUARTO_BUILD_NUMBER" >> $GITHUB_OUTPUT
+          read_version=$(cat version.txt)
+          version=$(echo $read_version | grep -o '[[:digit:]]*\.[[:digit:]]*' | head -1)
+          if [ "$version" == "$QUARTO_VERSION" ]; then
+            ## This should be the case only when we do a new patch release or for next pre-release to build.
+            build_number=$(($(echo $read_version | grep -o '[[:digit:]]*' | tail -1)+1))
+          else
+            ## This should be the case only when we do a new major/minor release, for next pre-release to build.
+            version=$QUARTO_VERSION
+            build_number=0
+            news="news/changelog-${version}.md"
+            if [ ! -f "$news" ]; then
+              echo -e "All changes included in ${version}:\n\n" > $news
+            fi
+          fi
+          version_full=$version.$build_number
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version_full=$version_full">> $GITHUB_OUTPUT
+          echo "**Changelog since last release**: https://github.com/${GITHUB_REPOSITORY}/compare/v${read_version}...v${version_full}" > "release_note.md"
+          echo -e "\n\nFull ${version} changelog up to this version:\n" >> "release_note.md"
+          echo -e "  * View: https://github.com/${GITHUB_REPOSITORY}/blob/v${version_full}/news/changelog-${version}.md\n" >> "release_note.md"
+          echo -e "  * Download: https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version_full}/changelog.md\n" >> "release_note.md"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: News
-          path: ./news/changelog-${{steps.config.outputs.version}}.md
+          path: |
+            ./news/changelog-${{steps.read-version.outputs.version}}.md
+            ./release_note.md
+
+      - name: Update version.txt
+        run: |
+          echo ${{ steps.read-version.outputs.version_full }} > version.txt
+
+      - uses: EndBug/add-and-commit@1bad3abcf0d6ec49a5857d124b0bfb52dc7bb081
+        if: ${{ inputs.publish-release }}
+        id: version_commit
+        with:
+          add: '["version.txt", "news/changelog-${{steps.read-version.outputs.version}}.md"]'
+          tag: v${{ steps.read-version.outputs.version_full }}
+          message: "Update version.txt"
+          fetch: true
+          default_author: github_actions
 
   make-source-tarball:
     runs-on: ubuntu-latest
@@ -70,6 +89,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Make Tarball
         run: |
@@ -87,6 +108,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -119,6 +142,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -151,6 +176,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -168,9 +195,9 @@ jobs:
           source ./configuration
 
           echo Placing custom Deno ${DENO:1}. See available versions at https://anaconda.org/conda-forge/deno/files
-          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-he8a937b_0.conda --output deno.conda
+          curl -L https://anaconda.org/conda-forge/deno/${DENO:1}/download/linux-64/deno-${DENO:1}-h335b0a9_1.conda --output deno.conda
           unzip deno.conda
-          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-he8a937b_0.tar.zst
+          tar --use-compress-program=unzstd -xvf pkg-deno-${DENO:1}-h335b0a9_1.tar.zst
           cp bin/deno package/pkg-working/bin/tools/x86_64/deno
 
       - name: Make Tarball
@@ -194,6 +221,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -223,6 +252,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -275,6 +306,8 @@ jobs:
           rustup.exe default 1.63.0
 
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -334,6 +367,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Configure
         run: |
@@ -432,11 +467,11 @@ jobs:
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
-        
+
       - name: Rename news
         run: |
           ls -la ./News
-          mv ./News/changelog-${{needs.configure.outputs.version_base}}.md ./News/changelog.md
+          mv ./News/news/changelog-${{needs.configure.outputs.version_base}}.md ./News/news/changelog.md
 
       - name: Generate Checksums
         id: generate_checksum
@@ -488,10 +523,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{needs.configure.outputs.tag_name}}
-          name: ${{needs.configure.outputs.release}}
-          body: |
-            ${{ needs.configure.outputs.changes }}
-          draft: ${{ inputs.draft }}
+          target_commitish: ${{ needs.configure.outputs.version_commit }}
+          name: ${{needs.configure.outputs.tag_name}}
+          body_path: ./News/release_note.md
+          draft: false
           prerelease: ${{ inputs.pre-release }}
           files: |
             ./Source/quarto-${{needs.configure.outputs.version}}.tar.gz
@@ -504,8 +539,47 @@ jobs:
             ./Windows Zip/quarto-${{needs.configure.outputs.version}}-win.zip
             ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
             ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
-            ./News/changelog.md
+            ./News/news/changelog.md
             quarto-${{needs.configure.outputs.version}}-checksums.txt
+
+  cleanup-when-failure:
+    if: ${{ (failure() || cancelled()) && inputs.publish-release }}
+    needs:
+      [
+        configure,
+        make-installer-deb,
+        make-installer-arm64-deb,
+        make-installer-win,
+        make-installer-mac,
+        make-tarball-rhel,
+        make-arm64-tarball,
+        make-tarball,
+        make-source-tarball,
+        test-zip-win,
+        test-zip-mac,
+        test-tarball-linux,
+        publish-release,
+      ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Revert commit of version.txt
+        if: ${{ needs.configure.outputs.pushed }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git pull origin $GITHUB_REF_NAME
+          git stash -u
+          git revert -n ${{ needs.configure.outputs.version_commit }}
+          git add .
+          git commit -m 'Revert version.txt update (${{ needs.configure.outputs.version_commit }})' -m 'Publishing release has failed.'
+          git push origin $GITHUB_REF_NAME
+
+      - name: Deleted created tag
+        if: ${{ needs.configure.outputs.tag_pushed }}
+        run: |
+          git push --delete origin ${{ needs.configure.outputs.tag_name }}
 
   docker-push:
     if: ${{ inputs.publish-release }}

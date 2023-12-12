@@ -1,0 +1,14 @@
+---
+title: "Typst does not like more than one output from a code chunk cross-referenced as a table"
+format: typst
+keep-typ: true
+---
+
+See @tbl-test.
+
+```{r}
+#| label: tbl-test
+
+1
+2
+```

@@ -1,0 +1,11 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["span.visually-hidden"]
+        - []
+---
+
+{{< kbd Shift-Control-O >}}

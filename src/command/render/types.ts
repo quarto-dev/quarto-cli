@@ -35,6 +35,7 @@ export interface RenderOptions {
   devServerReload?: boolean;
   previewServer?: boolean;
   setProjectDir?: boolean;
+  forceClean?: boolean;
   echo?: boolean;
   warning?: boolean;
   quietPandoc?: boolean;
@@ -209,6 +210,9 @@ export interface PandocOptions {
 
   // extra metadata to merge
   metadata?: Metadata;
+
+  // optional execution engine
+  executionEngine?: string;
 
   // optoinal project context
   project?: ProjectContext;

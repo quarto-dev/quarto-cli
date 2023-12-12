@@ -1,0 +1,52 @@
+- name: title
+  tags:
+    formats: [dashboard]
+  schema: string
+  description:
+    short: "Title displayed in dashboard card header"
+
+- name: padding
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - number
+  description:
+    short: "Padding around dashboard card content (default `8px`)"
+
+- name: expandable
+  tags:
+    formats: [dashboard]
+  schema: boolean
+  default: true
+  description:
+    short: "Make dashboard card content expandable (default: `true`)"
+
+- name: width
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - number
+  description:
+    short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+
+- name: height
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - number
+  description:
+    short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+
+- name: context
+  tags:
+    formats: [dashboard]
+    engine: [jupyter]
+  schema: string
+  description:
+    short: "Context to execute cell within."

@@ -66,6 +66,8 @@ end
 function indexAddEntry(label, parent, order, caption, appendix)
   if caption ~= nil then
     caption = pandoc.List(caption)
+  else
+    caption = pandoc.List({})
   end
   crossref.index.entries[label] = {
     parent = parent,
@@ -97,11 +99,19 @@ function writeIndex()
         if isQmdInput() then
           writeKeysIndex(indexFile)
         else
-          writeFullIndex(indexFile)
+          writeFullIndex(indexFile, doc)
         end   
       end
     end
   }
+end
+
+local function index_caption(v)
+  if #v.caption > 0 then
+    return inlinesToString(quarto.utils.as_inlines(v.caption))
+  else
+    return ""
+  end
 end
 
 function writeKeysIndex(indexFile)
@@ -112,17 +122,8 @@ function writeKeysIndex(indexFile)
     -- create entry 
     local entry = {
       key = k,
+      caption = index_caption(v)
     }
-    -- add caption if we have one
-    if v.caption ~= nil then
-      if v.caption[1].t == "Str" then
-        entry.caption = v.caption[1].text
-      else
-        entry.caption = inlinesToString(pandoc.Inlines(v.caption[1].content))
-      end
-    else
-      entry.caption = ""
-    end
     -- add entry
     index.entries:insert(entry)
   end
@@ -139,7 +140,7 @@ function writeKeysIndex(indexFile)
 end
 
 
-function writeFullIndex(indexFile)
+function writeFullIndex(indexFile, doc)
   -- create an index data structure to serialize for this file 
   local index = {
     entries = pandoc.List(),
@@ -179,7 +180,8 @@ function writeFullIndex(indexFile)
         order = {
           number = 1,
           section = crossref.index.numberOffset
-        }
+        },
+        caption = pandoc.utils.stringify(doc.meta.title)
       }
       index.entries:insert(chapterEntry)
     end
@@ -192,18 +194,9 @@ function writeFullIndex(indexFile)
       parent = v.parent,
       order = {
         number = v.order.order,
-      }
+      },
+      caption = index_caption(v)
     }
-    -- add caption if we have one
-    if v.caption ~= nil then
-      if pandoc.utils.type(v.caption[1]) == "Inline" then
-        entry.caption = inlinesToString(pandoc.Inlines({v.caption[1]}))
-      else
-        entry.caption = inlinesToString(pandoc.Inlines(v.caption[1].content))
-      end
-    else
-      entry.caption = ""
-    end
     -- add section if we have one
     if v.order.section ~= nil then
       entry.order.section = v.order.section

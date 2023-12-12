@@ -1,0 +1,20 @@
+---
+title: Layout with images
+format: 
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    typst:
+      ensureFileRegexMatches:
+        - []
+        - ["1080.0pt"] # images are this width, and we don't want to see that in the test
+---
+
+::: {layout-ncol=2} 
+
+![](cat.jpg)
+
+![](dog.jpg)
+
+:::

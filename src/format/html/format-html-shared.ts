@@ -11,6 +11,7 @@ import {
   kCitationLocation,
   kCodeOverflow,
   kCopyButtonTooltip,
+  kFigCapLoc,
   kLinkExternalIcon,
   kReferenceLocation,
   kSectionTitleFootnotes,
@@ -105,10 +106,61 @@ export const bootstrapRules = () => {
   );
 };
 
+export const bslibComponentMixins = () => {
+  const bootstrapDistDir = formatResourcePath(
+    "html",
+    "bslib",
+  );
+  const mixinsDir = join(bootstrapDistDir, "components", "scss", "mixins");
+  return Deno.readTextFileSync(join(mixinsDir, "_mixins.scss"));
+};
+
+export const bslibComponentRules = () => {
+  const bslibDistDir = formatResourcePath(
+    "html",
+    join("bslib"),
+  );
+
+  const bslibDirs = [
+    join(bslibDistDir, "bslib-scss"),
+    join(bslibDistDir, "components", "scss"),
+  ];
+
+  const scss = [];
+  for (const bsLibDir of bslibDirs) {
+    for (
+      const walk of Deno.readDirSync(bsLibDir)
+    ) {
+      if (walk.isFile) {
+        const contents = Deno.readTextFileSync(join(bsLibDir, walk.name));
+        scss.push(contents);
+      }
+    }
+  }
+
+  return scss.join("\n");
+};
+
+export const htmlToolsRules = () => {
+  const htmlToolsDir = formatResourcePath(
+    "html",
+    join("htmltools"),
+  );
+  const fillCss = Deno.readTextFileSync(join(htmlToolsDir, "fill.css"));
+  return fillCss;
+};
+
 export const bootstrapResourceDir = () => {
   return formatResourcePath(
     "html",
     join("bootstrap", "dist", "scss"),
+  );
+};
+
+export const bslibResourceDir = () => {
+  return formatResourcePath(
+    "html",
+    join("bslib", "bslib-scss"),
   );
 };
 
@@ -339,7 +391,7 @@ function prependHeading(
   classes: string[],
 ) {
   const heading = doc.createElement("h" + level);
-  if (typeof (title) == "string" && title !== "none") {
+  if (typeof title == "string" && title !== "none") {
     heading.innerHTML = title;
   }
   if (classes) {
@@ -397,6 +449,10 @@ export function hasMarginRefs(format: Format, flags: PandocFlags) {
 export function hasMarginCites(format: Format) {
   // If margin cites are enabled, move them
   return format.metadata[kCitationLocation] === "margin";
+}
+
+export function hasMarginFigCaps(format: Format) {
+  return format.metadata[kFigCapLoc] === "margin";
 }
 
 export function computeUrl(
@@ -461,6 +517,20 @@ export function writeMetaTag(name: string, content: string, doc: Document) {
 
   // Insert the nodes
   doc.querySelector("head")?.appendChild(m);
+  doc.querySelector("head")?.appendChild(nl);
+}
+
+export function writeLinkTag(rel: string, href: string, doc: Document) {
+  // Meta tag
+  const l = doc.createElement("LINK");
+  l.setAttribute("rel", rel);
+  l.setAttribute("href", href);
+
+  // New Line
+  const nl = doc.createTextNode("\n");
+
+  // Insert the nodes
+  doc.querySelector("head")?.appendChild(l);
   doc.querySelector("head")?.appendChild(nl);
 }
 

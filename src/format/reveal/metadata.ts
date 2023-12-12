@@ -24,6 +24,15 @@ export function revealMetadataFilter(
   metadata: Metadata,
   kebabOptions = kRevealKebabOptions,
 ) {
+  // this is, more-or-less, an admission of defeat.
+  // By inspection of src/resources/schema/document-reveal-*.yml we can see
+  // that this is the only case where camel case is
+  // used inconsistently by revealJS (we should have fragmentInUrl instead of fragmentInURL).
+  //
+  // https://github.com/quarto-dev/quarto-cli/issues/7358
+  const mappingExceptions: Record<string, string> = {
+    "fragment-in-url": "fragmentInURL",
+  };
   // convert kebab case to camel case for reveal options
   const filtered: Metadata = {};
   Object.keys(metadata).forEach((key) => {
@@ -31,7 +40,8 @@ export function revealMetadataFilter(
     if (
       kebabOptions.includes(key)
     ) {
-      filtered[kebabToCamel(key)] = value;
+      const camel = mappingExceptions[key] || kebabToCamel(key);
+      filtered[camel] = value;
     } else {
       filtered[key] = value;
     }

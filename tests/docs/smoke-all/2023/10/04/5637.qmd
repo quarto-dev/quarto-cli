@@ -1,0 +1,27 @@
+---
+title: issue-5637
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "img" # the bug was causing our code to fail to find the layout entirely
+          - "div.quarto-layout-cell" # but let's also check that a layout is being computed here.
+          - "a.quarto-xref" # and that a cross-referenceable figure is available
+        - []
+---
+
+# Introduction
+
+This is a book created from markdown and executable code.
+
+::: {#fig-test layout="[1,1]"}
+
+![](cover.png)
+
+![](cover.png)
+
+Some logos.
+:::
+
+See @fig-test.

@@ -1,0 +1,53 @@
+---
+title: "QED symbol test"
+format: 
+  latex:
+    filters:
+      - at: post-render
+        path: 6077.lua
+_quarto:
+  tests: 
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ['\n\n\\end{proof}'] 
+---
+
+There should be no empty line between end of proof and previous content otherwise qed symbol misplaced
+
+:::{.proof}
+This is a proof.
+:::
+
+:::{.proof}
+This is a proof.
+
+This is the second para of the proof.
+:::
+
+:::{.proof}
+This is a proof.
+
+This proof ends with an image:
+
+![](./mark.jpg)
+:::
+
+:::{.proof}
+![](./mark.jpg)
+
+This is a proof.
+
+```{=latex}
+This proof ends with a raw latex block.
+```
+:::
+
+:::{.proof}
+```{=latex}
+This proof begins with a raw latex block.
+```
+
+This is a proof.
+:::
+

@@ -21,7 +21,11 @@ import {
   FormatDependency,
   FormatLanguage,
 } from "../../../config/types.ts";
-import { kProjectLibDir, ProjectContext } from "../../types.ts";
+import {
+  kProjectLibDir,
+  NavigationItemObject,
+  ProjectContext,
+} from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import {
@@ -32,7 +36,11 @@ import {
 import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 
-import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
+import {
+  inputFileHref,
+  navbarItemForSidebar,
+  websiteNavigationConfig,
+} from "./website-shared.ts";
 import {
   websiteConfig,
   websiteConfigMetadata,
@@ -51,7 +59,7 @@ import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { isHtmlFileOutput } from "../../../config/format.ts";
 import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
-import { breadCrumbs, sidebarForHref } from "./website-navigation.ts";
+import { breadCrumbs, sidebarForHref } from "./website-shared.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -223,6 +231,7 @@ export async function updateSearchIndex(
         // determine crumbs
         const navHref = `/${href}`;
         const sidebar = sidebarForHref(navHref, outputFile.format);
+
         const bc = breadCrumbs(navHref, sidebar);
 
         const crumbs = bc.length > 0
@@ -233,6 +242,23 @@ export async function updateSearchIndex(
           }) as string[]
           : undefined;
 
+        // If we found a sidebar, try to determine whether there is a navbar
+        // link that points to this page / sidebar. If so, inject that level
+        // into the crumbs as well. An attempt at improving #7803 and providing
+        // better crumbs
+        if (crumbs && sidebar) {
+          const navItem = navbarItemForSidebar(sidebar, outputFile.format);
+          if (navItem) {
+            if (typeof navItem === "object") {
+              const navbarParentText = (navItem as NavigationItemObject).text;
+              if (navbarParentText) {
+                if (crumbs.length > 0 && crumbs[0] !== navbarParentText) {
+                  crumbs.unshift(navbarParentText);
+                }
+              }
+            }
+          }
+        }
         const titleEl = findTitle();
         const title = titleEl
           ? titleEl.textContent
@@ -428,9 +454,9 @@ export function searchOptions(
 function searchInputLimit(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchConfig && typeof searchConfig === "object") {
     const limit = searchConfig[kLimit];
-    if (typeof (limit) === "number") {
+    if (typeof limit === "number") {
       return limit;
     }
   }
@@ -440,12 +466,14 @@ function searchInputLimit(
 function searchKbdShortcut(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchConfig && typeof searchConfig === "object") {
     const kbd = searchConfig[kKbShortcutSearch];
-    if (Array.isArray(kbd)) {
-      return kbd;
-    } else {
-      return [kbd];
+    if (kbd) {
+      if (Array.isArray(kbd)) {
+        return kbd;
+      } else {
+        return [kbd];
+      }
     }
   }
   return ["f", "/", "s"];
@@ -454,7 +482,7 @@ function searchKbdShortcut(
 function searchShowItemContext(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  if (searchConfig && typeof (searchConfig) === "object") {
+  if (searchConfig && typeof searchConfig === "object") {
     return searchConfig[kShowItemContext] as
       | boolean
       | "tree"
@@ -469,7 +497,7 @@ function searchType(
   userType: unknown,
   location: SearchInputLocation,
 ): "overlay" | "textbox" {
-  if (userType && typeof (userType) === "string") {
+  if (userType && typeof userType === "string") {
     switch (userType) {
       case "overlay":
         return "overlay";
@@ -491,7 +519,7 @@ function algoliaOptions(
   project: ProjectContext,
 ) {
   const algoliaRaw = searchConfig[kAlgolia];
-  if (algoliaRaw && typeof (algoliaRaw) === "object") {
+  if (algoliaRaw && typeof algoliaRaw === "object") {
     const algoliaObj = algoliaRaw as SearchOptionsAlgolia;
     const applicationId = algoliaObj[kSearchApplicationId];
     const apiKey = algoliaObj[kSearchOnlyApiKey];

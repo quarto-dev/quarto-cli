@@ -68,6 +68,12 @@ import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "log/mod.ts";
 import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
+import {
+  InvalidShortcodeError,
+  isBlockShortcode,
+} from "../lib/parse-shortcode.ts";
+import { standaloneInclude } from "./include-standalone.ts";
+import { LocalizedError } from "../lib/located-error.ts";
 
 const handlers: Record<string, LanguageHandler> = {};
 
@@ -311,6 +317,46 @@ export function install(handler: LanguageHandler) {
   }
 }
 
+const processMarkdownIncludes = async (
+  newCells: MappedString[],
+  options: LanguageCellHandlerOptions,
+) => {
+  const includeHandler = makeHandlerContext({
+    ...options,
+  });
+  // search for include shortcodes in the cell content
+  for (let i = 0; i < newCells.length; ++i) {
+    const lines = mappedLines(newCells[i], true);
+    let foundShortcodes = false;
+    for (let j = 0; j < lines.length; ++j) {
+      try {
+        const shortcode = isBlockShortcode(lines[j].value);
+        if (shortcode && shortcode.name === "include") {
+          foundShortcodes = true;
+          const param = shortcode.params[0];
+          if (!param) {
+            throw new Error("Include directive needs filename as a parameter");
+          }
+          lines[j] = await standaloneInclude(includeHandler.context, param);
+        }
+      } catch (e) {
+        if (e instanceof InvalidShortcodeError) {
+          const mapResult = newCells[i].map(newCells[i].value.indexOf("{"));
+          throw new LocalizedError(
+            "Invalid Shortcode",
+            e.message,
+            mapResult!.originalString,
+            mapResult!.index,
+          );
+        }
+      }
+    }
+    if (foundShortcodes) {
+      newCells[i] = mappedConcat(lines);
+    }
+  }
+};
+
 export async function handleLanguageCells(
   options: LanguageCellHandlerOptions,
 ): Promise<{
@@ -438,6 +484,11 @@ export async function handleLanguageCells(
       }
     }
   }
+
+  // now handle the markdown content. This is necessary specifically for
+  // include shortcodes that can still be hiding inside of code blocks
+  await processMarkdownIncludes(newCells, options);
+
   return {
     markdown: mappedJoin(newCells, ""),
     results,

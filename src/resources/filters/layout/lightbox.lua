@@ -55,8 +55,6 @@ function lightbox()
     local title = nil
     if imgEl.caption ~= nil and #imgEl.caption > 0 then
       title = pandoc.utils.stringify(imgEl.caption)
-    elseif imgEl.attributes['fig-alt'] ~= nil and #imgEl.attributes['fig-alt'] > 0 then
-      title = pandoc.utils.stringify(imgEl.attributes['fig-alt'])
     end
   
     -- move a group attribute to the link, if present
@@ -70,9 +68,14 @@ function lightbox()
     end
   
     -- write a description, if provided
+    local descEl = nil
     if description ~= nil then
-      linkAttributes[kDescription] = inlinesToString(quarto.utils.as_inlines(description))
-    end
+      local descId = "lightbox-desc-" .. imgCount
+      descEl = pandoc.Span({}, pandoc.Attr("", {"glightbox-desc", descId}))
+      descEl.content = description
+
+      linkAttributes["data-glightbox"] = "description: ." .. descId
+   end
   
     -- forward any other known attributes
     for i, v in ipairs(kForwardedAttr) do
@@ -93,7 +96,11 @@ function lightbox()
   
     -- wrap decorated images in a link with appropriate attrs
     local link = pandoc.Link({imgEl}, imgEl.src, title, linkAttributes)
-    return link
+    if descEl ~= nil then
+      return pandoc.Inlines({link, descEl})
+    else
+      return link
+    end
   end
 
   local function processImg(imgEl, options)
@@ -207,7 +214,10 @@ function lightbox()
       Para = function(para)
         local image = discoverFigure(para, false)
         if image ~= nil then
-          return pandoc.Para({processImg(image, { automatic = true })}), false
+          local lightboxedFigEl = processImg(image, { automatic = true })
+          if lightboxedFigEl ~= nil then
+            return pandoc.Para({lightboxedFigEl}), false
+          end
         end
       end,
 
@@ -339,7 +349,33 @@ function lightbox()
           local optionsJson = quarto.json.encode(options)
 
           -- generate the initialization script with the correct options
-          local scriptTag = "<script>var lightboxQuarto = GLightbox(" .. optionsJson .. ");</script>"
+          local scriptContents = "var lightboxQuarto = GLightbox(" .. optionsJson .. ");\n"
+          scriptContents = scriptContents .. [[
+window.onload = () => {
+  lightboxQuarto.on('slide_before_load', (data) => {
+    const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+    const href = trigger.getAttribute('href');
+    if (href !== null) {
+      const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+      if (imgEl !== null) {
+        const srcAttr = imgEl.getAttribute("src");
+        if (srcAttr && srcAttr.startsWith("data:")) {
+          slideConfig.href = srcAttr;
+        }
+      }
+    } 
+  });
+
+  lightboxQuarto.on('slide_after_load', (data) => {
+    const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+    if (window.Quarto?.typesetMath) {
+      window.Quarto.typesetMath(slideNode);
+    }
+  });
+
+};
+          ]]
+          local scriptTag = "<script>" .. scriptContents .. "</script>"
 
           -- inject the rendering code
           quarto.doc.include_text("after-body", scriptTag)
