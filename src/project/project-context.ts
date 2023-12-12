@@ -347,7 +347,16 @@ function quartoYamlProjectConfigResolver(
   configSchema: ConcreteSchema,
 ) {
   return async (dir: string): Promise<ResolvedProjectConfig | undefined> => {
-    const configFile = projectConfigFile(dir);
+    let configFile: string | undefined = undefined;
+    try {
+      configFile = projectConfigFile(dir);
+    } catch (e) {
+      if (e instanceof Deno.errors.PermissionDenied) {
+        // ignore permission denied errors
+      } else {
+        throw e;
+      }
+    }
     if (configFile) {
       // read config file
       const files = [configFile];
@@ -650,7 +659,7 @@ export function projectInputFiles(
     }
   };
 
-  const renderFiles = metadata?.project[kProjectRender];
+  /*  const renderFiles = metadata?.project[kProjectRender];
   if (renderFiles) {
     const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
     const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
@@ -666,7 +675,25 @@ export function projectInputFiles(
       });
   } else {
     addDir(dir);
+  }*/
+
+  const renderFiles = metadata?.project[kProjectRender] ?? [];
+  // this triggers when renderFiles is empty as well, which is what we want
+  if (renderFiles.every((file) => file.startsWith("!"))) {
+    renderFiles.unshift(".");
   }
+  const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
+  const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
+    mode: "auto",
+  });
+  (ld.difference(resolved.include, resolved.exclude) as string[])
+    .forEach((file) => {
+      if (Deno.statSync(file).isDirectory) {
+        addDir(file);
+      } else {
+        addFile(file);
+      }
+    });
 
   const inputFiles = ld.difference(
     ld.uniq(files),

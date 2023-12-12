@@ -8039,6 +8039,10 @@ try {
               engine: [
                 "knitr",
                 "jupyter"
+              ],
+              formats: [
+                "$pdf-all",
+                "$html-all"
               ]
             },
             schema: {
@@ -9782,6 +9786,11 @@ try {
                     description: "Default site thumbnail image for `twitter` /`open-graph`\n"
                   }
                 },
+                "image-alt": {
+                  path: {
+                    description: "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+                  }
+                },
                 comments: {
                   schema: {
                     ref: "comments"
@@ -9830,7 +9839,7 @@ try {
                       "$html-doc"
                     ]
                   },
-                  description: "A list of codes links to appear with this document."
+                  description: "A list of code links to appear with this document."
                 }
               }
             }
@@ -12234,9 +12243,8 @@ try {
                             closed: true,
                             required: [
                               "kind",
-                              "prefix",
-                              "name",
-                              "ref-type"
+                              "reference-prefix",
+                              "key"
                             ],
                             properties: {
                               kind: {
@@ -12245,14 +12253,14 @@ try {
                                 ],
                                 description: 'The kind of cross reference (currently only "float" is supported).'
                               },
-                              prefix: {
+                              "reference-prefix": {
                                 string: {
-                                  description: "The prefix used in rendered citations when referencing this type."
+                                  description: "The prefix used in rendered references when referencing this type."
                                 }
                               },
-                              name: {
+                              "caption-prefix": {
                                 string: {
-                                  description: "The prefix used in captions when referencing this type."
+                                  description: "The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used."
                                 }
                               },
                               "space-before-numbering": {
@@ -12261,9 +12269,9 @@ try {
                                   description: "If false, use no space between crossref prefixes and numbering."
                                 }
                               },
-                              "ref-type": {
+                              key: {
                                 string: {
-                                  description: 'The prefix string used in references ("dia-", etc.) when referencing this type.'
+                                  description: 'The key used to prefix reference labels of this type, such as "fig", "tbl", "lst", etc.'
                                 }
                               },
                               "latex-env": {
@@ -12278,7 +12286,7 @@ try {
                               },
                               "latex-list-of-description": {
                                 string: {
-                                  description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If unspecified, the field `name` is used.'
+                                  description: 'The description of the crossreferenceable object to be used in the title of the "list of" command. If omitted, the field `reference-prefix` is used.'
                                 }
                               },
                               "caption-location": {
@@ -17308,7 +17316,7 @@ try {
             schema: "number",
             description: {
               short: "Slides that are too tall to fit within a single page will expand onto multiple pages",
-              long: '"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option"\n'
+              long: "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
             }
           },
           {
@@ -18041,8 +18049,8 @@ try {
               ]
             },
             description: {
-              short: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-              long: "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+              short: "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+              long: "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
             }
           },
           {
@@ -19340,6 +19348,7 @@ try {
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
+          "Override the default hypothesis client url with a custom client\nurl.",
           "Controls whether the sidebar opens automatically on startup.",
           "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
           "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
@@ -20702,13 +20711,13 @@ try {
           "Configuration for crossref labels and prefixes.",
           "A custom cross reference type.",
           "The kind of cross reference (currently only \u201Cfloat\u201D is\nsupported).",
-          "The prefix used in rendered citations when referencing this type.",
-          "The prefix used in captions when referencing this type.",
+          "The prefix used in rendered references when referencing this\ntype.",
+          "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
           "If false, use no space between crossref prefixes and numbering.",
-          "The prefix string used in references (\u201Cdia-\u201D, etc.) when referencing\nthis type.",
+          "The key used to prefix reference labels of this type, such as \u201Cfig\u201D,\n\u201Ctbl\u201D, \u201Clst\u201D, etc.",
           "In LaTeX output, the name of the custom environment to be used.",
           "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom \u201Clist of\u201D command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
-          "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If unspecified, the field\n<code>name</code> is used.",
+          "The description of the crossreferenceable object to be used in the\ntitle of the \u201Clist of\u201D command. If omitted, the field\n<code>reference-prefix</code> is used.",
           "The location of the caption relative to the crossreferenceable\ncontent.",
           "Use top level sections (H1) in this document as chapters.",
           "The delimiter used between the prefix and the caption.",
@@ -22587,12 +22596,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180639,
+          _internalId: 180643,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180631,
+              _internalId: 180635,
               type: "enum",
               enum: [
                 "png",
@@ -22608,7 +22617,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180638,
+              _internalId: 180642,
               type: "anyOf",
               anyOf: [
                 {
@@ -23076,6 +23085,7 @@ ${heading}`;
     const mappedSource2 = source;
     return {
       value,
+      fileName: mappedSource2.fileName,
       map: (index, closest) => {
         if (closest) {
           index = Math.max(0, Math.min(value.length, index - 1));
@@ -31782,10 +31792,22 @@ ${tidyverseInfo(
   }
 
   // ../parse-shortcode.ts
-  function isBlockShortcode(content) {
+  var InvalidShortcodeError = class extends Error {
+    constructor(msg) {
+      super(msg);
+    }
+  };
+  function isBlockShortcode(content, lenient) {
     const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
     if (m) {
-      return parseShortcode(m[1]);
+      try {
+        return parseShortcode(m[1]);
+      } catch (_e) {
+        if (lenient) {
+          return false;
+        }
+        throw _e;
+      }
     }
   }
   function parseShortcodeCapture(capture) {
@@ -31835,14 +31857,14 @@ ${tidyverseInfo(
         paramStr = paramStr.slice(paramMatch[0].length).trim();
         continue;
       }
-      throw new Error("invalid shortcode: " + capture);
+      throw new InvalidShortcodeError("invalid shortcode: " + capture);
     }
     return { name, params, namedParams, rawParams };
   }
   function parseShortcode(shortCodeCapture) {
     const result = parseShortcodeCapture(shortCodeCapture);
     if (!result) {
-      throw new Error("invalid shortcode: " + shortCodeCapture);
+      throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
     }
     return result;
   }
@@ -31852,6 +31874,7 @@ ${tidyverseInfo(
     if (typeof src === "string") {
       src = asMappedString(src);
     }
+    const fileName = src.fileName;
     const nb = {
       cells: []
     };
@@ -31873,7 +31896,11 @@ ${tidyverseInfo(
         for (const line of lineBuffer) {
           mappedChunks.push(line.range);
         }
-        const source = mappedString(src, mappedChunks);
+        const source = mappedString(
+          src,
+          mappedChunks,
+          fileName
+        );
         const makeCellType = () => {
           if (cell_type === "code") {
             return { language };
@@ -31925,11 +31952,11 @@ ${tidyverseInfo(
             codeStartRange.range,
             ...mappedChunks,
             codeEndRange.range
-          ]);
+          ], fileName);
           cell.options = yaml;
           cell.sourceStartLine = sourceStartLine;
         } else if (cell_type === "directive") {
-          cell.source = mappedString(src, mappedChunks.slice(1, -1));
+          cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
         }
         if (mdTrimEmptyLines(lines(cell.sourceVerbatim.value)).length > 0 || cell.options !== void 0) {
           nb.cells.push(cell);
@@ -31952,7 +31979,7 @@ ${tidyverseInfo(
     const srcLines = rangedLines(src.value, true);
     for (let i = 0; i < srcLines.length; ++i) {
       const line = srcLines[i];
-      const directiveMatch = isBlockShortcode(line.substring);
+      const directiveMatch = isBlockShortcode(line.substring, true);
       if (isYamlDelimiter(line.substring, i, !inYaml) && !inCodeCell && !inCode) {
         if (inYaml) {
           lineBuffer.push(line);

@@ -243,7 +243,8 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
             if (item.sectionId) {
               markdown[`${kSidebarIdPrefix}${item.sectionId}`] = item.text;
             } else {
-              markdown[`${kSidebarIdPrefix}${item.href}`] = item.text;
+              markdown[`${kSidebarIdPrefix}${item.href}${item.text}`] =
+                item.text;
             }
           }
         });
@@ -258,10 +259,11 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       for (let i = 0; i < sidebarItemEls.length; i++) {
         const sidebarEl = sidebarItemEls[i] as Element;
         const href = sidebarEl.getAttribute("href");
-        const sidebarText = rendered[`${kSidebarIdPrefix}${href}`];
-        if (sidebarText) {
-          const link = sidebarEl.querySelector(".menu-text");
-          if (link) {
+        const link = sidebarEl.querySelector(".menu-text");
+        if (link) {
+          const sidebarText =
+            rendered[`${kSidebarIdPrefix}${href}${link.innerText}`];
+          if (sidebarText) {
             link.innerHTML = sidebarText.innerHTML;
           }
         }
@@ -604,11 +606,11 @@ const footerHandler = (context: NavigationPipelineContext) => {
           key: string,
           value: string | (string | NavItem)[],
         ) => {
-          if (typeof (value) === "string") {
+          if (typeof value === "string") {
             markdown[`${kNavFooterPrefix}${key}`] = value;
           } else {
             value.forEach((navItem) => {
-              if (typeof (navItem) === "object") {
+              if (typeof navItem === "object") {
                 if (navItem.text) {
                   markdown[
                     `${kNavFooterPrefix}${key}-${navItem.href || navItem.text}`
@@ -673,7 +675,7 @@ function expandMarkdown(source: string, name: string, val: unknown): string[] {
     return val.map((pathOrMarkdown) => {
       return expandMarkdownFilePath(source, pathOrMarkdown);
     });
-  } else if (typeof (val) == "string") {
+  } else if (typeof val == "string") {
     return [expandMarkdownFilePath(source, val)];
   } else {
     throw Error(`Invalid value for ${name}:\n${val}`);

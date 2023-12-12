@@ -1010,6 +1010,10 @@
         "engine": [
           "knitr",
           "jupyter"
+        ],
+        "formats": [
+          "$pdf-all",
+          "$html-all"
         ]
       },
       "schema": {
@@ -2753,6 +2757,11 @@
               "description": "Default site thumbnail image for `twitter` /`open-graph`\n"
             }
           },
+          "image-alt": {
+            "path": {
+              "description": "Default site thumbnail image alt text for `twitter` /`open-graph`\n"
+            }
+          },
           "comments": {
             "schema": {
               "ref": "comments"
@@ -2801,7 +2810,7 @@
                 "$html-doc"
               ]
             },
-            "description": "A list of codes links to appear with this document."
+            "description": "A list of code links to appear with this document."
           }
         }
       }
@@ -5205,9 +5214,8 @@
                       "closed": true,
                       "required": [
                         "kind",
-                        "prefix",
-                        "name",
-                        "ref-type"
+                        "reference-prefix",
+                        "key"
                       ],
                       "properties": {
                         "kind": {
@@ -5216,14 +5224,14 @@
                           ],
                           "description": "The kind of cross reference (currently only \"float\" is supported)."
                         },
-                        "prefix": {
+                        "reference-prefix": {
                           "string": {
-                            "description": "The prefix used in rendered citations when referencing this type."
+                            "description": "The prefix used in rendered references when referencing this type."
                           }
                         },
-                        "name": {
+                        "caption-prefix": {
                           "string": {
-                            "description": "The prefix used in captions when referencing this type."
+                            "description": "The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used."
                           }
                         },
                         "space-before-numbering": {
@@ -5232,9 +5240,9 @@
                             "description": "If false, use no space between crossref prefixes and numbering."
                           }
                         },
-                        "ref-type": {
+                        "key": {
                           "string": {
-                            "description": "The prefix string used in references (\"dia-\", etc.) when referencing this type."
+                            "description": "The key used to prefix reference labels of this type, such as \"fig\", \"tbl\", \"lst\", etc."
                           }
                         },
                         "latex-env": {
@@ -5249,7 +5257,7 @@
                         },
                         "latex-list-of-description": {
                           "string": {
-                            "description": "The description of the crossreferenceable object to be used in the title of the \"list of\" command. If unspecified, the field `name` is used."
+                            "description": "The description of the crossreferenceable object to be used in the title of the \"list of\" command. If omitted, the field `reference-prefix` is used."
                           }
                         },
                         "caption-location": {
@@ -10279,7 +10287,7 @@
       "schema": "number",
       "description": {
         "short": "Slides that are too tall to fit within a single page will expand onto multiple pages",
-        "long": "\"Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option\"\n"
+        "long": "Slides that are too tall to fit within a single page will expand onto multiple pages. You can limit how many pages a slide may expand to using this option.\n"
       }
     },
     {
@@ -11012,8 +11020,8 @@
         ]
       },
       "description": {
-        "short": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n",
-        "long": "Location for table of contents (`body`, `left`, `right` (default), 'left-body', 'right-body').\n`body` - Show the Table of Contents in the center body of the document.\n`left` - Show the Table of Contents in left margin of the document.\n`right` - Show the Table of Contents in right margin of the document.\n`left-body` - Show two Tables of Contents in both the center body and the left margin of the document.\n`right-body` - Show two Tables of Contents in both the center body and the right margin of the document.\n"
+        "short": "Location for table of contents (`body`, `left`, `right` (default), `left-body`, `right-body`).\n",
+        "long": "Location for table of contents:\n\n- `body`: Show the Table of Contents in the center body of the document. \n- `left`: Show the Table of Contents in left margin of the document.\n- `right`(default): Show the Table of Contents in right margin of the document.\n- `left-body`: Show two Tables of Contents in both the center body and the left margin of the document.\n- `right-body`: Show two Tables of Contents in both the center body and the right margin of the document.\n"
       }
     },
     {
@@ -12311,6 +12319,7 @@
     "The light theme name.",
     "The dark theme name.",
     "The language that should be used when displaying the commenting\ninterface.",
+    "Override the default hypothesis client url with a custom client\nurl.",
     "Controls whether the sidebar opens automatically on startup.",
     "Controls whether the in-document highlights are shown by default\n(<code>always</code>, <code>whenSidebarOpen</code> or\n<code>never</code>)",
     "Controls the overall look of the sidebar (<code>classic</code> or\n<code>clean</code>)",
@@ -13673,13 +13682,13 @@
     "Configuration for crossref labels and prefixes.",
     "A custom cross reference type.",
     "The kind of cross reference (currently only “float” is\nsupported).",
-    "The prefix used in rendered citations when referencing this type.",
-    "The prefix used in captions when referencing this type.",
+    "The prefix used in rendered references when referencing this\ntype.",
+    "The prefix used in rendered captions when referencing this type. If\nomitted, the field <code>reference-prefix</code> is used.",
     "If false, use no space between crossref prefixes and numbering.",
-    "The prefix string used in references (“dia-”, etc.) when referencing\nthis type.",
+    "The key used to prefix reference labels of this type, such as “fig”,\n“tbl”, “lst”, etc.",
     "In LaTeX output, the name of the custom environment to be used.",
     "In LaTeX output, the extension of the auxiliary file used by LaTeX to\ncollect names to be used in the custom “list of” command. If omitted, a\nstring with prefix <code>lo</code> and suffix with the value of\n<code>ref-type</code> is used.",
-    "The description of the crossreferenceable object to be used in the\ntitle of the “list of” command. If unspecified, the field\n<code>name</code> is used.",
+    "The description of the crossreferenceable object to be used in the\ntitle of the “list of” command. If omitted, the field\n<code>reference-prefix</code> is used.",
     "The location of the caption relative to the crossreferenceable\ncontent.",
     "Use top level sections (H1) in this document as chapters.",
     "The delimiter used between the prefix and the caption.",
@@ -15558,12 +15567,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 180639,
+    "_internalId": 180643,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 180631,
+        "_internalId": 180635,
         "type": "enum",
         "enum": [
           "png",
@@ -15579,7 +15588,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 180638,
+        "_internalId": 180642,
         "type": "anyOf",
         "anyOf": [
           {

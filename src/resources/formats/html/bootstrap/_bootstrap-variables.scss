@@ -1,3 +1,6 @@
+// Default the theme name
+$theme-name: if(variable-exists(theme), $theme, "");
+
 // Colors that must be defined
 $blue: #0d6efd !default;
 $primary: $blue !default;
@@ -6,6 +9,12 @@ $gray-200: #e9ecef !default;
 $gray-100: #f8f9fa !default;
 $gray-900: #212529 !default;
 $link-color: $primary !default;
+
+$link-color: if(
+  $link-color == $blue,
+  theme-override-value($theme-name, "link-color", $link-color),
+  $link-color
+);
 
 /* Code Block Formatting */
 // Code Block Border Treatment
@@ -48,7 +57,6 @@ $callout-margin-top: 1.25rem !default;
 $callout-margin-bottom: 1.25rem !default;
 
 // Navbar
-$theme-name: if(variable-exists(theme), $theme, "");
 $navbar-default: if(
   variable-exists(theme),
   if(variable-exists(primary), $primary, #517699),

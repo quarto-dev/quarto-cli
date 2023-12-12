@@ -320,10 +320,13 @@ knitr_options <- function(format, resourceDir, handledLanguages) {
   # set the dingbats option for the pdf device if required
   if (opts_chunk$dev == 'pdf') {
     opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
-    crop <- rmarkdown:::find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
-    if (crop) {
-      knit_hooks$crop = knitr::hook_pdfcrop
-      opts_chunk$crop = TRUE
+    if (has_crop_tools(FALSE)) {
+      knit_hooks$crop <- function(before, options, envir) {
+        if (isTRUE(options$crop)) {
+          knitr::hook_pdfcrop(before, options, envir)
+        }
+      }
+      opts_chunk$crop <- TRUE
     }
   }
 
@@ -684,4 +687,25 @@ apply_responsive_patch <- function(format) {
   if (is.null(x)) y else x
 }
 
-
+# from rmarkdown 
+# https://github.com/rstudio/rmarkdown/blob/0951a2fea7e317f77d27969c25f3194ead38805e/R/util.R#L318-L331
+has_crop_tools <- function(warn = TRUE) {
+  if (packageVersion("knitr") >= "1.44") {
+    return(knitr:::has_crop_tools(warn))
+  }
+  # for older version we do inline the function from rmarkdown
+  # but it does not have the knitr improvment for windows 
+  # https://github.com/yihui/knitr/issues/2246
+  tools <- c(
+    pdfcrop = unname(rmarkdown:::find_program("pdfcrop")),
+    ghostscript = unname(tools::find_gs_cmd())
+  )
+  missing <- tools[tools == ""]
+  if (length(missing) == 0) return(TRUE)
+  x <- paste0(names(missing), collapse = ", ")
+  if (warn) warning(
+    sprintf("\nTool(s) not installed or not in PATH: %s", x),
+    "\n-> As a result, figure cropping will be disabled."
+  )
+  FALSE
+}

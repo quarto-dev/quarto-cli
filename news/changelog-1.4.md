@@ -14,6 +14,10 @@
 - Update to Pandoc 3.1.9
 - Update to Typst 0.9.0
 
+## Breaking Changes
+
+- In website projects, a single sidebar with a `id` property will no longer be used as a global sidebar. It will instead be used as a sidebar for only pages which specify that `id` or pages linked to from the sidebar.
+
 ## HTML Format
 
 - Add support for showing cross reference contents on hover (use `crossrefs-hover: false` to disable).
@@ -28,8 +32,10 @@
 - ([#5403](https://github.com/quarto-dev/quarto-cli/issues/5403)): Fix accessibility issues with the `kbd` shortcode.
 - ([#5431](https://github.com/quarto-dev/quarto-cli/issues/5431)): Properly apply column positioning to title metadata.
 - ([#5516](https://github.com/quarto-dev/quarto-cli/issues/5516)): Ensure that images which appear in the margin are properly marked as fluid.
+- ([#5663](https://github.com/quarto-dev/quarto-cli/issues/5663)): Properly forward column grid position to sub grids with margin elements.
 - ([#5700](https://github.com/quarto-dev/quarto-cli/issues/5700)): Don't show scrollbars on Windows when hovering over hover code annotations.
 - ([#5708](https://github.com/quarto-dev/quarto-cli/issues/5708)): Fix hang when viewing pages with specific query parameter
+- ([#5789](https://github.com/quarto-dev/quarto-cli/issues/5789)): Correct appearance of languageless code cells in some contexts
 - ([#5794](https://github.com/quarto-dev/quarto-cli/issues/5794)): Fix incorrect caching behavior when `import` is used in scss themes.
 - ([#5798](https://github.com/quarto-dev/quarto-cli/issues/5798)): Improve the layout consistency of HTML callouts.
 - ([#5856](https://github.com/quarto-dev/quarto-cli/issues/5856)): Always render the title block of HTML pages (previously would only render when title or subtitle was provided).
@@ -45,10 +51,12 @@
 - ([#6910](https://github.com/quarto-dev/quarto-cli/issues/6910)): Properly forward `code-summary` as a global HTML option
 - ([#7024](https://github.com/quarto-dev/quarto-cli/discussions/7024)): Ensure HTML documents can render properly even when installed Quarto files aren't writable
 - ([#7137](https://github.com/quarto-dev/quarto-cli/discussions/7137)): Automatically set `rel="noopener"` when setting a target on external links
+- ([#7183](https://github.com/quarto-dev/quarto-cli/discussions/7183)): Mark asides that appear in the margin with a `margin-aside` class
 - ([#7187](https://github.com/quarto-dev/quarto-cli/issues/7187)): Add `html-table-processing: none` to document- and project-level metadata to disable HTML table processing. Add `{html-table-processing="none"}` to a fenced div to disable HTML table processing for the elements in that div. Add `html-table-processing: none` on knitr or jupyter cell to disable HTML table processing for the cell output content.
 - ([#7441](https://github.com/quarto-dev/quarto-cli/issues/7441)): Links in hover box (e.g. links to DOI when hover for citations is opt-in) are now correctly process for external and new window processing (when `link-external-icon: true` and `link-external-newwindow: true`).
 - ([#7542](https://github.com/quarto-dev/quarto-cli/discussions/7542)): Title block will properly present author affiliations when there is a mix of authors with affiliations and authors without affiliations
 - Ensure that code annotation buttons are not selectable text.
+- ([#7364](https://github.com/quarto-dev/quarto-cli/discussions/7364)): Restore support for `layout-align` attribute in panels
 
 ## Appendix
 
@@ -58,6 +66,7 @@
 ## RevealJS Format
 
 - ([#1943](https://github.com/quarto-dev/quarto-cli/issues/1943)): Allow setting `code-block-height` in presentation front matter.
+- ([#3671](https://github.com/quarto-dev/quarto-cli/issues/3671)): Remove untitled slides from the table of contents.
 - ([#5546](https://github.com/quarto-dev/quarto-cli/issues/5546)): Images inside links can't be stretched, and so auto-stretch feature now ignores them.
 - ([#5783](https://github.com/quarto-dev/quarto-cli/issues/5783)): Ensure fenced code blocks work with line numbers.
 - ([#6120](https://github.com/quarto-dev/quarto-cli/issues/6120)): `pdf-max-pages-per-slide` is now correctly setting [`pdfMaxPagesPerSlide` config](https://revealjs.com/pdf-export/#page-size) for RevealJS.
@@ -80,8 +89,10 @@
 - ([#6990](https://github.com/quarto-dev/quarto-cli/issues/6990)): Fix an issue where underscore in `filename` code cell attribute were not escaped.
 - ([#7175](https://github.com/quarto-dev/quarto-cli/issues/7175)): Fix an issue with code annotations when more than one digit is used for annotation number.
 - ([#7267](https://github.com/quarto-dev/quarto-cli/issues/7267)): Fix issue with longtable environments interfering with the `table` counter.
+- ([#7434](https://github.com/quarto-dev/quarto-cli/issues/7434)): Support `resource-path` when resolving images in PDF
 - ([#7534](https://github.com/quarto-dev/quarto-cli/issues/7534)): Fix issue with multiple paragraph footnotes when using `reference-location: margin`.
 - ([#7568](https://github.com/quarto-dev/quarto-cli/issues/7568)): Code annotation now works in LaTeX document when having other comments on same line.
+- ([#6716](https://github.com/quarto-dev/quarto-cli/issues/6716)): Fix `marginpar` error when placing citations in the margin
 
 ## Docusaurus Format
 
@@ -137,6 +148,7 @@
 - Add support for setting `page-navigation: true|false` in either a page or in `_metadata.yml`. This allows individual pages or sections of a website to control whether `page-navigaation` appears.
 - Add support for `bread-crumbs: true|false` to control whether bread crumbs are displayed. Add support for display of breadcrumbs on full width (non-mobile) pages when `bread-crumbs` is true. Default value is true.
 - Add support for `show-item-context` key within the `search` key to control whether page parents are display next to items in search results. Pass `tree`, `parent`, `root`, or boolean (if you pass true, `tree` is the default).
+- ([#4668](https://github.com/quarto-dev/quarto-cli/issues/4668)): Allow per page metadata (front matter or a `_metadata.yml` file) to overide the `repo-url` for a page by providing a `repo-url`
 - ([#4739](https://github.com/quarto-dev/quarto-cli/issues/4739)): Improve handling of reader mode at mobile responsive sizes
 - ([#5204](https://github.com/quarto-dev/quarto-cli/issues/5204)): About pages rely upon TOC being positioned right, so force that to be true
 - ([#5212](https://github.com/quarto-dev/quarto-cli/issues/5212)): Ensure navbar search button respects `collapse-below` and remains aligned properly
@@ -146,15 +158,17 @@
 - ([#5604](https://github.com/quarto-dev/quarto-cli/issues/5604)): Process footer content as blocks.
 - ([#5624](https://github.com/quarto-dev/quarto-cli/issues/5624)): Add support for localized Cookie Consent (using either the document's language or by specifying the language explicitly under the cookie consent key).
 - ([#5625](https://github.com/quarto-dev/quarto-cli/issues/5625)): Prefer the website image (if specified) over undecorated images that appear in the page.
+- ([#5689](https://github.com/quarto-dev/quarto-cli/issues/5689)): Don't use a single sidebar with an id as a global sidebar (the id explicitly means that the sidbar will match pages specifying that id or pages which the sidebar contains).
 - ([#5756](https://github.com/quarto-dev/quarto-cli/issues/5756)): Add `rel="..."` resolution to navbar tools.
 - ([#5763](https://github.com/quarto-dev/quarto-cli/issues/5763)): Add support for a keyboard shortcut to launch search (defaults to `f` or `/`). Use `search` > `keyboard-shortcut` to override with your own key(s).
 - ([#5932](https://github.com/quarto-dev/quarto-cli/issues/5932)): Correct Open Graph metadata key name for `og:site_name`
 - ([#6432](https://github.com/quarto-dev/quarto-cli/issues/6432)): Don't decorate navigation tools with external link icon (we generally don't decorate navigation chrome in this way)
 - ([#6703](https://github.com/quarto-dev/quarto-cli/issues/6703)): Warn users when a `theme` key in a document is being ignored.
+- ([#6704](https://github.com/quarto-dev/quarto-cli/issues/6704)): Use the correct title when there are duplicate sidebar `href` targets
 - ([#6708](https://github.com/quarto-dev/quarto-cli/issues/6708)): Prevent duplication of footnotes within the abstract or description within websites and books.
+- ([#6732](https://github.com/quarto-dev/quarto-cli/issues/6732)): Allow specifying global alt text for social metadata
 - ([#7447](https://github.com/quarto-dev/quarto-cli/issues/7447)): Changing the `$primary` color in a SCSS theme will now properly change the navigation bar background color.
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
-- ([#4668](https://github.com/quarto-dev/quarto-cli/issues/4668)): Allow per page metadata (front matter or a `_metadata.yml` file) to overide the `repo-url` for a page by providing a `repo-url`
 
 ## Website Search
 
@@ -202,6 +216,7 @@
 - ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
 - ([#7016](https://github.com/quarto-dev/quarto-cli/pull/7016)): Ignore directories for which we don't have permissions when searching for unactivated environments.
+- ([#7302](https://github.com/quarto-dev/quarto-cli/issues/7302)): Avoid name collisions when embedding output from multiple notebooks in a Quarto document
 - ([#7512](https://github.com/quarto-dev/quarto-cli/issues/7512)): Improved error message listing known kernels, when a kernel set with `jupyter` key in YAML is not found.
 - ([#7548](https://github.com/quarto-dev/quarto-cli/issues/7548)): Don't use `fig_format="png"` in Julia's CairoMakie because of interaction with `display()`
 - ([#7607](https://github.com/quarto-dev/quarto-cli/issues/7607)): Make `output: asis` behave the same way as the `knitr` engine, emitting div enclosures when necessary.
@@ -213,6 +228,9 @@
 - ([#6792](https://github.com/quarto-dev/quarto-cli/issues/6792)): `fig-asp` provided at YAML config level now correctly work to set `fig.asp` chunk option in **knitr**.
 - ([#7002](https://github.com/quarto-dev/quarto-cli/issues/7002)): `layout-valign` is correctly forwarded to HTML to tweak vertical figure layout alignment for computational figures.
 - ([#5994](https://github.com/quarto-dev/quarto-cli/issues/5994)): Options like `include` or `echo` for `ojs` or `mermaid` cells are now correctly handled with knitr engine.
+- ([#4869](https://github.com/quarto-dev/quarto-cli/issues/4869)): `sql` cell output has now correct Quarto treatment so that specific features like `column: margin` works.
+- ([#7600](https://github.com/quarto-dev/quarto-cli/issues/7600)): `output: asis` now correctly don't emit `.cell-output-display` div around cell outputs of class `knit_asis`.
+- ([#7877](https://github.com/quarto-dev/quarto-cli/issues/7877)): `crop: false` chunk options allows to opt out (per chunk or globally) automatic cropping in PDF when `pdfcrop` and `ghostscript` are detected. This complements knitr's way `crop: null`.
 
 ## OJS engine
 
@@ -283,6 +301,7 @@
 
 ## Extensions
 
+- ([#4889](https://github.com/quarto-dev/quarto-cli/issues/4889)): Improve error message when attempting to create a duplicate extension
 - ([#6759](https://github.com/quarto-dev/quarto-cli/issues/6759)): Properly support format extensions controlling the order of filters that they use
 - ([#7375](https://github.com/quarto-dev/quarto-cli/issues/7375)): Updating extensions will now remove files that are not present in newer versions of an extension.
 
@@ -326,3 +345,4 @@
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
 - ([#4673](https://github.com/quarto-dev/quarto-cli/issues/4673)): Quarto now report in check and error message if **rmarkdown** R package minimal requirement (>= 2.3) is not fullfilled, and it will ask to update the package.
+- ([#7793](https://github.com/quarto-dev/quarto-cli/issues/7793)): When a project render list includes only negative globs, use those to filter out the default render list.

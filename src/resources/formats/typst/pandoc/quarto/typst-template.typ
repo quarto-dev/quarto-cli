@@ -14,6 +14,8 @@
   fontsize: 11pt,
   sectionnumbering: none,
   toc: false,
+  toc_title: none,
+  toc_depth: none,
   doc,
 ) = {
   set page(
@@ -63,10 +65,15 @@
   }
 
   if toc {
+    let title = if toc_title == none {
+      auto
+    } else {
+      toc_title
+    }
     block(above: 0em, below: 2em)[
     #outline(
-      title: auto,
-      depth: none
+      title: toc_title,
+      depth: toc_depth
     );
     ]
   }

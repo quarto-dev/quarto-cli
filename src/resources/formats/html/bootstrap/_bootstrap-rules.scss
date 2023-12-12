@@ -260,11 +260,12 @@ body,
 .page-columns.column-page > * {
   grid-column: page-start / page-end;
 }
-
+.page-columns.column-page-left .page-columns.page-full > *,
 .page-columns.column-page-left > * {
   grid-column: page-start / body-content-end;
 }
 
+.page-columns.column-page-right .page-columns.page-full > *,
 .page-columns.column-page-right > * {
   grid-column: body-content-start / page-end;
 }
@@ -684,7 +685,7 @@ mark {
 .figure-caption,
 .subfigure-caption,
 .table-caption,
-figcaption.quarto-float-caption,
+figcaption,
 caption {
   font-size: 0.9rem;
   @include body-secondary;
@@ -930,6 +931,12 @@ pre {
     background-color: $mono-background-color;
     padding: 0.2em;
   }
+}
+
+p pre code:not(.sourceCode),
+li pre code:not(.sourceCode),
+pre code:not(.sourceCode) {
+  background-color: initial;
 }
 
 // Default padding if background is set

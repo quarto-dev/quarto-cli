@@ -111,6 +111,9 @@ wrap_asis_output <- function(options, x) {
     x <- paste0("`````{=html}\n", x, "\n`````")
   }
   
+  # If asis output, don't include the output div
+  if (identical(options[["results"]], "asis")) return(x)
+
   output_div(x, output_label_placeholder(options), classes, attrs)
 }
 

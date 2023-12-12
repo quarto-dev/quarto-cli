@@ -66,6 +66,14 @@ footer.footer .nav-footer,
   padding-right: 1em;
 }
 
+footer.footer div.nav-footer p:first-child {
+  margin-top: 0;
+}
+
+footer.footer div.nav-footer p:last-child {
+  margin-bottom: 0;
+}
+
 // content padding
 #quarto-content > * {
   padding-top: $content-padding-top;
@@ -340,11 +348,10 @@ $sidebar-section-bottom-margin: 0.2em;
 .sidebar-item {
   margin-bottom: $sidebar-items-gap-spacing;
   line-height: 1rem;
-  margin-top: 0.7rem;
+  margin-top: 0.4rem;
 }
 
 .sidebar-section {
-  margin-top: $sidebar-items-gap-spacing;
   padding-left: $sidebar-section-indent;
   padding-bottom: $sidebar-section-bottom-margin;
 }

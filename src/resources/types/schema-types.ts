@@ -412,6 +412,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   "bread-crumbs"?:
     boolean /* Whether to show navigation breadcrumbs for pages more than 1 level deep */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
+  "image-alt"?:
+    string /* Default site thumbnail image alt text for `twitter` /`open-graph` */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
     | boolean

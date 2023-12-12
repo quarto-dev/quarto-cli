@@ -253,9 +253,9 @@ window.addEventListener(
         const style = svg.querySelector("style");
         style.innerHTML = style.innerHTML.replaceAll(
           `#${svg.id}`,
-          `#${el.dataset.label}`
+          `#${el.dataset.label}-mermaid`
         );
-        svg.id = el.dataset.label;
+        svg.id = el.dataset.label + "-mermaid";
         delete el.dataset.label;
       }
 

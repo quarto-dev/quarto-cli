@@ -9,14 +9,27 @@
 import { matchAll } from "./text.ts";
 import { Shortcode } from "./parse-shortcode-types.ts";
 
+export class InvalidShortcodeError extends Error {
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
 export function findInlineShortcodes(content: string) {
   return Array.from(matchAll(content, /{{< (?!\/\*)(.+?)(?<!\*\/) >}}/));
 }
 
-export function isBlockShortcode(content: string) {
+export function isBlockShortcode(content: string, lenient?: boolean) {
   const m = content.match(/^\s*{{< (?!\/\*)(.+?)(?<!\*\/) >}}\s*$/);
   if (m) {
-    return parseShortcode(m[1]);
+    try {
+      return parseShortcode(m[1]);
+    } catch (_e) {
+      if (lenient) {
+        return false;
+      }
+      throw _e;
+    }
   }
 }
 
@@ -79,7 +92,7 @@ function parseShortcodeCapture(capture: string): Shortcode | undefined {
       continue;
     }
 
-    throw new Error("invalid shortcode: " + capture);
+    throw new InvalidShortcodeError("invalid shortcode: " + capture);
   }
   return { name, params, namedParams, rawParams };
 }
@@ -88,7 +101,7 @@ function parseShortcodeCapture(capture: string): Shortcode | undefined {
 export function parseShortcode(shortCodeCapture: string): Shortcode {
   const result = parseShortcodeCapture(shortCodeCapture);
   if (!result) {
-    throw new Error("invalid shortcode: " + shortCodeCapture);
+    throw new InvalidShortcodeError("invalid shortcode: " + shortCodeCapture);
   }
   return result;
 }

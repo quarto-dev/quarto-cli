@@ -494,7 +494,8 @@ function parse_reftargets()
             img.caption = nil
             return pandoc.Figure(link, { long = { caption } })
           else
-            return pandoc.Figure(link)
+            return nil
+            -- return pandoc.Figure(link)
           end
         end
         img.identifier = ""

@@ -377,7 +377,14 @@ function code_annotations()
         end
 
         for i, block in ipairs(blocks) do
-          if is_regular_node(block, "Div") and block.attr.classes:find('cell') then
+          local found = is_regular_node(block, "Div") and block.attr.classes:find('cell')
+          if is_custom_node(block) then
+            local custom = _quarto.ast.resolve_custom_data(block)
+            if custom then
+              found = found or (custom.classes or pandoc.List({})):find('cell')
+            end
+          end
+          if found then
             -- Process executable code blocks 
             -- In the case of executable code blocks, we actually want
             -- to shift the OL up above the output, so we hang onto this outer
@@ -386,7 +393,6 @@ function code_annotations()
             local resolvedBlock = _quarto.ast.walk(block, {
               CodeBlock = function(el)
                 if el.attr.classes:find('cell-code') then
-
                   local cellId = resolveCellId(el.attr.identifier)
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then
@@ -535,7 +541,12 @@ function code_annotations()
               if pendingCodeCell ~= nil then
                 -- wrap the definition list in a cell
                 local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass}))
-                pendingCodeCell.content:insert(2, dlDiv)
+                if is_custom_node(pendingCodeCell) then
+                  local custom = _quarto.ast.resolve_custom_data(pendingCodeCell) or pandoc.Div({}) -- won't happen but the Lua analyzer doesn't know it
+                  custom.content:insert(2, dlDiv)
+                else
+                  pendingCodeCell.content:insert(2, dlDiv)
+                end
                 flushPending()
               else
                 outputBlockClearPending(dl)
