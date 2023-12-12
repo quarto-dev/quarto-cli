@@ -182,11 +182,46 @@ export const renderCommand = new Command()
       args = args.slice(firstPandocArg);
     }
 
+    // found by
+    // $ pandoc --help | grep '\[='
+    // cf https://github.com/jgm/pandoc/issues/8013#issuecomment-1094162866
+
+    const pandocArgsWithOptionalValues = [
+      "--file-scope",
+      "--sandbox",
+      "--standalone",
+      "--ascii",
+      "--toc",
+      "--preserve-tabs",
+      "--self-contained",
+      "--embed-resources",
+      "--no-check-certificate",
+      "--strip-comments",
+      "--reference-links",
+      "--list-tables",
+      "--listings",
+      "--incremental",
+      "--section-divs",
+      "--html-q-tags",
+      "--epub-title-page",
+      "--webtex",
+      "--mathjax",
+      "--katex",
+      "--trace",
+      "--dump-args",
+      "--ignore-args",
+      "--fail-if-warnings",
+      "--list-extensions",
+    ];
+
     // normalize args (to deal with args like --foo=bar)
     const normalizedArgs = [];
     for (const arg of args) {
       const equalSignIndex = arg.indexOf("=");
-      if (equalSignIndex > 0 && arg.startsWith("-")) {
+      if (
+        equalSignIndex > 0 && arg.startsWith("-") &&
+        !pandocArgsWithOptionalValues.includes(arg.slice(0, equalSignIndex))
+      ) {
         // Split the arg at the first equal sign
         normalizedArgs.push(arg.slice(0, equalSignIndex));
         normalizedArgs.push(arg.slice(equalSignIndex + 1));
