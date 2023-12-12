@@ -38,7 +38,9 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     return true
   end,
   function(node)
-    return node.code_block
+    return _quarto.ast.walk(node.code_block, {
+      CodeBlock = render_folded_block
+    })
   end)
 
 -- markdown renderer
@@ -66,7 +68,9 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         pandoc.Attr("", {"code-with-filename"})
       )
     else
-      return el
+      return _quarto.ast.walk(quarto.utils.as_blocks(el), {
+        CodeBlock = render_folded_block
+      })
     end
   end)
 
@@ -76,9 +80,17 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     return _quarto.format.isLatexOutput()    
   end,
   function(node)
-    local el = node.code_block
     -- add listing class to the code block
-    el.attr.classes:insert("listing")
+    -- need to walk the code block instead of assigning directly
+    -- because upstream filters might have replaced the code block with
+    -- more than one element
+    node.code_block = _quarto.ast.walk(quarto.utils.as_blocks(node.code_block), {
+      CodeBlock = function(el)
+        el.attr.classes:insert("listing")
+        return render_folded_block(el)
+      end
+    }) or node.code_block -- unneeded but the Lua analyzer doesn't know that
+
     -- if we are use the listings package we don't need to do anything
     -- further, otherwise generate the listing div and return it
     if not param("listings", false) then
@@ -123,7 +135,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
       listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
       return listingDiv
     end
-    return el
+    return node.code_block
   end)
 
 -- html renderer
@@ -132,32 +144,40 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     return _quarto.format.isHtmlOutput()
   end,
   function(node)
+    if node.filename == nil then
+      return _quarto.ast.walk(quarto.utils.as_blocks(node.code_block), {
+        CodeBlock = render_folded_block
+      })
+    end
     local el = node.code_block
     local filenameEl
     local caption
     local classes = pandoc.List()
-    local fancy_output = false
-    if node.filename ~= nil then
-      filenameEl = pandoc.Div({pandoc.Plain{
-        pandoc.RawInline("html", "<pre>"),
-        pandoc.Strong{pandoc.Str(node.filename)},
-        pandoc.RawInline("html", "</pre>")
-      }}, pandoc.Attr("", {"code-with-filename-file"}))
-      classes:insert("code-with-filename")
-      fancy_output = true
-    end
-    if not fancy_output then
-      return el
-    end
+    filenameEl = pandoc.Div({pandoc.Plain{
+      pandoc.RawInline("html", "<pre>"),
+      pandoc.Strong{pandoc.Str(node.filename)},
+      pandoc.RawInline("html", "</pre>")
+    }}, pandoc.Attr("", {"code-with-filename-file"}))
+    classes:insert("code-with-filename")
 
     local blocks = pandoc.Blocks({})
     if caption ~= nil then
       blocks:insert(caption)
     end
+    el = _quarto.ast.walk(quarto.utils.as_blocks(el), {
+      CodeBlock = render_folded_block
+    }) or pandoc.Blocks({})
     if filenameEl ~= nil then
-      blocks:insert(filenameEl)
+      el = _quarto.ast.walk(quarto.utils.as_blocks(el), {
+        CodeBlock = function(block)
+          return pandoc.Blocks({
+            filenameEl,
+            block
+          })
+        end
+      }) or pandoc.Blocks({})
     end
-    blocks:extend(quarto.utils.as_blocks(el) or {})
+    blocks:extend(el)
 
     return pandoc.Div(blocks, pandoc.Attr("", classes))
   end)
