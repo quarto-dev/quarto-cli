@@ -1413,12 +1413,12 @@ kbd,
   padding-right: 0.5em;
 }
 
-.callout.callout-style-default div.callout-body {
+.callout.callout-style-default .callout-body {
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
 
-.callout.callout-style-default div.callout-body > :first-child {
+.callout.callout-style-default .callout-body > :first-child {
   padding-top: 0.5rem;
   margin-top: 0;
 }
