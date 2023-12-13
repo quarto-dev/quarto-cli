@@ -333,6 +333,7 @@
 - ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820)): Add support for setting the Giscus light/dark themes.
 - ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)): support `from: ` formats correctly.
 - ([#5421](https://github.com/quarto-dev/quarto-cli/pull/5421)): Correct `quarto --help` command to provide correct commands and descriptions
+- ([#5444](https://github.com/quarto-dev/quarto-cli/issues/5444)): Introduce a build command `make-installer-dir` to better support third party packaging without dependencies. Fine tuning of code/patch provided in https://github.com/conda-forge/quarto-feedstock/pull/7.
 - ([#5748](https://github.com/quarto-dev/quarto-cli/issues/5748)): Don't cleanup shared lib_dir files when using `embed-resources` within a project
 - ([#5755](https://github.com/quarto-dev/quarto-cli/pull/5755)): Allow document metadata to control conditional content.
 - ([#5785](https://github.com/quarto-dev/quarto-cli/issues/5785)): Don't process juptyer notebook markdown into metadata when embedding notebooks into documents.
