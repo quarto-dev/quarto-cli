@@ -160,8 +160,8 @@ fi
 
 
 if [ "$QUARTO_DENO" == "" ]; then
-  DENO_DIR=$ARCH_DIR
-  export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_DIR}/deno"
+  DENO_ARCH_DIR=$ARCH_DIR
+  export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_ARCH_DIR}/deno"
 fi
 
 export DENO_TLS_CA_STORE=system,mozilla
