@@ -44,7 +44,7 @@ class ExecuteHandler(StreamRequestHandler):
             return
          if input["command"] == "file":
             filename = input["options"]["file"]
-            input = json.load(open(filename, "r"))
+            input = json.load(open(filename, "r", encoding="utf8"))
             os.unlink(filename)
 
          # if this is an abort command then request exit
