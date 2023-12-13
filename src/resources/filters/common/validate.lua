@@ -21,7 +21,7 @@ function validateInList(value, list, attribute, default)
     return default
     -- luacov: enable
   else
-    return default
+    return value
   end
 end
 
