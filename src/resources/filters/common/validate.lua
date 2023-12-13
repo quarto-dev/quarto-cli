@@ -4,8 +4,8 @@
 kAlignments = pandoc.List({ "center", "left", "right" })
 kVAlignments = pandoc.List({"top", "center", "bottom"})
 
-function validatedAlign(align)
-  return validateInList(align, kAlignments, "alignment", nil)
+function validatedAlign(align, default)
+  return validateInList(align, kAlignments, "alignment", default)
 end
 
 function validatedVAlign(vAlign)

@@ -21,5 +21,5 @@ function align_attribute(float)
   if align == "default" then
     align = default
   end
-  return validatedAlign(align)
+  return validatedAlign(align, "center")
 end

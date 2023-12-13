@@ -23,7 +23,7 @@ function figAlignAttribute(el)
   if align == "default" then
     align = default
   end
-  return validatedAlign(align)
+  return validatedAlign(align, "center")
 end
 
 -- is this a Div containing a figure
