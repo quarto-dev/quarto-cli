@@ -131,7 +131,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
       -- a user filter could have replaced
       -- a single code block in a decorated code block with a list of elements,
       -- so we need to handle that.
-      listingDiv.content:extend(quarto.utils.as_blocks(el) or {})
+      listingDiv.content:extend(quarto.utils.as_blocks(node.code_block) or {})
       listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
       return listingDiv
     end
