@@ -212,6 +212,7 @@ export async function renderContexts(
   notebookContext: NotebookContext,
   project?: ProjectContext,
   cloneOptions: boolean = true,
+  enforceProjectFormats: boolean = true,
 ): Promise<Record<string, RenderContext>> {
   if (cloneOptions) {
     // clone options (b/c we will modify them)
@@ -238,6 +239,7 @@ export async function renderContexts(
     options,
     notebookContext,
     project,
+    enforceProjectFormats,
   );
 
   // remove --to (it's been resolved into contexts)
@@ -412,6 +414,7 @@ async function resolveFormats(
   options: RenderOptions,
   _notebookContext: NotebookContext,
   project?: ProjectContext,
+  enforceProjectFormats: boolean = true,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
   const inputMetadata = target.metadata;
@@ -626,14 +629,16 @@ async function resolveFormats(
   }
 
   // filter on formats supported by this project
-  for (const formatName of Object.keys(mergedFormats)) {
-    const format: Format = mergedFormats[formatName];
-    if (projType.isSupportedFormat) {
-      if (!projType.isSupportedFormat(format)) {
-        delete mergedFormats[formatName];
-        warnOnce(
-          `The ${formatName} format is not supported by ${projType.type} projects`,
-        );
+  if (enforceProjectFormats) {
+    for (const formatName of Object.keys(mergedFormats)) {
+      const format: Format = mergedFormats[formatName];
+      if (projType.isSupportedFormat) {
+        if (!projType.isSupportedFormat(format)) {
+          delete mergedFormats[formatName];
+          warnOnce(
+            `The ${formatName} format is not supported by ${projType.type} projects`,
+          );
+        }
       }
     }
   }

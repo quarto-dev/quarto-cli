@@ -361,6 +361,7 @@ export async function renderFile(
   options: RenderOptions,
   services: RenderServices,
   project?: ProjectContext,
+  enforceProjectFormats: boolean = true,
 ): Promise<RenderFilesResult> {
   // provide default renderer
   const pandocRenderer = defaultPandocRenderer(options, project);
@@ -386,6 +387,7 @@ export async function renderFile(
         [],
         pandocQuiet,
         services.notebook,
+        enforceProjectFormats,
       );
     } finally {
       fileLifetime.cleanup();
@@ -417,6 +419,7 @@ async function renderFileInternal(
   alwaysExecuteFiles: string[] | undefined,
   pandocQuiet: boolean,
   notebookContext: NotebookContext,
+  enforceProjectFormats: boolean = true,
 ) {
   const outputs: Array<RenderedFormat> = [];
   let contexts: Record<string, RenderContext> | undefined;
@@ -428,6 +431,7 @@ async function renderFileInternal(
       notebookContext,
       project,
       false,
+      enforceProjectFormats,
     );
 
     // Allow renderers to filter the contexts
