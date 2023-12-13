@@ -1276,10 +1276,15 @@ const processMarginCaptions = (doc: Document) => {
       const isLayoutPanel = captionContainer.classList.contains(
         "quarto-layout-panel",
       );
-      if (isLayoutPanel) {
-        processLayoutPanelMarginCaption(captionContainer);
-      } else {
-        processFigureMarginCaption(captionContainer, doc);
+
+      // has explicitly set cap location
+      const explicitCapLoc = captionContainer.getAttribute("data-cap-location");
+      if (explicitCapLoc == null || explicitCapLoc == "margin") {
+        if (isLayoutPanel) {
+          processLayoutPanelMarginCaption(captionContainer);
+        } else {
+          processFigureMarginCaption(captionContainer, doc);
+        }
       }
     } else {
       // Deal with table margin captions
