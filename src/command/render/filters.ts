@@ -824,9 +824,13 @@ async function resolveFilterExtension(
     // into the filters provided by the extension
     if (
       filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof filter === "string" &&
-      !existsSync(filter)
+      typeof filter === "string"
     ) {
+      // The filter string points to an executable file which exists
+      if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
+        return filter;
+      }
+
       const extensions = await options.services.extension?.find(
         filter,
         options.source,
