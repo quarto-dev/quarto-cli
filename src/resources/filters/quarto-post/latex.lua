@@ -180,26 +180,38 @@ function render_latex()
   -- renders the outermost element with .column-margin inside
   -- as a marginnote environment, but don't nest marginnote environments
   -- This works because it's a topdown traversal
-  local function column_margin(el)
-    local function strip_class(el)
-      if el.classes == nil then
-        return nil
+  local function handle_column_classes(el)
+    local function strip(content, class)
+      local function strip_class(inner_el)
+        if inner_el.classes == nil then
+          return nil
+        end
+        inner_el.classes = inner_el.classes:filter(function(clz)
+          return clz ~= class
+        end)
+        return inner_el
       end
-      el.classes = el.classes:filter(function(clz)
-        return clz ~= "column-margin"
-      end)
-      return el
+      return _quarto.ast.walk(content, {
+        Block = strip_class,
+        Inline = strip_class
+      })
     end
     if el.classes:includes("column-margin") then
       noteHasColumns()
       local is_block = pandoc.utils.type(el) == "Block"
-      el.content = _quarto.ast.walk(el.content, {
-        Block = strip_class,
-        Inline = strip_class
-      })      
+      el.content = strip(el.content, "column-margin")
       tprepend(el.content, {latexBeginSidenote(is_block)})
       tappend(el.content, {latexEndSidenote(el, is_block)})
       return el, false
+    else
+      local f = el.classes:find_if(isStarEnv)
+      if f ~= nil then
+        noteHasColumns()
+        el.content = strip(el.content, f)
+        tprepend(el.content, {pandoc.RawBlock("latex", "\\begin{figure*}[H]")})
+        tappend(el.content, {pandoc.RawBlock("latex", "\\end{figure*}")})
+        return el, false
+      end
     end
   end
 
@@ -230,8 +242,8 @@ function render_latex()
 
   return {
     traverse = "topdown",
-    Div = column_margin,
-    Span = column_margin,
+    Div = handle_column_classes,
+    Span = handle_column_classes,
     PanelLayout = handle_panel_layout,
     
     -- Pandoc emits longtable environments by default;
@@ -266,7 +278,7 @@ function render_latex()
     end,
     Image = function(img)
       if img.classes:includes("column-margin") then
-        return column_margin(pandoc.Span(img, img.attr))
+        return handle_column_classes(pandoc.Span(img, img.attr))
       end
       local align = attribute(img, kFigAlign, nil) or attribute(img, kLayoutAlign, nil)
       if align == nil then
