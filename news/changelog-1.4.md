@@ -45,7 +45,7 @@
 - ([#5957](https://github.com/quarto-dev/quarto-cli/issues/5957)): Fix layout issues when margin footnotes are contained in headings or other formatted text.
 - ([#6004](https://github.com/quarto-dev/quarto-cli/discussions/6004)): Improve appearance of Cross Talk controls in Quarto HTML documents
 - ([#6163](https://github.com/quarto-dev/quarto-cli/issues/6163)): Wrap `svg` output of `dot` cells in RawBlock `html` elements.
-- ([#6430](https://github.com/quarto-dev/quarto-cli/issues/6430)): Fix layout issue with banner style title block authors when `page-layout:
+- ([#6430](https://github.com/quarto-dev/quarto-cli/issues/6430)): Fix layout issue with banner style title block authors when `page-layout: full`
 - ([#6627](https://github.com/quarto-dev/quarto-cli/issues/6627)): Add a bit of margin-right to checkbox inputs.
 - ([#6693](https://github.com/quarto-dev/quarto-cli/discussions/6693)): Fine tune table appearance to improve consistency
 - ([#6714](https://github.com/quarto-dev/quarto-cli/issues/6714)): Display title block for HTML when other (non-title/author/subtitle) metadata is present.
@@ -319,6 +319,7 @@
 - ([#4889](https://github.com/quarto-dev/quarto-cli/issues/4889)): Improve error message when attempting to create a duplicate extension
 - ([#6759](https://github.com/quarto-dev/quarto-cli/issues/6759)): Properly support format extensions controlling the order of filters that they use
 - ([#7375](https://github.com/quarto-dev/quarto-cli/issues/7375)): Updating extensions will now remove files that are not present in newer versions of an extension.
+- ([#7886](https://github.com/quarto-dev/quarto-cli/issues/7886)): Better support installation of extensions and usage of templates from repos which have been renamed.
 - ([#7909](https://github.com/quarto-dev/quarto-cli/issues/7909)): Properly resolve filter extensions even when a directory of the same name exists.
 
 ## Other Fixes and Improvements

@@ -145,11 +145,35 @@ async function stageTemplate(
     // Unzip and remove zip
     await unzipInPlace(toFile);
 
+    // Try to find the correct sub directory
     if (source.targetSubdir) {
-      return join(archiveDir, source.targetSubdir);
-    } else {
-      return archiveDir;
+      const sourceSubDir = join(archiveDir, source.targetSubdir);
+      if (existsSync(sourceSubDir)) {
+        return sourceSubDir;
+      }
     }
+
+    // Couldn't find a source sub dir, see if there is only a single
+    // subfolder and if so use that
+    const dirEntries = Deno.readDirSync(archiveDir);
+    let count = 0;
+    let name;
+    let hasFiles = false;
+    for (const dirEntry of dirEntries) {
+      // ignore any files
+      if (dirEntry.isDirectory) {
+        name = dirEntry.name;
+        count++;
+      } else {
+        hasFiles = true;
+      }
+    }
+    // there is a lone subfolder - use that.
+    if (!hasFiles && count === 1 && name) {
+      return join(archiveDir, name);
+    }
+
+    return archiveDir;
   } else {
     if (typeof source.resolvedTarget !== "string") {
       throw new InternalError(

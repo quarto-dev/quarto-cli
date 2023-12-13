@@ -270,35 +270,38 @@ async function unzipAndStage(
   const findExtensionDir = () => {
     if (source.targetSubdir) {
       // If the source provides a subdirectory, just use that
-      return join(archiveDir, source.targetSubdir);
-    } else {
-      // Otherwise, we should inspect the directory either:
-      // - use the directory itself it has an _extensions dir
-      // - use a subdirectory if there is a single subdirectory and it has an
-      // _extensions dir
-      if (safeExistsSync(join(archiveDir, kExtensionDir))) {
-        return archiveDir;
-      } else {
-        const dirEntries = Deno.readDirSync(archiveDir);
-        let count = 0;
-        let name;
-        for (const dirEntry of dirEntries) {
-          // ignore any files
-          if (dirEntry.isDirectory) {
-            name = dirEntry.name;
-            count++;
-          }
-        }
+      const subDirPath = join(archiveDir, source.targetSubdir);
+      if (existsSync(subDirPath)) {
+        return subDirPath;
+      }
+    }
 
-        if (count === 1 && name && name !== kExtensionDir) {
-          if (safeExistsSync(join(archiveDir, name, kExtensionDir))) {
-            return join(archiveDir, name);
-          } else {
-            return archiveDir;
-          }
+    // Otherwise, we should inspect the directory either:
+    // - use the directory itself it has an _extensions dir
+    // - use a subdirectory if there is a single subdirectory and it has an
+    // _extensions dir
+    if (safeExistsSync(join(archiveDir, kExtensionDir))) {
+      return archiveDir;
+    } else {
+      const dirEntries = Deno.readDirSync(archiveDir);
+      let count = 0;
+      let name;
+      for (const dirEntry of dirEntries) {
+        // ignore any files
+        if (dirEntry.isDirectory) {
+          name = dirEntry.name;
+          count++;
+        }
+      }
+
+      if (count === 1 && name && name !== kExtensionDir) {
+        if (safeExistsSync(join(archiveDir, name, kExtensionDir))) {
+          return join(archiveDir, name);
         } else {
           return archiveDir;
         }
+      } else {
+        return archiveDir;
       }
     }
   };
