@@ -83,7 +83,12 @@ end, function(panel_layout)
     })
     decorate_caption_with_crossref(float_tbl)
     rendered_panel = float_reftarget_render_html_figure(float_tbl)
-    rendered_panel.attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+    local panel_attr = pandoc.Attr(panel_layout.identifier, {"quarto-layout-panel"})
+    -- https://github.com/quarto-dev/quarto-cli/issues/1173
+    if rendered_panel.classes:includes("margin-caption") then
+      panel_attr.classes:insert("margin-caption")
+    end
+    rendered_panel.attr = panel_attr
   else
     rendered_panel = panel
     rendered_panel.attr = pandoc.Attr(
