@@ -142,7 +142,7 @@ local vimeoBuilder = function(params)
   end
 
 
-  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" allow="autoplay; title="{title}" fullscreen; picture-in-picture" allowfullscreen></iframe>]]
+  local SNIPPET = [[<iframe data-external="1" src="{src}"{width}{height} frameborder="0" title="{title}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>]]
 
   local result = {}
 
