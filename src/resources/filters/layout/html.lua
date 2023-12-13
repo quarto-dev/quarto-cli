@@ -27,7 +27,7 @@ end, function(panel_layout)
       cell_div.attr.attributes["width"] = nil
       local justify = flexAlign(align)
       cell_div_style = cell_div_style .. "justify-content: " .. justify .. ";"
-      cell_div_style = cell_div_style .. "text-align: " .. align .. ";"
+      cell_div_style = cell_div_style .. "display: flex;"
       cell_div.attr.attributes["style"] = cell_div_style
       
       local has_table = false

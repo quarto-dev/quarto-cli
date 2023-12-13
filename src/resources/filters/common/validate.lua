@@ -5,7 +5,7 @@ kAlignments = pandoc.List({ "center", "left", "right" })
 kVAlignments = pandoc.List({"top", "center", "bottom"})
 
 function validatedAlign(align)
-  return validateInList(align, kAlignments, "alignment", "center")
+  return validateInList(align, kAlignments, "alignment", nil)
 end
 
 function validatedVAlign(vAlign)
@@ -20,8 +20,6 @@ function validateInList(value, list, attribute, default)
     warn("Invalid " .. attribute .. " attribute value: " .. value)
     return default
     -- luacov: enable
-  elseif value then
-    return value
   else
     return default
   end
