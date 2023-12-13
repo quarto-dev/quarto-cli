@@ -42,6 +42,10 @@ export async function parseRenderFlags(args: string[]) {
   const argsStack = [...args];
   let arg = argsStack.shift();
   while (arg !== undefined) {
+    const equalSignIndex = arg.indexOf("=");
+    if(arg.startsWith("--") && equalSignIndex > 0) {
+      arg = arg.slice(0, equalSignIndex);
+    }
     switch (arg) {
       case "-t":
       case "--to":
