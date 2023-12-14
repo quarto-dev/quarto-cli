@@ -1,0 +1,30 @@
+---
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['h1.title']    
+        - []
+---
+```{python}
+print("Hello")
+```
+
+## This is a title
+
+Some paragraph
+
+### This is first heading and not the title
+
+The first heading is transformed in title and placed at the top of the document.
+
+### Exécution
+
+
+```{python}
+print("Hello")
+```
+
+---
+author: Charles Teague
+---

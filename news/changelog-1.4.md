@@ -245,6 +245,7 @@
 - ([#7600](https://github.com/quarto-dev/quarto-cli/issues/7600)): `output: asis` now correctly don't emit `.cell-output-display` div around cell outputs of class `knit_asis`.
 - ([#7877](https://github.com/quarto-dev/quarto-cli/issues/7877)): `crop: false` chunk options allows to opt out (per chunk or globally) automatic cropping in PDF when `pdfcrop` and `ghostscript` are detected. This complements knitr's way `crop: null`.
 - ([#5506](https://github.com/quarto-dev/quarto-cli/issues/5506)): Fix error in if-statement when `knitr::asis_output(x)` is used with `length(x) != 1` (author: @rcannood).
+- ([#5363](https://github.com/quarto-dev/quarto-cli/issues/5363), [#6411](https://github.com/quarto-dev/quarto-cli/issues/6411) ): Fix issues caused by Quarto incorrectly using some headings as a title when reading notebooks.s
 
 ## OJS engine
 

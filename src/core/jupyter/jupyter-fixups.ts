@@ -171,19 +171,25 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
     return nb;
   }
 
-  // snip the title out of the markdown
+  // Check the first non-front matter (or front matter cell)
+  // for a heading that could be snipped out
   let title: string | undefined;
+  let currentCellIdx = 0;
   for (const cell of nb.cells) {
     if (cell.cell_type === "markdown") {
-      const { lines, headingText } = markdownWithExtractedHeading(
-        nbLines(cell.source).join(""),
-      );
-      if (headingText) {
+      const { lines, headingText, contentBeforeHeading } =
+        markdownWithExtractedHeading(
+          nbLines(cell.source).join(""),
+        );
+      if (headingText && !contentBeforeHeading) {
         title = headingText;
         cell.source = nbLines(lines);
         break;
+      } else if (currentCellIdx !== frontMatterCellIndex) {
+        break;
       }
     }
+    currentCellIdx++;
   }
 
   // if there is no title then we are done (the doc will have no title)
