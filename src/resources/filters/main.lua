@@ -338,7 +338,7 @@ local quarto_post_filters = {
   -- format-specific rendering
   { name = "post-render-asciidoc", filter = render_asciidoc() },
   { name = "post-render-latex", filter = render_latex() },
-  { name = "post-render-typst", filter = render_typst() },
+  { name = "post-render-typst", filters = render_typst() },
   { name = "post-render-dashboard", filters = render_dashboard() },
 
   { name = "post-ojs", filter = ojs() },

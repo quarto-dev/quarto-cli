@@ -659,29 +659,6 @@ end, function(callout)
   return pandoc.BlockQuote(result)
 end)
 
-local function typst_function_call(name, params)
-  local result = pandoc.Blocks({})
-  result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
-  -- needs to be array of pairs because order matters for typst
-  for i, pair in ipairs(params) do
-    local k = pair[1]
-    local v = pair[2]
-    result:insert(pandoc.RawInline("typst", k .. ": "))
-    result:extend(quarto.utils.as_blocks(v) or {})
-    result:insert(pandoc.RawInline("typst", ", "))
-  end
-  result:insert(pandoc.RawInline("typst", ")"))
-  return pandoc.Div(result)
-end
-
-local function as_typst_content(content)
-  local result = pandoc.Blocks({})
-  result:insert(pandoc.RawInline("typst", "[\n"))
-  result:extend(quarto.utils.as_blocks(content) or {})
-  result:insert(pandoc.RawInline("typst", "]\n"))
-  return result
-end
-
 local included_font_awesome = false
 local function ensure_typst_font_awesome()
   if included_font_awesome then

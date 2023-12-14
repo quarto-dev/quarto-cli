@@ -3,38 +3,100 @@
 --
 -- renders AST nodes to Typst
 
+function typst_function_call(name, params)
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
+  local function add(v)
+    if type(v) == "userdata" or type(v) == "table" then
+      result:extend(quarto.utils.as_blocks(v) or {})
+    else
+      result:extend(quarto.utils.as_blocks({pandoc.utils.stringify(v)}) or {})
+    end
+  end
+  -- needs to be array of pairs because order matters for typst
+  for i, pair in ipairs(params) do
+    local k = pair[1]
+    local v = pair[2]
+    if v ~= nil then
+      result:insert(pandoc.RawInline("typst", k .. ": "))
+      add(v)
+      result:insert(pandoc.RawInline("typst", ", "))
+    else
+      add(k)
+    end
+  end
+  result:insert(pandoc.RawInline("typst", ")"))
+  return pandoc.Div(result)
+end
+
+function as_typst_content(content)
+  local result = pandoc.Blocks({})
+  result:insert(pandoc.RawInline("typst", "[\n"))
+  result:extend(quarto.utils.as_blocks(content) or {})
+  result:insert(pandoc.RawInline("typst", "]\n"))
+  return result
+end
 
 function render_typst()
   if not _quarto.format.isTypstOutput() then
     return {}
   end
 
+  local number_depth
+
   return {
-    Meta = function(m)
-      m["toc-depth"] = PANDOC_WRITER_OPTIONS["toc_depth"]
-      return m
-    end,
-    Div = function(div)
-      if div.classes:includes("block") then
-        div.classes = div.classes:filter(function(c) return c ~= "block" end)
-
-        local preamble = pandoc.Blocks({})
-        local postamble = pandoc.Blocks({})
-        preamble:insert(pandoc.RawBlock("typst", "#block("))
-        for k, v in pairs(div.attributes) do
-          -- FIXME: proper escaping of k and v
-          preamble:insert(pandoc.RawBlock("typst", k .. ":" .. v .. ",\n"))
+    {
+      Meta = function(m)
+        m["toc-depth"] = PANDOC_WRITER_OPTIONS["toc_depth"]
+        if m["number-depth"] then
+          number_depth = tonumber(pandoc.utils.stringify(m["number-depth"]))
+          print(number_depth)
         end
-        preamble:insert(pandoc.RawBlock("typst", "[\n"))
-        postamble:insert(pandoc.RawBlock("typst", "])\n\n"))
-
-        local result = pandoc.Blocks({})
-        result:extend(preamble)
-        result:extend(div.content)
-        result:extend(postamble)
-        return result
+        return m
       end
-    end
+    },
+    {
+      Div = function(div)
+        if div.classes:includes("block") then
+          div.classes = div.classes:filter(function(c) return c ~= "block" end)
+
+          local preamble = pandoc.Blocks({})
+          local postamble = pandoc.Blocks({})
+          preamble:insert(pandoc.RawBlock("typst", "#block("))
+          for k, v in pairs(div.attributes) do
+            -- FIXME: proper escaping of k and v
+            preamble:insert(pandoc.RawBlock("typst", k .. ":" .. v .. ",\n"))
+          end
+          preamble:insert(pandoc.RawBlock("typst", "[\n"))
+          postamble:insert(pandoc.RawBlock("typst", "])\n\n"))
+
+          local result = pandoc.Blocks({})
+          result:extend(preamble)
+          result:extend(div.content)
+          result:extend(postamble)
+          return result
+        end
+      end,
+      Header = function(el)
+        if number_depth and el.level > number_depth then
+          el.classes:insert("unnumbered")
+        end
+        if not el.classes:includes("unnumbered") and not el.classes:includes("unlisted") then
+          return nil
+        end
+        local params = pandoc.List({
+          {"level", el.level},
+        })
+        if el.classes:includes("unnumbered") then
+          params:insert({"numbering", "none"})
+        end
+        if el.classes:includes("unlisted") then
+          params:insert({"outlined", false})
+        end
+        params:insert({as_typst_content(el.content)})
+        return typst_function_call("heading", params)
+      end,
+    }
   }
 end
 
