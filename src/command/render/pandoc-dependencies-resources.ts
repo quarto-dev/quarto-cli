@@ -76,11 +76,6 @@ export async function processFormatResources(
             preserveTimestamps: true,
           },
         );
-
-        // Mark the file as readonly, if we can
-        if (Deno.build.os !== "windows" && Deno.statSync(targetPath).isFile) {
-          Deno.chmodSync(targetPath, 0o555);
-        }
       } else if (dependency.type === kResources) {
         const resource = dependency.content as Resource;
         resources.push(
