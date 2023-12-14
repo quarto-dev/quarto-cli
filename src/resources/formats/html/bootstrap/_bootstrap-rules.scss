@@ -337,49 +337,49 @@ body.docked {
 .page-columns .column-body-outset {
   grid-column: body-start-outset / body-end-outset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-body-outset-left {
   grid-column: body-start-outset / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-body-outset-right {
   grid-column: body-content-start / body-end-outset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page {
   grid-column: page-start / page-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-inset {
   grid-column: page-start-inset / page-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-inset-left {
   grid-column: page-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-inset-right {
   grid-column: body-content-start / page-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   figcaption {
     @include column-spanning-element();
   }
@@ -388,14 +388,14 @@ body.docked {
 .page-columns .column-page-left {
   grid-column: page-start / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-page-right {
   grid-column: body-content-start / page-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   figcaption {
     @include column-spanning-element();
   }
@@ -426,42 +426,42 @@ body.docked {
 .page-columns .column-screen-inset {
   grid-column: screen-start-inset / screen-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-inset-left {
   grid-column: screen-start-inset / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-inset-right {
   grid-column: body-content-start / screen-end-inset;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen {
   grid-column: screen-start / screen-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-left {
   grid-column: screen-start / body-content-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
 .page-columns .column-screen-right {
   grid-column: body-content-start / screen-end;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   @include column-spanning-element();
 }
 
@@ -470,23 +470,23 @@ body.docked {
   padding: 1em;
   background: $light;
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
   margin-bottom: 1em;
 }
 
 .zindex-content {
   z-index: $zindex-pagelayout;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
 }
 
 .zindex-modal {
   z-index: $zindex-modal;
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
 }
 
 .zindex-over-content {
   z-index: #{$zindex-dropdown - 1};
-  transform: translate3d(0, 0, 0);
+  opacity: 0.999;
 }
 
 img.img-fluid.column-screen,
@@ -549,7 +549,7 @@ img.img-fluid.column-screen-right {
     .column-margin {
       grid-column: body-content-start / body-content-end !important;
       z-index: $zindex-pagelayout;
-      transform: translate3d(0, 0, 0);
+      opacity: 0.999;
     }
     .no-row-height {
       height: initial;
@@ -565,7 +565,7 @@ img.img-fluid.column-screen-right {
   .column-margin {
     grid-column: body-content-start / body-content-end !important;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
   }
   .no-row-height {
     height: initial;
@@ -2021,42 +2021,42 @@ code.sourceCode a.code-annotation-anchor {
   .page-columns .column-screen-inset {
     grid-column: page-start-inset / page-end-inset;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-inset-left {
     grid-column: page-start-inset / body-content-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-inset-right {
     grid-column: body-content-start / page-end-inset;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen {
     grid-column: page-start / page-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-left {
     grid-column: page-start / body-content-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
   .page-columns .column-screen-right {
     grid-column: body-content-start / page-end;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     @include column-spanning-element();
   }
 
@@ -2065,7 +2065,7 @@ code.sourceCode a.code-annotation-anchor {
     padding: 1em;
     background: $light;
     z-index: $zindex-pagelayout;
-    transform: translate3d(0, 0, 0);
+    opacity: 0.999;
     margin-bottom: 1em;
   }
 }
@@ -2114,3 +2114,6 @@ code.sourceCode a.code-annotation-anchor {
     margin-right: unset;
   }
 }
+
+// Special HACK for bslib cards - we use translate on the root element sometimes, so when we do this, also
+// fix up bslib cards to be sticky rather than fixed.
