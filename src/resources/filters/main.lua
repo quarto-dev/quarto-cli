@@ -62,6 +62,7 @@ import("./quarto-post/delink.lua")
 import("./quarto-post/docx.lua")
 import("./quarto-post/fig-cleanup.lua")
 import("./quarto-post/foldcode.lua")
+import("./quarto-post/gfm.lua")
 import("./quarto-post/ipynb.lua")
 import("./quarto-post/latex.lua")
 import("./quarto-post/typst.lua")
@@ -353,6 +354,7 @@ local quarto_post_filters = {
   { name = "post-render-html-fixups", filter = render_html_fixups() },
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
+  { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
     flags = { "has_pandoc3_figure" } },
   { name = "post-render-email", filter = render_email() },
