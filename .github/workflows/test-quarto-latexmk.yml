@@ -55,7 +55,7 @@ jobs:
           ../dist/bin/tinitex/x86_64-unknown-linux-gnu/tinitex --help
 
       - name: Upload binary
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v3
         with:
           name: tinitex
           path: |
