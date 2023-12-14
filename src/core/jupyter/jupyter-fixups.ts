@@ -225,17 +225,13 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
 type JupyterFixup = (nb: JupyterNotebook) => JupyterNotebook;
 
-const defaultFixups: ((
-  nb: JupyterNotebook,
-) => JupyterNotebook)[] = [
+export const defaultFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupFrontMatter,
   fixupStreams,
 ];
 
-const minimalFixups: ((
-  nb: JupyterNotebook,
-) => JupyterNotebook)[] = [
+export const minimalFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupStreams,
 ];

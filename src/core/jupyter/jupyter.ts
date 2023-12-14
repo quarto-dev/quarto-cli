@@ -159,7 +159,11 @@ import {
   isIpynbOutput,
   isJatsOutput,
 } from "../../config/format.ts";
-import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import {
+  bookFixups,
+  fixupJupyterNotebook,
+  minimalFixups,
+} from "./jupyter-fixups.ts";
 import {
   resolveUserExpressions,
   userExpressionsFromCell,
@@ -685,8 +689,12 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
+  // If there is already a title in the metadata, don't run the
+  // full set of fixups, only do the minimal
   const fixups = options.executeOptions.projectType === "book"
     ? bookFixups
+    : options.executeOptions.format.metadata.title
+    ? minimalFixups
     : undefined;
 
   nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
