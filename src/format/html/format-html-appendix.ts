@@ -157,7 +157,7 @@ export async function processDocumentAppendix(
 
     // Move the footnotes into the appendix
     if (!hasMarginRefs(format, flags)) {
-      const footnoteEls = doc.querySelectorAll('aside[role="doc-endnotes"]');
+      const footnoteEls = doc.querySelectorAll('section[role="doc-endnotes"]');
       if (footnoteEls && footnoteEls.length === 1) {
         const footnotesEl = footnoteEls.item(0) as Element;
         footnotesEl.tagName = "SECTION";
