@@ -183,6 +183,7 @@
 
 ## Website Search
 
+- ([#4531](https://github.com/quarto-dev/quarto-cli/issues/4531)): Section cross references are now properly searchable
 - ([#7105](https://github.com/quarto-dev/quarto-cli/issues/7105)): Improve search results by raising default limit and fixing and removing warning that would appear for Algolia when limit was more than 20.
 - ([#7150](https://github.com/quarto-dev/quarto-cli/issues/7150)): Search keyboard shortcut will not intercept keys directed at inputs.
 - ([#7117](https://github.com/quarto-dev/quarto-cli/issues/7117)): Ensure that search works properly in mobile layouts when not scrolled to top of page (don't close search when scroll occurs because of keyboard being shown).

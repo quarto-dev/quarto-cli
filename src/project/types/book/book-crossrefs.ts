@@ -37,7 +37,7 @@ import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { isMultiFileBookFormat } from "./book-shared.ts";
-import { Format, FormatLanguage } from "../../../config/types.ts";
+import { Format } from "../../../config/types.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,
@@ -310,7 +310,7 @@ function formatCrossref(
         ? language[kCrossrefApxPrefix]
         : language[kCrossrefChPrefix]
       : language[kCrossrefSecPrefix];
-    const crossref = prefix + "&nbsp;" + refNumber;
+    const crossref = prefix + " " + refNumber;
     return crossref;
   } else {
     return refNumber;

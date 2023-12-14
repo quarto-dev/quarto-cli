@@ -2115,5 +2115,6 @@ code.sourceCode a.code-annotation-anchor {
   }
 }
 
-// Special HACK for bslib cards - we use translate on the root element sometimes, so when we do this, also
-// fix up bslib cards to be sticky rather than fixed.
+.quarto-xref {
+  white-space: nowrap;
+}
