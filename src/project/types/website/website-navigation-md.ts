@@ -243,7 +243,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
             if (item.sectionId) {
               markdown[`${kSidebarIdPrefix}${item.sectionId}`] = item.text;
             } else {
-              markdown[`${kSidebarIdPrefix}${item.id || ""}${item.href}`] =
+              markdown[`${kSidebarIdPrefix}${item.href}${item.text}`] =
                 item.text;
             }
           }
@@ -258,11 +258,11 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       );
       for (let i = 0; i < sidebarItemEls.length; i++) {
         const sidebarEl = sidebarItemEls[i] as Element;
-        const link = sidebarEl.querySelector(".menu-text");
         const href = sidebarEl.getAttribute("href");
+        const link = sidebarEl.querySelector(".menu-text");
         if (link) {
           const sidebarText =
-            rendered[`${kSidebarIdPrefix}${sidebarEl.id}${href}`];
+            rendered[`${kSidebarIdPrefix}${href}${link.innerText}`];
           if (sidebarText) {
             link.innerHTML = sidebarText.innerHTML;
           }

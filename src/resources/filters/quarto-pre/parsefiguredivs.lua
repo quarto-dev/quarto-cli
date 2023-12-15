@@ -126,33 +126,8 @@ local function kable_raw_latex_fixups(content, identifier)
   return matches, content
 end
 
-function parse_reftargets()
+function parse_floatreftargets()
   
-  local function parse_theorem_div(div)
-    if has_theorem_ref(div) then
-      local el = div
-      -- capture then remove name
-      local name = markdownToInlines(el.attr.attributes["name"])
-      if not name or #name == 0 then
-        name = resolveHeadingCaption(el)
-      end
-      el.attr.attributes["name"] = nil 
-      local identifier = el.attr.identifier
-      -- remove identifier to avoid infinite recursion
-      el.attr.identifier = ""
-      return quarto.Theorem {
-        identifier = identifier,
-        name = name,
-        div = div
-      }, false
-    end
-    -- local types = theorem_types
-    -- local type = refType(el.attr.identifier)
-    -- local theorem_type = types[type]
-    -- if theorem_type then
-    -- end
-  end
-
   local function parse_float_div(div)
     process_div_caption_classes(div)
     local ref = refType(div.identifier)
@@ -252,9 +227,6 @@ function parse_reftargets()
     if div.classes:includes("cell") then
       local layout_classes = attr.classes:filter(
         function(c) return c:match("^column-") end
-      )
-      div.classes = div.classes:filter(
-        function(c) return not c:match("^column-") end
       )
       if #layout_classes then
         attr.classes = attr.classes:filter(
@@ -423,8 +395,6 @@ function parse_reftargets()
         return parse_float_div(div)
       elseif isTableDiv(div) then
         return parse_float_div(div)
-      elseif is_theorem_div(div) then
-        return parse_theorem_div(div)
       end
 
       if div.classes:includes("cell") then

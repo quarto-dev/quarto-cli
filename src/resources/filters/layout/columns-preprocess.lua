@@ -9,9 +9,7 @@ function columns_preprocess()
       end
       local location = cap_location(float)
       if location == 'margin' then
-        if not float.classes:includes("column-margin") then
-          float.classes:insert('margin-caption')
-        end
+        float.classes:insert('margin-caption')
         noteHasColumns()
         return float
       end
@@ -34,13 +32,7 @@ function columns_preprocess()
         resolveElementForScopedColumns(figure, 'fig')
       end
       return el
-    end,
-
-    Image = function(img)
-      if img.classes:find_if(function(class) return class:match("^column%-") end) then
-        noteHasColumns()
-      end
-    end
+    end  
   }
 end
 

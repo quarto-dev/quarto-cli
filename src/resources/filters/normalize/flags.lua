@@ -69,7 +69,7 @@ function compute_flags()
     end,
     Div = function(node)
       local type = refType(node.attr.identifier)
-      if theorem_types[type] ~= nil or proofType(node) ~= nil then
+      if theorem_types[type] ~= nil or proof_type(node) ~= nil then
         flags.has_theorem_refs = true
       end
 
