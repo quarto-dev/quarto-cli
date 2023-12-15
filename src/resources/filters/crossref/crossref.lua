@@ -97,6 +97,7 @@ import("../quarto-pre/panel-input.lua")
 import("../quarto-pre/panel-layout.lua")
 import("../quarto-pre/panel-sidebar.lua")
 import("../quarto-pre/parsefiguredivs.lua")
+import("../quarto-pre/parseblockreftargets.lua")
 import("../quarto-pre/project-paths.lua")
 import("../quarto-pre/resourcefiles.lua")
 import("../quarto-pre/results.lua")
@@ -117,6 +118,7 @@ import("../customnodes/decoratedcodeblock.lua")
 import("../customnodes/callout.lua")
 import("../customnodes/panel-tabset.lua")
 import("../customnodes/floatreftarget.lua")
+import("../customnodes/proof.lua")
 import("../customnodes/theorem.lua")
 import("../customnodes/panellayout.lua")
 
@@ -176,7 +178,8 @@ local quarto_normalize_filters = {
     name = "normalize-combine-2", 
     filter = combineFilters({
       parse_md_in_html_rawblocks(),
-      parse_reftargets(),
+      parse_floatreftargets(),
+      parse_blockreftargets(),
     }),
   },
 }

@@ -276,10 +276,6 @@ function render_latex()
       })
       return float, false
     end,
-    Figure = function(fig)
-      -- defer rendering of figure to own pass
-      return nil, false
-    end,
     Image = function(img)
       if img.classes:includes("column-margin") then
         return handle_column_classes(pandoc.Span(img, img.attr))

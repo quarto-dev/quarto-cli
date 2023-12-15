@@ -3,11 +3,10 @@
 
 -- preprocess theorem to ensure that embedded headings are unnumered
 function crossref_preprocess_theorems()
-  local types = theorem_types
   return {
     Div = function(el)
       local type = refType(el.attr.identifier)
-      if types[type] ~= nil or proofType(el) ~= nil then
+      if theorem_types[type] ~= nil or proof_type(el) ~= nil then
         return _quarto.ast.walk(el, {
           Header = function(el)
             el.classes:insert("unnumbered")
@@ -15,15 +14,11 @@ function crossref_preprocess_theorems()
           end
         })
       end
-
     end
   }
 end
 
 function crossref_theorems()
-
-  local types = theorem_types
-
   return {
     Theorem = function(thm)
       local label = thm.identifier
@@ -32,19 +27,29 @@ function crossref_theorems()
       thm.order = add_crossref(label, type, title)
       return thm
     end,
+    Proof = function(proof)
+      local label = proof.identifier
+      if label == "" then
+        return nil -- it's an unnumbered proof
+      end
+      local type = refType(label)
+      local title = quarto.utils.as_blocks(proof.name)
+      proof.order = add_crossref(label, type, title)
+      return proof
+    end,
     Div = function(el)
 
       local type = refType(el.attr.identifier)
-      local theoremType = types[type]
+      local theoremType = theorem_types[type]
       if theoremType then
         internal_error()
       else
         -- see if this is a proof, remark, or solution
-        local proof = proofType(el)
+        local proof = proof_type(el)
         if proof ~= nil then
 
           -- ensure requisite latex is injected
-          crossref.usingTheorems = true
+          crossref.using_theorems = true
 
           if proof.env ~= "proof" then
             el.attr.classes:insert("proof")
@@ -135,7 +140,7 @@ function jatsTheorem(el, label, title)
   --   </p>
   -- </statement> 
 
-  if title then
+  if #title > 0 then
     tprepend(el.content, {
       pandoc.RawBlock("jats", "<title>"),  
       pandoc.Plain(title), 
@@ -179,19 +184,17 @@ end
 function theoremLatexIncludes()
   
   -- determine which theorem types we are using
-  local types = theorem_types
-  local refs = tkeys(crossref.index.entries)
-  local usingTheorems = crossref.usingTheorems
+  local using_theorems = crossref.using_theorems
   for k,v in pairs(crossref.index.entries) do
     local type = refType(k)
-    if types[type] then
-      usingTheorems = true
-      types[type].active = true
+    if theorem_types[type] then
+      using_theorems = true
+      theorem_types[type].active = true
     end
   end
   
   -- return requisite latex if we are using theorems
-  if usingTheorems then
+  if using_theorems then
     local secType 
     if crossrefOption("chapters", false) then 
       secType = "chapter" 
@@ -199,19 +202,22 @@ function theoremLatexIncludes()
       secType = "section" 
     end
     local theoremIncludes = "\\usepackage{amsthm}\n"
-    for _, type in ipairs(tkeys(types)) do
-      if types[type].active then
+    for _, type in ipairs(tkeys(theorem_types)) do
+      if theorem_types[type].active then
         theoremIncludes = theoremIncludes .. 
-          "\\theoremstyle{" .. types[type].style .. "}\n" ..
-          "\\newtheorem{" .. types[type].env .. "}{" .. 
-          titleString(type, types[type].title) .. "}[" .. secType .. "]\n"
+          "\\theoremstyle{" .. theorem_types[type].style .. "}\n" ..
+          "\\newtheorem{" .. theorem_types[type].env .. "}{" .. 
+          titleString(type, theorem_types[type].title) .. "}[" .. secType .. "]\n"
       end
     end
     theoremIncludes = theoremIncludes ..
       "\\theoremstyle{remark}\n" ..
       "\\AtBeginDocument{\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}}\n" ..
       "\\newtheorem*{remark}{" .. envTitle("remark", "Remark") .. "}\n" ..
-      "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n"
+      "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n" ..
+      "\\newtheorem{refremark}{" .. envTitle("remark", "Remark") .. "}[" .. secType .. "]\n" ..
+      "\\newtheorem{refsolution}{" .. envTitle("solution", "Solution") .. "}[" .. secType .. "]\n"
+
     return theoremIncludes
   else
     return nil

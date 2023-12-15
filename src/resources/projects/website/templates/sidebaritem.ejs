@@ -1,7 +1,7 @@
 <% if (item.href && item.text && !item.contents) { %>
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="<%- item.href %>" <%= item.id ? `id="${item.id}" ` : "" %>class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"<%- item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></a>
+  <a href="<%- item.href %>" class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"<%- item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></a>
   </div>
 </li>
 <% } else if (item.contents && item.text) { %>  
@@ -17,11 +17,11 @@
     <% if (item.contents.length > 0) { %>
       <div class="sidebar-item-container"> 
           <% if (item.href) { %>
-            <a href="<%- item.href %>" <%= item.id ? `id="${item.id}" ` : "" %>class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"<%- item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></a>
+            <a href="<%- item.href %>" class="sidebar-item-text sidebar-link<%- item.active ? " active" : "" %>"<%- item.target ? ` target="${item.target}"` : "" %>><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></a>
           <% } else { %> 
-            <a <%= item.id ? `id="${item.id}" ` : "" %>class="sidebar-item-text sidebar-link text-start<%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></a>
+            <a class="sidebar-item-text sidebar-link text-start<%- isCollapsed ? " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></a>
           <% }  %>      
-          <a <%= item.id ? `id="${item.id}-toggle" ` : "" %>class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>" aria-label="<%- language['toggle-section'] %>">
+          <a class="sidebar-item-toggle text-start<%- isCollapsed ?  " collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>" aria-label="<%- language['toggle-section'] %>">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
@@ -31,8 +31,8 @@
         <% }) %>
       </ul>
     <% } else { %>
-      <span class="sidebar-item-text sidebar-link text-start" <%- item.id ? `id="${item.id}" ` : "" %>><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></span>
-    <% } %> 
+      <span class="sidebar-item-text sidebar-link text-start"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span></span>
+    <% } %>
 
   </li>
 <% } else if (item.text && item.text.match(/^\-+$/)) { %>
