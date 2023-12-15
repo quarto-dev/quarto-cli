@@ -1,9 +1,8 @@
 /*
-* project-config.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-config.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join } from "path/mod.ts";
 
@@ -17,28 +16,34 @@ import { SidebarItem } from "./types.ts";
 
 export type SidebarContext = {
   counter: number;
+  itemCounter: number;
 };
 
 export const sidebarContext = (): SidebarContext => {
-  return { counter: 0 };
+  return { counter: 0, itemCounter: 0 };
 };
 
 export function normalizeSidebarItem(
   projectDir: string,
   item: SidebarItem,
-  context: { counter: number },
+  context: SidebarContext,
 ): SidebarItem {
   // clone so we can mutate
   item = ld.cloneDeep(item);
 
-  if (typeof (item) === "string") {
+  if (typeof item === "string") {
+    context.itemCounter = context.itemCounter + 1;
+    const id = `${kQuartoSidebarItemPrefix}${context.itemCounter}`;
+
     if (safeExistsSync(join(projectDir, item))) {
       item = {
         href: item,
+        id,
       };
     } else {
       item = {
         text: item,
+        id,
       };
     }
   } else {
@@ -67,6 +72,11 @@ export function normalizeSidebarItem(
       // If this is a section, we should insist that it have 'contents'
       // even if they are empty.
       item.contents = item.contents || [];
+    } else {
+      context.itemCounter = context.itemCounter + 1;
+      item.id = item.id === undefined
+        ? `${kQuartoSidebarItemPrefix}${context.itemCounter}`
+        : item.id;
     }
 
     // handle subitems
@@ -85,6 +95,7 @@ export function normalizeSidebarItem(
 }
 
 const kQuartoSidebarPrefix = "quarto-sidebar-section-";
+const kQuartoSidebarItemPrefix = "quarto-sidebar-item-";
 
 export function resolveHrefAttribute(
   item: { href?: string; file?: string; url?: string },

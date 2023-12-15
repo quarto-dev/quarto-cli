@@ -75,6 +75,7 @@ import {
 import {
   normalizeSidebarItem,
   resolveHrefAttribute,
+  SidebarContext,
   sidebarContext,
 } from "../../project-config.ts";
 import { projectType } from "../project-types.ts";
@@ -1057,7 +1058,10 @@ async function resolveSidebarItems(
   }
 }
 
-async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
+async function resolveSidebarItem(
+  project: ProjectContext,
+  item: SidebarItem,
+) {
   if (item.href) {
     item = await resolveItem(
       project,
