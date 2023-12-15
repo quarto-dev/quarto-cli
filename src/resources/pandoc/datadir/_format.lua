@@ -21,7 +21,7 @@ local function isRawHtml(rawEl)
 end
 
 local function isRawLatex(rawEl)
-  return isRaw(rawEl) and (rawEl.format == "tex" or rawEl.format == "latex")
+  return isRaw(rawEl) and (rawEl.format == "tex" or rawEl.format == "latex" or rawEl.format == "latex-merge" or rawEl.format == "tex-merge")
 end
 
 -- check for latex output

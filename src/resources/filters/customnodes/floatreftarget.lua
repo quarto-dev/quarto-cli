@@ -363,7 +363,7 @@ end, function(float)
   -- do the longtable fixups below
   float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
     Table = function(tbl)
-      return pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+      return pandoc.RawBlock("latex-merge", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
     end
   })
 
@@ -371,12 +371,33 @@ end, function(float)
     local raw
     -- have to call as_blocks() again here because assigning to float.content
     -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
+    float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+      -- coalesce rawblocks ahead of table fixups
+      Blocks = function(blocks)
+        local result = pandoc.Blocks({})
+        local prev
+        for _,block in ipairs(blocks) do
+          if prev == nil then
+            prev = block
+          elseif prev.t == "RawBlock" and block.t == "RawBlock" and prev.format == block.format then
+            prev.text = prev.text .. "\n" .. block.text
+          else
+            result:insert(prev)
+            prev = block
+          end
+        end
+        if prev ~= nil then
+          result:insert(prev)
+        end
+        return result
+      end
+    })
     _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
       RawBlock = function(el)
         if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
           raw = el
         end
-      end
+      end,
     })
     -- special case for singleton longtable floats
     if raw then
@@ -413,14 +434,14 @@ end, function(float)
         local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
         -- if cap_loc is top, insert content on bottom
         if cap_loc == "top" then
-          result:insert(pandoc.RawBlock("latex", content))        
+          result:insert(pandoc.RawBlock("latex-merge", content))        
         else
-          result:insert(1, pandoc.RawBlock("latex", content))
+          result:insert(1, pandoc.RawBlock("latex-merge", content))
         end
-        result:insert(1, pandoc.RawBlock("latex", start))
-        result:insert(1, pandoc.RawBlock("latex", longtable_preamble))
-        result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
-        result:insert(pandoc.RawBlock("latex", longtable_postamble))
+        result:insert(1, pandoc.RawBlock("latex-merge", start))
+        result:insert(1, pandoc.RawBlock("latex-merge", longtable_preamble))
+        result:insert(pandoc.RawBlock("latex-merge", "\\end{longtable}"))
+        result:insert(pandoc.RawBlock("latex-merge", longtable_postamble))
         return result
       end
     end 

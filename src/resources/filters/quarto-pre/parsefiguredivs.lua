@@ -253,6 +253,9 @@ function parse_reftargets()
       local layout_classes = attr.classes:filter(
         function(c) return c:match("^column-") end
       )
+      div.classes = div.classes:filter(
+        function(c) return not c:match("^column-") end
+      )
       if #layout_classes then
         attr.classes = attr.classes:filter(
           function(c) return not layout_classes:includes(c) end)
