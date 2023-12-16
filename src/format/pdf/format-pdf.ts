@@ -319,6 +319,7 @@ function pdfLatexPostProcessor(
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
       calloutFloatHoldLineProcessor(),
+      tableColumnMarginLineProcessor(),
     ];
 
     if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -601,6 +602,57 @@ const processElementCaptionFootnotes = (latexFigure: string) => {
     // No caption means just let it go
     return latexFigure;
   }
+};
+
+const kMatchLongTableSize = /^(.*)p{\(\\columnwidth - (\d+\\tabcolsep\).*$)/;
+
+const kStartLongTable = /^\\begin{longtable}/;
+const kEndLongTable = /^\\end{longtable}/;
+
+const tableColumnMarginLineProcessor = () => {
+  let state: "looking-for-boundaries" | "looking-for-tables" | "processing" =
+    "looking-for-boundaries";
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-boundaries": {
+        if (line === "% quarto-tables-in-margin-AB1927C9:begin") {
+          state = "looking-for-tables";
+          return undefined;
+        }
+        return line;
+      }
+      case "looking-for-tables": {
+        if (line.match(kStartLongTable)) {
+          state = "processing";
+          return line;
+        } else if (line === "% quarto-tables-in-margin-AB1927C9:end") {
+          state = "looking-for-boundaries";
+          return undefined;
+        }
+        return line;
+      }
+      case "processing": {
+        if (line.match(kEndLongTable)) {
+          state = "looking-for-tables";
+          return line;
+        } else {
+          const match = line.match(kMatchLongTableSize);
+          if (match) {
+            return `${
+              match[1]
+            }p{(\\marginparwidth + \\marginparsep + \\columnwidth - ${
+              match[2]
+            }`;
+          } else {
+            return line;
+          }
+        }
+      }
+      default: {
+        return line;
+      }
+    }
+  };
 };
 
 const captionFootnoteLineProcessor = () => {

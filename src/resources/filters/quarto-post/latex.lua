@@ -177,6 +177,26 @@ function render_latex()
     return {}
   end
 
+  function beginColumnComment() 
+    return pandoc.RawBlock("latex", "% quarto-tables-in-margin-AB1927C9:begin")
+  end
+  
+  function endColumnComment() 
+    return pandoc.RawBlock("latex", "% quarto-tables-in-margin-AB1927C9:end")
+  end
+  
+  function handle_table_columns(table) 
+    local useMargin = table.classes:find_if(isStarEnv)
+    if useMargin then
+      return {
+        beginColumnComment(),
+        table,
+      endColumnComment()
+      }
+    end
+  end
+  
+
   -- renders the outermost element with .column-margin inside
   -- as a marginnote environment, but don't nest marginnote environments
   -- This works because it's a topdown traversal
@@ -244,6 +264,7 @@ function render_latex()
     traverse = "topdown",
     Div = handle_column_classes,
     Span = handle_column_classes,
+    Table = handle_table_columns,
     PanelLayout = handle_panel_layout,
     
     -- Pandoc emits longtable environments by default;
@@ -405,7 +426,6 @@ function render_latex()
     end
   }
 end
-
 
 function render_latex_fixups()
   if not _quarto.format.isLatexOutput() then
