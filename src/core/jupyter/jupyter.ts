@@ -1174,6 +1174,7 @@ const kLangCommentChars: Record<string, string | string[]> = {
   dot: "//",
   mermaid: "%%",
   apl: "⍝",
+  ocaml: ["(*", "*)"],
 };
 
 function cleanJupyterOutputDisplayData(

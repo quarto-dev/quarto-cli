@@ -681,7 +681,8 @@ def nb_language_comment_chars(lang):
       asy = "//",
       haskell = "--",
       dot = "//",
-      apl = "⍝"
+      apl = "⍝",
+      ocaml = ["(*", "*)"]
    )
    if lang in langs:
       chars = langs[lang]

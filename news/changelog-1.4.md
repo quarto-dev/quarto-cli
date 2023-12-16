@@ -270,6 +270,7 @@
 - ([#6385](https://github.com/quarto-dev/quarto-cli/issues/6385)): Add support for code annotation in fenced code cells
 - ([#7056](https://github.com/quarto-dev/quarto-cli/issues/7056)): Only make content of the hover annotation scrollable if it necessary
 - ([#7435](https://github.com/quarto-dev/quarto-cli/issues/7435)): Use `#` as a fallback comment character for unknown languages
+- Add support for OCaml code annotations
 
 ## Author and Affiliations
 
