@@ -15,6 +15,15 @@ function columns_preprocess()
       end
     end,
 
+    Figure = function(figure)
+      local location = cap_location(figure)
+      if location == 'margin' then
+        figure.classes:insert('margin-caption')
+        noteHasColumns()
+        return figure
+      end
+    end,
+
     Div = function(el)
       if el.classes:includes('cell') then      
         -- for code chunks that aren't layout panels, forward the column classes to the output
