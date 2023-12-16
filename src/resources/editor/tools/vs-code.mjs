@@ -22606,7 +22606,8 @@ var require_yaml_intelligence_resources = __commonJS({
         dot: "//",
         ojs: "//",
         apl: "\u235D",
-        mermaid: "%%"
+        mermaid: "%%",
+        ocaml: ["(*", "*)"]
       },
       "handlers/mermaid/schema.yml": {
         _internalId: 180595,
@@ -31785,7 +31786,8 @@ var kLangCommentChars = {
   haskell: "--",
   dot: "//",
   ojs: "//",
-  apl: "\u235D"
+  apl: "\u235D",
+  ocaml: ["(*", "*)"]
 };
 function escapeRegExp(str2) {
   return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

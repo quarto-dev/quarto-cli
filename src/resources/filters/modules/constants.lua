@@ -124,7 +124,8 @@ local kLangCommentChars = {
   html = { "<!--", "-->"},
   markdown = {"<!--", "-->"},
   gap = { "#" },
-  dockerfile = { "#" }
+  dockerfile = { "#" },
+  ocaml = { "(*", "*)"}
 }
 local kDefaultCodeAnnotationComment =  {"#"}
 
