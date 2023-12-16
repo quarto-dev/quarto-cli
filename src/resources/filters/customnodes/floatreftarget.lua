@@ -461,7 +461,7 @@ end, function(float)
   if latex_caption then
     if caption_cmd_name == kSideCaptionEnv then
       if #figure_content > 1 then
-        figure_content:insert(2, latex_caption) -- FIXME why is this 2 and not 1?
+        figure_content:insert(1, latex_caption) -- Since this is a side caption, insert it physically above the figure to improve typsetting
       else
         figure_content:insert(latex_caption)
       end
