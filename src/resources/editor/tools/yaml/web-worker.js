@@ -19478,6 +19478,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -19610,6 +19612,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -21778,6 +21782,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -22094,6 +22100,8 @@ try {
           "Base URL for published website",
           "Path to site (defaults to <code>/</code>). Not required if you\nspecify <code>site-url</code>.",
           "Base URL for website source code repository",
+          "The value of the target attribute for repo links",
+          "The value of the rel attribute for repo links",
           "Subdirectory of repository containing website",
           "Branch of website source code (defaults to <code>main</code>)",
           "URL to use for the \u2018report an issue\u2019 repository action.",
@@ -22607,16 +22615,19 @@ try {
           dot: "//",
           ojs: "//",
           apl: "\u235D",
-          mermaid: "%%",
-          ocaml: ["(*", "*)"]
+          ocaml: [
+            "(*",
+            "*)"
+          ],
+          mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180595,
+          _internalId: 180599,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180587,
+              _internalId: 180591,
               type: "enum",
               enum: [
                 "png",
@@ -22632,7 +22643,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180594,
+              _internalId: 180598,
               type: "anyOf",
               anyOf: [
                 {
