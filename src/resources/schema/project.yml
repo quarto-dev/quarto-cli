@@ -67,7 +67,9 @@
 - name: manuscript
   description: Manuscript configuration
   schema:
-    ref: manuscript-schema
+    object:
+      super:
+        - resolveRef: manuscript-schema
 
 - name: type
   hidden: true
