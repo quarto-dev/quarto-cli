@@ -11,8 +11,8 @@
 
 ## Dependencies
 
-- Update to Pandoc 3.1.9
-- Update to Typst 0.9.0
+- Update to Pandoc 3.1.11
+- Update to Typst 0.10.0
 
 ## Breaking Changes
 
