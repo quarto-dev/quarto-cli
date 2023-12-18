@@ -155,18 +155,5 @@ function render_typst_fixups()
         pandoc.RawInline("typst", "]"),
       })
     end,
-    Cite = function(cite)
-      if PANDOC_VERSION <= pandoc.types.Version('3.1.9') then
-        -- Patch for https://github.com/quarto-dev/quarto-cli/issues/7586
-        -- TODO: Remove when Pandoc > 3.1.9 is used https://github.com/jgm/pandoc/issues/9188
-        if PANDOC_WRITER_OPTIONS.extensions:includes("citations") then
-          citations = pandoc.List()
-          for _, citation in pairs(cite.citations) do
-            citations:insert(pandoc.RawInline('typst', "#cite(<" .. citation.id .. ">)"))
-          end
-          return citations
-        end
-      end
-    end
   }
 end

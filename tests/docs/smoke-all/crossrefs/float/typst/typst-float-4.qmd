@@ -11,7 +11,7 @@ _quarto:
           - "<tbl-foo>"
           - "@fig-foo"
           - "@tbl-foo"
-          - "#link\\(\"https://www.example.com/\"\\)\\[#.*image\\(\"img/surus.jpg\"\\)\\)\\]"
+          - "#link\\(\"https://www.example.com/\"\\)\\[#.*image\\(\"img/surus.jpg\"\\)\\)"
 ---
 
 This tests:
