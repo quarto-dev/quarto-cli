@@ -181,7 +181,7 @@ export const ensureTypstFileRegexMatches = (
         matches.forEach((regex) => {
           assert(
             regex.test(typ),
-            `Required match ${String(regex)} is missing from file ${file}.`,
+            `Required match ${String(regex)} is missing from file ${keptTyp}.`,
           );
         });
 
@@ -189,7 +189,7 @@ export const ensureTypstFileRegexMatches = (
           noMatches.forEach((regex) => {
             assert(
               !regex.test(typ),
-              `Illegal match ${String(regex)} was found in file ${file}.`,
+              `Illegal match ${String(regex)} was found in file ${keptTyp}.`,
             );
           });
         }
