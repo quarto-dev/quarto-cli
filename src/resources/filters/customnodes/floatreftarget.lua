@@ -2,6 +2,7 @@
 -- Copyright (C) 2023 Posit Software, PBC
 
 local drop_class = require("modules/filters").drop_class
+local patterns = require("modules/patterns")
 
 local function split_longtable_start(content_str)
   -- we use a hack here to split the content into params and actual content
@@ -424,6 +425,16 @@ end, function(float)
         return result
       end
     end 
+  end
+
+  -- As an additional complication, we need to handle the case where the
+  -- content is a table* environment, by stripping the environment raw code
+  -- and recreating it below.
+  -- See #7937
+  if _quarto.format.isRawLatex(float.content) then
+    local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(patterns.latex_table_star)
+    figEnv = "table*"
+    float.content.text = inner_content
   end
 
   local figure_content
