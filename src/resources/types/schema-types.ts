@@ -854,7 +854,7 @@ for a list of valid language codes. */;
 place the contents into a `div` with this id. If no such `div` is defined on the
 page, a `div` with this id will be created and appended to the end of the page.
 
-In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
+If no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
   include?: MaybeArrayOf<
     SchemaObject
   > /* Items with matching field values will be included in the listing. */;
