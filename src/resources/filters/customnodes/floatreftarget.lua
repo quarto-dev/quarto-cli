@@ -363,6 +363,22 @@ end, function(float)
   -- we need Pandoc to render its table ahead of time in order to
   -- do the longtable fixups below
   float.content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+    traverse = "topdown",
+    Div = function(div)
+      if div.classes:find_if(isStarEnv) then
+        return _quarto.ast.walk(div, {
+          Table = function(tbl)
+            if float.type == "Table" then
+              figEnv = "table*"
+            else
+              figEnv = "figure*"
+            end
+            local result = latexTabular(tbl)
+            return result
+          end
+        }), false
+      end
+    end,
     Table = function(tbl)
       return pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
     end
@@ -370,14 +386,25 @@ end, function(float)
 
   if float_type == "tbl" then
     local raw
+    local is_star_env = false
+    local function set_raw(el)
+      if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
+        raw = el
+      end
+    end
     -- have to call as_blocks() again here because assigning to float.content
     -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
     _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
-      RawBlock = function(el)
-        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
-          raw = el
+      traverse = "topdown",
+      Div = function(div)
+        if div.classes:find_if(isStarEnv) then
+          is_star_env = true
+          return _quarto.ast.walk(div, {
+            RawBlock = set_raw
+          }), false
         end
-      end
+      end,
+      RawBlock = set_raw
     })
     -- special case for singleton longtable floats
     if raw then
@@ -410,6 +437,34 @@ end, function(float)
         fatal("longtables are not supported in subtables.\n" ..
           "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
         return {}
+      end
+      if is_star_env then
+        -- content: table payload
+        -- start: \\begin{longtable}... command
+        -- longtable_preamble: everything that came before the \\begin{longtable} command
+        -- longtable_postamble: everything that came after the \\end{longtable} command
+        if cap_loc == "top" then
+          print("start: ", start)
+          return pandoc.Blocks({
+            longtable_preamble,
+            pandoc.RawBlock("latex", "\\begin{table*}"),
+            latex_caption,
+            start,
+            content,
+            pandoc.RawBlock("latex", "\\end{longtable}"),
+            pandoc.RawBlock("latex", "\\end{table*}")
+          })
+        else
+          return pandoc.Blocks({
+            longtable_preamble,
+            pandoc.RawBlock("latex", "\\begin{table*}"),
+            start,
+            content,
+            pandoc.RawBlock("latex", "\\end{longtable}"),
+            latex_caption,
+            pandoc.RawBlock("latex", "\\end{table*}")
+          })
+        end
       else
         local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
         -- if cap_loc is top, insert content on bottom
@@ -423,7 +478,7 @@ end, function(float)
         result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
         result:insert(pandoc.RawBlock("latex", longtable_postamble))
         return result
-      end
+        end
     end 
   end
 
