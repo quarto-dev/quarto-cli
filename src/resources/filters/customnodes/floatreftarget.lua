@@ -443,28 +443,23 @@ end, function(float)
         -- start: \\begin{longtable}... command
         -- longtable_preamble: everything that came before the \\begin{longtable} command
         -- longtable_postamble: everything that came after the \\end{longtable} command
+        local result = pandoc.Blocks({
+          pandoc.RawBlock("latex", longtable_preamble),
+          pandoc.RawBlock("latex", "\\begin{table*}"),
+          -- caption here if cap_loc == "top"
+          pandoc.RawBlock("latex", start .. "\n" .. content .. "\n\\end{longtable}"),
+          -- caption here if cap_loc ~= "top"
+          pandoc.RawBlock("latex", "\\end{table*}"),
+          pandoc.RawBlock("latex", longtable_postamble),
+        })
         if cap_loc == "top" then
-          print("start: ", start)
-          return pandoc.Blocks({
-            longtable_preamble,
-            pandoc.RawBlock("latex", "\\begin{table*}"),
-            latex_caption,
-            start,
-            content,
-            pandoc.RawBlock("latex", "\\end{longtable}"),
-            pandoc.RawBlock("latex", "\\end{table*}")
-          })
+          result:insert(3, latex_caption)
+          -- gets around the padding that longtable* adds
+          result:insert(4, pandoc.RawBlock("latex", "\\vspace{-1em}"))
         else
-          return pandoc.Blocks({
-            longtable_preamble,
-            pandoc.RawBlock("latex", "\\begin{table*}"),
-            start,
-            content,
-            pandoc.RawBlock("latex", "\\end{longtable}"),
-            latex_caption,
-            pandoc.RawBlock("latex", "\\end{table*}")
-          })
+          result:insert(4, latex_caption)
         end
+        return result
       else
         local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
         -- if cap_loc is top, insert content on bottom
