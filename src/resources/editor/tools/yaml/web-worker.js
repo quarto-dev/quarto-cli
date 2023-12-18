@@ -10238,7 +10238,7 @@ try {
                   string: {
                     description: {
                       short: "The id of this listing.",
-                      long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIn no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
+                      long: "The id of this listing. When the listing is rendered, it will \nplace the contents into a `div` with this id. If no such `div` is defined on the \npage, a `div` with this id will be created and appended to the end of the page.\n\nIf no `id` is provided for a listing, Quarto will synthesize one when rendering the page.\n"
                     }
                   }
                 },
