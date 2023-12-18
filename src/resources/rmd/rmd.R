@@ -170,8 +170,8 @@
   }
 
   # read request from stdin
-  stdin <- file("stdin", "r")
-  input <- readLines(stdin, warn = FALSE)
+  stdin <- file("stdin", "r", encoding = "UTF-8")
+  input <- xfun::read_utf8(stdin, error = FALSE)
   close(stdin)
 
   # parse request and params
