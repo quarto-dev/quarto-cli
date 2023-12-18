@@ -779,6 +779,12 @@ function applyStretch(doc: Document, autoStretch: boolean) {
       const image = images[0];
       const imageEl = image as Element;
 
+      // opt-out if nostrech is applied at image level too
+      if (imageEl.classList.contains("nostretch")) {
+        imageEl.classList.remove("nostretch");
+        continue;
+      }
+
       if (
         // screen out early specials divs (layout panels, columns, fragments, ...)
         findParent(imageEl, (el: Element) => {

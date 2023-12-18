@@ -82,6 +82,7 @@
 - ([#7394](https://github.com/quarto-dev/quarto-cli/issues/7394)): Fix issue with mermaid diagrams in revealjs slides when `output-location: fragment`.
 - ([#4988](https://github.com/quarto-dev/quarto-cli/issues/4988)): targets for links on numbered code lines are removed, as revealjs doesn't support them because navigation is done by slide only.
 - ([#4156](https://github.com/quarto-dev/quarto-cli/issues/4156)): footer and slide number text on slide with dark background have now an adapted text muted color based on `$dark-bg-text-color`.
+- ([#7134](https://github.com/quarto-dev/quarto-cli/issues/7134)): `.nostrech` can now be applied on image directly to opt-out Revealjs' image stretching when `auto-stretch: true` (the default).
 
 ## PDF Format
 
