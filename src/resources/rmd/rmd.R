@@ -67,23 +67,58 @@
     
     # perform code linking if requested
     if (isTRUE(code_link)) {
+      has_annotations <- function(input) {
+        # Check to see if there are annotations in the file
+        inputLines <- readLines(input)
+        chunkStarts <- grep(knitr::all_patterns$md$chunk.begin, inputLines)
+        chunkEnds <- grep(knitr::all_patterns$md$chunk.end, inputLines)
+        annotations <- grep(".*\\Q#\\E\\s*<[0-9]+>\\s*", inputLines)
+        hasAnnotations <- FALSE
+        if (length(chunkStarts) > 0 && length(annotations) > 0) {
+          lastLine <- max(max(chunkEnds), max(chunkStarts), max(annotations))
+
+          # the chunk is a vector with a position for each line, indicating
+          # whether that line is within a code chunk
+          chunkMap <- rep(FALSE, lastLine)
+
+          # Update the chunk mapt to mark lines that are
+          # within a code chunk
+            for (x in seq_along(chunkStarts)) {
+            start <- chunkStarts[x]
+            end <- chunkEnds[x]
+            for (y in start:end) {
+              if (y > start && y < end) {
+                chunkMap[y] <- TRUE
+              }
+            }
+          }
+
+          # look for at least one annotations that is in a code chunk
+          for (a in annotations) {
+            if (chunkMap[a] == TRUE) {
+              hasAnnotations <- TRUE
+              break
+            }
+          }
+        }
+        hasAnnotations
+      }
+
       if (!has_annotations(input)) {
         if (requireNamespace("downlit", quietly = TRUE) && requireNamespace("xml2", quietly = TRUE)) {
-
           # run downlit
           downlit::downlit_html_path(output, output)
-          
-          # fix xml2 induced whitespace problems that break revealjs columns 
-          # (b/c they depend on inline-block behavior) then reset output_res 
-          downlit_output <-paste(xfun::read_utf8(output), collapse = "\n")
+
+          # fix xml2 induced whitespace problems that break revealjs columns
+          # (b/c they depend on inline-block behavior) then reset output_res
+          downlit_output <- paste(xfun::read_utf8(output), collapse = "\n")
           downlit_output <- gsub('(</div>)\n(<div class="column")', "\\1\\2", downlit_output)
           output_res <- strsplit(downlit_output, "\n", fixed = TRUE)[[1]]
-          
         } else {
-          warning("The downlit and xml2 packages are required for code linking")
-        }        
+          warning("The downlit and xml2 packages are required for code linking", call. = FALSE)
+        }
       } else {
-        warning("Since code annotations are present, code-linking has been disabled")
+        warning("Since code annotations are present, code-linking has been disabled", call. = FALSE)
       }
     }
    
@@ -183,43 +218,6 @@
   xfun:::write_utf8(paste(resultJson, collapse = "\n"), request[["results"]])
   if (debug)
     message("[knitr engine]: exiting")
-}
-
-has_annotations <- function(input)  {
-  # Check to see if there are annotations in the file
-  inputLines <- readLines(input)
-  chunkStarts <- grep(knitr::all_patterns$md$chunk.begin, inputLines)
-  chunkEnds <- grep(knitr::all_patterns$md$chunk.end, inputLines)
-  annotations <- grep(".*\\Q#\\E\\s*<[0-9]+>\\s*", inputLines)
-  hasAnnotations <- FALSE
-  if (length(chunkStarts) > 0 && length(annotations) > 0) {
-    lastLine <- max(max(chunkEnds), max(chunkStarts), max(annotations))
-
-    # the chunk is a vector with a position for each line, indicating
-    # whether that line is within a code chunk
-    chunkMap <- rep(FALSE, lastLine)
-
-    # Update the chunk mapt to mark lines that are 
-    # within a code chunk
-    for (x in 1:length(chunkStarts)) {
-      start <- chunkStarts[x]
-      end <- chunkEnds[x]
-      for (y in start:end) {
-        if (y > start && y < end) {
-          chunkMap[y] = TRUE
-        }
-      }
-    }
-    
-    # look for at least one annotations that is in a code chunk
-    for (a in annotations) {
-      if (chunkMap[a] == TRUE) {
-        hasAnnotations <- TRUE
-        break
-      }
-    }
-  }
-  hasAnnotations
 }
 
 if (!rmarkdown::pandoc_available(error = FALSE)) {
