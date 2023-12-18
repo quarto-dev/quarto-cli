@@ -45,6 +45,17 @@ export function safeRemoveIfExists(file: string) {
   }
 }
 
+export function safeRemoveSync(
+  file: string,
+  options: Deno.RemoveOptions = {},
+) {
+  try {
+    Deno.removeSync(file, options);
+  } catch (e) {
+    if (existsSync(file)) throw e;
+  }
+}
+
 export function removeIfEmptyDir(dir: string): boolean {
   if (existsSync(dir)) {
     let empty = true;
@@ -53,7 +64,7 @@ export function removeIfEmptyDir(dir: string): boolean {
       break;
     }
     if (empty) {
-      Deno.removeSync(dir, { recursive: true });
+      safeRemoveSync(dir, { recursive: true });
       return true;
     }
     return false;
