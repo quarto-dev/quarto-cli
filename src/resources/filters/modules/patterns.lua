@@ -27,6 +27,7 @@ local latex_tabular = "(\\begin{tabular}.*\\end{tabular})"
 -- note the capture pattern here is different because we need to capture the
 -- body of the float environment as well as the environment itself
 local latex_table = "(\\begin{table})(.*)(\\end{table})"
+local latex_table_star = "(\\begin{table%*})(.*)(\\end{table%*})"
 
 return {
   attr_identifier = attr_identifier,
@@ -43,4 +44,5 @@ return {
   latex_long_table = latex_long_table,
   latex_tabular = latex_tabular,
   latex_table = latex_table,
+  latex_table_star = latex_table_star,
 }
