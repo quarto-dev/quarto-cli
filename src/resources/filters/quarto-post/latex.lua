@@ -194,6 +194,9 @@ function render_latex()
       endColumnComment()
       }
     end
+    if table.classes:includes("render-as-tabular") then
+      return latexTabular(table)
+    end
   end
   
 

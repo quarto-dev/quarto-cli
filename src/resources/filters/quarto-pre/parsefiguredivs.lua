@@ -259,13 +259,20 @@ function parse_floatreftargets()
       if #layout_classes then
         attr.classes = attr.classes:filter(
           function(c) return not layout_classes:includes(c) end)
+        div.classes = div.classes:filter(
+          function(c) return not layout_classes:includes(c) end)
         -- if the div is a cell, then all layout attributes need to be
         -- forwarded to the cell .cell-output-display content divs
         content = _quarto.ast.walk(content, {
           Div = function(div)
             if div.classes:includes("cell-output-display") then
               div.classes:extend(layout_classes)
-              return div
+              return _quarto.ast.walk(div, {
+                Table = function(tbl)
+                  tbl.classes:insert("do-not-create-environment")
+                  return tbl
+                end
+              })
             end
           end
         })  

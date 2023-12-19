@@ -115,7 +115,7 @@ jobs:
           renv::restore()
           # Install dev versions for our testing 
           # Use r-universe to avoid github api calls
-          try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
+          # try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
           try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
         shell: Rscript {0}
         env:
