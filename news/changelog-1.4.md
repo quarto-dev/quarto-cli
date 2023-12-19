@@ -251,6 +251,7 @@
 - ([#7600](https://github.com/quarto-dev/quarto-cli/issues/7600)): `output: asis` now correctly don't emit `.cell-output-display` div around cell outputs of class `knit_asis`.
 - ([#7877](https://github.com/quarto-dev/quarto-cli/issues/7877)): `crop: false` chunk options allows to opt out (per chunk or globally) automatic cropping in PDF when `pdfcrop` and `ghostscript` are detected. This complements knitr's way `crop: null`.
 - ([#7943](https://github.com/quarto-dev/quarto-cli/issues/7943)): Internal Quarto R function should not leak to user's global environment.
+- ([#7029](https://github.com/quarto-dev/quarto-cli/issues/7029)): Fix issue with some encoding while reading configuration in R.
 
 ## OJS engine
 
