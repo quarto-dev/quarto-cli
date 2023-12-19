@@ -583,20 +583,23 @@ function calloutDocxDefault(node, type, hasIcon)
     <w:tbl>
     <w:tblPr>
       <w:tblStyle w:val="Table" />
-      <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" w:val="0000" />
+      <w:tblW w:type="pct" w:w="100%"/>
+      <w:tblInd w:w="164" w:type="dxa" />
       <w:tblBorders>  
-        <w:left w:val="single" w:sz="24" w:space="0" w:color="$color"/>  
-        <w:right w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
         <w:top w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
+        <w:left w:val="single" w:sz="24" w:space="0" w:color="$color"/>  
         <w:bottom w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
+        <w:right w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
       </w:tblBorders> 
       <w:tblCellMar>
         <w:left w:w="144" w:type="dxa" />
         <w:right w:w="144" w:type="dxa" />
       </w:tblCellMar>
-      <w:tblInd w:w="164" w:type="dxa" />
-      <w:tblW w:type="pct" w:w="100%"/>
+      <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" w:val="0000" />
     </w:tblPr>
+    <w:tblGrid>
+      <w:gridCol w:w="7920" />
+    </w:tblGrid>
     <w:tr>
       <w:trPr>
         <w:cantSplit/>
@@ -691,7 +694,7 @@ function calloutDocxSimple(node, type, hasIcon)
     <w:tbl>
     <w:tblPr>
       <w:tblStyle w:val="Table" />
-      <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" w:val="0000" />
+      <w:tblInd w:w="164" w:type="dxa" />
       <w:tblBorders>  
         <w:left w:val="single" w:sz="24" w:space="0" w:color="$color"/>  
       </w:tblBorders> 
@@ -699,8 +702,11 @@ function calloutDocxSimple(node, type, hasIcon)
         <w:left w:w="0" w:type="dxa" />
         <w:right w:w="0" w:type="dxa" />
       </w:tblCellMar>
-      <w:tblInd w:w="164" w:type="dxa" />
+      <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" w:val="0000" />
     </w:tblPr>
+    <w:tblGrid>
+      <w:gridCol w:w="7920" />
+    </w:tblGrid>
     <w:tr>
       <w:trPr>
         <w:cantSplit/>
