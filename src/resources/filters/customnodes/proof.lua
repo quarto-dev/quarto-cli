@@ -169,7 +169,6 @@ end, function(proof_tbl)
       -- else insert a new paragraph
       el.content:insert(1, pandoc.Para{span})
     end
-    print(el)
   end
 
   return el
