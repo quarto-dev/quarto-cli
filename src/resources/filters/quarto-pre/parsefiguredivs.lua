@@ -3,6 +3,30 @@
 
 local patterns = require("modules/patterns")
 
+function handle_subfloatreftargets()
+  -- #7045: pull fig-pos attributes from subfloat to parent
+  return {
+    FloatRefTarget = function(float)
+      local fig_pos
+      local result = _quarto.ast.walk(float, {
+        FloatRefTarget = function(subfloat)
+          if subfloat.attributes["fig-pos"] then
+            fig_pos = subfloat.attributes["fig-pos"]
+            subfloat.attributes["fig-pos"] = nil
+            return subfloat
+          end
+        end,
+      }) or pandoc.Div({}) -- won't happen but the lua analyzer doesn't know that
+      if fig_pos then
+        local tbl = _quarto.ast.resolve_custom_data(result)
+        assert(tbl ~= nil)
+        tbl.attributes["fig-pos"] = fig_pos
+        return tbl
+      end
+    end
+  }
+end
+
 local function process_div_caption_classes(div)
   -- knitr forwards "cap-location: top" as `.caption-top`...
   -- and in that case we don't know if it's a fig- or a tbl- :facepalm:
