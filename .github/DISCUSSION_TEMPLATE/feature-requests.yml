@@ -1,7 +1,7 @@
-title: "<The (missing) feature you want to discuss>"
+title: "The (missing) feature you want to discuss"
 body:
   - type: markdown
-    attributes: 
+    attributes:
       value: |
         First, please check [Quarto Issues](https://github.com/quarto-dev/quarto-cli/issues) and [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests) to see if your feature request has already been discussed.
         If it has, please consider adding a comment to the existing discussion instead of creating a new one.
