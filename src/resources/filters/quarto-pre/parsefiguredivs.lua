@@ -4,25 +4,29 @@
 local patterns = require("modules/patterns")
 
 function handle_subfloatreftargets()
-  -- #7045: pull fig-pos attributes from subfloat to parent
+  -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
   return {
     FloatRefTarget = function(float)
-      local fig_pos
+      local pulled_attrs = {}
+      local attrs_to_pull = {
+        "fig-pos",
+        "fig-env",
+      }
       local result = _quarto.ast.walk(float, {
         FloatRefTarget = function(subfloat)
-          if subfloat.attributes["fig-pos"] then
-            fig_pos = subfloat.attributes["fig-pos"]
-            subfloat.attributes["fig-pos"] = nil
-            return subfloat
+          for _, attr in ipairs(attrs_to_pull) do
+            if subfloat.attributes[attr] then
+              pulled_attrs[attr] = subfloat.attributes[attr]
+              subfloat.attributes[attr] = nil
+            end
           end
+          return subfloat
         end,
       }) or pandoc.Div({}) -- won't happen but the lua analyzer doesn't know that
-      if fig_pos then
-        local tbl = _quarto.ast.resolve_custom_data(result)
-        assert(tbl ~= nil)
-        tbl.attributes["fig-pos"] = fig_pos
-        return tbl
+      for k, v in pairs(pulled_attrs) do
+        float.attributes[k] = v
       end
+      return float
     end
   }
 end
