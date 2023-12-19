@@ -1,0 +1,30 @@
+---
+format: 
+  html:
+    code-annotations: hover
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["div.quarto-layout-row div.cell-annotation"]
+---
+
+```{r}
+#| echo: true
+#| layout-ncol: 2
+#| fig-cap: "Caption."
+#| fig-subcap: 
+#|   - "Subcaption 1."
+#|   - "Subcaption 2."
+#| fig-align: center
+#| label: fig-1
+library(ggplot2)
+p1 <- ggplot() + # <1>
+  geom_point(data = mtcars, aes(x = wt, y = mpg))
+
+p1
+p1
+```
+
+1. Code annotation text.
