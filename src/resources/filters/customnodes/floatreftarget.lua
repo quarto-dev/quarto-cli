@@ -324,6 +324,11 @@ end, function(float)
     })
     local pt = pandoc.utils.type(float.content)
     if pt == "Block" then
+      if float.content.content == nil then
+        -- it's a block that doesn't support inner content
+        -- attempt a best-effort fix by replacing it with a wrapping div
+        float.content = pandoc.Div({float.content})
+      end
       float.content.content:insert(1, caption_setup)
     elseif pt == "Blocks" then
       float.content:insert(1, caption_setup)
