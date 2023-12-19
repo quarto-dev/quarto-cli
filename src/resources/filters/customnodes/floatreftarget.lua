@@ -726,6 +726,7 @@ function float_reftarget_render_html_figure(float)
     div.attr.classes:insert("quarto-figure")
     div.attr.classes:insert("quarto-figure-" .. figure_attrs.align)
   end
+  div.attr.classes:insert("quarto-float")
 
   -- also forward any column or caption classes
   local currentClasses = found_image.attr.classes
