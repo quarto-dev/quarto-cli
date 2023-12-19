@@ -169,12 +169,11 @@ function captionPrefix(name, type, theoremType, order)
   local prefix = title(type, theoremType.title)
   table.insert(prefix, pandoc.Space())
   tappend(prefix, numberOption(type, order))
-  table.insert(prefix, pandoc.Space())
   if #name > 0 then
+    table.insert(prefix, pandoc.Space())
     table.insert(prefix, pandoc.Str("("))
     tappend(prefix, name)
     table.insert(prefix, pandoc.Str(")"))
-    table.insert(prefix, pandoc.Space())
   end
   return prefix
 end

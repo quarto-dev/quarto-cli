@@ -144,7 +144,8 @@ end, function(thm)
       pandoc.Span(
         pandoc.Strong(captionPrefix), 
         pandoc.Attr("", { "theorem-title" })
-      )
+      ),
+      pandoc.Space()
     }
 
     -- prepend the prefix
