@@ -309,7 +309,6 @@ local quarto_post_filters = {
     filter = cell_cleanup(),
     flags = { "has_output_cells" } },
   { name = "post-cites", filter = indexCites() },
-  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
   { name = "post-bibliography", filter = bibliography() },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
@@ -388,6 +387,7 @@ local quarto_layout_filters = {
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
+  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
   { name = "layout-panels", filter = layout_panels() },
 }
 

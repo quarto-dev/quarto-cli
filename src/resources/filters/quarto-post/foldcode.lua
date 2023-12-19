@@ -66,21 +66,47 @@ function fold_code_and_lift_codeblocks()
       end
 
       local blocks = pandoc.Blocks({})
+      local prev_annotated_code_block_scaffold = nil
+      local prev_annotated_code_block = nil
       -- ok to lift codeblocks
       float.content = _quarto.ast.walk(float.content, {
         traverse = "topdown",
-        Div = function(div)
-          other_content_found = true
-          return nil
-        end,
         DecoratedCodeBlock = function(block)
           -- defer the folding of code blocks to the DecoratedCodeBlock renderer
           -- so that we can handle filename better
           return nil, false
         end,
         CodeBlock = function(block)
-          blocks:insert(render_folded_block(block))
+          print("walking code block")
+          local folded_block = render_folded_block(block)
+          if block.classes:includes("code-annotation-code") then
+            print("found code annotation code block")
+            prev_annotated_code_block_scaffold = folded_block
+            prev_annotated_code_block = block
+          else
+            prev_annotated_code_block_scaffold = nil
+          end
+          blocks:insert(folded_block)
           return {}
+        end,
+        Div = function(div)
+          if not div.classes:includes("cell-annotation") then
+            return nil
+          end
+          local need_to_move_dl = false
+          _quarto.ast.walk(div, {
+            Span = function(span)
+              if (prev_annotated_code_block and 
+                prev_annotated_code_block.identifier == span.attributes["data-code-cell"]) then
+                need_to_move_dl = true
+              end
+            end,
+          })
+          if need_to_move_dl then
+            assert(prev_annotated_code_block_scaffold)
+            prev_annotated_code_block_scaffold.content:insert(div)
+            return {}
+          end
         end,
       })
       if #blocks > 0 then
