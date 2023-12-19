@@ -3,6 +3,34 @@
 
 local patterns = require("modules/patterns")
 
+function handle_subfloatreftargets()
+  -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
+  return {
+    FloatRefTarget = function(float)
+      local pulled_attrs = {}
+      local attrs_to_pull = {
+        "fig-pos",
+        "fig-env",
+      }
+      local result = _quarto.ast.walk(float, {
+        FloatRefTarget = function(subfloat)
+          for _, attr in ipairs(attrs_to_pull) do
+            if subfloat.attributes[attr] then
+              pulled_attrs[attr] = subfloat.attributes[attr]
+              subfloat.attributes[attr] = nil
+            end
+          end
+          return subfloat
+        end,
+      }) or pandoc.Div({}) -- won't happen but the lua analyzer doesn't know that
+      for k, v in pairs(pulled_attrs) do
+        float.attributes[k] = v
+      end
+      return float
+    end
+  }
+end
+
 local function process_div_caption_classes(div)
   -- knitr forwards "cap-location: top" as `.caption-top`...
   -- and in that case we don't know if it's a fig- or a tbl- :facepalm:
@@ -231,13 +259,20 @@ function parse_floatreftargets()
       if #layout_classes then
         attr.classes = attr.classes:filter(
           function(c) return not layout_classes:includes(c) end)
+        div.classes = div.classes:filter(
+          function(c) return not layout_classes:includes(c) end)
         -- if the div is a cell, then all layout attributes need to be
         -- forwarded to the cell .cell-output-display content divs
         content = _quarto.ast.walk(content, {
           Div = function(div)
             if div.classes:includes("cell-output-display") then
               div.classes:extend(layout_classes)
-              return div
+              return _quarto.ast.walk(div, {
+                Table = function(tbl)
+                  tbl.classes:insert("do-not-create-environment")
+                  return tbl
+                end
+              })
             end
           end
         })  

@@ -15,11 +15,17 @@ sys.stdout.write('\nexecutable: "' + sys.executable.replace("\\", "/") + '"')
 
 def discover_package(pkg):
   sys.stdout.write('\n' + pkg + ': ')
+  v = 'null'
   try:
-    imp = importlib.import_module(pkg)
-    sys.stdout.write(str(imp.__version__))
+    try:
+      from importlib.metadata import version
+      v = version(pkg)
+    except ImportError:
+      imp = importlib.import_module(pkg)
+      v = str(imp.__version__)
   except Exception:
-    sys.stdout.write('null')
+    pass
+  sys.stdout.write(v)
  
 discover_package('jupyter_core')  
 discover_package('nbformat')

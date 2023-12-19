@@ -253,6 +253,20 @@
       ],
       "Hash": "fd25391c3c4f6ecf0fa95f1e6d15378c"
     },
+    "bsicons": {
+      "Package": "bsicons",
+      "Version": "0.1.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "cli",
+        "htmltools",
+        "rlang",
+        "utils"
+      ],
+      "Hash": "aa0eb31809987a486969b16a8ea20027"
+    },
     "bslib": {
       "Package": "bslib",
       "Version": "0.5.1",
@@ -272,12 +286,6 @@
         "sass"
       ],
       "Hash": "283015ddfbb9d7bf15ea9f0b5698f0d9"
-    },
-    "bsicons" : {
-      "Package": "bsicons",
-      "Version": "0.1.1",
-      "Source": "Repository",
-      "Repository": "RSPM"
     },
     "cachem": {
       "Package": "cachem",
@@ -1155,7 +1163,7 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.44",
+      "Version": "1.45",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
@@ -1167,7 +1175,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "60885b9f746c9dfaef110d070b5f7dc0"
+      "Hash": "1ec462871063897135c1bcbe0fc8f07d"
     },
     "labeling": {
       "Package": "labeling",
