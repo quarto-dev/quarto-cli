@@ -219,10 +219,35 @@ export function boostrapExtras(
 
 // Find any elements that are using fancy layouts (columns)
 const getColumnLayoutElements = (doc: Document) => {
-  return doc.querySelectorAll(
-    '[class^="column-"], [class*=" column-"], aside:not(.footnotes):not(.sidebar), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]',
-  );
+  const nodes = doc.querySelectorAll(kColumnSelector);
+  const filteredEls: Element[] = [];
+
+  // Don't nest the layouts - the outer layout
+  // will win (and children that also have layouts will be ignored)
+  nodes.forEach((node) => {
+    const el = node as Element;
+    if (!isInColumnLayout(el, doc)) {
+      filteredEls.push(el);
+    }
+  });
+  return filteredEls;
 };
+
+const isInColumnLayout = (el: Element, doc: Document): boolean => {
+  const parent = el.parentElement;
+  if (!parent) {
+    return false;
+  }
+  for (const cls of parent.classList) {
+    if (cls.startsWith(`column-`)) {
+      return true;
+    }
+  }
+  return isInColumnLayout(parent, doc);
+};
+
+const kColumnSelector =
+  '[class^="column-"], [class*=" column-"], aside:not(.footnotes):not(.sidebar), [class*="margin-caption"], [class*=" margin-caption"], [class*="margin-ref"], [class*=" margin-ref"]';
 
 function bootstrapHtmlPostprocessor(
   input: string,
