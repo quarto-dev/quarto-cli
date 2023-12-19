@@ -227,6 +227,7 @@
 - Support for `plotly-connected` option to determine where Plotly is embedded or loaded from CDN
 - Reduce default margins for Plotly figures (t=30,r=0,b=0,l=0)
 - Restart kernel daemon when non-package Python modules change
+- ([#5051](https://github.com/quarto-dev/quarto-cli/issues/5051)): Don't emit strong tag with trailing spaces to not confuse Jupyter MD reader.
 - ([#6344](https://github.com/quarto-dev/quarto-cli/issues/6344)): Somewhat improve the error message in case of YAML parsing errors in metadata of Python code cells.
 - ([#6367](https://github.com/quarto-dev/quarto-cli/issues/6367)): Fix bug with nested code cells in the generation of Jupyter notebook from .qmd files.
 - ([#6393](https://github.com/quarto-dev/quarto-cli/pull/6393)): Search `JULIA_HOME` for Julia-specific Python installations.
