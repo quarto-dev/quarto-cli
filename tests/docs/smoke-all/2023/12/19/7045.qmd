@@ -1,0 +1,27 @@
+---
+title: "Untitled"
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        -
+          - "\\\\begin\\{figure\\}\\[t\\]"
+        - []
+---
+
+```{python}
+#| label: fig-charts
+#| fig-pos: t
+#| fig-cap: "Charts"
+#| fig-subcap: 
+#|   - "First"
+#|   - "Second"
+#| layout-ncol: 2
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+
+plt.plot([8,65,23,90])
+plt.show()
+```
