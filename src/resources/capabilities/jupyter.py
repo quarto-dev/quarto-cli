@@ -1,6 +1,6 @@
 import sys
 import os
-import importlib
+from importlib.metadata import version
 
 sys.stdout.write('versionMajor: ' + str(sys.version_info.major))
 sys.stdout.write('\nversionMinor: ' + str(sys.version_info.minor))
@@ -16,8 +16,7 @@ sys.stdout.write('\nexecutable: "' + sys.executable.replace("\\", "/") + '"')
 def discover_package(pkg):
   sys.stdout.write('\n' + pkg + ': ')
   try:
-    imp = importlib.import_module(pkg)
-    sys.stdout.write(str(imp.__version__))
+    sys.stdout.write(version(pkg))
   except Exception:
     sys.stdout.write('null')
  
