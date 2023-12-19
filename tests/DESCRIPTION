@@ -16,4 +16,5 @@ Depends:
     DT,
     DBI,
     RSQLite,
-    webshot2
+    webshot2,
+    bsicons

@@ -253,6 +253,20 @@
       ],
       "Hash": "fd25391c3c4f6ecf0fa95f1e6d15378c"
     },
+    "bsicons": {
+      "Package": "bsicons",
+      "Version": "0.1.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "cli",
+        "htmltools",
+        "rlang",
+        "utils"
+      ],
+      "Hash": "aa0eb31809987a486969b16a8ea20027"
+    },
     "bslib": {
       "Package": "bslib",
       "Version": "0.5.1",
