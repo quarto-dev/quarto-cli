@@ -232,24 +232,41 @@ const removeNestedColumnLayouts = (doc: Document) => {
   const columnNodes = doc.querySelectorAll(kColumnSelector);
   columnNodes.forEach((columnNode) => {
     const columnEl = columnNode as Element;
+
+    // Process nested column layouts
     if (isInColumnLayout(columnEl, doc)) {
       removeColumnClasses(columnEl);
     }
   });
 };
 
-const isInColumnLayout = (el: Element, doc: Document): boolean => {
+const cleanNonsensicalMarginCaps = (doc: Document) => {
+  const marginCapNodes = doc.querySelectorAll(".margin-caption,.margin-ref");
+  marginCapNodes.forEach((capNode) => {
+    const capEl = capNode as Element;
+    if (isInColumnLayout(capEl, doc, removeMarginClz)) {
+      capEl.classList.remove("margin-caption");
+      capEl.classList.remove("margin-ref");
+    }
+  });
+};
+
+const isInColumnLayout = (
+  el: Element,
+  doc: Document,
+  clzList = allColumnClz,
+): boolean => {
   const parent = el.parentElement;
   if (!parent) {
     return false;
   }
 
   for (const cls of parent.classList) {
-    if (allColumnClz.includes(cls)) {
+    if (clzList.includes(cls)) {
       return true;
     }
   }
-  return isInColumnLayout(parent, doc);
+  return isInColumnLayout(parent, doc, clzList);
 };
 
 const kColumnSelector =
@@ -1056,6 +1073,10 @@ function processColumnElements(
 ) {
   // Clean nested columns - the outer layout will win
   removeNestedColumnLayouts(doc);
+
+  // Remove any margin captions that don't make sense (since the right
+  // margin is occluded by the element with the caption)
+  cleanNonsensicalMarginCaps(doc);
 
   // Margin and column elements are only functional in article based layouts
   if (!formatHasArticleLayout(format)) {
@@ -1892,6 +1913,20 @@ const allColumnClz = [
   "column-screen-inset-right",
   "column-screen",
   "column-screen-left",
+  "column-screen-right",
+  "column-margin",
+];
+
+const removeMarginClz = [
+  "column-body-outset",
+  "column-body-outset-right",
+  "column-page-inset",
+  "column-page-inset-right",
+  "column-page",
+  "column-page-right",
+  "column-screen-inset",
+  "column-screen-inset-right",
+  "column-screen",
   "column-screen-right",
   "column-margin",
 ];
