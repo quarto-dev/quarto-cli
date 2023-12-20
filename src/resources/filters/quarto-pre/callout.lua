@@ -674,6 +674,7 @@ function calloutDocxDefault(node, type, hasIcon)
 
   -- close the table
   local suffix = pandoc.List({pandoc.RawBlock("openxml", [[
+    <w:p/>
     </w:tc>
     </w:tr>
   </w:tbl>
