@@ -104,6 +104,8 @@
 ## Docusaurus Format
 
 - ([#5152](https://github.com/quarto-dev/quarto-cli/issues/5152)): Support for `code-line-numbers: true` in Docusaurus output.
+- ([#6046](https://github.com/quarto-dev/quarto-cli/issues/6046)): Fix citation regression in Docusaurus output.
+- ([#6310](https://github.com/quarto-dev/quarto-cli/issues/6310)): Support Docusaurus 3.0 by rendering to `.mdx` by default.
 - ([#7201](https://github.com/quarto-dev/quarto-cli/issues/7201)): Support for [line highlighting](https://docusaurus.io/docs/markdown-features/code-blocks#highlighting-with-metadata-string) using `code-line-numbers`, as raw block attributes or code cell options.
 
 ## Beamer Format
