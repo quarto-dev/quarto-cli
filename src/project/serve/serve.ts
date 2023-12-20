@@ -142,7 +142,9 @@ export async function serveProject(
 
     // Default project types can't be served
     const projType = projectType(project?.config?.project?.[kProjectType]);
-    if (projType.type === "default") {
+    if (
+      projType.type === "default" && project?.config?.format !== "docusaurus-md"
+    ) {
       throw new Error(
         `The project '${
           project.config.project.title || ""
