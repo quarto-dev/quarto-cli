@@ -5,7 +5,7 @@
  */
 
 import { kFrom, kOutputDivs, kToc, kVariant } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
 import { pandocFormat } from "../../core/pandoc/pandoc-formats.ts";
 import { createFormat, plaintextFormat } from "../formats-shared.ts";
 import { kGfmCommonmarkVariant } from "./format-markdown-consts.ts";
@@ -98,12 +98,30 @@ export function pandocMarkdownFormat(): Format {
   );
 }
 
+export const kDoCiteStuff = "do-cite-stuff";
+
 export function markdownFormat(displayName: string): Format {
   return createFormat(displayName, "md", plaintextFormat(displayName, "md"), {
     // markdown shouldn't include cell divs (even if it
     // technically supports raw html)
     render: {
       [kOutputDivs]: false,
+    },
+    formatExtras: (
+      _input: string,
+      _markdown: string,
+      _flags: PandocFlags,
+      format: Format,
+    ) => {
+      const postprocessors: Array<(output: string) => void> = [];
+      if (format.metadata[kDoCiteStuff]) {
+        postprocessors.push((output: string) => {
+          // DO STUFF TO CITES
+        });
+      }
+      return {
+        postprocessors,
+      };
     },
   });
 }
