@@ -105,7 +105,7 @@ local function isBibliographyOutput()
 end
 
 local function isDocusaurusOutput()
-  return string.match(param("custom-writer", ""), "docusaurus_writer.lua$")
+  return param("quarto-custom-format", "") == "docusaurus"
 end
 
 local function isConfluenceOutput()
