@@ -219,18 +219,23 @@ export function boostrapExtras(
 
 // Find any elements that are using fancy layouts (columns)
 const getColumnLayoutElements = (doc: Document) => {
-  const nodes = doc.querySelectorAll(kColumnSelector);
-  const filteredEls: Element[] = [];
+  return doc.querySelectorAll(kColumnSelector);
+};
 
-  // Don't nest the layouts - the outer layout
-  // will win (and children that also have layouts will be ignored)
-  nodes.forEach((node) => {
-    const el = node as Element;
-    if (!isInColumnLayout(el, doc)) {
-      filteredEls.push(el);
+const removeColumnClasses = (el: Element) => {
+  for (const cls of allColumnClz) {
+    el.classList.remove(cls);
+  }
+};
+
+const removeNestedColumnLayouts = (doc: Document) => {
+  const columnNodes = doc.querySelectorAll(kColumnSelector);
+  columnNodes.forEach((columnNode) => {
+    const columnEl = columnNode as Element;
+    if (isInColumnLayout(columnEl, doc)) {
+      removeColumnClasses(columnEl);
     }
   });
-  return filteredEls;
 };
 
 const isInColumnLayout = (el: Element, doc: Document): boolean => {
@@ -238,8 +243,9 @@ const isInColumnLayout = (el: Element, doc: Document): boolean => {
   if (!parent) {
     return false;
   }
+
   for (const cls of parent.classList) {
-    if (cls.startsWith(`column-`)) {
+    if (allColumnClz.includes(cls)) {
       return true;
     }
   }
@@ -1048,6 +1054,9 @@ function processColumnElements(
   format: Format,
   flags: PandocFlags,
 ) {
+  // Clean nested columns - the outer layout will win
+  removeNestedColumnLayouts(doc);
+
   // Margin and column elements are only functional in article based layouts
   if (!formatHasArticleLayout(format)) {
     return {
@@ -1866,6 +1875,25 @@ const rightOccludeClz = [
   "column-screen-right",
   "margin-caption",
   "margin-ref",
+];
+
+const allColumnClz = [
+  "column-body-outset",
+  "column-body-outset-left",
+  "column-body-outset-right",
+  "column-page-inset",
+  "column-page-inset-left",
+  "column-page-inset-right",
+  "column-page",
+  "column-page-left",
+  "column-page-right",
+  "column-screen-inset",
+  "column-screen-inset-left",
+  "column-screen-inset-right",
+  "column-screen",
+  "column-screen-left",
+  "column-screen-right",
+  "column-margin",
 ];
 
 const getColumnClasses = (doc: Document) => {
