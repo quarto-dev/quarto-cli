@@ -706,6 +706,7 @@ export type FormatLanguage = {
 };
 
 export type WebsiteAbout = {
+  "image-alt"?: string /* The alt text for the main image on the about page. */;
   "image-width"?: string /* A valid CSS width for the about page image. */;
   "image-shape"?:
     | "rectangle"

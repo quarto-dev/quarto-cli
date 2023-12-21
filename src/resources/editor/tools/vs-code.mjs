@@ -10201,6 +10201,11 @@ var require_yaml_intelligence_resources = __commonJS({
                   }
                 }
               },
+              "image-alt": {
+                path: {
+                  description: "The alt text for the main image on the about page."
+                }
+              },
               "image-width": {
                 string: {
                   description: {
@@ -19789,6 +19794,10 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used."
         },
         {
+          short: "The alt text for the main image on the about page.",
+          long: ""
+        },
+        {
           short: "A valid CSS width for the about page image.",
           long: "A valid CSS width for the about page image."
         },
@@ -19798,7 +19807,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         {
           short: "The id of this listing.",
-          long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIn no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
+          long: "The id of this listing. When the listing is rendered, it will place\nthe contents into a <code>div</code> with this id. If no such\n<code>div</code> is defined on the page, a <code>div</code> with this id\nwill be created and appended to the end of the page.\nIf no <code>id</code> is provided for a listing, Quarto will\nsynthesize one when rendering the page."
         },
         {
           short: "The type of listing to create.",
@@ -22621,12 +22630,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180599,
+        _internalId: 180603,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180591,
+            _internalId: 180595,
             type: "enum",
             enum: [
               "png",
@@ -22642,7 +22651,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180598,
+            _internalId: 180602,
             type: "anyOf",
             anyOf: [
               {

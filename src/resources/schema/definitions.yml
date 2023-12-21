@@ -1302,6 +1302,9 @@
             long: |
               The path to the main image on the about page. If not specified, 
               the `image` provided for the document itself will be used.
+      image-alt:
+        path:
+          description: "The alt text for the main image on the about page."
       image-width:
         string:
           description:
