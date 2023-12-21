@@ -155,6 +155,7 @@ import {
   cleanTemplatePartialMetadata,
   kTemplatePartials,
   readPartials,
+  resolveTemplatePartialPaths,
   stageTemplate,
 } from "./template.ts";
 import {
@@ -517,6 +518,12 @@ export async function runPandoc(
 
     // merge metadata
     if (extras.metadata || extras.metadataOverride) {
+      // before we merge metadata, ensure that partials are proper paths
+      resolveTemplatePartialPaths(
+        options.format.metadata,
+        cwd,
+        options.project,
+      );
       options.format.metadata = {
         ...mergeConfigs(
           extras.metadata || {},

@@ -23,6 +23,9 @@ import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
 import { expandGlobSync } from "fs/mod.ts";
 import { normalizePath } from "../../core/path.ts";
+import { isGlob } from "../../core/lib/glob.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { isAboutPage } from "../../project/types/website/about/website-about.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
@@ -33,7 +36,10 @@ export const kTemplatePartials = "template-partials";
  * @param metadata
  * @param cwd current working directory for glob expansion
  */
-export function readPartials(metadata: Metadata, inputDir?: string) {
+export function readPartials(
+  metadata: Metadata,
+  inputDir?: string,
+) {
   if (typeof (metadata?.[kTemplatePartials]) === "string") {
     metadata[kTemplatePartials] = [metadata[kTemplatePartials]];
   }
@@ -53,7 +59,36 @@ export function readPartials(metadata: Metadata, inputDir?: string) {
     for (const walk of expandGlobSync(resolvePath(path))) {
       result.push(walk.path);
     }
+    if (!isGlob(path) && result.length === 0) {
+      throw new Error(
+        `Template partial ${path} was not found. Please confirm that the path to the file is correct.`,
+      );
+    }
     return result;
+  });
+}
+
+export function resolveTemplatePartialPaths(
+  metadata: Metadata,
+  inputDir?: string,
+  project?: ProjectContext,
+) {
+  if (typeof (metadata?.[kTemplatePartials]) === "string") {
+    metadata[kTemplatePartials] = [metadata[kTemplatePartials]];
+  }
+  const result = (metadata?.[kTemplatePartials] || []) as string[];
+  metadata[kTemplatePartials] = result.map((path) => {
+    if (project && (path.startsWith("/") || path.startsWith("\\"))) {
+      return join(project.dir, path.slice(1));
+    } else if (!inputDir || isAbsolute(path)) {
+      return path;
+    } else {
+      if (isAbsolute(inputDir)) {
+        return join(inputDir, path);
+      } else {
+        return join(Deno.cwd(), inputDir, path);
+      }
+    }
   });
 }
 
