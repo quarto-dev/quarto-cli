@@ -866,6 +866,7 @@ end, function(float)
   local kind
   local supplement = ""
   local numbering = ""
+  local content = float.content
 
   if float.parent_id then
     kind = "quarto-subfloat-" .. ref
@@ -878,11 +879,17 @@ end, function(float)
 
   local caption_location = cap_location(float)
 
-  -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
   -- FIXME: custom numbering doesn't work yet
+  
+  if (ref == "lst") then
+    -- FIXME: 
+    -- Listings shouldn't emit centered blocks. 
+    -- We don't know how to disable that right now using #show rules for #figures in template.
+    content = { pandoc.RawBlock("typst", "#set align(left)"), content }
+  end
 
   return make_typst_figure {
-    content = float.content,
+    content = content,
     caption_location = caption_location,
     caption = float.caption_long,
     kind = kind,
