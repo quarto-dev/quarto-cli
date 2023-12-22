@@ -166,7 +166,7 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
   // if we have front matter and a title then we are done
   const yaml = partitioned ? readYamlFromMarkdown(partitioned.yaml) : undefined;
-  if (yaml?.title) {
+  if (yaml?.title || yaml?.format?.["revealjs"]) {
     return nb;
   }
 
