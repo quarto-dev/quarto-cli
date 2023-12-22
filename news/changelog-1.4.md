@@ -239,13 +239,13 @@
 - ([#7512](https://github.com/quarto-dev/quarto-cli/issues/7512)): Improved error message listing known kernels, when a kernel set with `jupyter` key in YAML is not found.
 - ([#7548](https://github.com/quarto-dev/quarto-cli/issues/7548)): Don't use `fig_format="png"` in Julia's CairoMakie because of interaction with `display()`
 - ([#7607](https://github.com/quarto-dev/quarto-cli/issues/7607)): Make `output: asis` behave the same way as the `knitr` engine, emitting div enclosures when necessary.
+- ([#5363](https://github.com/quarto-dev/quarto-cli/issues/5363)): Fix issue caused by Quarto incorrectly using some headings as a title when reading notebooks.
+- ([#6411](https://github.com/quarto-dev/quarto-cli/issues/6411)): Don't perform notebook title fixup if the project is providing a title.
 
 ## Knitr
 
 - ([#4735](https://github.com/quarto-dev/quarto-cli/pull/4735)): Special `verbatim` and `embed` language engine for knitr's chunk are now better supported, including with special quarto cell option like `echo: fenced`.
-- ([#5363](https://github.com/quarto-dev/quarto-cli/issues/5363)): Fix issue caused by Quarto incorrectly using some headings as a title when reading notebooks.
 - ([#5506](https://github.com/quarto-dev/quarto-cli/issues/5506)): Fix error in if-statement when `knitr::asis_output(x)` is used with `length(x) != 1` (author: @rcannood).
-- ([#6411](https://github.com/quarto-dev/quarto-cli/issues/6411)): Don't perform notebook title fixup if the project is providing a title.
 - ([#6775](https://github.com/quarto-dev/quarto-cli/pull/6775)): Avoid duplicating special internal `tools:quarto` R environment used for making `ojs_define()` accessible during knitting.
 - ([#6792](https://github.com/quarto-dev/quarto-cli/issues/6792)): `fig-asp` provided at YAML config level now correctly work to set `fig.asp` chunk option in **knitr**.
 - ([#7002](https://github.com/quarto-dev/quarto-cli/issues/7002)): `layout-valign` is correctly forwarded to HTML to tweak vertical figure layout alignment for computational figures.
