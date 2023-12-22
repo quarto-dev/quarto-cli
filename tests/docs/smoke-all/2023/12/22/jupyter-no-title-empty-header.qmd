@@ -1,0 +1,23 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ['\{\.empty-header\}']
+    revealjs:
+      ensureFileRegexMatches:
+        - []
+        - ['\{\.empty-header\}']
+---
+
+## {.empty-header}
+
+Content
+
+## Python slide
+
+```{python}
+1 + 1
+```

@@ -18,7 +18,7 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
   return partitioned.headingText;
 }
 
-const kPandocTitleRegex = /^\#{1,}\s(.*)\s\{(.*)\}$/;
+const kPandocTitleRegex = /^\#{1,}\s(?:(.*)\s)?\{(.*)\}$/;
 const kRemoveHeadingRegex = /^#{1,}\s*/;
 
 export function parsePandocTitle(title: string) {
