@@ -218,6 +218,7 @@ function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
       if (inputMod > indexMod) {
         inputTargetIndexCacheMetrics.invalidations++;
         inputTargetIndexCache.delete(indexFile);
+        return undefined;
       }
 
       if (inputTargetIndexCache.has(indexFile)) {
