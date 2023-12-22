@@ -164,9 +164,15 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
     }
   });
 
-  // if we have front matter and a title then we are done
   const yaml = partitioned ? readYamlFromMarkdown(partitioned.yaml) : undefined;
-  if (yaml?.title || yaml?.format?.["revealjs"]) {
+  if (
+    // if we have front matter and a title then we are done
+    yaml?.title ||
+    // if we have front matter and it has revealjs as a format then we are done too
+    (yaml?.format !== null &&
+      (yaml?.format === "revealjs" ||
+        (typeof yaml?.format === "object" && "revealjs" in yaml?.format)))
+  ) {
     return nb;
   }
 
