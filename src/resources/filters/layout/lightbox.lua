@@ -72,7 +72,7 @@ function lightbox()
     if description ~= nil then
       local descId = "lightbox-desc-" .. imgCount
       descEl = pandoc.Span({}, pandoc.Attr("", {"glightbox-desc", descId}))
-      descEl.content = description
+      descEl.content = _quarto.utils.as_inlines(description)
 
       linkAttributes["data-glightbox"] = "description: ." .. descId
    end
@@ -117,7 +117,7 @@ function lightbox()
   local function processFigure(figEl)
     return _quarto.ast.walk(figEl, {
       Image = function(imgEl)
-        return processImg(imgEl, { automatic = true, caption = figEl.caption })
+        return processImg(imgEl, { automatic = true, caption = figEl.caption.long })
       end
     })
   end
