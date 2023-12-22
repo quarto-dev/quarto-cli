@@ -299,7 +299,7 @@ export async function updateSearchIndex(
         );
         if (sections.length > 0) {
           const mainSelector = projectIsBook(context)
-            ? "section.level1"
+            ? "main > section:first-of-type"
             : "main.content";
 
           const mainEl = doc.querySelector(mainSelector);
