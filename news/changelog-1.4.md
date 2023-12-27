@@ -59,6 +59,7 @@
 - ([#7542](https://github.com/quarto-dev/quarto-cli/discussions/7542)): Title block will properly present author affiliations when there is a mix of authors with affiliations and authors without affiliations
 - Ensure that code annotation buttons are not selectable text.
 - ([#7364](https://github.com/quarto-dev/quarto-cli/discussions/7364)): Restore support for `layout-align` attribute in panels
+- ([#8032](https://github.com/quarto-dev/quarto-cli/issues/8032)): Fix layout issue when margin footnotes are contained on a list item inside a callout.
 
 ## Appendix
 
