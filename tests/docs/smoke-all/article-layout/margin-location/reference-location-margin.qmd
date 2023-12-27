@@ -5,7 +5,7 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['#callout div.callout + div.column-margin']
+        - ['#callout div.callout + div.column-margin', '#blockquote blockquote + div.column-margin']
         - []
 ---
 
@@ -21,3 +21,9 @@ Callout with numbered list
 :::
 
 [^3]: Sidenote for numbered list inside callout
+
+## Inside blockquote {#blockquote}
+
+> text [^note]
+
+[^note]: Footnote.

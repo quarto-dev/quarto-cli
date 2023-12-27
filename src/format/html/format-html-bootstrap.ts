@@ -1773,7 +1773,7 @@ const marginContainerForEl = (el: Element, doc: Document) => {
 
   // Deal with a paragraph
   const parentEl = el.parentElement;
-  const cantContainBlockTags = ["P"];
+  const cantContainBlockTags = ["P", "BLOCKQUOTE"];
   if (parentEl && cantContainBlockTags.includes(parentEl.tagName)) {
     // See if this para has a parent div with a container
     if (

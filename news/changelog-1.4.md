@@ -60,6 +60,7 @@
 - Ensure that code annotation buttons are not selectable text.
 - ([#7364](https://github.com/quarto-dev/quarto-cli/discussions/7364)): Restore support for `layout-align` attribute in panels
 - ([#8032](https://github.com/quarto-dev/quarto-cli/issues/8032)): Fix layout issue when margin footnotes are contained on a list item inside a callout.
+- ([#7153](https://github.com/quarto-dev/quarto-cli/issues/7153)): Fix layout issue when margin footnotes are contained in a blockquote.
 
 ## Appendix
 
