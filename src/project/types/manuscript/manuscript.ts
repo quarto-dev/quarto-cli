@@ -93,7 +93,6 @@ import {
 import { logProgress } from "../../../core/log.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { manuscriptRenderer } from "./manuscript-render.ts";
-import { isRStudioPreview } from "../../../core/platform.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
 import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
@@ -101,13 +100,6 @@ import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import {
-  binderUrl,
-  codeSpacesUrl,
-  hasBinderCompatibleEnvironment,
-  hasDevContainer,
-} from "../../../core/container.ts";
-import { computeProjectEnvironment } from "../../project-environment.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
 import { dirname, isAbsolute } from "path/mod.ts";
@@ -131,15 +123,6 @@ const kTexOutputBundle = "tex-bundle";
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   libDir: "site_libs",
-  filterOutputFile: (file: string) => {
-    if (isRStudioPreview()) {
-      // HACK: RStudio doesn't know about the `_manuscript` directory
-      // so this hack hides it specifically from RStudio
-      return basename(file);
-    } else {
-      return file;
-    }
-  },
   config: async (
     projectDir: string,
     config: ProjectConfig,
@@ -705,7 +688,7 @@ const hasComputations = async (file: string) => {
 const resolveNotebookDescriptor = (
   nb: string | NotebookPreviewDescriptor,
 ): NotebookPreviewDescriptor => {
-  if (typeof (nb) === "string") {
+  if (typeof nb === "string") {
     nb = { notebook: nb };
   }
   return nb;

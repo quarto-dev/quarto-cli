@@ -36,7 +36,6 @@ export interface ProjectType {
     format: Format,
     project: ProjectContext,
   ) => string | undefined;
-  filterOutputFile?: (file: string) => string;
   cleanOutputDir?: boolean;
   formatLibDirs?: () => string[];
   filterFormat?: (
