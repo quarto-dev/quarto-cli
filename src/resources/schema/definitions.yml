@@ -1305,6 +1305,9 @@
       image-alt:
         path:
           description: "The alt text for the main image on the about page."
+      image-title:
+        path:
+          description: "The title for the main image on the about page."
       image-width:
         string:
           description:

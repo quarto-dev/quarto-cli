@@ -10207,6 +10207,11 @@ try {
                     description: "The alt text for the main image on the about page."
                   }
                 },
+                "image-title": {
+                  path: {
+                    description: "The title for the main image on the about page."
+                  }
+                },
                 "image-width": {
                   string: {
                     description: {
@@ -19794,10 +19799,7 @@ try {
             short: "The path to the main image on the about page.",
             long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used."
           },
-          {
-            short: "The alt text for the main image on the about page.",
-            long: ""
-          },
+          "The alt text for the main image on the about page.",
           {
             short: "A valid CSS width for the about page image.",
             long: "A valid CSS width for the about page image."
@@ -22631,12 +22633,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180603,
+          _internalId: 180605,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180595,
+              _internalId: 180597,
               type: "enum",
               enum: [
                 "png",
@@ -22652,7 +22654,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180602,
+              _internalId: 180604,
               type: "anyOf",
               anyOf: [
                 {
