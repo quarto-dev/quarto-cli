@@ -6,7 +6,7 @@ _quarto:
     asciidoc:
       ensureFileRegexMatches:
         - 
-          - "\\. Customers _query_"
+          - "\\.Customers _query_"
           - "<<lst-customers>>"
           - "\\[\\[lst-customers\\]\\]"
 ---

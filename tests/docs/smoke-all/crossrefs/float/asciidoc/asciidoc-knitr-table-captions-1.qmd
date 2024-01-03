@@ -14,9 +14,9 @@ _quarto:
           - "\\[\\[tbl-cars\\]\\]"
           - "\\[\\[tbl-pressure\\]\\]"
           - "\\[#tbl-tables\\]" # TODO understand the difference between [[foo]] and [#foo]. From my reading of the asciidoc docs it seems ok but we should double-check.
-          - "\\. Tables"
-          - "\\. Cars"
-          - "\\. Pressure"
+          - "\\.Tables"
+          - "\\.Cars"
+          - "\\.Pressure"
         - []
 ---
 

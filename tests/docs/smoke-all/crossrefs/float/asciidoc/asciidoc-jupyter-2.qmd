@@ -10,7 +10,7 @@ _quarto:
           - "\\[#fig-plots\\]"
           - "\\[#fig-plots-1\\]"
           - "\\[#fig-plots-2\\]"
-          - "\\. Plots"
+          - "\\.Plots"
           - "\\.Plot 1"
           - "\\.Plot 2"
         - []

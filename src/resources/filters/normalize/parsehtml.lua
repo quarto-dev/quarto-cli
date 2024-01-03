@@ -32,7 +32,6 @@ function parse_html_tables()
         local htmlTableProcessing = div.attributes[constants.kHtmlTableProcessing]
         div.attributes[constants.kHtmlTableProcessing] = nil
         if htmlTableProcessing == "none" then
-          quarto.log.output(div.attr == pandoc.Attr())
           if div.attr == pandoc.Attr() then
             -- if no other attributes are set on the div, don't keep it
             return div.content, false

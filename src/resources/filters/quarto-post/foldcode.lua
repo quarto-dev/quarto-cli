@@ -77,7 +77,6 @@ function fold_code_and_lift_codeblocks()
           return nil, false
         end,
         CodeBlock = function(block)
-          print("walking code block")
           local folded_block = render_folded_block(block)
           if block.classes:includes("code-annotation-code") then
             print("found code annotation code block")
