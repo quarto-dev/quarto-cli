@@ -110,11 +110,12 @@ end, function(layout)
   end
 
   -- this is exceedingly hacky, but it works.
+  -- It will fail if the caption contains citations that need to be resolved...
   local caption_str = pandoc.write(pandoc.Pandoc({layout.float.caption_long}), "asciidoc")
 
   -- we need to recurse into render_extended_nodes here, sigh
   local content_str = pandoc.write(_quarto.ast.walk(pandoc.Pandoc(panel_content), render_extended_nodes()) or {}, "asciidoc")
-  local figure_str = ". " .. caption_str .. "[#" .. layout.identifier .. "]\n" .. content_str
+  local figure_str = "." .. caption_str .. "[#" .. layout.identifier .. "]\n" .. content_str
 
   local pt = pandoc.utils.type(layout.preamble)
   if pt == "Blocks" then

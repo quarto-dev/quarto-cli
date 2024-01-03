@@ -787,14 +787,65 @@ end, function(float)
       float.identifier)
   end
 
-  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", ". "))
-  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
-  return pandoc.Div({
-    float.caption_long,
-    -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
-    float.content,
-    pandoc.RawBlock("asciidoc", "====\n\n")
+  if float.type == "Table" and float.content.t == "Table" then
+    -- special-case the situation where the figure is Table and the content is Table
+    --
+    -- just return the table itself with the caption inside the table
+    float.content.caption.long = float.caption_long
+    float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+    return pandoc.Blocks({
+      pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n"),
+      float.content
+    })
+  end
+
+  -- if this is a "linked figure Div", render it as such.
+  local link = quarto.utils.match("Plain/[1]/{Link}/[1]/{Image}")(float.content)
+  if link then
+    link[2].identifier = float.identifier
+    local caption = quarto.utils.as_inlines(float.caption_long)
+    table.insert(caption, 1, pandoc.RawInline("asciidoc", "."))
+    table.insert(caption, pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n"))
+    table.insert(caption, link[1])
+    return caption
+  end
+
+  -- if the float consists of exactly one image,
+  -- render it as a pandoc Figure node.
+  local count = 0
+  local img
+  _quarto.ast.walk(float.content, {
+    Image = function(node)
+      count = count + 1
+      img = node
+    end
   })
+  if count == 1 then
+    print(float.content)
+    img.identifier = float.identifier
+    img.caption = quarto.utils.as_inlines(float.caption_long)
+    return pandoc.Figure(
+      {img},
+      {float.caption_long},
+      float.identifier)
+  end
+
+  -- Fallthrough case, render into a div.
+  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", "."))
+  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
+
+  if pandoc.utils.type(float.content) == "Blocks" then
+    float.content:insert(1, float.caption_long)
+    float.content:insert(pandoc.RawBlock("asciidoc", "====\n"))
+    return float.content
+  else
+    return pandoc.Blocks({
+      float.caption_long,
+      -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
+      float.content,
+      pandoc.RawBlock("asciidoc", "====\n\n")
+    })
+  end
 
 end)
 

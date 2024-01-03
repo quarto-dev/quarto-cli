@@ -1,0 +1,13 @@
+---
+title: Caption
+format: asciidoc
+---
+
+::: {#fig-try}
+
+![Test](surus.png)
+
+![Test2](surus.png)
+
+Hello
+:::

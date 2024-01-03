@@ -6,7 +6,7 @@ _quarto:
     asciidoc:
       ensureFileRegexMatches:
         - 
-          - "\\. This is a caption\\."
+          - "\\.This is a caption\\."
           - "<<tbl-1>>"
           - "\\[\\[tbl-1\\]\\]"
         - []
