@@ -33,6 +33,9 @@ function lightbox()
   -- whether we need lightbox dependencies added
   local needsLightbox = false
 
+  -- accumulate any description elements that we see to be emitted later in the document
+  local descriptions = pandoc.List()
+
   -- a counter used to ensure each image is in its own gallery
   local imgCount = 0
   local function lightboxImage(imgEl, description, gallery)
@@ -97,10 +100,9 @@ function lightbox()
     -- wrap decorated images in a link with appropriate attrs
     local link = pandoc.Link({imgEl}, imgEl.src, title, linkAttributes)
     if descEl ~= nil then
-      return pandoc.Inlines({link, descEl})
-    else
-      return link
+      descriptions:insert(descEl)
     end
+    return link
   end
 
   local function processImg(imgEl, options)
@@ -279,6 +281,14 @@ function lightbox()
       end,    
     },
     {
+      Blocks = function(blocks)
+        if #descriptions > 0 then
+          local descContainer = pandoc.Div(descriptions, pandoc.Attr("", {"hidden"}, {["aria-hidden"]="true"}))
+          blocks:extend({descContainer})
+          return blocks
+        end
+      end,
+
       Meta = function(meta)
         -- If we discovered lightbox-able images
         -- we need to include the dependencies
