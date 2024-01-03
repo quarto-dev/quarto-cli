@@ -686,6 +686,12 @@ input[type="checkbox"] {
   margin-right: 0.5ch;
 }
 
+// don't nest borders
+// https://github.com/quarto-dev/quarto-cli/issues/8000
+.border .border {
+  border: inherit !important;
+}
+
 // Mermaid Theming
 // if none come from theme, we need these
 $body-color: #222 !default;
