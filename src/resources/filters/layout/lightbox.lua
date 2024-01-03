@@ -281,11 +281,11 @@ function lightbox()
       end,    
     },
     {
-      Blocks = function(blocks)
+      Pandoc = function(doc)
         if #descriptions > 0 then
           local descContainer = pandoc.Div(descriptions, pandoc.Attr("", {"hidden"}, {["aria-hidden"]="true"}))
-          blocks:extend({descContainer})
-          return blocks
+          doc.blocks:extend({descContainer})
+          return doc
         end
       end,
 
