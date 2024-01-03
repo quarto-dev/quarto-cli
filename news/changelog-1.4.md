@@ -267,6 +267,7 @@
 - ([#6267](https://github.com/quarto-dev/quarto-cli/issues/6267)): Fix error message when running in `file://`.
 - ([#7537](https://github.com/quarto-dev/quarto-cli/issues/7537)): Code annotations works better with OJS cells.
 - ([#7747](https://github.com/quarto-dev/quarto-cli/issues/7747)): Fix `FileAttachment` path resolution to work with `revealjs` format (and more generally, URLs that have a non-empty hash).
+- ([#8071](https://github.com/quarto-dev/quarto-cli/issues/8071)): Add support to `hugo-md` as an output format.
 
 ## Mermaid diagrams
 
@@ -346,6 +347,8 @@
 - ([#1392](https://github.com/quarto-dev/quarto-cli/issues/1392)): Add tools and LaTeX information to `quarto check` output.
 - ([#2214](https://github.com/quarto-dev/quarto-cli/issues/2214), reopened): don't report a non-existing version of Google Chrome in macOS.
 - ([#3599](https://github.com/quarto-dev/quarto-cli/issues/3599), [#5870](https://github.com/quarto-dev/quarto-cli/issues/5870)): Fix hash issue causing unexpected render when `freeze` is activated on Windows but re-rendered on Linux (e.g. in Github Action).
+- ([#4614](https://github.com/quarto-dev/quarto-cli/issues/4614)): Correctly remove empty mediabag directory in remote drives.
+- ([#4673](https://github.com/quarto-dev/quarto-cli/issues/4673)): Quarto now report in check and error message if **rmarkdown** R package minimal requirement (>= 2.3) is not fullfilled, and it will ask to update the package.
 - ([#4820](https://github.com/quarto-dev/quarto-cli/issues/4820)): Add support for setting the Giscus light/dark themes.
 - ([#5377](https://github.com/quarto-dev/quarto-cli/issues/5377)): support `from: ` formats correctly.
 - ([#5421](https://github.com/quarto-dev/quarto-cli/pull/5421)): Correct `quarto --help` command to provide correct commands and descriptions
@@ -378,6 +381,5 @@
 - ([#7502](https://github.com/quarto-dev/quarto-cli/pull/7502)): Correct `execute-debug` help text
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
-- ([#4673](https://github.com/quarto-dev/quarto-cli/issues/4673)): Quarto now report in check and error message if **rmarkdown** R package minimal requirement (>= 2.3) is not fullfilled, and it will ask to update the package.
 - ([#7793](https://github.com/quarto-dev/quarto-cli/issues/7793)): When a project render list includes only negative globs, use those to filter out the default render list.
-- ([#4614](https://github.com/quarto-dev/quarto-cli/issues/4614)): Correctly remove empty mediabag directory in remote drives.
+- ([#8086](https://github.com/quarto-dev/quarto-cli/issues/8086)): Add support for indexing array metadata in `meta` shortcode.
