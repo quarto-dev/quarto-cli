@@ -1,0 +1,19 @@
+---
+title: issue-8086
+testkey:
+  - "value 1"
+  - "value 2"
+testkey2:
+  testkey: testvalue
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "testvalue"
+          - "value 1"
+---
+
+{{< meta testkey.1 >}}
+
+{{< meta testkey2.testkey >}}

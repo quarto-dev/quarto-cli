@@ -40,11 +40,13 @@ end
 
 function parseOption(name, options, def) 
   local keys = split(name, ".")
+  quarto.log.output(keys)
   local value = nil
   for i, key in ipairs(keys) do
     if value == nil then
       value = readOption(options, key, nil)
     else
+      key = tonumber(key) or key
       value = value[key]
     end
 
