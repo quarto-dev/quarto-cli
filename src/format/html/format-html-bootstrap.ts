@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document, Element, NodeList } from "../../core/deno-dom.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -1567,6 +1567,7 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
         // First try to grab a the citation or footnote.
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
+
         if (refContentsEl) {
           // Find and remove the backlink
           const backLinkEl = refContentsEl.querySelector(".footnote-back");
@@ -1614,11 +1615,21 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
             );
           }
           const validParent = findValidParentEl(el);
-          addContentToMarginContainerForEl(
-            validParent || el,
-            refContentsEl,
-            doc,
-          );
+
+          if (refContentsEl.tagName === "LI") {
+            // Ensure that there is a list to place this footnote within
+            addNodesToMarginContainerForEl(
+              validParent || el,
+              refContentsEl.childNodes,
+              doc,
+            );
+          } else {
+            addContentToMarginContainerForEl(
+              validParent || el,
+              refContentsEl,
+              doc,
+            );
+          }
         }
       }
     }
@@ -1807,6 +1818,17 @@ const addContentToMarginContainerForEl = (
   const container = marginContainerForEl(el, doc);
   if (container) {
     container.appendChild(content);
+  }
+};
+
+const addNodesToMarginContainerForEl = (
+  el: Element,
+  nodes: NodeList,
+  doc: Document,
+) => {
+  const container = marginContainerForEl(el, doc);
+  if (container) {
+    container.append(...nodes);
   }
 };
 
