@@ -1,0 +1,29 @@
+---
+format: html
+reference-location: margin
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['#callout div.callout + div.column-margin', '#blockquote blockquote + div.column-margin']
+        - []
+---
+
+## Inside callout {#callout}
+
+:::{.callout-tip}
+
+Callout with numbered list
+
+1. blah 2 [^3]
+2. blah 3
+
+:::
+
+[^3]: Sidenote for numbered list inside callout
+
+## Inside blockquote {#blockquote}
+
+> text [^note]
+
+[^note]: Footnote.

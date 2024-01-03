@@ -1736,20 +1736,6 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return el.previousElementSibling;
   }
 
-  // Check for a list or table
-  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
-  if (list) {
-    if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
-      return list.nextElementSibling;
-    } else {
-      const container = createMarginContainer(doc);
-      if (list.parentNode) {
-        list.parentNode.insertBefore(container, list.nextElementSibling);
-      }
-      return container;
-    }
-  }
-
   // Find the callout parent and create a container for the callout there
   // Walks up the parent stack until a callout element is found
   const findCalloutEl = (el: Element): Element | undefined => {
@@ -1771,9 +1757,23 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return container;
   }
 
+  // Check for a list or table
+  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
+  if (list) {
+    if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
+      return list.nextElementSibling;
+    } else {
+      const container = createMarginContainer(doc);
+      if (list.parentNode) {
+        list.parentNode.insertBefore(container, list.nextElementSibling);
+      }
+      return container;
+    }
+  }
+
   // Deal with a paragraph
   const parentEl = el.parentElement;
-  const cantContainBlockTags = ["P"];
+  const cantContainBlockTags = ["P", "BLOCKQUOTE"];
   if (parentEl && cantContainBlockTags.includes(parentEl.tagName)) {
     // See if this para has a parent div with a container
     if (
