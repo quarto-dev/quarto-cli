@@ -356,6 +356,7 @@ local quarto_post_filters = {
   { name = "post-render-ipynb-fixups", filter = render_ipynb_fixups() },
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
+  { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
   { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
     flags = { "has_pandoc3_figure" } },
   { name = "post-render-email", filter = render_email() },
