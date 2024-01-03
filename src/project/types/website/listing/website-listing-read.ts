@@ -1235,7 +1235,13 @@ function listingForMetadata(
   // special behavior
 
   // Use the userId or our synthesized Id
-  listing.id = meta.id as string || synthId();
+  if (meta.id) {
+    listing.id = meta.id as string;
+    listing.autoId = false;
+  } else {
+    listing.id = synthId();
+    listing.autoId = true;
+  }
 
   // Set the sort to our resolve listing (if the user has provided it)
   // If the user hasn't provided a sort, the list will be unsorted
@@ -1331,6 +1337,7 @@ function listingForType(
 ): ListingDehydrated {
   const listing: ListingDehydrated = {
     id: kDefaultId,
+    autoId: true,
     type: type,
     contents: kDefaultContentsGlob,
   };

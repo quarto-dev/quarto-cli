@@ -95,7 +95,7 @@ export function templateMarkdownHandler(
             // For file modified specifically, include the time portion
             const includeTime = field === kFieldFileModified;
 
-            const date = typeof (dateRaw) === "string"
+            const date = typeof dateRaw === "string"
               ? parsePandocDate(dateRaw as string)
               : dateRaw as Date;
             if (date) {
@@ -219,7 +219,8 @@ export function templateMarkdownHandler(
       // See if there is a target div already in the page
       // This will match our default page layout
       let listingEl = doc.querySelector(`div[id='${listing.id}']`);
-      if (listingEl === null) {
+      if (listingEl === null && listing.autoId) {
+        // This was an automatically provisioned id, just insert this item
         // No target div, cook one up
         const content = doc.querySelector("#quarto-content main.content");
         listingEl = doc.createElement("div");
@@ -255,7 +256,7 @@ export function templateMarkdownHandler(
       }
 
       const renderedEl = rendered[pipelineId(listing.id)];
-      if (renderedEl) {
+      if (renderedEl && listingEl) {
         listingEl.innerHTML = renderedEl.innerHTML;
       }
     },

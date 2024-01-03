@@ -131,6 +131,7 @@ export interface ListingDehydrated extends Record<string, unknown> {
   id: string;
   type: ListingType;
   contents: Array<string | Metadata>; // globs (or items)
+  autoId: boolean;
 }
 
 export type CategoryStyle =

@@ -152,6 +152,7 @@
 - ([#7345](https://github.com/quarto-dev/quarto-cli/issues/7345)): Improve display of categories in a table style listing
 - ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
 - ([#7290](https://github.com/quarto-dev/quarto-cli/issues/7290)): Add support for `feed:type` of `metadata`, which will use only explicitly provided description metadata when generating an RSS feed. Additionally, note that `partial` feed types will prefer to use an explicit description over the first paragraph, when a description is available.
+- ([#8088](https://github.com/quarto-dev/quarto-cli/issues/8088)): [Behavior Change] Do not insert a listing into a page if the listing is targeting an `id` and an element with the `id` isn’t present in the document.
 - Add support for programmatically filtering content from a listing using `include` or `exclude` with glob syntax to include or exclude specific items from the listing. See <https://github.com/quarto-dev/quarto-cli/commit/d415d9ca5b7cb59a8a4750dd3eeb60116b931bd6s>
 
 ## Websites
