@@ -9,7 +9,7 @@ const layoutMarginEls = () => {
   // Find any conflicting margin elements and add margins to the
   // top to prevent overlap
   const marginChildren = window.document.querySelectorAll(
-    ".column-margin.column-container > * "
+    ".column-margin.column-container > *, .margin-caption"
   );
 
   let lastBottom = 0;
