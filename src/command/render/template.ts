@@ -25,7 +25,6 @@ import { expandGlobSync } from "fs/mod.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isGlob } from "../../core/lib/glob.ts";
 import { ProjectContext } from "../../project/types.ts";
-import { isAboutPage } from "../../project/types/website/about/website-about.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";

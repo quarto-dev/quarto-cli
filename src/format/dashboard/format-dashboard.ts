@@ -78,17 +78,6 @@ export function dashboardFormat() {
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
-        [kTemplatePartials]: ["title-block.html", "_nav-container.html"].map(
-          (file) => {
-            return formatResourcePath(
-              "dashboard",
-              file,
-            );
-          },
-        ),
-      },
-      pandoc: {
-        [kTemplate]: formatResourcePath("dashboard", "template.html"),
       },
     },
   );
@@ -140,6 +129,25 @@ export function dashboardFormat() {
           [];
         extras.html[kHtmlPostprocessors].push(
           dashboardHtmlPostProcessor(dashboard),
+        );
+
+        extras.metadata = extras.metadata || {};
+        extras.metadata[kTemplatePartials] = [
+          "title-block.html",
+          "_nav-container.html",
+        ].map(
+          (file) => {
+            return formatResourcePath(
+              "dashboard",
+              file,
+            );
+          },
+        );
+
+        extras.pandoc = extras.pandoc || {};
+        extras.pandoc[kTemplate] = formatResourcePath(
+          "dashboard",
+          "template.html",
         );
 
         extras[kFilterParams] = extras[kFilterParams] || {};
