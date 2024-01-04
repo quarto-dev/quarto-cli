@@ -585,7 +585,7 @@ local callout_attrs = {
     color = kColorUnknown,
     background_color = kColorUnknown,
     latex_color = "quarto-callout-color",
-    latex_color_frame = "quarto-callout-color-frame",
+    latex_frame_color = "quarto-callout-color-frame",
     fa_icon = nil,
     fa_icon_typst = nil
   }
