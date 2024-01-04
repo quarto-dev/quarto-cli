@@ -21,7 +21,7 @@ import {
   isPdfContent,
   isTextContent,
 } from "../../core/mime.ts";
-import { isModifiedAfter } from "../../core/path.ts";
+import { dirAndStem, isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 
 import {
@@ -145,11 +145,22 @@ export async function serveProject(
     if (
       projType.type === "default" && project?.config?.format !== "docusaurus-md"
     ) {
-      throw new Error(
-        `The project '${
-          project.config.project.title || ""
-        }' is a default type project. Default Quarto projects don't support project wide previewing since there is no project wide navigation.\n\nPlease preview an individual file within this default project instead.`,
-      );
+      const hasIndex = project.files.input.some((file) => {
+        let relPath = file;
+        if (project) {
+          relPath = relative(project.dir, file);
+        }
+        const [dir, stem] = dirAndStem(relPath);
+        return dir === "." && stem === "index";
+      });
+
+      if (!hasIndex) {
+        throw new Error(
+          `The project '${
+            project.config.project.title || ""
+          }' is a default type project which doesn't support project wide previewing unless there is an 'index' file present.\n\nPlease preview an individual file within this project instead.`,
+        );
+      }
     }
   } else {
     project = target;

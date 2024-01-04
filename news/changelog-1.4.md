@@ -219,7 +219,7 @@
 - Automatically render missing formats (e.g. PDF, MS Word) on the fly
 - Correct detection of Hugo project type from `hugo.toml` (in addition to already supported `config.toml`)
 - Only re-use Jupyter kernels for languages that explicitly opt into it
-- ([#4801](https://github.com/quarto-dev/quarto-cli/issues/4801)): Provide a more specific error upon a directory preview of a default project type
+- ([#4801](https://github.com/quarto-dev/quarto-cli/issues/4801)): Provide a more specific error upon a directory preview of a default project type without a root index file
 - ([#5882](https://github.com/quarto-dev/quarto-cli/issues/5882)): Disable browser cache using `Cache-Control` header config in the viewer redirect for PDF preview, correctly allowing a HTML preview later on same port.
 
 ## Jupyter
