@@ -11,7 +11,7 @@ import copy
 
 from pathlib import Path
 
-from yaml import load, BaseLoader
+from yaml import safe_load
 
 from log import trace
 import nbformat
@@ -39,7 +39,7 @@ class RestartKernel(Exception):
    pass
 
 def parse_string(yaml_string):
-   return load(yaml_string, BaseLoader)
+   return safe_load(yaml_string)
 
 # execute a notebook
 def notebook_execute(options, status):
