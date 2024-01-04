@@ -293,7 +293,7 @@ export async function directoryMetadataForInputFile(
       // There is a metadata file, read it and merge it
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
-      const errMsg = "Directory metadata validation failed.";
+      const errMsg = "Directory metadata validation failed for " + file + ".";
       const yaml = ((await readAndValidateYamlFromFile(
         file,
         frontMatterSchema,
