@@ -49,7 +49,6 @@ export type PageColumn =
   | "screen"
   | "screen-left"
   | "screen-right"
-  | "screen-rightcolumn"
   | "screen-inset"
   | "screen-inset-shaded"
   | "screen-inset-left"

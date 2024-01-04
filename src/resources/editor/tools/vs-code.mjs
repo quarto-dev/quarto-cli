@@ -8412,7 +8412,6 @@ var require_yaml_intelligence_resources = __commonJS({
             "screen",
             "screen-left",
             "screen-right",
-            "screen-rightcolumn",
             "screen-inset",
             "screen-inset-shaded",
             "screen-inset-left",
@@ -19799,6 +19798,7 @@ var require_yaml_intelligence_resources = __commonJS({
           long: "The path to the main image on the about page. If not specified, the\n<code>image</code> provided for the document itself will be used."
         },
         "The alt text for the main image on the about page.",
+        "The title for the main image on the about page.",
         {
           short: "A valid CSS width for the about page image.",
           long: "A valid CSS width for the about page image."
@@ -22632,12 +22632,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180605,
+        _internalId: 180607,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180597,
+            _internalId: 180599,
             type: "enum",
             enum: [
               "png",
@@ -22653,7 +22653,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180604,
+            _internalId: 180606,
             type: "anyOf",
             anyOf: [
               {
