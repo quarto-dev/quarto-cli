@@ -470,7 +470,14 @@ function revealHtmlPostprocessor(
         if (slideContentFromQuarto.childElementCount === 0) {
           slideContentFromQuarto.remove();
         } else {
-          slide.parentNode?.appendChild(slideContentFromQuarto);
+          for (const otherSlide of doc.querySelectorAll("section.slide")) {
+            if (
+              (otherSlide as Element).getAttribute("visibility") !== "hidden"
+            ) {
+              otherSlide.appendChild(slideContentFromQuarto);
+              break;
+            }
+          }
         }
       }
     }
