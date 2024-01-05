@@ -1,0 +1,38 @@
+---
+title: issue-8000
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#fig-2.border"
+        -
+          - "div#fig-1.border"
+          - "div#fig-3.border"
+          - "#scaffold div.border"
+---
+
+::: {#scaffold}
+
+![An _image_ with border](https://placeholder.co/400){.border fig-alt="And alt text."}
+
+:::
+
+![An _image_ with border](https://placeholder.co/400){#fig-1 .border fig-alt="And alt text."}
+
+
+::: {#fig-2 .border}
+
+![](https://placeholder.co/400)
+
+A _figure_ with border.
+
+:::
+
+::: {#fig-3}
+
+![](https://placeholder.co/400){.border}
+
+An image with border again.
+
+:::

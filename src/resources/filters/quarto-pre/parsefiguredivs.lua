@@ -3,6 +3,15 @@
 
 local patterns = require("modules/patterns")
 
+local attributes_to_not_merge = pandoc.List({
+  "width", "height"
+})
+
+-- Narrow fix for #8000
+local classes_to_not_merge = pandoc.List({
+  "border"
+})
+
 function handle_subfloatreftargets()
   -- #7045: pull fig-pos and fig-env attributes from subfloat to parent
   return {
@@ -238,8 +247,22 @@ function parse_floatreftargets()
       -- if the div contains a single image, then we simply use the image as
       -- the content
       content = content[1].content[1]
-      attr = merge_attrs(attr, content.attr)
-      attr.identifier = div.identifier -- never override the identifier
+
+      -- don't merge classes because they often have CSS consequences 
+      -- but merge attributes because they're needed to correctly resolve
+      -- behavior such as fig-pos="h", etc
+      -- See #8000.
+      -- We also exclude attributes we know to not be relevant to the div
+      for k, v in pairs(content.attr.attributes) do
+        if not attributes_to_not_merge:includes(k) then
+          attr.attributes[k] = v
+        end
+      end
+      for _, v in ipairs(content.attr.classes) do
+        if not classes_to_not_merge:includes(v) then
+          attr.classes:insert(v)
+        end
+      end
     end
 
     local skip_outer_reftarget = false
@@ -353,9 +376,20 @@ function parse_floatreftargets()
       local fig_attr = fig.attr
       local new_content = _quarto.ast.walk(fig.content[1], {
         Image = function(image)
-          -- forward attributes and classes from the image to the float
-          fig_attr = merge_attrs(fig_attr, image.attr)
-          -- strip redundant image caption
+          -- don't merge classes because they often have CSS consequences 
+          -- but merge attributes because they're needed to correctly resolve
+          -- behavior such as fig-pos="h", etc
+          -- See #8000.
+          for k, v in pairs(image.attributes) do
+            if not attributes_to_not_merge:includes(k) then
+              fig_attr.attributes[k] = v
+            end
+          end    
+          for _, v in ipairs(image.classes) do
+            if not classes_to_not_merge:includes(v) then
+              fig_attr.classes:insert(v)
+            end
+          end
           image.caption = {}
           return image
         end
@@ -485,7 +519,7 @@ function parse_floatreftargets()
         end
         return quarto.FloatRefTarget({
           identifier = identifier,
-          classes = img.classes,
+          classes = {}, 
           attributes = as_plain_table(img.attributes),
           type = category.name,
           content = img,
