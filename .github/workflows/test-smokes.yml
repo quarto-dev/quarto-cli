@@ -149,7 +149,7 @@ jobs:
         uses: browser-actions/setup-chrome@latest
 
       - name: Setup Julia
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v1.9.4
         with:
           version: 1.9.3
 
