@@ -528,7 +528,7 @@ async function resolveFormats(
       if (formatHasBootstrap(inputFormat)) {
         if (
           inputFormat.metadata[kTheme] !== undefined &&
-          inputFormat.metadata[kTheme] !== projFormat.metadata[kTheme]
+          !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
         ) {
           warnOnce(
             `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
@@ -539,7 +539,10 @@ async function resolveFormats(
       if (formatHasBootstrap(directoryFormat)) {
         if (
           directoryFormat.metadata[kTheme] !== undefined &&
-          directoryFormat.metadata[kTheme] !== projFormat.metadata[kTheme]
+          !ld.isEqual(
+            directoryFormat.metadata[kTheme],
+            projFormat.metadata[kTheme],
+          )
         ) {
           warnOnce(
             `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
