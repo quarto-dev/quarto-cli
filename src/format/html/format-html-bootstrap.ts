@@ -234,7 +234,7 @@ const removeNestedColumnLayouts = (doc: Document) => {
     const columnEl = columnNode as Element;
 
     // Process nested column layouts
-    if (isInColumnLayout(columnEl, doc)) {
+    if (isInColumnLayout(columnEl, doc, nonScreenColumnClz)) {
       removeColumnClasses(columnEl);
     }
   });
@@ -254,7 +254,7 @@ const cleanNonsensicalMarginCaps = (doc: Document) => {
 const isInColumnLayout = (
   el: Element,
   doc: Document,
-  clzList = allColumnClz,
+  clzList: string[],
 ): boolean => {
   const parent = el.parentElement;
   if (!parent) {
@@ -1949,6 +1949,24 @@ const removeMarginClz = [
   "column-screen-inset",
   "column-screen-inset-right",
   "column-screen",
+  "column-screen-right",
+  "column-margin",
+];
+
+const nonScreenColumnClz = [
+  "column-body-outset",
+  "column-body-outset-left",
+  "column-body-outset-right",
+  "column-page-inset",
+  "column-page-inset-left",
+  "column-page-inset-right",
+  "column-page",
+  "column-page-left",
+  "column-page-right",
+  "column-screen-inset",
+  "column-screen-inset-left",
+  "column-screen-inset-right",
+  "column-screen-left",
   "column-screen-right",
   "column-margin",
 ];
