@@ -16365,7 +16365,7 @@ try {
             },
             description: {
               short: "Places footnote references or superscripted numerical citations after following punctuation.",
-              long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains blah blah [@jones99]., the result will look like blah blah.[^1], with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
+              long: "If true (the default for note styles), Quarto (via Pandoc) will put footnote references or superscripted numerical citations after \nfollowing punctuation. For example, if the source contains `blah blah [@jones99]`., the result will look like `blah blah.[^1]`, with \nthe note moved after the period and the space collapsed. \n\nIf false, the space will still be collapsed, but the footnote will not be moved after the punctuation. The option may also be used \nin numerical styles that use superscripts for citation numbers (but for these styles the default is not to move the citation).\n"
             }
           }
         ],
@@ -21485,7 +21485,7 @@ try {
           },
           {
             short: "Places footnote references or superscripted numerical citations after\nfollowing punctuation.",
-            long: 'If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains blah blah <span class="citation" data-cites="jones99">[@jones99]</span>., the result\nwill look like blah blah.[^1], with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation).'
+            long: "If true (the default for note styles), Quarto (via Pandoc) will put\nfootnote references or superscripted numerical citations after following\npunctuation. For example, if the source contains\n<code>blah blah [@jones99]</code>., the result will look like\n<code>blah blah.[^1]</code>, with the note moved after the period and\nthe space collapsed.\nIf false, the space will still be collapsed, but the footnote will\nnot be moved after the punctuation. The option may also be used in\nnumerical styles that use superscripts for citation numbers (but for\nthese styles the default is not to move the citation)."
           },
           {
             short: "Format to read from",
