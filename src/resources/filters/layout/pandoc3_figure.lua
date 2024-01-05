@@ -50,8 +50,10 @@ function render_pandoc3_figure()
       image.caption = quarto.utils.as_inlines(figure.caption.long)
     end
     -- TODO need to find all correct classes to forward
-    if figure.classes:includes("margin-caption") then
-      image.classes:insert("margin-caption")
+    for i, v in pairs(figure.classes) do
+      if v:match("^margin%-") or v:match("^quarto%-") or v:match("^column%-") then
+        image.classes:insert(v)
+      end
     end
     return htmlImageFigure(image)
   end

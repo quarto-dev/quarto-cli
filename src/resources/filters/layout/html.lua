@@ -171,7 +171,13 @@ function renderHtmlFigure(el, render)
   end
 
   -- create figure div
-  local figureDiv = pandoc.Div({}, pandoc.Attr(el.identifier, el.classes, figureAttr))
+  local figureDiv = pandoc.Div({}, pandoc.Attr(el.identifier, {}, figureAttr))
+  figureDiv.classes = el.classes:filter(function(str) 
+    if str:match("quarto%-figure.*") then
+      return true
+    end
+    return false
+  end)
 
   -- remove identifier (it is now on the div)
   el.identifier = ""
