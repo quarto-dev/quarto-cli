@@ -531,9 +531,7 @@ async function resolveFormats(
           inputFormat.metadata[kTheme] !== projFormat.metadata[kTheme]
         ) {
           warnOnce(
-            `The file ${file.path} contains a theme property (${
-              inputFormat.metadata[kTheme]
-            }) which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
           );
         }
         delete inputFormat.metadata[kTheme];
@@ -544,9 +542,7 @@ async function resolveFormats(
           directoryFormat.metadata[kTheme] !== projFormat.metadata[kTheme]
         ) {
           warnOnce(
-            `The file ${file.path} contains a theme property (${
-              inputFormat.metadata[kTheme]
-            }) which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+            `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
           );
         }
         delete directoryFormat.metadata[kTheme];
