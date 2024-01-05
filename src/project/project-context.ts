@@ -632,7 +632,7 @@ export function projectInputFiles(
     }
   };
 
-  const addDir = (dir: string) => {
+  const addDir = (dir: string, addfile: (file: string) => void) => {
     // ignore selected other globs
 
     for (
@@ -654,7 +654,7 @@ export function projectInputFiles(
     ) {
       const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
       if (!projectIgnores.some((regex) => regex.test(pathRelative))) {
-        addFile(walk.path);
+        addfile(walk.path);
       }
     }
   };
@@ -680,7 +680,12 @@ export function projectInputFiles(
   const renderFiles = metadata?.project[kProjectRender] ?? [];
   // this triggers when renderFiles is empty as well, which is what we want
   if (renderFiles.every((file) => file.startsWith("!"))) {
-    renderFiles.unshift(".");
+    // Add the project files in the current directory
+    const fileList: string[] = [];
+    addDir(".", (file: string) => {
+      fileList.push(file);
+    });
+    renderFiles.unshift(...fileList);
   }
   const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
   const resolved = resolvePathGlobs(dir, renderFiles, exclude, {
@@ -689,7 +694,7 @@ export function projectInputFiles(
   (ld.difference(resolved.include, resolved.exclude) as string[])
     .forEach((file) => {
       if (Deno.statSync(file).isDirectory) {
-        addDir(file);
+        addDir(file, addFile);
       } else {
         addFile(file);
       }
