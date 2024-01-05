@@ -49,6 +49,10 @@ function render_pandoc3_figure()
     if figure.caption.long ~= nil then
       image.caption = quarto.utils.as_inlines(figure.caption.long)
     end
+    -- TODO need to find all correct classes to forward
+    if figure.classes:includes("margin-caption") then
+      image.classes:insert("margin-caption")
+    end
     return htmlImageFigure(image)
   end
 
