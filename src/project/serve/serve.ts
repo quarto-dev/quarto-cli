@@ -154,7 +154,7 @@ export async function serveProject(
         return dir === "." && stem === "index";
       });
 
-      if (!hasIndex) {
+      if (!hasIndex && options.browser !== false) {
         throw new Error(
           `The project '${
             project.config.project.title || ""
