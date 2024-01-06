@@ -466,13 +466,17 @@ function revealHtmlPostprocessor(
       const slideContentFromQuarto = (slide as Element).querySelector(
         ".quarto-auto-generated-content",
       );
-      if (slideContentFromQuarto) {
+      if (
+        slideContentFromQuarto &&
+        (slide as Element).getAttribute("data-visibility") === "hidden"
+      ) {
         if (slideContentFromQuarto.childElementCount === 0) {
           slideContentFromQuarto.remove();
         } else {
           for (const otherSlide of doc.querySelectorAll("section.slide")) {
             if (
-              (otherSlide as Element).getAttribute("visibility") !== "hidden"
+              (otherSlide as Element).getAttribute("data-visibility") !==
+                "hidden"
             ) {
               otherSlide.appendChild(slideContentFromQuarto);
               break;
