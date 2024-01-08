@@ -1,0 +1,10 @@
+---
+title: "Tests if ojs-define reuse is working."
+format: html
+---
+
+```{ojs}
+import { defn_1 } from "./test-ojs-define-1.qmd";
+
+b = defn_1.a
+```
