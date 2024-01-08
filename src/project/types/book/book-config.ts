@@ -92,10 +92,13 @@ import {
 } from "./book-shared.ts";
 import {
   kCodeLinks,
+  kCodeToolsSourceCode,
   kLanguageDefaults,
   kOtherLinks,
   kOutputExt,
   kSectionTitleAppendices,
+  kToolsDownload,
+  kToolsShare,
 } from "../../../config/constants.ts";
 
 import {
@@ -207,13 +210,13 @@ export async function bookProjectConfig(
     const repoUrl = siteRepoUrl(site);
     const icon = repoUrlIcon(repoUrl);
     tools.push({
-      text: "Source Code",
+      text: language[kCodeToolsSourceCode] || "Source Code",
       icon,
       href: repoUrl,
     });
   }
-  tools.push(...(downloadTools(projectDir, config) || []));
-  tools.push(...(sharingTools(config) || []));
+  tools.push(...(downloadTools(projectDir, config, language) || []));
+  tools.push(...(sharingTools(config, language) || []));
 
   if (site[kSiteNavbar]) {
     (site[kSiteNavbar] as Navbar)[kBookTools] = tools;
@@ -431,6 +434,7 @@ function chapterToSidebarItem(chapter: BookChapterItem) {
 function downloadTools(
   projectDir: string,
   config: ProjectConfig,
+  language: FormatLanguage,
 ): SidebarTool[] | undefined {
   // Filter the user actions to the set that are single file books
   const downloadActions = websiteConfigActions(kBookDownloads, kBook, config);
@@ -456,7 +460,7 @@ function downloadTools(
     if (downloadItem) {
       return {
         icon: downloadItem.icon,
-        text: `Download ${downloadItem.name}`,
+        text: `${language[kToolsDownload] || "Download"} ${downloadItem.name}`,
         href: pathWithForwardSlashes(join(
           "/",
           outputDir,
@@ -486,7 +490,7 @@ function downloadTools(
   } else {
     return [{
       icon: "download",
-      text: "Download",
+      text: language[kToolsDownload] || "Download",
       menu: downloads,
     }];
   }
@@ -494,6 +498,7 @@ function downloadTools(
 
 function sharingTools(
   projectConfig: ProjectConfig,
+  language: FormatLanguage,
 ): SidebarTool[] | undefined {
   const sharingActions = websiteConfigActions("sharing", kBook, projectConfig);
 
@@ -520,7 +525,7 @@ function sharingTools(
   } else {
     // If there are more than one items, make a menu
     return [{
-      text: "Share",
+      text: language[kToolsShare] || "Share",
       icon: kShareIcon,
       menu: sidebarTools,
     }];

@@ -225,6 +225,8 @@ import {
   kToggleReaderMode,
   kToggleSection,
   kToggleSidebar,
+  kToolsDownload,
+  kToolsShare,
   kTopLevelDivision,
   kValidateYaml,
   kVariables,
@@ -638,6 +640,8 @@ export interface FormatLanguage {
   [kCodeToolsHideAllCode]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
+  [kToolsDownload]?: string;
+  [kToolsShare]?: string;
   [kRepoActionLinksEdit]?: string;
   [kRepoActionLinksSource]?: string;
   [kRepoActionLinksIssue]?: string;

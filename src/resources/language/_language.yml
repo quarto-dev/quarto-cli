@@ -48,6 +48,9 @@ code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
+tools-share: "Share"
+tools-download: "Download"
+
 code-line: "Line"
 code-lines: "Lines"
 
