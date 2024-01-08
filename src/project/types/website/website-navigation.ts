@@ -1000,7 +1000,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure collapse & alignment are defaulted
   sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
-  sidebar.aligment = sidebar.aligment || "center";
+  sidebar.alignment = sidebar.alignment || "left";
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 

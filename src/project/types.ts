@@ -133,7 +133,7 @@ export interface Sidebar {
   title?: string;
   subtitle?: string;
   logo?: string;
-  aligment?: "left" | "right" | "center";
+  alignment?: "left" | "right" | "center";
   background?:
     | "none"
     | "primary"

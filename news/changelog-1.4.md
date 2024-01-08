@@ -186,6 +186,7 @@
 - ([#7447](https://github.com/quarto-dev/quarto-cli/issues/7447)): Changing the `$primary` color in a SCSS theme will now properly change the navigation bar background color.
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
 - ([#8083](https://github.com/quarto-dev/quarto-cli/issues/8083)): Improve About Page layouts when a sidebar is present
+- ([#8150](https://github.com/quarto-dev/quarto-cli/issues/8150)): Correctly support sidebar alignment. Default sidebar text alignment to left.
 
 ## Website Search
 
