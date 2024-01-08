@@ -41,8 +41,8 @@ $sidebar-anim-duration: 0.15s !default;
 $navbar-toggle-position: left !default;
 
 $navbar-toggler-order: if($navbar-toggle-position == "left", 1, 4) !default;
-$navbar-title-order: if($navbar-toggle-position == "left", 2, 3) !default;
-$navbar-search-order: if($navbar-toggle-position == "left", 4, 1) !default;
+$navbar-title-order: if($navbar-toggle-position == "left", 2, 1) !default;
+$navbar-search-order: if($navbar-toggle-position == "left", 4, 3) !default;
 $navbar-tools-order: if($navbar-toggle-position == "left", 3, 2) !default;
 $navbar-menu-order: if($navbar-toggle-position == "left", 20, 20) !default;
 

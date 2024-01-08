@@ -9619,6 +9619,16 @@ try {
                               ref: "navigation-item"
                             },
                             description: "List of items for the right side of the navbar."
+                          },
+                          "toggle-position": {
+                            schema: {
+                              enum: [
+                                "left",
+                                "right"
+                              ]
+                            },
+                            description: "The position of the collapsed navbar toggle when in responsive mode",
+                            default: "left"
                           }
                         }
                       }
@@ -22633,12 +22643,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180607,
+          _internalId: 180612,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180599,
+              _internalId: 180604,
               type: "enum",
               enum: [
                 "png",
@@ -22654,7 +22664,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180606,
+              _internalId: 180611,
               type: "anyOf",
               anyOf: [
                 {

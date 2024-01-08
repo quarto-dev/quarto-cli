@@ -909,6 +909,12 @@
                   arrayOf:
                     ref: navigation-item
                   description: "List of items for the right side of the navbar."
+                toggle-position:
+                  schema:
+                    enum: [left, right]
+                  description: "The position of the collapsed navbar toggle when in responsive mode"
+                  default: "left"
+
         description: "Top navigation options"
 
       sidebar:
