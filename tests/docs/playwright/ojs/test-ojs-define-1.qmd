@@ -1,0 +1,14 @@
+---
+title: "Tests if ojs-define is working."
+format: html
+self-contained: true
+---
+
+```{r}
+#| output: false
+ojs_define(defn_1 = list(a = 2))
+```
+
+```{ojs}
+b = defn_1.a
+```

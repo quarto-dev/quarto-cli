@@ -1,4 +1,4 @@
-// quarto-ojs-runtime v0.0.18 Copyright 2023 undefined
+// quarto-ojs-runtime v0.0.18 Copyright 2024 undefined
 var EOL = {},
     EOF = {},
     QUOTE = 34,
@@ -19517,7 +19517,7 @@ function createOjsModuleFromHTMLSrc(text) {
   const doc = parser.parseFromString(text, "text/html");
   const staticDefns = [];
   for (const el of doc.querySelectorAll('script[type="ojs-define"]')) {
-    staticDefns.push(base64ToStr(el.text));
+    staticDefns.push(el.text);
   }
   const ojsSource = [];
   for (
