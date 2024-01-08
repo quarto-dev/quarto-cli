@@ -195,10 +195,6 @@ const prevPageTitleHandler = (context: NavigationPipelineContext) => {
   };
 };
 
-const safeKey = (key: string) => {
-  return md5Hash(key);
-};
-
 const breadCrumbHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
@@ -206,7 +202,7 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
         const markdown: Record<string, string> = {};
         for (const item of context.breadCrumbs) {
           if (item.text) {
-            markdown[`${kBreadcrumbPrefix}-${safeKey(item.text)}`] = item.text;
+            markdown[`${kBreadcrumbPrefix}-${textKey(item.text)}`] = item.text;
           }
         }
         return { inlines: markdown };
@@ -218,8 +214,8 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
       );
       for (const breadCrumb of breadCrumbs) {
         const breadCrumbEl = breadCrumb as Element;
-        const key = breadCrumbEl.innerText;
-        const renderedEl = rendered[`${kBreadcrumbPrefix}-${safeKey(key)}`];
+        const key = breadCrumbEl.innerHTML;
+        const renderedEl = rendered[`${kBreadcrumbPrefix}-${textKey(key)}`];
         if (renderedEl) {
           breadCrumbEl.innerHTML = renderedEl.innerHTML;
         }
@@ -228,6 +224,14 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
   };
 };
 
+// TODO: This is a pretty hack workaround to improve our matching in cases like book
+// where we inject HTML right into the sidebar. Instead, we really need to switch this
+// to requiring that each sidebar item has an id (either user provided or automatically)
+// provisioned and then use that id to match for replacement. This is way too brittle and
+// terrible
+const textKey = (text: string) => {
+  return text.replaceAll(/\s|&nbsp;/gm, "-").replaceAll(/"/gm, "'");
+};
 const sidebarContentsHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
@@ -243,7 +247,7 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
             if (item.sectionId) {
               markdown[`${kSidebarIdPrefix}${item.sectionId}`] = item.text;
             } else {
-              markdown[`${kSidebarIdPrefix}${item.href}${item.text}`] =
+              markdown[`${kSidebarIdPrefix}${item.href}${textKey(item.text)}`] =
                 item.text;
             }
           }
@@ -261,8 +265,8 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
         const href = sidebarEl.getAttribute("href");
         const link = sidebarEl.querySelector(".menu-text");
         if (link) {
-          const sidebarText =
-            rendered[`${kSidebarIdPrefix}${href}${link.innerText}`];
+          const text = textKey(link.innerHTML);
+          const sidebarText = rendered[`${kSidebarIdPrefix}${href}${text}`];
           if (sidebarText) {
             link.innerHTML = sidebarText.innerHTML;
           }
