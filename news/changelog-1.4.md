@@ -202,6 +202,7 @@
 - ([#6708](https://github.com/quarto-dev/quarto-cli/issues/6708)): Prevent duplication of footnotes within the abstract or description within websites and books.
 - ([#7206](https://github.com/quarto-dev/quarto-cli/issues/7206)): Properly enabled `issue-url` for books
 - ([#8011](https://github.com/quarto-dev/quarto-cli/issues/8011)): Improve support for unsectioned chapters in search.
+- ([#8145](https://github.com/quarto-dev/quarto-cli/issues/8145)): Support localization of book tools (Download, Share, Source Code)
 
 ## Publishing
 
