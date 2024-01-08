@@ -5,7 +5,8 @@ function Pandoc(doc)
     Link = function(link)
       -- replace all links that would be rendered as <...> with explicit raw [...](...)
       -- Docusaurus doesn't like the <...> syntax
-      if link.content[1].text == link.target then
+      quarto.log.output(#link.content)
+      if #link.content > 0 and link.content[1].text == link.target then
         return pandoc.RawInline('markdown', '[' .. link.content[1].text .. '](' .. link.target .. ')')
       end
     end
