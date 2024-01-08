@@ -207,6 +207,7 @@
 
 - ([#5436](https://github.com/quarto-dev/quarto-cli/issues/5436)): Add support for publishing to Posit Cloud.
 - ([#5220](https://github.com/quarto-dev/quarto-cli/issues/5220)): Properly respect `output-dir` when publishin individual files in a default Quarto project
+- ([#4498](https://github.com/quarto-dev/quarto-cli/issues/4498)): Better error when `quarto publish gh-pages` fails because `gh-pages` branch does not exist on `origin` remote.
 
 ## Video (and Audio)
 
