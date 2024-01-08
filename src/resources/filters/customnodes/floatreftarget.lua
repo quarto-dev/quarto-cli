@@ -488,8 +488,10 @@ end, function(float)
   -- See #7937
   if _quarto.format.isRawLatex(float.content) then
     local _b, _e, _beginenv, inner_content, _endenv = float.content.text:find(patterns.latex_table_star)
-    figEnv = "table*"
-    float.content.text = inner_content
+    if _b ~= nil then 
+      figEnv = "table*"
+      float.content.text = inner_content
+    end
   end
 
   local figure_content
