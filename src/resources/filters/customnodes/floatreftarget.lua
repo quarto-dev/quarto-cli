@@ -385,101 +385,126 @@ end, function(float)
       end
     end,
     Table = function(tbl)
-      return pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+      local cites = pandoc.List({})
+      local guid_id = 0
+      local uuid = "85b77c8a-261c-4f58-9b04-f21c67e0a758"
+      tbl = _quarto.ast.walk(tbl, {
+        Cite = function(cite)
+          cites:insert(cite)
+          guid_id = guid_id + 1
+          return pandoc.Str(uuid .. "-" .. guid_id)
+        end
+      })
+      local raw_output = pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
+      if #cites > 0 then
+        return pandoc.Blocks({
+          make_scaffold(pandoc.Span, cites:map(function(cite)
+            return make_scaffold(pandoc.Span, pandoc.Inlines({
+              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. guid_id .. "\n"),
+              cite,
+              pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
+            }))
+          end)), raw_output})
+      else
+        return raw_output
+      end
     end
   })
 
   if float_type == "tbl" then
-    local raw
-    local is_star_env = false
-    local function set_raw(el)
-      if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
-        raw = el
+    local made_fix = false
+    local function fix_raw(is_star_env)
+      local function set_raw(el)
+        if _quarto.format.isRawLatex(el) and el.text:match(_quarto.patterns.latexLongtablePattern) then
+          made_fix = true
+          local raw = el
+          -- special case for longtable floats in LaTeX
+          local extended_pattern = "(.-)" .. _quarto.patterns.latexLongtablePattern .. "(.*)"
+          local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = raw.text:match(extended_pattern)
+          if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
+            warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+            "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+            "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+            "triggered this error.")
+            return {}
+          end
+          -- split the content into params and actual content
+          -- params are everything in the first line of longtable_content
+          -- actual content is everything else
+          local start, content = split_longtable_start(longtable_begin .. longtable_content)
+          if start == nil or content == nil then
+            warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
+            "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
+            "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
+            "triggered this error.")
+            return {}
+          end
+          local cap_loc = cap_location(float)
+          if float.parent_id then
+            -- need to fixup subtables because longtables don't support subcaptions,
+            -- and longtable captions increment the wrong counter
+            -- we try our best here
+
+            fatal("longtables are not supported in subtables.\n" ..
+              "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
+            return {}
+          end
+          if is_star_env then
+            -- content: table payload
+            -- start: \\begin{longtable}... command
+            -- longtable_preamble: everything that came before the \\begin{longtable} command
+            -- longtable_postamble: everything that came after the \\end{longtable} command
+            local result = pandoc.Blocks({
+              pandoc.RawBlock("latex", longtable_preamble),
+              pandoc.RawBlock("latex", "\\begin{table*}"),
+              -- caption here if cap_loc == "top"
+              pandoc.RawBlock("latex", start .. "\n" .. content .. "\n\\end{longtable}"),
+              -- caption here if cap_loc ~= "top"
+              pandoc.RawBlock("latex", "\\end{table*}"),
+              pandoc.RawBlock("latex", longtable_postamble),
+            })
+            if cap_loc == "top" then
+              result:insert(3, latex_caption)
+              -- gets around the padding that longtable* adds
+              result:insert(4, pandoc.RawBlock("latex", "\\vspace{-1em}"))
+            else
+              result:insert(4, latex_caption)
+            end
+            return result
+          else
+            local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
+            -- if cap_loc is top, insert content on bottom
+            if cap_loc == "top" then
+              result:insert(pandoc.RawBlock("latex", content))        
+            else
+              result:insert(1, pandoc.RawBlock("latex", content))
+            end
+            result:insert(1, pandoc.RawBlock("latex", start))
+            result:insert(1, pandoc.RawBlock("latex", longtable_preamble))
+            result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
+            result:insert(pandoc.RawBlock("latex", longtable_postamble))
+            return result
+          end
+        end
       end
+      return set_raw
     end
     -- have to call as_blocks() again here because assigning to float.content
     -- goes through our AST metaclasses which coalesce a singleton list to a single AST element
-    _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
+    local fixed_up_content = _quarto.ast.walk(quarto.utils.as_blocks(float.content), {
       traverse = "topdown",
       Div = function(div)
         if div.classes:find_if(isStarEnv) then
-          is_star_env = true
           return _quarto.ast.walk(div, {
-            RawBlock = set_raw
+            RawBlock = fix_raw(true)
           }), false
         end
       end,
-      RawBlock = set_raw
+      RawBlock = fix_raw(false)
     })
-    -- special case for singleton longtable floats
-    if raw then
-      local extended_pattern = "(.-)" .. _quarto.patterns.latexLongtablePattern .. "(.*)"
-      local longtable_preamble, longtable_begin, longtable_content, longtable_end, longtable_postamble = raw.text:match(extended_pattern)
-      if longtable_preamble == nil or longtable_begin == nil or longtable_content == nil or longtable_end == nil or longtable_postamble == nil then
-        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
-        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
-        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
-        "triggered this error.")
-        return {}
-      end
-      -- split the content into params and actual content
-      -- params are everything in the first line of longtable_content
-      -- actual content is everything else
-      local start, content = split_longtable_start(longtable_begin .. longtable_content)
-      if start == nil or content == nil then
-        warn("Could not parse longtable parameters. This could happen because the longtable parameters\n" ..
-        "are not well-formed or because of a bug in quarto. Please consider filing a bug report at\n" ..
-        "https://github.com/quarto-dev/quarto-cli/issues/, and make sure to include the document that\n" ..
-        "triggered this error.")
-        return {}
-      end
-      local cap_loc = cap_location(float)
-      if float.parent_id then
-        -- need to fixup subtables because longtables don't support subcaptions,
-        -- and longtable captions increment the wrong counter
-        -- we try our best here
-
-        fatal("longtables are not supported in subtables.\n" ..
-          "This is not a Quarto bug - the LaTeX longtable environment doesn't support subcaptions.\n")
-        return {}
-      end
-      if is_star_env then
-        -- content: table payload
-        -- start: \\begin{longtable}... command
-        -- longtable_preamble: everything that came before the \\begin{longtable} command
-        -- longtable_postamble: everything that came after the \\end{longtable} command
-        local result = pandoc.Blocks({
-          pandoc.RawBlock("latex", longtable_preamble),
-          pandoc.RawBlock("latex", "\\begin{table*}"),
-          -- caption here if cap_loc == "top"
-          pandoc.RawBlock("latex", start .. "\n" .. content .. "\n\\end{longtable}"),
-          -- caption here if cap_loc ~= "top"
-          pandoc.RawBlock("latex", "\\end{table*}"),
-          pandoc.RawBlock("latex", longtable_postamble),
-        })
-        if cap_loc == "top" then
-          result:insert(3, latex_caption)
-          -- gets around the padding that longtable* adds
-          result:insert(4, pandoc.RawBlock("latex", "\\vspace{-1em}"))
-        else
-          result:insert(4, latex_caption)
-        end
-        return result
-      else
-        local result = pandoc.Blocks({latex_caption, pandoc.RawInline("latex", "\\tabularnewline")})
-        -- if cap_loc is top, insert content on bottom
-        if cap_loc == "top" then
-          result:insert(pandoc.RawBlock("latex", content))        
-        else
-          result:insert(1, pandoc.RawBlock("latex", content))
-        end
-        result:insert(1, pandoc.RawBlock("latex", start))
-        result:insert(1, pandoc.RawBlock("latex", longtable_preamble))
-        result:insert(pandoc.RawBlock("latex", "\\end{longtable}"))
-        result:insert(pandoc.RawBlock("latex", longtable_postamble))
-        return result
-        end
-    end 
+    if made_fix then
+      return fixed_up_content
+    end
   end
 
   -- As an additional complication, we need to handle the case where the

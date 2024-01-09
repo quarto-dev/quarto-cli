@@ -1,0 +1,56 @@
+---
+title: |
+  A reprex
+author:
+  - name: Leonard Blaschek
+bibliography: references.bib
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["\\{\\[\\}\\@marrero2019\\{\\]\\}"]
+---
+
+
+This works:
+
+Testcitation [@marrero2019]
+
+
+This works:
+
+```{r}
+library(tidyverse)
+library(knitr)
+
+test <- tribble(
+  ~Text, ~Reference,
+  "Text", "[@marrero2019]"
+)
+
+kable(test)
+```
+
+This does not work:
+
+
+```{r}
+#| label: tbl-test
+#| tbl-cap: Test
+
+test <- tribble(
+  ~Text, ~Reference,
+  "Text", "[@marrero2019]"
+)
+
+kable(test)
+```
+
+
+
+## References {.unnumbered}
+
+:::{#refs}
+
+:::
