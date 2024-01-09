@@ -49,10 +49,10 @@ function render_folded_block(block)
     if fold ~= "none" then 
       return make_code_fold_html(fold, summary)
     else
-      return make_code_cell_scaffold(block)
+      return block
     end
   else
-    return make_code_cell_scaffold(block)
+    return block
   end
 end
 
@@ -77,9 +77,8 @@ function fold_code_and_lift_codeblocks()
           return nil, false
         end,
         CodeBlock = function(block)
-          local folded_block = render_folded_block(block)
+          local folded_block = make_scaffold(pandoc.Div, { render_folded_block(block) })
           if block.classes:includes("code-annotation-code") then
-            print("found code annotation code block")
             prev_annotated_code_block_scaffold = folded_block
             prev_annotated_code_block = block
           else
