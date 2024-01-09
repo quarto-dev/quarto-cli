@@ -1,0 +1,37 @@
+---
+title: "Testing"
+format: pdf
+keep-md: true
+keep-tex: true
+crossref:
+  custom:
+    - kind: float
+      reference-prefix: Table A
+      space-before-numbering: false
+      key: apptbl
+      latex-env: apptbl
+      latex-list-of-description: Appendix Table
+      caption-location: top
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["\\\\begin\\{table\\*\\}"]
+---
+
+::: {#apptbl-letters-full}
+
+| Col1 | Col2 | Col3 | Col4 |
+|------|------|------| -----|
+| A    | B    | C    | D    |
+| E    | F    | G    | H    |
+| I    | J    | K    | L    |
+| M    | N    | O    | P    |
+| Q    | R    | S    | T    |
+| U    | V    | W    | X    |
+| Y    | Z    | -    | -    |
+
+All the letters
+
+:::
