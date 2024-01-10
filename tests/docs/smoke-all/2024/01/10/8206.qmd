@@ -1,0 +1,25 @@
+---
+title: Hello World
+code-annotations: true
+format:
+  latex: default
+code-line-numbers: true
+_quarto:
+  tests: 
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - '\\item\[\\circled\{1\}\]'
+          - '\\NormalTok\{\\circled\{1\}\}'
+          - '\\item\[\\circled\{2\}\]'
+          - '\\NormalTok\{\\circled\{2\}\}'
+---
+
+```rust
+fn main() {
+    println!("Hello World!"); // <1>
+    return 0;                 // <2>
+}
+```
+1. Say hello.
+2. Leave.
