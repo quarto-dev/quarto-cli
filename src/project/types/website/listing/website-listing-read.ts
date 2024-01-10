@@ -594,8 +594,8 @@ function hydrateListing(
 
   const listingHydrated: Listing = cloneDeep({
     fields: hydratedFields,
-    [kFieldDisplayNames]: {},
-    [kFieldTypes]: kDefaultFieldTypes,
+    [kFieldDisplayNames]: {}, // default values are merged later
+    [kFieldTypes]: {}, // default values are merged later
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
     [kFieldFilter]: hydratedFields,
@@ -660,7 +660,7 @@ function hydrateListing(
 
   // Merge column types
   listingHydrated[kFieldTypes] = {
-    ...listingHydrated[kFieldTypes],
+    ...kDefaultFieldTypes,
     ...listing[kFieldTypes] as Record<string, ColumnType>,
   };
 
