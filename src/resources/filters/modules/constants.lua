@@ -125,7 +125,8 @@ local kLangCommentChars = {
   markdown = {"<!--", "-->"},
   gap = { "#" },
   dockerfile = { "#" },
-  ocaml = { "(*", "*)"}
+  ocaml = { "(*", "*)"},
+  rust = { "// "}
 }
 local kDefaultCodeAnnotationComment =  {"#"}
 
