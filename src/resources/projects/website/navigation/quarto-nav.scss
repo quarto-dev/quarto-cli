@@ -79,6 +79,10 @@ footer.footer div.nav-footer p:last-child {
   padding-top: $content-padding-top;
 }
 
+#quarto-content > #quarto-sidebar-glass {
+  padding-top: 0px;
+}
+
 @include media-breakpoint-down(lg) {
   #quarto-content > * {
     padding-top: 0;
