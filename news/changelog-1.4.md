@@ -153,6 +153,7 @@
 - ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
 - ([#7290](https://github.com/quarto-dev/quarto-cli/issues/7290)): Add support for `feed:type` of `metadata`, which will use only explicitly provided description metadata when generating an RSS feed. Additionally, note that `partial` feed types will prefer to use an explicit description over the first paragraph, when a description is available.
 - Add support for programmatically filtering content from a listing using `include` or `exclude` with glob syntax to include or exclude specific items from the listing. See <https://github.com/quarto-dev/quarto-cli/commit/d415d9ca5b7cb59a8a4750dd3eeb60116b931bd6s>
+- ([#8197](https://github.com/quarto-dev/quarto-cli/issues/8197)): Custom `field-types` are now correctly merged with default values for website listings.
 
 ## Websites
 
