@@ -17,9 +17,10 @@ import {
   printBrowsePreviewMessage,
   resolveHostAndPort,
 } from "../../core/previewurl.ts";
-import { isServerSession } from "../../core/platform.ts";
+import { isRStudio, isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { info } from "log/mod.ts";
 
 export async function renderForServe(
   file: string,
@@ -55,7 +56,16 @@ export async function serve(options: RunOptions): Promise<ProcessResult> {
 
     // print message and open browser when ready
     const onReady = async () => {
-      printBrowsePreviewMessage(host, port, "");
+      if (isRStudio()) {
+        // Preserve expected RStudio semantics for shiny doc output
+        // (VSCode extension for Quarto handles either text output)
+        // https://github.com/quarto-dev/quarto-cli/issues/8186
+        const url = previewURL(host, port, "");
+        info(`Listening on ${url}`);
+      } else {
+        printBrowsePreviewMessage(host, port, "");
+      }
+
       if (options.browser && !isServerSession()) {
         await openUrl(previewURL(host, port, ""));
       }
