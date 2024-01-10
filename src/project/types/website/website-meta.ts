@@ -192,7 +192,14 @@ export function metadataHtmlPostProcessor(
       // Convert image to absolute href and add height and width
       const imagePath = resolveImageMetadata(source, project, format, metadata);
       if (imagePath) {
-        resources.push(imagePath);
+        if (imagePath.startsWith("/")) {
+          // This is a project relative path
+          const absPath = join(project.dir, imagePath);
+          resources.push(relative(dirname(source), absPath));
+        } else {
+          // This is an input relative path
+          resources.push(imagePath);
+        }
       }
 
       // Allow the provider to resolve any defaults
