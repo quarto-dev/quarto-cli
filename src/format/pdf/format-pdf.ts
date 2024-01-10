@@ -1131,7 +1131,7 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{(.*?)[^\s]+? \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+  /(.*)\\CommentTok\{(.*?)[^\s]+? +\\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
 const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;
