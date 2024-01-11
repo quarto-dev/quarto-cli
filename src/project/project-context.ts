@@ -682,8 +682,8 @@ export function projectInputFiles(
   if (renderFiles.every((file) => file.startsWith("!"))) {
     // Add the project files in the current directory
     const fileList: string[] = [];
-    addDir(dir, (file: string) => {
-      fileList.push(relative(dir, file));
+    addDir(".", (file: string) => {
+      fileList.push(file);
     });
     renderFiles.unshift(...fileList);
   }
