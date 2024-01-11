@@ -1,0 +1,72 @@
+---
+title: issue-3323
+format: html
+---
+
+::: {#rem-1 .remark}
+
+## Name
+
+Here's a named referenceable remark.
+
+:::
+
+
+::: {#rem-2 .remark}
+
+Here's an unnamed referenceable remark.
+
+:::
+
+
+::: {.remark}
+
+## Name
+
+Here's a named unreferenceable remark.
+
+:::
+
+
+::: {.remark}
+
+Here's an unnamed unreferenceable remark.
+
+:::
+
+
+see @rem-1, @rem-2.
+
+::: {#sol-1}
+
+## Name
+
+Here's a named referenceable solution.
+
+:::
+
+
+::: {#sol-2 .solution}
+
+Here's an unnamed referenceable solution.
+
+:::
+
+::: {.solution}
+
+## Name
+
+Here's a named unreferenceable solution.
+
+:::
+
+
+::: {.solution}
+
+Here's an unnamed unreferenceable solution.
+
+:::
+
+
+
+see @sol-1, @sol-2.
