@@ -96,10 +96,6 @@ async function publishRecord(
       id: "gh-pages",
       url: ghContext.siteUrl || ghContext.originUrl,
     };
-  } else {
-    throwUnableToPublish(
-      'the remote origin does not have a branch named "gh-pages". Use first `quarto publish gh-pages` locally to initialize the remote repository for publishing.',
-    );
   }
 }
 
