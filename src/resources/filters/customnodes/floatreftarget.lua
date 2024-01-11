@@ -115,7 +115,7 @@ function cap_location(float_or_layout)
     ref = refType(float_or_layout.attributes["ref-parent"] or "")
   end
   -- last resort, pretend we're a figure
-  if ref == nil then
+  if ref == nil or crossref.categories.by_ref_type[ref] == nil then
     ref = "fig"
   end
   local qualified_key = ref .. '-cap-location'
