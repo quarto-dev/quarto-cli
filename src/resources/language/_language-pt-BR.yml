@@ -50,6 +50,9 @@ code-tools-hide-all-code: "Esconder o código"
 code-tools-view-source: "Ver o código fonte"
 code-tools-source-code: "Código fonte"
 
+tools-share: "Compartilhar"
+tools-download: "Baixar"
+
 copy-button-tooltip: "Copiar para a área de transferência"
 copy-button-tooltip-success: "Copiada"
 
