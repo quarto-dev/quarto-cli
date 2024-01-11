@@ -1,0 +1,5 @@
+---
+title: baddd
+---
+
+![Data science project model](https://placeholder.co/400){#data-science-model fig-align="center"}
