@@ -421,7 +421,8 @@ function websiteTemplate(
           name: "index",
           subdirectory: "posts/post-with-code",
           title: "Post With Code",
-          content: "This is a post with executable code.",
+          content:
+            "This is a post with executable code.\n\n```{python}\nprint('Hello World!')\n```\n",
           yaml:
             `author: "Harlow Malloc"\ndate: "${secondPostDateStr}"\ncategories: [news, code, analysis]\nimage: "image.jpg"`,
           supporting: [
