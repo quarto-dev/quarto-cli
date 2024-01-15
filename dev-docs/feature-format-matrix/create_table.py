@@ -1,5 +1,6 @@
 import yaml
 import json
+import base64
 
 class Trie:
 
@@ -19,6 +20,20 @@ class Trie:
         if not self.children:
             return self.values
         return {k: v.json() for k, v in self.children.items()}
+    
+    def tabulator(self):
+        if not self.children:
+            result = {}
+            for v in self.values:
+                result[v["format"]] = v["file"]
+            return result
+        result = []
+        for k, v in self.children.items():
+            result.append({
+                "feature": k,
+                "_children": v.tabulator()
+            })
+        return result
 
     def depth(self):
         if not self.children:
@@ -35,10 +50,7 @@ def render_features_formats_table(filename):
 
     features = Trie()
     for l in s:
-        features.insert(l["feature"].split("/"), {
-            "file": l["file"], 
-            "format": l["format"]
-        })
+        features.insert(l["feature"].split("/"), l)
 
     formats = {}
     for l in s:
@@ -67,7 +79,11 @@ def render_features_formats_table(filename):
             table_headers[i] = "<th>%s</th>" % k
     def add_entries(node, row, col):
         for v in node.values:
-            table_cells[row][formats[v["format"]]] = "<td><a href='%s'><i class='fa-solid fa-link' aria-label='link'></i></a></td>" % v["file"]
+            content = "[{{< fa link >}}](%s/%s.qmd)" % (v["feature"], v["format"])
+            # content = "<a href='%s'><i class='fa-solid fa-link' aria-label='link'></i></a>" % v.get("file", "%s/%s.qmd" % (v["feature"], v["format"]))
+            # encode as base64
+            b64 = base64.encodebytes(content.encode("utf-8"))
+            table_cells[row][formats[v["format"]]] = "<td><span data-qmd-base64='%s'></span></td>" % b64.decode("utf-8").strip()
         for _, v in node.children.items():
             add_entries(v, row, col + 1)
             row += v.size()
@@ -80,7 +96,7 @@ def render_features_formats_table(filename):
 
     def render_table():
         html = []
-        html.append("```{=html}\n<table class='features-formats-table' data-quarto-disable-processing='true'>")
+        html.append("```{=html}\n<table class='features-formats-table'>")
         html.append("<tr class='header-row'>")
         for h in table_headers:
             if h is None:
@@ -99,3 +115,18 @@ def render_features_formats_table(filename):
         html.append("</table>\n```\n")
         return "\n".join(html)
     return render_table()
+import glob
+
+def render_features_formats_data():
+    trie = Trie()
+    for entry in glob.glob("qmd-files/**/*.qmd", recursive=True):
+        feature = entry.split("/")[1:]
+        format = feature.pop().split(".")[0]
+        trie.insert(feature, {
+            "feature": "/".join(feature),
+            "format": format,
+            "file": "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % entry
+        })
+    entries = trie.tabulator()
+
+    return "```{=html}\n<script type='text/javascript'>\nvar tableData = %s;\n</script>\n```\n" % json.dumps(entries, indent=2)
