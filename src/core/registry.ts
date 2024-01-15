@@ -1,11 +1,12 @@
 /*
-* registry.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * registry.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
+import { ProcessResult } from "./process-types.ts";
 import { execProcess } from "./process.ts";
+import { debug } from "log/mod.ts";
 
 export const kHKeyCurrentUser = "HKCU";
 export const kHKeyLocalMachine = "HKLM";
@@ -35,11 +36,17 @@ export async function registryReadString(
     "/v",
     value,
   ];
-  const result = await execProcess({
-    cmd,
-    stdout: "piped",
-    stderr: "null",
-  });
+  let result: ProcessResult;
+  try {
+    result = await execProcess({
+      cmd,
+      stdout: "piped",
+      stderr: "null",
+    });
+  } catch (e) {
+    debug(`Fail to read from registry: ${e}`);
+    return undefined;
+  }
   if (result.success && result.stdout) {
     const typePos = result.stdout?.indexOf(kTypeString);
     if (typePos !== -1) {
