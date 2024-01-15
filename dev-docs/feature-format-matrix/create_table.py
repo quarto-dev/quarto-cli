@@ -21,18 +21,25 @@ class Trie:
             return self.values
         return {k: v.json() for k, v in self.children.items()}
     
+    def tabulator_leaf(self):
+        result = {}
+        for v in self.values:
+            result[v["format"]] = v["file"]
+        return result
+
     def tabulator(self):
         if not self.children:
-            result = {}
-            for v in self.values:
-                result[v["format"]] = v["file"]
-            return result
+            return []
         result = []
         for k, v in self.children.items():
-            result.append({
+            d = {
                 "feature": k,
-                "_children": v.tabulator()
-            })
+                **v.tabulator_leaf()
+            }
+            children = v.tabulator()
+            if children:
+                d["_children"] = children
+            result.append(d)
         return result
 
     def depth(self):
