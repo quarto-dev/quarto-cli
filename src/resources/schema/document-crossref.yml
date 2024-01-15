@@ -1,7 +1,7 @@
 - name: crossref
   description: 
-    short: Configuration for crossref labels and prefixes.
-    long: Configuration for crossref labels and prefixes. See [Cross-Reference Options](https://quarto.org/docs/reference/metadata/crossref.html) for more details.
+    short: Configuration for cross-reference labels and prefixes.
+    long: Configuration for cross-reference labels and prefixes. See [Cross-Reference Options](https://quarto.org/docs/reference/metadata/crossref.html) for more details.
   schema:
     anyOf:
       - enum: [false]
