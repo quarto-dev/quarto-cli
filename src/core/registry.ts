@@ -6,7 +6,7 @@
 
 import { ProcessResult } from "./process-types.ts";
 import { execProcess } from "./process.ts";
-import { debug } from "log/mod.ts";
+import { debugOnce } from "./log.ts";
 
 export const kHKeyCurrentUser = "HKCU";
 export const kHKeyLocalMachine = "HKLM";
@@ -44,7 +44,7 @@ export async function registryReadString(
       stderr: "null",
     });
   } catch (e) {
-    debug(`Fail to read from registry: ${e}`);
+    debugOnce(`Fail to read from registry: ${e}`);
     return undefined;
   }
   if (result.success && result.stdout) {
