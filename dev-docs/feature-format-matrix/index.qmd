@@ -1,0 +1,21 @@
+---
+engine: jupyter
+keep-md: true
+format:
+  html:
+    css: styles.css
+---
+```{python}
+#| echo: false
+#| output: asis
+
+from create_table import render_features_formats_table
+
+print(render_features_formats_table("files.yml"))
+```
+
+::: {style="visibility: hidden"}
+
+This will cause font-awesome to load: {{< fa link >}}
+
+:::
