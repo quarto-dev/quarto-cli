@@ -387,3 +387,4 @@
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
 - ([#8086](https://github.com/quarto-dev/quarto-cli/issues/8086)): Add support for indexing array metadata in `meta` shortcode.
+- ([#8245](https://github.com/quarto-dev/quarto-cli/issues/8245)): On Windows, prevent Quarto error due to access issue when trying to read codepage from registry.

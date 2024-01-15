@@ -15,7 +15,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
-import { error, getLogger, setup, warning } from "log/mod.ts";
+import { debug, error, getLogger, setup, warning } from "log/mod.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
@@ -334,6 +334,14 @@ export function warnOnce(msg: string) {
   }
 }
 const warnings: Record<string, boolean> = {};
+
+export function debugOnce(msg: string) {
+  if (!debugs[msg]) {
+    debugs[msg] = true;
+    debug(msg);
+  }
+}
+const debugs: Record<string, boolean> = {};
 
 function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {
