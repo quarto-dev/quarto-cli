@@ -73,7 +73,8 @@ type WebsiteConfigKey =
   | "comments"
   | "other-links"
   | "code-links"
-  | "reader-mode";
+  | "reader-mode"
+  | "announcement";
 
 export function websiteConfigBoolean(
   name: WebsiteConfigKey,
