@@ -378,6 +378,7 @@ export async function websiteNavigationExtras(
     pageNavigation,
     bodyDecorators: navigation.bodyDecorators,
     breadCrumbs: navigation.breadCrumbs,
+    announcement: navigation.announcement,
   });
   const markdownPipeline = createMarkdownPipeline(
     "quarto-navigation-envelope",
