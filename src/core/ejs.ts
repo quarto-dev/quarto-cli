@@ -1,18 +1,25 @@
 /*
-* ejs.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * ejs.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { dirname, join } from "path/mod.ts";
 
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
+import { InternalError } from "./lib/error.ts";
 
 export type EjsData = {
   [key: string]: unknown;
 };
+
+interface CachedTemplate {
+  mtime: number;
+  compileTemplate: CompileTemplate;
+}
+
+type CompileTemplate = (data: unknown) => string;
 
 export function renderEjs(
   file: string,
@@ -22,6 +29,11 @@ export function renderEjs(
 ): string {
   // compile template
   const template = compileTemplate(file, removeEmptyLines, cache);
+  if (!template) {
+    throw new InternalError(
+      `Rendering the template ${file} failed unexpectedly.`,
+    );
+  }
 
   // render it, passing an include function for partials
   return lines(template(data).trimLeft())
@@ -29,33 +41,48 @@ export function renderEjs(
     .join("\n") + "\n";
 }
 
-const compiledTemplates = new Map<string, unknown>();
+// A cache that holds compiled template functions.
+const compiledTemplates = new Map<string, CachedTemplate>();
+
+// Compiles the template using a cache, if needed
 function compileTemplate(
   file: string,
   removeEmptyLines: boolean,
   cache = true,
 ) {
-  if (!cache || !compiledTemplates.has(file)) {
+  // Check the current file modified time
+  const mtime = Deno.statSync(file).mtime?.getTime() || Number.MAX_VALUE;
+
+  const compile = () => {
     const template =
       `<% const partial = (file, data) => print(include(file, data)); %>
-      ${Deno.readTextFileSync(file)}`;
+    ${Deno.readTextFileSync(file)}`;
 
-    compiledTemplates.set(
-      file,
-      ld.template(template, {
-        imports: {
-          include: (includeFile: string, includeData: unknown) => {
-            return renderEjs(
-              join(dirname(file), includeFile),
-              includeData,
-              removeEmptyLines,
-            );
-          },
+    return ld.template(template, {
+      imports: {
+        include: (includeFile: string, includeData: unknown) => {
+          return renderEjs(
+            join(dirname(file), includeFile),
+            includeData,
+            removeEmptyLines,
+          );
         },
-      }),
-    );
+      },
+    });
+  };
+  if (!cache) {
+    return compile();
+  } else {
+    const cachedTemplate = compiledTemplates.get(file);
+    if (!cachedTemplate || cachedTemplate.mtime < mtime) {
+      compiledTemplates.set(
+        file,
+        {
+          mtime,
+          compileTemplate: compile(),
+        },
+      );
+    }
   }
-  return compiledTemplates.get(file) as (
-    data: unknown,
-  ) => string;
+  return compiledTemplates.get(file)?.compileTemplate;
 }
