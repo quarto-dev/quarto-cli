@@ -1,0 +1,26 @@
+---
+title: foo
+format: docusaurus-md
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["import Tabs"]
+        - []
+---
+
+:::{.panel-tabset}
+
+## Not work
+
+```{.python filename="Python"}
+print("bar")
+```
+
+## Work
+
+```{.python}
+print("bar")
+```
+
+:::
