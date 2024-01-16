@@ -737,6 +737,36 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      announcement:
+        anyOf:
+          - string
+          - object:
+              properties:
+                content:
+                  schema: string
+                  description: "The content of the announcement"
+                dismissable:
+                  schema: boolean
+                  description: "Whether this announcement may be dismissed by the user."
+                icon:
+                  schema: string
+                  description: "The icon to display in the annoucement"
+                type:
+                  schema:
+                    enum:
+                      [
+                        primary,
+                        secondary,
+                        success,
+                        danger,
+                        warning,
+                        info,
+                        light,
+                        dark,
+                      ]
+                  description: "The type of announcement. Affects the appearance of the announcement."
+
+        description: Provides an announcement displayed at the top of the page.
       cookie-consent:
         anyOf:
           - enum: [express, implied]

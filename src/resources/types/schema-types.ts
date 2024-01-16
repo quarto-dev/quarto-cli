@@ -435,6 +435,20 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
   "code-links"?: boolean | CodeLinksSchema;
+  announcement?: string | {
+    content?: string;
+    dismissable?: boolean;
+    icon?: string;
+    type?:
+      | "primary"
+      | "secondary"
+      | "success"
+      | "danger"
+      | "warning"
+      | "info"
+      | "light"
+      | "dark";
+  } /* Provides an announcement displayed at the top of the page. */;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;
