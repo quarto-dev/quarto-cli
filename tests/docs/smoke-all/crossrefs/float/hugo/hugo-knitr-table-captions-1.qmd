@@ -12,7 +12,7 @@ _quarto:
           - "<div id=\"tbl-pressure\">"
           - "\\(a\\) Cars"
           - "\\(b\\) Pressure"
-          - "Table 1: Tables"
+          - "Table 1: Tables" # NB there's a non-breaking space here 
         - []
 ---
 

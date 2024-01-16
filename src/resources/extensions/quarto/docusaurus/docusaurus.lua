@@ -6,6 +6,14 @@ local rawHtmlVars = pandoc.List()
 
 local code_block = require('docusaurus_utils').code_block
 
+local reactPreamble = pandoc.List()
+
+local function addPreamble(preamble)
+  if not reactPreamble:includes(preamble) then
+    reactPreamble:insert(preamble)
+  end
+end
+
 local function Pandoc(doc)
   -- insert exports at the top if we have them
   if #rawHtmlVars > 0 then
@@ -16,6 +24,12 @@ local function Pandoc(doc)
       )
     )
     doc.blocks:insert(1, pandoc.RawBlock("markdown", exports .. "\n"))
+  end
+
+  -- insert react preamble if we have it
+  if #reactPreamble > 0 then
+    local preamble = table.concat(reactPreamble, "\n")
+    doc.blocks:insert(1, pandoc.RawBlock("markdown", preamble .. "\n"))
   end
 
   return doc
@@ -60,14 +74,6 @@ end
 
 local function CodeBlock(el)
   return code_block(el, el.attr.attributes["filename"])
-end
-
-local reactPreamble = pandoc.List()
-
-local function addPreamble(preamble)
-  if not reactPreamble:includes(preamble) then
-    reactPreamble:insert(preamble)
-  end
 end
 
 local function jsx(content)

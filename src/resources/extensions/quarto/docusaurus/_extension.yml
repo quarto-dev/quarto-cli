@@ -30,7 +30,7 @@ contributes:
       fig-height: 5
       html-math-method: webtex
       filters:
-        - at: post-quarto
+        - at: post-render
           path: docusaurus.lua
         - at: post-finalize
           path: docusaurus_citeproc.lua
