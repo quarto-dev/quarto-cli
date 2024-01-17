@@ -16540,6 +16540,18 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
         },
         {
+          name: "plotly-connected",
+          schema: "boolean",
+          default: false,
+          tags: {
+            contexts: [
+              "document-execute"
+            ],
+            engine: "jupyter"
+          },
+          description: 'If true, use the "notebook_connected" plotly renderer, which downloads\nits dependencies from a CDN and requires an internet connection to view.\n'
+        },
+        {
           name: "keep-typ",
           tags: {
             formats: [
@@ -19579,6 +19591,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -19713,6 +19726,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -21885,6 +21899,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22203,6 +22218,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22414,7 +22430,8 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack"
+        "internal-schema-hack",
+        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view."
       ],
       "schema/external-schemas.yml": [
         {
@@ -22639,15 +22656,16 @@ var require_yaml_intelligence_resources = __commonJS({
           "(*",
           "*)"
         ],
+        rust: "//",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180612,
+        _internalId: 180619,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180604,
+            _internalId: 180611,
             type: "enum",
             enum: [
               "png",
@@ -22663,7 +22681,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180611,
+            _internalId: 180618,
             type: "anyOf",
             anyOf: [
               {
@@ -31819,7 +31837,8 @@ var kLangCommentChars = {
   dot: "//",
   ojs: "//",
   apl: "\u235D",
-  ocaml: ["(*", "*)"]
+  ocaml: ["(*", "*)"],
+  rust: "//"
 };
 function escapeRegExp(str2) {
   return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

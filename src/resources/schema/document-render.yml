@@ -130,6 +130,16 @@
   description: |
     Specify which nodes should be run interactively (displaying output from expressions)
 
+- name: plotly-connected
+  schema: boolean
+  default: false
+  tags:
+    contexts: [document-execute]
+    engine: jupyter
+  description: |
+    If true, use the "notebook_connected" plotly renderer, which downloads
+    its dependencies from a CDN and requires an internet connection to view.
+
 - name: keep-typ
   tags:
     formats: [typst]
