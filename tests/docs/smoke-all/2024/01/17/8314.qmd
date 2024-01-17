@@ -1,0 +1,16 @@
+---
+title: foo
+format: docusaurus-md
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["[<]details class=[\"]code-fold[\"][>]"]
+        - []
+---
+
+```{python}
+#| filename: Python
+#| code-fold: true
+1 + 1
+```
