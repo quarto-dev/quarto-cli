@@ -108,6 +108,7 @@ export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
+export const kBodyClasses = "body-classes";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -225,6 +226,7 @@ export const kRenderDefaultsKeys = [
   kHtmlTableProcessing,
   kValidateYaml,
   kCanonicalUrl,
+  kBodyClasses,
 ];
 
 // language fields

@@ -26,6 +26,13 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
+- name: body-classes
+  tags:
+    formats: [$html-doc]
+  schema: string
+  description: |
+    Classes to apply to the body of the document.
+
 - name: minimal
   schema: boolean
   default: false
