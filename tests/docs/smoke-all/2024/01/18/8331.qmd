@@ -1,0 +1,17 @@
+---
+title: foo
+format: docusaurus-md
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["export const quartoRawHtml"]
+        - []
+---
+
+```{python}
+#| filename: Python
+import polars
+
+polars.DataFrame({"foo": [1, 2,]})
+```

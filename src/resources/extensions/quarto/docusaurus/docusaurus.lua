@@ -148,11 +148,15 @@ end, function(node)
 end)
 
 return {
-  traverse = "topdown",
-  Pandoc = Pandoc,
-  Image = Image,
-  Header = Header,
-  RawBlock = RawBlock,
-  DecoratedCodeBlock = DecoratedCodeBlock,
-  CodeBlock = CodeBlock,
+  {
+    traverse = "topdown",
+    Image = Image,
+    Header = Header,
+    RawBlock = RawBlock,
+    DecoratedCodeBlock = DecoratedCodeBlock,
+    CodeBlock = CodeBlock,
+  },
+  {
+    Pandoc = Pandoc,
+  }
 }
