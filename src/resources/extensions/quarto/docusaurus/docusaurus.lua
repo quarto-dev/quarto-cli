@@ -53,7 +53,8 @@ end
 -- into raw commamark to pass through via dangerouslySetInnerHTML
 local function RawBlock(el)
   if el.format == 'mdx' then
-    return pandoc.CodeBlock(el.text, pandoc.Attr("", {"mdx-code-block"}))
+    -- special mdx-code-block is not handled if whitespace is present after backtrick (#8333)
+    return pandoc.RawBlock("markdown", "````mdx-code-block\n" .. el.text .. "\n````")
   elseif el.format == 'html' then
     -- track the raw html vars (we'll insert them at the top later on as
     -- mdx requires all exports be declared together)
