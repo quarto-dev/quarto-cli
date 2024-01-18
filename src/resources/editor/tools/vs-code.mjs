@@ -8654,11 +8654,18 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "light",
                                 "light_high_contrast",
                                 "light_protanopia",
+                                "light_tritanopia",
                                 "dark",
                                 "dark_high_contrast",
                                 "dark_protanopia",
+                                "dark_tritanopia",
                                 "dark_dimmed",
                                 "transparent_dark",
+                                "cobalt",
+                                "purple_dark",
+                                "noborder_light",
+                                "noborder_dark",
+                                "noborder_gray",
                                 "preferred_color_scheme"
                               ]
                             },
@@ -8680,7 +8687,10 @@ var require_yaml_intelligence_resources = __commonJS({
                               }
                             }
                           ],
-                          description: "The giscus theme to use when displaying comments."
+                          description: {
+                            short: "The giscus theme to use when displaying comments.",
+                            long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                          }
                         },
                         language: {
                           string: {
@@ -21541,6 +21551,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
         "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
+        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view.",
         "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
@@ -22430,8 +22441,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22660,12 +22670,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180619,
+        _internalId: 180831,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180611,
+            _internalId: 180823,
             type: "enum",
             enum: [
               "png",
@@ -22681,7 +22691,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180618,
+            _internalId: 180830,
             type: "anyOf",
             anyOf: [
               {
