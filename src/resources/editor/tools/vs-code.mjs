@@ -16550,6 +16550,18 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
         },
         {
+          name: "plotly-connected",
+          schema: "boolean",
+          default: false,
+          tags: {
+            contexts: [
+              "document-execute"
+            ],
+            engine: "jupyter"
+          },
+          description: 'If true, use the "notebook_connected" plotly renderer, which downloads\nits dependencies from a CDN and requires an internet connection to view.\n'
+        },
+        {
           name: "keep-typ",
           tags: {
             formats: [
@@ -19382,10 +19394,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Display reactions for the discussion\u2019s main post before the\ncomments.",
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
-        {
-          short: "The giscus theme to use when displaying comments.",
-          long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
-        },
+        "The giscus theme to use when displaying comments.",
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
@@ -21542,6 +21551,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
         "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
+        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view.",
         "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
@@ -22660,12 +22670,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180617,
+        _internalId: 180831,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180609,
+            _internalId: 180823,
             type: "enum",
             enum: [
               "png",
@@ -22681,7 +22691,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180616,
+            _internalId: 180830,
             type: "anyOf",
             anyOf: [
               {
