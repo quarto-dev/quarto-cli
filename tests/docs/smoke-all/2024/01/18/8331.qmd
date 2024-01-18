@@ -9,9 +9,6 @@ _quarto:
         - []
 ---
 
-```{python}
-#| filename: Python
-import polars
-
-polars.DataFrame({"foo": [1, 2,]})
+```{=html}
+<span class="dummy">Content</span>
 ```
