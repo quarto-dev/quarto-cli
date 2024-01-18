@@ -134,17 +134,32 @@ the discussions feature must be enabled. */;
         | "light"
         | "light_high_contrast"
         | "light_protanopia"
+        | "light_tritanopia"
         | "dark"
         | "dark_high_contrast"
         | "dark_protanopia"
+        | "dark_tritanopia"
         | "dark_dimmed"
         | "transparent_dark"
+        | "cobalt"
+        | "purple_dark"
+        | "noborder_light"
+        | "noborder_dark"
+        | "noborder_gray"
         | "preferred_color_scheme"
       )
       | {
         dark?: string /* The dark theme name. */;
         light?: string; /* The light theme name. */
-      }; /* The giscus theme to use when displaying comments. */
+      }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
+
+```yaml
+website:
+  comments:
+    giscus:
+      light: light # giscus theme used for light website theme
+      dark: dark_dimmed # giscus theme used for dark website theme
+``` */
   };
   hypothesis?: boolean | {
     "client-url"?:

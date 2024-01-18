@@ -8654,11 +8654,18 @@ var require_yaml_intelligence_resources = __commonJS({
                                 "light",
                                 "light_high_contrast",
                                 "light_protanopia",
+                                "light_tritanopia",
                                 "dark",
                                 "dark_high_contrast",
                                 "dark_protanopia",
+                                "dark_tritanopia",
                                 "dark_dimmed",
                                 "transparent_dark",
+                                "cobalt",
+                                "purple_dark",
+                                "noborder_light",
+                                "noborder_dark",
+                                "noborder_gray",
                                 "preferred_color_scheme"
                               ]
                             },
@@ -8680,7 +8687,10 @@ var require_yaml_intelligence_resources = __commonJS({
                               }
                             }
                           ],
-                          description: "The giscus theme to use when displaying comments."
+                          description: {
+                            short: "The giscus theme to use when displaying comments.",
+                            long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                          }
                         },
                         language: {
                           string: {
@@ -19372,7 +19382,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Display reactions for the discussion\u2019s main post before the\ncomments.",
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
-        "The giscus theme to use when displaying comments.",
+        {
+          short: "The giscus theme to use when displaying comments.",
+          long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+        },
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
@@ -19579,6 +19592,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -19713,6 +19727,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -21885,6 +21900,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22203,6 +22219,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
+        "The position of the collapsed navbar toggle when in responsive\nmode",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22639,15 +22656,16 @@ var require_yaml_intelligence_resources = __commonJS({
           "(*",
           "*)"
         ],
+        rust: "//",
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180612,
+        _internalId: 180617,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180604,
+            _internalId: 180609,
             type: "enum",
             enum: [
               "png",
@@ -22663,7 +22681,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180611,
+            _internalId: 180616,
             type: "anyOf",
             anyOf: [
               {
@@ -31819,7 +31837,8 @@ var kLangCommentChars = {
   dot: "//",
   ojs: "//",
   apl: "\u235D",
-  ocaml: ["(*", "*)"]
+  ocaml: ["(*", "*)"],
+  rust: "//"
 };
 function escapeRegExp(str2) {
   return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

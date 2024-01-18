@@ -274,11 +274,18 @@
                           light,
                           light_high_contrast,
                           light_protanopia,
+                          light_tritanopia,
                           dark,
                           dark_high_contrast,
                           dark_protanopia,
+                          dark_tritanopia,
                           dark_dimmed,
                           transparent_dark,
+                          cobalt,
+                          purple_dark,
+                          noborder_light,
+                          noborder_dark,
+                          noborder_gray,
                           preferred_color_scheme,
                         ]
                     - object:
