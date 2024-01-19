@@ -1,0 +1,20 @@
+---
+format: ipynb
+_quarto:
+  tests:
+    ipynb:
+      ensureSnapshotMatches: true
+---
+
+
+## hello
+
+:::: {layout="[[1,1],[1]]"}
+
+![](placeholder.jpg)
+
+![](placeholder.jpg)
+
+![](placeholder.jpg)
+
+::::
