@@ -18555,6 +18555,9 @@ try {
             figures: {
               title: "Figures"
             },
+            lightbox: {
+              title: "Lightbox Figures"
+            },
             tables: {
               title: "Tables"
             },
@@ -22688,12 +22691,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180846,
+          _internalId: 180861,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180838,
+              _internalId: 180853,
               type: "enum",
               enum: [
                 "png",
@@ -22709,7 +22712,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180845,
+              _internalId: 180860,
               type: "anyOf",
               anyOf: [
                 {

@@ -18554,6 +18554,9 @@ var require_yaml_intelligence_resources = __commonJS({
           figures: {
             title: "Figures"
           },
+          lightbox: {
+            title: "Lightbox Figures"
+          },
           tables: {
             title: "Tables"
           },
@@ -22687,12 +22690,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180846,
+        _internalId: 180861,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180838,
+            _internalId: 180853,
             type: "enum",
             enum: [
               "png",
@@ -22708,7 +22711,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180845,
+            _internalId: 180860,
             type: "anyOf",
             anyOf: [
               {
