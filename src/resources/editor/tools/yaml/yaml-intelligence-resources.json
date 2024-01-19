@@ -11526,6 +11526,9 @@
       "figures": {
         "title": "Figures"
       },
+      "lightbox": {
+        "title": "Lightbox Figures"
+      },
       "tables": {
         "title": "Tables"
       },
@@ -15659,12 +15662,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 180846,
+    "_internalId": 180861,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 180838,
+        "_internalId": 180853,
         "type": "enum",
         "enum": [
           "png",
@@ -15680,7 +15683,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 180845,
+        "_internalId": 180860,
         "type": "anyOf",
         "anyOf": [
           {
