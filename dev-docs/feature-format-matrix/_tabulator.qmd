@@ -26,7 +26,8 @@ var table = new Tabulator("#features-formats-table", {
         {title:"HTML", field: "html", formatter: "html"},
         {title:"Markdown", field: "markdown", formatter: "html"},
         {title:"PDF", field: "pdf", formatter: "html"},
-        {title:"Docx", field: "docx", formatter: "html"}
+        {title:"Docx", field: "docx", formatter: "html"},
+        {title:"Docusaurus", field: "docusaurus", formatter: "html"}
     ],
 });
 </script>

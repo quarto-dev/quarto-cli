@@ -1,0 +1,14 @@
+---
+title: Mermaid
+format: docusaurus-md
+---
+
+This works, but emits a fairly-wonky markdown and doesn't use Javascript rendering.
+
+```{mermaid}
+flowchart LR
+  A[Hard edge] --> B(Round edge)
+  B --> C{Decision}
+  C --> D[Result one]
+  C --> E[Result two]
+```

@@ -73,10 +73,6 @@ local function DecoratedCodeBlock(node)
   return code_block(el, node.filename)
 end
 
-local function CodeBlock(el)
-  return code_block(el, el.attr.attributes["filename"])
-end
-
 local function jsx(content)
   return pandoc.RawBlock("markdown", content)
 end
@@ -127,9 +123,14 @@ quarto._quarto.ast.add_renderer("Callout", function()
   return quarto._quarto.format.isDocusaurusOutput()
 end, function(node)
   local admonition = pandoc.Blocks({})
-  admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
   if node.title then
-    admonition:insert(pandoc.Header(2, node.title))
+    start = pandoc.Plain({})
+    start.content:insert(pandoc.RawInline("markdown", ":::" .. node.type .. "["))
+    start.content:extend(quarto.utils.as_inlines(node.title))
+    start.content:insert(pandoc.RawInline("markdown", "]\n"))
+    admonition:insert(start)
+  else
+    admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
   end
   local content = node.content
   if type(content) == "table" then
@@ -146,6 +147,27 @@ quarto._quarto.ast.add_renderer("DecoratedCodeBlock", function()
 end, function(node)
   local el = node.code_block
   return code_block(el, node.filename)
+end)
+
+quarto._quarto.ast.add_renderer("FloatRefTarget", function()
+  return quarto._quarto.format.isDocusaurusOutput()
+end, function(float)
+  float = quarto.doc.crossref.decorate_caption_with_crossref(float)
+  if quarto.doc.crossref.cap_location(float) == "top" then
+    return pandoc.Blocks({
+      pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">"),
+      pandoc.Div(quarto.utils.as_blocks(float.caption_long)),
+      pandoc.Div(quarto.utils.as_blocks(float.content)),
+      pandoc.RawBlock("markdown", "</div>")
+    })
+  else
+    return pandoc.Blocks({
+      pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">"),
+      pandoc.Div(quarto.utils.as_blocks(float.content)),
+      pandoc.Div(quarto.utils.as_blocks(float.caption_long)),
+      pandoc.RawBlock("markdown", "</div>")
+    })
+  end
 end)
 
 return {
