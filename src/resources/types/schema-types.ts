@@ -91,6 +91,24 @@ for details. */;
   url?: string; /* Alias for href */
 };
 
+export type GiscusThemes =
+  | "light"
+  | "light_high_contrast"
+  | "light_protanopia"
+  | "light_tritanopia"
+  | "dark"
+  | "dark_high_contrast"
+  | "dark_protanopia"
+  | "dark_tritanopia"
+  | "dark_dimmed"
+  | "transparent_dark"
+  | "cobalt"
+  | "purple_dark"
+  | "noborder_light"
+  | "noborder_dark"
+  | "noborder_gray"
+  | "preferred_color_scheme";
+
 export type Comments = false | {
   giscus?: {
     "repo-id"?: string /* The Github repository identifier.
@@ -128,30 +146,10 @@ as a discussion number and automatic discussion creation is not supported. */;
 
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
-    theme?:
-      | string
-      | (
-        | "light"
-        | "light_high_contrast"
-        | "light_protanopia"
-        | "light_tritanopia"
-        | "dark"
-        | "dark_high_contrast"
-        | "dark_protanopia"
-        | "dark_tritanopia"
-        | "dark_dimmed"
-        | "transparent_dark"
-        | "cobalt"
-        | "purple_dark"
-        | "noborder_light"
-        | "noborder_dark"
-        | "noborder_gray"
-        | "preferred_color_scheme"
-      )
-      | {
-        dark?: string /* The dark theme name. */;
-        light?: string; /* The light theme name. */
-      }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
+    theme?: string | GiscusThemes | {
+      dark?: string | GiscusThemes /* The dark theme name. */;
+      light?: string | GiscusThemes; /* The light theme name. */
+    }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
 
 ```yaml
 website:

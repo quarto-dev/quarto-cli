@@ -1484,6 +1484,29 @@
       }
     },
     {
+      "id": "giscus-themes",
+      "enum": {
+        "values": [
+          "light",
+          "light_high_contrast",
+          "light_protanopia",
+          "light_tritanopia",
+          "dark",
+          "dark_high_contrast",
+          "dark_protanopia",
+          "dark_tritanopia",
+          "dark_dimmed",
+          "transparent_dark",
+          "cobalt",
+          "purple_dark",
+          "noborder_light",
+          "noborder_dark",
+          "noborder_gray",
+          "preferred_color_scheme"
+        ]
+      }
+    },
+    {
       "id": "comments",
       "anyOf": [
         {
@@ -1622,38 +1645,29 @@
                       "anyOf": [
                         "string",
                         {
-                          "enum": [
-                            "light",
-                            "light_high_contrast",
-                            "light_protanopia",
-                            "light_tritanopia",
-                            "dark",
-                            "dark_high_contrast",
-                            "dark_protanopia",
-                            "dark_tritanopia",
-                            "dark_dimmed",
-                            "transparent_dark",
-                            "cobalt",
-                            "purple_dark",
-                            "noborder_light",
-                            "noborder_dark",
-                            "noborder_gray",
-                            "preferred_color_scheme"
-                          ]
+                          "ref": "giscus-themes"
                         },
                         {
                           "object": {
                             "closed": true,
                             "properties": {
                               "light": {
-                                "string": {
-                                  "description": "The light theme name."
-                                }
+                                "anyOf": [
+                                  "string",
+                                  {
+                                    "ref": "giscus-themes"
+                                  }
+                                ],
+                                "description": "The light theme name."
                               },
                               "dark": {
-                                "string": {
-                                  "description": "The dark theme name."
-                                }
+                                "anyOf": [
+                                  "string",
+                                  {
+                                    "ref": "giscus-themes"
+                                  }
+                                ],
+                                "description": "The dark theme name."
                               }
                             }
                           }
@@ -12366,7 +12380,10 @@
     "Display reactions for the discussion’s main post before the\ncomments.",
     "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
     "Place the comment input box above or below the comments.",
-    "The giscus theme to use when displaying comments.",
+    {
+      "short": "The giscus theme to use when displaying comments.",
+      "long": "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+    },
     "The light theme name.",
     "The dark theme name.",
     "The language that should be used when displaying the commenting\ninterface.",
@@ -15642,12 +15659,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 180831,
+    "_internalId": 180846,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 180823,
+        "_internalId": 180838,
         "type": "enum",
         "enum": [
           "png",
@@ -15663,7 +15680,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 180830,
+        "_internalId": 180845,
         "type": "anyOf",
         "anyOf": [
           {
