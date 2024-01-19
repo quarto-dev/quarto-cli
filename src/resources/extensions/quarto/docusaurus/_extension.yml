@@ -30,6 +30,8 @@ contributes:
       fig-height: 5
       html-math-method: webtex
       filters:
+        - at: layout-cites
+          path: docusaurus_code_blocks.lua # we need to run this before the code blocks are rendered
         - at: post-render
           path: docusaurus.lua
         - at: post-finalize

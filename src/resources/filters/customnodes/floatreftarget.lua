@@ -138,6 +138,9 @@ function cap_location(float_or_layout)
   return result
 end
 
+-- we need to expose this function for use in the docusaurus renderer
+quarto.doc.crossref.cap_location = cap_location
+
 local function get_node_from_float_and_type(float, type, filter_base)
   -- this explicit check appears necessary for the case where
   -- float.content is directly the node we want, and not a container that
@@ -208,6 +211,11 @@ function decorate_caption_with_crossref(float)
   end
   return float
 end
+
+-- we need to expose this function for use in the docusaurus renderer,
+-- which is technically an extension that doesn't have access to the
+-- internal filters namespace
+quarto.doc.crossref.decorate_caption_with_crossref = decorate_caption_with_crossref
 
 function full_caption_prefix(float, subfloat)
   if not param("enable-crossref", true) then
