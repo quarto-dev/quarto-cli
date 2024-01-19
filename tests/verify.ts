@@ -229,6 +229,22 @@ export const ensureHtmlElements = (
   };
 };
 
+export const ensureSnapshotMatches = (
+  file: string,
+): Verify => {
+  return {
+    name: "Inspecting Snapshot",
+    verify: async (_output: ExecuteOutput[]) => {
+      const output = await Deno.readTextFile(file);
+      const snapshot = await Deno.readTextFile(file + ".snapshot");
+        assert(
+          output === snapshot || output.replace(/\r\n/g, "\n") === snapshot.replace(/\r\n/g, "\n"),
+          `Snapshot ${file}.snapshot doesn't match output`,
+        );
+    },
+  };
+}
+
 export const ensureFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
