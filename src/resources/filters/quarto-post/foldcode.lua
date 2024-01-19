@@ -32,14 +32,10 @@ function render_folded_block(block)
     div.content:insert(pandoc.RawBlock("html", "</details>"))
     return div
   end
-  local make_code_cell_scaffold = function(div)
-    return pandoc.Div({ block }, pandoc.Attr("", { "quarto-scaffold" }))
-  end
-  if not block.attr.classes:includes("cell-code") then
-    return nil
-  end
-  if not (_quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput()) then
-    return make_code_cell_scaffold(block)
+  if (not block.attr.classes:includes("cell-code") or
+     (not (_quarto.format.isHtmlOutput() or 
+           _quarto.format.isMarkdownWithHtmlOutput()))) then
+    return block, false
   end
   local fold = foldAttribute(block)
   local summary = summaryAttribute(block)
@@ -47,12 +43,12 @@ function render_folded_block(block)
     block.attr.attributes["code-fold"] = nil
     block.attr.attributes["code-summary"] = nil
     if fold ~= "none" then 
-      return make_code_fold_html(fold, summary)
+      return make_code_fold_html(fold, summary), true
     else
-      return block
+      return block, false
     end
   else
-    return block
+    return block, false
   end
 end
 
@@ -77,15 +73,23 @@ function fold_code_and_lift_codeblocks()
           return nil, false
         end,
         CodeBlock = function(block)
-          local folded_block = make_scaffold(pandoc.Div, { render_folded_block(block) })
+          local folded_block, did_fold = render_folded_block(block)
+          local need_to_lift = did_fold or block.classes:includes("code-annotation-code")
+          if need_to_lift then
+            folded_block = make_scaffold(pandoc.Div, { folded_block } )
+          end
           if block.classes:includes("code-annotation-code") then
             prev_annotated_code_block_scaffold = folded_block
             prev_annotated_code_block = block
           else
             prev_annotated_code_block_scaffold = nil
           end
-          blocks:insert(folded_block)
-          return {}
+          if need_to_lift then
+            blocks:insert(folded_block)
+            return {}
+          else
+            return nil
+          end
         end,
         Div = function(div)
           if not div.classes:includes("cell-annotation") then
@@ -102,6 +106,7 @@ function fold_code_and_lift_codeblocks()
           })
           if need_to_move_dl then
             assert(prev_annotated_code_block_scaffold)
+            print(prev_annotated_code_block_scaffold)
             prev_annotated_code_block_scaffold.content:insert(div)
             return {}
           end
