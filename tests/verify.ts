@@ -237,6 +237,12 @@ export const ensureSnapshotMatches = (
     name: "Inspecting Snapshot",
     verify: async (_output: ExecuteOutput[]) => {
       const good = await checkSnapshot(file);
+      if (!good) {
+        console.log("output:");
+        console.log(await Deno.readTextFile(file));
+        console.log("snapshot:");
+        console.log(await Deno.readTextFile(file + ".snapshot"));
+      }
       assert(
         good,
         `Snapshot ${file}.snapshot doesn't match output`,
