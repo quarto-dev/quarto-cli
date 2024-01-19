@@ -19,6 +19,7 @@ import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
 import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
+import { checkSnapshot } from "./verify-snapshot.ts";
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -235,12 +236,11 @@ export const ensureSnapshotMatches = (
   return {
     name: "Inspecting Snapshot",
     verify: async (_output: ExecuteOutput[]) => {
-      const output = await Deno.readTextFile(file);
-      const snapshot = await Deno.readTextFile(file + ".snapshot");
-        assert(
-          output === snapshot || output.replace(/\r\n/g, "\n") === snapshot.replace(/\r\n/g, "\n"),
-          `Snapshot ${file}.snapshot doesn't match output`,
-        );
+      const good = await checkSnapshot(file);
+      assert(
+        good,
+        `Snapshot ${file}.snapshot doesn't match output`,
+      );
     },
   };
 }
