@@ -1,0 +1,26 @@
+---
+_quarto: {}
+foo: bar
+toc-title: Table of contents
+---
+
+    This doesn't unescape and should: `{r} 1.2`
+    This evaluates: 1.2
+    bar
+    In a phrase: bar
+    With quotes: `bar`
+    {{< meta foo >}}
+    In a phrase: {{< meta foo >}}
+    With quotes: `{{< meta foo >}}`
+
+`bar` There's no more bug here.
+
+`{{< meta foo >}}` There's no more bug here.
+
+{{< meta foo >}} Hello?
+
+bar Hello?
+
+Hello, `{{< meta foo >}}`, `bar`.
+
+`` `{{< meta foo >}}` ``, `` `bar` ``.

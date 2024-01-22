@@ -13,7 +13,7 @@ local html_table = tag(html_table_tag_name)
 local html_table_caption = tag("[Cc][Aa][Pp][Tt][Ii][Oo][Nn]")
 local html_paged_table = "<script data[-]pagedtable[-]source type=\"application/json\">"
 local html_gt_table = "<table class=\"gt_table\">"
-local engine_escape = "{({+([^}]+)}+)}"
+local engine_escape = "{({+([^<}]+)}+)}"
 local shortcode = "{{+<[^>]+>}+}"
 local latex_label = "(\\label{([^}]+)})"
 local latex_caption = "(\\caption{([^}]+)})"
