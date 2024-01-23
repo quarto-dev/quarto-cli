@@ -113,6 +113,8 @@ export const juliaEngine: ExecutionEngine = {
       error("Running QuartoNotebookRunner failed");
     }
 
+    // NOTE: the following is all mostly copied from the jupyter kernel file
+
     const nb = jupyterFromFile(outputIpynbPath);
 
     // TODO: jupyterFromFile sets python as the default kernelspec for the files we get from QuartoNotebookRunner,
