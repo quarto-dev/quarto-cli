@@ -118,6 +118,17 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
+export const validJsonFileExists = (file: string): Verify => {
+  return {
+    name: `Valid Json ${file} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      const _json = JSON.parse(jsonStr);
+      return Promise.resolve();
+    }
+  }
+}
+
 export const outputCreated = (
   input: string,
   to: string,
