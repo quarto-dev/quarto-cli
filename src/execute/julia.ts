@@ -44,7 +44,7 @@ export const juliaEngine: ExecutionEngine = {
   defaultYaml: () => [],
 
   defaultContent: () => [
-    "```{r}",
+    "```{julia}",
     "1 + 1",
     "```",
   ],
