@@ -29,9 +29,11 @@ import { mergeConfigs } from "../core/config.ts";
 import { ProjectContext } from "../project/types.ts";
 import { pandocBuiltInFormats } from "../core/pandoc/pandoc-formats.ts";
 import { gitignoreEntries } from "../project/project-gitignore.ts";
+import { juliaEngine } from "./julia.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
+  juliaEngine,
   jupyterEngine,
   markdownEngine,
 ];
