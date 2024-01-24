@@ -447,7 +447,7 @@ function navigationHtmlPostprocessor(
     kBreadCrumbNavigation,
     true,
     project.config,
-  );
+  ) && format.metadata[kBreadCrumbNavigation] !== false;
 
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process the breadcrumbs and collapsed title
