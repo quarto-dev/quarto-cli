@@ -8724,6 +8724,16 @@
       "description": "Theme name, theme scss file, or a mix of both."
     },
     {
+      "name": "body-classes",
+      "tags": {
+        "formats": [
+          "$html-doc"
+        ]
+      },
+      "schema": "string",
+      "description": "Classes to apply to the body of the document.\n"
+    },
+    {
       "name": "minimal",
       "schema": "boolean",
       "default": false,
@@ -15433,7 +15443,8 @@
     },
     "Disambiguating year suffix in author-date styles (e.g.&nbsp;“a” in “Doe,\n1999a”).",
     "Manuscript configuration",
-    "internal-schema-hack"
+    "internal-schema-hack",
+    "Classes to apply to the body of the document."
   ],
   "schema/external-schemas.yml": [
     {
@@ -15662,12 +15673,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 180861,
+    "_internalId": 180863,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 180853,
+        "_internalId": 180855,
         "type": "enum",
         "enum": [
           "png",
@@ -15683,7 +15694,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 180860,
+        "_internalId": 180862,
         "type": "anyOf",
         "anyOf": [
           {

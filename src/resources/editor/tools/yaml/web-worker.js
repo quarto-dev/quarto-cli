@@ -15753,6 +15753,16 @@ try {
             description: "Theme name, theme scss file, or a mix of both."
           },
           {
+            name: "body-classes",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: "string",
+            description: "Classes to apply to the body of the document.\n"
+          },
+          {
             name: "minimal",
             schema: "boolean",
             default: false,
@@ -22462,7 +22472,8 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          "Classes to apply to the body of the document."
         ],
         "schema/external-schemas.yml": [
           {
@@ -22691,12 +22702,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180861,
+          _internalId: 180863,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180853,
+              _internalId: 180855,
               type: "enum",
               enum: [
                 "png",
@@ -22712,7 +22723,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180860,
+              _internalId: 180862,
               type: "anyOf",
               anyOf: [
                 {
