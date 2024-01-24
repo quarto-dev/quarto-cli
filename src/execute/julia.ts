@@ -50,6 +50,7 @@ import { number } from "https://deno.land/x/cliffy@v0.25.4/flags/types/number.ts
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string[];
+  oneShot: boolean; // if true, the file's worker process is closed before and after running
   supervisor_pid?: number;
 }
 
@@ -134,33 +135,15 @@ export const juliaEngine: ExecutionEngine = {
 
     const juliaExecOptions: JuliaExecuteOptions = {
       julia_cmd: ["julia"],
+      oneShot: !executeDaemon,
       supervisor_pid: options.previewServer ? Deno.pid : undefined,
       ...execOptions,
     };
 
     // if (executeDaemon === false || executeDaemon === 0) {
-    const nb = await executeJuliaOneshot(juliaExecOptions);
+    const nb = await executeJulia(juliaExecOptions);
     // } else {
     //   // await executeJuliaKeepalive(juliaExecOptions);
-    // }
-
-    // console.log("trying to run QuartoNotebookRunner");
-    // const outputIpynbPath = options.tempDir + "output.ipynb";
-    // const processResult = await execProcess(
-    //   {
-    //     cmd: [
-    //       "julia",
-    //       "--project=@quarto",
-    //       resourcePath("julia/quartonotebookrunner.jl"),
-    //       options.target.source,
-    //       outputIpynbPath,
-    //     ],
-    //   },
-    // );
-    // console.log(processResult);
-
-    // if (!processResult.success) {
-    //   error("Running QuartoNotebookRunner failed");
     // }
 
     // NOTE: the following is all mostly copied from the jupyter kernel file
@@ -254,7 +237,7 @@ export const juliaEngine: ExecutionEngine = {
   },
 };
 
-async function startJuliaServer() {
+async function startJuliaServer(options: JuliaExecuteOptions) {
   const transportFile = juliaTransportFile();
   console.log("Transport file: ", transportFile);
   if (!existsSync(transportFile)) {
@@ -265,13 +248,16 @@ async function startJuliaServer() {
     // run anything was written to stderr. This goes away when redirecting stderr to
     // a file on the julia side, but also when using Deno.Command which is recommended
     // as a replacement for the old Deno.run anyway.
-    const command = new Deno.Command("julia", {
+    const command = new Deno.Command(options.julia_cmd[0], {
       args: [
+        ...(options.julia_cmd.slice(1)),
         "--project=@quarto",
         resourcePath("julia/quartonotebookrunner.jl"),
         transportFile,
       ],
     });
+    // this process is supposed to outlive the quarto process, because
+    // in it, the references to the cached julia worker processes live
     command.spawn();
   }
   return Promise.resolve();
@@ -314,22 +300,26 @@ async function establishServerConnection(port: number): Promise<Deno.TcpConn> {
   return Promise.reject();
 }
 
-async function executeJuliaOneshot(
+async function executeJulia(
   options: JuliaExecuteOptions,
 ): Promise<JupyterNotebook> {
-  await startJuliaServer();
+  await startJuliaServer(options);
   const transportOptions = await pollTransportFile();
   console.log(transportOptions);
   const conn = await establishServerConnection(transportOptions.port);
 
-  await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+  if (options.oneShot) {
+    await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+  }
   const response = await writeJuliaCommand(
     conn,
     "run",
     "TODOsomesecret",
     options,
   );
-  await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+  if (options.oneShot) {
+    await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+  }
 
   return response.notebook as JupyterNotebook;
 }
