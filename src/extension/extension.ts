@@ -140,7 +140,10 @@ export function createExtensionContext(): ExtensionContext {
 // _extensions/confluence/logo.png
 // will be copied and resolved to:
 // site_lib/quarto-contrib/quarto-project/confluence/logo.png
-export function projectExtensionPathResolver(libDir: string) {
+export function projectExtensionPathResolver(
+  libDir: string,
+  projectDir: string,
+) {
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
@@ -150,7 +153,11 @@ export function projectExtensionPathResolver(libDir: string) {
         `${libDir}/quarto-contrib/quarto-project/`,
       );
 
-      copyResourceFile(".", projectRelativeHref, projectTargetHref);
+      copyResourceFile(
+        projectDir,
+        join(projectDir, projectRelativeHref),
+        join(projectDir, projectTargetHref),
+      );
       return join(projectOffset, projectTargetHref);
     }
 
