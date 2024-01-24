@@ -359,7 +359,7 @@ local quarto_post_filters = {
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
   { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
     flags = { "has_pandoc3_figure" } },
-  { name = "post-render-email", filter = render_email() },
+  { name = "post-render-email", filters = render_email() },
 }
 
 local quarto_finalize_filters = {
