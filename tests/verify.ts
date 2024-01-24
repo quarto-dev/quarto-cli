@@ -10,6 +10,7 @@ import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
+import * as ld from "../src/core/lodash.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -123,7 +124,25 @@ export const validJsonFileExists = (file: string): Verify => {
     name: `Valid Json ${file} exists`,
     verify: (_output: ExecuteOutput[]) => {
       const jsonStr = Deno.readTextFileSync(file);
-      const _json = JSON.parse(jsonStr);
+      JSON.parse(jsonStr);
+      return Promise.resolve();
+    }
+  }
+}
+
+export const validJsonWithFields = (file: string, fields: Record<string, unknown>) => {
+  return {
+    name: `Valid Json ${file} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      const json = JSON.parse(jsonStr);
+      for (const key of Object.keys(fields)) {
+
+        const value = json[key];
+        assert(ld.isEqual(value, fields[key]), `Key ${key} has invalid value in json.`);
+      }
+
+
       return Promise.resolve();
     }
   }
