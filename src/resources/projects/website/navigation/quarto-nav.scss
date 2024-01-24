@@ -951,3 +951,25 @@ body .nav-footer {
   padding: 0.4rem 0.8rem;
   transform: translate(-50%, 0);
 }
+
+/* announcement bar */
+#quarto-announcement {
+  padding: 0.5em;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0;
+  font-size: 0.9em;
+
+  .quarto-announcement-content {
+    margin-right: auto;
+    p {
+      margin-bottom: 0;
+    }
+  }
+  .quarto-announcement-icon {
+    margin-right: 0.5em;
+  }
+  .quarto-announcement-action {
+    cursor: pointer;
+  }
+}

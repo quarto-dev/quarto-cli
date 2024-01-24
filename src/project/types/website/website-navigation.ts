@@ -158,6 +158,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     footer,
     pageMargin,
     bodyDecorators,
+    announcement,
   } = websiteNavigationConfig(
     project,
   );
@@ -191,6 +192,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.bodyDecorators = bodyDecorators;
 
   navigation.pageMargin = pageMargin;
+  navigation.announcement = announcement;
 }
 
 export async function websiteNoThemeExtras(
@@ -295,6 +297,7 @@ export async function websiteNavigationExtras(
       true,
       project.config,
     ),
+    announcement: navigation.announcement,
   };
 
   // Determine the previous and next page
@@ -375,6 +378,7 @@ export async function websiteNavigationExtras(
     pageNavigation,
     bodyDecorators: navigation.bodyDecorators,
     breadCrumbs: navigation.breadCrumbs,
+    announcement: navigation.announcement,
   });
   const markdownPipeline = createMarkdownPipeline(
     "quarto-navigation-envelope",

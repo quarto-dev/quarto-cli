@@ -9353,6 +9353,45 @@ var require_yaml_intelligence_resources = __commonJS({
                 ],
                 description: "Enable Google Analytics for this website"
               },
+              announcement: {
+                anyOf: [
+                  "string",
+                  {
+                    object: {
+                      properties: {
+                        content: {
+                          schema: "string",
+                          description: "The content of the announcement"
+                        },
+                        dismissable: {
+                          schema: "boolean",
+                          description: "Whether this announcement may be dismissed by the user."
+                        },
+                        icon: {
+                          schema: "string",
+                          description: "The icon to display in the annoucement"
+                        },
+                        type: {
+                          schema: {
+                            enum: [
+                              "primary",
+                              "secondary",
+                              "success",
+                              "danger",
+                              "warning",
+                              "info",
+                              "light",
+                              "dark"
+                            ]
+                          },
+                          description: "The type of announcement. Affects the appearance of the announcement."
+                        }
+                      }
+                    }
+                  }
+                ],
+                description: "Provides an announcement displayed at the top of the page."
+              },
               "cookie-consent": {
                 anyOf: [
                   {
@@ -19576,6 +19615,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19711,6 +19755,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -21455,6 +21504,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
+        "Classes to apply to the body of the document.",
         "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
         "Enables inclusion of Pandoc default CSS for this document.",
         "One or more CSS style sheets.",
@@ -21885,6 +21935,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22204,6 +22259,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22471,8 +22531,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "Classes to apply to the body of the document."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22701,12 +22760,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180863,
+        _internalId: 181057,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180855,
+            _internalId: 181049,
             type: "enum",
             enum: [
               "png",
@@ -22722,7 +22781,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180862,
+            _internalId: 181056,
             type: "anyOf",
             anyOf: [
               {
