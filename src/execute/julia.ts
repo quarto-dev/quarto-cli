@@ -259,23 +259,20 @@ async function startJuliaServer() {
   console.log("Transport file: ", transportFile);
   if (!existsSync(transportFile)) {
     console.log("Transport file doesn't exist, starting server");
-    execProcess(
-      {
-        cmd: [
-          "julia",
-          "--project=@quarto",
-          resourcePath("julia/quartonotebookrunner.jl"),
-          transportFile,
-        ],
-      },
-    ).then((result) => {
-      if (!result.success) {
-        console.log(
-          `Julia server returned with exit code ${result.code}`,
-          result.stderr,
-        );
-      }
+    // when quarto's execProc function is used here, there is a strange bug.
+    // The first time render is called on a file, the julia server is started correctly.
+    // The second time it is called, however, the socket server hangs if during the first
+    // run anything was written to stderr. This goes away when redirecting stderr to
+    // a file on the julia side, but also when using Deno.Command which is recommended
+    // as a replacement for the old Deno.run anyway.
+    const command = new Deno.Command("julia", {
+      args: [
+        "--project=@quarto",
+        resourcePath("julia/quartonotebookrunner.jl"),
+        transportFile,
+      ],
     });
+    command.spawn();
   }
   return Promise.resolve();
 }
