@@ -2,7 +2,6 @@ import { error, info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
-import { execProcess } from "../core/process.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { ProjectContext } from "../project/types.ts";
 import {
@@ -22,6 +21,7 @@ import {
 } from "../core/jupyter/jupyter.ts";
 import {
   kExecuteDaemon,
+  kExecuteDebug,
   kFigDpi,
   kFigFormat,
   kFigPos,
@@ -108,7 +108,6 @@ export const juliaEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    console.log("running execute method of the julia engine");
     options.target.source;
 
     // use daemon by default if we are in an interactive session (terminal
@@ -239,9 +238,11 @@ export const juliaEngine: ExecutionEngine = {
 
 async function startJuliaServer(options: JuliaExecuteOptions) {
   const transportFile = juliaTransportFile();
-  console.log("Transport file: ", transportFile);
   if (!existsSync(transportFile)) {
-    console.log("Transport file doesn't exist, starting server");
+    trace(
+      options,
+      `Transport file ${transportFile} doesn't exist, starting server.`,
+    );
     // when quarto's execProc function is used here, there is a strange bug.
     // The first time render is called on a file, the julia server is started correctly.
     // The second time it is called, however, the socket server hangs if during the first
@@ -259,6 +260,11 @@ async function startJuliaServer(options: JuliaExecuteOptions) {
     // this process is supposed to outlive the quarto process, because
     // in it, the references to the cached julia worker processes live
     command.spawn();
+  } else {
+    trace(
+      options,
+      `Transport file ${transportFile} exists, reusing server.`,
+    );
   }
   return Promise.resolve();
 }
@@ -281,18 +287,21 @@ async function pollTransportFile(): Promise<JuliaTransportFile> {
   return Promise.reject();
 }
 
-async function establishServerConnection(port: number): Promise<Deno.TcpConn> {
+async function establishServerConnection(
+  options: ExecuteOptions,
+  port: number,
+): Promise<Deno.TcpConn> {
   let conn = null;
   for (let i = 0; i < 20; i++) {
     await sleep(i * 100);
     conn = await Deno.connect({
       port: port,
     }).catch((reason) => {
-      console.log(`Connecting to julia server failed on try ${i}`, reason);
+      trace(options, `Connecting to julia server failed on try ${i}`);
       return null;
     });
     if (conn !== null) {
-      console.log("Connection successfully established");
+      trace(options, "Connection successfully established");
       return conn;
     }
   }
@@ -305,8 +314,11 @@ async function executeJulia(
 ): Promise<JupyterNotebook> {
   await startJuliaServer(options);
   const transportOptions = await pollTransportFile();
-  console.log(transportOptions);
-  const conn = await establishServerConnection(transportOptions.port);
+  trace(
+    options,
+    `Connecting to server at port ${transportOptions.port}, pid ${transportOptions.pid}`,
+  );
+  const conn = await establishServerConnection(options, transportOptions.port);
 
   if (options.oneShot) {
     await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
@@ -349,7 +361,7 @@ async function writeJuliaCommand(
   //   messageBytes = new TextEncoder().encode(msg);
   // }
 
-  console.log("write command ", command, " to socket server");
+  trace(options, `write command "${command}" to socket server`);
   const bytesWritten = await conn.write(messageBytes);
   if (bytesWritten !== messageBytes.length) {
     throw new Error("Internal Error");
@@ -358,8 +370,6 @@ async function writeJuliaCommand(
   let response = "";
   while (true) {
     const buffer = new Uint8Array(512);
-
-    console.log("trying to read bytes into buffer");
     const bytesRead = await conn.read(buffer);
     if (bytesRead === null) {
       break;
@@ -375,13 +385,11 @@ async function writeJuliaCommand(
       }
     }
   }
+  trace(options, "received server response");
   // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
   // expect multiple commmands
   const json = response.split("\n")[0];
   const data = JSON.parse(json);
-
-  console.log("Received data from server");
-  // console.log(data);
 
   return data;
 }
@@ -392,17 +400,23 @@ function juliaTransportFile() {
   try {
     transportsDir = quartoRuntimeDir("julia");
   } catch (e) {
-    console.error("Could create runtime directory for the julia pidfile.");
-    console.error(
+    error("Could create runtime directory for the julia pidfile.");
+    error(
       "This is possibly a permission issue in the environment Quarto is running in.",
     );
-    console.error(
+    error(
       "Please consult the following documentation for more information:",
     );
-    console.error(
+    error(
       "https://github.com/quarto-dev/quarto-cli/issues/4594#issuecomment-1619177667",
     );
     throw e;
   }
   return join(transportsDir, "julia_transport.txt");
+}
+
+function trace(options: ExecuteOptions, msg: string) {
+  if (options.format.execute[kExecuteDebug]) {
+    info("- " + msg, { bold: true });
+  }
 }
