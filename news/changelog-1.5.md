@@ -3,6 +3,7 @@ All changes included in 1.5:
 ## HTML Format
 
 - ([#8118](https://github.com/quarto-dev/quarto-cli/issues/8118)): Add support for `body-classes` to add classes to the document body.
+- ([#8311](https://github.com/quarto-dev/quarto-cli/issues/8311)): Correct z-order for margins with no contents
 
 ## Website
 
