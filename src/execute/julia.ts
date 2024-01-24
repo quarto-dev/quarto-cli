@@ -1,4 +1,4 @@
-import { error } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
@@ -17,10 +17,11 @@ import {
 } from "./types.ts";
 import {
   jupyterAssets,
-  jupyterFromFile,
+  jupyterFromJSON,
   jupyterToMarkdown,
 } from "../core/jupyter/jupyter.ts";
 import {
+  kExecuteDaemon,
   kFigDpi,
   kFigFormat,
   kFigPos,
@@ -35,6 +36,22 @@ import {
   isPresentationOutput,
 } from "../config/format.ts";
 import { resourcePath } from "../core/resources.ts";
+import { quartoRuntimeDir } from "../core/appdirs.ts";
+import { normalizePath } from "../core/path.ts";
+import { md5Hash } from "../core/hash.ts";
+import { isInteractiveSession } from "../core/platform.ts";
+import { runningInCI } from "../core/ci-info.ts";
+import { ProcessResult } from "../core/process-types.ts";
+import { sleep } from "../core/async.ts";
+import { JupyterNotebook } from "../core/jupyter/types.ts";
+import { existsSync } from "fs/mod.ts";
+import { readTextFileSync } from "../core/qualified-path.ts";
+import { number } from "https://deno.land/x/cliffy@v0.25.4/flags/types/number.ts";
+
+export interface JuliaExecuteOptions extends ExecuteOptions {
+  julia_cmd: string[];
+  supervisor_pid?: number;
+}
 
 export const juliaEngine: ExecutionEngine = {
   name: kJuliaEngine,
@@ -91,31 +108,64 @@ export const juliaEngine: ExecutionEngine = {
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     console.log("running execute method of the julia engine");
-    console.log(options);
     options.target.source;
 
-    console.log("trying to run QuartoNotebookRunner");
-    const outputIpynbPath = options.tempDir + "output.ipynb";
-    const processResult = await execProcess(
-      {
-        cmd: [
-          "julia",
-          "--project=@quarto",
-          resourcePath("julia/quartonotebookrunner.jl"),
-          options.target.source,
-          outputIpynbPath,
-        ],
-      },
-    );
-    console.log(processResult);
-
-    if (!processResult.success) {
-      error("Running QuartoNotebookRunner failed");
+    // use daemon by default if we are in an interactive session (terminal
+    // or rstudio) and not running in a CI system.
+    let executeDaemon = options.format.execute[kExecuteDaemon];
+    if (executeDaemon === null || executeDaemon === undefined) {
+      // if (await disableDaemonForNotebook(options.target)) {
+      //   executeDaemon = false;
+      // } else {
+      executeDaemon = isInteractiveSession() && !runningInCI();
+      // }
     }
+
+    // julia back end requires full path to input (to ensure that
+    // keepalive kernels are never re-used across multiple inputs
+    // that happen to share a hash)
+    const execOptions = {
+      ...options,
+      target: {
+        ...options.target,
+        input: normalizePath(options.target.input),
+      },
+    };
+
+    const juliaExecOptions: JuliaExecuteOptions = {
+      julia_cmd: ["julia"],
+      supervisor_pid: options.previewServer ? Deno.pid : undefined,
+      ...execOptions,
+    };
+
+    // if (executeDaemon === false || executeDaemon === 0) {
+    const nb = await executeJuliaOneshot(juliaExecOptions);
+    // } else {
+    //   // await executeJuliaKeepalive(juliaExecOptions);
+    // }
+
+    // console.log("trying to run QuartoNotebookRunner");
+    // const outputIpynbPath = options.tempDir + "output.ipynb";
+    // const processResult = await execProcess(
+    //   {
+    //     cmd: [
+    //       "julia",
+    //       "--project=@quarto",
+    //       resourcePath("julia/quartonotebookrunner.jl"),
+    //       options.target.source,
+    //       outputIpynbPath,
+    //     ],
+    //   },
+    // );
+    // console.log(processResult);
+
+    // if (!processResult.success) {
+    //   error("Running QuartoNotebookRunner failed");
+    // }
 
     // NOTE: the following is all mostly copied from the jupyter kernel file
 
-    const nb = jupyterFromFile(outputIpynbPath);
+    // const nb = jupyterFromJSON(notebookJSON);
 
     // TODO: jupyterFromFile sets python as the default kernelspec for the files we get from QuartoNotebookRunner,
     // maybe the correct "kernel" needs to be set there instead (there isn't really a kernel needed as we don't execute via Jupyter
@@ -135,7 +185,6 @@ export const juliaEngine: ExecutionEngine = {
     // by jupyterToMarkdown (we don't want to make a copy of a
     // potentially very large notebook) so should not be relied
     // on subseuqent to this call
-    console.log(nb.metadata);
 
     const result = await jupyterToMarkdown(
       nb,
@@ -204,3 +253,169 @@ export const juliaEngine: ExecutionEngine = {
     return Promise.resolve(target);
   },
 };
+
+async function startJuliaServer() {
+  const transportFile = juliaTransportFile();
+  console.log("Transport file: ", transportFile);
+  if (!existsSync(transportFile)) {
+    console.log("Transport file doesn't exist, starting server");
+    execProcess(
+      {
+        cmd: [
+          "julia",
+          "--project=@quarto",
+          resourcePath("julia/quartonotebookrunner.jl"),
+          transportFile,
+        ],
+      },
+    ).then((result) => {
+      if (!result.success) {
+        console.log(
+          `Julia server returned with exit code ${result.code}`,
+          result.stderr,
+        );
+      }
+    });
+  }
+  return Promise.resolve();
+}
+
+interface JuliaTransportFile {
+  port: number;
+  pid: number;
+}
+
+async function pollTransportFile(): Promise<JuliaTransportFile> {
+  const transportFile = juliaTransportFile();
+
+  for (let i = 0; i < 20; i++) {
+    await sleep(i * 100);
+    if (existsSync(transportFile)) {
+      const content = Deno.readTextFileSync(transportFile);
+      return JSON.parse(content) as JuliaTransportFile;
+    }
+  }
+  return Promise.reject();
+}
+
+async function establishServerConnection(port: number): Promise<Deno.TcpConn> {
+  let conn = null;
+  for (let i = 0; i < 20; i++) {
+    await sleep(i * 100);
+    conn = await Deno.connect({
+      port: port,
+    }).catch((reason) => {
+      console.log(`Connecting to julia server failed on try ${i}`, reason);
+      return null;
+    });
+    if (conn !== null) {
+      console.log("Connection successfully established");
+      return conn;
+    }
+  }
+
+  return Promise.reject();
+}
+
+async function executeJuliaOneshot(
+  options: JuliaExecuteOptions,
+): Promise<JupyterNotebook> {
+  await startJuliaServer();
+  const transportOptions = await pollTransportFile();
+  console.log(transportOptions);
+  const conn = await establishServerConnection(transportOptions.port);
+
+  await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+  const response = await writeJuliaCommand(
+    conn,
+    "run",
+    "TODOsomesecret",
+    options,
+  );
+  await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+
+  return response.notebook as JupyterNotebook;
+}
+
+async function writeJuliaCommand(
+  conn: Deno.Conn,
+  command: "run" | "close" | "stop",
+  secret: string,
+  options: JuliaExecuteOptions,
+) {
+  // TODO: no secret used, yet
+  let messageBytes = new TextEncoder().encode(
+    JSON.stringify({
+      type: command,
+      content: options.target.input,
+    }) + "\n",
+  );
+
+  // // don't send the message if it's big.
+  // // Instead, write it to a file and send the file path
+  // // This is disappointing, but something is deeply wrong with Deno.Conn:
+  // // https://github.com/quarto-dev/quarto-cli/issues/7737#issuecomment-1830665357
+  // if (messageBytes.length > 1024) {
+  //   const tempFile = Deno.makeTempFileSync();
+  //   Deno.writeFileSync(tempFile, messageBytes);
+  //   const msg = kernelCommand("file", secret, { file: tempFile }) + "\n";
+  //   messageBytes = new TextEncoder().encode(msg);
+  // }
+
+  console.log("write command ", command, " to socket server");
+  const bytesWritten = await conn.write(messageBytes);
+  if (bytesWritten !== messageBytes.length) {
+    throw new Error("Internal Error");
+  }
+
+  let response = "";
+  while (true) {
+    const buffer = new Uint8Array(512);
+
+    console.log("trying to read bytes into buffer");
+    const bytesRead = await conn.read(buffer);
+    if (bytesRead === null) {
+      break;
+    }
+
+    if (bytesRead > 0) {
+      const payload = new TextDecoder().decode(
+        buffer.slice(0, bytesRead),
+      );
+      response += payload;
+      if (payload.includes("\n")) {
+        break;
+      }
+    }
+  }
+  // one command should be sent, ended by a newline, currently just throwing away anything else because we don't
+  // expect multiple commmands
+  const json = response.split("\n")[0];
+  const data = JSON.parse(json);
+
+  console.log("Received data from server");
+  // console.log(data);
+
+  return data;
+}
+
+function juliaTransportFile() {
+  let transportsDir: string;
+
+  try {
+    transportsDir = quartoRuntimeDir("julia");
+  } catch (e) {
+    console.error("Could create runtime directory for the julia pidfile.");
+    console.error(
+      "This is possibly a permission issue in the environment Quarto is running in.",
+    );
+    console.error(
+      "Please consult the following documentation for more information:",
+    );
+    console.error(
+      "https://github.com/quarto-dev/quarto-cli/issues/4594#issuecomment-1619177667",
+    );
+    throw e;
+  }
+  return join(transportsDir, "julia_transport.txt");
+}
