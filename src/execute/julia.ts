@@ -259,11 +259,11 @@ async function pollTransportFile(): Promise<JuliaTransportFile> {
   const transportFile = juliaTransportFile();
 
   for (let i = 0; i < 20; i++) {
-    await sleep(i * 100);
     if (existsSync(transportFile)) {
       const content = Deno.readTextFileSync(transportFile);
       return JSON.parse(content) as JuliaTransportFile;
     }
+    await sleep(i * 100);
   }
   return Promise.reject();
 }
@@ -274,11 +274,11 @@ async function establishServerConnection(
 ): Promise<Deno.TcpConn> {
   let conn = null;
   for (let i = 0; i < 20; i++) {
-    await sleep(i * 100);
     conn = await Deno.connect({
       port: port,
-    }).catch((reason) => {
+    }).catch(async (_) => {
       trace(options, `Connecting to julia server failed on try ${i}`);
+      await sleep(i * 100);
       return null;
     });
     if (conn !== null) {
