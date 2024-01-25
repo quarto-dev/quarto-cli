@@ -217,13 +217,18 @@ export const juliaEngine: ExecutionEngine = {
   },
 };
 
-async function startJuliaServer(options: JuliaExecuteOptions) {
+async function startOrReuseJuliaServer(
+  options: JuliaExecuteOptions,
+): Promise<{ reused: boolean }> {
   const transportFile = juliaTransportFile();
   if (!existsSync(transportFile)) {
     trace(
       options,
       `Transport file ${transportFile} doesn't exist, starting server.`,
     );
+
+    await ensureQuartoNotebookRunnerEnvironment(options);
+
     // when quarto's execProc function is used here, there is a strange bug.
     // The first time render is called on a file, the julia server is started correctly.
     // The second time it is called, however, the socket server hangs if during the first
@@ -233,7 +238,7 @@ async function startJuliaServer(options: JuliaExecuteOptions) {
     const command = new Deno.Command(options.julia_cmd[0], {
       args: [
         ...(options.julia_cmd.slice(1)),
-        "--project=@quarto",
+        `--project=${juliaRuntimeDir()}`,
         resourcePath("julia/quartonotebookrunner.jl"),
         transportFile,
       ],
@@ -246,8 +251,39 @@ async function startJuliaServer(options: JuliaExecuteOptions) {
       options,
       `Transport file ${transportFile} exists, reusing server.`,
     );
+    return { reused: true };
   }
+  return { reused: false };
+}
+
+async function ensureQuartoNotebookRunnerEnvironment(
+  options: JuliaExecuteOptions,
+) {
+  const projectTomlTemplate = juliaResourcePath("Project.toml");
+  const projectToml = join(juliaRuntimeDir(), "Project.toml");
+  Deno.copyFileSync(projectTomlTemplate, projectToml);
+  const command = new Deno.Command(options.julia_cmd[0], {
+    args: [
+      ...(options.julia_cmd.slice(1)),
+      `--project=${juliaRuntimeDir()}`,
+      juliaResourcePath("ensure_environment.jl"),
+    ],
+  });
+  const { success, stderr } = await command.output();
+  if (!success) {
+    error(
+      `Ensuring an updated julia server environment failed: ${
+        stderr && new TextDecoder().decode(stderr)
+      }`,
+    );
+    return Promise.reject();
+  }
+  trace(options, "The julia server environment is correctly instantiated.");
   return Promise.resolve();
+}
+
+function juliaResourcePath(...parts: string[]) {
+  return join(resourcePath("julia"), ...parts);
 }
 
 interface JuliaTransportFile {
@@ -269,38 +305,47 @@ async function pollTransportFile(): Promise<JuliaTransportFile> {
 }
 
 async function establishServerConnection(
-  options: ExecuteOptions,
   port: number,
 ): Promise<Deno.TcpConn> {
-  let conn = null;
-  for (let i = 0; i < 20; i++) {
-    conn = await Deno.connect({
-      port: port,
-    }).catch(async (_) => {
-      trace(options, `Connecting to julia server failed on try ${i}`);
-      await sleep(i * 100);
-      return null;
-    });
-    if (conn !== null) {
-      trace(options, "Connection successfully established");
-      return conn;
-    }
-  }
-
-  return Promise.reject();
+  // Because the transport file is written after the server goes live,
+  // the connection should succeed immediately.
+  return await Deno.connect({
+    port: port,
+  });
 }
 
-async function executeJulia(
+async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
-): Promise<JupyterNotebook> {
-  await startJuliaServer(options);
+): Promise<Deno.TcpConn> {
+  const { reused } = await startOrReuseJuliaServer(options);
   const transportOptions = await pollTransportFile();
   trace(
     options,
     `Connecting to server at port ${transportOptions.port}, pid ${transportOptions.pid}`,
   );
-  const conn = await establishServerConnection(options, transportOptions.port);
+  try {
+    return await establishServerConnection(transportOptions.port);
+  } catch {
+    if (reused) {
+      trace(
+        options,
+        "Connecting to server failed, a transport file was reused so it might be stale. Delete transport file and retry.",
+      );
+      Deno.removeSync(juliaTransportFile());
+      return await getJuliaServerConnection(options);
+    } else {
+      error(
+        "Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.",
+      );
+      return Promise.reject();
+    }
+  }
+}
 
+async function executeJulia(
+  options: JuliaExecuteOptions,
+): Promise<JupyterNotebook> {
+  const conn = await getJuliaServerConnection(options);
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
   }
@@ -375,13 +420,11 @@ async function writeJuliaCommand(
   return data;
 }
 
-function juliaTransportFile() {
-  let transportsDir: string;
-
+function juliaRuntimeDir(): string {
   try {
-    transportsDir = quartoRuntimeDir("julia");
+    return quartoRuntimeDir("julia");
   } catch (e) {
-    error("Could create runtime directory for the julia pidfile.");
+    error("Could not create julia runtime directory.");
     error(
       "This is possibly a permission issue in the environment Quarto is running in.",
     );
@@ -393,7 +436,10 @@ function juliaTransportFile() {
     );
     throw e;
   }
-  return join(transportsDir, "julia_transport.txt");
+}
+
+function juliaTransportFile() {
+  return join(juliaRuntimeDir(), "julia_transport.txt");
 }
 
 function trace(options: ExecuteOptions, msg: string) {
