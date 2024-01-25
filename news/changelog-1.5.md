@@ -1,4 +1,4 @@
-\All changes included in 1.5:
+All changes included in 1.5:
 
 ## HTML Format
 
@@ -29,6 +29,10 @@
 ## Extensions
 
 - ([#8385](https://github.com/quarto-dev/quarto-cli/issues/8385)): Properly copy project resources when extensions are installed at project level.
+
+## Filters
+
+- ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cells when parsing HTML from RawBlock elements.
 
 ## Other Fixes
 
