@@ -97,7 +97,7 @@ fn main() {
     if let Ok(extra_options) = env::var("QUARTO_DENO_EXTRA_OPTIONS") {
         deno_options.push(extra_options);
     } else {
-        deno_options.push("--v8-flags=--max-old-space-size=8192,--max-heap-size=8192");
+        deno_options.push(String::from("--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"));
     };
 
     // run deno
