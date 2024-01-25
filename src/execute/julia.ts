@@ -227,6 +227,9 @@ async function startOrReuseJuliaServer(
       `Transport file ${transportFile} doesn't exist, starting server.`,
     );
 
+    info(
+      "Initializing julia control server. This might take a while...",
+    );
     await ensureQuartoNotebookRunnerEnvironment(options);
 
     // when quarto's execProc function is used here, there is a strange bug.
