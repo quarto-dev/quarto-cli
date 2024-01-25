@@ -14,11 +14,7 @@ import {
   PandocIncludes,
   PostProcessOptions,
 } from "./types.ts";
-import {
-  jupyterAssets,
-  jupyterFromJSON,
-  jupyterToMarkdown,
-} from "../core/jupyter/jupyter.ts";
+import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
 import {
   kExecuteDaemon,
   kExecuteDebug,
@@ -38,15 +34,11 @@ import {
 import { resourcePath } from "../core/resources.ts";
 import { quartoRuntimeDir } from "../core/appdirs.ts";
 import { normalizePath } from "../core/path.ts";
-import { md5Hash } from "../core/hash.ts";
 import { isInteractiveSession } from "../core/platform.ts";
 import { runningInCI } from "../core/ci-info.ts";
-import { ProcessResult } from "../core/process-types.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync } from "fs/mod.ts";
-import { readTextFileSync } from "../core/qualified-path.ts";
-import { number } from "https://deno.land/x/cliffy@v0.25.4/flags/types/number.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string[];
@@ -114,16 +106,9 @@ export const juliaEngine: ExecutionEngine = {
     // or rstudio) and not running in a CI system.
     let executeDaemon = options.format.execute[kExecuteDaemon];
     if (executeDaemon === null || executeDaemon === undefined) {
-      // if (await disableDaemonForNotebook(options.target)) {
-      //   executeDaemon = false;
-      // } else {
       executeDaemon = isInteractiveSession() && !runningInCI();
-      // }
     }
 
-    // julia back end requires full path to input (to ensure that
-    // keepalive kernels are never re-used across multiple inputs
-    // that happen to share a hash)
     const execOptions = {
       ...options,
       target: {
@@ -139,18 +124,13 @@ export const juliaEngine: ExecutionEngine = {
       ...execOptions,
     };
 
-    // if (executeDaemon === false || executeDaemon === 0) {
+    // TODO: executeDaemon can take a number for timeout of kernels, but
+    // QuartoNotebookRunner currently doesn't support that
     const nb = await executeJulia(juliaExecOptions);
-    // } else {
-    //   // await executeJuliaKeepalive(juliaExecOptions);
-    // }
 
     // NOTE: the following is all mostly copied from the jupyter kernel file
 
-    // const nb = jupyterFromJSON(notebookJSON);
-
-    // TODO: jupyterFromFile sets python as the default kernelspec for the files we get from QuartoNotebookRunner,
-    // maybe the correct "kernel" needs to be set there instead (there isn't really a kernel needed as we don't execute via Jupyter
+    // there isn't really a "kernel" as we don't execute via Jupyter
     // but this seems to be needed later to assign the correct language markers to code cells etc.)
     nb.metadata.kernelspec = {
       display_name: "Julia",
@@ -343,7 +323,7 @@ async function writeJuliaCommand(
   options: JuliaExecuteOptions,
 ) {
   // TODO: no secret used, yet
-  let messageBytes = new TextEncoder().encode(
+  const messageBytes = new TextEncoder().encode(
     JSON.stringify({
       type: command,
       content: options.target.input,
