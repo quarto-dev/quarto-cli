@@ -549,9 +549,16 @@ export async function runPandoc(
           ? [documentNotebooks]
           : [];
 
+        // Only add notebooks that aren't already present
+        const uniqExtraNotebooks = extras[kNotebooks].filter((nb) => {
+          return !userNotebooks.find((userNb) => {
+            return userNb.notebook === nb.notebook;
+          });
+        });
+
         options.format.render[kNotebookView] = [
-          ...extras[kNotebooks],
           ...userNotebooks,
+          ...uniqExtraNotebooks,
         ];
       }
     }

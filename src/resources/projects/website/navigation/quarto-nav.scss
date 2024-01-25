@@ -872,26 +872,46 @@ body .nav-footer {
   padding-right: 0.6em;
 }
 .nav-footer-left {
-  flex: 1 1 0px;
-  text-align: left;
+  @include media-breakpoint-up(md) {
+    flex: 1 1 0px;
+  }
+  @include media-breakpoint-down(sm) {
+    margin-bottom: 1em;
+    text-align: left;
+  }
+  @include media-breakpoint-down(sm) {
+    margin-bottom: 1em;
+  }
 }
 .nav-footer-right {
-  flex: 1 1 0px;
-  text-align: right;
+  @include media-breakpoint-up(md) {
+    flex: 1 1 0px;
+    text-align: right;
+  }
+  @include media-breakpoint-down(sm) {
+    margin-bottom: 1em;
+  }
 }
 
 .nav-footer-center {
-  flex: 1 1 0px;
-  min-height: 3em;
+  @include media-breakpoint-up(md) {
+    flex: 1 1 0px;
+  }
   text-align: center;
+  min-height: 3em;
   .footer-items {
     justify-content: center;
+  }
+  @include media-breakpoint-down(md) {
+    margin-bottom: 1em;
+    flex: 100%;
   }
 }
 
 @include media-breakpoint-down(md) {
   .nav-footer-center {
     margin-top: 3em;
+    order: 10;
   }
 }
 
@@ -950,4 +970,26 @@ body .nav-footer {
   left: 50%;
   padding: 0.4rem 0.8rem;
   transform: translate(-50%, 0);
+}
+
+/* announcement bar */
+#quarto-announcement {
+  padding: 0.5em;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0;
+  font-size: 0.9em;
+
+  .quarto-announcement-content {
+    margin-right: auto;
+    p {
+      margin-bottom: 0;
+    }
+  }
+  .quarto-announcement-icon {
+    margin-right: 0.5em;
+  }
+  .quarto-announcement-action {
+    cursor: pointer;
+  }
 }

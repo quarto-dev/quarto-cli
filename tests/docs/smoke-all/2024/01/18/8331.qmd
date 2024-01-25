@@ -1,0 +1,14 @@
+---
+title: foo
+format: docusaurus-md
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["export const quartoRawHtml"]
+        - []
+---
+
+```{=html}
+<span class="dummy">Content</span>
+```

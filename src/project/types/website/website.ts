@@ -194,6 +194,7 @@ export const websiteProjectType: ProjectType = {
           project,
           projectExtensionPathResolver(
             project.config?.project[kProjectLibDir] || "",
+            project.dir,
           ),
         ),
       ]);

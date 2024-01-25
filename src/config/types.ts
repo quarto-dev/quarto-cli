@@ -11,6 +11,7 @@ import {
   kArticleNotebookLabel,
   kBackToTop,
   kBaseFormat,
+  kBodyClasses,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -342,6 +343,7 @@ export interface NotebookPreviewDescriptor {
   url?: string;
   title?: string;
   [kDownloadUrl]?: string;
+  order?: number;
 }
 
 export interface FormatExtras {
@@ -481,6 +483,7 @@ export interface FormatRender {
   [kHtmlTableProcessing]?: "none";
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
+  [kBodyClasses]?: string;
 }
 
 export interface FormatExecute {
