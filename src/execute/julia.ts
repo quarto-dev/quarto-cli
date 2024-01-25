@@ -17,6 +17,7 @@ import {
 import { jupyterAssets, jupyterToMarkdown } from "../core/jupyter/jupyter.ts";
 import {
   kExecuteDaemon,
+  kExecuteDaemonRestart,
   kExecuteDebug,
   kFigDpi,
   kFigFormat,
@@ -300,7 +301,7 @@ async function executeJulia(
   );
   const conn = await establishServerConnection(options, transportOptions.port);
 
-  if (options.oneShot) {
+  if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
   }
   const response = await writeJuliaCommand(
