@@ -39,33 +39,50 @@ export interface LogMessageOptions {
 
 // deno-lint-ignore no-explicit-any
 export function appendLogOptions(cmd: Command<any>): Command<any> {
-  return cmd.option(
-    "--log <file>",
-    "Path to log file",
-    {
-      global: true,
-    },
-  ).option(
-    "--log-level <level>",
-    "Log level (info, warning, error, critical)",
-    {
-      global: true,
-    },
-  )
-    .option(
-      "--log-format <format>",
-      "Log format (plain, json-stream)",
+  const addLogOptions = (cmd: Command<any>) => {
+    return cmd.option(
+      "--log <file>",
+      "Path to log file",
+      {
+        global: true,
+      },
+    ).option(
+      "--log-level <level>",
+      "Log level (info, warning, error, critical)",
       {
         global: true,
       },
     )
-    .option(
-      "--quiet",
-      "Suppress console output.",
-      {
-        global: true,
-      },
-    );
+      .option(
+        "--log-format <format>",
+        "Log format (plain, json-stream)",
+        {
+          global: true,
+        },
+      )
+      .option(
+        "--quiet",
+        "Suppress console output.",
+        {
+          global: true,
+        },
+      );
+  };
+
+  // If there are subcommands, forward the log options
+  // directly to the subcommands. Otherwise, just attach
+  // to the outer command
+  //
+  // Fixes https://github.com/quarto-dev/quarto-cli/issues/8438
+  const subCommands = cmd.getCommands();
+  if (subCommands.length > 0) {
+    subCommands.forEach((command) => {
+      addLogOptions(command);
+    });
+    return cmd;
+  } else {
+    return addLogOptions(cmd);
+  }
 }
 
 export function logOptions(args: Args) {
