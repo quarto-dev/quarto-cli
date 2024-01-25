@@ -1,0 +1,10 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ["a_default_value_to_be_tested_for"]
+---
+
+{{< env something_that_does_not_exist a_default_value_to_be_tested_for >}}
