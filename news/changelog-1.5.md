@@ -15,6 +15,7 @@
 
 ## Website Listings
 
+- ([#8147](https://github.com/quarto-dev/quarto-cli/issues/8147)): Ensure that listings don't include the contents of the output directory
 - ([#8435](https://github.com/quarto-dev/quarto-cli/issues/8435)): Improve listing filtering using special characters
 
 ## Manuscripts

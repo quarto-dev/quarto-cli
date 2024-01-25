@@ -720,6 +720,12 @@ async function readContents(
       return expanded.glob;
     });
 
+    // push a glob excluding the project output directory
+    const outDir = project.config?.project["output-dir"];
+    if (outDir) {
+      finalGlobs.push(`!/${outDir}/**`);
+    }
+
     // Convert a bare directory path into a consumer
     // of everything in the directory
     if (hasInputs || hasDefaultGlob) {
