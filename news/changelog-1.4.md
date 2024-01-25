@@ -1,3 +1,7 @@
+## Fixed in this release
+
+- ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cell when parsing HTML from RawBlock
+
 ## Languages
 
 - Add Serbian-Latin translation (author: @n_grubor)
