@@ -1,0 +1,15 @@
+---
+title: Hello World
+format: html
+bibliography: bad.bib
+google-scholar: true
+nocite: |
+  @*
+---
+
+## Hello.
+
+### References
+
+::: {#refs}
+:::

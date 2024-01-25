@@ -8,6 +8,8 @@ import { copySync } from "fs/copy.ts";
 import { info } from "log/mod.ts";
 import { dirname, extname, join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
+import * as ld from "../../../src/core/lodash.ts";
+
 import { runCmd } from "../util/cmd.ts";
 import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
 
@@ -180,6 +182,14 @@ export async function updateHtmlDependencies(config: Configuration) {
         join(dir, `list.js-${version}`, "dist", "list.min.js"),
         listJs
       );
+
+      // Omit regular expression escaping
+      // (Fixes https://github.com/quarto-dev/quarto-cli/issues/8435)
+      const contents = Deno.readTextFileSync(listJs);
+      const removeContent = /e=\(e=t\.utils\.toString\(e\)\.toLowerCase\(\)\)\.replace\(.*?\),/g
+      const cleaned = contents.replaceAll(removeContent, "");
+      Deno.writeTextFileSync(listJs, cleaned);
+
       return Promise.resolve();
     }
   );

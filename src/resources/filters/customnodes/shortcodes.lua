@@ -285,7 +285,12 @@ function shortcodes_filter()
         Link = function(el)
           el.target = code_shortcode:match(el.target)
           return el
-        end
+        end,
+        Span = function(el)
+          if el.classes:includes("quarto-shortcode__-escaped") then
+            return pandoc.Str(el.attributes["data-value"])
+          end
+        end,
        })
       return doc
     end

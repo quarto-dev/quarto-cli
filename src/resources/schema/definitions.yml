@@ -155,6 +155,28 @@
             See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
             for details.
 
+- id: giscus-themes
+  enum:
+    values:
+      [
+        light,
+        light_high_contrast,
+        light_protanopia,
+        light_tritanopia,
+        dark,
+        dark_high_contrast,
+        dark_protanopia,
+        dark_tritanopia,
+        dark_dimmed,
+        transparent_dark,
+        cobalt,
+        purple_dark,
+        noborder_light,
+        noborder_dark,
+        noborder_gray,
+        preferred_color_scheme,
+      ]
+
 - id: comments
   anyOf:
     - enum: [false]
@@ -269,29 +291,33 @@
                 theme:
                   anyOf:
                     - string
-                    - enum:
-                        [
-                          light,
-                          light_high_contrast,
-                          light_protanopia,
-                          dark,
-                          dark_high_contrast,
-                          dark_protanopia,
-                          dark_dimmed,
-                          transparent_dark,
-                          preferred_color_scheme,
-                        ]
+                    - ref: giscus-themes
                     - object:
                         closed: true
                         properties:
                           light:
-                            string:
-                              description: The light theme name.
+                            anyOf:
+                              - string
+                              - ref: giscus-themes
+                            description: The light theme name.
                           dark:
-                            string:
-                              description: The dark theme name.
+                            anyOf:
+                              - string
+                              - ref: giscus-themes
+                            description: The dark theme name.
 
-                  description: The giscus theme to use when displaying comments.
+                  description:
+                    short: The giscus theme to use when displaying comments.
+                    long: |
+                      The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: 
+
+                      ```yaml
+                      website:
+                        comments:
+                          giscus:
+                            light: light # giscus theme used for light website theme
+                            dark: dark_dimmed # giscus theme used for dark website theme
+                      ```
                 language:
                   string:
                     description: The language that should be used when displaying the commenting interface.
@@ -711,6 +737,36 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      announcement:
+        anyOf:
+          - string
+          - object:
+              properties:
+                content:
+                  schema: string
+                  description: "The content of the announcement"
+                dismissable:
+                  schema: boolean
+                  description: "Whether this announcement may be dismissed by the user."
+                icon:
+                  schema: string
+                  description: "The icon to display in the annoucement"
+                type:
+                  schema:
+                    enum:
+                      [
+                        primary,
+                        secondary,
+                        success,
+                        danger,
+                        warning,
+                        info,
+                        light,
+                        dark,
+                      ]
+                  description: "The type of announcement. Affects the appearance of the announcement."
+
+        description: Provides an announcement displayed at the top of the page.
       cookie-consent:
         anyOf:
           - enum: [express, implied]

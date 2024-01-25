@@ -1,0 +1,11 @@
+---
+engine: jupyter
+format: html
+title: Features x Formats
+---
+
+::: column-screen-inset
+
+{{< include _tabulator.qmd >}}
+
+:::

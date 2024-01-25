@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+format: latex
+execute:
+  warning: false
+_quarto:
+  tests:
+    latex:
+      ensureSnapshotMatches: true
+---
+
+```{r}
+#| label: tbl-tables
+#| tbl-cap: "Tables"
+#| tbl-subcap:
+#|   - cars
+#|   - pressure
+#| layout-ncol: 2
+
+library(knitr)
+kable(head(cars))
+kable(head(pressure))
+```
+
+See @tbl-tables for examples. In particular, @tbl-tables-2.

@@ -53,7 +53,8 @@ end
 -- into raw commamark to pass through via dangerouslySetInnerHTML
 local function RawBlock(el)
   if el.format == 'mdx' then
-    return pandoc.CodeBlock(el.text, pandoc.Attr("", {"mdx-code-block"}))
+    -- special mdx-code-block is not handled if whitespace is present after backtrick (#8333)
+    return pandoc.RawBlock("markdown", "````mdx-code-block\n" .. el.text .. "\n````")
   elseif el.format == 'html' then
     -- track the raw html vars (we'll insert them at the top later on as
     -- mdx requires all exports be declared together)
@@ -70,10 +71,6 @@ end
 local function DecoratedCodeBlock(node)
   local el = node.code_block
   return code_block(el, node.filename)
-end
-
-local function CodeBlock(el)
-  return code_block(el, el.attr.attributes["filename"])
 end
 
 local function jsx(content)
@@ -126,9 +123,14 @@ quarto._quarto.ast.add_renderer("Callout", function()
   return quarto._quarto.format.isDocusaurusOutput()
 end, function(node)
   local admonition = pandoc.Blocks({})
-  admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
   if node.title then
-    admonition:insert(pandoc.Header(2, node.title))
+    start = pandoc.Plain({})
+    start.content:insert(pandoc.RawInline("markdown", ":::" .. node.type .. "["))
+    start.content:extend(quarto.utils.as_inlines(node.title))
+    start.content:insert(pandoc.RawInline("markdown", "]\n"))
+    admonition:insert(start)
+  else
+    admonition:insert(pandoc.RawBlock("markdown", "\n:::" .. node.type))
   end
   local content = node.content
   if type(content) == "table" then
@@ -147,12 +149,37 @@ end, function(node)
   return code_block(el, node.filename)
 end)
 
+quarto._quarto.ast.add_renderer("FloatRefTarget", function()
+  return quarto._quarto.format.isDocusaurusOutput()
+end, function(float)
+  float = quarto.doc.crossref.decorate_caption_with_crossref(float)
+  if quarto.doc.crossref.cap_location(float) == "top" then
+    return pandoc.Blocks({
+      pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">"),
+      pandoc.Div(quarto.utils.as_blocks(float.caption_long)),
+      pandoc.Div(quarto.utils.as_blocks(float.content)),
+      pandoc.RawBlock("markdown", "</div>")
+    })
+  else
+    return pandoc.Blocks({
+      pandoc.RawBlock("markdown", "<div id=\"" .. float.identifier .. "\">"),
+      pandoc.Div(quarto.utils.as_blocks(float.content)),
+      pandoc.Div(quarto.utils.as_blocks(float.caption_long)),
+      pandoc.RawBlock("markdown", "</div>")
+    })
+  end
+end)
+
 return {
-  traverse = "topdown",
-  Pandoc = Pandoc,
-  Image = Image,
-  Header = Header,
-  RawBlock = RawBlock,
-  DecoratedCodeBlock = DecoratedCodeBlock,
-  CodeBlock = CodeBlock,
+  {
+    traverse = "topdown",
+    Image = Image,
+    Header = Header,
+    RawBlock = RawBlock,
+    DecoratedCodeBlock = DecoratedCodeBlock,
+    CodeBlock = CodeBlock,
+  },
+  {
+    Pandoc = Pandoc,
+  }
 }

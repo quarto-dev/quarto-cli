@@ -21,13 +21,13 @@ import {
   BodyDecorators,
   flattenItems,
   Navigation,
+  NavigationAnnouncement,
   NavigationPagination,
   PageMargin,
 } from "./website-shared.ts";
 import { removeChapterNumber } from "./website-utils.ts";
 import { MarkdownPipelineHandler } from "../../../core/markdown-pipeline.ts";
 import { safeExistsSync } from "../../../core/path.ts";
-import { md5Hash } from "../../../core/hash.ts";
 
 const kSidebarTitleId = "quarto-int-sidebar-title";
 const kNavbarTitleId = "quarto-int-navbar-title";
@@ -47,6 +47,7 @@ export interface NavigationPipelineContext {
   bodyDecorators?: BodyDecorators;
   breadCrumbs?: SidebarItem[];
   pageNavigation: NavigationPagination;
+  announcement?: NavigationAnnouncement;
 }
 
 export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
@@ -62,6 +63,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
     marginHeaderFooterHandler(context),
     bodyHeaderFooterHandler(context),
     breadCrumbHandler(context),
+    announcementHandler(context),
   ];
 }
 
@@ -219,6 +221,25 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
         if (renderedEl) {
           breadCrumbEl.innerHTML = renderedEl.innerHTML;
         }
+      }
+    },
+  };
+};
+
+const announcementHandler = (context: NavigationPipelineContext) => {
+  return {
+    getUnrendered() {
+      if (context.announcement?.content) {
+        return { blocks: { announcement: context.announcement.content } };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const announceEl = doc.querySelector(
+        "#quarto-announcement .quarto-announcement-content",
+      );
+      if (announceEl) {
+        const renderedEl = rendered["announcement"];
+        announceEl.innerHTML = renderedEl.innerHTML;
       }
     },
   };

@@ -10,6 +10,7 @@ import { assert } from "testing/asserts.ts";
 import { join } from "path/mod.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
+import * as ld from "../src/core/lodash.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -19,6 +20,7 @@ import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
 import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
+import { checkSnapshot } from "./verify-snapshot.ts";
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -116,6 +118,35 @@ export const fileExists = (file: string): Verify => {
     },
   };
 };
+
+export const validJsonFileExists = (file: string): Verify => {
+  return {
+    name: `Valid Json ${file} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      JSON.parse(jsonStr);
+      return Promise.resolve();
+    }
+  }
+}
+
+export const validJsonWithFields = (file: string, fields: Record<string, unknown>) => {
+  return {
+    name: `Valid Json ${file} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      const json = JSON.parse(jsonStr);
+      for (const key of Object.keys(fields)) {
+
+        const value = json[key];
+        assert(ld.isEqual(value, fields[key]), `Key ${key} has invalid value in json.`);
+      }
+
+
+      return Promise.resolve();
+    }
+  }
+}
 
 export const outputCreated = (
   input: string,
@@ -228,6 +259,27 @@ export const ensureHtmlElements = (
     },
   };
 };
+
+export const ensureSnapshotMatches = (
+  file: string,
+): Verify => {
+  return {
+    name: "Inspecting Snapshot",
+    verify: async (_output: ExecuteOutput[]) => {
+      const good = await checkSnapshot(file);
+      if (!good) {
+        console.log("output:");
+        console.log(await Deno.readTextFile(file));
+        console.log("snapshot:");
+        console.log(await Deno.readTextFile(file + ".snapshot"));
+      }
+      assert(
+        good,
+        `Snapshot ${file}.snapshot doesn't match output`,
+      );
+    },
+  };
+}
 
 export const ensureFileRegexMatches = (
   file: string,
