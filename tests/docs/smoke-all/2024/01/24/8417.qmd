@@ -12,11 +12,7 @@ filters:
 
 ```{r libraries}
 #| warning: false
-library(dplyr)
 library(gt)
-library(gtExtras)
-library(janitor)
-library(palmerpenguins)
 m <- mtcars[1:3,] |> 
   gt()
 i <- iris[1:3,] |> 
