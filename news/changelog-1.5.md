@@ -1,4 +1,4 @@
-\All changes included in 1.5:
+All changes included in 1.5:
 
 ## HTML Format
 
@@ -12,6 +12,10 @@
 - ([#8267](https://github.com/quarto-dev/quarto-cli/issues/8267)): Improve responsive layout of `page-footer`
 - ([#8294](https://github.com/quarto-dev/quarto-cli/issues/8294)): Add support for website announcements, using the `announcement` key under `website`.
 - ([#8426](https://github.com/quarto-dev/quarto-cli/issues/8426)): Ignore invalid dates for references when generating Google Scholar data.
+
+## Jupyter
+
+- ([#8433](https://github.com/quarto-dev/quarto-cli/issues/8433)): Escape jupyter widget states that contain `</script>` so they can be embedded in HTML documents.
 
 ## Website Listings
 
@@ -29,6 +33,10 @@
 ## Shortcodes
 
 - ([#8316](https://github.com/quarto-dev/quarto-cli/issues/8316)): Add fallback value for the `env` shortcode
+
+## Filters
+
+- ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cells when parsing HTML from RawBlock elements.
 
 ## Other Fixes
 
