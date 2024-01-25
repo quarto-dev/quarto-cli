@@ -1058,8 +1058,11 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     // then lower the z-order so everything else can get on top
     // of the sidebar
     const isFullLayout = format.metadata[kPageLayout] === "full";
-    if (!hasMarginContent && isFullLayout && !hasRightContent) {
-      const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
+    const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
+    if (
+      (!hasMarginContent && isFullLayout && !hasRightContent) ||
+      marginSidebarEl?.childElementCount === 0
+    ) {
       marginSidebarEl?.classList.add("zindex-bottom");
     }
     return Promise.resolve();

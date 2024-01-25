@@ -91,6 +91,24 @@ for details. */;
   url?: string; /* Alias for href */
 };
 
+export type GiscusThemes =
+  | "light"
+  | "light_high_contrast"
+  | "light_protanopia"
+  | "light_tritanopia"
+  | "dark"
+  | "dark_high_contrast"
+  | "dark_protanopia"
+  | "dark_tritanopia"
+  | "dark_dimmed"
+  | "transparent_dark"
+  | "cobalt"
+  | "purple_dark"
+  | "noborder_light"
+  | "noborder_dark"
+  | "noborder_gray"
+  | "preferred_color_scheme";
+
 export type Comments = false | {
   giscus?: {
     "repo-id"?: string /* The Github repository identifier.
@@ -128,23 +146,18 @@ as a discussion number and automatic discussion creation is not supported. */;
 
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
-    theme?:
-      | string
-      | (
-        | "light"
-        | "light_high_contrast"
-        | "light_protanopia"
-        | "dark"
-        | "dark_high_contrast"
-        | "dark_protanopia"
-        | "dark_dimmed"
-        | "transparent_dark"
-        | "preferred_color_scheme"
-      )
-      | {
-        dark?: string /* The dark theme name. */;
-        light?: string; /* The light theme name. */
-      }; /* The giscus theme to use when displaying comments. */
+    theme?: string | GiscusThemes | {
+      dark?: string | GiscusThemes /* The dark theme name. */;
+      light?: string | GiscusThemes; /* The light theme name. */
+    }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
+
+```yaml
+website:
+  comments:
+    giscus:
+      light: light # giscus theme used for light website theme
+      dark: dark_dimmed # giscus theme used for dark website theme
+``` */
   };
   hypothesis?: boolean | {
     "client-url"?:
@@ -422,6 +435,20 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
   "code-links"?: boolean | CodeLinksSchema;
+  announcement?: string | {
+    content?: string;
+    dismissable?: boolean;
+    icon?: string;
+    type?:
+      | "primary"
+      | "secondary"
+      | "success"
+      | "danger"
+      | "warning"
+      | "info"
+      | "light"
+      | "dark";
+  } /* Provides an announcement displayed at the top of the page. */;
   comments?: Comments;
   description?: string /* Website description */;
   favicon?: string /* The path to the favicon for this website */;

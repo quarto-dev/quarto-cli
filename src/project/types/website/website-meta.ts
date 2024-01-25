@@ -432,10 +432,12 @@ const kOgTitle = "quarto-ogcardtitle";
 const kOgDesc = "quarto-ogcardddesc";
 const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
+  const resolvedTitle = computePageTitle(format);
+
   const titleMetaHandler = {
     getUnrendered() {
       const inlines: Record<string, string> = {};
-      const resolvedTitle = computePageTitle(format);
+
       if (resolvedTitle !== undefined) {
         inlines[kMetaTitleId] = resolvedTitle;
       }
@@ -455,7 +457,7 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
         const el = doc.querySelector(
           `head title`,
         );
-        if (el) {
+        if (el && el.innerText === resolvedTitle) {
           if (format.pandoc[kNumberSections] === false) {
             // Remove chapter numbers if not numbered
             const numberEl = renderedEl.querySelector("span.chapter-number");

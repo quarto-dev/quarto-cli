@@ -1,0 +1,32 @@
+---
+engine: knitr
+format: markdown
+foo: bar
+_quarto:
+  tests:
+    markdown:
+      ensureSnapshotMatches: true
+---
+
+```
+This doesn't unescape and should: `{{r}} 1.2`
+This evaluates: `{r} 1.2`
+{{< meta foo >}}
+In a phrase: {{< meta foo >}}
+With quotes: `{{< meta foo >}}`
+{{{< meta foo >}}}
+In a phrase: {{{< meta foo >}}}
+With quotes: `{{{< meta foo >}}}`
+```
+
+`{{< meta foo >}}` There's no more bug here.
+
+`{{{< meta foo >}}}` There's no more bug here.
+
+{{{< meta foo >}}} Hello?
+
+{{< meta foo >}} Hello?
+
+Hello, `{{{< meta foo >}}}`, `{{< meta foo >}}`.
+
+`` `{{{< meta foo >}}}` ``, `` `{{< meta foo >}}` ``.

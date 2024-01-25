@@ -1,0 +1,10 @@
+---
+title: Code fold
+format: 
+  docusaurus-md:
+    code-fold: true
+---
+
+```{r}
+1 + 2
+```

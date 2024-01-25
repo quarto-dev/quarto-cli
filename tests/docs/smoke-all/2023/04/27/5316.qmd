@@ -7,7 +7,7 @@ _quarto:
   tests:
     docusaurus-md:
       ensureFileRegexMatches:
-        - ["[^\\]]``` *python", "[^\\]]``` *mdx-code-block"]
+        - ["[^\\]]``` *python", "[^\\]]````mdx-code-block"]
         - ["[^\\]]``` *text"]
 ---
 
