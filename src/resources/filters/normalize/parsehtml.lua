@@ -126,7 +126,7 @@ function parse_html_tables()
               blocks:insert(result)
             end
           end
-          return blocks
+          return pandoc.Div(blocks)
         end
       end
       return el
