@@ -8,12 +8,12 @@
 # deno_dom should match release at https://github.com/b-fuze/deno-dom/releases
 
 # Binary dependencies
-export DENO=v1.37.2
+export DENO=v1.40.2
 # TODO figure out where 0.1.41 apple silicon libs are available
 export DENO_DOM=v0.1.35-alpha-artifacts
-export PANDOC=3.1.11
-export DARTSASS=1.69.5
-export ESBUILD=0.19.5
+export PANDOC=3.1.11.1
+export DARTSASS=1.70.0
+export ESBUILD=0.19.12
 export TYPST=0.10.0
 
 
