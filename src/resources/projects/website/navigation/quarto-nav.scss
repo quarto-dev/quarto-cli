@@ -878,6 +878,7 @@ body .nav-footer {
   }
   @include media-breakpoint-down(sm) {
     margin-bottom: 1em;
+    flex: 100%;
   }
 }
 .nav-footer-right {
@@ -887,6 +888,7 @@ body .nav-footer {
   }
   @include media-breakpoint-down(sm) {
     margin-bottom: 1em;
+    flex: 100%;
   }
 }
 
