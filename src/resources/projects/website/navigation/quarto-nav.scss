@@ -797,18 +797,13 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: space-between;
   align-items: baseline;
   text-align: center;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   @if variable-exists(footer-bg) {
     background-color: $footer-bg;
-  }
-  @include media-breakpoint-up(md) {
-    justify-content: space-between;
-  }
-  @include media-breakpoint-down(sm) {
-    justify-content: center;
   }
 }
 
