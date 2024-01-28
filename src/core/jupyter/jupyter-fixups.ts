@@ -19,31 +19,41 @@ export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
     if (cell.cell_type !== "code" || cell.outputs === undefined) {
       continue;
     }
-    let i = 0;
     if (cell.outputs.length === 0) {
       continue;
     }
-    while (i < cell.outputs.length) {
-      const thisOutput: JupyterOutput = cell.outputs[i];
+    let i1 = 0;
+    while (i1 < cell.outputs.length) {
+      const thisOutput: JupyterOutput = cell.outputs[i1];
       if (thisOutput.output_type === "stream") {
-        // collect all the stream outputs with the same name
-        const streams = cell.outputs.filter((output) =>
-          output.output_type === "stream" && output.name === thisOutput.name
-        );
-        // join them together
+        let i2 = i1 + 1;
+        let indices = [i1];
+
+        // loop till next cell output is not of similar name
+        // each time when a match is found, the new output index is appended to the list
+        while (i2 < cell.outputs.length) {
+          if (thisOutput.name === cell.outputs[i2].name) {
+            indices.push(i2);
+          }
+          i2++;
+        }
+
+        // join the outputs if match is found
+        if (indices.length > 1) {
+          const streams = indices.map((index) => cell.outputs[index]);
         const joinedText = streams.map((output) => output.text ?? []).flat();
         const newOutput: JupyterOutput = {
           output_type: "stream",
           name: thisOutput.name,
           text: joinedText,
         };
-        cell.outputs[i] = newOutput;
-        cell.outputs = cell.outputs.filter((output, j) =>
-          i === j ||
-          (output.output_type !== "stream" || output.name !== thisOutput.name)
+          cell.outputs[i1] = newOutput;
+          cell.outputs = cell.outputs.filter(
+            (output, j) => i1 === j || !indices.includes(j)
         );
+        }
       }
-      i++;
+      i1++;
     }
   }
   return nb;
