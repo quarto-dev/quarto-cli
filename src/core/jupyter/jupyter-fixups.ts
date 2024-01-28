@@ -40,17 +40,17 @@ export function fixupStreams(nb: JupyterNotebook): JupyterNotebook {
 
         // join the outputs if match is found
         if (indices.length > 1) {
-          const streams = indices.map((index) => cell.outputs[index]);
-        const joinedText = streams.map((output) => output.text ?? []).flat();
-        const newOutput: JupyterOutput = {
-          output_type: "stream",
-          name: thisOutput.name,
-          text: joinedText,
-        };
+          const streams = indices.map((index) => cell.outputs![index]);
+          const joinedText = streams.map((output) => output.text ?? []).flat();
+          const newOutput: JupyterOutput = {
+            output_type: "stream",
+            name: thisOutput.name,
+            text: joinedText,
+          };
           cell.outputs[i1] = newOutput;
           cell.outputs = cell.outputs.filter(
             (output, j) => i1 === j || !indices.includes(j)
-        );
+          );
         }
       }
       i1++;
