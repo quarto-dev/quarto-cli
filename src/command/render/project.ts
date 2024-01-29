@@ -66,7 +66,7 @@ import {
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
-import { isSubdir } from "fs/_util.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
 import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 

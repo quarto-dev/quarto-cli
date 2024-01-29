@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join } from "path/posix.ts";
+import { join } from "path/mod.ts";
 import { readAll } from "streams/mod.ts";
 import { error } from "log/mod.ts";
-import { encode as base64Encode } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -107,7 +107,7 @@ const makeCrossrefCommand = () => {
       ]);
 
       // create filter params
-      const filterParams = base64Encode(
+      const filterParams = encodeBase64(
         JSON.stringify({
           ["crossref-index-file"]: "index.json",
           ["crossref-input-type"]: "qmd",

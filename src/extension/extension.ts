@@ -14,7 +14,7 @@ import {
   ProjectConfig,
   ProjectContext,
 } from "../project/types.ts";
-import { isSubdir } from "fs/_util.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
 
 import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
