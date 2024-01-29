@@ -1,0 +1,7 @@
+---
+title: "Hi"
+---
+
+{{< embed notebook.qmd#fig-index-plot >}}
+
+{{< embed notebook2.qmd#fig-polar echo=true >}}
