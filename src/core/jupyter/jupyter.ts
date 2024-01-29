@@ -1386,7 +1386,7 @@ async function mdFromCodeCell(
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
-  if (includeCode(cell, options)) {
+  if (includeCode(cell, options) || options.preserveCodeCellYaml) {
     const fenced = echoFenced(cell, options);
     const ticks = "`".repeat(
       Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
