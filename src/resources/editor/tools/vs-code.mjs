@@ -7266,6 +7266,52 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Context to execute cell within."
           }
+        },
+        {
+          name: "content",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            enum: [
+              "valuebox",
+              "sidebar",
+              "toolbar"
+            ]
+          },
+          description: {
+            short: "The type of dashboard element being produced by this code cell."
+          }
+        },
+        {
+          name: "color",
+          tags: {
+            formats: [
+              "dashboard"
+            ]
+          },
+          schema: {
+            anyOf: [
+              "string",
+              {
+                enum: [
+                  "primary",
+                  "secondary",
+                  "success",
+                  "info",
+                  "warning",
+                  "danger",
+                  "light",
+                  "dark"
+                ]
+              }
+            ]
+          },
+          description: {
+            short: "For code cells that produce a valuebox, the color of the valuebox.s"
+          }
         }
       ],
       "schema/cell-codeoutput.yml": [
@@ -19471,7 +19517,10 @@ var require_yaml_intelligence_resources = __commonJS({
         "Display reactions for the discussion\u2019s main post before the\ncomments.",
         "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
         "Place the comment input box above or below the comments.",
-        "The giscus theme to use when displaying comments.",
+        {
+          short: "The giscus theme to use when displaying comments.",
+          long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+        },
         "The light theme name.",
         "The dark theme name.",
         "The language that should be used when displaying the commenting\ninterface.",
@@ -19623,6 +19672,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19758,6 +19812,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -20602,6 +20661,14 @@ var require_yaml_intelligence_resources = __commonJS({
           long: ""
         },
         {
+          short: "The type of dashboard element being produced by this code cell.",
+          long: ""
+        },
+        {
+          short: "For code cells that produce a valuebox, the color of the\nvaluebox.s",
+          long: ""
+        },
+        {
           short: "Evaluate code cells (if <code>false</code> just echos the code into\noutput).",
           long: "Evaluate code cells (if <code>false</code> just echos the code into\noutput)."
         },
@@ -21391,7 +21458,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The base url for s5 presentations.",
         "The base url for Slidy presentations.",
         "The base url for Slideous presentations.",
-        "Enable or disable lightbox treatment for images in this document.",
+        'Enable or disable lightbox treatment for images in this document. See\n<a href="https://quarto.org/docs/output-formats/html-lightbox-figures.html">Lightbox\nFigures</a> for more details.',
         {
           short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
           long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
@@ -21502,6 +21569,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The light theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
         "The dark theme name, theme scss file, or a mix of both.",
+        "Classes to apply to the body of the document.",
         "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
         "Enables inclusion of Pandoc default CSS for this document.",
         "One or more CSS style sheets.",
@@ -21628,6 +21696,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "Keep the notebook file generated from executing code.",
         "Filters to pre-process ipynb files before rendering to markdown",
         "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
+        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view.",
         "Keep the intermediate typst file used during render.",
         "Keep the intermediate tex file used during render.",
         {
@@ -21932,6 +22001,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22251,6 +22325,11 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "The version number of Google Analytics to use.",
           long: "The version number of Google Analytics to use."
         },
+        "Provides an announcement displayed at the top of the page.",
+        "The content of the announcement",
+        "Whether this announcement may be dismissed by the user.",
+        "The icon to display in the annoucement",
+        "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
           long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22518,9 +22597,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        "Classes to apply to the body of the document.",
-        "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view."
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22749,12 +22826,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 180807,
+        _internalId: 181570,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 180799,
+            _internalId: 181562,
             type: "enum",
             enum: [
               "png",
@@ -22770,7 +22847,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 180806,
+            _internalId: 181569,
             type: "anyOf",
             anyOf: [
               {
