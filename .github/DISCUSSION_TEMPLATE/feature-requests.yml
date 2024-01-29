@@ -1,5 +1,5 @@
 title: "The (missing) feature you want to discuss"
-labels: "enhancement"
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
