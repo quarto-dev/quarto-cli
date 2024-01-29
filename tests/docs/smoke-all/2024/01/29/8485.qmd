@@ -1,0 +1,9 @@
+---
+title: issue-8485
+format: html
+classe_rugosità: value
+---
+
+this shortcode will raise a encoding error on 1.4.549
+
+{{< meta classe_rugosità >}}
