@@ -14,10 +14,10 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   <% if (nav.navbar || nav.sidebar || nav.announcement) { %>  
   <header id="quarto-header" class="headroom fixed-top">
 
-    <% if (nav.announcement) { %>
-      <div id="quarto-announcement" data-announcement-id="<%- nav.announcement.id %>" class="alert alert-<%- nav.announcement.type %> hidden"><% if (nav.announcement.icon) { %><i class="bi bi-<%- nav.announcement.icon %> quarto-announcement-icon"></i><% } %><div class="quarto-announcement-content"><%= nav.announcement.content %></div><% if (nav.announcement.dismissable) { %><i class="bi bi-x-lg quarto-announcement-action"></i><% } %></div>
+    <% if (nav.announcement && nav.announcement.position === "above-navbar") { %>
+    <div id="quarto-announcement" data-announcement-id="<%- nav.announcement.id %>" class="alert alert-<%- nav.announcement.type %> hidden"><% if (nav.announcement.icon) { %><i class="bi bi-<%- nav.announcement.icon %> quarto-announcement-icon"></i><% } %><div class="quarto-announcement-content"><%= nav.announcement.content %></div><% if (nav.announcement.dismissable) { %><i class="bi bi-x-lg quarto-announcement-action"></i><% } %></div>
     <% } %>
-
+    
     <% if (nav.navbar) { %>  
     <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark">
       <div class="navbar-container container-fluid">
@@ -52,7 +52,8 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
 
       </div> <!-- /container-fluid -->
     </nav>
-<% } %>
+  <% } %>
+
 
 <% if (nav.sidebar && nav.layout) { %>
   <nav class="quarto-secondary-nav">
@@ -84,6 +85,11 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
     </div>
   </nav>
 <% } %>
+
+<% if (nav.announcement && nav.announcement.position === "below-navbar") { %>
+  <div id="quarto-announcement" data-announcement-id="<%- nav.announcement.id %>" class="alert alert-<%- nav.announcement.type %> hidden"><% if (nav.announcement.icon) { %><i class="bi bi-<%- nav.announcement.icon %> quarto-announcement-icon"></i><% } %><div class="quarto-announcement-content"><%= nav.announcement.content %></div><% if (nav.announcement.dismissable) { %><i class="bi bi-x-lg quarto-announcement-action"></i><% } %></div>
+<% } %>
+
 
 </header>
 <% } %> 
