@@ -10,7 +10,7 @@ import { ensureDirSync } from "fs/ensure_dir.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import * as colors from "fmt/colors.ts";
-import { decode as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64.ts";
 import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
@@ -153,7 +153,7 @@ import {
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
-import { encode as encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 import {
   isHtmlOutput,
   isIpynbOutput,

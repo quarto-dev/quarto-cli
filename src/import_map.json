@@ -26,7 +26,7 @@
     "wasi/": "https://deno.land/std@0.213.0/wasi/",
     "events/": "https://deno.land/x/events@v1.0.0/",
     "cache/": "https://deno.land/x/cache@0.2.12/",
-    "cliffy/": "https://deno.land/x/cliffy@v0.25.4/",
+    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.3/",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.35-alpha/",
     "xmlp/": "https://deno.land/x/xmlp@v0.2.8/",
     "xml/": "https://deno.land/x/xml@2.1.1/",
