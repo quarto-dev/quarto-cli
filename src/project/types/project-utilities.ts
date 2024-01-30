@@ -42,10 +42,17 @@ export async function resolveProjectInputLinks(
       }
       const resolved = resolveInput
         ? await resolveInputTarget(project, projRelativeHref)
-        : { outputHref: pathWithForwardSlashes(join("/", projRelativeHref)) };
+        : {
+          outputHref: pathWithForwardSlashes(join("/", projRelativeHref)),
+          draft: false,
+        };
 
       if (resolved) {
-        link.setAttribute("href", offset + resolved.outputHref + hash);
+        if (resolved.draft) {
+          link.replaceWith(link.innerHTML);
+        } else {
+          link.setAttribute("href", offset + resolved.outputHref + hash);
+        }
       } else {
         // if this is a unresolvable markdown/ipynb link then print a warning
         if (!safeExistsSync(join(project.dir, projRelativeHref))) {
