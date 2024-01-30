@@ -96,6 +96,7 @@ import("./normalize/extractquartodom.lua")
 import("./normalize/astpipeline.lua")
 import("./normalize/capturereaderstate.lua")
 import("./normalize/fixupdatauri.lua")
+import("./normalize/draft.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
@@ -222,6 +223,9 @@ local quarto_init_filters = {
 -- our custom AST infrastructure (FloatRefTarget specifically).
 
 local quarto_normalize_filters = {
+  { name = "normalize-draft", 
+    filter = normalize_draft() },
+
   { name = "normalize", filter = filterIf(function()
     if quarto_global_state.active_filters == nil then
       return false

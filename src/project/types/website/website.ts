@@ -73,6 +73,7 @@ import { resolveFormatForGiscus } from "./website-giscus.ts";
 import { RenderFile, RenderServices } from "../../../command/render/types.ts";
 import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
+import { websiteDraftPostProcessor } from "./website-draft.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -198,6 +199,7 @@ export const websiteProjectType: ProjectType = {
           ),
         ),
       ]);
+      extras.html[kHtmlPostprocessors].unshift(websiteDraftPostProcessor);
 
       // listings extras
       const hasBootstrap = formatHasBootstrap(format);
