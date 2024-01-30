@@ -1055,7 +1055,11 @@ async function listItemFromFile(
     docRawMetadata,
   ) as Metadata;
 
-  if (documentMeta?.draft) {
+  // Consult the project draft list
+  // We also look at the document metadata here directly
+  // since the index may not yet be populated when the listing
+  // is resolved
+  if (documentMeta?.draft || target?.draft) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {

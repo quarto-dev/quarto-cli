@@ -1,9 +1,8 @@
 /*
-* website-sitemap.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-sitemap.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/mod.ts";
 import { basename, join, relative } from "path/mod.ts";
@@ -111,9 +110,15 @@ export async function updateSitemap(
         const loc = fileLoc(file);
         const url = urlSet.find((url) => url.loc === loc);
 
+        const index = await inputTargetIndexForOutputFile(
+          context,
+          relative(outputDir, outputFile.file),
+        );
+        const draft = index ? index.draft : undefined;
+
         if (url) {
           url.lastmod = await inputModified(file, context);
-          url.draft = !!outputFile.format.metadata[kDraft];
+          url.draft = draft;
         } else {
           urlSet.push(await urlsetEntry(outputFile));
         }

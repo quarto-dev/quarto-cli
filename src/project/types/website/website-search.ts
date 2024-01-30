@@ -11,7 +11,7 @@ import { basename, join, relative } from "path/mod.ts";
 // @deno-types="fuse/dist/fuse.d.ts"
 // import Fuse from "fuse/dist/fuse.esm.min.js";
 
-import { DOMParser, Element, initDenoDom } from "../../../core/deno-dom.ts";
+import { DOMParser, Element } from "../../../core/deno-dom.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
 
@@ -31,7 +31,6 @@ import { ProjectOutputFile } from "../types.ts";
 import {
   clipboardDependency,
   kBootstrapDependencyName,
-  kDraft,
 } from "../../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
@@ -60,6 +59,7 @@ import { isHtmlFileOutput } from "../../../config/format.ts";
 import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
 import { breadCrumbs, sidebarForHref } from "./website-shared.ts";
+import { inputTargetIndexForOutputFile } from "../../project-index.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -174,224 +174,224 @@ export async function updateSearchIndex(
   }
 
   if (generateIndex) {
-    // create search docs
-    await initDenoDom();
-    const updatedSearchDocs: SearchDoc[] = outputFiles.reduce(
-      (searchDocs: SearchDoc[], outputFile) => {
-        // find file/href
-        const file = outputFile.file;
-        const href = pathWithForwardSlashes(relative(outputDir, file));
+    let updatedSearchDocs: SearchDoc[] = [...searchDocs];
+    for (const outputFile of outputFiles) {
+      // find file/href
+      const file = outputFile.file;
+      const href = pathWithForwardSlashes(relative(outputDir, file));
 
-        // if this is excluded then remove and return
-        if (
-          outputFile.format.metadata[kSearch] === false ||
-          outputFile.format.metadata[kDraft]
-        ) {
-          searchDocs = searchDocs.filter((doc) => {
-            return doc.href !== href &&
-              !doc.href.startsWith(href + "#");
-          });
-          return searchDocs;
-        }
+      const index = await inputTargetIndexForOutputFile(
+        context,
+        relative(outputDir, outputFile.file),
+      );
+      const draft = index ? index.draft : false;
 
-        // if this isn't html then skip it
-        if (!isHtmlFileOutput(outputFile.format.pandoc)) {
-          return searchDocs;
-        }
-
-        // add or update search doc
-        const updateDoc = (doc: SearchDoc) => {
-          const idx = searchDocs.findIndex((d) => d.href === doc.href);
-          if (idx !== -1) {
-            searchDocs[idx] = doc;
-          } else {
-            searchDocs.push(doc);
-          }
-        };
-
-        // parse doc
-        const contents = Deno.readTextFileSync(file);
-        const doc = new DOMParser().parseFromString(contents, "text/html")!;
-
-        // determine title
-        const findTitle = () => {
-          const titleEl = doc.querySelector("h1.title");
-          if (titleEl) {
-            return titleEl;
-          } else {
-            const title = doc.querySelector("main h1");
-            if (title) {
-              return title;
-            } else {
-              return undefined;
-            }
-          }
-        };
-
-        // determine crumbs
-        const navHref = `/${href}`;
-        const sidebar = sidebarForHref(navHref, outputFile.format);
-
-        const bc = breadCrumbs(navHref, sidebar);
-
-        const crumbs = bc.length > 0
-          ? bc.filter((crumb) => {
-            return crumb.text !== undefined;
-          }).map((crumb) => {
-            return crumb.text;
-          }) as string[]
-          : undefined;
-
-        // If we found a sidebar, try to determine whether there is a navbar
-        // link that points to this page / sidebar. If so, inject that level
-        // into the crumbs as well. An attempt at improving #7803 and providing
-        // better crumbs
-        if (crumbs && sidebar) {
-          const navItem = navbarItemForSidebar(sidebar, outputFile.format);
-          if (navItem) {
-            if (typeof navItem === "object") {
-              const navbarParentText = (navItem as NavigationItemObject).text;
-              if (navbarParentText) {
-                if (crumbs.length > 0 && crumbs[0] !== navbarParentText) {
-                  crumbs.unshift(navbarParentText);
-                }
-              }
-            }
-          }
-        }
-        const titleEl = findTitle();
-        const title = titleEl
-          ? titleEl.textContent
-          : (websiteTitle(context.config) || "");
-
-        // remove pandoc generated header and toc
-        const header = doc.getElementById("title-block-header");
-        if (header) {
-          header.remove();
-        }
-        const toc = doc.querySelector(`nav[role="doc-toc"]`);
-        if (toc) {
-          toc.remove();
-        }
-
-        // Remove scripts and style sheets (they are not considered searchable)
-        // Note that `innerText` would also ignore stylesheets and script tags
-        // but that also ignores css hidden elements, which we'd like to be searchable
-        // so we're manually stripping these from the indexed doc
-        ["script", "style"].forEach((tag) => {
-          const els = doc.querySelectorAll(tag);
-          if (els) {
-            els.forEach((el) => (el as Element).remove());
-          }
+      // if this is excluded then remove and return
+      if (
+        outputFile.format.metadata[kSearch] === false ||
+        draft === true
+      ) {
+        updatedSearchDocs = updatedSearchDocs.filter((doc) => {
+          return doc.href !== href &&
+            !doc.href.startsWith(href + "#");
         });
+        continue;
+      }
 
-        // We always take the first child of the main region (whether that is a p or section)
-        // and create an index entry for the page itself (with no hash). If there is other
-        // 'unsectioned' content on the page, we include that as well.
-        //
-        // That search UI will know how to handle entries for pages with no hash and merge them
-        // into the 'page' result when it makes sense to do so.
-        // Grab the first child of main, and create a page entry using that.
+      // if this isn't html then skip it
+      if (!isHtmlFileOutput(outputFile.format.pandoc)) {
+        continue;
+      }
 
-        // if there are additional level 2 sections then create sub-docs for them
-        const sections = doc.querySelectorAll(
-          "section.level2,section.footnotes",
+      // add or update search doc
+      const updateDoc = (doc: SearchDoc) => {
+        const idx = updatedSearchDocs.findIndex((d) => d.href === doc.href);
+        if (idx !== -1) {
+          updatedSearchDocs[idx] = doc;
+        } else {
+          updatedSearchDocs.push(doc);
+        }
+      };
+
+      // parse doc
+      const contents = Deno.readTextFileSync(file);
+      const doc = new DOMParser().parseFromString(contents, "text/html")!;
+
+      // determine title
+      const findTitle = () => {
+        const titleEl = doc.querySelector("h1.title");
+        if (titleEl) {
+          return titleEl;
+        } else {
+          const title = doc.querySelector("main h1");
+          if (title) {
+            return title;
+          } else {
+            return undefined;
+          }
+        }
+      };
+
+      // determine crumbs
+      const navHref = `/${href}`;
+      const sidebar = sidebarForHref(navHref, outputFile.format);
+
+      const bc = breadCrumbs(navHref, sidebar);
+
+      const crumbs = bc.length > 0
+        ? bc.filter((crumb) => {
+          return crumb.text !== undefined;
+        }).map((crumb) => {
+          return crumb.text;
+        }) as string[]
+        : undefined;
+
+      // If we found a sidebar, try to determine whether there is a navbar
+      // link that points to this page / sidebar. If so, inject that level
+      // into the crumbs as well. An attempt at improving #7803 and providing
+      // better crumbs
+      if (crumbs && sidebar) {
+        const navItem = navbarItemForSidebar(sidebar, outputFile.format);
+        if (navItem) {
+          if (typeof navItem === "object") {
+            const navbarParentText = (navItem as NavigationItemObject).text;
+            if (navbarParentText) {
+              if (crumbs.length > 0 && crumbs[0] !== navbarParentText) {
+                crumbs.unshift(navbarParentText);
+              }
+            }
+          }
+        }
+      }
+      const titleEl = findTitle();
+      const title = titleEl
+        ? titleEl.textContent
+        : (websiteTitle(context.config) || "");
+
+      // remove pandoc generated header and toc
+      const header = doc.getElementById("title-block-header");
+      if (header) {
+        header.remove();
+      }
+      const toc = doc.querySelector(`nav[role="doc-toc"]`);
+      if (toc) {
+        toc.remove();
+      }
+
+      // Remove scripts and style sheets (they are not considered searchable)
+      // Note that `innerText` would also ignore stylesheets and script tags
+      // but that also ignores css hidden elements, which we'd like to be searchable
+      // so we're manually stripping these from the indexed doc
+      ["script", "style"].forEach((tag) => {
+        const els = doc.querySelectorAll(tag);
+        if (els) {
+          els.forEach((el) => (el as Element).remove());
+        }
+      });
+
+      // We always take the first child of the main region (whether that is a p or section)
+      // and create an index entry for the page itself (with no hash). If there is other
+      // 'unsectioned' content on the page, we include that as well.
+      //
+      // That search UI will know how to handle entries for pages with no hash and merge them
+      // into the 'page' result when it makes sense to do so.
+      // Grab the first child of main, and create a page entry using that.
+
+      // if there are additional level 2 sections then create sub-docs for them
+      const sections = doc.querySelectorAll(
+        "section.level2,section.footnotes",
+      );
+      if (sections.length > 0) {
+        const mainSelector = projectIsBook(context)
+          ? "main > section:first-of-type"
+          : "main.content";
+
+        const mainEl = doc.querySelector(mainSelector);
+        const firstEl = mainEl?.firstElementChild;
+        const pageText: string[] = [];
+        if (firstEl) {
+          // Remove any headings
+          const headings = firstEl.querySelectorAll("h1, h2, h3, h4, h5, h6");
+          headings.forEach((heading) => (heading as Element).remove());
+
+          // Add the text contents as the text for this page
+          const trimmed = firstEl.textContent.trim();
+          if (trimmed) {
+            pageText.push(trimmed);
+          }
+          firstEl.remove();
+        }
+
+        // If there are any paragraphs residing outside a section, just
+        // include that in the document entry
+        const pararaphNodes = doc.querySelectorAll(
+          `${mainSelector} > p, ${mainSelector} > div.cell`,
         );
-        if (sections.length > 0) {
-          const mainSelector = projectIsBook(context)
-            ? "main > section:first-of-type"
-            : "main.content";
 
-          const mainEl = doc.querySelector(mainSelector);
-          const firstEl = mainEl?.firstElementChild;
-          const pageText: string[] = [];
-          if (firstEl) {
-            // Remove any headings
-            const headings = firstEl.querySelectorAll("h1, h2, h3, h4, h5, h6");
-            headings.forEach((heading) => (heading as Element).remove());
+        for (const paragraphNode of pararaphNodes) {
+          const text = paragraphNode.textContent.trim();
+          if (text) {
+            pageText.push(text);
+          }
 
-            // Add the text contents as the text for this page
-            const trimmed = firstEl.textContent.trim();
-            if (trimmed) {
-              pageText.push(trimmed);
+          // Since these are already indexed with the main entry, remove them
+          // so they are not indexed again
+          (paragraphNode as Element).remove();
+        }
+
+        if (pageText.length > 0) {
+          updateDoc({
+            objectID: href,
+            href: href,
+            title,
+            section: "",
+            text: encodeHtml(pageText.join("\n")),
+            crumbs,
+          });
+        }
+
+        for (let i = 0; i < sections.length; i++) {
+          const section = sections[i] as Element;
+          const h2 = section.querySelector("h2");
+          if (section.id) {
+            const sectionTitle = h2 ? h2.textContent : "";
+            const hrefWithAnchor = `${href}#${section.id}`;
+            const sectionText = section.textContent.trim();
+            if (h2) {
+              h2.remove();
             }
-            firstEl.remove();
-          }
 
-          // If there are any paragraphs residing outside a section, just
-          // include that in the document entry
-          const pararaphNodes = doc.querySelectorAll(
-            `${mainSelector} > p, ${mainSelector} > div.cell`,
-          );
-
-          for (const paragraphNode of pararaphNodes) {
-            const text = paragraphNode.textContent.trim();
-            if (text) {
-              pageText.push(text);
-            }
-
-            // Since these are already indexed with the main entry, remove them
-            // so they are not indexed again
-            (paragraphNode as Element).remove();
-          }
-
-          if (pageText.length > 0) {
-            updateDoc({
-              objectID: href,
-              href: href,
-              title,
-              section: "",
-              text: encodeHtml(pageText.join("\n")),
-              crumbs,
-            });
-          }
-
-          for (let i = 0; i < sections.length; i++) {
-            const section = sections[i] as Element;
-            const h2 = section.querySelector("h2");
-            if (section.id) {
-              const sectionTitle = h2 ? h2.textContent : "";
-              const hrefWithAnchor = `${href}#${section.id}`;
-              const sectionText = section.textContent.trim();
-              if (h2) {
-                h2.remove();
-              }
-
-              if (sectionText) {
-                // Don't index empty sections
-                updateDoc({
-                  objectID: hrefWithAnchor,
-                  href: hrefWithAnchor,
-                  title,
-                  section: sectionTitle,
-                  text: encodeHtml(sectionText),
-                  crumbs,
-                });
-              }
-            }
-          }
-        } else { // otherwise a single doc
-          const main = doc.querySelector("main");
-          if (main) {
-            const mainText = main.textContent.trim();
-            if (mainText) {
-              // Don't index empty documents
+            if (sectionText) {
+              // Don't index empty sections
               updateDoc({
-                objectID: href,
-                href,
+                objectID: hrefWithAnchor,
+                href: hrefWithAnchor,
                 title,
-                section: "",
-                text: encodeHtml(mainText),
+                section: sectionTitle,
+                text: encodeHtml(sectionText),
                 crumbs,
               });
             }
           }
         }
-
-        return searchDocs;
-      },
-      searchDocs,
-    );
+      } else { // otherwise a single doc
+        const main = doc.querySelector("main");
+        if (main) {
+          const mainText = main.textContent.trim();
+          if (mainText) {
+            // Don't index empty documents
+            updateDoc({
+              objectID: href,
+              href,
+              title,
+              section: "",
+              text: encodeHtml(mainText),
+              crumbs,
+            });
+          }
+        }
+      }
+    }
 
     // write search docs if they have changed
     if (updatedSearchDocs.length > 0) {
