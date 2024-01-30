@@ -1,5 +1,5 @@
 
-
+<% if (item.draft !== true) {%>
 <% if (item.href) { %>
   <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
     <a class="nav-link" href="<%- item.href %>"<%= item.rel ? ` rel="${item.rel}"` : "" %><%= item.target ? ` target="${item.target}"` : "" %>> <% partial('navicon.ejs', { item }) %><span class="menu-text"><%- item.text %></span></a>
@@ -16,10 +16,11 @@
     </ul>
   </li>
 <% } else if (item.text) { %>
-  <% if (item.text.match(/^\-+$/)) { %>
-    <li><hr class="dropdown-divider"></li>
-  <% } else { %>
-    <li class="dropdown-header"><% partial('navicon.ejs', { item }) %> <span class="menu-text"><%- item.text %></span></li>
-  <% } %>
+  <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
+    <span class="nav-link">
+    <% partial('navicon.ejs', { item }) %><span class="menu-text"><%- item.text %></span>
+    </span>
+  </li>  
+<% } %>
 <% } %>
 

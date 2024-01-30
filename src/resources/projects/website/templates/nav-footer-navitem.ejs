@@ -1,4 +1,5 @@
 
+<% if (item.draft !== true) {%>
   <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
     <% if (item.href) { %>
     <a class="nav-link" href="<%- item.href %>"<%= item.rel ? ` rel="${item.rel}"` : "" %><%= item.target ? ` target="${item.target}"` : "" %>>
@@ -8,4 +9,4 @@
     </a>
     <% } %>
   </li>  
-
+  <% } %>

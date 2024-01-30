@@ -1410,6 +1410,7 @@ async function resolveItem<
     text?: string;
     icon?: string;
     plainText?: string;
+    draft?: boolean;
   },
 >(
   project: ProjectContext,
@@ -1424,6 +1425,7 @@ async function resolveItem<
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
+        draft: resolved.draft,
       };
 
       const projType = projectType(project.config?.project?.[kProjectType]);

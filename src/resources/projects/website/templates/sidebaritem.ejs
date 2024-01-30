@@ -1,3 +1,5 @@
+
+<% if (item.draft !== true) {%>
 <% if (item.href && item.text && !item.contents) { %>
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
@@ -41,4 +43,5 @@
   <li class="sidebar-item">
     <% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span>
   </li>
+<% } %>
 <% } %>

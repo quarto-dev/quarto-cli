@@ -1,9 +1,8 @@
 /*
-* website-sidebar-auto.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-sidebar-auto.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { basename, join, relative } from "path/mod.ts";
 import { kOrder } from "../../../config/constants.ts";
@@ -96,7 +95,7 @@ function globbedDirectory(project: ProjectContext, contentsGlob: string) {
 // arrays -- here we fix it all up
 function normalizeSidebarItems(items: SidebarItem[]) {
   if (!Array.isArray(items)) {
-    if (typeof (items) === "string") {
+    if (typeof items === "string") {
       if (items === "auto") {
         items = [{ auto: true }];
       } else {
@@ -114,7 +113,7 @@ async function sidebarItemsFromAuto(
   auto: boolean | string | string[],
 ): Promise<SidebarItem[]> {
   // is this a single directory that exists
-  const isAutoDir = typeof (auto) === "string" &&
+  const isAutoDir = typeof auto === "string" &&
     !!auto.match(/^[^\*]+$/) &&
     safeExistsSync(join(project.dir, auto));
 
@@ -153,7 +152,7 @@ function globsFromAuto(
 ) {
   // list of globs from auto
   const globs: string[] = [];
-  if (typeof (auto) === "boolean") {
+  if (typeof auto === "boolean") {
     if (auto === true) {
       globs.push("*");
     }
@@ -228,6 +227,7 @@ type Entry = {
   href?: string;
   order?: number;
   empty?: boolean;
+  draft?: boolean;
   children?: Entry[];
 };
 
@@ -334,15 +334,17 @@ function sortEntries(a: Entry, b: Entry) {
 
 async function entryFromHref(project: ProjectContext, href: string) {
   const index = await inputTargetIndex(project, href);
+  const resolved = await resolveInputTarget(project, href);
   const basename = dirAndStem(href)[1];
   return {
     title: index?.title ||
-      (await resolveInputTarget(project, href))?.title ||
+      resolved?.title ||
       titleFromPath(basename),
     basename,
     href: href,
     order: asNumber(index?.markdown.yaml?.[kOrder]),
     empty: index ? inputTargetIsEmpty(index) : false,
+    draft: resolved?.draft,
   };
 }
 
@@ -367,6 +369,7 @@ function sidebarItemsFromEntries(entries: Entry[]): SidebarItem[] {
       return {
         text: entry.title,
         href: entry.href,
+        draft: entry.draft,
       };
     }
   });
