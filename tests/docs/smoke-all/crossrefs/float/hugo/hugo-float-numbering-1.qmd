@@ -10,9 +10,9 @@ _quarto:
     hugo-md:
       ensureFileRegexMatches:
         - 
-          - "Figure&nbsp;x: Elephant"
-          - "Table&nbsp;A: My Caption"
-          - "Figure&nbsp;y: Famous Elephants"
+          - "Figure x: Elephant" # NB: there's a non-breaking space in there
+          - "Table A: My Caption" # same
+          - "Figure y: Famous Elephants" # same
           - "\\(i\\) Surus"
           - "\\(ii\\) Abbas"
 ---

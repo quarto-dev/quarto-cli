@@ -280,8 +280,57 @@ if os.getenv("LUA_TESTING") ~= nil then
   print("Tests passed")
 end
 
+-- replace multi-character code points with an escaped version
+-- that contains an UUID that we can use to restore the original
+-- without worrying about collisions from user code that uses
+-- the same escape syntax
+local function escape_unicode(txt)
+  local result = {}
+  for _, c in utf8.codes(txt) do
+    if c > 127 then
+      table.insert(result, string.format("cf5733e5-0370-4aae-8689-61bad1dd9ec0&#x%x;", c))
+    else
+      table.insert(result, utf8.char(c))
+    end
+  end
+  return table.concat(result, "")
+end
+
+-- replace escaped code points with their unescaped version
+local function unescape_unicode(txt)
+  return txt:gsub("cf5733e5%-0370%-4aae%-8689%-61bad1dd9ec0&#x([0-9a-fA-F]+);", function (c)
+    return utf8.char(tonumber(c, 16))
+  end)
+end
+
+local function wrap_lpeg_match(pattern, txt)
+  txt = escape_unicode(txt)
+  txt = pattern:match(txt)
+  if txt == nil then
+    return nil
+  end
+  txt = unescape_unicode(txt)
+  return txt
+end
+
 return {
-  md_shortcode = md_shortcode,
+  lpegs = {
+    md_shortcode = md_shortcode,
+    unshortcode = unshortcode -- for undoing shortcodes in non-markdown contexts
+  },
+
+  parse_md_shortcode = function(txt)
+    return wrap_lpeg_match(md_shortcode, txt)
+  end,
+
+  -- use this to undo shortcode parsing in non-markdown contexts
+  unparse_md_shortcode = function(txt)
+    return wrap_lpeg_match(unshortcode, txt)
+  end,
+
   make_shortcode_parser = make_shortcode_parser,
-  unshortcode = unshortcode -- for undoing shortcodes in non-markdown contexts
+
+  -- use this to safely call an lpeg pattern with a string
+  -- that contains multi-byte code points
+  wrap_lpeg_match = wrap_lpeg_match
 }

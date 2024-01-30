@@ -7267,6 +7267,52 @@ try {
             description: {
               short: "Context to execute cell within."
             }
+          },
+          {
+            name: "content",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              enum: [
+                "valuebox",
+                "sidebar",
+                "toolbar"
+              ]
+            },
+            description: {
+              short: "The type of dashboard element being produced by this code cell."
+            }
+          },
+          {
+            name: "color",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  enum: [
+                    "primary",
+                    "secondary",
+                    "success",
+                    "info",
+                    "warning",
+                    "danger",
+                    "light",
+                    "dark"
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "For code cells that produce a valuebox, the color of the valuebox.s"
+            }
           }
         ],
         "schema/cell-codeoutput.yml": [
@@ -8513,6 +8559,29 @@ try {
             }
           },
           {
+            id: "giscus-themes",
+            enum: {
+              values: [
+                "light",
+                "light_high_contrast",
+                "light_protanopia",
+                "light_tritanopia",
+                "dark",
+                "dark_high_contrast",
+                "dark_protanopia",
+                "dark_tritanopia",
+                "dark_dimmed",
+                "transparent_dark",
+                "cobalt",
+                "purple_dark",
+                "noborder_light",
+                "noborder_dark",
+                "noborder_gray",
+                "preferred_color_scheme"
+              ]
+            }
+          },
+          {
             id: "comments",
             anyOf: [
               {
@@ -8651,37 +8720,38 @@ try {
                             anyOf: [
                               "string",
                               {
-                                enum: [
-                                  "light",
-                                  "light_high_contrast",
-                                  "light_protanopia",
-                                  "dark",
-                                  "dark_high_contrast",
-                                  "dark_protanopia",
-                                  "dark_dimmed",
-                                  "transparent_dark",
-                                  "preferred_color_scheme"
-                                ]
+                                ref: "giscus-themes"
                               },
                               {
                                 object: {
                                   closed: true,
                                   properties: {
                                     light: {
-                                      string: {
-                                        description: "The light theme name."
-                                      }
+                                      anyOf: [
+                                        "string",
+                                        {
+                                          ref: "giscus-themes"
+                                        }
+                                      ],
+                                      description: "The light theme name."
                                     },
                                     dark: {
-                                      string: {
-                                        description: "The dark theme name."
-                                      }
+                                      anyOf: [
+                                        "string",
+                                        {
+                                          ref: "giscus-themes"
+                                        }
+                                      ],
+                                      description: "The dark theme name."
                                     }
                                   }
                                 }
                               }
                             ],
-                            description: "The giscus theme to use when displaying comments."
+                            description: {
+                              short: "The giscus theme to use when displaying comments.",
+                              long: "The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: \n\n```yaml\nwebsite:\n  comments:\n    giscus:\n      light: light # giscus theme used for light website theme\n      dark: dark_dimmed # giscus theme used for dark website theme\n```\n"
+                            }
                           },
                           language: {
                             string: {
@@ -9329,6 +9399,45 @@ try {
                     }
                   ],
                   description: "Enable Google Analytics for this website"
+                },
+                announcement: {
+                  anyOf: [
+                    "string",
+                    {
+                      object: {
+                        properties: {
+                          content: {
+                            schema: "string",
+                            description: "The content of the announcement"
+                          },
+                          dismissable: {
+                            schema: "boolean",
+                            description: "Whether this announcement may be dismissed by the user."
+                          },
+                          icon: {
+                            schema: "string",
+                            description: "The icon to display in the annoucement"
+                          },
+                          type: {
+                            schema: {
+                              enum: [
+                                "primary",
+                                "secondary",
+                                "success",
+                                "danger",
+                                "warning",
+                                "info",
+                                "light",
+                                "dark"
+                              ]
+                            },
+                            description: "The type of announcement. Affects the appearance of the announcement."
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  description: "Provides an announcement displayed at the top of the page."
                 },
                 "cookie-consent": {
                   anyOf: [
@@ -15030,7 +15139,7 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Enable or disable lightbox treatment for images in this document."
+            description: "Enable or disable lightbox treatment for images in this document. See [Lightbox Figures](https://quarto.org/docs/output-formats/html-lightbox-figures.html) for more details."
           }
         ],
         "schema/document-links.yml": [
@@ -15727,6 +15836,16 @@ try {
               ]
             },
             description: "Theme name, theme scss file, or a mix of both."
+          },
+          {
+            name: "body-classes",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: "string",
+            description: "Classes to apply to the body of the document.\n"
           },
           {
             name: "minimal",
@@ -16541,6 +16660,18 @@ try {
             description: "Specify which nodes should be run interactively (displaying output from expressions)\n"
           },
           {
+            name: "plotly-connected",
+            schema: "boolean",
+            default: false,
+            tags: {
+              contexts: [
+                "document-execute"
+              ],
+              engine: "jupyter"
+            },
+            description: 'If true, use the "notebook_connected" plotly renderer, which downloads\nits dependencies from a CDN and requires an internet connection to view.\n'
+          },
+          {
             name: "keep-typ",
             tags: {
               formats: [
@@ -16614,6 +16745,17 @@ try {
               ]
             },
             description: "If `none`, do not process tables in HTML input."
+          },
+          {
+            name: "use-rsvg-convert",
+            schema: "boolean",
+            default: true,
+            tags: {
+              formats: [
+                "$pdf-all"
+              ]
+            },
+            description: "If `true`, attempt to use `rsvg-convert` to convert SVG images to PDF."
           }
         ],
         "schema/document-reveal-content.yml": [
@@ -18519,6 +18661,9 @@ try {
             figures: {
               title: "Figures"
             },
+            lightbox: {
+              title: "Lightbox Figures"
+            },
             tables: {
               title: "Tables"
             },
@@ -19373,7 +19518,10 @@ try {
           "Display reactions for the discussion\u2019s main post before the\ncomments.",
           "Specify <code>loading: lazy</code> to defer loading comments until\nthe user scrolls near the comments container.",
           "Place the comment input box above or below the comments.",
-          "The giscus theme to use when displaying comments.",
+          {
+            short: "The giscus theme to use when displaying comments.",
+            long: "The giscus theme to use when displaying comments. Light and dark\nthemes are supported. If a single theme is provided by name, it will be\nused as light and dark theme. To use different themes, use\n<code>light</code> and <code>dark</code> key:"
+          },
           "The light theme name.",
           "The dark theme name.",
           "The language that should be used when displaying the commenting\ninterface.",
@@ -19525,6 +19673,11 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19580,6 +19733,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -19659,6 +19813,11 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19714,6 +19873,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -20499,6 +20659,14 @@ try {
           },
           {
             short: "Context to execute cell within.",
+            long: ""
+          },
+          {
+            short: "The type of dashboard element being produced by this code cell.",
+            long: ""
+          },
+          {
+            short: "For code cells that produce a valuebox, the color of the\nvaluebox.s",
             long: ""
           },
           {
@@ -21291,7 +21459,7 @@ try {
           "The base url for s5 presentations.",
           "The base url for Slidy presentations.",
           "The base url for Slideous presentations.",
-          "Enable or disable lightbox treatment for images in this document.",
+          'Enable or disable lightbox treatment for images in this document. See\n<a href="https://quarto.org/docs/output-formats/html-lightbox-figures.html">Lightbox\nFigures</a> for more details.',
           {
             short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
             long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
@@ -21402,6 +21570,7 @@ try {
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
+          "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
@@ -21528,6 +21697,7 @@ try {
           "Keep the notebook file generated from executing code.",
           "Filters to pre-process ipynb files before rendering to markdown",
           "Specify which nodes should be run interactively (displaying output\nfrom expressions)",
+          "If true, use the \u201Cnotebook_connected\u201D plotly renderer, which\ndownloads its dependencies from a CDN and requires an internet\nconnection to view.",
           "Keep the intermediate typst file used during render.",
           "Keep the intermediate tex file used during render.",
           {
@@ -21548,6 +21718,7 @@ try {
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
           "If <code>none</code>, do not process tables in HTML input.",
+          "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
           "Logo image (placed in bottom right corner of slides)",
           {
             short: "Footer to include on all slides",
@@ -21831,6 +22002,11 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -21886,6 +22062,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -22149,6 +22326,11 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22204,6 +22386,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -22640,15 +22823,16 @@ try {
             "(*",
             "*)"
           ],
+          rust: "//",
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180612,
+          _internalId: 181570,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180604,
+              _internalId: 181562,
               type: "enum",
               enum: [
                 "png",
@@ -22664,7 +22848,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180611,
+              _internalId: 181569,
               type: "anyOf",
               anyOf: [
                 {
@@ -31833,7 +32017,8 @@ ${tidyverseInfo(
     dot: "//",
     ojs: "//",
     apl: "\u235D",
-    ocaml: ["(*", "*)"]
+    ocaml: ["(*", "*)"],
+    rust: "//"
   };
   function escapeRegExp(str2) {
     return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

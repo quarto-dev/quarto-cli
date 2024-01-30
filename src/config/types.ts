@@ -11,6 +11,7 @@ import {
   kArticleNotebookLabel,
   kBackToTop,
   kBaseFormat,
+  kBodyClasses,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
@@ -228,6 +229,7 @@ import {
   kToolsDownload,
   kToolsShare,
   kTopLevelDivision,
+  kUseRsvgConvert,
   kValidateYaml,
   kVariables,
   kVariant,
@@ -342,6 +344,7 @@ export interface NotebookPreviewDescriptor {
   url?: string;
   title?: string;
   [kDownloadUrl]?: string;
+  order?: number;
 }
 
 export interface FormatExtras {
@@ -479,8 +482,10 @@ export interface FormatRender {
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
   [kHtmlTableProcessing]?: "none";
+  [kUseRsvgConvert]?: boolean;
   [kValidateYaml]?: boolean;
   [kCanonicalUrl]?: boolean | string;
+  [kBodyClasses]?: string;
 }
 
 export interface FormatExecute {

@@ -1,0 +1,21 @@
+---
+title: "Plot Test"
+format: docusaurus-md
+code-line-numbers: true
+knitr:
+  opts_chunk: 
+      eval: false
+---
+
+# with line number comment {#with-numbering}
+
+```{r}
+1 + 2
+```
+
+# no line number comment {#no-numbering}
+
+```{r}
+#| code-line-numbers: false
+1 + 2
+```

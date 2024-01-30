@@ -52,7 +52,7 @@
         "ControlFlow": {
             "text-color": "#003B4F",
             "background-color": null,
-            "bold": false,
+            "bold": true,
             "italic": false,
             "underline": false
         },
@@ -206,7 +206,7 @@
         "Keyword": {
             "text-color": "#003B4F",
             "background-color": null,
-            "bold": false,
+            "bold": true,
             "italic": false,
             "underline": false
         }

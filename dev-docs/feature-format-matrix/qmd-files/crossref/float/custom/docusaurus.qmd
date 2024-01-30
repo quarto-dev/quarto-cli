@@ -1,0 +1,23 @@
+---
+title: Custom crossrefs
+crossref:
+  custom:
+    - kind: float
+      key: dia
+      reference-prefix: Diagram
+---
+
+::: {#dia-1}
+
+```{mermaid}
+flowchart LR
+  A[Hard edge] --> B(Round edge)
+  B --> C{Decision}
+  C --> D[Result one]
+  C --> E[Result two]
+```
+
+A Mermaid diagram with a caption.
+:::
+
+See @dia-1.

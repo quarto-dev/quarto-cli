@@ -88,6 +88,9 @@ local function run_emulated_filter_chain(doc, filters, afterFilterPass, profilin
         if profiling then
           profiler.category = ""
         end
+        if os.getenv("QUARTO_FLUSH_TRACE") then
+          end_trace()
+        end
         -- luacov: enable
       end
     end

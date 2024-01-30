@@ -353,6 +353,7 @@ export const kLangCommentChars: Record<string, string | [string, string]> = {
   ojs: "//",
   apl: "⍝",
   ocaml: ["(*", "*)"],
+  rust: "//",
 };
 
 function escapeRegExp(str: string) {

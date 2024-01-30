@@ -19,6 +19,7 @@ import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kBodyClasses,
   kCodeLink,
   kFigResponsive,
   kFilterParams,
@@ -640,6 +641,14 @@ function htmlFormatPostprocessor(
     : format.metadata[kAnchorSections] || false;
 
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // Add body class, if present
+    if (format.render[kBodyClasses]) {
+      const clz = format.render[kBodyClasses].split(" ");
+      clz.forEach((cls) => {
+        doc.body.classList.add(cls);
+      });
+    }
+
     // process all of the code blocks
     const codeBlocks = doc.querySelectorAll("pre.sourceCode");
     for (let i = 0; i < codeBlocks.length; i++) {

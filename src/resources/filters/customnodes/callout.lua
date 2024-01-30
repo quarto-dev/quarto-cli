@@ -276,18 +276,20 @@ function calloutDiv(node)
     title = quarto.utils.as_inlines(pandoc.Plain(displayName(node.type)))
   end
 
-  local identifier = node.attr.identifier
-  if identifier ~= "" then
-    node.attr.identifier = ""
-    -- inject an anchor so callouts can be linked to
-    local attr = pandoc.Attr(identifier, {}, {})
-    local anchor = pandoc.Link({}, "", "", attr)
-    title:insert(1, anchor)
-  end
-
   -- Make an outer card div and transfer classes and id
   local calloutDiv = pandoc.Div({})
   calloutDiv.attr = node.attr:clone()
+
+  local identifier = node.attr.identifier
+  if identifier ~= "" then
+    node.attr.identifier = ""
+    calloutDiv.attr.identifier = identifier
+    -- inject an anchor so callouts can be linked to
+    -- local attr = pandoc.Attr(identifier, {}, {})
+    -- local anchor = pandoc.Link({}, "", "", attr)
+    -- title:insert(1, anchor)
+  end
+
   div.attr.classes = pandoc.List() 
   div.attr.classes:insert("callout-body-container")
 

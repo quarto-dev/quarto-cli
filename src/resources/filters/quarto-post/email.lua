@@ -13,7 +13,8 @@ Extension for generating email components needed for Posit Connect
    we must also include mime type information
 5. Generates a JSON file (.output_metadata.json) which contains specific email message
    components that Posit Connect expects for its own email generation code
-6. Produces a local `email-preview.html` file for previewing the HTML email
+6. Produces a local `index.html` file that contains the HTML email for previewing purposes
+   (this can be disabled by setting `email-preview: false` in the YAML header)
 --]]
 
 -- Get the file extension of any file residing on disk
@@ -188,8 +189,12 @@ local subject = nil
 local email_images = {}
 local image_tbl = {}
 local suppress_scheduled_email = false
+local found_email_div = false
 
 function process_meta(meta)
+  if not found_email_div then
+    return
+  end
 
   attachments = {}
 
@@ -205,7 +210,18 @@ function process_meta(meta)
   end
 end
 
+-- Function to check whether a div with the 'email' class is present in the document
+function find_email_div(div)
+  if div.classes:includes("email") then
+    found_email_div = true
+  end
+end
+
 function process_div(div)
+
+  if not found_email_div then
+    return nil
+  end
 
   if div.classes:includes("subject") then
 
@@ -292,6 +308,10 @@ end
 
 function process_document(doc)
 
+  if not found_email_div then
+    return doc
+  end
+
   -- Get the current date and time
   local connect_date_time = os.date("%Y-%m-%d %H:%M:%S")
 
@@ -324,6 +344,13 @@ function process_document(doc)
     connect_report_url,
     connect_report_subscription_url
   )
+
+  -- Right after the </head> tag in `html_preview_body` we need to insert a subject line HTML string;
+  -- this is the string to be inserted:
+  subject_html_preview = "<div style=\"text-align: center; background-color: #fcfcfc; padding-top: 12px; font-size: large;\"><span style=\"margin-left: 25px\"><strong><span style=\"font-variant: small-caps;\">subject: </span></strong>" .. subject .. "</span><hr /></div>"
+
+  -- insert `subject_html_preview` into `html_preview_body` at the aforementioned location
+  html_preview_body = string.gsub(html_preview_body, "</head>", "</head>\n" .. subject_html_preview)
 
   -- For each of the <img> tags we need to create a Base64-encoded representation
   -- of the image and place that into the table `email_images` (keyed by `cid`)
@@ -401,9 +428,9 @@ function process_document(doc)
   local metadata_path_file = pandoc.path.join({dir, ".output_metadata.json"})
   io.open(metadata_path_file, "w"):write(metadata_str):close()
 
-  -- Write the `.email-preview.html` file to the working directory if the option is taken
-  if (meta_email_preview) then
-    quarto._quarto.file.write(pandoc.path.join({dir, "email-preview/email-preview.html"}), html_preview_body)
+  -- Write the `email-preview/index.html` file unless meta_email_preview is false
+  if meta_email_preview ~= false then
+    quarto._quarto.file.write(pandoc.path.join({dir, "email-preview/index.html"}), html_preview_body)
   end
 end
 
@@ -414,8 +441,13 @@ function render_email()
   end
 
   return {
-    Pandoc = process_document,
-    Meta = process_meta,
-    Div = process_div,
+    {
+      Div = find_email_div,
+    },
+    {
+      Pandoc = process_document,
+      Meta = process_meta,
+      Div = process_div,
+    }
   }
 end

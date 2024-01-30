@@ -6,7 +6,7 @@
 
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
-import { info } from "log/mod.ts";
+import { debug, info } from "log/mod.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
 
@@ -43,6 +43,7 @@ export async function execProcess(
     // If the caller asked for stdout/stderr to be directed to the rid of an open
     // file, just allow that to happen. Otherwise, specify piped and we will implement
     // the proper behavior for inherit, etc....
+    debug(`[execProcess] ${options.cmd.join(" ")}`);
     const process = Deno.run({
       ...options,
       stdin: stdin !== undefined ? "piped" : options.stdin,
@@ -159,6 +160,8 @@ export async function execProcess(
     process.close();
 
     processList.delete(thisProcessId);
+
+    debug(`[execProcess] Success: ${status.success}, code: ${status.code}`);
 
     return {
       success: status.success,

@@ -9,8 +9,37 @@ body:
         After checking, if you are not sure if your question has already been asked, please create a new discussion.
         We look forward to hearing from you.
 
-        Finally, try to describe the best you can what you want to achieve or what is your issue, especially by providing a complete self-contained reproducible example (as demonstrated in the below form).
+        Finally, try to describe the best you can what you want to achieve or what is your issue, especially by providing a complete self-contained reproducible example (consider reading our ["Bug Reports" guide](https://quarto.org/bug-reports.html)).
         This will help us to understand your question and answer it.
+
+        `````md
+        ````qmd
+        ---
+        title: "Reproducible Quarto Document"
+        format: html
+        engine: jupyter
+        ---
+
+        This is a reproducible Quarto document using `format: html`.
+        It is written in Markdown and contains embedded Python code.
+        When you run the code, it will produce a message.
+
+        ```{python}
+        print("Hello, world!")
+        ```
+
+        ![A placeholder image](https://placehold.co/600x400.png)
+
+        The end.
+        ````
+        `````
+
+        You can add some additional information that can help us to help you:
+
+        - What Quarto version are you using?  
+          You can find the version of Quarto you used by running `quarto --version` in your terminal.
+        - What operating system are you using?  
+          Linux Ubuntu 20.04, macOS 11.2.3, Windows 10, _etc._
 
         _Thank you for opening this discussion either to ask for help or to report a possible bug!_
   - type: textarea

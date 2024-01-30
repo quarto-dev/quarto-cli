@@ -1,0 +1,7 @@
+**/*_files
+index.html
+index_files
+qmd-files/**/*.html
+qmd-files/**/*.pdf
+qmd-files/**/*.md
+qmd-files/**/*.mdx

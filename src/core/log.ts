@@ -15,7 +15,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
-import { error, getLogger, setup, warning } from "log/mod.ts";
+import { debug, error, getLogger, setup, warning } from "log/mod.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
@@ -39,33 +39,50 @@ export interface LogMessageOptions {
 
 // deno-lint-ignore no-explicit-any
 export function appendLogOptions(cmd: Command<any>): Command<any> {
-  return cmd.option(
-    "--log <file>",
-    "Path to log file",
-    {
-      global: true,
-    },
-  ).option(
-    "--log-level <level>",
-    "Log level (info, warning, error, critical)",
-    {
-      global: true,
-    },
-  )
-    .option(
-      "--log-format <format>",
-      "Log format (plain, json-stream)",
+  const addLogOptions = (cmd: Command<any>) => {
+    return cmd.option(
+      "--log <file>",
+      "Path to log file",
+      {
+        global: true,
+      },
+    ).option(
+      "--log-level <level>",
+      "Log level (info, warning, error, critical)",
       {
         global: true,
       },
     )
-    .option(
-      "--quiet",
-      "Suppress console output.",
-      {
-        global: true,
-      },
-    );
+      .option(
+        "--log-format <format>",
+        "Log format (plain, json-stream)",
+        {
+          global: true,
+        },
+      )
+      .option(
+        "--quiet",
+        "Suppress console output.",
+        {
+          global: true,
+        },
+      );
+  };
+
+  // If there are subcommands, forward the log options
+  // directly to the subcommands. Otherwise, just attach
+  // to the outer command
+  //
+  // Fixes https://github.com/quarto-dev/quarto-cli/issues/8438
+  const subCommands = cmd.getCommands();
+  if (subCommands.length > 0) {
+    subCommands.forEach((command) => {
+      addLogOptions(command);
+    });
+    return cmd;
+  } else {
+    return addLogOptions(cmd);
+  }
 }
 
 export function logOptions(args: Args) {
@@ -334,6 +351,14 @@ export function warnOnce(msg: string) {
   }
 }
 const warnings: Record<string, boolean> = {};
+
+export function debugOnce(msg: string) {
+  if (!debugs[msg]) {
+    debugs[msg] = true;
+    debug(msg);
+  }
+}
+const debugs: Record<string, boolean> = {};
 
 function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {

@@ -320,6 +320,7 @@ function pdfLatexPostProcessor(
       sidecaptionLineProcessor(),
       calloutFloatHoldLineProcessor(),
       tableColumnMarginLineProcessor(),
+      guidsProcessor(),
     ];
 
     if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -608,6 +609,48 @@ const kMatchLongTableSize = /^(.*)p{\(\\columnwidth - (\d+\\tabcolsep\).*$)/;
 
 const kStartLongTable = /^\\begin{longtable}/;
 const kEndLongTable = /^\\end{longtable}/;
+
+const guidsProcessor = () => {
+  let state: "looking-for-definition-start" | "looking-for-definition-end" =
+    "looking-for-definition-start";
+  const guidDefinitions: [string, string][] = [];
+  let guidBeingProcessed: string | undefined;
+  let guidContents: string[] = [];
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-definition-start": {
+        if (line.startsWith("%quarto-define-uuid: ")) {
+          state = "looking-for-definition-end";
+          line = line.replace(/^%quarto-define-uuid:\s*/, "");
+          guidBeingProcessed = line.trim();
+          return undefined;
+        }
+        for (const [key, value] of guidDefinitions) {
+          line = line.replaceAll(key, value);
+        }
+        return line;
+      }
+      case "looking-for-definition-end": {
+        if (line === "%quarto-end-define-uuid") {
+          state = "looking-for-definition-start";
+          if (guidBeingProcessed === undefined) {
+            throw new Error("guidBeingProcessed is undefined");
+          }
+          guidDefinitions.push([
+            guidBeingProcessed,
+            guidContents.join("").trim(),
+          ]);
+          guidContents = [];
+          guidBeingProcessed = undefined;
+          return undefined;
+        } else {
+          guidContents.push(line);
+          return undefined;
+        }
+      }
+    }
+  };
+};
 
 const tableColumnMarginLineProcessor = () => {
   let state: "looking-for-boundaries" | "looking-for-tables" | "processing" =
@@ -1088,7 +1131,7 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{(.*?)[^\s]+? \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+  /(.*)\\CommentTok\{(.*?)[^\s]+? +\\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
 const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;

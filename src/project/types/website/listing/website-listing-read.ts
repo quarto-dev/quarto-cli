@@ -594,8 +594,8 @@ function hydrateListing(
 
   const listingHydrated: Listing = cloneDeep({
     fields: hydratedFields,
-    [kFieldDisplayNames]: {},
-    [kFieldTypes]: kDefaultFieldTypes,
+    [kFieldDisplayNames]: {}, // default values are merged later
+    [kFieldTypes]: {}, // default values are merged later
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
     [kFieldFilter]: hydratedFields,
@@ -660,7 +660,7 @@ function hydrateListing(
 
   // Merge column types
   listingHydrated[kFieldTypes] = {
-    ...listingHydrated[kFieldTypes],
+    ...kDefaultFieldTypes,
     ...listing[kFieldTypes] as Record<string, ColumnType>,
   };
 
@@ -719,6 +719,12 @@ async function readContents(
     const finalGlobs = expandedGlobs.map((expanded) => {
       return expanded.glob;
     });
+
+    // push a glob excluding the project output directory
+    const outDir = project.config?.project["output-dir"];
+    if (outDir) {
+      finalGlobs.push(`!/${outDir}/**`);
+    }
 
     // Convert a bare directory path into a consumer
     // of everything in the directory

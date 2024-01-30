@@ -153,6 +153,7 @@
 - ([#7699](https://github.com/quarto-dev/quarto-cli/issues/7699)): Properly ignore non-HTML output for listings when project level renders render HTML and other formats (for example, a book of both HTML and PDF format)
 - ([#7290](https://github.com/quarto-dev/quarto-cli/issues/7290)): Add support for `feed:type` of `metadata`, which will use only explicitly provided description metadata when generating an RSS feed. Additionally, note that `partial` feed types will prefer to use an explicit description over the first paragraph, when a description is available.
 - Add support for programmatically filtering content from a listing using `include` or `exclude` with glob syntax to include or exclude specific items from the listing. See <https://github.com/quarto-dev/quarto-cli/commit/d415d9ca5b7cb59a8a4750dd3eeb60116b931bd6s>
+- ([#8197](https://github.com/quarto-dev/quarto-cli/issues/8197)): Custom `field-types` are now correctly merged with default values for website listings.
 
 ## Websites
 
@@ -187,6 +188,7 @@
 - ([#7754](https://github.com/quarto-dev/quarto-cli/issues/7754)): Use the site title as the html `title` for a page if no other title is available.
 - ([#8083](https://github.com/quarto-dev/quarto-cli/issues/8083)): Improve About Page layouts when a sidebar is present
 - ([#8150](https://github.com/quarto-dev/quarto-cli/issues/8150)): Correctly support sidebar alignment. Default sidebar text alignment to left.
+- ([#8166](https://github.com/quarto-dev/quarto-cli/issues/8166)): Properly discover 'image' property as a resource when using a project path.
 
 ## Website Search
 
@@ -384,5 +386,5 @@
 - ([#7502](https://github.com/quarto-dev/quarto-cli/pull/7502)): Correct `execute-debug` help text
 - ([#7674](https://github.com/quarto-dev/quarto-cli/pull/7674)): Configure font paths for TinyTeX after installation so that `xetex` can find custom fonts correctly.
 - ([#7675](https://github.com/quarto-dev/quarto-cli/pull/7675)): On Windows, `quarto install tinytex` will install TinyTeX to the directory defined by the environment variable `ProgramData` when `APPDATA` is not a suitable location for TeX Live.
-- ([#7793](https://github.com/quarto-dev/quarto-cli/issues/7793)): When a project render list includes only negative globs, use those to filter out the default render list.
 - ([#8086](https://github.com/quarto-dev/quarto-cli/issues/8086)): Add support for indexing array metadata in `meta` shortcode.
+- ([#8245](https://github.com/quarto-dev/quarto-cli/issues/8245)): On Windows, prevent Quarto error due to access issue when trying to read codepage from registry.

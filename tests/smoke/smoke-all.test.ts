@@ -24,6 +24,7 @@ import {
   ensureOdtXpath,
   ensurePptxRegexMatches,
   ensureTypstFileRegexMatches,
+  ensureSnapshotMatches,
   fileExists,
   noErrors,
   noErrorsOrWarnings,
@@ -96,6 +97,7 @@ function resolveTestSpecs(
     ensureOdtXpath,
     ensureJatsXpath,
     ensurePptxRegexMatches,
+    ensureSnapshotMatches
   };
 
   for (const [format, testObj] of Object.entries(specs)) {
@@ -130,7 +132,11 @@ function resolveTestSpecs(
               }
             }
           } else if (verifyMap[key]) {
-            verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+            if (typeof value === "object") {
+              verifyFns.push(verifyMap[key](outputFile.outputPath, ...value));
+            } else {
+              verifyFns.push(verifyMap[key](outputFile.outputPath, value));
+            }
           }
         }
       }

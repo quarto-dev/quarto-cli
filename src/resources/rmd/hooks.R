@@ -956,7 +956,8 @@ engine_comment_chars <- function(engine) {
     haskell = "--",
     dot = "//",
     apl = "\u235D",
-    ocaml = c("(*", "*)")
+    ocaml = c("(*", "*)"),
+    rust = "//"
   )
   comment_chars[[engine]] %||% "#"
 }
