@@ -9976,6 +9976,25 @@ var require_yaml_intelligence_resources = __commonJS({
                   ]
                 },
                 description: "A list of code links to appear with this document."
+              },
+              drafts: {
+                schema: {
+                  maybeArrayOf: "path"
+                },
+                description: "A list of input documents that should be treated as drafts"
+              },
+              "draft-mode": {
+                schema: {
+                  enum: [
+                    "visible",
+                    "unlinked",
+                    "gone"
+                  ]
+                },
+                description: {
+                  short: "How to handle drafts that are encountered.",
+                  long: "How to handle drafts that are encountered.\n\n`visible` - the draft will visible and fully available\n`unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.\n`gone` - the draft will have no content and will not be linked to.\n"
+                }
               }
             }
           }
@@ -22839,12 +22858,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 182e3,
+        _internalId: 182013,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 181992,
+            _internalId: 182005,
             type: "enum",
             enum: [
               "png",
@@ -22860,7 +22879,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 181999,
+            _internalId: 182012,
             type: "anyOf",
             anyOf: [
               {
