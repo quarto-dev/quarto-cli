@@ -43,10 +43,15 @@ const readAndNormalizeNewlines = (file: string) => {
   return normalizeNewlines(Deno.readTextFileSync(file));
 }
 
-export const checkSnapshot = async (file: string) => {
-  const ext = extname(file).slice(1);
+export const canonicalizeSnapshot = async (file: string) => {
+  const baseName = file.endsWith(".snapshot") ? file.slice(0, -9) : file;
+  const ext = extname(baseName).slice(1);
   const canonicalizer = canonicalizers[ext] || readAndNormalizeNewlines;
-  const outputCanonical = await canonicalizer(file);
-  const snapshotCanonical = await canonicalizer(file + ".snapshot");
-  return outputCanonical === snapshotCanonical
+  return await canonicalizer(file);
+}
+
+export const checkSnapshot = async (file: string) => {
+  const outputCanonical = await canonicalizeSnapshot(file);
+  const snapshotCanonical = await canonicalizeSnapshot(file + ".snapshot");
+  return outputCanonical === snapshotCanonical;
 }
