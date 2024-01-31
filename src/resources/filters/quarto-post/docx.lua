@@ -3,6 +3,7 @@
 --
 -- renders AST nodes to docx
 
+local constants = require("modules/constants")
 
 local function calloutDocxDefault(node, type, hasIcon)
   local title = quarto.utils.as_inlines(node.title)
@@ -45,8 +46,11 @@ local function calloutDocxDefault(node, type, hasIcon)
   })
 
   -- Create a title if there isn't already one
-  if title == nil then
-    title = pandoc.List({pandoc.Str(displayName(type))})
+  -- if title == nil then
+  --   title = pandoc.List({pandoc.Str(displayName(type))})
+  -- end
+  if pandoc.utils.stringify(title) == "" then
+    title = quarto.utils.as_inlines(pandoc.Plain(displayName(node.type)))
   end
 
   -- add the image to the title, if needed
@@ -193,18 +197,9 @@ function calloutDocx(node)
   local appearance = node.appearance
   local hasIcon = node.icon 
 
-  if appearance == kCalloutAppearanceDefault then
+  if appearance == constants.kCalloutAppearanceDefault then
     return calloutDocxDefault(node, type, hasIcon)
   else
     return calloutDocxSimple(node, type, hasIcon)
   end
 end
-
--- function render_docx()
---   if not _quarto.format.isDocxOutput() then
---     return {}
---   end
---   return {
---     Callout = calloutDocx
---   }
--- end
