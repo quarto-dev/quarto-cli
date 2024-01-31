@@ -35,3 +35,5 @@ could parse .qmd at the top of the file-handling code, and get rid of all the sp
 ### Future-looking
 
 jgm's [djot](https://github.com/jgm/djot/blob/master/doc/syntax.html) seems perfect for our use cases. .qdj files, anyone?
+
+We already support .ipynb and .py in Jupyter engines, so I think the horse has left the barn in any case.
