@@ -16,7 +16,11 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
-import { removeChapterNumber } from "./website-utils.ts";
+import {
+  projectDraftMode,
+  removeChapterNumber,
+  resolveProjectInputLinks,
+} from "./website-utils.ts";
 import {
   breadCrumbs,
   itemHasNavTarget,
@@ -89,7 +93,6 @@ import {
 import {
   kBackToTopNavigation,
   kBreadCrumbNavigation,
-  kDraftMode,
   kSiteIssueUrl,
   kSiteNavbar,
   kSitePageNavigation,
@@ -139,7 +142,6 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
-import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
 import { navigation } from "./website-shared.ts";
@@ -285,7 +287,7 @@ export async function websiteNavigationExtras(
   const sidebar = sidebarForHref(href, format);
 
   // Forward the draft mode, if present
-  const draftMode = websiteConfigString(kDraftMode, project.config) || "gone";
+  const draftMode = projectDraftMode(project);
 
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),

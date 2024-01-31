@@ -85,6 +85,7 @@ import {
 import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 import { websiteDraftPostProcessor } from "./website-draft.ts";
+import { projectDraftMode } from "./website-utils.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -353,7 +354,7 @@ export const websiteProjectType: ProjectType = {
 
   filterParams: async (options: PandocOptions) => {
     if (options.project) {
-      const draftMode = websiteConfigString(kDraftMode, options.project.config);
+      const draftMode = projectDraftMode(options.project);
       const drafts = websiteConfigArray(kDrafts, options.project.config);
       if (drafts || draftMode) {
         const draftsAbs = (drafts || []).map((path) => {
