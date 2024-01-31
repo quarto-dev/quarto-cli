@@ -112,6 +112,7 @@ import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
+import { isProjectDraft, projectDraftMode } from "../website-utils.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -1055,11 +1056,12 @@ async function listItemFromFile(
     docRawMetadata,
   ) as Metadata;
 
-  // Consult the project draft list
-  // We also look at the document metadata here directly
-  // since the index may not yet be populated when the listing
-  // is resolved
-  if (documentMeta?.draft || target?.draft) {
+  // Consult the website project draft list directly here
+  // since this is occuring before the input index
+  // is populated.
+  const projectDraft = isProjectDraft(projectRelativePath, project);
+  const draftMode = projectDraftMode(project);
+  if (draftMode !== "visible" && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
