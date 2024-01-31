@@ -11,6 +11,7 @@ import { dirAndStem } from "../../../core/path.ts";
 import { contentType } from "../../../core/mime.ts";
 
 import {
+  InputTarget,
   kProject404File,
   kProjectLibDir,
   ProjectContext,
@@ -47,8 +48,14 @@ import {
 
 import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
-import { kSiteFavicon, kWebsite } from "./website-constants.ts";
 import {
+  kDraftMode,
+  kDrafts,
+  kSiteFavicon,
+  kWebsite,
+} from "./website-constants.ts";
+import {
+  websiteConfigArray,
   websiteConfigString,
   websiteMetadataFields,
   websiteProjectConfig,
@@ -327,6 +334,17 @@ export const websiteProjectType: ProjectType = {
       incremental,
       websiteOutputFiles(outputFiles),
     );
+  },
+
+  filterInputTarget: (inputTarget: InputTarget, context: ProjectContext) => {
+    const drafts = websiteConfigArray(kDrafts, context.config);
+    const isDraft = drafts?.some((val) => {
+      return val === inputTarget.input;
+    });
+    if (isDraft) {
+      inputTarget.draft = true;
+    }
+    return inputTarget;
   },
 };
 

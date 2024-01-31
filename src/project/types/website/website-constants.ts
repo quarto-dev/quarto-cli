@@ -35,6 +35,9 @@ export const kMarginFooter = "margin-footer";
 export const kBodyHeader = "body-header";
 export const kBodyFooter = "body-footer";
 
+export const kDrafts = "drafts";
+export const kDraftMode = "draft-mode";
+
 export const kAnnouncement = "announcement";
 
 export const kContents = "contents";
