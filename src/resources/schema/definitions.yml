@@ -751,6 +751,10 @@
                 icon:
                   schema: string
                   description: "The icon to display in the annoucement"
+                position:
+                  schema:
+                    enum: ["above-navbar", "below-navbar"]
+                  description: "The position of the announcement."
                 type:
                   schema:
                     enum:

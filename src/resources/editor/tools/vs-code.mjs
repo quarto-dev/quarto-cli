@@ -9417,6 +9417,15 @@ var require_yaml_intelligence_resources = __commonJS({
                           schema: "string",
                           description: "The icon to display in the annoucement"
                         },
+                        position: {
+                          schema: {
+                            enum: [
+                              "above-navbar",
+                              "below-navbar"
+                            ]
+                          },
+                          description: "The position of the announcement."
+                        },
                         type: {
                           schema: {
                             enum: [
@@ -22826,12 +22835,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 181570,
+        _internalId: 181995,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 181562,
+            _internalId: 181987,
             type: "enum",
             enum: [
               "png",
@@ -22847,7 +22856,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 181569,
+            _internalId: 181994,
             type: "anyOf",
             anyOf: [
               {

@@ -439,6 +439,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     content?: string;
     dismissable?: boolean;
     icon?: string;
+    position?: "above-navbar" | "below-navbar";
     type?:
       | "primary"
       | "secondary"

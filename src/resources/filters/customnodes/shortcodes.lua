@@ -225,8 +225,6 @@ function shortcodes_filter()
       end
       local result = callShortcodeHandler(handler, shortcode_struct)
       return pandoc.utils.stringify(result) 
-    
-      -- return "<<<" .. table.concat(lst, " ") .. ">>>"
     end, 
   })
   local filter
@@ -246,9 +244,7 @@ function shortcodes_filter()
   local inline_handler = function(custom_data, node)
     local result, struct = handle_shortcode(custom_data, node)
     local r1 = shortcodeResultAsInlines(result, struct.name, custom_data)
-    print("r1", r1)
     local r2 = _quarto.ast.walk(r1, filter)
-    print("r2", r2)
     return r2
   end
 
@@ -265,7 +261,7 @@ function shortcodes_filter()
       return
     end
 
-    el.text = code_shortcode:match(el.text)
+    el.text = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.text)
     return el
   end
 
@@ -284,11 +280,11 @@ function shortcodes_filter()
         Shortcode = inline_handler,
         RawInline = code_handler,
         Image = function(el)
-          el.src = code_shortcode:match(el.src)
+          el.src = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.src)
           return el
         end,
         Link = function(el)
-          el.target = code_shortcode:match(el.target)
+          el.target = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.target)
           return el
         end,
         Span = function(el)
