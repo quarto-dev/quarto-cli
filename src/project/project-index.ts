@@ -8,10 +8,14 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import * as ld from "../core/lodash.ts";
 
-import { kProjectType, ProjectContext } from "./types.ts";
+import {
+  InputTarget,
+  InputTargetIndex,
+  kProjectType,
+  ProjectContext,
+} from "./types.ts";
 import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";
-import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 
 import {
   dirAndStem,
@@ -38,13 +42,6 @@ import { projectType } from "./types/project-types.ts";
 import { withRenderServices } from "../command/render/render-services.ts";
 import { RenderServices } from "../command/render/types.ts";
 import { kDraft } from "../format/html/format-html-shared.ts";
-
-export interface InputTargetIndex extends Metadata {
-  title?: string;
-  markdown: PartitionedMarkdown;
-  formats: Record<string, Format>;
-  draft?: boolean;
-}
 
 export async function inputTargetIndex(
   project: ProjectContext,
@@ -266,7 +263,7 @@ export async function resolveInputTarget(
   project: ProjectContext,
   href: string,
   absolute = true,
-) {
+): Promise<InputTarget | undefined> {
   const index = await inputTargetIndex(project, href);
   if (index) {
     const formats = formatsPreferHtml(index.formats) as Record<string, Format>;
@@ -284,7 +281,17 @@ export async function resolveInputTarget(
     const outputHref = pathWithForwardSlashes(
       (absolute ? "/" : "") + join(hrefDir, outputFile),
     );
-    return { title: index.title, outputHref, draft: index.draft === true };
+    const inputTarget = {
+      input: href,
+      title: index.title,
+      outputHref,
+      draft: index.draft === true,
+    };
+    if (projType.filterInputTarget) {
+      return projType.filterInputTarget(inputTarget, project);
+    } else {
+      return inputTarget;
+    }
   } else {
     return undefined;
   }

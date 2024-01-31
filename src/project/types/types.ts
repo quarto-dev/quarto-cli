@@ -16,7 +16,7 @@ import {
   RenderServices,
 } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
-import { ProjectConfig, ProjectContext } from "../types.ts";
+import { InputTarget, ProjectConfig, ProjectContext } from "../types.ts";
 
 export interface ProjectType {
   type: string;
@@ -89,6 +89,7 @@ export interface ProjectType {
       incremental: boolean,
     ) => Promise<void>;
   };
+  filterInputTarget?: (inputTarget: InputTarget, project: ProjectContext) => InputTarget;
   beforeMoveOutput?: (
     context: ProjectContext,
     renderedFiles: RenderResultFile[],
