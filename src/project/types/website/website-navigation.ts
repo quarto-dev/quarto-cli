@@ -89,6 +89,7 @@ import {
 import {
   kBackToTopNavigation,
   kBreadCrumbNavigation,
+  kDraftMode,
   kSiteIssueUrl,
   kSiteNavbar,
   kSitePageNavigation,
@@ -283,6 +284,9 @@ export async function websiteNavigationExtras(
   const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href, format);
 
+  // Forward the draft mode, if present
+  const draftMode = websiteConfigString(kDraftMode, project.config) || "gone";
+
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
     [kTocLocation]: tocLocation(),
@@ -298,6 +302,7 @@ export async function websiteNavigationExtras(
       project.config,
     ),
     announcement: navigation.announcement,
+    draftMode,
   };
 
   // Determine the previous and next page

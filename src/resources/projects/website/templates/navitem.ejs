@@ -1,5 +1,5 @@
 
-<% if (item.draft !== true) {%>
+<% if (draftMode === "visible" || item.draft !== true) {%>
 <% if (item.href) { %>
   <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
     <a class="nav-link" href="<%- item.href %>"<%= item.rel ? ` rel="${item.rel}"` : "" %><%= item.target ? ` target="${item.target}"` : "" %>> <% partial('navicon.ejs', { item }) %><span class="menu-text"><%- item.text %></span></a>
