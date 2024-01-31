@@ -213,13 +213,6 @@ export const ensureTypstFileRegexMatches = (
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
-  const asRegexp = (m: string | RegExp) => {
-    if (typeof m === "string") {
-      return new RegExp(m);
-    } else {
-      return m;
-    }
-  };
   const matches = matchesUntyped.map(asRegexp);
   const noMatches = noMatchesUntyped?.map(asRegexp);
   return {
@@ -279,6 +272,42 @@ export const ensureHtmlElements = (
     },
   };
 };
+
+export const ensureHtmlElementContents = (
+  file: string,
+  selectors: string[],
+  matches: (string | RegExp)[],
+  noMatches: (string | RegExp)[]
+) => {
+  return {
+    name: "Inspecting HTML for Selector Contents",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      selectors.forEach((sel) => {
+        const el = doc.querySelector(sel);
+        if (el !== null) {
+          const contents = el.innerText;
+          matches.forEach((regex) => {
+            assert(
+              asRegexp(regex).test(contents),
+              `Required match ${String(regex)} is missing from selector ${sel}.`,
+            );
+          });
+
+          noMatches.forEach((regex) => {
+            assert(
+              !asRegexp(regex).test(contents),
+              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
+            );
+          });
+  
+        }
+      });
+    },
+  };
+
+}
 
 export const ensureSnapshotMatches = (
   file: string,
@@ -669,4 +698,13 @@ export const ensureMECAValidates = (
       }
     },
   };
+};
+
+
+const asRegexp = (m: string | RegExp) => {
+  if (typeof m === "string") {
+    return new RegExp(m);
+  } else {
+    return m;
+  }
 };
