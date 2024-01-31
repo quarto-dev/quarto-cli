@@ -53,7 +53,6 @@ import {
 import { PandocOptions } from "./types.ts";
 import {
   Format,
-  FormatLanguage,
   FormatPandoc,
   isFilterEntryPoint,
   QuartoFilter,

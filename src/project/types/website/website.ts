@@ -77,7 +77,11 @@ import {
 } from "./listing/website-listing.ts";
 import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
-import { RenderFile, RenderServices } from "../../../command/render/types.ts";
+import {
+  PandocOptions,
+  RenderFile,
+  RenderServices,
+} from "../../../command/render/types.ts";
 import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
 import { websiteDraftPostProcessor } from "./website-draft.ts";
@@ -345,6 +349,23 @@ export const websiteProjectType: ProjectType = {
       inputTarget.draft = true;
     }
     return inputTarget;
+  },
+
+  filterParams: async (options: PandocOptions) => {
+    if (options.project) {
+      const draftMode = websiteConfigString(kDraftMode, options.project.config);
+      const drafts = websiteConfigArray(kDrafts, options.project.config);
+      if (drafts || draftMode) {
+        const draftsAbs = (drafts || []).map((path) => {
+          return join(options.project!.dir, path);
+        });
+        return {
+          [kDraftMode]: draftMode,
+          [kDrafts]: draftsAbs,
+        };
+      }
+    }
+    return undefined;
   },
 };
 
