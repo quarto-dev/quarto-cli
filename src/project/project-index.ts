@@ -344,7 +344,20 @@ export async function inputTargetIndexForOutputFile(
   if (!input) {
     return undefined;
   }
+
   return await inputTargetIndex(
+    project,
+    relative(project.dir, input.file),
+  );
+}
+
+export async function resolveInputTargetForOutputFile(project: ProjectContext, outputRelative: string) {
+  const input = await inputFileForOutputFile(project, outputRelative);
+  if (!input) {
+    return undefined;
+  }
+
+  return await resolveInputTarget(
     project,
     relative(project.dir, input.file),
   );

@@ -59,7 +59,8 @@ import { isHtmlFileOutput } from "../../../config/format.ts";
 import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
 import { breadCrumbs, sidebarForHref } from "./website-shared.ts";
-import { inputTargetIndexForOutputFile } from "../../project-index.ts";
+import { resolveInputTargetForOutputFile } from "../../project-index.ts";
+import { projectDraftMode } from "./website-utils.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -172,15 +173,16 @@ export async function updateSearchIndex(
       );
     }
   }
-
+  
   if (generateIndex) {
+    const draftMode = projectDraftMode(context);
     let updatedSearchDocs: SearchDoc[] = [...searchDocs];
     for (const outputFile of outputFiles) {
       // find file/href
       const file = outputFile.file;
       const href = pathWithForwardSlashes(relative(outputDir, file));
 
-      const index = await inputTargetIndexForOutputFile(
+      const index = await resolveInputTargetForOutputFile(
         context,
         relative(outputDir, outputFile.file),
       );
@@ -189,7 +191,7 @@ export async function updateSearchIndex(
       // if this is excluded then remove and return
       if (
         outputFile.format.metadata[kSearch] === false ||
-        draft === true
+        (draft === true && draftMode !== "visible")
       ) {
         updatedSearchDocs = updatedSearchDocs.filter((doc) => {
           return doc.href !== href &&
