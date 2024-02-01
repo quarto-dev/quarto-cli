@@ -5,6 +5,7 @@
 - ([#8464](https://github.com/quarto-dev/quarto-cli/issues/8464)): Fix a regression where shortcodes were not being expanded recursively.
 - ([#8485](https://github.com/quarto-dev/quarto-cli/issues/8485)): Fix a regression where shortcodes could not Unicode characters with code points above 127.
 - ([#8507](https://github.com/quarto-dev/quarto-cli/issues/8507)): Fix a regression with callout rendering in `docx`.
+- ([#8510](https://github.com/quarto-dev/quarto-cli/issues/8510)): Fix a regression on undocumented behavior with `sidebar.align` instead of `sidebar.alignment` in YAML configuration.
 - ([#8536](https://github.com/quarto-dev/quarto-cli/issues/8536)): Fix a regression with column specifiers in `html`.
 
 ## Languages
