@@ -42,7 +42,7 @@ import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync } from "fs/mod.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
-  julia_cmd: string[];
+  julia_cmd: string;
   oneShot: boolean; // if true, the file's worker process is closed before and after running
   supervisor_pid?: number;
 }
@@ -119,7 +119,7 @@ export const juliaEngine: ExecutionEngine = {
     };
 
     const juliaExecOptions: JuliaExecuteOptions = {
-      julia_cmd: ["julia"],
+      julia_cmd: Deno.env.get("QUARTO_JULIA") ?? "julia",
       oneShot: !executeDaemon,
       supervisor_pid: options.previewServer ? Deno.pid : undefined,
       ...execOptions,
@@ -238,9 +238,8 @@ async function startOrReuseJuliaServer(
     // run anything was written to stderr. This goes away when redirecting stderr to
     // a file on the julia side, but also when using Deno.Command which is recommended
     // as a replacement for the old Deno.run anyway.
-    const command = new Deno.Command(options.julia_cmd[0], {
+    const command = new Deno.Command(options.julia_cmd, {
       args: [
-        ...(options.julia_cmd.slice(1)),
         `--project=${juliaRuntimeDir()}`,
         resourcePath("julia/quartonotebookrunner.jl"),
         transportFile,
@@ -265,9 +264,8 @@ async function ensureQuartoNotebookRunnerEnvironment(
   const projectTomlTemplate = juliaResourcePath("Project.toml");
   const projectToml = join(juliaRuntimeDir(), "Project.toml");
   Deno.copyFileSync(projectTomlTemplate, projectToml);
-  const command = new Deno.Command(options.julia_cmd[0], {
+  const command = new Deno.Command(options.julia_cmd, {
     args: [
-      ...(options.julia_cmd.slice(1)),
       `--project=${juliaRuntimeDir()}`,
       juliaResourcePath("ensure_environment.jl"),
     ],
