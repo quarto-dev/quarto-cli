@@ -25,7 +25,7 @@ import {
   inputTargetIsEmpty,
   resolveInputTargetForOutputFile,
 } from "../../project-index.ts";
-import { projectDraftMode } from "./website-utils.ts";
+import { isDraftVisible, projectDraftMode } from "./website-utils.ts";
 
 export async function updateSitemap(
   context: ProjectContext,
@@ -170,7 +170,7 @@ async function readSitemap(sitemapPath: string): Promise<Urlset> {
 
 function writeSitemap(sitemapPath: string, urlset: Urlset, draftMode: string) {
   const nonDraftUrls = urlset.filter((url) =>
-    !url.draft || draftMode === "visible"
+    !url.draft || isDraftVisible(draftMode)
   );
   const sitemap = renderEjs(
     resourcePath(

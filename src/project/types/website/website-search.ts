@@ -60,7 +60,7 @@ import { projectIsBook } from "../../project-shared.ts";
 import { encodeHtml } from "../../../core/html.ts";
 import { breadCrumbs, sidebarForHref } from "./website-shared.ts";
 import { resolveInputTargetForOutputFile } from "../../project-index.ts";
-import { projectDraftMode } from "./website-utils.ts";
+import { isDraftVisible, projectDraftMode } from "./website-utils.ts";
 
 // The main search key
 export const kSearch = "search";
@@ -191,7 +191,7 @@ export async function updateSearchIndex(
       // if this is excluded then remove and return
       if (
         outputFile.format.metadata[kSearch] === false ||
-        (draft === true && draftMode !== "visible")
+        (draft === true && !isDraftVisible(draftMode))
       ) {
         updatedSearchDocs = updatedSearchDocs.filter((doc) => {
           return doc.href !== href &&

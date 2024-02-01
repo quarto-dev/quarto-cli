@@ -43,6 +43,10 @@ export function projectDraftMode(project: ProjectContext) {
   return draftMode || "unlinked";
 }
 
+export function isDraftVisible(draftMode: string) {
+  return draftMode === "visible" || draftMode === "preview";
+}
+
 export async function resolveProjectInputLinks(
   source: string,
   project: ProjectContext,
@@ -82,7 +86,7 @@ export async function resolveProjectInputLinks(
         };
 
       if (resolved) {
-        if (resolved.draft && draftMode !== "visible") {
+        if (resolved.draft && !isDraftVisible(draftMode)) {
           link.replaceWith(link.innerHTML);
         } else {
           link.setAttribute("href", offset + resolved.outputHref + hash);

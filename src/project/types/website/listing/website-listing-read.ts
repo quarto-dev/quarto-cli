@@ -112,7 +112,11 @@ import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
-import { isProjectDraft, projectDraftMode } from "../website-utils.ts";
+import {
+  isDraftVisible,
+  isProjectDraft,
+  projectDraftMode,
+} from "../website-utils.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -1062,7 +1066,7 @@ async function listItemFromFile(
   const projectDraft = isProjectDraft(projectRelativePath, project);
   const draftMode = projectDraftMode(project);
   console.log({ draftMode, projectDraft });
-  if (draftMode !== "visible" && (documentMeta?.draft || projectDraft)) {
+  if (!isDraftVisible(draftMode) && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
