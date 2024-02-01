@@ -333,8 +333,11 @@ function sortEntries(a: Entry, b: Entry) {
 }
 
 async function entryFromHref(project: ProjectContext, href: string) {
-  const index = await inputTargetIndex(project, href);
-  const resolved = await resolveInputTarget(project, href);
+  const index = await inputTargetIndex(project, pathWithForwardSlashes(href));
+  const resolved = await resolveInputTarget(
+    project,
+    pathWithForwardSlashes(href),
+  );
   const basename = dirAndStem(href)[1];
   return {
     title: index?.title ||

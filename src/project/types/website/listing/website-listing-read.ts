@@ -1037,11 +1037,11 @@ async function listItemFromFile(
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
   );
   const inputTarget = await resolveInputTarget(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
     false,
   );
 
@@ -1061,6 +1061,7 @@ async function listItemFromFile(
   // is populated.
   const projectDraft = isProjectDraft(projectRelativePath, project);
   const draftMode = projectDraftMode(project);
+  console.log({ draftMode, projectDraft });
   if (draftMode !== "visible" && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;

@@ -351,7 +351,10 @@ export async function inputTargetIndexForOutputFile(
   );
 }
 
-export async function resolveInputTargetForOutputFile(project: ProjectContext, outputRelative: string) {
+export async function resolveInputTargetForOutputFile(
+  project: ProjectContext,
+  outputRelative: string,
+) {
   const input = await inputFileForOutputFile(project, outputRelative);
   if (!input) {
     return undefined;
@@ -359,7 +362,7 @@ export async function resolveInputTargetForOutputFile(project: ProjectContext, o
 
   return await resolveInputTarget(
     project,
-    relative(project.dir, input.file),
+    pathWithForwardSlashes(relative(project.dir, input.file)),
   );
 }
 

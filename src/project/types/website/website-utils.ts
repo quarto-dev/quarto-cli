@@ -32,7 +32,8 @@ export function isProjectDraft(
 ): boolean {
   const drafts = websiteConfigArray(kDrafts, project.config);
   if (drafts) {
-    return drafts.includes(input);
+    // TODO: Convert to glob
+    return drafts.includes(pathWithForwardSlashes(input));
   }
   return false;
 }
@@ -69,8 +70,12 @@ export async function resolveProjectInputLinks(
       if (hash) {
         projRelativeHref = projRelativeHref.slice(0, hashLoc);
       }
+
       const resolved = resolveInput
-        ? await resolveInputTarget(project, projRelativeHref)
+        ? await resolveInputTarget(
+          project,
+          pathWithForwardSlashes(projRelativeHref),
+        )
         : {
           outputHref: pathWithForwardSlashes(join("/", projRelativeHref)),
           draft: false,

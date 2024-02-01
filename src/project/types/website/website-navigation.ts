@@ -1426,7 +1426,10 @@ async function resolveItem<
   number = false,
 ): Promise<T> {
   if (!isExternalPath(href)) {
-    const resolved = await resolveInputTarget(project, href);
+    const resolved = await resolveInputTarget(
+      project,
+      pathWithForwardSlashes(href),
+    );
     if (resolved) {
       const inputItem = {
         ...item,
