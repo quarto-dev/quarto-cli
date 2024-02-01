@@ -38,7 +38,11 @@ import {
 } from "../../execute/engine.ts";
 import { annotateOjsLineNumbers } from "../../execute/ojs/annotate-source.ts";
 import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
-import { ExecuteResult, MappedExecuteResult } from "../../execute/types.ts";
+import {
+  ExecuteOptions,
+  ExecuteResult,
+  MappedExecuteResult,
+} from "../../execute/types.ts";
 import {
   kProjectLibDir,
   kProjectType,
@@ -113,6 +117,7 @@ import {
   projectOutputDir,
 } from "../../project/project-shared.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
+import { setExecuteEnvironment } from "../../execute/environment.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -210,8 +215,8 @@ export async function renderExecute(
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
 
   pushTiming("render-execute");
-  // execute computations
-  const executeResult = await context.engine.execute({
+
+  const executeOptions: ExecuteOptions = {
     target: context.target,
     resourceDir: resourcePath(),
     tempDir: context.options.services.temp.createDir(),
@@ -225,7 +230,10 @@ export async function renderExecute(
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
     projectType: context.project?.config?.project?.[kProjectType],
-  });
+  };
+  // execute computations
+  setExecuteEnvironment(executeOptions);
+  const executeResult = await context.engine.execute(executeOptions);
   popTiming();
 
   // write the freeze file if we are in a project
