@@ -80,7 +80,7 @@ export interface ExecuteOptions {
   dependencies: boolean;
   projectDir?: string;
   libDir?: string;
-  cwd?: string;
+  cwd: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
   previewServer?: boolean;

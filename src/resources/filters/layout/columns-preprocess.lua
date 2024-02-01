@@ -259,7 +259,7 @@ function columnOption(key)
   if value == nil or #value < 1 then
     return {}
   else
-    return {'column-' .. inlinesToString(value[1])}
+    return {'column-' .. inlinesToString(quarto.utils.as_inlines(value[1]))}
   end
 end
 
