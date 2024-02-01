@@ -4,7 +4,8 @@
 - ([#8490](https://github.com/quarto-dev/quarto-cli/issues/8490)): Properly embed `qmd` cells even when they include an explicit `echo` declaration.
 - ([#8464](https://github.com/quarto-dev/quarto-cli/issues/8464)): Fix a regression where shortcodes were not being expanded recursively.
 - ([#8485](https://github.com/quarto-dev/quarto-cli/issues/8485)): Fix a regression where shortcodes could not Unicode characters with code points above 127.
-- ([#8507](https://github.com/quarto-dev/quarto-cli/issues/8507)): Fix a regression with callout rendering in `docx``.
+- ([#8507](https://github.com/quarto-dev/quarto-cli/issues/8507)): Fix a regression with callout rendering in `docx`.
+- ([#8536](https://github.com/quarto-dev/quarto-cli/issues/8536)): Fix a regression with column specifiers in `html`.
 
 ## Languages
 
