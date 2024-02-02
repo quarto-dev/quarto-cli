@@ -1,0 +1,12 @@
+- [ ] ensure tests pass on stable branch
+  - Actions -> Parallel Smokes Tests -> Run Workflow ->
+    - Select the current stable branch in the "Use workflow from... v1.x" dropdown
+    - [ ] Click "Run Workflow"
+- [ ] create new stable installers
+  - Click Actions -> Build Installers -> "Run Workflow" Dropdown Menu
+    - Select the current stable branch in the "Use workflow from..." dropdown
+    - Uncheck "Pre-release" (or ensure it's unchecked)
+    - Check "Publish release" (or ensure it's checked)
+    - [ ] Click "Run Workflow"
+- update release on pypi repo
+  - TBF by @dragonstyle
