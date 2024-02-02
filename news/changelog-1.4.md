@@ -6,6 +6,7 @@
 - ([#8485](https://github.com/quarto-dev/quarto-cli/issues/8485)): Fix a regression where shortcodes could not Unicode characters with code points above 127.
 - ([#8507](https://github.com/quarto-dev/quarto-cli/issues/8507)): Fix a regression with callout rendering in `docx`.
 - ([#8510](https://github.com/quarto-dev/quarto-cli/issues/8510)): Fix a regression on undocumented behavior with `sidebar.align` instead of `sidebar.alignment` in YAML configuration.
+- ([#8514](https://github.com/quarto-dev/quarto-cli/issues/8514)): Fix a regression where crossreferences in `number-sections: false` documents were being rendered incorrectly.
 - ([#8536](https://github.com/quarto-dev/quarto-cli/issues/8536)): Fix a regression with column specifiers in `html`.
 - ([#8552](https://github.com/quarto-dev/quarto-cli/issues/8552)): Fix incorrect behavior reading title from code cells in Dashboards.
 - ([#8555](https://github.com/quarto-dev/quarto-cli/issues/8555)): Fix malformed HTML when outputing page navigation (books and websites).
