@@ -180,11 +180,12 @@ export const bookProjectType: ProjectType = {
   ) => {
     const chapterInfo = chapterInfoForInput(context, input);
     if (chapterInfo && number) {
-      return Promise.resolve(
-        numberChapterHtmlNav(text, chapterInfo),
-      );
+      return Promise.resolve({
+        text,
+        html: numberChapterHtmlNav(text, chapterInfo),
+      });
     } else {
-      return Promise.resolve(text);
+      return Promise.resolve({ html: text, text: text });
     }
   },
 
