@@ -7,6 +7,7 @@
 - ([#8507](https://github.com/quarto-dev/quarto-cli/issues/8507)): Fix a regression with callout rendering in `docx`.
 - ([#8510](https://github.com/quarto-dev/quarto-cli/issues/8510)): Fix a regression on undocumented behavior with `sidebar.align` instead of `sidebar.alignment` in YAML configuration.
 - ([#8536](https://github.com/quarto-dev/quarto-cli/issues/8536)): Fix a regression with column specifiers in `html`.
+- ([#8552](https://github.com/quarto-dev/quarto-cli/issues/8552)): Fix incorrect behavior reading title from code cells in Dashboards.
 
 ## Languages
 
