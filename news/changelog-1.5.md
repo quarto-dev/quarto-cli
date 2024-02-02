@@ -37,6 +37,7 @@ All changes included in 1.5:
 ## Extensions
 
 - ([#8385](https://github.com/quarto-dev/quarto-cli/issues/8385)): Properly copy project resources when extensions are installed at project level.
+- ([#8547](https://github.com/quarto-dev/quarto-cli/issues/8547)): Support installing extensions from github branch with forward slash in the name.
 
 ## Shortcodes
 
