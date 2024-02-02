@@ -33,7 +33,13 @@ const testCases =  [
       name: "Gone Draft",
       verify: [doesntHaveContentLinksToDrafts, doesntHaveEnvelopeLinksToDrafts, draftPostIsEmpty, searchDoesntHaveDraft, siteMapDoesntHaveDraft],
       dir: docs("websites/drafts/drafts-gone")
+    },
+    {
+      name: "Preprocessor Draft List",
+      verify: [doesntHaveContentLinksToDrafts, doesntHaveEnvelopeLinksToDrafts, draftPostIsEmpty, searchDoesntHaveDraft, siteMapDoesntHaveDraft],
+      dir: docs("websites/drafts/drafts-preprocessor")
     }
+
   ];
   
 // Run the command
