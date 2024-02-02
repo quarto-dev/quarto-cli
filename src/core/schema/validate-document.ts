@@ -49,15 +49,15 @@ export async function validateDocumentFromSource(
     // validate the YAML front matter in the document
 
     const lineRanges = rangedLines(firstCell.source.value.trimEnd());
-    if (lineRanges.length < 3) {
+    if (lineRanges.length < 2) {
       if (src.map(0)?.originalString?.fileName) {
         throw new Error(
           `${
             src.map(0)?.originalString?.fileName
-          }: Expected YAML front matter to contain at least 3 lines`,
+          }: Expected YAML front matter to contain at least 2 lines`,
         );
       } else {
-        throw new Error("Expected front matter to have at least 3 lines");
+        throw new Error("Expected front matter to have at least 2 lines");
       }
     }
     const frontMatterText = mappedString(
