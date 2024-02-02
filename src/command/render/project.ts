@@ -69,6 +69,7 @@ import { normalizePath } from "../../core/path.ts";
 import { isSubdir } from "fs/_util.ts";
 import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
+import { projectContextForDirectory } from "../../project/project-context.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -156,14 +157,6 @@ export async function renderProject(
   const supplements = projectSupplement(filesToRender);
   filesToRender.push(...supplements.files);
 
-  // projResults to return
-  const projResults: RenderResult = {
-    context,
-    baseDir: projDir,
-    outputDir: relative(projDir, projOutputDir),
-    files: [],
-  };
-
   // ensure we have the requisite entries in .gitignore
   await ensureGitignore(context.dir);
 
@@ -206,6 +199,18 @@ export async function renderProject(
           .join("\n"),
       },
     );
+
+    // re-initialize project context
+    context = await projectContextForDirectory(
+      context.dir,
+      context.notebookContext,
+      options.flags,
+    );
+
+    // Can't change output-dir (that is passed to pre-render)
+    // Can't change render list (that is passed to pre-render) or inputs
+    // Can't change projDir (that is passed to pre-render)
+    // Can't change project type seems like a good idea (could support this technically, I suppose)
   }
 
   // lookup the project type and call preRender
@@ -235,6 +240,14 @@ export async function renderProject(
   ) {
     options.flags.executeDaemon = 0;
   }
+
+  // projResults to return
+  const projResults: RenderResult = {
+    context,
+    baseDir: projDir,
+    outputDir: relative(projDir, projOutputDir),
+    files: [],
+  };
 
   // determine the output dir
   const outputDir = projResults.outputDir;
