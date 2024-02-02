@@ -66,7 +66,7 @@ export interface ProjectType {
     input: string,
     text: string,
     number: boolean,
-  ) => Promise<string>;
+  ) => Promise<{ html: string, text: string}>;
   incrementalRenderAll?: (
     context: ProjectContext,
     options: RenderOptions,

@@ -1393,7 +1393,12 @@ function uniqueMenuId(navItem: NavigationItemObject) {
 }
 
 async function resolveItem<
-  T extends { href?: string; text?: string; icon?: string },
+  T extends {
+    href?: string;
+    text?: string;
+    icon?: string;
+    plainText?: string;
+  },
 >(
   project: ProjectContext,
   href: string,
@@ -1411,12 +1416,14 @@ async function resolveItem<
 
       const projType = projectType(project.config?.project?.[kProjectType]);
       if (projType.navItemText) {
-        inputItem.text = await projType.navItemText(
+        const navItemFormatted = await projType.navItemText(
           project,
           href,
           inputItem.text,
           number,
         );
+        inputItem.text = navItemFormatted.html;
+        inputItem.plainText = navItemFormatted.text;
       }
       return inputItem;
     } else if (looksLikeShortCode(href)) {
