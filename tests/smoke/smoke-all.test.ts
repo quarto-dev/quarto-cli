@@ -34,6 +34,7 @@ import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
+import { quarto } from "../../src/quarto.ts";
 
 async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
@@ -176,6 +177,8 @@ if (Deno.args.length === 0) {
   }
 }
 
+const renderedProjects: Set<string> = new Set();
+
 for (const { path: fileName } of files) {
   const input = relative(Deno.cwd(), fileName);
   
@@ -194,6 +197,18 @@ for (const { path: fileName } of files) {
     }
     for (const format of formats) {
       testSpecs.push({ format: format, verifyFns: [noErrorsOrWarnings] });
+    }
+  }
+
+  // FIXME this will leave the project in a dirty state
+  // tests run asynchronously so we can't clean up until all tests are done
+  // and I don't know of a way to wait for that
+
+  if ((metadata["_quarto"] as any)?.["render-project"]) {
+    const projectPath = findProjectDir(input);
+    if (projectPath && !renderedProjects.has(projectPath)) {
+      await quarto(["render", projectPath]);
+      renderedProjects.add(projectPath);
     }
   }
 
@@ -227,11 +242,9 @@ for (const { path: fileName } of files) {
   }
 }
 
-function findProjectOutputDir(input: string) {
-  // See if there is a project and grab it's type
+function findProjectDir(input: string): string | undefined {
   let dir = dirname(input);
-  let projectOutDir = undefined;
-  while (dir !== "" && dir !== "." && projectOutDir === undefined) {
+  while (dir !== "" && dir !== ".") {
     const filename = ["_quarto.yml", "_quarto.yaml"].find((file) => {
       const yamlPath = join(dir, file);
       if (existsSync(yamlPath)) {
@@ -239,26 +252,32 @@ function findProjectOutputDir(input: string) {
       }
     });
     if (filename) {
-      const yaml = readYaml(join(dir, filename));
-      let type = undefined;
-      try {
-        // deno-lint-ignore no-explicit-any
-        type = ((yaml as any).project as any).type;
-      } catch (error) {
-        throw new Error("Failed to read quarto project YAML", error);
-      }
-
-      switch (type) {
-        case "book":
-          projectOutDir = "_book";
-          break;
-        default:
-        case undefined:
-          break;
-      }
+      return dir;
     }
 
-    dir = dirname(dir);
+    const newDir = dirname(dir); // stops at the root for both Windows and Posix
+    if (newDir === dir) {
+      return;
+    }
+    dir = newDir;
   }
-  return projectOutDir;
+}
+
+function findProjectOutputDir(input: string) {
+  const dir = findProjectDir(input);
+  if (!dir) {
+    return;
+  }
+  const yaml = readYaml(join(dir, "_quarto.yml"));
+  let type = undefined;
+  try {
+    // deno-lint-ignore no-explicit-any
+    type = ((yaml as any).project as any).type;
+  } catch (error) {
+    throw new Error("Failed to read quarto project YAML", error);
+  }
+
+  if (type === "book") {
+    return "_book";
+  }
 }
