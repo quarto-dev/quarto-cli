@@ -38,6 +38,10 @@ import { existsSync1 } from "../../core/file.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import { extensionFilesFromDirs } from "../../extension/extension.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import {
+  kDraftMode,
+  kDraftModeVisible,
+} from "../types/website/website-constants.ts";
 
 interface WatchChanges {
   config: boolean;
@@ -61,6 +65,16 @@ export function watchProject(
   const refreshProjectConfig = async () => {
     project = (await projectContext(project.dir, nbContext, flags, false))!;
   };
+
+  // See if we're in draft mode
+  if (project.config) {
+    // If this is a website
+    if (project.config.website) {
+      // Switch
+      (project.config.website as Record<string, unknown>)[kDraftMode] =
+        kDraftModeVisible;
+    }
+  }
 
   // proj dir
   const projDir = normalizePath(project.dir);

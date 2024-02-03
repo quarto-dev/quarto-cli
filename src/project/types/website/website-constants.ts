@@ -37,6 +37,7 @@ export const kBodyFooter = "body-footer";
 
 export const kDrafts = "drafts";
 export const kDraftMode = "draft-mode";
+export const kDraftModeVisible = "visible";
 
 export const kAnnouncement = "announcement";
 
