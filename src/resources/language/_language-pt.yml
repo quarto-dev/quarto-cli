@@ -122,3 +122,5 @@ listing-page-no-matches: "Nenhum item correspondente"
 listing-page-field-wordcount: "Contagem de Palavras"
 listing-page-words: "{0} palavras"
 listing-page-filter: "Filtro"
+
+draft: "Rascunho"

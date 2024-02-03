@@ -1065,7 +1065,6 @@ async function listItemFromFile(
   // is populated.
   const projectDraft = isProjectDraft(projectRelativePath, project);
   const draftMode = projectDraftMode(project);
-  console.log({ draftMode, projectDraft });
   if (!isDraftVisible(draftMode) && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;

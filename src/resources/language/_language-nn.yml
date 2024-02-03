@@ -122,3 +122,5 @@ listing-page-no-matches: "Ingen passande treff"
 listing-page-field-wordcount: "Ordteljing"
 listing-page-words: "{0} ord"
 listing-page-filter: "Filter"
+
+draft: "Utkast"

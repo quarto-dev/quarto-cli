@@ -122,3 +122,5 @@ listing-page-no-matches: "一致なし"
 listing-page-field-wordcount: "単語数"
 listing-page-words: "{0}語"
 listing-page-filter: "フィルター"
+
+draft: "下書き"

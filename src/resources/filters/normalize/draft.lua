@@ -7,7 +7,10 @@ function normalize_draft()
   local draft_mode = param('draft-mode') or "loose"
   local drafts = param('drafts') or {}
   local is_draft = false
-  local kDraftStatus = "draft-remove"
+
+  local kDraftStatusRemove = "draft-remove"
+  local kDraftStatusDraft = "draft"
+
   local kDraftMode = "draft-mode"
   local kDraft = "draft"
 
@@ -24,7 +27,10 @@ function normalize_draft()
       if _quarto.format.isHtmlOutput() and not _quarto.format.isHtmlSlideOutput() then
         if is_draft and draft_mode == kDraftModeGone then
           pandoc.blocks = {}
-          quarto.doc.includeText("in-header", '<meta name="quarto:status" content="' .. kDraftStatus .. '">')
+          quarto.doc.includeText("in-header", '<meta name="quarto:status" content="' .. kDraftStatusRemove .. '">')
+          return pandoc
+        elseif is_draft and draft_mode ~= kDraftModeGone then
+          quarto.doc.includeText("in-header", '<meta name="quarto:status" content="' .. kDraftStatusDraft .. '">')
           return pandoc
         end
       end

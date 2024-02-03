@@ -122,3 +122,5 @@ listing-page-no-matches: "Žiadne nájdené výsledky"
 listing-page-field-wordcount: "Počet slov"
 listing-page-words: "{0} slov"
 listing-page-filter: "Filter"
+
+draft: "Návrh"

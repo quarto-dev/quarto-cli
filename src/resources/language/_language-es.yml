@@ -125,3 +125,5 @@ listing-page-no-matches: "No hay resultados"
 listing-page-field-wordcount: "Conteo de Palabras"
 listing-page-words: "{0} palabras"
 listing-page-filter: "Filtro"
+
+draft: "Borrador"

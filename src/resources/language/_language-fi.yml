@@ -122,3 +122,5 @@ listing-page-no-matches: "Ei hakutuloksia"
 listing-page-field-wordcount: "Sanamäärä"
 listing-page-words: "{0} sanaa"
 listing-page-filter: "Suodatin"
+
+draft: "Luonnos"

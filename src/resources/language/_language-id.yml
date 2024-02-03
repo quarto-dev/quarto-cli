@@ -122,3 +122,5 @@ listing-page-no-matches: "Tidak ada yang cocok"
 listing-page-field-wordcount: "Hitung Kata"
 listing-page-words: "{0} kata"
 listing-page-filter: "Filter"
+
+draft: "Draf"
