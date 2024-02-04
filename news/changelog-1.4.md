@@ -11,6 +11,7 @@
 - ([#8552](https://github.com/quarto-dev/quarto-cli/issues/8552)): Fix incorrect behavior reading title from code cells in Dashboards.
 - ([#8555](https://github.com/quarto-dev/quarto-cli/issues/8555)): Fix malformed HTML when outputing page navigation (books and websites).
 - ([#8567](https://github.com/quarto-dev/quarto-cli/issues/8567)): Improve website search performance for large sites with long search terms.
+- ([#8586](https://github.com/quarto-dev/quarto-cli/issues/8586)): Fix regression on rendering multiple embedded citations in LaTeX tables.
 
 ## Languages
 
