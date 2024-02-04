@@ -493,7 +493,15 @@ function navigationHtmlPostprocessor(
           doc,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
-        titleBlockEl.prepend(titleBreadCrumbEl);
+        // See if there is deeper target
+        const bannerTitle = titleBlockEl.querySelector(
+          ".quarto-title-banner .quarto-title",
+        );
+        if (bannerTitle !== null) {
+          bannerTitle.prepend(titleBreadCrumbEl);
+        } else {
+          titleBlockEl.prepend(titleBreadCrumbEl);
+        }
       }
     }
 
