@@ -394,7 +394,7 @@ end, function(float)
     end,
     Table = function(tbl)
       local cites = pandoc.List({})
-      local guid_id = 0
+      local guid_id = global_table_guid_id
       local uuid = "85b77c8a-261c-4f58-9b04-f21c67e0a758"
       tbl = _quarto.ast.walk(tbl, {
         Cite = function(cite)
@@ -405,14 +405,18 @@ end, function(float)
       })
       local raw_output = pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
       if #cites > 0 then
-        return pandoc.Blocks({
+        local local_guid_id = global_table_guid_id
+        local result = pandoc.Blocks({
           make_scaffold(pandoc.Span, cites:map(function(cite)
+            local_guid_id = local_guid_id + 1
             return make_scaffold(pandoc.Span, pandoc.Inlines({
-              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. guid_id .. "\n"),
+              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. local_guid_id .. "\n"),
               cite,
               pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
             }))
           end)), raw_output})
+        global_table_guid_id = global_table_guid_id + #cites
+        return result
       else
         return raw_output
       end
@@ -984,3 +988,5 @@ end, function(float)
     identifier = float.identifier
   }
 end)
+
+global_table_guid_id = 0
