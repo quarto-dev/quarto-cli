@@ -109,6 +109,16 @@ export async function readBaseInputIndex(
     formats,
   };
 
+  // locally guard against a badly-formed title.
+  // See https://github.com/quarto-dev/quarto-cli/issues/8594 for why
+  // we can't do a proper fix at this time
+  if (typeof index.title !== "string") {
+    throw new Error(
+      `${
+        relative(project.dir, inputFile)
+      }: Title must be a string, but is instead of type ${typeof index.title}`,
+    );
+  }
   // if we got a title, make sure it doesn't carry attributes
   if (index.title) {
     const parsedTitle = parsePandocTitle(index.title);
