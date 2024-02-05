@@ -369,11 +369,16 @@ async function writeJuliaCommand(
   secret: string,
   options: JuliaExecuteOptions,
 ) {
+  // send the options along with the "run" command
+  const content = command === "run"
+    ? { file: options.target.input, options }
+    : options.target.input;
+
   // TODO: no secret used, yet
   const messageBytes = new TextEncoder().encode(
     JSON.stringify({
       type: command,
-      content: options.target.input,
+      content,
     }) + "\n",
   );
 
