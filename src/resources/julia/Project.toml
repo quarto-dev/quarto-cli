@@ -2,4 +2,4 @@
 QuartoNotebookRunner = "4c0109c6-14e9-4c88-93f0-2b974d3468f4"
 
 [compat]
-QuartoNotebookRunner = "0.1.3"
+QuartoNotebookRunner = "0.2.0"
