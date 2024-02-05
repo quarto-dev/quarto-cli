@@ -1,8 +1,6 @@
 name: Documentation issue
 description: Report issues on quarto.org, give documentation feedback, or suggest documentation improvements
-labels: ["documentation", "triaged-to"]
-assignees:
-  - cwickham
+labels: ["documentation"]
 body:
   - type: markdown
     attributes:
