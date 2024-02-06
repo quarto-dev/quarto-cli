@@ -132,6 +132,7 @@ import {
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
   kListingPageFieldWordCount,
+  kListingPageFilter,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -687,6 +688,7 @@ export interface FormatLanguage {
   [kEnvironmentRemarkTitle]?: string;
   [kEnvironmentSolutionTitle]?: string;
   [kListingPageOrderBy]?: string;
+  [kListingPageFilter]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;
   [kListingPageOrderByDateDesc]?: string;

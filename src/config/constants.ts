@@ -329,6 +329,7 @@ export const kEnvironmentProofTitle = "environment-proof-title";
 export const kEnvironmentRemarkTitle = "environment-remark-title";
 export const kEnvironmentSolutionTitle = "environment-solution-title";
 export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageFilter = "listing-page-filter";
 export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
 export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
@@ -447,6 +448,7 @@ export const kLanguageDefaultsKeys = [
   kEnvironmentProofTitle,
   kEnvironmentRemarkTitle,
   kEnvironmentSolutionTitle,
+  kListingPageFilter,
   kListingPageOrderBy,
   kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,
