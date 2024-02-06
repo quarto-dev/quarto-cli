@@ -12,6 +12,7 @@
 - ([#8555](https://github.com/quarto-dev/quarto-cli/issues/8555)): Fix malformed HTML when outputing page navigation (books and websites).
 - ([#8567](https://github.com/quarto-dev/quarto-cli/issues/8567)): Improve website search performance for large sites with long search terms.
 - ([#8586](https://github.com/quarto-dev/quarto-cli/issues/8586)): Fix regression on rendering multiple embedded citations in LaTeX tables.
+- ([#8603](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with multiple-column layouts and code-folding.
 
 ## Languages
 
