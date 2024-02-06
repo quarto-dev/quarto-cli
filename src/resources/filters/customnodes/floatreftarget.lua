@@ -400,7 +400,11 @@ end, function(float)
         Cite = function(cite)
           cites:insert(cite)
           guid_id = guid_id + 1
-          return pandoc.Str(uuid .. "-" .. guid_id)
+          -- this uuid is created a little strangely here
+          -- to ensure that no generated uuid will be a prefix of another,
+          -- which would cause our regex replacement to pick up the wrong
+          -- uuid
+          return pandoc.Str(uuid .. "-" .. guid_id .. "-" .. uuid)
         end
       })
       local raw_output = pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
@@ -410,7 +414,7 @@ end, function(float)
           make_scaffold(pandoc.Span, cites:map(function(cite)
             local_guid_id = local_guid_id + 1
             return make_scaffold(pandoc.Span, pandoc.Inlines({
-              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. local_guid_id .. "\n"),
+              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. local_guid_id .. "-" .. uuid .. "\n"),
               cite,
               pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
             }))

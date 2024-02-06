@@ -1,0 +1,296 @@
+---
+title: "reprex_new_standalone_overwriting_cites"
+bibliography: "grateful-refs.bib"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["R Core Team \\(2023\\)0"]
+---
+
+
+(table [-@tbl-PackageVersions2])
+This is a playground for Quarto 99.9.9.
+Standalone file, rendered in RStudio via `Render Current Document`.
+
+---
+
+
+
+::: {.cell}
+
+```{.r .cell-code}
+library(grateful)
+library(knitr)
+library(sessioninfo)
+library(processx)
+library(quarto)
+library(renv)
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+
+Attaching package: 'renv'
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+The following object is masked from 'package:processx':
+
+    run
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+The following objects are masked from 'package:stats':
+
+    embed, update
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+The following objects are masked from 'package:utils':
+
+    history, upgrade
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+The following objects are masked from 'package:base':
+
+    autoload, load, remove
+```
+
+
+:::
+
+```{.r .cell-code}
+library(rmarkdown)
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+
+Attaching package: 'rmarkdown'
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+The following object is masked from 'package:renv':
+
+    run
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+The following object is masked from 'package:processx':
+
+    run
+```
+
+
+:::
+
+```{.r .cell-code}
+library(tidyverse)
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+-- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+v dplyr     1.1.3     v readr     2.1.4
+v forcats   1.0.0     v stringr   1.5.0
+v ggplot2   3.4.3     v tibble    3.2.1
+v lubridate 1.9.2     v tidyr     1.3.0
+v purrr     1.0.2     
+```
+
+
+:::
+
+::: {.cell-output .cell-output-stderr}
+
+```
+-- Conflicts ------------------------------------------ tidyverse_conflicts() --
+x dplyr::filter() masks stats::filter()
+x dplyr::lag()    masks stats::lag()
+x purrr::modify() masks renv::modify()
+i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+
+:::
+
+```{.r .cell-code}
+library(yaml)
+cites <- cite_packages(
+  output = "table",
+  , out.dir = "."
+  , cite.tidyverse = TRUE
+  , pkgs = "All"
+  , include.RStudio = TRUE
+  , dependencies = FALSE
+  #, omit = c("base","formatdown")
+)
+print(cites)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+      Package Version                                       Citation
+1        base   4.3.2                                          @base
+2       knitr    1.45             @knitr2014; @knitr2015; @knitr2023
+3    processx   3.8.2                                      @processx
+4      quarto     1.2                                        @quarto
+5        renv   1.0.3                                          @renv
+6   rmarkdown    2.25 @rmarkdown2018; @rmarkdown2020; @rmarkdown2023
+7 sessioninfo   1.2.2                                   @sessioninfo
+8   tidyverse   2.0.0                                     @tidyverse
+9        yaml   2.3.7                                          @yaml
+```
+
+
+:::
+
+```{.r .cell-code}
+typeof(cites)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+[1] "list"
+```
+
+
+:::
+:::
+
+
+---
+
+caption via Cell label `#| tbl-cap`
+<!-- caption via `knitr(...,caption = "caption")` -->
+
+
+
+::: {#tbl-PackageVersions2 .cell tbl-cap='caption via tbl-cap'}
+::: {.cell-output-display}
+
+
+|Package     |Version |Citation                                       |
+|:-----------|:-------|:----------------------------------------------|
+|base        |4.3.2   |@base                                          |
+|knitr       |1.45    |@knitr2014; @knitr2015; @knitr2023             |
+|processx    |3.8.2   |@processx                                      |
+|quarto      |1.2     |@quarto                                        |
+|renv        |1.0.3   |@renv                                          |
+|rmarkdown   |2.25    |@rmarkdown2018; @rmarkdown2020; @rmarkdown2023 |
+|sessioninfo |1.2.2   |@sessioninfo                                   |
+|tidyverse   |2.0.0   |@tidyverse                                     |
+|yaml        |2.3.7   |@yaml                                          |
+
+
+:::
+:::
+
+
+--- 
+
+manual table copied from the `.md`-intermediate: the cites themselves _can_ get rendered correctly.
+
+|Package     |Version |Citation                                       |
+|:-----------|:-------|:----------------------------------------------|
+|base        |4.3.2   |@base                                          |
+|knitr       |1.45    |@knitr2014; @knitr2015; @knitr2023             |
+|processx    |3.8.3   |@processx                                      |
+|quarto      |1.3     |@quarto                                        |
+|renv        |1.0.3   |@renv                                          |
+|rmarkdown   |2.25    |@rmarkdown2018; @rmarkdown2020; @rmarkdown2023 |
+|sessioninfo |1.2.2   |@sessioninfo                                   |
+|tidyverse   |2.0.0   |@tidyverse                                     |
+|yaml        |2.3.8   |@yaml                                          |
+
+
+---
+
+
+::: {.cell}
+
+```{.r .cell-code}
+sessionInfo()
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+R version 4.3.2 (2023-10-31)
+Platform: aarch64-apple-darwin20 (64-bit)
+Running under: macOS Ventura 13.5.2
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: America/Chicago
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] yaml_2.3.7        lubridate_1.9.2   forcats_1.0.0     stringr_1.5.0    
+ [5] dplyr_1.1.3       purrr_1.0.2       readr_2.1.4       tidyr_1.3.0      
+ [9] tibble_3.2.1      ggplot2_3.4.3     tidyverse_2.0.0   rmarkdown_2.25   
+[13] renv_1.0.3        quarto_1.2        processx_3.8.2    sessioninfo_1.2.2
+[17] knitr_1.45        grateful_0.2.4   
+
+loaded via a namespace (and not attached):
+ [1] utf8_1.2.4        generics_0.1.3    stringi_1.7.12    hms_1.1.3        
+ [5] digest_0.6.33     magrittr_2.0.3    timechange_0.2.0  evaluate_0.23    
+ [9] grid_4.3.2        fastmap_1.1.1     jsonlite_1.8.8    ps_1.7.5         
+[13] fansi_1.0.5       scales_1.3.0      cli_3.6.1         rlang_1.1.1      
+[17] munsell_0.5.0     withr_2.5.2       tools_4.3.2       tzdb_0.4.0       
+[21] colorspace_2.1-0  vctrs_0.6.4       R6_2.5.1          lifecycle_1.0.3  
+[25] pkgconfig_2.0.3   pillar_1.9.0      later_1.3.1       gtable_0.3.4     
+[29] glue_1.6.2        Rcpp_1.0.11       xfun_0.41         tidyselect_1.2.0 
+[33] rstudioapi_0.15.0 htmltools_0.5.7   compiler_4.3.2   
+```
+
+
+:::
+:::
