@@ -70,6 +70,33 @@ import { isSubdir } from "fs/_util.ts";
 import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";
+import { ProjectType } from "../../project/types/types.ts";
+
+const noMutationValidations = (
+  projType: ProjectType,
+  projOutputDir: string,
+  projDir: string,
+) => {
+  return [{
+    val: projType,
+    newVal: (context: ProjectContext) => {
+      return projectType(context.config?.project?.[kProjectType]);
+    },
+    msg: "The project type may not be mutated by the pre-render script",
+  }, {
+    val: projOutputDir,
+    newVal: (context: ProjectContext) => {
+      return projectOutputDir(context);
+    },
+    msg: "The project output-dir may not be mutated by the pre-render script",
+  }, {
+    val: projDir,
+    newVal: (context: ProjectContext) => {
+      return normalizePath(context.dir);
+    },
+    msg: "The project dir may not be mutated by the pre-render script",
+  }];
+};
 
 export async function renderProject(
   context: ProjectContext,
@@ -207,10 +234,20 @@ export async function renderProject(
       options.flags,
     );
 
-    // Can't change output-dir (that is passed to pre-render)
+    // Validate that certain project properties haven't been mutated
+    noMutationValidations(projType, projOutputDir, projDir).some(
+      (validation) => {
+        if (!ld.isEqual(validation.newVal(context), validation.val)) {
+          throw new Error(
+            `Pre-render script resulted in a project change that is now allowed.\n${validation.msg}`,
+          );
+        }
+      },
+    );
+
+    // Recompute the project render list (filesToRender)
+
     // Can't change render list (that is passed to pre-render) or inputs
-    // Can't change projDir (that is passed to pre-render)
-    // Can't change project type seems like a good idea (could support this technically, I suppose)
   }
 
   // lookup the project type and call preRender
