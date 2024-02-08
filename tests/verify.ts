@@ -22,6 +22,26 @@ import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
 import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
+export const withDocxContent = async <T>(file: string,
+  k: (xml: string) => Promise<T>) => {
+    const [_dir, stem] = dirAndStem(file);
+    const temp = await Deno.makeTempDir();
+    try {
+      // Move the docx to a temp dir and unzip it
+      const zipFile = join(temp, stem + ".zip");
+      await Deno.copyFile(file, zipFile);
+      await unzip(zipFile);
+  
+      // Open the core xml document and match the matches
+      const docXml = join(temp, "word", "document.xml");
+      const xml = await Deno.readTextFile(docXml);
+      const result = await k(xml);
+      return result;
+    } finally {
+      await Deno.remove(temp, { recursive: true });
+    }
+  };
+
 export const noErrors: Verify = {
   name: "No Errors",
   verify: (outputs: ExecuteOutput[]) => {
@@ -318,32 +338,6 @@ export const ensureFileRegexMatches = (
   };
 };
 
-export const verifyOdtDocument = (
-  callback: (doc: string) => Promise<void>,
-  name?: string,
-): (file: string) => Verify => {
-  return (file: string) => ({
-    name: name ?? "Inspecting Odt",
-    verify: async (_output: ExecuteOutput[]) => {
-      const [_dir, stem] = dirAndStem(file);
-      const temp = await Deno.makeTempDir();
-      try {
-        // Move the docx to a temp dir and unzip it
-        const zipFile = join(temp, stem + ".zip");
-        await Deno.rename(file, zipFile);
-        await unzip(zipFile);
-
-        // Open the core xml document and match the matches
-        const docXml = join(temp, "content.xml");
-        const xml = await Deno.readTextFile(docXml);
-        await callback(xml);
-      } finally {
-        await Deno.remove(temp, { recursive: true });
-      }
-    },
-  });
-};
-
 export const verifyJatsDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -357,6 +351,18 @@ export const verifyJatsDocument = (
   });
 };
 
+export const verifyOdtDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Odt",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withDocxContent(file, callback);
+    },
+  });
+};
+
 export const verifyDocXDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -364,21 +370,7 @@ export const verifyDocXDocument = (
   return (file: string) => ({
     name: name ?? "Inspecting Docx",
     verify: async (_output: ExecuteOutput[]) => {
-      const [_dir, stem] = dirAndStem(file);
-      const temp = await Deno.makeTempDir();
-      try {
-        // Move the docx to a temp dir and unzip it
-        const zipFile = join(temp, stem + ".zip");
-        await Deno.rename(file, zipFile);
-        await unzip(zipFile);
-
-        // Open the core xml document and match the matches
-        const docXml = join(temp, "word", "document.xml");
-        const xml = await Deno.readTextFile(docXml);
-        await callback(xml);
-      } finally {
-        await Deno.remove(temp, { recursive: true });
-      }
+      return await withDocxContent(file, callback);
     },
   });
 };
