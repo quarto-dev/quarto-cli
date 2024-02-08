@@ -1,6 +1,7 @@
 ---
 title: "Plot Test"
-format: docusaurus-md
+format: 
+  docusaurus-md: {}
 code-line-numbers: true
 knitr:
   opts_chunk: 

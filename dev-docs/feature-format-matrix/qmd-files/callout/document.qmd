@@ -1,6 +1,7 @@
 ---
 title: Callouts
-format: docusaurus-md
+format: 
+  docusaurus-md: {}
 _quarto:
   tests:
     docusaurus-md:

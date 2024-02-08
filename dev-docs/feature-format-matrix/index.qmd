@@ -4,6 +4,12 @@ format: html
 title: Features x Formats
 ---
 
+<!--
+If you're adding a new format to the table, you need to edit 
+the object constructor in the script tag in _tabulator.qmd,
+specifically the `columns` field.
+-->
+
 ::: column-screen-inset
 
 {{< include _tabulator.qmd >}}

@@ -1,5 +1,8 @@
 ---
-format: html
+format:
+  markdown: {}
+  html: {}
+  pdf: {}
 ---
 
 ::: {#nte-1 .callout-note}

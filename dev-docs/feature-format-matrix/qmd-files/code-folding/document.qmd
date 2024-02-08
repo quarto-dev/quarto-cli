@@ -1,8 +1,8 @@
 ---
 title: Code fold
 format: 
-  docusaurus-md:
-    code-fold: true
+  docusaurus-md: {}
+code-fold: true
 ---
 
 ```{r}

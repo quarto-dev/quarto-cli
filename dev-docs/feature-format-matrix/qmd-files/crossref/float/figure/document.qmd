@@ -1,5 +1,10 @@
 ---
-format: pdf
+format:
+  docusaurus-md: {}
+  docx: {}
+  html: {}
+  markdown: {}
+  pdf: {}
 ---
 
 ## Crossreferenceable "Figure"s

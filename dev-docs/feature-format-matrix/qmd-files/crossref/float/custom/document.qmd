@@ -5,6 +5,8 @@ crossref:
     - kind: float
       key: dia
       reference-prefix: Diagram
+format:
+  docusaurus-md: {}
 ---
 
 ::: {#dia-1}

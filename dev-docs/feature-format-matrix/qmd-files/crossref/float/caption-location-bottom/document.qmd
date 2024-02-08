@@ -1,7 +1,7 @@
 ---
 format:
-  docusaurus-md:
-    cap-location: bottom
+  docusaurus-md: {}
+cap-location: bottom
 ---
 
 ::: {#tbl-1}

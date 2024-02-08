@@ -1,5 +1,8 @@
 ---
-format: pdf
+format: 
+  docusaurus-md: {}
+  html: {}
+  pdf: {}
 ---
 
 ## Crossreferenceable Code Listings

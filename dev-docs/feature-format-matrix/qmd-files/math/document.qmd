@@ -1,5 +1,7 @@
 ---
 title: Equations
+format:
+  docusaurus-md: {}
 _quarto:
   tests:
     docusaurus-md:

@@ -1,5 +1,6 @@
 ---
-format: docusaurus-md
+format: 
+  docusaurus-md: {}
 ---
 
 ```{=mdx}

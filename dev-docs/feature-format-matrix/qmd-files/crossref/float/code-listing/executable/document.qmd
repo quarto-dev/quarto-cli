@@ -1,5 +1,7 @@
 ---
-format: html
+format: 
+  pdf: {}
+  html: {}
 ---
 
 ## Crossreferenceable Code Listings from Executable Code Cells
