@@ -1,0 +1,13 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - ["fig-this\\\\_didnt\\\\_work"]
+---
+
+![This is a figure caption.](surus.png){#fig-this_didnt_work}
+
+See @fig-this_didnt_work.
