@@ -23,11 +23,18 @@ const canonicalizers: Record<string, Canonicalizer> = {
   "ipynb": ipynbCanonicalizer,
 };
 
-export const checkSnapshot = async (file: string) => {
-  const output = await Deno.readTextFile(file);
-  const snapshot = await Deno.readTextFile(file + ".snapshot");
+const readAndNormalizeNewlines = (file: string) => {
+  return normalizeNewlines(Deno.readTextFileSync(file));
+}
 
+export const canonicalizeSnapshot = async (file: string) => {
   const ext = extname(file).slice(1);
-  const canonicalizer = canonicalizers[ext] || normalizeNewlines;
-  return canonicalizer(output) === canonicalizer(snapshot);
+  const canonicalizer = canonicalizers[ext] || readAndNormalizeNewlines;
+  return canonicalizer(file);
+}
+
+export const checkSnapshot = async (file: string) => {
+  const outputCanonical = await canonicalizeSnapshot(file);
+  const snapshotCanonical = await canonicalizeSnapshot(file + ".snapshot");
+  return outputCanonical === snapshotCanonical;
 }

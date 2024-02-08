@@ -20,7 +20,7 @@ import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
 import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
-import { checkSnapshot } from "./verify-snapshot.ts";
+import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -269,9 +269,9 @@ export const ensureSnapshotMatches = (
       const good = await checkSnapshot(file);
       if (!good) {
         console.log("output:");
-        console.log(await Deno.readTextFile(file));
+        console.log(await canonicalizeSnapshot(file));
         console.log("snapshot:");
-        console.log(await Deno.readTextFile(file + ".snapshot"));
+        console.log(await canonicalizeSnapshot(file + ".snapshot"));
       }
       assert(
         good,
