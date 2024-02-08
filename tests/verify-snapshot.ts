@@ -11,10 +11,10 @@ import { withDocxContent } from "./verify.ts";
 import * as slimdom from "slimdom";
 import xpath from "fontoxpath";
 
-type Canonicalizer = (text: string) => Promise<string>;
+type Canonicalizer = (file: string) => Promise<string>;
 
-const ipynbCanonicalizer = (text: string) => {
-  const json = JSON.parse(text);
+const ipynbCanonicalizer = (file: string) => {
+  const json = JSON.parse(Deno.readTextFileSync(file));
   for (const cell of json.cells) {
     if (cell.id.match(/^[0-9a-f-]+$/)) {
       cell.id = "<uuid>";
