@@ -43,12 +43,13 @@ const readAndNormalizeNewlines = (file: string) => {
 }
 
 export const canonicalizeSnapshot = async (file: string) => {
+  const origFile = file;
   if (file.endsWith(".snapshot")) {
     file = file.slice(0, -9);
   }
   let ext = extname(file).slice(1);
   const canonicalizer = canonicalizers[ext] || readAndNormalizeNewlines;
-  return canonicalizer(file);
+  return canonicalizer(origFile);
 }
 
 export const checkSnapshot = async (file: string) => {
