@@ -347,7 +347,7 @@ end, function(float)
 
   local label_cmd = quarto.LatexInlineCommand({
     name = "label",
-    arg = pandoc.Str(float.identifier)
+    arg = pandoc.RawInline("latex", float.identifier)
   })
   latex_caption:insert(1, label_cmd)
   local latex_caption_content = latex_caption
