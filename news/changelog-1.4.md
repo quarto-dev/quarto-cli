@@ -13,6 +13,7 @@
 - ([#8567](https://github.com/quarto-dev/quarto-cli/issues/8567)): Improve website search performance for large sites with long search terms.
 - ([#8586](https://github.com/quarto-dev/quarto-cli/issues/8586)): Fix regression on rendering multiple embedded citations in LaTeX tables.
 - ([#8603](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with multiple-column layouts and code-folding.
+- ([#8630](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with latex crossref identifiers with underscores. Note that this syntax is not officially supported in Quarto, but this change reverts to the behavior in 1.3.
 
 ## Languages
 
