@@ -19686,6 +19686,7 @@ try {
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
           "The icon to display in the annoucement",
+          "The position of the announcement.",
           "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -19826,6 +19827,7 @@ try {
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
           "The icon to display in the annoucement",
+          "The position of the announcement.",
           "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -22015,6 +22017,7 @@ try {
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
           "The icon to display in the annoucement",
+          "The position of the announcement.",
           "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -22339,6 +22342,7 @@ try {
           "The content of the announcement",
           "Whether this announcement may be dismissed by the user.",
           "The icon to display in the annoucement",
+          "The position of the announcement.",
           "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
@@ -22836,12 +22840,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 181995,
+          _internalId: 182e3,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 181987,
+              _internalId: 181992,
               type: "enum",
               enum: [
                 "png",
@@ -22857,7 +22861,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 181994,
+              _internalId: 181999,
               type: "anyOf",
               anyOf: [
                 {
@@ -33215,7 +33219,7 @@ ${tidyverseInfo(
       if (codeLines.length < 2) {
         return noIntelligence(kind);
       }
-      const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+      const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.+}/);
       if (!m) {
         return noIntelligence(kind);
       }
