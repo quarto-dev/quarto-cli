@@ -14,6 +14,7 @@
 - ([#8586](https://github.com/quarto-dev/quarto-cli/issues/8586)): Fix regression on rendering multiple embedded citations in LaTeX tables.
 - ([#8603](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with multiple-column layouts and code-folding.
 - ([#8630](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with latex crossref identifiers with underscores. Note that this syntax is not officially supported in Quarto, but this change reverts to the behavior in 1.3.
+- ([#8652](https://github.com/quarto-dev/quarto-cli/issues/8652)): Make code cell detection in IDE tooling consistent across editor modes.
 
 ## Languages
 
