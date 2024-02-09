@@ -33365,7 +33365,7 @@ async function automationFromGoodParseScript(kind, context) {
     if (codeLines.length < 2) {
       return noIntelligence(kind);
     }
-    const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.+}/);
+    const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.*}/);
     if (!m) {
       return noIntelligence(kind);
     }
