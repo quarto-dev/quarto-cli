@@ -1134,7 +1134,7 @@
 
             `visible` - the draft will visible and fully available
             `unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.
-            `gone` - the draft will have no content and will not be linked to.
+            `gone` - the draft will have no content and will not be linked to (default).
 
 - id: book-schema
   schema:

@@ -21,7 +21,7 @@ const testCases =  [
     },
     {
       name: "Default Draft",
-      verify: [doesntHaveContentLinksToDrafts, doesntHaveEnvelopeLinksToDrafts, draftPostHasContent, searchDoesntHaveDraft, siteMapDoesntHaveDraft],
+      verify: [doesntHaveContentLinksToDrafts, doesntHaveEnvelopeLinksToDrafts, draftPostIsEmpty, searchDoesntHaveDraft, siteMapDoesntHaveDraft],
       dir: docs("websites/drafts/drafts-default")
     },
     {

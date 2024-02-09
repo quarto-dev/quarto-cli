@@ -15,7 +15,7 @@ import { ProjectContext } from "../../types.ts";
 import { warning } from "log/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { websiteConfigArray, websiteConfigString } from "./website-config.ts";
-import { kDraftMode, kDrafts } from "./website-constants.ts";
+import { kDraftMode, kDraftModeGone, kDrafts } from "./website-constants.ts";
 
 export function removeChapterNumber(item: Element) {
   const numberSpan = item.querySelector(".chapter-number");
@@ -40,7 +40,7 @@ export function isProjectDraft(
 
 export function projectDraftMode(project: ProjectContext) {
   const draftMode = websiteConfigString(kDraftMode, project.config);
-  return draftMode || "unlinked";
+  return draftMode || kDraftModeGone;
 }
 
 export function isDraftVisible(draftMode: string) {
