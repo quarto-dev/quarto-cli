@@ -5,7 +5,7 @@ format: html
 This should render without a warning
 
 ```{=html}
-<!--| quarto: disable-table-processing -->
+<!--| quarto-html-table-processing: none -->
 <script>
   const x = "<table>";
   const y = "</table>";

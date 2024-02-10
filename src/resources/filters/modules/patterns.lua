@@ -39,7 +39,8 @@ return {
 
   -- this specific pattern sets us up to be able to parse a YAML
   -- comment block in the future.
-  html_disable_table_processing_comment = "%<%!%-%-%| *quarto: *disable%-table%-processing *%-%-%>",
+
+  html_disable_table_processing_comment = "%<%!%-%-%| +quarto%-html%-table%-processing *: +none *%-%-%>",
 
   html_table = html_table,
   shortcode = shortcode,
