@@ -44,6 +44,12 @@ function parse_html_tables()
     end,
     RawBlock = function(el)
       if _quarto.format.isRawHtml(el) then
+        -- See https://github.com/quarto-dev/quarto-cli/issues/8670
+        -- and https://quarto.org/docs/authoring/tables.html#library-authors
+        -- for the motivation for this change.
+        if string.find(el.text, patterns.html_disable_table_processing_comment) then
+          return nil
+        end
         -- if we have a raw html table in a format that doesn't handle raw_html
         -- then have pandoc parse the table into a proper AST table block
         local pat = patterns.html_table
@@ -56,8 +62,6 @@ function parse_html_tables()
         -- but this is important enough to do a little more work anyway
         -- 
         -- specifically, we should do our best not to break good HTML when it's there
-
-
 
         local tableBegin,tableBody,tableEnd = el.text:match(pat)
         if tableBegin then

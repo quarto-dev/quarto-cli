@@ -1,0 +1,13 @@
+---
+format: html
+---
+
+This should render without a warning
+
+```{=html}
+<!--| quarto: disable-table-processing -->
+<script>
+  const x = "<table>";
+  const y = "</table>";
+</script>
+```
