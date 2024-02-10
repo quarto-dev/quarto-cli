@@ -36,6 +36,11 @@ return {
   html_paged_table = html_paged_table,
   html_table_caption = html_table_caption,
   html_table_tag_name = html_table_tag_name,
+
+  -- this specific pattern sets us up to be able to parse a YAML
+  -- comment block in the future.
+  html_disable_table_processing_comment = "%<%!%-%-%| *quarto: *disable%-table%-processing *%-%-%>",
+
   html_table = html_table,
   shortcode = shortcode,
   tag = tag,
