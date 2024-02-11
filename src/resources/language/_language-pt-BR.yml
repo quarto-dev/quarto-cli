@@ -122,3 +122,5 @@ listing-page-category-all: "Todos"
 listing-page-no-matches: "Sem itens correspondentes"
 listing-page-words: "{0} palavras"
 listing-page-filter: "Filtro"
+
+draft: "Rascunho"

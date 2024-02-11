@@ -122,3 +122,5 @@ listing-page-no-matches: "無符合的項目"
 listing-page-field-wordcount: "字數統計"
 listing-page-words: "{0} 個單詞"
 listing-page-filter: "篩選"
+
+draft: "草稿"

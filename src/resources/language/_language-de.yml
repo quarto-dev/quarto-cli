@@ -122,3 +122,5 @@ listing-page-no-matches: "Keine Treffer"
 listing-page-field-wordcount: "Wortanzahl"
 listing-page-words: "{0} Wörter"
 listing-page-filter: "Filter"
+
+draft: "Entwurf"

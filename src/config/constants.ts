@@ -355,6 +355,7 @@ export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
 export const kArticleNotebookLabel = "article-notebook-label";
 export const kManuscriptMecaBundle = "manuscript-meca-bundle";
+export const kDraftLabel = "draft";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -480,6 +481,7 @@ export const kLanguageDefaultsKeys = [
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
   kArticleNotebookLabel,
+  kDraftLabel,
   kManuscriptMecaBundle,
 ];
 

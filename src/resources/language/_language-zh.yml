@@ -122,3 +122,5 @@ listing-page-no-matches: "无匹配项"
 listing-page-field-wordcount: "单词统计"
 listing-page-words: "{0}个单词"
 listing-page-filter: "过滤器"
+
+draft: "草案"

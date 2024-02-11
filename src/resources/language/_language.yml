@@ -125,3 +125,5 @@ listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
 listing-page-words: "{0} words"
 listing-page-filter: "Filter"
+
+draft: "Draft"

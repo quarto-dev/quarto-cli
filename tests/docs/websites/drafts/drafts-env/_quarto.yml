@@ -1,0 +1,30 @@
+project:
+  type: website
+
+website:
+  title: "Testing Website"
+  navbar:
+    right:
+      - about.qmd
+      - posts/draft-post/index.qmd
+      - icon: github
+        href: https://github.com/
+      - icon: twitter
+        href: https://twitter.com
+  sidebar:
+    contents: posts
+  page-footer:
+    left: 
+      - posts/draft-post/index.qmd
+  draft-mode: gone
+  drafts:
+    - posts/draft-post/index.qmd    
+  site-url: https://www.charlesteague.com   
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+
+
+
