@@ -864,7 +864,6 @@ end, function(float)
     end
   })
   if count == 1 then
-    print(float.content)
     img.identifier = float.identifier
     img.caption = quarto.utils.as_inlines(float.caption_long)
     return pandoc.Figure(
@@ -901,7 +900,7 @@ end, function(float)
   end
   decorate_caption_with_crossref(float)
   return pandoc.Figure(
-    {float.content},
+    quarto.utils.as_blocks(float.content),
     {float.caption_long},
     float.identifier
   )
