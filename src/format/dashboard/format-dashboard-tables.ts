@@ -66,7 +66,9 @@ export function processDatatables(
           kDatatableInit,
           "let table = new DataTable('#$1', dt_args);",
         );
-        scriptEl.innerText = codeWithInit; 
+        scriptEl.innerText = codeWithInit;
+      } else {
+        scriptEl.innerText = codeText;
       }
 
       // Remove the inline css
