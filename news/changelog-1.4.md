@@ -15,6 +15,7 @@
 - ([#8603](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with multiple-column layouts and code-folding.
 - ([#8630](https://github.com/quarto-dev/quarto-cli/issues/8603)): Fix a regression with latex crossref identifiers with underscores. Note that this syntax is not officially supported in Quarto, but this change reverts to the behavior in 1.3.
 - ([#8652](https://github.com/quarto-dev/quarto-cli/issues/8652)): Make code cell detection in IDE tooling consistent across editor modes.
+- ([#8662](https://github.com/quarto-dev/quarto-cli/issues/8662)): Do not incorrectly prevent previewing docusaurus websites without an index file.
 - ([#8697](https://github.com/quarto-dev/quarto-cli/issues/8697)): Ensure that lightboxed figures with margin captions properly position the caption.
 
 ## Languages
