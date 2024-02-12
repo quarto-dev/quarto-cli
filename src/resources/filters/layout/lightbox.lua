@@ -126,11 +126,17 @@ function lightbox()
   end
   
   local function processFigure(figEl)
-    return _quarto.ast.walk(figEl, {
+    local inMargin  = false
+   local resolvedFigEl = _quarto.ast.walk(figEl, {
       Image = function(imgEl)
+        inMargin = imgEl.classes:includes("column-margin")
         return processImg(imgEl, { automatic = true, caption = figEl.caption.long })
       end
     })
+    if resolvedFigEl and inMargin then
+      resolvedFigEl.attr.classes:insert("column-margin")
+    end
+    return resolvedFigEl;
   end
 
   local function processSubFloat(subFloatEl, gallery, parentFloat) 
