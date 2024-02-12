@@ -35,7 +35,7 @@
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
     "dayjs/": "https://cdn.skypack.dev/dayjs@1.8.21/",
     "moment-guess": "https://cdn.skypack.dev/moment-guess@1.2.4",
-    "ansi_up": "https://cdn.skypack.dev/ansi_up@v6.0.2",
+    "ansi_up": "https://cdn.skypack.dev/ansi_up@v5.1.0",
     "lodash/": "https://cdn.skypack.dev/lodash@4.17.21/",
     "acorn-class-fields": "https://cdn.skypack.dev/acorn-class-fields@1.0.0",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@8.4.0",
