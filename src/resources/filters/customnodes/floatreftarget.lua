@@ -347,7 +347,7 @@ end, function(float)
 
   local label_cmd = quarto.LatexInlineCommand({
     name = "label",
-    arg = pandoc.Str(float.identifier)
+    arg = pandoc.RawInline("latex", float.identifier)
   })
   latex_caption:insert(1, label_cmd)
   local latex_caption_content = latex_caption
@@ -394,25 +394,33 @@ end, function(float)
     end,
     Table = function(tbl)
       local cites = pandoc.List({})
-      local guid_id = 0
+      local guid_id = global_table_guid_id
       local uuid = "85b77c8a-261c-4f58-9b04-f21c67e0a758"
       tbl = _quarto.ast.walk(tbl, {
         Cite = function(cite)
           cites:insert(cite)
           guid_id = guid_id + 1
-          return pandoc.Str(uuid .. "-" .. guid_id)
+          -- this uuid is created a little strangely here
+          -- to ensure that no generated uuid will be a prefix of another,
+          -- which would cause our regex replacement to pick up the wrong
+          -- uuid
+          return pandoc.Str(uuid .. "-" .. guid_id .. "-" .. uuid)
         end
       })
       local raw_output = pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
       if #cites > 0 then
-        return pandoc.Blocks({
+        local local_guid_id = global_table_guid_id
+        local result = pandoc.Blocks({
           make_scaffold(pandoc.Span, cites:map(function(cite)
+            local_guid_id = local_guid_id + 1
             return make_scaffold(pandoc.Span, pandoc.Inlines({
-              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. guid_id .. "\n"),
+              pandoc.RawInline("latex", "%quarto-define-uuid: " .. uuid .. "-" .. local_guid_id .. "-" .. uuid .. "\n"),
               cite,
               pandoc.RawInline("latex", "\n%quarto-end-define-uuid\n")
             }))
           end)), raw_output})
+        global_table_guid_id = global_table_guid_id + #cites
+        return result
       else
         return raw_output
       end
@@ -856,7 +864,6 @@ end, function(float)
     end
   })
   if count == 1 then
-    print(float.content)
     img.identifier = float.identifier
     img.caption = quarto.utils.as_inlines(float.caption_long)
     return pandoc.Figure(
@@ -893,7 +900,7 @@ end, function(float)
   end
   decorate_caption_with_crossref(float)
   return pandoc.Figure(
-    {float.content},
+    quarto.utils.as_blocks(float.content),
     {float.caption_long},
     float.identifier
   )
@@ -984,3 +991,5 @@ end, function(float)
     identifier = float.identifier
   }
 end)
+
+global_table_guid_id = 0

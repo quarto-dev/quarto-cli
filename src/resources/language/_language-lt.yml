@@ -121,3 +121,6 @@ listing-page-category-all: "Viskas"
 listing-page-no-matches: "Atitinkančių elementų nerasta"
 listing-page-field-wordcount: "Žodžių Skaičius"
 listing-page-words: "{0} žodžiai"
+listing-page-filter: "Filtras"
+
+draft: "Juodraštis"

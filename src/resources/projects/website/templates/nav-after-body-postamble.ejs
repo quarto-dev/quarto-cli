@@ -4,7 +4,7 @@
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
-      <a  href="<%- nav.prevPage.href %>" class="pagination-link  aria-label="<%- nav.prevPage.text %>">
+      <a  href="<%- nav.prevPage.href %>" class="pagination-link" aria-label="<%- nav.prevPage.plainText || nav.prevPage.text %>">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><%= nav.prevPage.text %></span>
       </a>          
     <% } %>
@@ -13,7 +13,7 @@
 
   <div class="nav-page nav-page-next">
     <% if (nav.nextPage) { %>
-      <a  href="<%- nav.nextPage.href %>" class="pagination-link" aria-label="<%- nav.nextPage.text %>">
+      <a  href="<%- nav.nextPage.href %>" class="pagination-link" aria-label="<%- nav.nextPage.plainText || nav.nextPage.text %>">
         <span class="nav-page-text"><%= nav.nextPage.text %></span> <i class="bi bi-arrow-right-short"></i>
       </a>
     <% } %>
@@ -31,21 +31,21 @@
 
     <div class="nav-footer-left">
       <% if (nav.footer.left) { %> 
-      <% partial('nav-footer-section.ejs', { contents: nav.footer.left })%>
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.left, draftMode: nav.draftMode })%>
       <% } else { %>
       &nbsp;
       <% } %>
     </div>   
     <div class="nav-footer-center">
       <% if (nav.footer.center) { %> 
-      <% partial('nav-footer-section.ejs', { contents: nav.footer.center}) %>
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.center, draftMode: nav.draftMode}) %>
       <% } else { %>
       &nbsp;
       <% } %>
     </div>
     <div class="nav-footer-right">
       <% if (nav.footer.right) { %> 
-      <% partial('nav-footer-section.ejs', { contents: nav.footer.right}) %>
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.right, draftMode: nav.draftMode}) %>
       <% } else { %>
       &nbsp;
       <% } %> 

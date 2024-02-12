@@ -121,3 +121,6 @@ listing-page-category-all: "Hepsi"
 listing-page-no-matches: "Eşleşen öğe yok"
 listing-page-field-wordcount: "Kelime Sayımı"
 listing-page-words: "{0} kelime"
+listing-page-filter: "Filtre"
+
+draft: "Taslak"

@@ -662,6 +662,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+@include media-breakpoint-up(lg) {
+  #quarto-sidebar-glass {
+    display: none;
+  }
+}
+
 @include media-breakpoint-down(lg) {
   #quarto-sidebar-glass {
     position: fixed;

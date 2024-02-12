@@ -1,0 +1,28 @@
+---
+format: 
+  pdf: {}
+  html: {}
+---
+
+## Crossreferenceable Code Listings from Executable Code Cells
+
+```{r}
+#| lst-label: lst-fibonacci
+#| lst-cap: A naive algorithm for computing Fibonacci numbers.
+fib <- function(x) {
+  if (x < 2) 1 else fib(x - 1) + fib(x - 2)
+}
+```
+
+@lst-fibonacci describes a naive algorithm for computing Fibonacci numbers.
+
+Code cells can generate both listings and cross-referenceable Figures, (or Tables, etc), as @lst-plot and @fig-plot show:
+
+```{r}
+#| lst-label: lst-plot
+#| lst-cap: Code that makes a trivial plot.
+#| label: fig-plot
+#| fig-cap: A caption for a trivial plot.
+plot(1:10)
+```
+

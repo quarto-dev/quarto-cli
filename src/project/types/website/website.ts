@@ -11,6 +11,7 @@ import { dirAndStem } from "../../../core/path.ts";
 import { contentType } from "../../../core/mime.ts";
 
 import {
+  InputTarget,
   kProject404File,
   kProjectLibDir,
   ProjectContext,
@@ -47,8 +48,14 @@ import {
 
 import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
-import { kSiteFavicon, kWebsite } from "./website-constants.ts";
 import {
+  kDraftMode,
+  kDrafts,
+  kSiteFavicon,
+  kWebsite,
+} from "./website-constants.ts";
+import {
+  websiteConfigArray,
   websiteConfigString,
   websiteMetadataFields,
   websiteProjectConfig,
@@ -70,9 +77,15 @@ import {
 } from "./listing/website-listing.ts";
 import { aboutHtmlDependencies } from "./about/website-about.ts";
 import { resolveFormatForGiscus } from "./website-giscus.ts";
-import { RenderFile, RenderServices } from "../../../command/render/types.ts";
+import {
+  PandocOptions,
+  RenderFile,
+  RenderServices,
+} from "../../../command/render/types.ts";
 import { formatDate } from "../../../core/date.ts";
 import { projectExtensionPathResolver } from "../../../extension/extension.ts";
+import { websiteDraftPostProcessor } from "./website-draft.ts";
+import { projectDraftMode } from "./website-utils.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -198,6 +211,7 @@ export const websiteProjectType: ProjectType = {
           ),
         ),
       ]);
+      extras.html[kHtmlPostprocessors].unshift(websiteDraftPostProcessor);
 
       // listings extras
       const hasBootstrap = formatHasBootstrap(format);
@@ -325,6 +339,34 @@ export const websiteProjectType: ProjectType = {
       incremental,
       websiteOutputFiles(outputFiles),
     );
+  },
+
+  filterInputTarget: (inputTarget: InputTarget, context: ProjectContext) => {
+    const drafts = websiteConfigArray(kDrafts, context.config);
+    const isDraft = drafts?.some((val) => {
+      return val === inputTarget.input;
+    });
+    if (isDraft) {
+      inputTarget.draft = true;
+    }
+    return inputTarget;
+  },
+
+  filterParams: async (options: PandocOptions) => {
+    if (options.project) {
+      const draftMode = projectDraftMode(options.project);
+      const drafts = websiteConfigArray(kDrafts, options.project.config);
+      if (drafts || draftMode) {
+        const draftsAbs = (drafts || []).map((path) => {
+          return join(options.project!.dir, path);
+        });
+        return {
+          [kDraftMode]: draftMode,
+          [kDrafts]: draftsAbs,
+        };
+      }
+    }
+    return undefined;
   },
 };
 

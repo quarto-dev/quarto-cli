@@ -121,3 +121,6 @@ listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "Tot"
 listing-page-no-matches: "Cap element coincident"
 listing-page-words: "{0} paraules"
+listing-page-filter: "Filtre"
+
+draft: "Esborrany"

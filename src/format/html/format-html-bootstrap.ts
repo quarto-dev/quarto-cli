@@ -1456,6 +1456,8 @@ const figCapInCalloutMarginProcessor: MarginNodeProcessor = {
   },
 };
 
+const kPreviewFigColumnForwarding = [".grid"];
+
 const processFigureOutputs = (doc: Document) => {
   // For any non-margin figures, we want to actually place the figure itself
   // into the column, and leave the caption as is, if possible
@@ -1477,6 +1479,18 @@ const processFigureOutputs = (doc: Document) => {
   for (const columnNode of columnEls) {
     // See if this is a code cell with a single figure output
     const columnEl = columnNode as Element;
+
+    // See if there are any classes which should prohibit forwarding
+    // the column information
+    if (
+      kPreviewFigColumnForwarding.some((sel) => {
+        return columnEl.querySelector(sel) !== null;
+      })
+    ) {
+      // There are matching ignore selectors, just skip
+      // this column
+      continue;
+    }
 
     // If there is a single figure, then forward the column class onto that
     const figures = columnEl.querySelectorAll("figure img.figure-img");

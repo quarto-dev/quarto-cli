@@ -120,3 +120,6 @@ listing-page-category-all: "전체"
 listing-page-no-matches: "일치 없음"
 listing-page-field-wordcount: "단어 수"
 listing-page-words: "{0} 단어"
+listing-page-filter: "필터"
+
+draft: "초안"

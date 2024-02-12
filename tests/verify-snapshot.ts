@@ -11,11 +11,10 @@ import { withDocxContent } from "./verify.ts";
 import * as slimdom from "slimdom";
 import xpath from "fontoxpath";
 
-type Canonicalizer = (fileName: string) => Promise<string>;
+type Canonicalizer = (file: string) => Promise<string>;
 
-const ipynbCanonicalizer = (fileName: string) => {
-  const text = Deno.readTextFileSync(fileName);
-  const json = JSON.parse(text);
+const ipynbCanonicalizer = (file: string) => {
+  const json = JSON.parse(Deno.readTextFileSync(file));
   for (const cell of json.cells) {
     if (cell.id.match(/^[0-9a-f-]+$/)) {
       cell.id = "<uuid>";
@@ -44,10 +43,13 @@ const readAndNormalizeNewlines = (file: string) => {
 }
 
 export const canonicalizeSnapshot = async (file: string) => {
-  const baseName = file.endsWith(".snapshot") ? file.slice(0, -9) : file;
-  const ext = extname(baseName).slice(1);
+  const origFile = file;
+  if (file.endsWith(".snapshot")) {
+    file = file.slice(0, -9);
+  }
+  let ext = extname(file).slice(1);
   const canonicalizer = canonicalizers[ext] || readAndNormalizeNewlines;
-  return await canonicalizer(file);
+  return canonicalizer(origFile);
 }
 
 export const checkSnapshot = async (file: string) => {

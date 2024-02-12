@@ -121,3 +121,6 @@ listing-page-category-all: "Alle"
 listing-page-no-matches: "Ingen resultater"
 listing-page-field-wordcount: "Ordtælling"
 listing-page-words: "{0} ord"
+listing-page-filter: "Filter"
+
+draft: "Udkast"

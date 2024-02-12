@@ -121,3 +121,6 @@ listing-page-category-all: "Allt"
 listing-page-no-matches: "Inget resultat"
 listing-page-field-wordcount: "Ordmätning"
 listing-page-words: "{0} ord"
+listing-page-filter: "Filter"
+
+draft: "Utkast"

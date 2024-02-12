@@ -1,0 +1,28 @@
+---
+format: 
+  html: {}
+---
+
+## Crossreferenceable "Table"s
+
+Tables with a caption and a label can be referenced using the `@ref` syntax, as @tbl-1 shows.
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: This is the caption for the table {#tbl-1}
+
+Tables can contain arbitrary content instead of an image. This lets you, for example, use an image to represent the table, in case its formatting is too complex for it to be rendered in HTML.
+
+::: {#tbl-2}
+
+![](./a-table.png)
+
+This is the caption for the table rendered as an image.
+
+:::
+
+See @tbl-2.

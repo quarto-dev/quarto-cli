@@ -29,7 +29,7 @@ var table = new Tabulator("#features-formats-table", {
         {title:"PDF", field: "pdf", formatter: "html"},
         {title:"Typst", field: "typst", formatter: "html"},
         {title:"Docx", field: "docx", formatter: "html"},
-        {title:"Docusaurus", field: "docusaurus", formatter: "html"},
+        {title:"Docusaurus", field: "docusaurus-md", formatter: "html"},
         {title:"RevealJS", field: "revealjs", formatter: "html"},
         {title:"Pptx", field: "pptx", formatter: "html"},
         {title:"Beamer", field: "beamer", formatter: "html"},

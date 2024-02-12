@@ -11,7 +11,7 @@ import { asMappedString, mappedString } from "./lib/mapped-text.ts";
 
 import { Range } from "./lib/text-types.ts";
 import { relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { debug } from "log/mod.ts";
 
 import * as mt from "./lib/mapped-text.ts";
 import { withTiming } from "./timing.ts";
@@ -44,7 +44,7 @@ export function mappedDiff(
 
     const resultChunks: (string | Range)[] = [];
     const started = performance.now();
-    const maxTime = 2000; // don't let computation go for more than 2s.
+    const maxTime = 200; // don't let computation go for more than 0.2s.
     const diffResult = diffLines(
       source.value,
       target,
@@ -56,8 +56,8 @@ export function mappedDiff(
       },
     );
     if (diffResult === undefined) {
-      warning(
-        "Warning: The computation used to determine source line information from the engine timed out.\nLine number information will be unavailable and/or inaccurate.",
+      debug(
+        "The computation used to determine source line information from the engine timed out.\nLine number information will be unavailable and/or inaccurate.",
       );
       return asMappedString(target);
     }

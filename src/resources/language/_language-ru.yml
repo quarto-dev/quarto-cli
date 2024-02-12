@@ -121,3 +121,6 @@ listing-page-category-all: "Все"
 listing-page-no-matches: "Нет подходящих элементов"
 listing-page-field-wordcount: "Подсчет слов"
 listing-page-words: "{0} слов"
+listing-page-filter: "Фильтр"
+
+draft: "Черновик"
