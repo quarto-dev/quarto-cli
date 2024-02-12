@@ -458,6 +458,12 @@ _quarto.ast = {
   end,
 
   add_renderer = function(name, condition, renderer)
+    if renderer == nil then
+      -- luacov: disable
+      fatal("Internal Error in add_renderer: renderer for " .. name .. " is nil")
+      -- luacov: enable
+    end
+
     local handler = _quarto.ast.resolve_handler(name)
     if handler == nil then
       -- luacov: disable
