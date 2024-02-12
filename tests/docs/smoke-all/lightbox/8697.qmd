@@ -1,0 +1,15 @@
+---
+title: "Quarto Playground"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["#lightbox > .column-margin > .quarto-figure"]
+---
+
+## Lightbox
+
+![a caption](images/mooncusser.png){.column-margin .lightbox}
+
+{{< lipsum 1 >}}
