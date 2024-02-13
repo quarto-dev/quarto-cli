@@ -436,6 +436,18 @@ function render_latex_fixups()
   end
 
   return {
+    Table = function(tbl)
+      if not flags.has_custom_crossrefs then
+        return nil
+      end
+      -- https://github.com/quarto-dev/quarto-cli/issues/8711#issuecomment-1939784585
+      -- Pandoc emits longtable environments by default;
+      -- longtable environments fail to run when new float environments are
+      -- declared, independently of whether longtables are inside the new floats or not
+      -- 
+      -- we render tables to tabular environments in this case.
+      return latexTabular(tbl)
+    end,
     RawBlock = function(raw)
       if _quarto.format.isRawLatex(raw) then
         if (raw.text:match(_quarto.patterns.latexLongtablePattern) and
