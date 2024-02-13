@@ -6,6 +6,7 @@ format:
   html: 
     quality: 1
   dashboard:
+    is-dashboard: true # this is due to a bug on conditional content; when-format="dashboard" doesn't work
     quality: 0
 _quarto:
   tests:
@@ -25,5 +26,13 @@ _quarto:
 ## A small note
 
 You should note that this is a note.
+
+:::
+
+::: {.content-visible when-meta="is-dashboard"}
+
+## Bug
+
+Bug: Callout icons show on a separate line from the title.
 
 :::

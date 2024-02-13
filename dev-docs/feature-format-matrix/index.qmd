@@ -15,3 +15,32 @@ specifically the `columns` field.
 {{< include _tabulator.qmd >}}
 
 :::
+
+## Quality summary
+
+```{python}
+#| echo: false
+total_cells = 0
+ok_cells = 0
+good_cells = 0
+na_cells = 0
+for k, v in quality_summary["quality"].items():
+  total_cells += v
+  if k == "NA":
+    na_cells += v
+  if type(k) == int and k >= 0:
+    ok_cells += v
+  if k == 1:
+    good_cells += v
+n_features = quality_summary["n_rows"] 
+n_formats = 11
+all_cells = n_features * n_formats - na_cells
+```
+
+### Our coverage is at `{python} "%.2f%%" % (ok_cells / total_cells)`
+
+* `{python} n_features` features 
+* `{python} n_formats` formats
+* `{python} all_cells` cells
+* `{python} good_cells`/`{python} total_cells` good cells
+* `{python} ok_cells`/`{python} total_cells` ok cells

@@ -51,7 +51,11 @@ class Trie:
         if not self.children:
             return 1
         return sum([v.size() for v in self.children.values()])
-
+    
+    def walk(self, visitor):
+        visitor(self)
+        for v in self.children.values():
+            v.walk(visitor)
 
 def extract_metadata_from_file(file):
     with open(file, "r") as f:
@@ -85,7 +89,7 @@ def table_cell(entry, _feature, _format_name, format_config):
     result.append(link)
     return "".join(result)
 
-def render_features_formats_data():
+def compute_trie():
     trie = Trie()
     for entry in glob.glob("qmd-files/**/document.qmd", recursive=True):
         feature = entry.split("/")[1:-1]
@@ -101,6 +105,29 @@ def render_features_formats_data():
                 "format_config": format_config,
                 "table_cell": table_cell(entry, feature, format_name, format_config)
             })
-    entries = trie.tabulator()
+    return trie
 
+def render_features_formats_data(trie = None):
+    if trie is None:
+        trie = compute_trie()
+    entries = trie.tabulator()
     return "```{=html}\n<script type='text/javascript'>\nvar tableData = %s;\n</script>\n```\n" % json.dumps(entries, indent=2)
+
+def compute_quality_summary(trie = None):
+    if trie is None:
+        trie = compute_trie()
+    quality_summary = {"unknown": 0, -1: 0, 0: 0, 1: 0}
+    n_rows = 0
+    def visit(node):
+        nonlocal n_rows
+        n_rows = n_rows + 1
+        for v in node.values:
+            config = v["format_config"]
+            if type(config) == str:
+                config = {}
+            quality = config.get("quality", "unknown")
+            if quality_summary.get(quality) is None:
+                raise ValueError("Invalid quality value %s" % quality)
+            quality_summary[quality] += 1
+    trie.walk(visit)
+    return {"n_rows": n_rows, "quality": quality_summary}
