@@ -1009,5 +1009,10 @@ $valuebox-colors: (
 /*-- itables --*/
 .tableFloatingHeaderOriginal {
   background-color: $card-bg;
-  transform: translateY(-1px);
+  position: sticky !important;
+  top: 0 !important;
+}
+
+.dashboard-data-table {
+  margin-top: -1px;
 }
