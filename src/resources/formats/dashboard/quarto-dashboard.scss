@@ -1009,4 +1009,5 @@ $valuebox-colors: (
 /*-- itables --*/
 .tableFloatingHeaderOriginal {
   background-color: $card-bg;
+  transform: translateY(-1px);
 }
