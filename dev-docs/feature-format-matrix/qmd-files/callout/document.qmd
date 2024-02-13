@@ -1,13 +1,23 @@
 ---
 title: Callouts
 format: 
-  docusaurus-md: {}
+  docusaurus-md:
+    quality: 1
+  html: 
+    quality: 1
+  dashboard:
+    quality: 0
 _quarto:
   tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div.callout.callout-note"
+          - "div.callout.callout-note div.callout-header div.callout-title-container"
+          - "div.callout.callout-note div.callout-body p"
     docusaurus-md:
       ensureFileRegexMatches:
         - [":::note\\[A small note\\]"]
-        - []
 ---
 
 ::: {.callout-note}

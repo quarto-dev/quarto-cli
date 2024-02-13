@@ -1,12 +1,17 @@
 ---
 title: Equations
 format:
-  docusaurus-md: {}
+  docusaurus-md: default
+  html: default
 _quarto:
   tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - []
     docusaurus-md:
       ensureFileRegexMatches:
-        - ["^[$][$]", "^price = \\hat"]
+        - ["^\\$\\$", "^price = \\\\hat"]
 ---
 
 $$

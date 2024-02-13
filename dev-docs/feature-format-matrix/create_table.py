@@ -68,8 +68,22 @@ def extract_metadata_from_file(file):
                 return metadata
     raise ValueError("No metadata found in file %s" % file)
 
-def table_cell(entry, _feature, _format_name, _format_config):
-    return "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % entry
+def table_cell(entry, _feature, _format_name, format_config):
+    if type(format_config) == str:
+        format_config = {}
+    result = []
+    quality = format_config.get("quality", "unknown")
+    if quality is not None:
+        # use forbidden sign for -1, yellow circle for 0, and green circle for 1
+        qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;"}
+        colors = {-1: "#b05050", 0: "#c09060", 1: "#5050b0"}
+        # use question mark icon for missing
+        color = colors.get(quality, "inherit")
+        quality_icon = qualities.get(quality, "&#x2753;")
+        result.append(f"<span style='color: {color}'>{quality_icon}</span>")
+    link = "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % entry
+    result.append(link)
+    return "".join(result)
 
 def render_features_formats_data():
     trie = Trie()
