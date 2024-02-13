@@ -19,6 +19,7 @@
 - ([#8662](https://github.com/quarto-dev/quarto-cli/issues/8662)): Do not incorrectly prevent previewing docusaurus websites without an index file.
 - ([#8697](https://github.com/quarto-dev/quarto-cli/issues/8697)): Ensure that lightboxed figures with margin captions properly position the caption.
 - ([#8708](https://github.com/quarto-dev/quarto-cli/issues/8708)): Resolve complex layouts in ipynbs embeds for manuscripts.
+- ([#8728](https://github.com/quarto-dev/quarto-cli/pull/8728)): Don't crash with empty floats in LaTeX format.
 
 ## Languages
 
