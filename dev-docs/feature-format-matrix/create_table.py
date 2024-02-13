@@ -7,6 +7,7 @@ class Trie:
     def __init__(self):
         self.children = {}
         self.values = []
+        self.entry = ""
 
     def insert(self, path, value):
         node = self
@@ -15,6 +16,7 @@ class Trie:
                 node.children[c] = Trie()
             node = node.children[c]
         node.values.append(value)
+        node.entry = value["entry"]
 
     def json(self):
         if not self.children:
@@ -32,15 +34,20 @@ class Trie:
             return []
         result = []
         for k, v in self.children.items():
+            children = v.tabulator()
+            feature = k
+            if v.entry != "":
+                link = "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % v.entry
+                feature = "%s %s" % (link, k)
             d = {
-                "feature": k,
+                "sort_key": k,
+                "feature": feature,
                 **v.tabulator_leaf()
             }
-            children = v.tabulator()
             if children:
                 d["_children"] = children
             result.append(d)
-        result.sort(key=lambda x: x["feature"])
+        result.sort(key=lambda x: x["sort_key"])
         return result
 
     def depth(self):
@@ -87,8 +94,6 @@ def table_cell(entry, _feature, _format_name, format_config):
         color = colors[quality]
         quality_icon = qualities.get(quality, "&#x2753;")
         result.append(f"<span style='color: {color}'>{quality_icon}</span>")
-    link = "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % entry
-    result.append(link)
     return "".join(result)
 
 def compute_trie():
@@ -104,6 +109,7 @@ def compute_trie():
             trie.insert(feature, {
                 "feature": "/".join(feature),
                 "format": format_name,
+                "entry": entry,
                 "format_config": format_config,
                 "table_cell": table_cell(entry, feature, format_name, format_config)
             })
