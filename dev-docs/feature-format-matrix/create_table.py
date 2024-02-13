@@ -53,10 +53,12 @@ class Trie:
             return 1
         return sum([v.size() for v in self.children.values()])
     
-    def walk(self, visitor):
-        visitor(self)
-        for v in self.children.values():
-            v.walk(visitor)
+    def walk(self, visitor, path = None):
+        if path is None:
+            path = []
+        visitor(self, path)
+        for k, v in self.children.items():
+            v.walk(visitor, path + [k])
 
 def extract_metadata_from_file(file):
     with open(file, "r") as f:
@@ -80,10 +82,9 @@ def table_cell(entry, _feature, _format_name, format_config):
     quality = format_config.get("quality", "unknown")
     if quality is not None:
         # use forbidden sign for -1, yellow circle for 0, and green circle for 1
-        qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;"}
-        colors = {-1: "#b05050", 0: "#c09060", 1: "#5050b0"}
-        # use question mark icon for missing
-        color = colors.get(quality, "inherit")
+        qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;", 2: "&#x2713;&#x2713;"}
+        colors = {-1: "#b05050", 0: "#c09060", 1: "#50b050", 2: "#50b050", "unknown": "inherit", "na": "inherit"}
+        color = colors[quality]
         quality_icon = qualities.get(quality, "&#x2753;")
         result.append(f"<span style='color: {color}'>{quality_icon}</span>")
     link = "<a href='%s' target='_blank'><i class='fa-solid fa-link' aria-label='link'></i></a>" % entry
@@ -117,11 +118,12 @@ def render_features_formats_data(trie = None):
 def compute_quality_summary(trie = None):
     if trie is None:
         trie = compute_trie()
-    quality_summary = {"unknown": 0, -1: 0, 0: 0, 1: 0}
+    quality_summary = {"unknown": 0, -1: 0, 0: 0, 1: 0, 2: 0, "na": 0}
     n_rows = 0
-    def visit(node):
+    def visit(node, _path):
         nonlocal n_rows
-        n_rows = n_rows + 1
+        if not node.children or len(node.values):
+            n_rows = n_rows + 1
         for v in node.values:
             config = v["format_config"]
             if type(config) == str:

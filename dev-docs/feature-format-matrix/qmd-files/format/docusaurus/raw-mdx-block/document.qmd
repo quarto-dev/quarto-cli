@@ -1,6 +1,19 @@
 ---
 format: 
   docusaurus-md: {}
+  pdf:
+    quality: na
+  html:
+    quality: na
+  dashboard:
+    quality: na
+  typst:
+    quality: na
+  revealjs:
+    quality: na
+  revealjs:
+    quality: na
+  
 ---
 
 ```{=mdx}
