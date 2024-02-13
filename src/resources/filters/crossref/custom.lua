@@ -18,6 +18,7 @@ function initialize_custom_crossref_categories(meta)
     return nil
     -- luacov: enable
   end
+  flags.has_custom_crossrefs = true
   local keys = {
     ["caption-location"] = function(v) return pandoc.utils.stringify(v) end,
     ["kind"] = function(v) return pandoc.utils.stringify(v) end,
