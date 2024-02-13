@@ -337,7 +337,7 @@ export const ensureFileRegexMatches = (
 ): Verify => {
   const asRegexp = (m: string | RegExp) => {
     if (typeof m === "string") {
-      return new RegExp(m);
+      return new RegExp(m, "m");
     } else {
       return m;
     }
