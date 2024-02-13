@@ -40,6 +40,7 @@ class Trie:
             if children:
                 d["_children"] = children
             result.append(d)
+        result.sort(key=lambda x: x["feature"])
         return result
 
     def depth(self):
