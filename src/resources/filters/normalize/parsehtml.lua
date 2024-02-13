@@ -152,13 +152,11 @@ function parse_html_tables()
         end
       end
     end
-    if cursor ~= 1 then
-      if cursor <= len then
-        blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor)))
-      end
-    end
     if #blocks == 0 then
       return nil
+    end
+    if cursor > 1 and cursor <= len then
+      blocks:insert(pandoc.RawBlock(el.format, string.sub(el.text, cursor)))
     end
     return pandoc.Div(blocks)
   end
