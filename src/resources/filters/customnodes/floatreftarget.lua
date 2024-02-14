@@ -565,9 +565,15 @@ end, function(float)
       })
     })
   elseif align == "right" then
-    figure_content:insert(1, quarto.LatexInlineCommand({
-      name = "hfill",
-    }))
+    local plain = quarto.utils.match("[1]/{Plain}")(figure_content)
+    if plain then
+      local cmd = quarto.LatexInlineCommand({
+        name = "hfill",
+      })
+      plain[1].content:insert(1, cmd)
+    else
+      warn("Could not find a Plain node in figure content of " .. float.identifier .. " to right-align.")
+    end
   end -- otherwise, do nothing
   -- figure_content:insert(1, pandoc.RawInline("latex", latexBeginAlign(align)))
   -- figure_content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
