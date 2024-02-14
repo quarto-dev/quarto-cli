@@ -20,6 +20,7 @@
 - ([#8697](https://github.com/quarto-dev/quarto-cli/issues/8697)): Ensure that lightboxed figures with margin captions properly position the caption.
 - ([#8708](https://github.com/quarto-dev/quarto-cli/issues/8708)): Resolve complex layouts in ipynbs embeds for manuscripts.
 - ([#8728](https://github.com/quarto-dev/quarto-cli/pull/8728)): Don't crash with empty floats in LaTeX format.
+- ([#8733](https://github.com/quarto-dev/quarto-cli/issues/8733)): Fix regression with image-align=right in LaTeX format.
 
 ## Languages
 
