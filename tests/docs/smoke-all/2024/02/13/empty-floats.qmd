@@ -1,0 +1,23 @@
+---
+title: "empty floats"
+format: latex
+_quarto:
+  tests:
+    latex:
+      verifyNoErrors: true
+---
+
+:::{#fig-1}
+
+:::{.content-hidden when-format="latex"}
+![A sub-caption](an-image.png){#fig-1-1}
+:::
+
+:::{.content-hidden when-format="latex"}
+![A sub-caption](an-image.png){#fig-1-2}
+:::
+
+A caption.
+:::
+
+

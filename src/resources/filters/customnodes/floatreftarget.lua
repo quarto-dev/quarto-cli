@@ -294,6 +294,11 @@ end, function(float)
   local capLoc = cap_location(float)
   local caption_cmd_name = latexCaptionEnv(float)
 
+  if float.content == nil then
+    warn("FloatRefTarget with no content: " .. float.identifier)
+    return pandoc.Div({})
+  end
+
   if float.parent_id then
     if caption_cmd_name == kSideCaptionEnv then
       fail_and_ask_for_bugreport("Subcaptions for side captions are unimplemented.")
