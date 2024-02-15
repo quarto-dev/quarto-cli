@@ -226,57 +226,51 @@ async function isTrusted(
 
 async function determineDirectory(allowPrompt: boolean) {
   const currentDir = Deno.cwd();
-  if (directoryEmpty(currentDir)) {
-    if (!allowPrompt) {
-      return currentDir;
+  if (!allowPrompt) {
+    // If we can't prompt, we'll use either the current directory (if empty), or throw
+    if (!directoryEmpty(currentDir)) {
+      throw new Error(
+        `Unable to install in ${currentDir} as the directory isn't empty.`,
+      );
     } else {
-      const useCurrentDir = await confirmCurrentDir();
-      if (useCurrentDir) {
-        return currentDir;
-      } else {
-        return promptForDirectory(currentDir);
-      }
+      return currentDir;
     }
   } else {
-    if (allowPrompt) {
-      return promptForDirectory(currentDir);
-    } else {
-      throw new Error(
-        `Attempted to use a template with '--no-prompt' in a non-empty directory ${currentDir}.`,
-      );
-    }
+    return promptForDirectory(currentDir, directoryEmpty(currentDir));
   }
 }
 
-async function promptForDirectory(root: string) {
+async function promptForDirectory(root: string, isEmpty: boolean) {
+  // Try to short directory creation
+  const useSubDir = await Confirm.prompt({
+    message: "Create a subdirectory for template?",
+    default: !isEmpty,
+    hint:
+      "Use a subdirectory for the template rather than the current directory.",
+  });
+  if (!useSubDir) {
+    return root;
+  }
+
   const dirName = await Input.prompt({
     message: "Directory name:",
     validate: (input) => {
-      if (input.length === 0) {
+      if (input.length === 0 || input === ".") {
         return true;
       }
+
       const dir = join(root, input);
       if (!existsSync(dir)) {
         ensureDirSync(dir);
       }
-
-      if (directoryEmpty(dir)) {
-        return true;
-      } else {
-        return `The directory '${input}' is not empty. Please provide the name of a new or empty directory.`;
-      }
+      return true;
     },
   });
-  if (dirName.length === 0) {
-    throw new Error();
+  if (dirName.length === 0 || dirName === ".") {
+    return root;
+  } else {
+    return join(root, dirName);
   }
-  return join(root, dirName);
-}
-
-async function confirmCurrentDir() {
-  const message = "Create a subdirectory for template?";
-  const useCurrentDir = await Confirm.prompt(message);
-  return !useCurrentDir;
 }
 
 // Unpack and stage a zipped file
