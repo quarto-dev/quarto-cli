@@ -75,6 +75,50 @@ async function useTemplate(
     // Filter the list to template files
     const filesToCopy = templateFiles(stagedDir);
 
+    // Confirm any overwrites
+    const copyActions: Array<{ file: string; copy: () => Promise<void> }> = [];
+    for (const fileToCopy of filesToCopy) {
+      const isDir = Deno.statSync(fileToCopy).isDirectory;
+      const rel = relative(stagedDir, fileToCopy);
+      if (!isDir) {
+        // Compute the paths
+        let target = join(outputDirectory, rel);
+        let displayName = rel;
+        const targetDir = dirname(target);
+        if (rel === kRootTemplateName) {
+          displayName = `${basename(targetDir)}.qmd`;
+          target = join(targetDir, displayName);
+        }
+        const copyAction = {
+          file: displayName,
+          copy: async () => {
+            // Ensure the directory exists
+            await ensureDir(targetDir);
+
+            // Copy the file into place
+            await Deno.copyFile(fileToCopy, target);
+          },
+        };
+
+        if (existsSync(target)) {
+          if (options.prompt) {
+            const proceed = await Confirm.prompt({
+              message: `Overwrite file ${displayName}?`,
+            });
+            if (proceed) {
+              copyActions.push(copyAction);
+            }
+          } else {
+            throw new Error(
+              `The file ${displayName} already exists and would be overwritten by this action.`,
+            );
+          }
+        } else {
+          copyActions.push(copyAction);
+        }
+      }
+    }
+
     // Copy the files
     await withSpinner({ message: "Copying files..." }, async () => {
       // Copy extensions
@@ -83,36 +127,16 @@ async function useTemplate(
         await copyExtensions(source, extDir, outputDirectory);
       }
 
-      for (const fileToCopy of filesToCopy) {
-        const isDir = Deno.statSync(fileToCopy).isDirectory;
-        const rel = relative(stagedDir, fileToCopy);
-        if (!isDir) {
-          // Compute the paths
-          const target = join(outputDirectory, rel);
-          const targetDir = dirname(target);
-
-          // Ensure the directory exists
-          await ensureDir(targetDir);
-
-          // Copy the file into place
-          await Deno.copyFile(fileToCopy, target);
-
-          // Rename the root template to '<dirname>.qmd'
-          if (rel === kRootTemplateName) {
-            const renamedFile = `${basename(targetDir)}.qmd`;
-            Deno.renameSync(target, join(outputDirectory, renamedFile));
-          }
-        }
+      for (const copyAction of copyActions) {
+        await copyAction.copy();
       }
     });
-
-    const dirContents = Deno.readDirSync(outputDirectory);
 
     info(
       `\nFiles created:`,
     );
-    for (const fileOrDir of dirContents) {
-      info(` - ${fileOrDir.name}`);
+    for (const copyAction of copyActions) {
+      info(` - ${copyAction.file}`);
     }
   } else {
     return Promise.resolve();
