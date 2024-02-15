@@ -185,7 +185,7 @@ function generate_html_email_from_template(
   return html_str
 end
 
-local subject = nil
+local subject = ""
 local email_images = {}
 local image_tbl = {}
 local suppress_scheduled_email = false

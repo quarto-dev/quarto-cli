@@ -35,6 +35,9 @@ testRender(docs("email/email.qmd"), "email", false, [fileExists(previewFile), va
 // Test basic attachment render, which will validate that attachment shows up in JSON
 testRender(docs("email/email-attach.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": "The subject line.", "rsc_email_attachments": ["raw_data.csv"]})], cleanupCtx);
 
+// Test an email render that has no subject line, this verifies that `rsc_email_subject` key is present and the value is an empty string
+testRender(docs("email/email-no-subject.qmd"), "email", false, [fileExists(previewFile), validJsonWithFields(jsonFile, {"rsc_email_subject": ""})], cleanupCtx);
+
 // Render in a project with an output directory and confirm that everything ends up in the output directory
 testProjectRender(docs("email/project/email-attach.qmd"), "email", "_out", (outputDir: string) => {
   const verify: Verify[]= [];
