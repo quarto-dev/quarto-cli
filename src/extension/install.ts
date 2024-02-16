@@ -70,7 +70,7 @@ export async function installExtension(
     const confirmed = await confirmInstallation(
       stagedExtensions,
       installDir,
-      allowPrompt,
+      { allowPrompt },
     );
 
     if (confirmed) {
@@ -371,11 +371,17 @@ async function validateExtension(path: string) {
   return extensions;
 }
 
+export interface ConfirmationOptions {
+  allowPrompt: boolean;
+  throw?: boolean;
+  message?: string;
+}
+
 // Confirm that the user would like to proceed with the installation
-async function confirmInstallation(
+export async function confirmInstallation(
   extensions: Extension[],
   installDir: string,
-  allowPrompt: boolean,
+  options: ConfirmationOptions,
 ) {
   const readExisting = async () => {
     try {
@@ -407,6 +413,15 @@ async function confirmInstallation(
         existing.id.organization === extension.id.organization;
     });
   };
+  if (existingExtensions.length > 0 && !options.allowPrompt && options.throw) {
+    throw new Error(
+      `There are extensions installed which would be overwritten. Aborting installation.\n${
+        existingExtensions.map((ext) => {
+          return ext.title;
+        }).join("\n - ")
+      }`,
+    );
+  }
 
   const typeStr = (to: Extension) => {
     const contributes = to.contributes;
@@ -523,11 +538,16 @@ async function confirmInstallation(
   if (extensionRows.length > 0) {
     const table = new Table(...extensionRows);
     info(
-      `\nThe following changes will be made:\n${table.toString()}`,
+      `\n${
+        options.message || "The following changes will be made:"
+      }\n${table.toString()}`,
     );
     const question = "Would you like to continue";
-    return !allowPrompt ||
-      await Confirm.prompt({ message: question, default: true });
+    return !options.allowPrompt ||
+      await Confirm.prompt({
+        message: question,
+        default: true,
+      });
   } else {
     info(`\nNo changes required - extensions already installed.`);
     return true;
@@ -535,7 +555,7 @@ async function confirmInstallation(
 }
 
 // Copy the extension files into place
-async function completeInstallation(
+export async function completeInstallation(
   downloadDir: string,
   installDir: string,
 ) {

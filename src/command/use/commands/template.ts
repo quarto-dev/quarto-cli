@@ -20,9 +20,13 @@ import { templateFiles } from "../../../extension/template.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
-import { copyExtensions } from "../../../extension/install.ts";
+import {
+  completeInstallation,
+  confirmInstallation,
+} from "../../../extension/install.ts";
 import { kExtensionDir } from "../../../extension/constants.ts";
 import { InternalError } from "../../../core/lib/error.ts";
+import { readExtensions } from "../../../extension/extension.ts";
 
 const kRootTemplateName = "template.qmd";
 
@@ -75,7 +79,34 @@ async function useTemplate(
     // Filter the list to template files
     const filesToCopy = templateFiles(stagedDir);
 
+    // Compute extensions that need to be installed (and confirm any)
+    // changes
+    const extDir = join(stagedDir, kExtensionDir);
+
+    // Determine whether we can update extensions
+    const templateExtensions = await readExtensions(extDir);
+    const installedExtensions = [];
+    let installExtensions = false;
+    if (templateExtensions.length > 0) {
+      installExtensions = await confirmInstallation(
+        templateExtensions,
+        outputDirectory,
+        {
+          allowPrompt: options.prompt !== false,
+          throw: true,
+          message: "The template requires the following changes to extensions:",
+        },
+      );
+      if (!installExtensions) {
+        return;
+      }
+    }
+
     // Confirm any overwrites
+    info(
+      `\nPreparing template files...`,
+    );
+
     const copyActions: Array<{ file: string; copy: () => Promise<void> }> = [];
     for (const fileToCopy of filesToCopy) {
       const isDir = Deno.statSync(fileToCopy).isDirectory;
@@ -119,24 +150,38 @@ async function useTemplate(
       }
     }
 
+    if (installExtensions) {
+      installedExtensions.push(...templateExtensions);
+      await withSpinner({ message: "Installing extensions..." }, async () => {
+        await completeInstallation(stagedDir, outputDirectory);
+      });
+    }
+
     // Copy the files
-    await withSpinner({ message: "Copying files..." }, async () => {
-      // Copy extensions
-      const extDir = join(stagedDir, kExtensionDir);
-      if (existsSync(extDir)) {
-        await copyExtensions(source, extDir, outputDirectory);
-      }
+    if (copyActions.length > 0) {
+      await withSpinner({ message: "Copying files..." }, async () => {
+        for (const copyAction of copyActions) {
+          await copyAction.copy();
+        }
+      });
+    }
 
+    if (installedExtensions.length > 0) {
+      info(
+        `\nExtensions installed:`,
+      );
+      for (const extension of installedExtensions) {
+        info(` - ${extension.title}`);
+      }
+    }
+
+    if (copyActions.length > 0) {
+      info(
+        `\nFiles created:`,
+      );
       for (const copyAction of copyActions) {
-        await copyAction.copy();
+        info(` - ${copyAction.file}`);
       }
-    });
-
-    info(
-      `\nFiles created:`,
-    );
-    for (const copyAction of copyActions) {
-      info(` - ${copyAction.file}`);
     }
   } else {
     return Promise.resolve();
