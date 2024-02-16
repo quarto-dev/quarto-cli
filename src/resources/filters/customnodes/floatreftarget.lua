@@ -412,9 +412,6 @@ end, function(float)
           return pandoc.Str(uuid .. "-" .. guid_id .. "-" .. uuid)
         end
       })
-      if flags.has_custom_crossrefs then
-        return latexTabular(tbl)
-      end
       local raw_output = pandoc.RawBlock("latex", pandoc.write(pandoc.Pandoc({tbl}), "latex"))
       if #cites > 0 then
         local local_guid_id = global_table_guid_id
