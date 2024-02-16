@@ -107,7 +107,6 @@ div.quarto-about-solana {
   flex-direction: column;
   padding-top: 3em !important;
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   .about-entity {
     display: flex !important;
@@ -264,7 +263,6 @@ div.quarto-about-broadside {
   display: flex;
   flex-direction: column;
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   .about-main {
     display: flex !important;
