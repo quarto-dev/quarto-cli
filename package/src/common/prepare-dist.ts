@@ -105,7 +105,7 @@ export async function prepareDist(
 
   // build quarto-preview.js
   info("Building Quarto Web UI");
-  const result = buildQuartoPreviewJs(config.directoryInfo.src);
+  const result = buildQuartoPreviewJs(config.directoryInfo.src, undefined, true);
   if (!result.success) {
     throw new Error();
   }
