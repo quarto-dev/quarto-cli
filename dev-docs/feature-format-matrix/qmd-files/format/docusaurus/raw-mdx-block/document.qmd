@@ -11,8 +11,6 @@ format:
     quality: na
   revealjs:
     quality: na
-  revealjs:
-    quality: na
   
 ---
 
