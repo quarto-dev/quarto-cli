@@ -2,6 +2,9 @@
 engine: jupyter
 format: html
 title: Features x Formats
+css:
+  - index.css
+  - dist/css/tabulator.min.css
 ---
 
 <!--
@@ -17,6 +20,14 @@ specifically the `columns` field.
 :::
 
 ## Quality summary
+
+| Icon | Meaning |
+|------|---------|
+| [&#x1F6AB;]{.bad}|  A bug |
+| [&#x26A0;]{.ok}|  Needs improvement |
+| [&#x2713;]{.good}|  Good |
+| [&#x2713;&#x2713;]{.good}|  Good, with tests |
+| [&#x1F4AC;]{.unknown} |  A comment |
 
 ```{python}
 #| echo: false

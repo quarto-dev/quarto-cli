@@ -88,12 +88,15 @@ def table_cell(entry, _feature, _format_name, format_config):
     result = []
     quality = format_config.get("quality", "unknown")
     if quality is not None:
-        # use forbidden sign for -1, yellow circle for 0, and green circle for 1
         qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;", 2: "&#x2713;&#x2713;"}
-        colors = {-1: "#b05050", 0: "#c09060", 1: "#50b050", 2: "#50b050", "unknown": "inherit", "na": "inherit"}
+        colors = {-1: "bad", 0: "ok", 1: "good", 2: "good", "unknown": "unknown", "na": "na"}
         color = colors[quality]
         quality_icon = qualities.get(quality, "&#x2753;")
-        result.append(f"<span style='color: {color}'>{quality_icon}</span>")
+        result.append(f"<span class='{color}'>{quality_icon}</span>")
+    comment = format_config.get("comment", None)
+    if comment is not None:
+        # This is going to be an accessibility problem
+        result.append(f"<span title='{comment}'>&#x1F4AC;</span>")
     return "".join(result)
 
 def compute_trie():

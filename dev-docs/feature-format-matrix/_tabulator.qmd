@@ -1,7 +1,3 @@
----
-css: dist/css/tabulator.min.css
----
-
 ```{=html}
 <script type="text/javascript" src="dist/js/tabulator.min.js"></script>
 ```

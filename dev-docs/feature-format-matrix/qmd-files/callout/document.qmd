@@ -3,46 +3,30 @@ title: Callouts
 format:
   docusaurus-md:
     quality: 1
-    format-name: docusaurus
   html: 
     quality: 2
-    format-name: html
   dashboard:
-    is-dashboard: true # this is due to a bug on conditional content; when-format="dashboard" doesn't work
     quality: 0
-    format-name: dashboard
+    comment: "Bug: Callout icons show on a separate line from the title."
   markdown:
-    is-markdown: true
     quality: 0
-    format-name: markdown
+    comment: "Should we be emitting that `<div>`? What output are we even targeting here?"
   gfm:
-    is-gfm: true
     quality: 1
-    format-name: gfm
+    comment: "Custom titles are not supported in GFM yet, we simply output a new heading."
   pdf:
-    is-pdf: true
     quality: 1
-    format-name: pdf
   typst:
-    is-typst: true
     quality: 1
-    format-name: typst
   docx:
-    is-docx: true
     quality: 1
-    format-name: docx
   revealjs:
-    is-revealjs: true
     quality: 2
-    format-name: revealjs
   beamer:
     quality: 1
-    is-beamer: true
-    format-name: beamer
   ipynb:
-    is-ipynb: true
-    format-name: ipynb
     quality: 0
+    comment: "Ipynb callouts are emitted as plain markdown callouts. Is that what we want?"
 _quarto:
   tests:
     html:
@@ -68,23 +52,4 @@ You should note that this is a note.
 
 A callout does not need a title.
 
-:::
-
-## `{{< meta format-name >}}`-specific comments
-
-::: {.content-visible when-meta="is-dashboard"}
-## Bug
-Bug: Callout icons show on a separate line from the title.
-:::
-
-::: {.content-visible when-meta="is-markdown"}
-Should we be emitting that `<div>`? What output are we even targeting here?
-:::
-
-::: {.content-visible when-meta="is-gfm"}
-Custom titles are not supported in GFM yet, we simply output a new heading.
-:::
-
-::: {.content-visible when-meta="is-ipynb"}
-Ipynb callouts are emitted as plain markdown callouts. Is that what we want?
 :::
