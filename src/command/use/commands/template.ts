@@ -23,6 +23,7 @@ import { createTempContext } from "../../../core/temp.ts";
 import {
   completeInstallation,
   confirmInstallation,
+  copyExtensions,
 } from "../../../extension/install.ts";
 import { kExtensionDir } from "../../../extension/constants.ts";
 import { InternalError } from "../../../core/lib/error.ts";
@@ -153,7 +154,13 @@ async function useTemplate(
     if (installExtensions) {
       installedExtensions.push(...templateExtensions);
       await withSpinner({ message: "Installing extensions..." }, async () => {
-        await completeInstallation(stagedDir, outputDirectory);
+        // Copy the extensions into a substaging directory
+        // this will ensure that they are namespaced properly
+        const subStagedDir = tempContext.createDir();
+        await copyExtensions(source, stagedDir, subStagedDir);
+
+        // Now complete installation from this sub-staged directory
+        await completeInstallation(subStagedDir, outputDirectory);
       });
     }
 
