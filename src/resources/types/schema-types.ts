@@ -435,10 +435,12 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
   "code-links"?: boolean | CodeLinksSchema;
+  "draft-mode"?: "visible" | "unlinked" | "gone";
   announcement?: string | {
     content?: string;
     dismissable?: boolean;
     icon?: string;
+    position?: "above-navbar" | "below-navbar";
     type?:
       | "primary"
       | "secondary"
@@ -451,6 +453,7 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   } /* Provides an announcement displayed at the top of the page. */;
   comments?: Comments;
   description?: string /* Website description */;
+  drafts?: MaybeArrayOf<string>;
   favicon?: string /* The path to the favicon for this website */;
   image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
   navbar?: boolean | {

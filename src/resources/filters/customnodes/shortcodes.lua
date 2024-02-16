@@ -244,9 +244,7 @@ function shortcodes_filter()
   local inline_handler = function(custom_data, node)
     local result, struct = handle_shortcode(custom_data, node)
     local r1 = shortcodeResultAsInlines(result, struct.name, custom_data)
-    print("r1", r1)
     local r2 = _quarto.ast.walk(r1, filter)
-    print("r2", r2)
     return r2
   end
 

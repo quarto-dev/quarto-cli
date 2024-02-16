@@ -55,7 +55,7 @@
   tags:
     formats: [dashboard]
   schema:
-    enum: [valuebox, sidebar, toolbar]
+    enum: [valuebox, sidebar, toolbar, card-sidebar, card-toolbar]
   description:
     short: "The type of dashboard element being produced by this code cell."
 

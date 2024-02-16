@@ -1,0 +1,33 @@
+project:
+  type: website
+  pre-render:
+    - make-drafts.ts
+  post-render:
+    - clean-drafts.ts
+
+website:
+  title: "Testing Website"
+  navbar:
+    right:
+      - about.qmd
+      - posts/draft-post/index.qmd
+      - icon: github
+        href: https://github.com/
+      - icon: twitter
+        href: https://twitter.com
+  sidebar:
+    contents: posts
+  page-footer:
+    left: 
+      - posts/draft-post/index.qmd
+  site-url: https://www.charlesteague.com   
+  draft-mode: gone
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+
+metadata-files: 
+  - _drafts.yml
+

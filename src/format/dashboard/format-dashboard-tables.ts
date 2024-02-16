@@ -19,6 +19,7 @@ const kStripRegexes = [
 // This is the table initialization
 const kDatatableInit =
   /\$\(document\).ready\(function \(\) \{(?:\s|.)*?\$\('#(.*?)'\)\.DataTable\(dt_args\);(?:\s|.)*?\}\);.*/g;
+const kDatatable16 = /.DataTable\(dt_args\)/g;
 
 // The href for the datatable CSS that is injected
 const kDtCssHrefRegex =
@@ -58,11 +59,17 @@ export function processDatatables(
     if (hasConnectedDt) {
       // Replace the table initialization
       const codeText = codeFiltered.join("\n");
-      const codeWithInit = codeText.replace(
-        kDatatableInit,
-        "let table = new DataTable('#$1', dt_args);",
-      );
-      scriptEl.innerText = codeWithInit;
+      // for iTables < 1.7, do fixups
+      // for iTables 1.7, don't
+      if (codeText.match(kDatatable16)) {
+        const codeWithInit = codeText.replace(
+          kDatatableInit,
+          "let table = new DataTable('#$1', dt_args);",
+        );
+        scriptEl.innerText = codeWithInit;
+      } else {
+        scriptEl.innerText = codeText;
+      }
 
       // Remove the inline css
       const linkCssNodes = doc.querySelectorAll(

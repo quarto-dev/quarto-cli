@@ -58,6 +58,7 @@ import {
   kDfPrint,
   kDisplayName,
   kDownloadUrl,
+  kDraftLabel,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -132,6 +133,7 @@ import {
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
   kListingPageFieldWordCount,
+  kListingPageFilter,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -687,6 +689,7 @@ export interface FormatLanguage {
   [kEnvironmentRemarkTitle]?: string;
   [kEnvironmentSolutionTitle]?: string;
   [kListingPageOrderBy]?: string;
+  [kListingPageFilter]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;
   [kListingPageOrderByDateDesc]?: string;
@@ -710,6 +713,7 @@ export interface FormatLanguage {
   [kNotebookPreviewDownloadSrc]?: string;
   [kNotebookPreviewBack]?: string;
   [kArticleNotebookLabel]?: string;
+  [kDraftLabel]?: string;
   [kManuscriptMecaBundle]?: string;
 
   // langauge variations e.g. eg, fr, etc.

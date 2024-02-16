@@ -121,3 +121,6 @@ listing-page-category-all: "Alle"
 listing-page-no-matches: "Geen overeenkomsten"
 listing-page-field-wordcount: "Woordentelling"
 listing-page-words: "{0} woorden"
+listing-page-filter: "Filter"
+
+draft: "Ontwerp"

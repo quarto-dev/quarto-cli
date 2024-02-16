@@ -20,7 +20,27 @@ import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
 import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
-import { checkSnapshot } from "./verify-snapshot.ts";
+import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
+
+export const withDocxContent = async <T>(file: string,
+  k: (xml: string) => Promise<T>) => {
+    const [_dir, stem] = dirAndStem(file);
+    const temp = await Deno.makeTempDir();
+    try {
+      // Move the docx to a temp dir and unzip it
+      const zipFile = join(temp, stem + ".zip");
+      await Deno.copyFile(file, zipFile);
+      await unzip(zipFile);
+  
+      // Open the core xml document and match the matches
+      const docXml = join(temp, "word", "document.xml");
+      const xml = await Deno.readTextFile(docXml);
+      const result = await k(xml);
+      return result;
+    } finally {
+      await Deno.remove(temp, { recursive: true });
+    }
+  };
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -193,13 +213,6 @@ export const ensureTypstFileRegexMatches = (
   matchesUntyped: (string | RegExp)[],
   noMatchesUntyped?: (string | RegExp)[],
 ): Verify => {
-  const asRegexp = (m: string | RegExp) => {
-    if (typeof m === "string") {
-      return new RegExp(m);
-    } else {
-      return m;
-    }
-  };
   const matches = matchesUntyped.map(asRegexp);
   const noMatches = noMatchesUntyped?.map(asRegexp);
   return {
@@ -260,6 +273,42 @@ export const ensureHtmlElements = (
   };
 };
 
+export const ensureHtmlElementContents = (
+  file: string,
+  selectors: string[],
+  matches: (string | RegExp)[],
+  noMatches: (string | RegExp)[]
+) => {
+  return {
+    name: "Inspecting HTML for Selector Contents",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      selectors.forEach((sel) => {
+        const el = doc.querySelector(sel);
+        if (el !== null) {
+          const contents = el.innerText;
+          matches.forEach((regex) => {
+            assert(
+              asRegexp(regex).test(contents),
+              `Required match ${String(regex)} is missing from selector ${sel}.`,
+            );
+          });
+
+          noMatches.forEach((regex) => {
+            assert(
+              !asRegexp(regex).test(contents),
+              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
+            );
+          });
+  
+        }
+      });
+    },
+  };
+
+}
+
 export const ensureSnapshotMatches = (
   file: string,
 ): Verify => {
@@ -269,9 +318,9 @@ export const ensureSnapshotMatches = (
       const good = await checkSnapshot(file);
       if (!good) {
         console.log("output:");
-        console.log(await Deno.readTextFile(file));
+        console.log(await canonicalizeSnapshot(file));
         console.log("snapshot:");
-        console.log(await Deno.readTextFile(file + ".snapshot"));
+        console.log(await canonicalizeSnapshot(file + ".snapshot"));
       }
       assert(
         good,
@@ -288,7 +337,7 @@ export const ensureFileRegexMatches = (
 ): Verify => {
   const asRegexp = (m: string | RegExp) => {
     if (typeof m === "string") {
-      return new RegExp(m);
+      return new RegExp(m, "m");
     } else {
       return m;
     }
@@ -318,32 +367,6 @@ export const ensureFileRegexMatches = (
   };
 };
 
-export const verifyOdtDocument = (
-  callback: (doc: string) => Promise<void>,
-  name?: string,
-): (file: string) => Verify => {
-  return (file: string) => ({
-    name: name ?? "Inspecting Odt",
-    verify: async (_output: ExecuteOutput[]) => {
-      const [_dir, stem] = dirAndStem(file);
-      const temp = await Deno.makeTempDir();
-      try {
-        // Move the docx to a temp dir and unzip it
-        const zipFile = join(temp, stem + ".zip");
-        await Deno.rename(file, zipFile);
-        await unzip(zipFile);
-
-        // Open the core xml document and match the matches
-        const docXml = join(temp, "content.xml");
-        const xml = await Deno.readTextFile(docXml);
-        await callback(xml);
-      } finally {
-        await Deno.remove(temp, { recursive: true });
-      }
-    },
-  });
-};
-
 export const verifyJatsDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -357,6 +380,18 @@ export const verifyJatsDocument = (
   });
 };
 
+export const verifyOdtDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Odt",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withDocxContent(file, callback);
+    },
+  });
+};
+
 export const verifyDocXDocument = (
   callback: (doc: string) => Promise<void>,
   name?: string,
@@ -364,21 +399,7 @@ export const verifyDocXDocument = (
   return (file: string) => ({
     name: name ?? "Inspecting Docx",
     verify: async (_output: ExecuteOutput[]) => {
-      const [_dir, stem] = dirAndStem(file);
-      const temp = await Deno.makeTempDir();
-      try {
-        // Move the docx to a temp dir and unzip it
-        const zipFile = join(temp, stem + ".zip");
-        await Deno.rename(file, zipFile);
-        await unzip(zipFile);
-
-        // Open the core xml document and match the matches
-        const docXml = join(temp, "word", "document.xml");
-        const xml = await Deno.readTextFile(docXml);
-        await callback(xml);
-      } finally {
-        await Deno.remove(temp, { recursive: true });
-      }
+      return await withDocxContent(file, callback);
     },
   });
 };
@@ -677,4 +698,13 @@ export const ensureMECAValidates = (
       }
     },
   };
+};
+
+
+const asRegexp = (m: string | RegExp) => {
+  if (typeof m === "string") {
+    return new RegExp(m);
+  } else {
+    return m;
+  }
 };

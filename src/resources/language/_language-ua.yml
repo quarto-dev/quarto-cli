@@ -121,3 +121,6 @@ listing-page-minutes-compact: "{0} хвилин"
 listing-page-category-all: "Все"
 listing-page-no-matches: "Немає відповідних елементів"
 listing-page-words: "{0} слів"
+listing-page-filter: "Фільтр"
+
+draft: "Чернетка"

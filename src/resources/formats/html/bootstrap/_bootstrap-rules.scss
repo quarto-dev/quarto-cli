@@ -2124,3 +2124,15 @@ code.sourceCode a.code-annotation-anchor {
 .quarto-xref {
   white-space: nowrap;
 }
+
+#quarto-draft-alert {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding: 0.3em;
+  text-align: center;
+  font-size: 0.9em;
+
+  i {
+    margin-right: 0.3em;
+  }
+}

@@ -662,6 +662,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+@include media-breakpoint-up(lg) {
+  #quarto-sidebar-glass {
+    display: none;
+  }
+}
+
 @include media-breakpoint-down(lg) {
   #quarto-sidebar-glass {
     position: fixed;
@@ -987,6 +993,8 @@ body .nav-footer {
   }
   .quarto-announcement-icon {
     margin-right: 0.5em;
+    font-size: 1.2em;
+    margin-top: -0.15em;
   }
   .quarto-announcement-action {
     cursor: pointer;

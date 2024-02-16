@@ -1005,3 +1005,14 @@ $valuebox-colors: (
     color: $card-color;
   }
 }
+
+/*-- itables --*/
+.tableFloatingHeaderOriginal {
+  background-color: $card-bg;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+.dashboard-data-table {
+  margin-top: -1px;
+}

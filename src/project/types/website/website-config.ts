@@ -27,6 +27,8 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,
+  kDraftMode,
+  kDrafts,
   kImage,
   kMarginFooter,
   kMarginHeader,
@@ -74,7 +76,9 @@ type WebsiteConfigKey =
   | "other-links"
   | "code-links"
   | "reader-mode"
-  | "announcement";
+  | "announcement"
+  | "draft-mode"
+  | "drafts";
 
 export function websiteConfigBoolean(
   name: WebsiteConfigKey,
@@ -432,6 +436,16 @@ export function websiteProjectConfig(
     (config[kCodeLinks] === undefined)
   ) {
     config[kCodeLinks] = websiteConfigUnknown(kCodeLinks, config);
+  }
+
+  // Move drafts, draft-mode
+  const draftMode = websiteConfigString(kDraftMode, config);
+  if (draftMode) {
+    config[kDraftMode] = draftMode;
+  }
+  const drafts = websiteConfigArray(kDrafts, config);
+  if (drafts) {
+    config[kDrafts] = drafts;
   }
 
   return Promise.resolve(config);

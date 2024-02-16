@@ -16,7 +16,11 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
-import { removeChapterNumber } from "./website-utils.ts";
+import {
+  projectDraftMode,
+  removeChapterNumber,
+  resolveProjectInputLinks,
+} from "./website-utils.ts";
 import {
   breadCrumbs,
   itemHasNavTarget,
@@ -138,7 +142,6 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
-import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
 import { navigation } from "./website-shared.ts";
@@ -283,6 +286,9 @@ export async function websiteNavigationExtras(
   const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href, format);
 
+  // Forward the draft mode, if present
+  const draftMode = projectDraftMode(project);
+
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
     [kTocLocation]: tocLocation(),
@@ -298,6 +304,7 @@ export async function websiteNavigationExtras(
       project.config,
     ),
     announcement: navigation.announcement,
+    draftMode,
   };
 
   // Determine the previous and next page
@@ -493,7 +500,15 @@ function navigationHtmlPostprocessor(
           doc,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
-        titleBlockEl.prepend(titleBreadCrumbEl);
+        // See if there is deeper target
+        const bannerTitle = titleBlockEl.querySelector(
+          ".quarto-title-banner .quarto-title",
+        );
+        if (bannerTitle !== null) {
+          bannerTitle.prepend(titleBreadCrumbEl);
+        } else {
+          titleBlockEl.prepend(titleBreadCrumbEl);
+        }
       }
     }
 
@@ -1004,7 +1019,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure collapse & alignment are defaulted
   sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
-  sidebar.alignment = sidebar.alignment || "left";
+  sidebar.alignment = sidebar.alignment || sidebar.align || "left";
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
@@ -1397,7 +1412,13 @@ function uniqueMenuId(navItem: NavigationItemObject) {
 }
 
 async function resolveItem<
-  T extends { href?: string; text?: string; icon?: string },
+  T extends {
+    href?: string;
+    text?: string;
+    icon?: string;
+    plainText?: string;
+    draft?: boolean;
+  },
 >(
   project: ProjectContext,
   href: string,
@@ -1405,22 +1426,28 @@ async function resolveItem<
   number = false,
 ): Promise<T> {
   if (!isExternalPath(href)) {
-    const resolved = await resolveInputTarget(project, href);
+    const resolved = await resolveInputTarget(
+      project,
+      pathWithForwardSlashes(href),
+    );
     if (resolved) {
       const inputItem = {
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
+        draft: resolved.draft,
       };
 
       const projType = projectType(project.config?.project?.[kProjectType]);
       if (projType.navItemText) {
-        inputItem.text = await projType.navItemText(
+        const navItemFormatted = await projType.navItemText(
           project,
           href,
           inputItem.text,
           number,
         );
+        inputItem.text = navItemFormatted.html;
+        inputItem.plainText = navItemFormatted.text;
       }
       return inputItem;
     } else if (looksLikeShortCode(href)) {

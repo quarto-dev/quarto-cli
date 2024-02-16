@@ -1,11 +1,10 @@
 /*
-* ansi-colors.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * ansi-colors.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import ansiUp from "ansi_up";
+import { AnsiUp } from "ansi_up";
 import { Element, parseHtml } from "./deno-dom.ts";
 
 export function hasAnsiEscapeCodes(str: string) {
@@ -14,7 +13,7 @@ export function hasAnsiEscapeCodes(str: string) {
 }
 
 export async function convertToHtmlSpans(str: string) {
-  const a = new ansiUp();
+  const a = new AnsiUp();
   a.use_classes = true;
   const html = a.ansi_to_html(str);
 

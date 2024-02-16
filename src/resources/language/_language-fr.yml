@@ -121,3 +121,6 @@ listing-page-category-all: "Tous"
 listing-page-no-matches: "Aucun article correspondant"
 listing-page-field-wordcount: "Compteur de Mots"
 listing-page-words: "{0} mots"
+listing-page-filter: "Filtre"
+
+draft: "Brouillon"

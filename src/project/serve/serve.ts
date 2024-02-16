@@ -140,10 +140,32 @@ export async function serveProject(
       throw new Error(`${target} is not a project`);
     }
 
+    const isDocusaurusMd = (
+      format?: string | Record<string, unknown> | unknown,
+    ) => {
+      if (!format) {
+        return false;
+      }
+
+      if (typeof format === "string") {
+        return format === "docusaurus-md";
+      } else if (typeof format === "object") {
+        const formats = Object.keys(format);
+        if (formats.length > 0) {
+          const firstFormat = Object.keys(format)[0];
+          return firstFormat === "docusaurus-md";
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    };
+
     // Default project types can't be served
     const projType = projectType(project?.config?.project?.[kProjectType]);
     if (
-      projType.type === "default" && project?.config?.format !== "docusaurus-md"
+      projType.type === "default" && !isDocusaurusMd(project?.config?.format)
     ) {
       const hasIndex = project.files.input.some((file) => {
         let relPath = file;

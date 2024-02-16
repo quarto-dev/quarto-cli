@@ -7278,7 +7278,9 @@ var require_yaml_intelligence_resources = __commonJS({
             enum: [
               "valuebox",
               "sidebar",
-              "toolbar"
+              "toolbar",
+              "card-sidebar",
+              "card-toolbar"
             ]
           },
           description: {
@@ -9417,6 +9419,15 @@ var require_yaml_intelligence_resources = __commonJS({
                           schema: "string",
                           description: "The icon to display in the annoucement"
                         },
+                        position: {
+                          schema: {
+                            enum: [
+                              "above-navbar",
+                              "below-navbar"
+                            ]
+                          },
+                          description: "The position of the announcement."
+                        },
                         type: {
                           schema: {
                             enum: [
@@ -9967,6 +9978,25 @@ var require_yaml_intelligence_resources = __commonJS({
                   ]
                 },
                 description: "A list of code links to appear with this document."
+              },
+              drafts: {
+                schema: {
+                  maybeArrayOf: "path"
+                },
+                description: "A list of input documents that should be treated as drafts"
+              },
+              "draft-mode": {
+                schema: {
+                  enum: [
+                    "visible",
+                    "unlinked",
+                    "gone"
+                  ]
+                },
+                description: {
+                  short: "How to handle drafts that are encountered.",
+                  long: "How to handle drafts that are encountered.\n\n`visible` - the draft will visible and fully available\n`unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.\n`gone` - the draft will have no content and will not be linked to (default).\n"
+                }
               }
             }
           }
@@ -19676,6 +19706,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
         "The icon to display in the annoucement",
+        "The position of the announcement.",
         "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -19778,6 +19809,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
         "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+        },
         "Book title",
         "Description metadata for HTML version of book",
         "The path to the favicon for this website",
@@ -19816,6 +19852,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
         "The icon to display in the annoucement",
+        "The position of the announcement.",
         "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -19918,6 +19955,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
         "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+        },
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -22005,6 +22047,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
         "The icon to display in the annoucement",
+        "The position of the announcement.",
         "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -22107,6 +22150,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
         "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+        },
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -22329,6 +22377,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "The content of the announcement",
         "Whether this announcement may be dismissed by the user.",
         "The icon to display in the annoucement",
+        "The position of the announcement.",
         "The type of announcement. Affects the appearance of the\nannouncement.",
         {
           short: "Request cookie consent before enabling scripts that set cookies",
@@ -22431,6 +22480,11 @@ var require_yaml_intelligence_resources = __commonJS({
         "Publish twitter card metadata",
         "A list of other links to appear below the TOC.",
         "A list of code links to appear with this document.",
+        "A list of input documents that should be treated as drafts",
+        {
+          short: "How to handle drafts that are encountered.",
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+        },
         "Book subtitle",
         "Author or authors of the book",
         "Author or authors of the book",
@@ -22826,12 +22880,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 181570,
+        _internalId: 182026,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 181562,
+            _internalId: 182018,
             type: "enum",
             enum: [
               "png",
@@ -22847,7 +22901,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 181569,
+            _internalId: 182025,
             type: "anyOf",
             anyOf: [
               {
@@ -33352,7 +33406,7 @@ async function automationFromGoodParseScript(kind, context) {
     if (codeLines.length < 2) {
       return noIntelligence(kind);
     }
-    const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+    const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.*}/);
     if (!m) {
       return noIntelligence(kind);
     }

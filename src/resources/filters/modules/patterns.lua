@@ -4,7 +4,18 @@
 -- helpers for working with patterns
 
 local function tag(t)
-  local pattern = "(<" .. t .. "[^>]*>)(.*)(</" .. t .. ">)"
+  local pattern = "(<" .. t .. "[^>]->)(.*)(</" .. t .. ">)"
+  return pattern
+end
+
+local function start_tag(t)
+  local pattern = "<" .. t .. "[^>]->"
+  return pattern
+end
+
+local function end_tag(t)
+  -- https://www.w3.org/html/wg/spec/syntax.html#end-tags
+  local pattern = "</" .. t .. "%s*>"
   return pattern
 end
 
@@ -36,6 +47,15 @@ return {
   html_paged_table = html_paged_table,
   html_table_caption = html_table_caption,
   html_table_tag_name = html_table_tag_name,
+
+  html_start_tag = start_tag,
+  html_end_tag = end_tag,
+
+  -- this specific pattern sets us up to be able to parse a YAML
+  -- comment block in the future.
+
+  html_disable_table_processing_comment = "%<%!%-%-%| +quarto%-html%-table%-processing *: +none *%-%-%>",
+
   html_table = html_table,
   shortcode = shortcode,
   tag = tag,

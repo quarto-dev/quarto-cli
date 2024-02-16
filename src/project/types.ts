@@ -5,8 +5,9 @@
  */
 
 import { RenderServices } from "../command/render/types.ts";
-import { PandocFlags } from "../config/types.ts";
+import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
   NavigationItem as NavItem,
@@ -134,6 +135,7 @@ export interface Sidebar {
   subtitle?: string;
   logo?: string;
   alignment?: "left" | "right" | "center";
+  align?: "left" | "right" | "center"; // This is here only because older versions of Quarto used to use it even though it wasn't documented
   background?:
     | "none"
     | "primary"
@@ -168,6 +170,20 @@ export type SidebarItem = NavigationItemObject & {
   // transient properties used for expanding 'auto'
   auto?: boolean | string | string[];
 };
+
+export interface InputTargetIndex extends Metadata {
+  title?: string;
+  markdown: PartitionedMarkdown;
+  formats: Record<string, Format>;
+  draft?: boolean;
+}
+
+export interface InputTarget {
+  input: string;
+  title?: string;
+  outputHref: string;
+  draft: boolean;
+}
 
 /*export interface SidebarTool {
   // label/contents

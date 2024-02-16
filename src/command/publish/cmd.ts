@@ -335,7 +335,7 @@ async function createPublishOptions(
     }
     if (!input) {
       throw new Error(
-        `The specified path (${path}) is not a website or book project so cannot be published.`,
+        `The specified path (${path}) is not a website, manuscript or book project so cannot be published.`,
       );
     }
   } // single file path

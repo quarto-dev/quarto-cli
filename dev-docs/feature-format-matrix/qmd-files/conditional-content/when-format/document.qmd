@@ -1,0 +1,61 @@
+---
+title: "`when-format`"
+format: 
+  html:
+    quality: 0
+  revealjs:
+    quality: 1
+  pdf:
+    quality: 1
+  typst:
+    quality: 1
+  beamer:
+    quality: 1
+  dashboard:
+    quality: -1
+---
+
+## Intro
+
+See [our documentation](https://quarto.org/docs/authoring/conditional.html) on conditional content.
+
+::: {.content-visible when-format="html"}
+
+## `{.content-visible when-format="html"}`
+
+This content is visible only in [HTML-compatible formats](https://quarto.org/docs/authoring/conditional.html#format-matching)
+
+Currently, targeting the `html` format specifically
+is not as convenient as it should be. We recommend
+using "the negative clause" on the _other_ formats.
+
+For example, to hide content from `html` specifically in
+a document that you intend to render to `html` and `revealjs`, use `{.content-visible when-format="revealjs"}`.
+
+:::
+
+::: {.content-hidden when-format="revealjs"}
+## `{.content-hidden when-format="revealjs"}`
+
+This content is hidden only from revealjs presentations.
+:::
+
+::: {.content-visible when-format="revealjs"}
+## `{.content-visible when-format="revealjs"}`
+
+This content is visible only in revealjs presentations
+:::
+
+::: {.content-visible when-format="beamer"}
+
+## This only shows up on beamer
+
+:::
+
+::: {.content-visible when-format="dashboard"}
+
+## Row
+
+This should only show up on dashboards, but doesn't currently appear
+
+::: 

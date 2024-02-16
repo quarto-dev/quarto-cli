@@ -1,0 +1,61 @@
+---
+format:
+  html:
+    quality: 1
+    is-html: true
+    format-name: html
+  markdown:
+    quality: 1
+    is-markdown: true
+    format-name: markdown
+  pdf:
+    quality: 1
+    is-pdf: true
+    format-name: pdf
+  typst:
+    quality: 0
+    is-typst: true
+    format-name: typst
+  docusaurus-md:
+    quality: -1
+    is-docusaurus: true
+    format-name: docusaurus
+  revealjs:
+    quality: 1
+    is-revealjs: true
+    format-name: revealjs
+  dashboard:
+    quality: 1
+    is-dashboard: true
+    format-name: dashboard
+  beamer:
+    quality: 1
+    is-beamer: true
+    format-name: beamer
+  ipynb:
+    quality: -1
+    is-ipynb: true
+    format-name: ipynb
+---
+
+::: {#nte-1 .callout-note}
+
+This is a note that can be crossreferenced.
+
+:::
+
+See @nte-1.
+
+## `{{< meta format-name >}}`-specific comments
+
+::: {.content-visible when-meta="is-typst"}
+Extraneous line break on callout title.
+:::
+
+::: {.content-visible when-meta="is-docusaurus"}
+We are not emitting the surrounding div with the anchor.
+:::
+
+::: {.content-visible when-meta="is-ipynb"}
+We are not emitting the surrounding div with the anchor.
+:::
