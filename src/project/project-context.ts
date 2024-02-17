@@ -11,7 +11,7 @@ import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
-import { Metadata } from "../config/types.ts";
+import { Format, Metadata, PandocFlags } from "../config/types.ts";
 import {
   kProjectLibDir,
   kProjectOutputDir,
@@ -67,7 +67,7 @@ import {
   projectConfigFile,
   projectVarsFile,
 } from "./project-shared.ts";
-import { RenderFlags } from "../command/render/types.ts";
+import { RenderFlags, RenderServices } from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -257,7 +257,7 @@ export async function projectContext(
         }
 
         debug(`projectContext: Found Quarto project in ${dir}`);
-        return {
+        const result: ProjectContext = {
           dir,
           engines,
           files: {
@@ -267,17 +267,25 @@ export async function projectContext(
             configResources: projectConfigResources(dir, projectConfig, type),
           },
           config: projectConfig,
-          formatExtras: type.formatExtras,
           // this is a relatively ugly hack to avoid a circular import chain
           // that causes a deno bundler bug;
           renderFormats,
-          environment,
+          environment: () => environment(result),
           notebookContext,
         };
+        if (type.formatExtras) {
+          result.formatExtras = async (
+            source: string,
+            flags: PandocFlags,
+            format: Format,
+            services: RenderServices,
+          ) => type.formatExtras!(result, source, flags, format, services);
+        }
+        return result;
       } else {
         const { files, engines } = projectInputFiles(dir);
         debug(`projectContext: Found Quarto project in ${dir}`);
-        return {
+        const result = {
           dir,
           engines,
           config: projectConfig,
@@ -288,9 +296,10 @@ export async function projectContext(
             configResources: projectConfigResources(dir, projectConfig),
           },
           renderFormats,
-          environment,
+          environment: () => environment(result),
           notebookContext,
         };
+        return result;
       }
     } else {
       const nextDir = dirname(dir);
@@ -312,7 +321,7 @@ export async function projectContext(
               input: [],
             },
             renderFormats,
-            environment,
+            environment: () => environment(context),
             notebookContext,
           };
           if (Deno.statSync(path).isDirectory) {
