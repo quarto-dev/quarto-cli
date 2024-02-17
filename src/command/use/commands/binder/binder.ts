@@ -72,7 +72,7 @@ export const useBinderCommand = new Command()
           doneMessage: "Detected Project configuration:\n",
         },
         () => {
-          return context.environment(context);
+          return context.environment();
         },
       );
 

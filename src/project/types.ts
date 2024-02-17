@@ -41,8 +41,10 @@ export interface ProjectContext {
   engines: string[];
   files: ProjectFiles;
   config?: ProjectConfig;
+  notebookContext: NotebookContext;
+  outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
+
   formatExtras?: (
-    project: ProjectContext,
     source: string,
     flags: PandocFlags,
     format: Format,
@@ -56,10 +58,7 @@ export interface ProjectContext {
     project?: ProjectContext,
   ) => Promise<Record<string, Format>>;
 
-  notebookContext: NotebookContext;
-
-  outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
-  environment: (project: ProjectContext) => Promise<ProjectEnvironment>;
+  environment: () => Promise<ProjectEnvironment>;
 }
 
 export interface ProjectFiles {

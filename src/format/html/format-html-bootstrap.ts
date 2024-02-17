@@ -671,7 +671,7 @@ async function processOtherLinks(
     context: ProjectContext,
   ): Promise<OtherLink | undefined> => {
     if (link === "repo") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (env.github.repoUrl) {
         return {
           icon: "github",
@@ -685,7 +685,7 @@ async function processOtherLinks(
         );
       }
     } else if (link === "devcontainer") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (
         env.github.organization && env.github.repository && env.github.repoUrl
       ) {
@@ -703,7 +703,7 @@ async function processOtherLinks(
         );
       }
     } else if (link === "binder") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (env.github.organization && env.github.repository) {
         const containerUrl = binderUrl(
           env.github.organization,
