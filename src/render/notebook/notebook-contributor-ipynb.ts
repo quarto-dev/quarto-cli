@@ -99,8 +99,8 @@ async function renderOutputNotebook(
   _format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFile(
     { path: nbPath, formats: ["ipynb"] },

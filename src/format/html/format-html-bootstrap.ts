@@ -112,13 +112,13 @@ export function bootstrapFormatDependency() {
   };
 }
 
-export function boostrapExtras(
+export function bootstrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
   services: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
@@ -277,8 +277,8 @@ function bootstrapHtmlPostprocessor(
   format: Format,
   flags: PandocFlags,
   services: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ): HtmlPostProcessor {
   return async (

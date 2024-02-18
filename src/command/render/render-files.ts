@@ -288,9 +288,9 @@ export async function renderFiles(
   files: RenderFile[],
   options: RenderOptions,
   notebookContext: NotebookContext,
-  alwaysExecuteFiles?: string[],
-  pandocRenderer?: PandocRenderer,
-  project?: ProjectContext,
+  alwaysExecuteFiles: string[] | undefined,
+  pandocRenderer: PandocRenderer | undefined,
+  project: ProjectContext,
 ): Promise<RenderFilesResult> {
   // provide default renderer
   pandocRenderer = pandocRenderer || defaultPandocRenderer(options, project);
@@ -368,7 +368,7 @@ export async function renderFile(
   file: RenderFile,
   options: RenderOptions,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
   enforceProjectFormats: boolean = true,
 ): Promise<RenderFilesResult> {
   // provide default renderer
@@ -420,7 +420,7 @@ async function renderFileInternal(
   lifetime: Lifetime,
   file: RenderFile,
   options: RenderOptions,
-  project: ProjectContext | undefined,
+  project: ProjectContext,
   pandocRenderer: PandocRenderer,
   files: RenderFile[],
   tempContext: TempContext,
@@ -456,6 +456,8 @@ async function renderFileInternal(
     const { engine, target } = await fileExecutionEngineAndTarget(
       file.path,
       options.flags,
+      undefined,
+      project,
     );
     const validationResult = await validateDocumentFromSource(
       target.markdown,
@@ -695,7 +697,7 @@ async function renderFileInternal(
 // default pandoc renderer immediately renders each execute result
 function defaultPandocRenderer(
   _options: RenderOptions,
-  _project?: ProjectContext,
+  _project: ProjectContext,
 ): PandocRenderer {
   const renderCompletions: PandocRenderCompletion[] = [];
   const renderedFiles: RenderedFile[] = [];

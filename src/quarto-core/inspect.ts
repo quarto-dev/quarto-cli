@@ -31,6 +31,7 @@ import { extensionFilesFromDirs } from "../extension/extension.ts";
 import { withRenderServices } from "../command/render/render-services.ts";
 import { notebookContext } from "../render/notebook/notebook-context.ts";
 import { RenderServices } from "../command/render/types.ts";
+import { singleFileProjectContext } from "../project/types/single-file/single-file.ts";
 
 export interface InspectedConfig {
   quarto: {
@@ -112,7 +113,8 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
       const partitioned = await engine.partitionedMarkdown(path);
 
       // get formats
-      const context = await projectContext(path, nbContext);
+      const context = (await projectContext(path, nbContext)) ||
+        singleFileProjectContext(path, nbContext);
       const formats = await withRenderServices(
         nbContext,
         (services: RenderServices) =>

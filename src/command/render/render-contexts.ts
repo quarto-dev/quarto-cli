@@ -210,7 +210,7 @@ export async function renderContexts(
   options: RenderOptions,
   forExecute: boolean,
   notebookContext: NotebookContext,
-  project?: ProjectContext,
+  project: ProjectContext,
   cloneOptions: boolean = true,
   enforceProjectFormats: boolean = true,
 ): Promise<Record<string, RenderContext>> {
@@ -304,11 +304,10 @@ export async function renderContexts(
       if (engineClaimReason === "markdown") {
         // since the content decided the engine, and the content now changed,
         // we need to re-evaluate the engine and target based on new content.
-        const { engine, target } = await fileExecutionEngineAndTarget(
+        const { engine, target } = await project.fileExecutionEngineAndTarget(
           file.path,
-          options.flags,
           markdown,
-          project,
+          true,
         );
         context.engine = engine;
         context.target = target;
@@ -327,7 +326,7 @@ export async function renderFormats(
   file: string,
   services: RenderServices,
   to = "all",
-  project?: ProjectContext,
+  project: ProjectContext,
 ): Promise<Record<string, Format>> {
   const contexts = await renderContexts(
     { path: file },

@@ -57,7 +57,7 @@ import {
   formatHasBootstrap,
 } from "./format-html-info.ts";
 
-import { boostrapExtras } from "./format-html-bootstrap.ts";
+import { bootstrapExtras } from "./format-html-bootstrap.ts";
 
 import {
   clipboardDependency,
@@ -991,8 +991,8 @@ function themeFormatExtras(
   flags: PandocFlags,
   format: Format,
   sevices: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ) {
   const theme = format.metadata[kTheme];
@@ -1005,7 +1005,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(
+    return bootstrapExtras(
       input,
       flags,
       format,

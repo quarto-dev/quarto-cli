@@ -92,8 +92,8 @@ async function renderJats(
   format: Format,
   subArticleToken: string,
   services: RenderServices,
-  _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   const to = format.render[kVariant]?.includes("+element_citations")
     ? "jats+element_citations"
