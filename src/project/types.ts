@@ -4,10 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { RenderServices } from "../command/render/types.ts";
+import { RenderFlags, RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { MappedString } from "../core/mapped-text.ts";
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
+import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
   NavigationItem as NavItem,
@@ -44,6 +46,18 @@ export interface ProjectContext {
   notebookContext: NotebookContext;
   outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
 
+  // This is a cache of the engine and target for a given filename
+  engineAndTargetCache?: Map<
+    string,
+    { engine: ExecutionEngine; target: ExecutionTarget }
+  >;
+
+  fileExecutionEngineAndTarget: (
+    file: string,
+    markdown?: MappedString,
+    force?: boolean,
+  ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
+
   formatExtras?: (
     source: string,
     flags: PandocFlags,
@@ -51,14 +65,18 @@ export interface ProjectContext {
     services: RenderServices,
   ) => Promise<FormatExtras>;
 
+  // declaring renderFormats here is a relatively ugly hack to avoid a circular import chain
+  // that causes a deno bundler bug
   renderFormats: (
     file: string,
     services: RenderServices,
-    to?: string,
-    project?: ProjectContext,
+    to: string | undefined,
+    project: ProjectContext,
   ) => Promise<Record<string, Format>>;
 
   environment: () => Promise<ProjectEnvironment>;
+
+  isSingleFile: boolean;
 }
 
 export interface ProjectFiles {

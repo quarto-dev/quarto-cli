@@ -48,7 +48,7 @@ export const notebookPreviewer = (
   nbView: boolean | NotebookPreviewDescriptor | NotebookPreviewDescriptor[],
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) => {
   const isBook = projectIsBook(project);
   const previewQueue: NotebookPreviewTask[] = [];

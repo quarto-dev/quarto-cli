@@ -100,6 +100,7 @@ import {
   rswURL,
 } from "../../core/previewurl.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -365,11 +366,13 @@ export async function previewFormat(
   if (format) {
     return format;
   }
+  const nbContext = notebookContext();
+  project = project || singleFileProjectContext(file, nbContext);
   formats = formats ||
     await withRenderServices(
-      notebookContext(),
+      nbContext,
       (services: RenderServices) =>
-        renderFormats(file, services, "all", project),
+        renderFormats(file, services, "all", project!),
     );
   format = Object.keys(formats)[0] || "html";
   return format;

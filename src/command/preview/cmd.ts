@@ -52,6 +52,7 @@ import { previewShiny } from "./preview-shiny.ts";
 import { serve } from "../serve/serve.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -275,7 +276,8 @@ export const previewCommand = new Command()
     if (Deno.statSync(file).isFile) {
       // get project and preview format
       const nbContext = notebookContext();
-      const project = await projectContext(dirname(file), nbContext);
+      const project = (await projectContext(dirname(file), nbContext)) ||
+        singleFileProjectContext(file, nbContext);
       const formats = await (async () => {
         const services = renderServices(nbContext);
         try {

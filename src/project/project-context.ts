@@ -55,6 +55,7 @@ import {
   engineIgnoreDirs,
   executionEngineIntermediateFiles,
   fileExecutionEngine,
+  fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
 } from "../execute/engine.ts";
 import { kMarkdownEngine } from "../execute/types.ts";
@@ -88,6 +89,7 @@ import { debug } from "log/mod.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
+import { MappedString } from "../core/mapped-text.ts";
 
 export async function projectContext(
   path: string,
@@ -272,6 +274,20 @@ export async function projectContext(
           renderFormats,
           environment: () => environment(result),
           notebookContext,
+          fileExecutionEngineAndTarget: (
+            file: string,
+            markdown?: MappedString,
+            force?: boolean,
+          ) => {
+            return fileExecutionEngineAndTarget(
+              file,
+              flags,
+              markdown,
+              result,
+              force,
+            );
+          },
+          isSingleFile: false,
         };
         if (type.formatExtras) {
           result.formatExtras = async (
@@ -285,7 +301,7 @@ export async function projectContext(
       } else {
         const { files, engines } = projectInputFiles(dir);
         debug(`projectContext: Found Quarto project in ${dir}`);
-        const result = {
+        const result: ProjectContext = {
           dir,
           engines,
           config: projectConfig,
@@ -297,7 +313,21 @@ export async function projectContext(
           },
           renderFormats,
           environment: () => environment(result),
+          fileExecutionEngineAndTarget: (
+            file: string,
+            markdown?: MappedString,
+            force?: boolean,
+          ) => {
+            return fileExecutionEngineAndTarget(
+              file,
+              flags,
+              markdown,
+              result,
+              force,
+            );
+          },
           notebookContext,
+          isSingleFile: false,
         };
         return result;
       }
@@ -323,6 +353,20 @@ export async function projectContext(
             renderFormats,
             environment: () => environment(context),
             notebookContext,
+            fileExecutionEngineAndTarget: (
+              file: string,
+              markdown?: MappedString,
+              force?: boolean,
+            ) => {
+              return fileExecutionEngineAndTarget(
+                file,
+                flags,
+                markdown,
+                context,
+                force,
+              );
+            },
+            isSingleFile: false,
           };
           if (Deno.statSync(path).isDirectory) {
             const { files, engines } = projectInputFiles(originalDir);
