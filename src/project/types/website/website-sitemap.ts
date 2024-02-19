@@ -9,6 +9,8 @@ import { basename, join, relative } from "path/mod.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
 
+import * as ld from "../../../core/lodash.ts";
+
 import { ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { pathWithForwardSlashes, removeIfExists } from "../../../core/path.ts";
@@ -172,11 +174,17 @@ function writeSitemap(sitemapPath: string, urlset: Urlset, draftMode: string) {
   const nonDraftUrls = urlset.filter((url) =>
     !url.draft || isDraftVisible(draftMode)
   );
+
+  const escapedUrls = nonDraftUrls.map((url) => {
+    url.loc = ld.escape(url.loc);
+    return url;
+  });
+
   const sitemap = renderEjs(
     resourcePath(
       join("projects", "website", "templates", "sitemap.ejs.xml"),
     ),
-    { urlset: nonDraftUrls },
+    { urlset: escapedUrls },
   );
   Deno.writeTextFileSync(sitemapPath, sitemap);
 }
