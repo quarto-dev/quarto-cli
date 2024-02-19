@@ -254,6 +254,7 @@ export const kSectionTitleCopyright = "section-title-copyright";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
+export const kAppendixViewLicense = "appendix-view-license";
 export const kTitleBlockAuthorSingle = "title-block-author-single";
 export const kTitleBlockAuthorPlural = "title-block-author-plural";
 export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
@@ -381,6 +382,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,

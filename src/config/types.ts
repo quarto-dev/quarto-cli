@@ -8,6 +8,7 @@ import { Document } from "../core/deno-dom.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kArticleNotebookLabel,
   kBackToTop,
   kBaseFormat,
@@ -638,6 +639,7 @@ export interface FormatLanguage {
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
   [kSectionTitleReuse]?: string;
+  [kAppendixViewLicense]?: string;
   [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
   [kCodeLine]?: string;
