@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync, walkSync} from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { join } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
 import * as ld from "../src/core/lodash.ts";
@@ -138,6 +138,34 @@ export const fileExists = (file: string): Verify => {
     },
   };
 };
+
+export const directoryContainsOnlyAllowedPaths = (dir: string, paths: string[]): Verify => {
+  return {
+    name: `Ensure only has ${paths.length} paths in folder`,
+    verify: (_output: ExecuteOutput[]) => {
+
+      for (const walk of walkSync(dir)) {
+        const path = relative(dir, walk.path);
+        if (path !== "") {
+          assert(paths.includes(path), `Unexpected path ${path} encountered.`); 
+  
+        }
+      }    
+      return Promise.resolve();
+    },
+  };
+}
+
+export const folderExists = (path: string): Verify => {
+  return {
+    name: `Folder ${path} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyPath(path);
+      assert(Deno.statSync(path).isDirectory, `Path ${path} isn't a folder`);
+      return Promise.resolve();
+    },
+  }; 
+}
 
 export const validJsonFileExists = (file: string): Verify => {
   return {

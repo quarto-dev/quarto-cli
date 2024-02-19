@@ -20,9 +20,14 @@ import { templateFiles } from "../../../extension/template.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { createTempContext } from "../../../core/temp.ts";
-import { copyExtensions } from "../../../extension/install.ts";
+import {
+  completeInstallation,
+  confirmInstallation,
+  copyExtensions,
+} from "../../../extension/install.ts";
 import { kExtensionDir } from "../../../extension/constants.ts";
 import { InternalError } from "../../../core/lib/error.ts";
+import { readExtensions } from "../../../extension/extension.ts";
 
 const kRootTemplateName = "template.qmd";
 
@@ -75,44 +80,115 @@ async function useTemplate(
     // Filter the list to template files
     const filesToCopy = templateFiles(stagedDir);
 
-    // Copy the files
-    await withSpinner({ message: "Copying files..." }, async () => {
-      // Copy extensions
-      const extDir = join(stagedDir, kExtensionDir);
-      if (existsSync(extDir)) {
-        await copyExtensions(source, extDir, outputDirectory);
+    // Compute extensions that need to be installed (and confirm any)
+    // changes
+    const extDir = join(stagedDir, kExtensionDir);
+
+    // Determine whether we can update extensions
+    const templateExtensions = await readExtensions(extDir);
+    const installedExtensions = [];
+    let installExtensions = false;
+    if (templateExtensions.length > 0) {
+      installExtensions = await confirmInstallation(
+        templateExtensions,
+        outputDirectory,
+        {
+          allowPrompt: options.prompt !== false,
+          throw: true,
+          message: "The template requires the following changes to extensions:",
+        },
+      );
+      if (!installExtensions) {
+        return;
       }
+    }
 
-      for (const fileToCopy of filesToCopy) {
-        const isDir = Deno.statSync(fileToCopy).isDirectory;
-        const rel = relative(stagedDir, fileToCopy);
-        if (!isDir) {
-          // Compute the paths
-          const target = join(outputDirectory, rel);
-          const targetDir = dirname(target);
+    // Confirm any overwrites
+    info(
+      `\nPreparing template files...`,
+    );
 
-          // Ensure the directory exists
-          await ensureDir(targetDir);
+    const copyActions: Array<{ file: string; copy: () => Promise<void> }> = [];
+    for (const fileToCopy of filesToCopy) {
+      const isDir = Deno.statSync(fileToCopy).isDirectory;
+      const rel = relative(stagedDir, fileToCopy);
+      if (!isDir) {
+        // Compute the paths
+        let target = join(outputDirectory, rel);
+        let displayName = rel;
+        const targetDir = dirname(target);
+        if (rel === kRootTemplateName) {
+          displayName = `${basename(targetDir)}.qmd`;
+          target = join(targetDir, displayName);
+        }
+        const copyAction = {
+          file: displayName,
+          copy: async () => {
+            // Ensure the directory exists
+            await ensureDir(targetDir);
 
-          // Copy the file into place
-          await Deno.copyFile(fileToCopy, target);
+            // Copy the file into place
+            await Deno.copyFile(fileToCopy, target);
+          },
+        };
 
-          // Rename the root template to '<dirname>.qmd'
-          if (rel === kRootTemplateName) {
-            const renamedFile = `${basename(targetDir)}.qmd`;
-            Deno.renameSync(target, join(outputDirectory, renamedFile));
+        if (existsSync(target)) {
+          if (options.prompt) {
+            const proceed = await Confirm.prompt({
+              message: `Overwrite file ${displayName}?`,
+            });
+            if (proceed) {
+              copyActions.push(copyAction);
+            }
+          } else {
+            throw new Error(
+              `The file ${displayName} already exists and would be overwritten by this action.`,
+            );
           }
+        } else {
+          copyActions.push(copyAction);
         }
       }
-    });
+    }
 
-    const dirContents = Deno.readDirSync(outputDirectory);
+    if (installExtensions) {
+      installedExtensions.push(...templateExtensions);
+      await withSpinner({ message: "Installing extensions..." }, async () => {
+        // Copy the extensions into a substaging directory
+        // this will ensure that they are namespaced properly
+        const subStagedDir = tempContext.createDir();
+        await copyExtensions(source, stagedDir, subStagedDir);
 
-    info(
-      `\nFiles created:`,
-    );
-    for (const fileOrDir of dirContents) {
-      info(` - ${fileOrDir.name}`);
+        // Now complete installation from this sub-staged directory
+        await completeInstallation(subStagedDir, outputDirectory);
+      });
+    }
+
+    // Copy the files
+    if (copyActions.length > 0) {
+      await withSpinner({ message: "Copying files..." }, async () => {
+        for (const copyAction of copyActions) {
+          await copyAction.copy();
+        }
+      });
+    }
+
+    if (installedExtensions.length > 0) {
+      info(
+        `\nExtensions installed:`,
+      );
+      for (const extension of installedExtensions) {
+        info(` - ${extension.title}`);
+      }
+    }
+
+    if (copyActions.length > 0) {
+      info(
+        `\nFiles created:`,
+      );
+      for (const copyAction of copyActions) {
+        info(` - ${copyAction.file}`);
+      }
     }
   } else {
     return Promise.resolve();
@@ -226,57 +302,51 @@ async function isTrusted(
 
 async function determineDirectory(allowPrompt: boolean) {
   const currentDir = Deno.cwd();
-  if (directoryEmpty(currentDir)) {
-    if (!allowPrompt) {
-      return currentDir;
+  if (!allowPrompt) {
+    // If we can't prompt, we'll use either the current directory (if empty), or throw
+    if (!directoryEmpty(currentDir)) {
+      throw new Error(
+        `Unable to install in ${currentDir} as the directory isn't empty.`,
+      );
     } else {
-      const useCurrentDir = await confirmCurrentDir();
-      if (useCurrentDir) {
-        return currentDir;
-      } else {
-        return promptForDirectory(currentDir);
-      }
+      return currentDir;
     }
   } else {
-    if (allowPrompt) {
-      return promptForDirectory(currentDir);
-    } else {
-      throw new Error(
-        `Attempted to use a template with '--no-prompt' in a non-empty directory ${currentDir}.`,
-      );
-    }
+    return promptForDirectory(currentDir, directoryEmpty(currentDir));
   }
 }
 
-async function promptForDirectory(root: string) {
+async function promptForDirectory(root: string, isEmpty: boolean) {
+  // Try to short directory creation
+  const useSubDir = await Confirm.prompt({
+    message: "Create a subdirectory for template?",
+    default: !isEmpty,
+    hint:
+      "Use a subdirectory for the template rather than the current directory.",
+  });
+  if (!useSubDir) {
+    return root;
+  }
+
   const dirName = await Input.prompt({
     message: "Directory name:",
     validate: (input) => {
-      if (input.length === 0) {
+      if (input.length === 0 || input === ".") {
         return true;
       }
+
       const dir = join(root, input);
       if (!existsSync(dir)) {
         ensureDirSync(dir);
       }
-
-      if (directoryEmpty(dir)) {
-        return true;
-      } else {
-        return `The directory '${input}' is not empty. Please provide the name of a new or empty directory.`;
-      }
+      return true;
     },
   });
-  if (dirName.length === 0) {
-    throw new Error();
+  if (dirName.length === 0 || dirName === ".") {
+    return root;
+  } else {
+    return join(root, dirName);
   }
-  return join(root, dirName);
-}
-
-async function confirmCurrentDir() {
-  const message = "Create a subdirectory for template?";
-  const useCurrentDir = await Confirm.prompt(message);
-  return !useCurrentDir;
 }
 
 // Unpack and stage a zipped file
