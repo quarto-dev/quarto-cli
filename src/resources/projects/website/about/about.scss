@@ -62,7 +62,6 @@ div.quarto-about-jolla {
   align-items: center;
   margin-top: 10%;
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   .about-image {
     object-fit: cover;
@@ -107,7 +106,6 @@ div.quarto-about-solana {
   flex-direction: column;
   padding-top: 3em !important;
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   .about-entity {
     display: flex !important;
@@ -171,7 +169,6 @@ div.quarto-about-trestles {
   flex-direction: row;
   padding-top: 3em !important;
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   @include media-breakpoint-down(lg) {
     flex-direction: column;
@@ -227,7 +224,6 @@ div.quarto-about-trestles {
 // Marquee
 div.quarto-about-marquee {
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   .about-contents {
     display: flex;
@@ -264,7 +260,6 @@ div.quarto-about-broadside {
   display: flex;
   flex-direction: column;
   padding-bottom: 1em;
-  grid-row: content-top/content-bottom;
 
   .about-main {
     display: flex !important;
