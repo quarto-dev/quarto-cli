@@ -69,6 +69,7 @@ function resolveOptions(args: string[]): Record<string, unknown> {
   // The second argument is the directory
   const typeRaw = args.length > 0 ? args[0] : undefined;
   const directoryRaw = args.length > 1 ? args[1] : undefined;
+  const titleRaw = args.length > 2 ? args[2] : undefined;
 
   const options: Record<string, unknown> = {};
   if (typeRaw) {
@@ -80,6 +81,10 @@ function resolveOptions(args: string[]): Record<string, unknown> {
   // Populate a directory, if provided
   if (directoryRaw) {
     options[kSubdirectory] = directoryRaw;
+  }
+
+  if (titleRaw) {
+    options.name = titleRaw;
   }
 
   return options;
@@ -112,11 +117,10 @@ function resolveTemplate(type: string) {
 }
 
 function finalizeOptions(createContext: CreateContext) {
+  const typeStr = createContext.options[kType] as string || "default";
   // Resolve the type and template
-  const resolved = resolveTemplate(
-    createContext.options[kType] as string || "default",
-  );
-  const name = createContext.options[kSubdirectory];
+  const resolved = resolveTemplate(typeStr);
+  const name = createContext.options.name;
   const directory = join(
     createContext.cwd,
     createContext.options[kSubdirectory] as string,
@@ -167,6 +171,17 @@ function nextPrompt(
       name: kSubdirectory,
       message: "Directory",
       type: Input,
+    };
+  }
+
+  if (!createOptions.options.name) {
+    return {
+      name: "name",
+      message: "Title",
+      type: Input,
+      default: createOptions.options[kSubdirectory] !== "."
+        ? createOptions.options[kSubdirectory]
+        : createOptions.options[kType],
     };
   }
 }
