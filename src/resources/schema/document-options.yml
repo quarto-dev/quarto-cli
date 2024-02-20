@@ -285,13 +285,6 @@
     `setext` (underlined) headings for level 1 and 2
     headings (`atx` or `setext`).
 
-- name: keep-yaml
-  tags:
-    formats: [$markdown-all]
-  schema: boolean
-  default: false
-  description: "Preserve the original YAML front matter in rendered markdown"
-
 - name: ipynb-output
   tags:
     formats: [ipynb]

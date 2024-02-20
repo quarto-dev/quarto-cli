@@ -16248,17 +16248,6 @@ var require_yaml_intelligence_resources = __commonJS({
           description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
         },
         {
-          name: "keep-yaml",
-          tags: {
-            formats: [
-              "$markdown-all"
-            ]
-          },
-          schema: "boolean",
-          default: false,
-          description: "Preserve the original YAML front matter in rendered markdown"
-        },
-        {
           name: "ipynb-output",
           tags: {
             formats: [
@@ -19812,7 +19801,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of input documents that should be treated as drafts",
         {
           short: "How to handle drafts that are encountered.",
-          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
         },
         "Book title",
         "Description metadata for HTML version of book",
@@ -19958,7 +19947,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of input documents that should be treated as drafts",
         {
           short: "How to handle drafts that are encountered.",
-          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
         },
         "Book subtitle",
         "Author or authors of the book",
@@ -22153,7 +22142,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of input documents that should be treated as drafts",
         {
           short: "How to handle drafts that are encountered.",
-          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
         },
         "Book subtitle",
         "Author or authors of the book",
@@ -22483,7 +22472,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "A list of input documents that should be treated as drafts",
         {
           short: "How to handle drafts that are encountered.",
-          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to."
+          long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
         },
         "Book subtitle",
         "Author or authors of the book",
@@ -22880,12 +22869,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 182026,
+        _internalId: 182024,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 182018,
+            _internalId: 182016,
             type: "enum",
             enum: [
               "png",
@@ -22901,7 +22890,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 182025,
+            _internalId: 182023,
             type: "anyOf",
             anyOf: [
               {
