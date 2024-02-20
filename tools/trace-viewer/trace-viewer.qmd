@@ -136,7 +136,7 @@ trace = Generators.observe((change) => {
 import { convertDoc } from "./convert-pandoc-json.js";
 import { drawTree } from "./draw-tree.js";
 import { jsonpatch } from "./jsonpatch.js";
-import { editDistance } from "./edit-distance.js";
+import { editDistance } from "./edit-distance.ts";
 ```
 
 ::: {.column-screen-inset}
