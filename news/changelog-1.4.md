@@ -1,5 +1,9 @@
 ## Fixed in this release
 
+- ([#8795](https://github.com/quarto-dev/quarto-cli/issues/8795)): Fix issue with select controls appearing in Dashboard toolbar
+
+## Fixed in previous releases
+
 - ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cell when parsing HTML from RawBlock
 - ([#8490](https://github.com/quarto-dev/quarto-cli/issues/8490)): Properly embed `qmd` cells even when they include an explicit `echo` declaration.
 - ([#8464](https://github.com/quarto-dev/quarto-cli/issues/8464)): Fix a regression where shortcodes were not being expanded recursively.

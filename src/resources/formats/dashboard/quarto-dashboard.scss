@@ -959,7 +959,7 @@ $valuebox-colors: (
     // This ensures that elements in the card body (notably the expansion toggle)
     // appear above the elements inside of it (notably itables, which cause issues)
     .card-body {
-      z-index: 1000;
+      z-index: 4;
 
       // Customize appearance of elements within cards
       @include itables();
