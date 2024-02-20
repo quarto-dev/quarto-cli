@@ -148,6 +148,9 @@ import { navigation } from "./website-shared.ts";
 import { isAboutPage } from "./about/website-about.ts";
 
 export const kSidebarLogo = "logo";
+export const kSidebarLogoHref = "logo-href";
+export const kSidebarLogoAlt = "logo-alt";
+
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // reset unique menu ids

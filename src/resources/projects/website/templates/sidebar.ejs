@@ -31,14 +31,12 @@
       toolsLocation = "fallthrough";
     }
   %>
-
-
     
   <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
     <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
-      <a href="/index.html" class="sidebar-logo-link">
-      <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
+      <a href="<%- sidebar['logo-href'] || '/index.html' %>" class="sidebar-logo-link">
+      <img src="<%- sidebar.logo %>" alt="<%- navbar['logo-alt'] || '' %>" class="sidebar-logo py-0 d-lg-inline d-none"/>
       </a>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>

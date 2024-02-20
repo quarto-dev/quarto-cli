@@ -151,6 +151,8 @@ export interface Sidebar {
   title?: string;
   subtitle?: string;
   logo?: string;
+  [kLogoAlt]?: string;
+  [kLogoHref]?: string;
   alignment?: "left" | "right" | "center";
   align?: "left" | "right" | "center"; // This is here only because older versions of Quarto used to use it even though it wasn't documented
   background?:

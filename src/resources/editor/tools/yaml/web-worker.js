@@ -9780,6 +9780,16 @@ try {
                                 description: "Path to a logo image that will be displayed in the sidebar."
                               }
                             },
+                            "logo-alt": {
+                              string: {
+                                description: "Alternate text for the logo image."
+                              }
+                            },
+                            "logo-href": {
+                              string: {
+                                description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
+                              }
+                            },
                             search: {
                               boolean: {
                                 description: "Include a search control in the sidebar."
@@ -21644,7 +21654,6 @@ try {
           "The section number in man pages.",
           "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
           "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
-          "Preserve the original YAML front matter in rendered markdown",
           {
             short: "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
             long: "Determines which ipynb cell output formats are rendered."
@@ -22870,12 +22879,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 182024,
+          _internalId: 181881,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 182016,
+              _internalId: 181873,
               type: "enum",
               enum: [
                 "png",
@@ -22891,7 +22900,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 182023,
+              _internalId: 181880,
               type: "anyOf",
               anyOf: [
                 {

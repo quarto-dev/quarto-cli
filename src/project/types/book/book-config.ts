@@ -80,7 +80,11 @@ import {
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
-import { kSidebarLogo } from "../website/website-navigation.ts";
+import {
+  kSidebarLogo,
+  kSidebarLogoAlt,
+  kSidebarLogoHref,
+} from "../website/website-navigation.ts";
 
 import {
   bookConfig,
@@ -176,6 +180,10 @@ export async function bookProjectConfig(
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kSiteTitle] = siteSidebar[kSiteTitle] || book?.[kSiteTitle];
   siteSidebar[kSidebarLogo] = siteSidebar[kSidebarLogo] || book?.[kSidebarLogo];
+  siteSidebar[kSidebarLogoHref] = siteSidebar[kSidebarLogoHref] ||
+    book?.[kSidebarLogoHref];
+  siteSidebar[kSidebarLogoAlt] = siteSidebar[kSidebarLogoAlt] ||
+    book?.[kSidebarLogoAlt];
   siteSidebar[kContents] = [];
   const bookContents = bookConfig(kBookChapters, config);
 

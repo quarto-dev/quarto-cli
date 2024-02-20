@@ -541,6 +541,9 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | boolean
     | MaybeArrayOf<
       {
+        "logo-alt"?: string /* Alternate text for the logo image. */;
+        "logo-href"?:
+          string /* Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html). */;
         "collapse-level"?:
           number /* The depth at which the sidebar contents should be collapsed by default. */;
         alignment?:
