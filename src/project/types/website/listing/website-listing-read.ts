@@ -1090,8 +1090,8 @@ async function listItemFromFile(
       documentMeta?.abstract as string ||
       descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
-    const imageRaw = documentMeta?.image as string;
-    const image = imageRaw !== undefined
+    const imageRaw = documentMeta?.image as string | boolean;
+    const image = imageRaw !== undefined && typeof imageRaw === "string"
       ? pathWithForwardSlashes(
         listingItemHref(imageRaw, dirname(projectRelativePath)),
       )
