@@ -25,7 +25,7 @@ import { projectContext } from "../../project/project-context.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpDevServer } from "../../core/http-devserver.ts";
-import { RenderFlags } from "../../command/render/types.ts";
+import { RenderOptions } from "../../command/render/types.ts";
 import { renderProject } from "../../command/render/project.ts";
 import { render } from "../../command/render/render-shared.ts";
 import { renderServices } from "../../command/render/render-services.ts";
@@ -53,7 +53,7 @@ export function watchProject(
   project: ProjectContext,
   extensionDirs: string[],
   resourceFiles: string[],
-  flags: RenderFlags,
+  renderOptions: RenderOptions,
   pandocArgs: string[],
   options: ServeOptions,
   renderingOnReload: boolean,
@@ -61,9 +61,11 @@ export function watchProject(
   stopServer: VoidFunction,
 ): Promise<ProjectWatcher> {
   const nbContext = notebookContext();
+  const flags = renderOptions.flags;
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = (await projectContext(project.dir, nbContext, flags, false))!;
+    project =
+      (await projectContext(project.dir, nbContext, renderOptions, false))!;
   };
 
   // See if we're in draft mode

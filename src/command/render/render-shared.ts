@@ -18,10 +18,6 @@ import { renderProject } from "./project.ts";
 import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { RenderFlags, RenderOptions, RenderResult } from "./types.ts";
-import {
-  fileExecutionEngine,
-  fileExecutionEngineAndTarget,
-} from "../../execute/engine.ts";
 
 import {
   isProjectInputFile,
@@ -49,12 +45,12 @@ export async function render(
   const nbContext = notebookContext();
 
   // determine target context/files
-  let context = await projectContext(path, nbContext, options.flags);
+  let context = await projectContext(path, nbContext, options);
 
   // if there is no project parent and an output-dir was passed, then force a project
   if (!context && options.flags?.outputDir) {
     // recompute context
-    context = await projectContextForDirectory(path, nbContext, options.flags);
+    context = await projectContextForDirectory(path, nbContext, options);
 
     // force clean as --output-dir implies fully overwrite the target
     options.forceClean = options.flags.clean !== false;

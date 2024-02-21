@@ -10,6 +10,10 @@ import { initializeLogger, logError, logOptions } from "../../src/core/log.ts";
 import { Args } from "flags/mod.ts";
 import { parse } from "flags/mod.ts";
 import { exitWithCleanup } from "./cleanup.ts";
+import {
+  captureFileReads,
+  reportPeformanceMetrics,
+} from "./performance/metrics.ts";
 
 type Runner = (args: Args) => Promise<unknown>;
 export async function mainRunner(runner: Runner) {
@@ -24,6 +28,10 @@ export async function mainRunner(runner: Runner) {
       Deno.addSignalListener("SIGTERM", abend);
     }
 
+    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
+      captureFileReads();
+    }
+
     await runner(args);
 
     // if profiling, wait for 10 seconds before quitting
@@ -31,6 +39,10 @@ export async function mainRunner(runner: Runner) {
       console.log("Program finished. Turn off the Chrome profiler now!");
       console.log("Waiting for 10 seconds ...");
       await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
+
+    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
+      reportPeformanceMetrics();
     }
 
     exitWithCleanup(0);

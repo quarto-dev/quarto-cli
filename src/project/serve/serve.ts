@@ -82,7 +82,11 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources, kTargetFormat } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import { RenderFlags, RenderResult } from "../../command/render/types.ts";
+import {
+  RenderFlags,
+  RenderOptions,
+  RenderResult,
+} from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -124,18 +128,23 @@ export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  flags: RenderFlags,
+  renderOptions: RenderOptions,
   pandocArgs: string[],
   options: ServeOptions,
   noServe: boolean,
 ) {
   let project: ProjectContext | undefined;
-  const nbContext = notebookContext();
+  let flags = renderOptions.flags;
+  const nbContext = renderOptions.services.notebook;
   if (typeof target === "string") {
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, nbContext, flags);
+    project = await projectContext(
+      target,
+      nbContext,
+      renderOptions,
+    );
     if (!project || !project?.config) {
       throw new Error(`${target} is not a project`);
     }
@@ -301,7 +310,7 @@ export async function serveProject(
     project,
     extensionDirs,
     resourceFiles,
-    flags,
+    { ...renderOptions, flags },
     pandocArgs,
     options,
     !pdfOutput, // we don't render on reload for pdf output

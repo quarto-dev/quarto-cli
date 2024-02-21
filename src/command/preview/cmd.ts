@@ -391,7 +391,11 @@ export const previewCommand = new Command()
     // see if we are serving a project or a file
     if (Deno.statSync(file).isDirectory) {
       // project preview
-      await serveProject(projectTarget, flags, args, {
+      const renderOptions = {
+        services: renderServices(notebookContext()),
+        flags,
+      };
+      await serveProject(projectTarget, renderOptions, args, {
         port: options.port,
         host: options.host,
         browser: (options.browser === false || options.browse === false)
