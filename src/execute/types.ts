@@ -85,7 +85,7 @@ export interface ExecuteOptions {
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
-  projectType?: string;
+  project?: ProjectContext;
 }
 
 // result of execution

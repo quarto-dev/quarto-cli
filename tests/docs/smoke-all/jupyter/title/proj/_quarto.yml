@@ -1,0 +1,9 @@
+project:
+  output-dir: _slides
+  render:
+    - test.qmd
+
+title: "My title"
+author: "John Doe"
+
+format: revealjs

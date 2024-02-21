@@ -229,7 +229,7 @@ export async function renderExecute(
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
-    projectType: context.project?.config?.project?.[kProjectType],
+    project: context.project,
   };
   // execute computations
   setExecuteEnvironment(executeOptions);
