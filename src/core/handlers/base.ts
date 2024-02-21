@@ -211,7 +211,9 @@ function makeHandlerContext(
     },
     resolvePath(path: string): string {
       const sourceDir = dirname(options.context.target.source);
-      const rootDir = options.context.project?.dir || sourceDir;
+      const rootDir = options.context.project.isSingleFile
+        ? sourceDir
+        : options.context.project.dir;
       if (path.startsWith("/")) {
         // it's a root-relative path
         return resolve(rootDir, `.${path}`);

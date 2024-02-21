@@ -355,6 +355,7 @@ export async function projectResolveFullMarkdownForFile(
     format: undefined as unknown as Format,
     markdown,
     context: {
+      project,
       target: {
         source: file,
       },
