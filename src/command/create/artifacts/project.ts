@@ -121,6 +121,12 @@ function finalizeOptions(createContext: CreateContext) {
   const typeStr = createContext.options[kType] as string || "default";
   // Resolve the type and template
   const resolved = resolveTemplate(typeStr);
+  const subdirectory = createContext.options[kSubdirectory] as string;
+  if (!subdirectory) {
+    throw new Error(
+      "A directory is required for project creation with \`quarto create project\`",
+    );
+  }
   const directory = join(
     createContext.cwd,
     createContext.options[kSubdirectory] as string,
