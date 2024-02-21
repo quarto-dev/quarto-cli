@@ -193,8 +193,8 @@ function nextPrompt(
       message: "Title",
       type: Input,
       default: defaultName(
-        createOptions.options[kSubdirectory],
-        createOptions.options[kType],
+        createOptions.options[kSubdirectory] as string,
+        createOptions.options[kType] as string,
       ),
     };
   }
@@ -255,6 +255,6 @@ async function createArtifact(
 }
 
 // choose a default name if none provided in the createContext
-function defaultName(subdirectory, type) {
+function defaultName(subdirectory: string, type: string) {
   return subdirectory !== "." ? subdirectory : type;
 }
