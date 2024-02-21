@@ -224,8 +224,8 @@ export async function renderExecute(
     quiet: flags.quiet,
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
-    projectType: context.project?.config?.project?.[kProjectType],
-  });
+    project: context.project,
+  };
   popTiming();
 
   // write the freeze file if we are in a project

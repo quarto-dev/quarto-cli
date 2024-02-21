@@ -151,7 +151,7 @@ import {
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 import {
@@ -689,16 +689,17 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  // If there is already a title in the metadata, don't run the
-  // full set of fixups, only do the minimal
-  const fixups = options.executeOptions.projectType === "book"
+
+  const projType = options.executeOptions.project?.config?.project
+    ?.[kProjectType];
+  const fixups = projType === "book"
     ? bookFixups
-    : options.executeOptions.format.metadata.title
+    : options.executeOptions.project?.config?.title !== undefined &&
+        (projType === "default" || projType === undefined)
     ? minimalFixups
     : undefined;
 
   nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
-
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;

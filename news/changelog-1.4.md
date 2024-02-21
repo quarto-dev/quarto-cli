@@ -1,6 +1,7 @@
 ## Fixed in this release
 
 - ([#8795](https://github.com/quarto-dev/quarto-cli/issues/8795)): Fix issue with select controls appearing in Dashboard toolbar
+- ([#8798](https://github.com/quarto-dev/quarto-cli/issues/8798)): Fix issue with duplicate level 1 headings in rendered `ipynb` notebooks
 
 ## Fixed in previous releases
 
