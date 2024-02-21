@@ -225,7 +225,7 @@ export async function renderExecute(
     previewServer: context.options.previewServer,
     handledLanguages: languages(),
     project: context.project,
-  };
+  });
   popTiming();
 
   // write the freeze file if we are in a project
