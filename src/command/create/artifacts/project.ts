@@ -25,6 +25,7 @@ import { join } from "path/mod.ts";
 
 // ensures project types are registered
 import "../../../project/types/register.ts";
+import { warning } from "log/mod.ts";
 
 const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();
@@ -120,11 +121,20 @@ function finalizeOptions(createContext: CreateContext) {
   const typeStr = createContext.options[kType] as string || "default";
   // Resolve the type and template
   const resolved = resolveTemplate(typeStr);
-  const name = createContext.options.name;
-  const directory = join(
-    createContext.cwd,
-    createContext.options[kSubdirectory] as string,
-  );
+  const subdirectory = createContext.options[kSubdirectory] as string;
+  if (!subdirectory) {
+    throw new Error(
+      "A directory is required for project creation with \`quarto create project\`",
+    );
+  }
+  const directory = join(createContext.cwd, subdirectory);
+  let name = createContext.options.name;
+  if (!name) {
+    name = defaultName(subdirectory, typeStr);
+    warning(
+      `No 'title' for project provided in \`quarto create project\`. Using '${name}' as default.`,
+    );
+  }
   const template = resolved.template
     ? `${resolved.type}:${resolved.template}`
     : resolved.type;
@@ -179,9 +189,10 @@ function nextPrompt(
       name: "name",
       message: "Title",
       type: Input,
-      default: createOptions.options[kSubdirectory] !== "."
-        ? createOptions.options[kSubdirectory]
-        : createOptions.options[kType],
+      default: defaultName(
+        createOptions.options[kSubdirectory] as string,
+        createOptions.options[kType] as string,
+      ),
     };
   }
 }
@@ -238,4 +249,9 @@ async function createArtifact(
       ? ["index.qmd", "_quarto.yml"]
       : ["_quarto.yml"],
   };
+}
+
+// choose a default name if none provided in the createContext
+function defaultName(subdirectory: string, type: string) {
+  return subdirectory !== "." ? subdirectory : type;
 }
