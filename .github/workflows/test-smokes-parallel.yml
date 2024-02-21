@@ -11,6 +11,8 @@ on:
         type: number
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "src/resources/language/**"
   push:
     # only trigger on branches, not on tags
     branches: [main]
