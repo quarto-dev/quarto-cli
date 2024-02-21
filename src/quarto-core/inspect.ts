@@ -107,7 +107,9 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
       throw new Error(`${path} is not a quarto project.`);
     }
   } else {
-    const engine = fileExecutionEngine(path);
+    const project = await projectContext(path, nbContext) ||
+      singleFileProjectContext(path, nbContext);
+    const engine = await fileExecutionEngine(path, undefined, project);
     if (engine) {
       // partition markdown
       const partitioned = await engine.partitionedMarkdown(path);

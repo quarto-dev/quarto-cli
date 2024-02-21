@@ -456,7 +456,6 @@ async function renderFileInternal(
     const { engine, target } = await fileExecutionEngineAndTarget(
       file.path,
       options.flags,
-      undefined,
       project,
     );
     const validationResult = await validateDocumentFromSource(

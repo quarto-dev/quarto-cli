@@ -124,10 +124,11 @@ export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   libDir: "site_libs",
   config: async (
-    projectDir: string,
+    project: ProjectContext,
     config: ProjectConfig,
     flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
+    const projectDir = project.dir;
     const manuscriptConfig =
       (config[kManuscriptType] || {}) as ManuscriptConfig;
 
@@ -151,7 +152,7 @@ export const manuscriptProjectType: ProjectType = {
       flags,
     );
 
-    const inputs = projectInputFiles(projectDir, config);
+    const inputs = await projectInputFiles(project, config);
 
     // Compute the article path
     const article = computeProjectArticleFile(projectDir, manuscriptConfig);

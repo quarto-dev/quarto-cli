@@ -19,6 +19,7 @@ import { renderFormats } from "../../../command/render/render-contexts.ts";
 import { RenderFlags } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
+import { projectResolveFullMarkdownForFile } from "../../project-shared.ts";
 
 export function singleFileProjectContext(
   source: string,
@@ -38,16 +39,19 @@ export function singleFileProjectContext(
     renderFormats,
     fileExecutionEngineAndTarget: (
       file: string,
-      markdown?: MappedString,
-      force?: boolean,
     ) => {
       return fileExecutionEngineAndTarget(
         file,
         flags,
-        markdown,
         result,
-        force,
       );
+    },
+    resolveFullMarkdownForFile: (
+      file: string,
+      markdown?: MappedString,
+      force?: boolean,
+    ) => {
+      return projectResolveFullMarkdownForFile(result, file, markdown, force);
     },
     isSingleFile: true,
   };

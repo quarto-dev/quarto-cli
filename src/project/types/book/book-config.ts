@@ -22,7 +22,12 @@ import {
 } from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import { Navbar, SidebarItem, SidebarTool } from "../../types.ts";
+import {
+  Navbar,
+  ProjectContext,
+  SidebarItem,
+  SidebarTool,
+} from "../../types.ts";
 
 import {
   normalizeSidebarItem,
@@ -121,10 +126,11 @@ import { projectType } from "../project-types.ts";
 import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
 
 export async function bookProjectConfig(
-  projectDir: string,
+  project: ProjectContext,
   config: ProjectConfig,
   flags?: RenderFlags,
 ) {
+  const projectDir = project.dir;
   // ensure we have a site
   const site = (config[kWebsite] || {}) as Record<string, unknown>;
   config[kWebsite] = site;
@@ -235,7 +241,7 @@ export async function bookProjectConfig(
 
   // save our own render list (which has more fine grained info about parts,
   // appendices, numbering, etc.) and popuplate the main config render list
-  const renderItems = await bookRenderItems(projectDir, language, config);
+  const renderItems = await bookRenderItems(project, language, config);
   book[kBookRender] = renderItems;
   config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
@@ -270,7 +276,7 @@ export async function bookProjectConfig(
   }
 
   // return config (inherit website config behavior)
-  return await websiteProjectConfig(projectDir, config);
+  return await websiteProjectConfig(project, config);
 }
 
 function siteRepoUrl(site: Metadata) {
@@ -293,10 +299,11 @@ export function bookConfigRenderItems(
   ) as BookRenderItem[];
 }
 export async function bookRenderItems(
-  projectDir: string,
+  project: ProjectContext,
   language: FormatLanguage,
   config?: ProjectConfig,
 ): Promise<BookRenderItem[]> {
+  const projectDir = project.dir;
   if (!config) {
     return [];
   }
@@ -324,14 +331,18 @@ export async function bookRenderItems(
       } else if (item.href) {
         const itemPath = join(projectDir, item.href);
         if (safeExistsSync(itemPath)) {
-          const engine = fileExecutionEngine(itemPath);
+          const engine = await fileExecutionEngine(
+            itemPath,
+            undefined,
+            project,
+          );
           if (engine) {
             // for chapters, check if we are numbered
             let number: number | undefined;
 
             if (
               type === kBookItemChapter &&
-              await inputIsNumbered(projectDir, item.href)
+              await inputIsNumbered(project, item.href)
             ) {
               number = nextNumber++;
             }
@@ -560,10 +571,10 @@ const kSharingUrls: Record<string, SidebarTool> = {
 };
 
 async function inputIsNumbered(
-  projectDir: string,
+  project: ProjectContext,
   input: string,
 ) {
-  const partitioned = await partitionedMarkdownForInput(projectDir, input);
+  const partitioned = await partitionedMarkdownForInput(project, input);
   if (partitioned) {
     return isNumberedChapter(partitioned);
   } else {

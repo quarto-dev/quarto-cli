@@ -115,7 +115,6 @@ export async function render(
   // get partitioned markdown if we had result files
   const { engine } = await context.fileExecutionEngineAndTarget(
     path,
-    undefined,
   );
   const partitioned = (engine && result.files.length > 0)
     ? await engine.partitionedMarkdown(path)

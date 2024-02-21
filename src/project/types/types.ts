@@ -25,7 +25,7 @@ export interface ProjectType {
   templates?: string[];
   create: (title: string, template?: string) => ProjectCreate;
   config?: (
-    projectDir: string,
+    project: ProjectContext,
     config: ProjectConfig,
     flags?: RenderFlags,
   ) => Promise<ProjectConfig>;
@@ -66,7 +66,7 @@ export interface ProjectType {
     input: string,
     text: string,
     number: boolean,
-  ) => Promise<{ html: string, text: string}>;
+  ) => Promise<{ html: string; text: string }>;
   incrementalRenderAll?: (
     context: ProjectContext,
     options: RenderOptions,
@@ -89,7 +89,10 @@ export interface ProjectType {
       incremental: boolean,
     ) => Promise<void>;
   };
-  filterInputTarget?: (inputTarget: InputTarget, project: ProjectContext) => InputTarget;
+  filterInputTarget?: (
+    inputTarget: InputTarget,
+    project: ProjectContext,
+  ) => InputTarget;
   beforeMoveOutput?: (
     context: ProjectContext,
     renderedFiles: RenderResultFile[],

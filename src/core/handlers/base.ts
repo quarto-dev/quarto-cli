@@ -348,6 +348,8 @@ const processMarkdownIncludes = async (
             mapResult!.originalString,
             mapResult!.index,
           );
+        } else {
+          throw e;
         }
       }
     }
@@ -356,6 +358,26 @@ const processMarkdownIncludes = async (
     }
   }
 };
+
+export async function expandIncludes(
+  markdown: MappedString,
+  options: LanguageCellHandlerOptions,
+): Promise<MappedString> {
+  const mdCells = (await breakQuartoMd(markdown, false)).cells;
+  if (mdCells.length === 0) {
+    return markdown;
+  }
+  const newCells: MappedString[] = [];
+  for (let i = 0; i < mdCells.length; ++i) {
+    const cell = mdCells[i];
+    newCells.push(
+      i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
+    );
+  }
+
+  await processMarkdownIncludes(newCells, options);
+  return mappedJoin(newCells, "");
+}
 
 export async function handleLanguageCells(
   options: LanguageCellHandlerOptions,

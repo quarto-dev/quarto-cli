@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { RenderFlags, RenderServices } from "../command/render/types.ts";
+import { RenderServices } from "../command/render/types.ts";
 import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
 import { MappedString } from "../core/mapped-text.ts";
@@ -52,9 +52,20 @@ export interface ProjectContext {
     { engine: ExecutionEngine; target: ExecutionTarget }
   >;
 
-  fileExecutionEngineAndTarget: (
+  fullMarkdownCache?: Map<string, MappedString>;
+  // expands markdown for a file
+  // input file doesn't have to be markdown; it can be, for example, a knitr spin file
+  // output file is always markdown, though, and it is cached in the project
+
+  // what happens if input file is not markdown?
+  resolveFullMarkdownForFile: (
     file: string,
     markdown?: MappedString,
+    force?: boolean,
+  ) => Promise<MappedString>;
+
+  fileExecutionEngineAndTarget: (
+    file: string,
     force?: boolean,
   ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
 

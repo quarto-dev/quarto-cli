@@ -373,7 +373,7 @@ export async function renderProject(
   const resourcesFrom = async (file: RenderedFile) => {
     // resource files
     const partitioned = await partitionedMarkdownForInput(
-      projDir,
+      context,
       file.input,
     );
     const excludeDirs = context ? projectExcludeDirs(context) : [];
@@ -722,9 +722,10 @@ export async function renderProject(
     // engine post-render
     for (const file of projResults.files) {
       const path = join(context.dir, file.input);
-      const engine = fileExecutionEngine(
+      const engine = await fileExecutionEngine(
         path,
         projectRenderConfig.options.flags,
+        context,
       );
       if (engine?.postRender) {
         await engine.postRender(file, projResults.context);

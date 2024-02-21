@@ -335,10 +335,11 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
 export function websiteProjectConfig(
-  projectDir: string,
+  project: ProjectContext,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
+  const projectDir = project.dir;
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
     | string

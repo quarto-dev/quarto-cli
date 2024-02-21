@@ -42,6 +42,7 @@ import { openUrl } from "../../core/shell.ts";
 import { publishDocument, publishSite } from "../../publish/publish.ts";
 import { handleUnauthorized } from "../../publish/account.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export const publishCommand =
   // deno-lint-ignore no-explicit-any
@@ -315,7 +316,8 @@ async function createPublishOptions(
   let input: ProjectContext | string | undefined;
 
   // check for directory (either website or single-file project)
-  const project = await projectContext(path, nbContext);
+  const project = (await projectContext(path, nbContext)) ||
+    singleFileProjectContext(path, nbContext);
   if (Deno.statSync(path).isDirectory) {
     if (project) {
       if (projectIsWebsite(project)) {
@@ -328,7 +330,7 @@ async function createPublishOptions(
         input = project.files.input[0];
       }
     } else {
-      const inputFiles = projectInputFiles(path);
+      const inputFiles = await projectInputFiles(project);
       if (inputFiles.files.length === 1) {
         input = inputFiles.files[0];
       }
