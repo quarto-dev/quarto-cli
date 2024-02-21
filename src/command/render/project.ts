@@ -294,7 +294,7 @@ export async function renderProject(
     context = await projectContextForDirectory(
       context.dir,
       context.notebookContext,
-      projectRenderConfig.options.flags,
+      projectRenderConfig.options,
     );
 
     // Validate that certain project properties haven't been mutated

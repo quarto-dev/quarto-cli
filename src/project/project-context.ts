@@ -69,7 +69,11 @@ import {
   projectResolveFullMarkdownForFile,
   projectVarsFile,
 } from "./project-shared.ts";
-import { RenderFlags, RenderServices } from "../command/render/types.ts";
+import {
+  RenderFlags,
+  RenderOptions,
+  RenderServices,
+} from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -95,16 +99,18 @@ import { MappedString } from "../core/mapped-text.ts";
 export async function projectContext(
   path: string,
   notebookContext: NotebookContext,
-  flags?: RenderFlags,
+  renderOptions?: RenderOptions,
   force = false,
 ): Promise<ProjectContext | undefined> {
+  const flags = renderOptions?.flags;
   let dir = normalizePath(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
   const originalDir = dir;
 
-  // create a shared extension context
-  const extensionContext = createExtensionContext();
+  // create an extension context if one doesn't exist
+  const extensionContext = renderOptions?.services.extension ||
+    createExtensionContext();
 
   // first pass uses the config file resolve
   const configSchema = await getProjectConfigSchema();
@@ -636,9 +642,9 @@ async function resolveLanguageTranslations(
 export function projectContextForDirectory(
   path: string,
   notebookContext: NotebookContext,
-  flags?: RenderFlags,
+  renderOptions?: RenderOptions,
 ): Promise<ProjectContext> {
-  return projectContext(path, notebookContext, flags, true) as Promise<
+  return projectContext(path, notebookContext, renderOptions, true) as Promise<
     ProjectContext
   >;
 }
