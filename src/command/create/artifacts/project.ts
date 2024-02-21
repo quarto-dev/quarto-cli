@@ -127,13 +127,10 @@ function finalizeOptions(createContext: CreateContext) {
       "A directory is required for project creation with \`quarto create project\`",
     );
   }
-  const directory = join(
-    createContext.cwd,
-    createContext.options[kSubdirectory] as string,
-  );
+  const directory = join(createContext.cwd, subdirectory);
   let name = createContext.options.name;
   if (!name) {
-    name = defaultName(createContext.options[kSubdirectory], typeStr);
+    name = defaultName(subdirectory, typeStr);
     warning(
       `No 'title' for project provided in \`quarto create project\`. Using '${name}' as default.`,
     );
