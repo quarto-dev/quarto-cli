@@ -323,7 +323,7 @@ local function modify_lua_functions(all_compressed_mappings)
 
 end
 
-modify_lua_functions{
+local convert_from_utf8 = modify_lua_functions{
 
    -- Unicode to Windows ANSI codepage mappings (compressed and protected by a checksum)
 
@@ -1390,12 +1390,13 @@ local function resolve_relative_path(path)
          resolved[#resolved + 1] = segment
       end
    end
-   return table.concat(resolved, pandoc.path.separator)
+   local result = table.concat(resolved, pandoc.path.separator)
+   return result
 end
 
 -- Add modules base path to package.path so we can require('modules/...') from
 -- any path
-package.path = package.path .. ';' .. pandoc.path.normalize(PANDOC_STATE.user_data_dir .. '/../../filters/?.lua')
+package.path = package.path .. ';' .. convert_from_utf8(pandoc.path.normalize(PANDOC_STATE.user_data_dir .. '/../../filters/?.lua'))
 
 -- patch require to look in current scriptDirs as well as supporting
 -- relative requires
@@ -1417,9 +1418,10 @@ function require(modname)
    -- This strategy is not going to work in general, in the presence of symlinks
    -- and other things that can make two paths resolve to the same file. But
    -- it's good enough for our purposes.
+   modname = modname:gsub("/", pandoc.path.separator)
    if modname:sub(1, 1) == "." then
       local calling_file = debug.getinfo(2, "S").source:sub(2, -1)
-      local calling_dir = pandoc.path.directory(calling_file)
+      local calling_dir = calling_file .. pandoc.path.separator .. ".." -- pandoc.path.directory(calling_file)
       if calling_dir == "." then
          -- resolve to current working directory
          calling_dir = scriptDir()
@@ -1428,18 +1430,19 @@ function require(modname)
          -- last-ditch effort, use the current working directory
          calling_dir = pandoc.system.get_working_directory()
       end
-      local resolved_path = resolve_relative_path(pandoc.path.normalize(pandoc.path.join({calling_dir, modname})))
-      return require(resolved_path)
+      local resolved_path = resolve_relative_path(calling_dir ..pandoc.path.separator .. modname)
+      modname = resolved_path
+      -- return require(resolved_path)
    end
    local old_path = package.path
    local new_path = package.path
    local dirs = scriptDirs()
    for i, v in ipairs(dirs) do
-      new_path = new_path .. ';' .. pandoc.path.join({v, '?.lua'})
+      new_path = new_path .. ';' .. convert_from_utf8(v):gsub("/", "\\") .. pandoc.path.separator .. '?.lua'
    end
 
    package.path = new_path
-   local mod = orig_require(modname)
+   local mod = orig_require(modname:gsub("/", "\\"))
    package.path = old_path
    return mod
 end
