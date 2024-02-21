@@ -20,6 +20,8 @@ import {
   kExeName,
   kExeVersion,
 } from "./quarto-latexmk-metadata.ts";
+import { exitWithCleanup } from "../../../core/cleanup.ts";
+import { mainRunner } from "../../../core/main.ts";
 
 interface EngineOpts {
   pdf: string[];
@@ -124,26 +126,9 @@ export async function pdf(args: string[]) {
 }
 
 if (import.meta.main) {
-  try {
-    // Parse the raw args to read globals and initialize logging
-    //    const args = parse(Deno.args);
-    const args = parse(Deno.args);
-    await initializeLogger(logOptions(args));
-
-    // install termination signal handlers
-    if (Deno.build.os !== "windows") {
-      Deno.addSignalListener("SIGINT", cleanup);
-      Deno.addSignalListener("SIGTERM", cleanup);
-    }
-
+  await mainRunner(async () => {
     await pdf(Deno.args);
-  } catch (e) {
-    if (e) {
-      logError(e);
-    }
-  } finally {
-    cleanup();
-  }
+  });
 }
 
 function mkOptions(
@@ -185,9 +170,4 @@ function bibEngine(bibEngine?: string): "biblatex" | "natbib" {
   } else {
     return "biblatex";
   }
-}
-
-function cleanup() {
-  cleanupLogger();
-  Deno.exit(1);
 }

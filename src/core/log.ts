@@ -17,6 +17,7 @@ import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
 import { debug, error, getLogger, setup, warning } from "log/mod.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
+import { onCleanup } from "./cleanup.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
 
@@ -285,6 +286,8 @@ export async function initializeLogger(logOptions: LogOptions) {
       },
     },
   });
+
+  onCleanup(cleanupLogger);
 }
 
 export async function cleanupLogger() {

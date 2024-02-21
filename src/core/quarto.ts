@@ -15,6 +15,8 @@ import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
+import { parse } from "flags/mod.ts";
+import { initializeLogger, logError, logOptions } from "./log.ts";
 
 export const kLocalDevelopment = "99.9.9";
 
