@@ -142,7 +142,7 @@ async function checkInstall(services: RenderServices) {
       const codePage2 = readCodePage();
 
       info(`      CodePage: ${codePage2 || "unknown"}`);
-      if (codePage !== codePage2) {
+      if (codePage && codePage !== codePage2) {
         info(
           `      NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
         );
@@ -152,7 +152,7 @@ async function checkInstall(services: RenderServices) {
       const nonAscii = /[^\x00-\x7F]+/;
       if (nonAscii.test(quartoConfig.binPath())) {
         info(
-          `      NOTE: Non-ASCII characters in Quarto path causes rendering problems.`,
+          `      ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
         );
       }
     } catch {
