@@ -54,6 +54,7 @@ import "./project/types/register.ts";
 import "./format/imports.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
+import { mainRunner } from "./core/main.ts";
 
 export async function quarto(
   args: string[],
@@ -156,24 +157,7 @@ export async function quarto(
 }
 
 if (import.meta.main) {
-  // we'd like to do this:
-  //
-  // await mainRunner(() => quarto(Deno.args, appendLogOptions));
-  //
-  // but it presently causes the bundler to generate bad JS.
-  try {
-    // install termination signal handlers
-    if (Deno.build.os !== "windows") {
-      Deno.addSignalListener("SIGINT", abend);
-      Deno.addSignalListener("SIGTERM", abend);
-    }
-
-    // parse args
-    const args = parse(Deno.args);
-
-    // initialize logger
-    await initializeLogger(logOptions(args));
-
+  await mainRunner(async (args) => {
     // initialize profile (remove from args)
     let quartoArgs = [...Deno.args];
     if (setProfileFromArg(args)) {
@@ -187,26 +171,5 @@ if (import.meta.main) {
       cmd = appendLogOptions(cmd);
       return appendProfileArg(cmd);
     });
-
-    await cleanupLogger();
-
-    // if profiling, wait for 10 seconds before quitting
-    if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
-      console.log("Program finished. Turn off the Chrome profiler now!");
-      console.log("Waiting for 10 seconds ...");
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-    }
-
-    // exit
-    exitWithCleanup(0);
-  } catch (e) {
-    if (e) {
-      logError(e);
-    }
-    abend();
-  }
-}
-
-function abend() {
-  exitWithCleanup(1);
+  });
 }
