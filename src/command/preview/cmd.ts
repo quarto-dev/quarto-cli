@@ -297,7 +297,7 @@ export const previewCommand = new Command()
       if (isHtmlOutput(parseFormatString(format).baseFormat)) {
         const renderFormat = formats[format] as Format | undefined;
         if (renderFormat && isServerShiny(renderFormat)) {
-          const engine = fileExecutionEngine(file, flags);
+          const engine = await fileExecutionEngine(file, flags, project);
           setPreviewFormat(format, flags, args);
           if (isServerShinyPython(renderFormat, engine?.name)) {
             const result = await previewShiny({

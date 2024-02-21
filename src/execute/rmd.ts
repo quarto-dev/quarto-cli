@@ -45,6 +45,7 @@ import {
 import { lineColToIndex } from "../core/lib/text.ts";
 import { executeInlineCodeHandler } from "../core/execute-inline.ts";
 import { globalTempContext } from "../core/temp.ts";
+import { ProjectContext } from "../project/types.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -74,17 +75,16 @@ export const knitrEngine: ExecutionEngine = {
 
   target: async (
     file: string,
-    _quiet?: boolean,
-    markdown?: MappedString,
+    _quiet: boolean | undefined,
+    markdown: MappedString | undefined,
+    project: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
-    if (markdown === undefined) {
-      if (isKnitrSpinScript(file)) {
-        markdown = asMappedString(await markdownFromKnitrSpinScript(file));
-      } else {
-        markdown = mappedStringFromFile(file);
-      }
+    const isSpin = isKnitrSpinScript(file);
+    if (isSpin) {
+      markdown = asMappedString(await markdownFromKnitrSpinScript(file));
     }
     let metadata;
+    markdown = await project.resolveFullMarkdownForFile(file, markdown, isSpin);
     try {
       metadata = readYamlFromMarkdown(markdown.value);
     } catch (e) {

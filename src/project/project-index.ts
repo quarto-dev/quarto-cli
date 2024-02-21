@@ -86,7 +86,7 @@ export async function readBaseInputIndex(
   project: ProjectContext,
 ) {
   // check if this can be handled by one of our engines
-  const engine = fileExecutionEngine(inputFile);
+  const engine = await fileExecutionEngine(inputFile, undefined, project);
   if (engine === undefined) {
     return Promise.resolve(undefined);
   }

@@ -953,7 +953,7 @@ async function serveFiles(
 
         // partition markdown and read globs
         const partitioned = await partitionedMarkdownForInput(
-          project.dir,
+          project,
           projRelative,
         );
         const globs: string[] = [];

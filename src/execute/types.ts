@@ -32,9 +32,9 @@ export interface ExecutionEngine {
   claimsLanguage: (language: string) => boolean;
   target: (
     file: string,
-    quiet?: boolean,
-    markdown?: MappedString,
-    project?: ProjectContext,
+    quiet: boolean | undefined,
+    markdown: MappedString | undefined,
+    project: ProjectContext,
   ) => Promise<ExecutionTarget | undefined>;
   partitionedMarkdown: (
     file: string,

@@ -139,37 +139,10 @@ export function markdownExecutionEngine(markdown: string, flags?: RenderFlags) {
   return markdownEngine;
 }
 
-/**
- * return the reason an execution engine could claim this file. This is
- * used to determine if the engine should be resolved again after
- * running pre-engine handlers.
- *
- * @param file filename
- * @returns the reason
- */
-export function fileEngineClaimReason(file: string) {
-  // get the extension and validate that it can be handled by at least one of our engines
-  const ext = extname(file).toLowerCase();
-  if (
-    !executionEngines().some((engine) => engine.validExtensions().includes(ext))
-  ) {
-    return "invalid";
-  }
-
-  // try to find an engine that claims this extension outright
-  for (const [_, engine] of kEngines) {
-    if (engine.claimsFile(file, ext)) {
-      return "extension";
-    }
-  }
-
-  return "markdown";
-}
-
-export function fileExecutionEngine(
+export async function fileExecutionEngine(
   file: string,
-  flags?: RenderFlags,
-  markdown?: MappedString,
+  flags: RenderFlags | undefined,
+  project: ProjectContext,
 ) {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
@@ -191,6 +164,7 @@ export function fileExecutionEngine(
   // if we were passed a transformed markdown, use that for the text instead
   // of the contents of the file.
   if (kMdExtensions.includes(ext) || kQmdExtensions.includes(ext)) {
+    const markdown = await project.resolveFullMarkdownForFile(file);
     // https://github.com/quarto-dev/quarto-cli/issues/6825
     // In case the YAML _parsing_ fails, we need to annotate the error
     // with the filename so that the user knows which file is the problem.
@@ -213,16 +187,16 @@ export function fileExecutionEngine(
 export async function fileExecutionEngineAndTarget(
   file: string,
   flags: RenderFlags | undefined,
-  markdown: MappedString | undefined,
+  // markdown: MappedString | undefined,
   project: ProjectContext,
-  force?: boolean,
 ) {
-  const cached = force ? undefined : project.engineAndTargetCache?.get(file);
+  const cached = project.engineAndTargetCache?.get(file);
   if (cached) {
     return cached;
   }
 
-  const engine = fileExecutionEngine(file, flags, markdown);
+  const engine = await fileExecutionEngine(file, flags, project);
+  const markdown = await project.resolveFullMarkdownForFile(file);
   if (!engine) {
     throw new Error("Can't determine execution engine for " + file);
   }

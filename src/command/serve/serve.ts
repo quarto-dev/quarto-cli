@@ -21,6 +21,8 @@ import { isRStudio, isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { info } from "log/mod.ts";
+import { projectContext } from "../../project/project-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export async function renderForServe(
   file: string,
@@ -44,7 +46,11 @@ export async function renderForServe(
 
 export async function serve(options: RunOptions): Promise<ProcessResult> {
   const { host, port } = await resolveHostAndPort(options);
-  const engine = fileExecutionEngine(options.input);
+  const nbContext = notebookContext();
+  const project = (await projectContext(options.input, nbContext)) ||
+    singleFileProjectContext(options.input, nbContext);
+
+  const engine = await fileExecutionEngine(options.input, undefined, project);
   if (engine?.run) {
     // render if requested
     if (options.render) {
