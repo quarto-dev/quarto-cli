@@ -13,13 +13,7 @@ import {
 } from "cliffy/command/mod.ts";
 
 import { commands } from "./command/command.ts";
-import {
-  appendLogOptions,
-  cleanupLogger,
-  initializeLogger,
-  logError,
-  logOptions,
-} from "./core/log.ts";
+import { appendLogOptions } from "./core/log.ts";
 import { debug } from "log/mod.ts";
 
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
@@ -36,9 +30,8 @@ import {
   reconfigureQuarto,
 } from "./core/devconfig.ts";
 import { typstBinaryPath } from "./core/typst.ts";
-import { exitWithCleanup, onCleanup } from "./core/cleanup.ts";
+import { onCleanup } from "./core/cleanup.ts";
 
-import { parse } from "flags/mod.ts";
 import { runScript } from "./command/run/run.ts";
 
 // ensures run handlers are registered
