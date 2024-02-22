@@ -126,6 +126,7 @@ import {
   isJupyterKernelspec,
   jupyterDefaultPythonKernelspec,
   jupyterKernelspec,
+  jupyterKernelspecForLanguage,
   jupyterKernelspecs,
 } from "./kernels.ts";
 import {
@@ -493,14 +494,13 @@ export async function jupyterKernelspecFromMarkdown(
   if (!yamlJupyter) {
     const languages = languagesInMarkdown(markdown);
     languages.add("python"); // python as a default/failsafe
-    const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
-      for (const kernelspec of kernelspecs.values()) {
-        if (kernelspec.language.toLowerCase() === language) {
-          return [kernelspec, {}];
-        }
+      const kernelspec = await jupyterKernelspecForLanguage(language);
+      if (kernelspec) {
+        return [kernelspec, {}];
       }
     }
+    const kernelspecs = await jupyterKernelspecs();
     return Promise.reject(
       new Error(
         `No kernel found for any language checked (${
