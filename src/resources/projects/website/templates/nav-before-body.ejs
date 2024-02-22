@@ -29,11 +29,11 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
             <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
             <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
           </div> <!-- /navcollapse -->
-          <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+          <% partial('navtools.ejs', { align: 'none', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
         <% } else { %>
           <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
-          <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-          <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+          <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right}) %>
+          <% partial('navtools.ejs', { align: 'none', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
           <% if (nav.navbar.search) { %>
             <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
           <% } %>
