@@ -40,6 +40,7 @@ import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 import { ProjectOutputFile } from "../types.ts";
 import { projectType } from "../project-types.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
 
 export async function bookBibliography(
   outputFiles: ProjectOutputFile[],
@@ -76,7 +77,11 @@ export async function bookBibliography(
     const firstFileDir = dirname(inputfile.file);
     bibliographyPaths.push(
       ...bibliography.map((file) =>
-        isAbsolute(file) ? file : join(firstFileDir, file)
+        // we don't want to process already absolute path or url
+        // (Pandoc supports fetching bibliography from the web)
+        isAbsolute(file) || isAbsoluteRef(file)
+          ? file
+          : join(firstFileDir, file)
       ),
     );
 
