@@ -99,7 +99,8 @@ local function ensure_typst_theorems(reftype)
   if not letted_typst_theorem[reftype] then
     letted_typst_theorem[reftype] = true
     local theorem_type = theorem_types[reftype]
-    quarto.doc.include_text("in-header", "#let " .. theorem_type.env .. " = thmbox(\"" .. theorem_type.env .. "\", \"" .. theorem_type.title .. "\", fill: rgb(\"#eeffee\"))")
+    quarto.doc.include_text("in-header", "#let " .. theorem_type.env .. " = thmbox(\"" ..
+     theorem_type.env .. "\", \"" .. theorem_type.title .. "\")")
   end
 end
 
@@ -160,11 +161,9 @@ end, function(thm)
     if name then
       tappend(callthm.content, name)
     end
-    quarto.log.output(el.content)
     callthm.content:insert(pandoc.RawInline("typst", "\")["))
     tappend(callthm.content, quarto.utils.as_inlines(el.content))
     callthm.content:insert(pandoc.RawInline("typst", "] <" .. el.attr.identifier .. ">"))
-    quarto.log.output(callthm.content)
     return callthm
 
   else
