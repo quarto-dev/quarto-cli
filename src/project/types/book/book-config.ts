@@ -124,6 +124,7 @@ import {
 } from "../../../resources/types/schema-types.ts";
 import { projectType } from "../project-types.ts";
 import { BookRenderItem, BookRenderItemType } from "./book-types.ts";
+import { isAbsoluteRef } from "../../../core/http.ts";
 
 export async function bookProjectConfig(
   project: ProjectContext,
@@ -255,7 +256,7 @@ export async function bookProjectConfig(
       for (const item of region) {
         if (typeof item !== "string") {
           const navItem = item as NavigationItemObject;
-          if (navItem.href) {
+          if (navItem.href && !isAbsoluteRef(navItem.href)) {
             footerFiles.push(navItem.href);
           }
         }
