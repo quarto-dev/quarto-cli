@@ -1,0 +1,17 @@
+---
+_quarto:
+  tests:
+    pdf: default
+---
+# Preface {.unnumbered}
+
+This is a Quarto book.
+
+To learn more about Quarto books visit <https://quarto.org/docs/books>.
+
+Add a table with latex dependencies
+
+```{r}
+library(flextable)
+flextable(head(mtcars))
+```
