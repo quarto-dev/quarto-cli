@@ -1,0 +1,28 @@
+project:
+  type: book
+
+book:
+  title: "Testing Page Footer"
+  author: "Norah Jones"
+  date: "22/02/2024"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+  page-footer:
+    left:
+      - text: Quarto
+        href: https://quarto.org
+    right: "Some text"
+    center:
+      - text: "Licence"
+        href: license.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
