@@ -43,11 +43,7 @@ import {
   ExecuteResult,
   MappedExecuteResult,
 } from "../../execute/types.ts";
-import {
-  kProjectLibDir,
-  kProjectType,
-  ProjectContext,
-} from "../../project/types.ts";
+import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { outputRecipe } from "./output.ts";
 
 import { renderPandoc } from "./render.ts";
