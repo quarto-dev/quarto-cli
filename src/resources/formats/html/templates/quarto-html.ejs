@@ -432,7 +432,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
 

@@ -1618,9 +1618,13 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
 
           if (refContentsEl.tagName === "LI") {
             // Ensure that there is a list to place this footnote within
-            addNodesToMarginContainerForEl(
+            const containerEl = doc.createElement("DIV");
+            containerEl.id = refContentsEl.id;
+            containerEl.append(...refContentsEl.childNodes);
+
+            addContentToMarginContainerForEl(
               validParent || el,
-              refContentsEl.childNodes,
+              containerEl,
               doc,
             );
           } else {
