@@ -1,5 +1,7 @@
 ---
-keep-typ: true
+format:
+  typst:
+    output-ext: typ
 _quarto:
   tests:
     html:
