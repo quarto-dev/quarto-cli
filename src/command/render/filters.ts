@@ -87,6 +87,7 @@ import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
 import { isServerShinyPython } from "../../core/render.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import { encode as base64Encode } from "encoding/base64.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -682,7 +683,7 @@ function initFilterParams(dependenciesFile: string) {
       Deno.env.set("QUARTO_WIN_CODEPAGE", value);
     }
   }
-  Deno.env.set("QUARTO_FILTER_DEPENDENCY_FILE", dependenciesFile);
+  Deno.env.set("QUARTO_FILTER_DEPENDENCY_FILE", base64Encode(dependenciesFile));
   return params;
 }
 

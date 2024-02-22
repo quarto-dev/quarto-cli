@@ -1493,7 +1493,7 @@ local function dependenciesFile()
   if dependenciesFile == nil then
     error('Missing expected dependency file environment variable QUARTO_FILTER_DEPENDENCY_FILE')
   else
-    return pandoc.utils.stringify(dependenciesFile)
+    return quarto.base64.decode(dependenciesFile)
   end
 end
 
