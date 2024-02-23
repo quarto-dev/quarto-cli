@@ -1,12 +1,13 @@
 ## Fixed in this release
 
+- ([#8749](https://github.com/quarto-dev/quarto-cli/issues/8749)): Fix bundle creation for publishing Quarto projects to Posit Connect using `quarto publish connect`.
+- ([#8785](https://github.com/quarto-dev/quarto-cli/issues/8785)): Fix issue with noncentered, non-referenceable subfigures in LaTeX format.
 - ([#8795](https://github.com/quarto-dev/quarto-cli/issues/8795)): Fix issue with select controls appearing in Dashboard toolbar.
 - ([#8798](https://github.com/quarto-dev/quarto-cli/issues/8798)): Fix issue with duplicate level 1 headings in rendered `ipynb` notebooks.
 - ([#8818](https://github.com/quarto-dev/quarto-cli/issues/8818)): Fix alignment of `right` items in Navbars.
 - ([#8852](https://github.com/quarto-dev/quarto-cli/issues/8852)): Do not strip `index.html` from external links.
 - ([#8854](https://github.com/quarto-dev/quarto-cli/issues/8854)): Don't allow margin footnotes to break `hover-citations`
 - ([#8858](https://github.com/quarto-dev/quarto-cli/issues/8858)): Fix issue rendering markdown in bread-crumbs
-- ([#8749](https://github.com/quarto-dev/quarto-cli/issues/8749)): Fix bundle creation for publishing Quarto projects to Posit Connect using `quarto publish connect`.
 - ([#8843](https://github.com/quarto-dev/quarto-cli/issues/8843)): Fix issue in books when some R code cells emits LaTeX dependencies to be included in the LaTeX preamble.
 
 ## Fixed in previous releases
