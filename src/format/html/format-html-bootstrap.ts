@@ -1568,7 +1568,32 @@ const simpleMarginProcessor: MarginNodeProcessor = {
   },
   process(el: Element, doc: Document) {
     el.classList.remove("column-margin");
-    addContentToMarginContainerForEl(el, el, doc);
+
+    const kPopMarginElOutOfTags = ["DD"];
+
+    // Specially deal with DD
+    if (
+      el.parentElement &&
+      kPopMarginElOutOfTags.includes(el.parentElement?.tagName)
+    ) {
+      const parentElement = el.parentElement;
+      // This is in a tag which itself can't be a container
+      // pop it out
+      // make a container which is next to the parent and
+      // place that in the margin
+      // For examples of this, see:
+      // https://github.com/quarto-dev/quarto-cli/issues/8862
+      const marginContainer = doc.createElement("DIV");
+      el.remove();
+      marginContainer.appendChild(el);
+      parentElement.parentElement?.insertBefore(
+        marginContainer,
+        parentElement.nextSibling,
+      );
+      addContentToMarginContainerForEl(marginContainer, marginContainer, doc);
+    } else {
+      addContentToMarginContainerForEl(el, el, doc);
+    }
   },
 };
 
