@@ -99,7 +99,10 @@ function latexJoinParas(content)
   return blocks
 end
 
-function latexCaptionEnv(el) 
+function latexCaptionEnv(el)
+  if el.attributes['quarto-caption-env'] then
+    return el.attributes['quarto-caption-env']
+  end 
   if el.classes:includes(kSideCaptionClass) then
     return kSideCaptionEnv
   else
@@ -670,14 +673,6 @@ function renderLatexFigure(el, render)
   -- return the figure
   return figure
   
-end
-
-function latexCaptionEnv(el) 
-  if el.classes:includes(kSideCaptionClass) then
-    return kSideCaptionEnv
-  else
-    return 'caption'
-  end
 end
 
 function insertLatexCaption(divEl, content, captionInlines) 

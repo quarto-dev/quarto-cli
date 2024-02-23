@@ -348,6 +348,9 @@ local quarto_post_filters = {
 
   { name = "post-ojs", filter = ojs() },
 
+  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" } },
+
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
@@ -361,8 +364,6 @@ local quarto_post_filters = {
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
-  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
   { name = "post-render-email", filters = render_email() },
 }
 
