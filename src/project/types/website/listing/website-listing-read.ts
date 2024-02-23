@@ -14,7 +14,7 @@ import {
   join,
   relative,
 } from "path/mod.ts";
-import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
+import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
@@ -1117,8 +1117,10 @@ async function listItemFromFile(
       );
     }
     const author = structuredAuthors
-      ? structuredAuthors.map((auth) =>
-        auth.literal || `${auth.given} ${auth.family}`
+      ? uniq(
+        structuredAuthors.map((auth) =>
+          auth.literal || `${auth.given} ${auth.family}`
+        ),
       )
       : [];
 

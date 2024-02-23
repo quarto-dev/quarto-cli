@@ -53,6 +53,7 @@ All changes included in 1.5:
 - ([#8435](https://github.com/quarto-dev/quarto-cli/issues/8435)): Improve listing filtering using special characters
 - ([#8627](https://github.com/quarto-dev/quarto-cli/issues/8627)): Localize the text that appears as placeholder in listing filters.
 - ([#8715](https://github.com/quarto-dev/quarto-cli/issues/8715)): Listings should respect `image: false`
+- ([#8860](https://github.com/quarto-dev/quarto-cli/discussions/8860)): Don't show duplicate author names.
 
 ## Manuscripts
 
