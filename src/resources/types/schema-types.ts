@@ -467,6 +467,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       | "xl"
       | "xxl" /* The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`). */;
     "toggle-position"?: "left" | "right";
+    "tools-collapse"?:
+      boolean /* Collapse tools into the navbar menu when the display becomes narrow. */;
     background?:
       | (
         | "primary"

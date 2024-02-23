@@ -109,6 +109,7 @@ export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
 export const kCollapseBelow = "collapse-below";
+export const kToolsCollapse = "tools-collapse";
 export const kLogoAlt = "logo-alt";
 export const kLogoHref = "logo-href";
 
@@ -138,6 +139,7 @@ export interface Navbar {
   [kSidebarMenus]?: boolean;
   darkToggle?: boolean;
   readerToggle?: boolean;
+  [kToolsCollapse]?: boolean;
 }
 
 /* export interface NavItem {

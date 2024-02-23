@@ -974,6 +974,10 @@
                     enum: [left, right]
                   description: "The position of the collapsed navbar toggle when in responsive mode"
                   default: "left"
+                tools-collapse:
+                  boolean:
+                    description: "Collapse tools into the navbar menu when the display becomes narrow."
+                    default: false
 
         description: "Top navigation options"
 

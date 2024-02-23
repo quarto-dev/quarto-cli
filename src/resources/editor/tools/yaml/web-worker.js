@@ -9749,6 +9749,12 @@ try {
                             },
                             description: "The position of the collapsed navbar toggle when in responsive mode",
                             default: "left"
+                          },
+                          "tools-collapse": {
+                            boolean: {
+                              description: "Collapse tools into the navbar menu when the display becomes narrow.",
+                              default: false
+                            }
                           }
                         }
                       }
@@ -19768,6 +19774,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19783,6 +19791,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19914,6 +19924,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19929,6 +19941,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22108,6 +22122,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22123,6 +22139,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22438,6 +22456,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22453,6 +22473,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22879,12 +22901,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 181881,
+          _internalId: 181887,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 181873,
+              _internalId: 181879,
               type: "enum",
               enum: [
                 "png",
@@ -22900,7 +22922,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 181880,
+              _internalId: 181886,
               type: "anyOf",
               anyOf: [
                 {
