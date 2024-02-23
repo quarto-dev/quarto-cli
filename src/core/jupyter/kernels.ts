@@ -47,6 +47,7 @@ export async function jupyterKernelspecForLanguage(
         }
       }
     }
+    return defaultResolver();
   };
 
   const resolvers: Record<string, () => JupyterKernelspec | undefined> = {
