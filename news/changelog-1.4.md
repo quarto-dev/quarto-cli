@@ -5,6 +5,7 @@
 - ([#8818](https://github.com/quarto-dev/quarto-cli/issues/8818)): Fix alignment of `right` items in Navbars.
 - ([#8852](https://github.com/quarto-dev/quarto-cli/issues/8852)): Do not strip `index.html` from external links.
 - ([#8854](https://github.com/quarto-dev/quarto-cli/issues/8854)): Don't allow margin footnotes to break `hover-citations`
+- ([#8858](https://github.com/quarto-dev/quarto-cli/issues/8858)): Fix issue rendering markdown in bread-crumbs
 
 ## Fixed in previous releases
 

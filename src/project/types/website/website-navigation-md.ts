@@ -210,10 +210,12 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const breadCrumbs = doc.querySelectorAll(
-        ".quarto-page-breadcrumbs .breadcrumb-item > a",
+        ".quarto-page-breadcrumbs .breadcrumb-item",
       );
       for (const breadCrumb of breadCrumbs) {
-        const breadCrumbEl = breadCrumb as Element;
+        const linkEl = (breadCrumb as Element).querySelector("a");
+
+        const breadCrumbEl = linkEl !== null ? linkEl : breadCrumb as Element;
         const key = breadCrumbEl.innerHTML;
         const renderedEl = rendered[`${kBreadcrumbPrefix}-${textKey(key)}`];
         if (renderedEl) {
