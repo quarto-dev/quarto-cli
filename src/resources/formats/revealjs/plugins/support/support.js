@@ -301,6 +301,23 @@ window.QuartoSupport = function () {
     }
   }
 
+  function handleWhiteSpaceInColumns(deck) {
+    for (const outerDiv of window.document.querySelectorAll("div.columns")) {
+      // remove all whitespace text nodes
+      // whitespace nodes cause the columns to be misaligned
+      // since they have inline-block layout
+      // 
+      // Quarto emits no whitespace nodes, but third-party tooling
+      // has bugs that can cause whitespace nodes to be emitted.
+      // See https://github.com/quarto-dev/quarto-cli/issues/8382
+      for (const node of outerDiv.childNodes) {
+        if (node.nodeType === 3 && node.nodeValue.trim() === "") {
+          outerDiv.removeChild(node);
+        }
+      }
+    }
+  }
+
   return {
     id: "quarto-support",
     init: function (deck) {
@@ -315,6 +332,7 @@ window.QuartoSupport = function () {
       handleTabbyClicks();
       handleSlideChanges(deck);
       workaroundMermaidDistance(deck);
+      handleWhiteSpaceInColumns(deck);
     },
   };
 };
