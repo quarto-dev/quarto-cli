@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { dirname, join } from "path/mod.ts";
+import { dirname, extname, join } from "path/mod.ts";
 import { docs, outputForInput } from "../../utils.ts";
 import {
   ensureFileRegexMatches,
@@ -13,6 +13,7 @@ import {
   noErrorsOrWarnings,
 } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
+import { walkSync } from "fs/mod.ts";
 
 const format = "html";
 const input = docs("embed/embed-qmd.qmd");
@@ -102,3 +103,35 @@ testRender(ipynbInput, format, false, [
     return Promise.resolve();
   },
 });
+
+// Test different echo settings (bug 8472)
+const docInput = docs("embed/qmd-embed/index.qmd");
+const docOutput = outputForInput(docInput, "html");
+testRender(docInput, "html", false, [
+  noErrorsOrWarnings,
+  ensureHtmlElements(docOutput.outputPath, [
+    // Make sure the embeds produce expected output
+    "#fig-polar",
+    "#fig-index-plot",
+    // Make sure notebook links are present
+    "a.quarto-notebook-link",
+    ".quarto-alternate-notebooks a",
+  ]),
+  // Ensure the captions look good
+  ensureFileRegexMatches(docOutput.outputPath, [
+    /Figure.*1:/,
+    /Figure.*2:/,
+  ]),
+], {
+  teardown: () => {
+    // Only qmds should be left in this directory
+    const dir = join(Deno.cwd(), dirname(docInput));
+
+    const cleanup = ["notebook.embed_files", "notebook.embed-preview.html", "notebook2.embed_files", "notebook2.embed-preview.html"];
+    cleanup.forEach((path) => {
+      Deno.removeSync(join(dir, path), {recursive: true});
+    })
+    return Promise.resolve();
+  },
+});
+

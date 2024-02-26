@@ -106,7 +106,7 @@ export async function emplaceNotebookPreviews(
   doc: Document,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
   output?: string,
   quiet?: boolean,
 ) {

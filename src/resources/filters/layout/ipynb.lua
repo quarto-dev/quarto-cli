@@ -57,9 +57,7 @@ local function render_ipynb_layout_no_float(layout)
   return pandoc.Div(panel_content, attr)
 end
 
-_quarto.ast.add_renderer("PanelLayout", function(_)
-  return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
-end, function(layout)
+local function render_ipynb_layout(layout)
   if layout.float == nil then
     return render_ipynb_layout_no_float(layout)
   end
@@ -117,7 +115,11 @@ end, function(layout)
     panel_content:insert(1, layout.preamble)
   end
   return pandoc.Div(panel_content, attr)
-end)
+end
+
+_quarto.ast.add_renderer("PanelLayout", function(_)
+  return _quarto.format.isIpynbOutput() and param("enable-crossref", true)
+end, render_ipynb_layout)
 
 -- this should really be "_quarto.format.isEmbedIpynb()" or something like that..
 _quarto.ast.add_renderer("PanelLayout", function(_)

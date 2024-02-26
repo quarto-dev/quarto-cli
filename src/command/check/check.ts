@@ -27,7 +27,11 @@ import {
   rInstallationMessage,
 } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { readCodePage } from "../../core/windows.ts";
+import {
+  cacheCodePage,
+  clearCodePageCache,
+  readCodePage,
+} from "../../core/windows.ts";
 import { RenderServices } from "../render/types.ts";
 import { jupyterKernelspecForLanguage } from "../../core/jupyter/kernels.ts";
 import { execProcess } from "../../core/process.ts";
@@ -133,7 +137,24 @@ async function checkInstall(services: RenderServices) {
   if (Deno.build.os === "windows") {
     try {
       const codePage = readCodePage();
-      info(`      CodePage: ${codePage || "unknown"}`);
+      clearCodePageCache();
+      await cacheCodePage();
+      const codePage2 = readCodePage();
+
+      info(`      CodePage: ${codePage2 || "unknown"}`);
+      if (codePage && codePage !== codePage2) {
+        info(
+          `      NOTE: Code page updated from ${codePage} to ${codePage2}. Previous rendering may have been affected.`,
+        );
+      }
+      // if non-standard code page, check for non-ascii characters in path
+      // deno-lint-ignore no-control-regex
+      const nonAscii = /[^\x00-\x7F]+/;
+      if (nonAscii.test(quartoConfig.binPath())) {
+        info(
+          `      ERROR: Non-ASCII characters in Quarto path causes rendering problems.`,
+        );
+      }
     } catch {
       info(`      CodePage: Unable to read code page`);
     }

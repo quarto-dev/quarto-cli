@@ -337,7 +337,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-  <% if (linkExternalIcon || linkExternalNewwindow) { %>
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
     <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
@@ -355,6 +354,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
         <% if (linkExternalNewwindow) { %> 
           // target, if specified
           link.setAttribute("target", "_blank");
@@ -376,7 +380,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         <% } %>
       }
     }
-  <% } %>
+
+
 
   <% if (tippy) { %>
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
@@ -427,7 +432,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
 

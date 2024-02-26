@@ -1,3 +1,5 @@
+
+<% if (draftMode === "visible" || item.draft !== true) {%>
 <% if (item.href && item.text && !item.contents) { %>
 <li class="sidebar-item">
   <div class="sidebar-item-container"> 
@@ -27,7 +29,7 @@
       </div>
       <ul id="<%- sectionId %>" class="collapse list-unstyled sidebar-section depth<%-depth%> <%- isCollapsed ? "" : "show" %>">  
         <% item.contents.forEach(subItem => { %>
-          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor, language: language }) %>
+          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor, language: language, draftMode }) %>
         <% }) %>
       </ul>
     <% } else { %>
@@ -41,4 +43,5 @@
   <li class="sidebar-item">
     <% partial('navicon.ejs', { item }) %> <span class="menu-text"><%= item.text %></span>
   </li>
+<% } %>
 <% } %>

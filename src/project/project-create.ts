@@ -1,9 +1,8 @@
 /*
-* project-create.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-create.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import * as ld from "../core/lodash.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
@@ -129,7 +128,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
       let src;
       let dest;
       let displayName;
-      if (typeof (supporting) === "string") {
+      if (typeof supporting === "string") {
         src = join(projCreate.resourceDir, supporting);
         dest = join(options.dir, supporting);
         displayName = supporting;
@@ -138,11 +137,12 @@ export async function projectCreate(options: ProjectCreateOptions) {
         dest = join(options.dir, supporting.to);
         displayName = supporting.to;
       }
-
-      ensureDirSync(dirname(dest));
-      copyTo(src, dest);
-      if (!options.quiet) {
-        info("- Created " + displayName, { indent: 2 });
+      if (!existsSync(dest)) {
+        ensureDirSync(dirname(dest));
+        copyTo(src, dest);
+        if (!options.quiet) {
+          info("- Created " + displayName, { indent: 2 });
+        }
       }
     }
   }
@@ -236,7 +236,7 @@ function projectMarkdownFile(
   }
 
   // write file and return it's name
-  name = name + engine.defaultExt;
+  name = (name + engine.defaultExt).toLocaleLowerCase();
 
   const ensureSubDir = (dir: string, name: string, subdirectory?: string) => {
     if (subdirectory) {

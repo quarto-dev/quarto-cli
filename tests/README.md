@@ -23,12 +23,12 @@ Tests are running through `Deno.test()` framework, adapted for our Quarto projec
 
 Here are what is expected in the environment for the tests :
 
-- R should be installed and in PATH
-  - On Windows, Rtools should be too (for source package installation) e.g `winget install --id RProject.Rtools`
-- Python should be installed and in PATH
-  - On Windows, one can use [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage version or install from https://www.python.org/ manually or using `winget`.
-- Julia should be installed and in PATH
-  - On Windows, one way is using `winget install --id Julialang.Julia` and then add `%LOCALAPPDATA%/Programs/Julia/bin` to PATH
+- R should be installed and in PATH - [**rig**](https://github.com/r-lib/rig) is a good tool to manage R versions.
+  - On Windows, Rtools should be too (for source package installation)
+- Python should be installed and in PATH - [**pyenv**](https://github.com/pyenv/pyenv) is a good option to manage Python versions.
+  - On Windows, it will be [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/) to manage versions. Otherwise or install from https://www.python.org/ manually or using `winget`.
+- Julia should be installed and in PATH - [**juliaup**](https://github.com/JuliaLang/juliaup) is a good option to manage Julia versions.
+  - On Windows, one way is using `winget install julia -s msstore` and then add `%LOCALAPPDATA%/Programs/Julia/bin` to PATH
 
 Running tests require to have a local environment setup with Quarto development, TinyTeX, R, Python and Julia.
 
@@ -62,6 +62,8 @@ A virtual environment will be created locally in `.venv` folder (ignored on git)
 It will also update the `Pipfile.lock` - this file should never be updated manually.
 
 See other [`pipenv` command](https://pipenv.pypa.io/en/latest/#basic-commands-and-concepts) if you need to tweak the python environment.
+
+For a change of python versionn, `pipenv --rm` will need to be called so that the current virtual environment is removed and a new one is created with the new python version when running `pipenv install` inside `configure-test-env` script.
 
 #### Julia
 

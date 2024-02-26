@@ -80,7 +80,7 @@ export interface NotebookTemplateMetadata extends NotebookMetadata {
 
 export interface NotebookContext {
   // Retrieves the notebook from the context.
-  get: (nbPath: string, context?: ProjectContext) => Notebook | undefined;
+  get: (nbPath: string, context: ProjectContext) => Notebook | undefined;
   all: () => Notebook[];
   // Resolves the data on an executedFile into data that will
   // create a `renderType` output when rendered.
@@ -96,7 +96,7 @@ export interface NotebookContext {
     nbPath: string,
     renderType: RenderType,
     result: NotebookRenderResult,
-    project?: ProjectContext,
+    project: ProjectContext,
   ) => void;
   removeRendering: (
     nbAbsPath: string,
@@ -109,8 +109,8 @@ export interface NotebookContext {
     format: Format,
     renderType: RenderType,
     renderServices: RenderServices,
-    notebookMetadata?: NotebookMetadata,
-    project?: ProjectContext,
+    notebookMetadata: NotebookMetadata | undefined,
+    project: ProjectContext,
   ) => Promise<NotebookOutput>;
   // Previews are cleaned up when the notebook context is disposed, but
   // you can use this to mark specific notebook > rendertypes to not be cleaned up.
@@ -132,12 +132,12 @@ export interface NotebookContributor {
     format: Format,
     token: string,
     services: RenderServices,
-    notebookMetadata?: NotebookMetadata,
-    project?: ProjectContext,
+    notebookMetadata: NotebookMetadata | undefined,
+    project: ProjectContext,
   ): Promise<NotebookRenderResult>;
-  cache?: (output: NotebookOutput, project?: ProjectContext) => void;
+  cache?: (output: NotebookOutput, project: ProjectContext) => void;
   cachedPath?: (
     nbAbsPath: string,
-    project?: ProjectContext,
+    project: ProjectContext,
   ) => string | undefined;
 }

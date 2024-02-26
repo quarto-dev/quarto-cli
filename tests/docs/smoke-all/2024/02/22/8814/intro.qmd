@@ -1,0 +1,17 @@
+---
+_quarto:
+  html:
+    ensureHtmlElement:
+    - 
+      - 'span.citation[data-cites="knuth84"]'
+      - 'span.citation[data-cites="Blei09"]'
+  pdf: default
+---
+
+# Introduction
+
+This is a book created from markdown and executable code.
+
+See @knuth84 for additional discussion of literate programming.
+
+and @Blei09 Is pretty sweet.

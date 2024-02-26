@@ -1,0 +1,11 @@
+---
+title: issue-8299
+format: pdf
+_quarto:
+  tests:
+    pdf:
+      fileExists: 
+        outputPath: simple-svg.pdf
+---
+
+![An image we would otherwise trounce](simple-svg.svg)

@@ -22,6 +22,7 @@ section-title-citation: "Navođenje"
 
 appendix-attribution-cite-as: "Za pripisivanje autoru, molimo navedite ovaj rad sa:"
 appendix-attribution-bibtex: "BibTeX navođenje:"
+appendix-view-license: "Pogledaj Licencu"
 
 title-block-author-single: "Autor"
 title-block-author-plural: "Autori"
@@ -116,3 +117,6 @@ listing-page-field-categories: "Kategorije"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "Sve"
 listing-page-no-matches: "Slična dokumenta nisu pronađena"
+listing-page-filter: "Filter"
+
+draft: "Nacrt"

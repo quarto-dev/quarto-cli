@@ -14,10 +14,10 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   <% if (nav.navbar || nav.sidebar || nav.announcement) { %>  
   <header id="quarto-header" class="headroom fixed-top">
 
-    <% if (nav.announcement) { %>
-      <div id="quarto-announcement" data-announcement-id="<%- nav.announcement.id %>" class="alert alert-<%- nav.announcement.type %> hidden"><% if (nav.announcement.icon) { %><i class="bi bi-<%- nav.announcement.icon %> quarto-announcement-icon"></i><% } %><div class="quarto-announcement-content"><%= nav.announcement.content %></div><% if (nav.announcement.dismissable) { %><i class="bi bi-x-lg quarto-announcement-action"></i><% } %></div>
+    <% if (nav.announcement && nav.announcement.position === "above-navbar") { %>
+    <div id="quarto-announcement" data-announcement-id="<%- nav.announcement.id %>" class="alert alert-<%- nav.announcement.type %> hidden"><% if (nav.announcement.icon) { %><i class="bi bi-<%- nav.announcement.icon %> quarto-announcement-icon"></i><% } %><div class="quarto-announcement-content"><%= nav.announcement.content %></div><% if (nav.announcement.dismissable) { %><i class="bi bi-x-lg quarto-announcement-action"></i><% } %></div>
     <% } %>
-
+    
     <% if (nav.navbar) { %>  
     <nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>" data-bs-theme="dark">
       <div class="navbar-container container-fluid">
@@ -31,14 +31,19 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
           <% } %>
           <% partial('navtoggle.ejs', { language: nav.language }) %>
           <% partial('navcollapse.ejs') %>
-            <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
-            <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
+            <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left, draftMode: nav.draftMode}) %>
+            <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right, draftMode: nav.draftMode }) %>
+            <% if (nav.navbar["tools-collapse"]) { %> 
+              <% partial('navtools.ejs', { align: 'none', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+            <% } %>
           </div> <!-- /navcollapse -->
-          <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+          <% if (!nav.navbar["tools-collapse"]) { %> 
+            <% partial('navtools.ejs', { align: 'none', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+          <% } %>
         <% } else { %>
-          <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
-          <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
-          <% partial('navtools.ejs', { align: 'end', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
+          <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left, draftMode: nav.draftMode}) %>
+          <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right, draftMode: nav.draftMode }) %>
+          <% partial('navtools.ejs', { align: 'none', tools: nav.navbar.tools, darkToggle: nav.navbar.darkToggle, readerToggle: nav.navbar.readerToggle, search: false, className: navbarToolsClass, language: nav.language }) %>
           <% if (nav.navbar.search) { %>
             <% partial('navsearch.ejs',  { classes: '', language: nav.language }) %>
           <% } %>
@@ -52,7 +57,8 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
 
       </div> <!-- /container-fluid -->
     </nav>
-<% } %>
+  <% } %>
+
 
 <% if (nav.sidebar && nav.layout) { %>
   <nav class="quarto-secondary-nav">
@@ -85,6 +91,11 @@ const navbarTocRight = nav['toc-location'] === "right" || nav['toc-location'] ==
   </nav>
 <% } %>
 
+<% if (nav.announcement && nav.announcement.position === "below-navbar") { %>
+  <div id="quarto-announcement" data-announcement-id="<%- nav.announcement.id %>" class="alert alert-<%- nav.announcement.type %> hidden"><% if (nav.announcement.icon) { %><i class="bi bi-<%- nav.announcement.icon %> quarto-announcement-icon"></i><% } %><div class="quarto-announcement-content"><%= nav.announcement.content %></div><% if (nav.announcement.dismissable) { %><i class="bi bi-x-lg quarto-announcement-action"></i><% } %></div>
+<% } %>
+
+
 </header>
 <% } %> 
 
@@ -101,7 +112,7 @@ if (nav.layout === "article" || nav.layout === "full") {
 
 <!-- sidebar -->
 <% if (nav.sidebar || navbarTocLeft) { %>
-  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: navbarTocLeft, language: nav.language }) %>
+  <% partial('sidebar.ejs', { sidebar: nav.sidebar, sidebarStyle: nav.sidebarStyle, navbar: !!nav.navbar, toc: navbarTocLeft, language: nav.language, draftMode: nav.draftMode }) %>
 <% } %>
 
 <!-- margin-sidebar -->

@@ -144,8 +144,8 @@ async function renderHtmlNotebook(
   format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   // Use the special `embed` template for this render
   const template = formatResourcePath(

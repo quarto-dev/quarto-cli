@@ -8,6 +8,7 @@ import { PandocInputTraits } from "../../command/render/types.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kLang,
   kPositionedRefs,
   kSectionTitleCitation,
@@ -202,8 +203,9 @@ export async function processDocumentAppendix(
             const licenseObj = license as Record<string, unknown>;
             return {
               text: licenseObj.text as string,
-              url: licenseObj.link,
+              url: licenseObj.url,
               type: licenseObj.type,
+              inlineLink: false,
             };
           }
         };
@@ -221,7 +223,8 @@ export async function processDocumentAppendix(
         const normalized = normalizedLicenses(license);
         for (const normalLicense of normalized) {
           const licenseEl = doc.createElement("DIV");
-          if (normalLicense.url) {
+
+          if (normalLicense.url && normalLicense.inlineLink) {
             const linkEl = doc.createElement("A");
             linkEl.innerText = normalLicense.text;
             linkEl.setAttribute("rel", "license");
@@ -229,7 +232,17 @@ export async function processDocumentAppendix(
             licenseEl.appendChild(linkEl);
           } else {
             licenseEl.innerText = normalLicense.text;
+            if (normalLicense.url) {
+              const linkEl = doc.createElement("A");
+              linkEl.innerText = `(${
+                format.language[kAppendixViewLicense] || "View License"
+              })`;
+              linkEl.setAttribute("rel", "license");
+              linkEl.setAttribute("href", normalLicense.url);
+              licenseEl.appendChild(linkEl);
+            }
           }
+
           contentsDiv.appendChild(licenseEl);
         }
 
@@ -462,12 +475,14 @@ function creativeCommonsUrl(license: string, lang?: string, version?: string) {
           lang.toLowerCase().replace("-", "_")
         }`,
       text: `CC ${licenseType} ${version}`,
+      inlineLink: true,
     };
   } else {
     return {
       url:
         `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
       text: `CC ${licenseType} ${version}`,
+      inlineLink: true,
     };
   }
 }

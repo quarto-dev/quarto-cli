@@ -96,7 +96,6 @@ import { manuscriptRenderer } from "./manuscript-render.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
 import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
-import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
@@ -105,6 +104,7 @@ import { safeExistsSync } from "../../../core/path.ts";
 import { dirname, isAbsolute } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
+import { resolveProjectInputLinks } from "../website/website-utils.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -124,10 +124,11 @@ export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   libDir: "site_libs",
   config: async (
-    projectDir: string,
+    project: ProjectContext,
     config: ProjectConfig,
     flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
+    const projectDir = project.dir;
     const manuscriptConfig =
       (config[kManuscriptType] || {}) as ManuscriptConfig;
 
@@ -151,7 +152,7 @@ export const manuscriptProjectType: ProjectType = {
       flags,
     );
 
-    const inputs = projectInputFiles(projectDir, config);
+    const inputs = await projectInputFiles(project, config);
 
     // Compute the article path
     const article = computeProjectArticleFile(projectDir, manuscriptConfig);

@@ -1,15 +1,16 @@
----
-css: dist/css/tabulator.min.css
----
-
 ```{=html}
 <script type="text/javascript" src="dist/js/tabulator.min.js"></script>
 ```
 ```{python}
 #| echo: false
+from create_table import compute_trie, compute_quality_summary, render_features_formats_data
+trie = compute_trie()
+quality_summary = compute_quality_summary(trie)
+```
+```{python}
+#| echo: false
 #| output: asis
-from create_table import render_features_formats_data
-print(render_features_formats_data())
+print(render_features_formats_data(trie))
 ```
 
 ```{=html}
@@ -23,13 +24,15 @@ var table = new Tabulator("#features-formats-table", {
  	layout:"fitColumns", //fit columns to width of table (optional)
     columns:[
         {title:"Feature", field: "feature", formatter: "html"},
+        // When you update this, also update the constant in index.qmd!
+        // (Thanks, I hate it)
         {title:"HTML", field: "html", formatter: "html"},
         {title:"Dashboard", field: "dashboard", formatter: "html"},
         {title:"Markdown", field: "markdown", formatter: "html"},
         {title:"PDF", field: "pdf", formatter: "html"},
         {title:"Typst", field: "typst", formatter: "html"},
         {title:"Docx", field: "docx", formatter: "html"},
-        {title:"Docusaurus", field: "docusaurus", formatter: "html"},
+        {title:"Docusaurus", field: "docusaurus-md", formatter: "html"},
         {title:"RevealJS", field: "revealjs", formatter: "html"},
         {title:"Pptx", field: "pptx", formatter: "html"},
         {title:"Beamer", field: "beamer", formatter: "html"},

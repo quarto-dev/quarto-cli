@@ -1,0 +1,61 @@
+---
+title: La Palma Earthquakes
+author:
+  - name: Steve Purves
+    orcid: 0000-0002-0760-5497
+    corresponding: true
+    email: steve@curvenote.com
+    roles:
+      - Investigation
+      - Project administration
+      - Software
+      - Visualization
+    affiliations:
+      - Curvenote
+  - name: Rowan Cockett
+    orcid: 0000-0002-7859-8394
+    corresponding: false
+    roles: []
+    affiliations:
+      - Curvenote
+keywords:
+  - La Palma
+  - Earthquakes
+abstract: |
+  In September 2021, a significant jump in seismic activity on the island of La Palma (Canary Islands, Spain) signaled the start of a volcanic crisis that still continues at the time of writing. Earthquake data is continually collected and published by the Instituto Geográphico Nacional (IGN). ...
+plain-language-summary: |
+  Earthquake data for the island of La Palma from the September 2021 eruption is found ...
+key-points:
+  - A web scraping script was developed to pull data from the Instituto Geogràphico Nacional into a machine-readable form for analysis
+  - Earthquake events on La Palma are consistent with the presence of both mantle and crustal reservoirs.
+date: last-modified
+bibliography: references.bib
+citation:
+  container-title: Earth and Space Science
+number-sections: true
+---
+
+## Introduction
+
+```{r}
+eruptions <- c(1492, 1585, 1646, 1677, 1712, 1949, 1971, 2021)
+n_eruptions <- length(eruptions)
+```
+
+## Data & Methods {#sec-data-methods}
+
+:::{#fig-test layout-ncol=2}
+
+![Map of La Palma](images/la-palma-map.png)
+
+![Map of La Palma](images/la-palma-map.png)
+
+:::
+
+see @fig-test.
+
+## References {.unnumbered}
+
+:::{#refs}
+
+:::

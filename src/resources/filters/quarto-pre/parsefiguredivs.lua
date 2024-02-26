@@ -656,7 +656,9 @@ function parse_floatreftargets()
       -- knitr can emit a label that starts with "tab:"
       -- we don't handle those as floats
       local ref = refType(identifier)
-      if ref == nil then
+      -- https://github.com/quarto-dev/quarto-cli/issues/8841#issuecomment-1959667121
+      if ref ~= "tbl" then
+        warn("Raw LaTeX table found with non-tbl label: " .. identifier .. "\nWon't be able to cross-reference this table using Quarto's native crossref system.")
         return nil
       end
 

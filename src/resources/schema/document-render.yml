@@ -214,3 +214,10 @@
   schema:
     enum: [none]
   description: If `none`, do not process tables in HTML input.
+
+- name: use-rsvg-convert
+  schema: boolean
+  default: true
+  tags:
+    formats: [$pdf-all]
+  description: If `true`, attempt to use `rsvg-convert` to convert SVG images to PDF.

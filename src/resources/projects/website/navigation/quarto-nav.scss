@@ -187,6 +187,10 @@ header.headroom--unpinned {
       }
     }
   }
+
+  .navbar-collapse .quarto-navbar-tools {
+    margin-left: 0.5em;
+  }
 }
 
 .navbar-logo {
@@ -662,6 +666,12 @@ nav.sidebar.sidebar-navigation:not(.rollup) {
   }
 }
 
+@include media-breakpoint-up(lg) {
+  #quarto-sidebar-glass {
+    display: none;
+  }
+}
+
 @include media-breakpoint-down(lg) {
   #quarto-sidebar-glass {
     position: fixed;
@@ -874,13 +884,11 @@ body .nav-footer {
 .nav-footer-left {
   @include media-breakpoint-up(md) {
     flex: 1 1 0px;
-  }
-  @include media-breakpoint-down(sm) {
-    margin-bottom: 1em;
     text-align: left;
   }
   @include media-breakpoint-down(sm) {
     margin-bottom: 1em;
+    flex: 100%;
   }
 }
 .nav-footer-right {
@@ -890,6 +898,7 @@ body .nav-footer {
   }
   @include media-breakpoint-down(sm) {
     margin-bottom: 1em;
+    flex: 100%;
   }
 }
 
@@ -988,6 +997,8 @@ body .nav-footer {
   }
   .quarto-announcement-icon {
     margin-right: 0.5em;
+    font-size: 1.2em;
+    margin-top: -0.15em;
   }
   .quarto-announcement-action {
     cursor: pointer;

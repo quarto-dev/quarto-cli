@@ -25,6 +25,7 @@ section-title-citation: "Citaat"
 
 appendix-attribution-cite-as: "Citeer dit werk als:"
 appendix-attribution-bibtex: "BibTeX citaat:"
+appendix-view-license: "Licentie Bekijken"
 
 title-block-author-single: "Auteur"
 title-block-author-plural: "Auteurs"
@@ -121,3 +122,6 @@ listing-page-category-all: "Alle"
 listing-page-no-matches: "Geen overeenkomsten"
 listing-page-field-wordcount: "Woordentelling"
 listing-page-words: "{0} woorden"
+listing-page-filter: "Filter"
+
+draft: "Ontwerp"

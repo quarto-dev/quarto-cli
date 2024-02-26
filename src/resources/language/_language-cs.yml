@@ -25,6 +25,7 @@ section-title-citation: "Citace"
 
 appendix-attribution-cite-as: "Tuto práci citujte jako:"
 appendix-attribution-bibtex: "BibTeX citace:"
+appendix-view-license: "Zobrazit Licenci"
 
 title-block-author-single: "Autor"
 title-block-author-plural: "Autoři"
@@ -121,3 +122,6 @@ listing-page-category-all: "Vše"
 listing-page-no-matches: "Žádné nalezené výsledky"
 listing-page-field-wordcount: "Počet slov"
 listing-page-words: "{0} slov"
+listing-page-filter: "Filtr"
+
+draft: "Návrh"

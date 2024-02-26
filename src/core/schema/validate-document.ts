@@ -44,11 +44,22 @@ export async function validateDocumentFromSource(
   if (firstCell.source.value.startsWith("---")) {
     firstContentCellIndex = 1;
     if (!firstCell.source.value.trimEnd().endsWith("---")) {
-      throw new Error("Expected front matter to end with '---'");
+      throw new Error("Expected YAML front matter to end with '---'");
     }
     // validate the YAML front matter in the document
 
     const lineRanges = rangedLines(firstCell.source.value.trimEnd());
+    if (lineRanges.length < 2) {
+      if (src.map(0)?.originalString?.fileName) {
+        throw new Error(
+          `${
+            src.map(0)?.originalString?.fileName
+          }: Expected YAML front matter to contain at least 2 lines`,
+        );
+      } else {
+        throw new Error("Expected front matter to have at least 2 lines");
+      }
+    }
     const frontMatterText = mappedString(
       firstCell.source,
       [{

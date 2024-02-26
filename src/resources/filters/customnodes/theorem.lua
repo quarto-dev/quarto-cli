@@ -88,6 +88,23 @@ _quarto.ast.add_handler({
   end
 })
 
+local included_typst_theorems = false
+local letted_typst_theorem = {}
+local function ensure_typst_theorems(reftype)
+  if not included_typst_theorems then
+    included_typst_theorems = true
+    quarto.doc.include_text("in-header", "#import \"@preview/ctheorems:1.1.0\": *")
+    quarto.doc.include_text("in-header", "#show: thmrules")
+  end
+  if not letted_typst_theorem[reftype] then
+    letted_typst_theorem[reftype] = true
+    local theorem_type = theorem_types[reftype]
+    quarto.doc.include_text("in-header", "#let " .. theorem_type.env .. " = thmbox(\"" ..
+     theorem_type.env .. "\", \"" .. theorem_type.title .. "\")")
+  end
+end
+
+
 _quarto.ast.add_renderer("Theorem", function()
   return true 
 end, function(thm)
@@ -136,7 +153,21 @@ end, function(thm)
     -- JATS XML theorem
     local lbl = captionPrefix({}, type, theorem_type, order)
     el = jatsTheorem(el, lbl, name)          
-    
+
+  elseif _quarto.format.isTypstOutput() then
+    ensure_typst_theorems(type)
+    -- el.content:insert(1, pandoc.RawInline("typst", "#" .. theorem_type.env .. "(\"" .. thm.name .. "\")["))
+    local callthm = pandoc.Para(pandoc.RawInline("typst", "#" .. theorem_type.env .. "("))
+    if name and #name > 0 then
+      callthm.content:insert(pandoc.RawInline("typst", '"'))
+      tappend(callthm.content, name)
+      callthm.content:insert(pandoc.RawInline("typst", '"'))
+    end
+    callthm.content:insert(pandoc.RawInline("typst", ")["))
+    tappend(callthm.content, quarto.utils.as_inlines(el.content))
+    callthm.content:insert(pandoc.RawInline("typst", "] <" .. el.attr.identifier .. ">"))
+    return callthm
+
   else
     -- create caption prefix
     local captionPrefix = captionPrefix(name, type, theorem_type, order)

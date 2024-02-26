@@ -1,9 +1,8 @@
 /*
-* project-config.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-config.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { join } from "path/mod.ts";
 
@@ -13,7 +12,7 @@ import { safeExistsSync } from "../core/path.ts";
 
 import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
-import { SidebarItem } from "./types.ts";
+import { ProjectContext, SidebarItem } from "./types.ts";
 
 export type SidebarContext = {
   counter: number;
@@ -31,7 +30,7 @@ export function normalizeSidebarItem(
   // clone so we can mutate
   item = ld.cloneDeep(item);
 
-  if (typeof (item) === "string") {
+  if (typeof item === "string") {
     if (safeExistsSync(join(projectDir, item))) {
       item = {
         href: item,
@@ -95,17 +94,17 @@ export function resolveHrefAttribute(
 }
 
 export async function partitionedMarkdownForInput(
-  projectDir: string,
+  project: ProjectContext,
   input: string,
 ) {
   // first see if we can get the partioned markdown out of the index
-  const { index } = readInputTargetIndex(projectDir, input);
+  const { index } = readInputTargetIndex(project.dir, input);
   if (index) {
     return index.markdown;
     // otherwise fall back to calling the engine to do the partition
   } else {
-    const inputPath = join(projectDir, input);
-    const engine = fileExecutionEngine(inputPath);
+    const inputPath = join(project.dir, input);
+    const engine = await fileExecutionEngine(inputPath, undefined, project);
     if (engine) {
       return await engine.partitionedMarkdown(inputPath);
     } else {

@@ -92,6 +92,7 @@ _quarto.ast.add_handler({
   end,
 
   render = function(node)
+    quarto.log.output(node)
     -- luacov: disable
     internal_error()
     -- luacov: enable
@@ -220,14 +221,13 @@ function shortcodes_filter()
       }
       local handler = handlerForShortcode(shortcode_struct)
       if handler == nil then
-        return ""
+        return open .. space .. name .. " " .. table.concat(raw_args, " ") .. " " .. close
       end
       local result = callShortcodeHandler(handler, shortcode_struct)
       return pandoc.utils.stringify(result) 
-    
-      -- return "<<<" .. table.concat(lst, " ") .. ">>>"
     end, 
   })
+  local filter
 
   local block_handler = function(node)
     if (node.t == "Para" or node.t == "Plain") and #node.content == 1 then
@@ -238,12 +238,14 @@ function shortcodes_filter()
       return nil
     end
     local result, struct = handle_shortcode(custom_data, node)
-    return shortcodeResultAsBlocks(result, struct.name, custom_data)
+    return _quarto.ast.walk(shortcodeResultAsBlocks(result, struct.name, custom_data), filter)
   end
 
   local inline_handler = function(custom_data, node)
     local result, struct = handle_shortcode(custom_data, node)
-    return shortcodeResultAsInlines(result, struct.name, custom_data)
+    local r1 = shortcodeResultAsInlines(result, struct.name, custom_data)
+    local r2 = _quarto.ast.walk(r1, filter)
+    return r2
   end
 
   local code_handler = function(el)
@@ -259,11 +261,10 @@ function shortcodes_filter()
       return
     end
 
-    el.text = code_shortcode:match(el.text)
+    el.text = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.text)
     return el
   end
 
-  local filter
   filter = {
     Pandoc = function(doc)
       -- first walk them in block context
@@ -279,11 +280,11 @@ function shortcodes_filter()
         Shortcode = inline_handler,
         RawInline = code_handler,
         Image = function(el)
-          el.src = code_shortcode:match(el.src)
+          el.src = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.src)
           return el
         end,
         Link = function(el)
-          el.target = code_shortcode:match(el.target)
+          el.target = shortcode_lpeg.wrap_lpeg_match(code_shortcode, el.target)
           return el
         end,
         Span = function(el)
@@ -340,7 +341,9 @@ end
 function shortcodeResultAsInlines(result, name, shortcode_tbl)
   if result == nil then
     warn("Shortcode '" .. name .. "' not found")
-    return pandoc.RawInline(FORMAT, shortcode_tbl.unparsed_content)
+    local result = pandoc.Inlines({pandoc.RawInline(FORMAT, shortcode_tbl.unparsed_content)})
+    print("Result from here:", result)
+    return result
   end
   local type = quarto.utils.type(result)
   if type == "Inlines" then
@@ -376,6 +379,8 @@ function shortcodeResultAsBlocks(result, name, shortcode_tbl)
     if name ~= 'include' then
       warn("Shortcode '" .. name .. "' not found")
     end
+    print(FORMAT)
+    print(shortcode_tbl.unparsed_content)
     return pandoc.Blocks({pandoc.RawBlock(FORMAT, shortcode_tbl.unparsed_content)})
   end
   local type = quarto.utils.type(result)

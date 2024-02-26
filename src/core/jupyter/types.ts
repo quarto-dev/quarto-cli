@@ -78,6 +78,7 @@ export interface JupyterKernelspec {
   name: string;
   language: string;
   display_name: string;
+  path?: string;
 }
 
 export interface JupyterAssets {

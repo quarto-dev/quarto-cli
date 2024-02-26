@@ -156,7 +156,17 @@ end
 function renderHtmlFigure(el, render)
 
   -- capture relevant figure attributes then strip them
-  local align = figAlignAttribute(el)
+  local align = figAlignAttributeDefault(el, nil)
+  if align == nil then
+    local img = quarto.utils.match("[1]/Para/[1]/Image")(el) or quarto.utils.match("[1]/Para/[1]/Link/[1]/Image")(el)
+    if img then
+      align = figAlignAttribute(img)
+    else
+      -- fallback to center default
+      align = figAlignAttribute(el)
+    end
+  end
+
   local keys = tkeys(el.attr.attributes)
   for _,k in pairs(keys) do
     if isFigAttribute(k) then

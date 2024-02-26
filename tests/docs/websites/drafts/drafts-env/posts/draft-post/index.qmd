@@ -1,0 +1,8 @@
+---
+title: Draft!!
+author: Jane Pierre
+---
+
+## THIS IS A DRAFT DOCUMENT
+
+This is the content of the draft document. This may or may not be visible depending upon the `draft-mode`.

@@ -46,7 +46,15 @@ export async function configure(
   copyQuartoScript(config, config.directoryInfo.bin);
 
   info("Creating architecture specific Pandoc link");
-  copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
+  const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+  if (vendor === undefined || vendor === "true") {
+    // Quarto tools may look right in the bin/tools directory for Pandoc
+    // so make a symlink that points to the architecture specific version.
+    // Note that if we are being instructed not to vendor binaries,
+    // Pandoc won't be present in the architecture specific directory, so 
+    // just skip this step.
+    copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
+  }
 
   // record dev config. These are versions as defined in the root configuration file.
   const devConfig = createDevConfig(

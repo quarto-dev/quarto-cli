@@ -234,14 +234,14 @@ export async function runPandoc(
       }
     }
 
-    if (Deno.env.get("LUA_CPATH") === undefined) {
-      // https://github.com/quarto-dev/quarto-cli/issues/8274
-      // do not use the default LUA_CPATH, as it will cause pandoc to
-      // load the system lua libraries, which may not be compatible with
-      // the lua version we are using
-      pandocEnv["LUA_CPATH"] = "";
-    } else {
+    // https://github.com/quarto-dev/quarto-cli/issues/8274
+    // do not use the default LUA_CPATH, as it will cause pandoc to
+    // load the system lua libraries, which may not be compatible with
+    // the lua version we are using
+    if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
       pandocEnv["LUA_CPATH"] = getEnv("QUARTO_LUA_CPATH");
+    } else {
+      pandocEnv["LUA_CPATH"] = "";
     }
   };
 
@@ -381,7 +381,6 @@ export async function runPandoc(
   ) {
     const projectExtras = options.project?.formatExtras
       ? (await options.project.formatExtras(
-        options.project,
         options.source,
         options.flags || {},
         options.format,

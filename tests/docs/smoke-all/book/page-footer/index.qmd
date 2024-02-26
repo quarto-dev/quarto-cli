@@ -1,0 +1,17 @@
+---
+_quarto:
+  tests:
+    html: 
+      ensureHtmlElements:
+        - 
+          - 'footer.footer div.nav-footer-left a.nav-link[href="https://quarto.org"]'
+          - 'footer.footer div.nav-footer-center a.nav-link[href$="license.html"]'
+          - 'footer.footer div.nav-footer-right p'
+        - []
+---
+
+# Preface {.unnumbered}
+
+This is a Quarto book.
+
+To learn more about Quarto books visit <https://quarto.org/docs/books>.

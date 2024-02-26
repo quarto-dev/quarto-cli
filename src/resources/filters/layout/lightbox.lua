@@ -38,7 +38,7 @@ function lightbox()
 
   -- a counter used to ensure each image is in its own gallery
   local imgCount = 0
-  local function lightboxImage(imgEl, description, gallery)
+  local function lightboxImage(imgEl, caption, gallery)
     -- note that we need to include the dependency for lightbox
     needsLightbox = true
     imgCount = imgCount + 1
@@ -55,9 +55,11 @@ function lightbox()
     linkAttributes.class = kLightboxClass
   
     -- get the alt text from image and use that as title
-    local title = nil
-    if imgEl.caption ~= nil and #imgEl.caption > 0 then
+    local title = caption
+    if title == nil and imgEl.caption ~= nil and #imgEl.caption > 0 then
       title = pandoc.utils.stringify(imgEl.caption)
+    elseif title ~= nil then
+      title = pandoc.utils.stringify(title)
     end
   
     -- move a group attribute to the link, if present
@@ -72,12 +74,15 @@ function lightbox()
   
     -- write a description, if provided
     local descEl = nil
+    local description = imgEl.attr.attributes[kDescription]
+    imgEl.attr.attributes[kDescription] = nil
     if description ~= nil then
       local descId = "lightbox-desc-" .. imgCount
-      descEl = pandoc.Span({}, pandoc.Attr("", {"glightbox-desc", descId}))
-      descEl.content = _quarto.utils.as_inlines(description)
-
-      linkAttributes["data-glightbox"] = "description: ." .. descId
+      descEl = pandoc.Div(pandoc.read(description).blocks, pandoc.Attr("", {"glightbox-desc", descId}))
+      linkAttributes["data-glightbox"] = "description: ." .. descId .. ";"
+      if title ~= nil then
+        linkAttributes["data-glightbox"] = linkAttributes["data-glightbox"] .. "title:" .. title .. ";"
+      end
    end
   
     -- forward any other known attributes
@@ -109,6 +114,10 @@ function lightbox()
     local automatic = options.automatic
     local caption = options.caption
     local gallery = options.gallery
+
+    if pandoc.utils.type(caption) == "Blocks" then
+      caption = pandoc.utils.stringify(caption)
+    end
   
     local autolightbox = automatic and auto and not imgEl.classes:includes(kNoLightboxClass)
     if autolightbox or imgEl.classes:includes('lightbox') then
@@ -117,11 +126,17 @@ function lightbox()
   end
   
   local function processFigure(figEl)
-    return _quarto.ast.walk(figEl, {
+    local inMargin  = false
+   local resolvedFigEl = _quarto.ast.walk(figEl, {
       Image = function(imgEl)
+        inMargin = imgEl.classes:includes("column-margin")
         return processImg(imgEl, { automatic = true, caption = figEl.caption.long })
       end
     })
+    if resolvedFigEl and inMargin then
+      resolvedFigEl.attr.classes:insert("column-margin")
+    end
+    return resolvedFigEl;
   end
 
   local function processSubFloat(subFloatEl, gallery, parentFloat) 

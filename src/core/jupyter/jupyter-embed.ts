@@ -157,7 +157,7 @@ function unsupportedEmbed(path: string) {
 export async function ensureNotebookContext(
   markdown: string,
   services: RenderServices,
-  context?: ProjectContext,
+  context: ProjectContext,
 ) {
   const regex = placeholderRegex();
   let match = regex.exec(markdown);
@@ -353,9 +353,9 @@ export async function replaceNotebookPlaceholders(
   };
 }
 
-function resolveNbPath(input: string, path: string, context?: ProjectContext) {
+function resolveNbPath(input: string, path: string, context: ProjectContext) {
   // If this is a project, absolute means project relative
-  if (context) {
+  if (!context.isSingleFile) {
     const projectMatch = path.match(/^[\\/](.*)/);
     if (projectMatch) {
       return join(context.dir, projectMatch[1]);
@@ -368,8 +368,9 @@ function resolveNbPath(input: string, path: string, context?: ProjectContext) {
     if (isAbsolute(input)) {
       return join(dirname(input), path);
     } else {
-      const baseDir = context ? context.dir : Deno.cwd();
-      return join(baseDir, dirname(input), path);
+      const baseDir = context.isSingleFile ? Deno.cwd() : context.dir;
+      const result = join(baseDir, dirname(input), path);
+      return result;
     }
   }
 }
@@ -803,7 +804,7 @@ function resolveRange(rangeRaw?: string) {
 function jupyterFromNotebookOrQmd(
   nbAbsPath: string,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) {
   // See if we can resolve non-notebooks. Note that this
   // requires that we have pre-rendered any notebooks that we discover

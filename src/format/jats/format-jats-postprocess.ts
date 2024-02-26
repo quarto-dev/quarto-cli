@@ -27,7 +27,7 @@ export const renderSubarticlePostProcessor = (
   format: Format,
   subArticles: JatsRenderSubArticle[],
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
   quiet?: boolean,
 ) => {
   return async (output: string) => {

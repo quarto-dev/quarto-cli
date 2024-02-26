@@ -18,6 +18,7 @@ function initialize_custom_crossref_categories(meta)
     return nil
     -- luacov: enable
   end
+  flags.has_custom_crossrefs = true
   local keys = {
     ["caption-location"] = function(v) return pandoc.utils.stringify(v) end,
     ["kind"] = function(v) return pandoc.utils.stringify(v) end,
@@ -80,6 +81,17 @@ function initialize_custom_crossref_categories(meta)
         local space_before_numbering = entry["space-before-numbering"]
         if space_before_numbering == nil then
           space_before_numbering = true
+        end
+
+        -- https://github.com/quarto-dev/quarto-cli/issues/8711#issuecomment-1946763141
+        -- using the name 'output' for a new float environment
+        -- very specifically causes problems with the longtable package, so we disallow it here.
+        --
+        -- I'd like to disallow this value in our schema, but it would involve negation assertions
+        -- which we currently don't support
+        if env_name == "output" then
+          fail("The value 'output' is not allowed for the latex-env entry in a custom float environment,\nas it conflicts with the longtable package. Please choose a different value.")
+          return
         end
         
         inject(

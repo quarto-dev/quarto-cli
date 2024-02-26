@@ -77,6 +77,7 @@ export interface NavigationAnnouncement {
   content: string;
   dismissable: boolean;
   type: string;
+  position: string;
   icon?: string;
 }
 
@@ -222,6 +223,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
       icon: undefined,
       dismissable: true,
       content: announcementRaw,
+      position: "above-navbar",
       type: "primary",
     };
   } else if (announcementRaw && !Array.isArray(announcementRaw)) {
@@ -231,6 +233,8 @@ export function websiteNavigationConfig(project: ProjectContext) {
       dismissable: announcementRaw.dismissable !== false,
       content: announcementRaw.content as string,
       type: announcementRaw.type as string | undefined || "primary",
+      position: announcementRaw.position as string | undefined ||
+        "above-navbar",
     };
   }
 

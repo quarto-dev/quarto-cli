@@ -1,0 +1,34 @@
+---
+title: "Issue layout-ncol"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["div.cell :nth-child(2) details"]
+---
+
+
+## Does not work as expected
+
+
+::: {.cell layout-ncol="2"}
+
+```{.r .cell-code  code-fold="true"}
+p <- ggplot(mpg, aes(class, hwy))
+p + geom_boxplot()
+```
+
+::: {.cell-output-display}
+![](unnamed-chunk-2-1.png){width=672}
+:::
+
+```{.r .cell-code  code-fold="true"}
+ggplot(mpg, aes(hwy, class)) + geom_boxplot()
+```
+
+::: {.cell-output-display}
+![](unnamed-chunk-2-2.png){width=672}
+:::
+:::

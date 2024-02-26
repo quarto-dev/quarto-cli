@@ -10,7 +10,7 @@ import { createTempContext } from "../../../../core/temp.ts";
 import { rBinaryPath, resourcePath } from "../../../../core/resources.ts";
 
 import SemVer from "semver/mod.ts";
-import { join } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { info, warning } from "log/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import {
@@ -26,12 +26,17 @@ import { projectContext } from "../../../../project/project-context.ts";
 import { ProjectEnvironment } from "../../../../project/project-environment-types.ts";
 import { withSpinner } from "../../../../core/console.ts";
 import { logProgress } from "../../../../core/log.ts";
-import { ProjectContext } from "../../../../project/types.ts";
+import {
+  kProjectPostRender,
+  kProjectPreRender,
+  ProjectContext,
+} from "../../../../project/types.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { notebookContext } from "../../../../render/notebook/notebook-context.ts";
+import { asArray } from "../../../../core/array.ts";
 
 export const useBinderCommand = new Command()
   .name("binder")
@@ -67,14 +72,14 @@ export const useBinderCommand = new Command()
           doneMessage: "Detected Project configuration:\n",
         },
         () => {
-          return context.environment(context);
+          return context.environment();
         },
       );
 
       const jupyterLab4 = jupyterLabVersion(context, projEnv);
 
       const rConfig: RConfiguration = {};
-      if (projEnv.engines.includes("knitr")) {
+      if (projectHasR(context, projEnv)) {
         const result = await execProcess(
           {
             cmd: [
@@ -501,3 +506,39 @@ async function binderFileOperations(
 
   return operations;
 }
+
+const projectHasR = (context: ProjectContext, projEnv: ProjectEnvironment) => {
+  if (projEnv.engines.includes("knitr")) {
+    return true;
+  }
+
+  if (existsSync(join(context.dir, "renv.lock"))) {
+    return true;
+  }
+
+  if (existsSync(join(context.dir, "install.R"))) {
+    return true;
+  }
+
+  if (context.config?.project?.[kProjectPreRender]) {
+    if (
+      asArray(context.config.project[kProjectPreRender]).some((file) => {
+        return extname(file).toLowerCase() === ".r";
+      })
+    ) {
+      return true;
+    }
+  }
+
+  if (context.config?.project?.[kProjectPostRender]) {
+    if (
+      asArray(context.config.project[kProjectPostRender]).some((file) => {
+        return extname(file).toLowerCase() === ".r";
+      })
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};

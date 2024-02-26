@@ -56,8 +56,8 @@ export function jatsFormat(displayName: string, ext: string): Format {
       format: Format,
       _libDir: string,
       services: RenderServices,
-      _offset?: string,
-      project?: ProjectContext,
+      _offset: string | undefined,
+      project: ProjectContext,
       quiet?: boolean,
     ) => {
       // Provide a template and partials

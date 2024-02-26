@@ -25,6 +25,7 @@ section-title-citation: "Citation"
 
 appendix-attribution-cite-as: "For attribution, please cite this work as:"
 appendix-attribution-bibtex: "BibTeX citation:"
+appendix-view-license: "View License"
 
 title-block-author-single: "Author"
 title-block-author-plural: "Authors"
@@ -124,3 +125,6 @@ listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
 listing-page-words: "{0} words"
+listing-page-filter: "Filter"
+
+draft: "Draft"

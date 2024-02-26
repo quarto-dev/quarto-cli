@@ -14,7 +14,7 @@ import {
   join,
   relative,
 } from "path/mod.ts";
-import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
+import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
@@ -112,6 +112,11 @@ import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
+import {
+  isDraftVisible,
+  isProjectDraft,
+  projectDraftMode,
+} from "../website-utils.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -1036,11 +1041,11 @@ async function listItemFromFile(
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
   );
   const inputTarget = await resolveInputTarget(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
     false,
   );
 
@@ -1055,7 +1060,12 @@ async function listItemFromFile(
     docRawMetadata,
   ) as Metadata;
 
-  if (documentMeta?.draft) {
+  // Consult the website project draft list directly here
+  // since this is occuring before the input index
+  // is populated.
+  const projectDraft = isProjectDraft(projectRelativePath, project);
+  const draftMode = projectDraftMode(project);
+  if (!isDraftVisible(draftMode) && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
@@ -1080,8 +1090,8 @@ async function listItemFromFile(
       documentMeta?.abstract as string ||
       descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
-    const imageRaw = documentMeta?.image as string;
-    const image = imageRaw !== undefined
+    const imageRaw = documentMeta?.image as string | boolean;
+    const image = imageRaw !== undefined && typeof imageRaw === "string"
       ? pathWithForwardSlashes(
         listingItemHref(imageRaw, dirname(projectRelativePath)),
       )
@@ -1107,8 +1117,10 @@ async function listItemFromFile(
       );
     }
     const author = structuredAuthors
-      ? structuredAuthors.map((auth) =>
-        auth.literal || `${auth.given} ${auth.family}`
+      ? uniq(
+        structuredAuthors.map((auth) =>
+          auth.literal || `${auth.given} ${auth.family}`
+        ),
       )
       : [];
 

@@ -91,7 +91,7 @@ export interface OjsCompileOptions {
   markdown: MappedString;
   libDir: string;
   temp: TempContext;
-  project?: ProjectContext;
+  project: ProjectContext;
   ojsBlockLineNumbers: number[];
 }
 
@@ -153,7 +153,7 @@ export async function ojsCompile(
     return { markdown: markdown };
   }
 
-  const projDir = project?.dir;
+  const projDir = project.isSingleFile ? undefined : project.dir;
   const selfContained = options.format.pandoc?.[kSelfContained] ??
     options.format.pandoc?.[kEmbedResources] ?? false;
   const isHtmlMarkdown = isMarkdownOutput(options.format, [

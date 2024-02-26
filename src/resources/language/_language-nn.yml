@@ -25,6 +25,7 @@ section-title-citation: "Sitat"
 
 appendix-attribution-cite-as: "Siter dette arbeidet som:"
 appendix-attribution-bibtex: "BibTeX-sitering:"
+appendix-view-license: "Vis Lisens"
 
 title-block-author-single: "Forfattar"
 title-block-author-plural: "Forfattarar"
@@ -121,3 +122,6 @@ listing-page-category-all: "Alle"
 listing-page-no-matches: "Ingen passande treff"
 listing-page-field-wordcount: "Ordteljing"
 listing-page-words: "{0} ord"
+listing-page-filter: "Filter"
+
+draft: "Utkast"

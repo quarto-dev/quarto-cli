@@ -26,6 +26,7 @@ title-block-keywords: "Λέξεις-κλειδιά"
 
 appendix-attribution-cite-as: "Για απόδοση ευγνωμοσύνης, παρακαλούμε αναφερθείτε σε αυτό το έργο ως:"
 appendix-attribution-bibtex: "Αναφορά BibTeX:"
+appendix-view-license: "Προβολή Άδειας"
 
 title-block-author-single: "Συγγραφέας"
 title-block-author-plural: "Συγγραφείς"
@@ -121,3 +122,6 @@ listing-page-category-all: "Όλα"
 listing-page-no-matches: "Δεν υπάρχουν αντιστοιχίες"
 listing-page-field-wordcount: "Μέτρηση Λέξεων"
 listing-page-words: "{0} λέξεις"
+listing-page-filter: "Φίλτρο"
+
+draft: "Σχέδιο"
