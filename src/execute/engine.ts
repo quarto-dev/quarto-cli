@@ -41,7 +41,9 @@ export function executionEngine(name: string) {
   return kEngines.get(name);
 }
 
-for (const engine of [knitrEngine, jupyterEngine, markdownEngine]) {
+for (
+  const engine of [knitrEngine, jupyterEngine, markdownEngine, juliaEngine]
+) {
   registerExecutionEngine(engine);
 }
 
