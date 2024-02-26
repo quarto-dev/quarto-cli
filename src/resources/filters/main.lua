@@ -256,13 +256,12 @@ local quarto_pre_filters = {
     filter = shortcodes_filter(),
     flags = { "has_shortcodes" } },
 
-  { name = "pre-hidden", 
-    filter = hidden(), 
-    flags = { "has_hidden" } },
-
-  { name = "pre-content-hidden", 
-    filter = content_hidden(),
-    flags = { "has_conditional_content" } },
+  { name = "pre-combined-hidden",
+    filter = combineFilters({
+      hidden(),
+      content_hidden()
+    }),
+    flags = { "has_hidden", "has_conditional_content" } },
 
   { name = "pre-table-captions", 
     filter = table_captions(),
@@ -312,8 +311,12 @@ local quarto_post_filters = {
   { name = "post-cell-cleanup", 
     filter = cell_cleanup(),
     flags = { "has_output_cells" } },
-  { name = "post-cites", filter = indexCites() },
-  { name = "post-bibliography", filter = bibliography() },
+  { name = "post-combined-cites-bibliography", 
+    filter = combineFilters({
+      indexCites(),
+      bibliography()
+    })
+  },
   { name = "post-ipynb", filters = ipynb()},
   { name = "post-figureCleanupCombined", filter = combineFilters({
     latexDiv(),
