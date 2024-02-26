@@ -149,7 +149,8 @@ export async function serveProject(
       throw new Error(`${target} is not a project`);
     }
 
-    const isDocusaurusMd = (
+    const isMdFormat = (
+      mdFormat: string,
       format?: string | Record<string, unknown> | unknown,
     ) => {
       if (!format) {
@@ -157,12 +158,12 @@ export async function serveProject(
       }
 
       if (typeof format === "string") {
-        return format === "docusaurus-md";
+        return format === mdFormat;
       } else if (typeof format === "object") {
         const formats = Object.keys(format);
         if (formats.length > 0) {
           const firstFormat = Object.keys(format)[0];
-          return firstFormat === "docusaurus-md";
+          return firstFormat === mdFormat;
         } else {
           return false;
         }
@@ -174,7 +175,9 @@ export async function serveProject(
     // Default project types can't be served
     const projType = projectType(project?.config?.project?.[kProjectType]);
     if (
-      projType.type === "default" && !isDocusaurusMd(project?.config?.format)
+      projType.type === "default" &&
+      !isMdFormat("docusaurus-md", project?.config?.format) &&
+      !isMdFormat("hugo-md", project?.config?.format)
     ) {
       const hasIndex = project.files.input.some((file) => {
         let relPath = file;
