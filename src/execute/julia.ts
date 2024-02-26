@@ -129,6 +129,11 @@ export const juliaEngine: ExecutionEngine = {
     // QuartoNotebookRunner currently doesn't support that
     const nb = await executeJulia(juliaExecOptions);
 
+    if (!nb) {
+      error("Execution of notebook returned undefined");
+      return Promise.reject();
+    }
+
     // NOTE: the following is all mostly copied from the jupyter kernel file
 
     // there isn't really a "kernel" as we don't execute via Jupyter
