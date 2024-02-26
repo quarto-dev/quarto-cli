@@ -80,16 +80,11 @@ export const useBinderCommand = new Command()
 
       const rConfig: RConfiguration = {};
       if (projectHasR(context, projEnv)) {
-        const result = await execProcess(
-          {
-            cmd: [
-              await rBinaryPath("R"),
-              "--version",
-            ],
-            stdout: "piped",
-            stderr: "piped",
-          },
-        );
+        const result = await execProcess(await rBinaryPath("R"), {
+          args: ["--version"],
+          stdout: "piped",
+          stderr: "piped",
+        });
         if (result.success) {
           const output = result.stdout;
           const verMatch = output?.match(

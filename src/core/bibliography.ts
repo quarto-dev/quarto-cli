@@ -1,11 +1,11 @@
 /*
-* bibliography.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-* Copyright (c) 2016-2021 Thomas Watson Steen
-*
-* Adapted from: https://github.com/watson/ci-info
-*/
+ * bibliography.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ * Copyright (c) 2016-2021 Thomas Watson Steen
+ *
+ * Adapted from: https://github.com/watson/ci-info
+ */
 
 import { dirname, isAbsolute, join } from "path/mod.ts";
 import { kBibliography } from "../config/constants.ts";
@@ -40,10 +40,11 @@ export async function renderHtml(entry: CSL, csl?: string) {
   }
 
   const cslStr = JSON.stringify([entry], undefined, 2);
-  const result = await execProcess(
-    { cmd, stdout: "piped", stderr: "piped" },
-    cslStr,
-  );
+  const result = await execProcess(cmd[0], {
+    args: cmd.slice(1),
+    stdout: "piped",
+    stderr: "piped",
+  }, cslStr);
   if (result.success) {
     return result.stdout;
   } else {
@@ -62,10 +63,11 @@ export async function renderBibTex(entry: CSL) {
   cmd.push("--citeproc");
 
   const cslStr = JSON.stringify([entry], undefined, 2);
-  const result = await execProcess(
-    { cmd, stdout: "piped", stderr: "piped" },
-    cslStr,
-  );
+  const result = await execProcess(cmd[0], {
+    args: cmd.slice(1),
+    stdout: "piped",
+    stderr: "piped",
+  }, cslStr);
   if (result.success) {
     return result.stdout;
   } else {
@@ -92,9 +94,12 @@ export async function renderToCSLJSON(
     cmd.push("csljson");
     cmd.push("--citeproc");
 
-    const result = await execProcess(
-      { cmd, stdout: "piped", stderr: "piped", cwd: dir },
-    );
+    const result = await execProcess(cmd[0], {
+      args: cmd.slice(1),
+      stdout: "piped",
+      stderr: "piped",
+      cwd: dir,
+    });
     if (result.success) {
       if (result.stdout) {
         const entries = JSON.parse(result.stdout);

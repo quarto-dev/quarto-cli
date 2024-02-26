@@ -89,11 +89,8 @@ function vscodeEditorInfo(): EditorInfo {
         : dirname(artifactPath);
 
       return async () => {
-        const p = Deno.run({
-          cmd: [path, artifactPath],
-          cwd,
-        });
-        await p.status();
+        const command = new Deno.Command(path, { cwd, args: [artifactPath] });
+        await command.output();
       };
     },
     inEditor: isVSCodeTerminal(),
@@ -163,11 +160,11 @@ function rstudioEditorInfo(): EditorInfo {
           ? ["open", "-na", path, "--args", rProjPath]
           : [path, rProjPath];
 
-        const p = Deno.run({
-          cmd,
+        const command = new Deno.Command(cmd[0], {
+          args: cmd.slice(1),
           cwd,
         });
-        await p.status();
+        await command.output();
       };
     },
     inEditor: isRStudioTerminal(),

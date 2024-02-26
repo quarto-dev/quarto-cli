@@ -66,8 +66,8 @@ export async function quarto(
 
   // passthrough to pandoc
   if (args[0] === "pandoc" && args[1] !== "help") {
-    const result = await execProcess({
-      cmd: [pandocBinaryPath(), ...args.slice(1)],
+    const result = await execProcess(pandocBinaryPath(), {
+      args: args.slice(1),
       env,
     });
     Deno.exit(result.code);
@@ -75,8 +75,8 @@ export async function quarto(
 
   // passthrough to typst
   if (args[0] === "typst") {
-    const result = await execProcess({
-      cmd: [typstBinaryPath(), ...args.slice(1)],
+    const result = await execProcess(typstBinaryPath(), {
+      args: args.slice(1),
       env,
     });
     Deno.exit(result.code);

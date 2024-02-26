@@ -277,9 +277,8 @@ export async function generateBibliography(
       : csl;
   }
   const frontMatter = `---\n${stringify(yaml, { indent: 2 })}\n---\n`;
-  const result = await execProcess({
-    cmd: [
-      pandocBinaryPath(),
+  const result = await execProcess(pandocBinaryPath(), {
+    args: [
       "--from",
       "markdown",
       "--to",

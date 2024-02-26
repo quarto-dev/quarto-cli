@@ -36,9 +36,9 @@ export const denoRunHandler: RunHandler = {
     const importMap = normalize(join(denoDir, "../run_import_map.json"));
 
     return await execProcess(
+      architectureToolsPath("deno"),
       {
-        cmd: [
-          architectureToolsPath("deno"),
+        args: [
           "run",
           "--import-map",
           importMap,

@@ -42,8 +42,8 @@ const pkgVersRequirement = {
 export async function checkRBinary() {
   const rBin = await rBinaryPath("Rscript");
   try {
-    const result = await execProcess({
-      cmd: [rBin, "--version"],
+    const result = await execProcess(rBin, {
+      args: ["--version"],
       stdout: "piped",
     });
     if (result.success && result.stdout) {
@@ -65,8 +65,8 @@ export async function knitrCapabilities(rBin: string | undefined) {
   if (!rBin) return undefined;
   try {
     debug(`-- Checking knitr engine capabilities --`);
-    const result = await execProcess({
-      cmd: [rBin, resourcePath("capabilities/knitr.R")],
+    const result = await execProcess(rBin, {
+      args: [rBin, resourcePath("capabilities/knitr.R")],
       stdout: "piped",
     });
     if (result.success && result.stdout) {

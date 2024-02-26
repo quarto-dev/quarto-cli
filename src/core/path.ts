@@ -121,9 +121,11 @@ export async function which(cmd: string) {
   const args = Deno.build.os === "windows"
     ? ["CMD", "/C", "where", cmd]
     : ["which", cmd];
-  const result = await execProcess(
-    { cmd: args, stderr: "piped", stdout: "piped" },
-  );
+  const result = await execProcess(args[0], {
+    args: args.slice(1),
+    stderr: "piped",
+    stdout: "piped",
+  });
   if (result.code === 0) {
     return Deno.build.os === "windows"
       // WHERE return all files found, only first is kept

@@ -1,9 +1,8 @@
 /*
-* jupyter-filters.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * jupyter-filters.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/exists.ts";
 import { basename, dirname, isAbsolute, join } from "path/mod.ts";
@@ -70,11 +69,8 @@ export async function jupyterNotebookFiltered(
           },
           stdout: "piped",
         })
-        : await execProcess({
-          cmd: [
-            isAbsolute(script) ? script : basename(script),
-            ...args.slice(1),
-          ],
+        : await execProcess(isAbsolute(script) ? script : basename(script), {
+          args: args.slice(1),
           cwd: dirname(file),
           env: {
             PYTHONUNBUFFERED: "1",

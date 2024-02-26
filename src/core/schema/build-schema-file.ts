@@ -128,12 +128,12 @@ async function createHtmlDescriptions(): Promise<
   const markdownDescriptions = getMarkdownDescriptions();
   const descriptionList: (string | { short?: string; long?: string })[] = [];
   // build the pandoc command (we'll feed it the input on stdin)
-  const cmd = [pandocBinaryPath(), "--to", "html"];
+  const cmd = ["--to", "html"];
 
-  const pandocResult = await execProcess(
-    { stdout: "piped", cmd },
-    markdownDescriptions,
-  );
+  const pandocResult = await execProcess(pandocBinaryPath(), {
+    stdout: "piped",
+    args: cmd,
+  }, markdownDescriptions);
 
   if (!pandocResult.success) {
     throw new InternalError("Couldn't run pandoc");

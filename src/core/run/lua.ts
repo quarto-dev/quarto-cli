@@ -1,9 +1,8 @@
 /*
-* lua.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * lua.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "log/mod.ts";
 
@@ -25,7 +24,7 @@ export const luaRunHandler: RunHandler = {
     options?: RunHandlerOptions,
   ) => {
     // lua run handlers don't support stdin
-    if (typeof (stdin) === "string") {
+    if (typeof stdin === "string") {
       throw new Error("Lua run handlers cannot be passed stdin");
     }
 
@@ -47,8 +46,8 @@ export const luaRunHandler: RunHandler = {
     );
     cmd.push(...args);
 
-    return await execProcess({
-      cmd,
+    return await execProcess(cmd[0], {
+      args: cmd.slice(1),
       ...options,
     }, "");
   },
@@ -95,9 +94,8 @@ setmetatable(_G, meta)
 
   // call pandoc w/ temp script as --to
   try {
-    return await execProcess({
-      cmd: [
-        pandocBinaryPath(),
+    return await execProcess(pandocBinaryPath(), {
+      args: [
         "--from",
         "markdown",
         "--to",

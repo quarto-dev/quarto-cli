@@ -63,7 +63,7 @@ export async function typstCompile(
     ...fontPathsArgs(fontPaths),
     output,
   );
-  const result = await execProcess({ cmd });
+  const result = await execProcess(cmd[0], { args: cmd.slice(1) });
   if (!quiet && result.success) {
     typstProgressDone();
   }
@@ -73,7 +73,11 @@ export async function typstCompile(
 export async function typstVersion() {
   const cmd = [typstBinaryPath(), "--version"];
   try {
-    const result = await execProcess({ cmd, stdout: "piped", stderr: "piped" });
+    const result = await execProcess(cmd[0], {
+      args: cmd.slice(1),
+      stdout: "piped",
+      stderr: "piped",
+    });
     if (result.success && result.stdout) {
       const match = result.stdout.trim().match(/^typst (\d+\.\d+\.\d+)/);
       if (match) {

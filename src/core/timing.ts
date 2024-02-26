@@ -1,9 +1,8 @@
 /*
-* timing.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * timing.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
 import { execProcess } from "./process.ts";
 
@@ -133,8 +132,8 @@ export async function getLuaTiming(): Promise<[number, number]> {
   if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
     return [
       Number(
-        (await execProcess({
-          cmd: ["python", "-c", "import time; print(time.time() * 1000)"],
+        (await execProcess("python", {
+          args: ["-c", "import time; print(time.time() * 1000)"],
           stdout: "piped",
         })).stdout!,
       ),

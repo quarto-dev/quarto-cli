@@ -420,13 +420,11 @@ function tlmgrCommand(
   _quiet?: boolean,
 ) {
   const execTlmgr = (tlmgrCmd: string[]) => {
-    return execProcess(
-      {
-        cmd: tlmgrCmd,
-        stdout: "piped",
-        stderr: "piped",
-      },
-    );
+    return execProcess(tlmgrCmd[0], {
+      args: tlmgrCmd.slice(1),
+      stdout: "piped",
+      stderr: "piped",
+    });
   };
 
   // If TinyTex is here, prefer that
@@ -450,11 +448,9 @@ function tlmgrCommand(
 // https://tug.org/texlive/doc/fmtutil.html
 function fmtutilCommand(context: TexLiveContext) {
   const fmtutil = texLiveCmd("fmtutil-sys", context);
-  return execProcess(
-    {
-      cmd: [fmtutil.fullPath, "--all"],
-      stdout: "piped",
-      stderr: "piped",
-    },
-  );
+  return execProcess(fmtutil.fullPath, {
+    args: ["--all"],
+    stdout: "piped",
+    stderr: "piped",
+  });
 }

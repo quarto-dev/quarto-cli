@@ -45,10 +45,10 @@ for (const type of Object.keys(kCreateTypes)) {
       let result: CreateResult | undefined = undefined;
       await t.step(`> quarto ${type} ${template}`, async () => {
         // test quarto cmd render
-        const cmd = [quartoDevCmd(), "create", "--json"];
+        const args = ["create", "--json"];
         const stdIn = JSON.stringify(createDirective);
-        const process = await execProcess({
-          cmd,
+        const process = await execProcess(quartoDevCmd(), {
+          args,
           stdout: "piped",
           stderr: "piped",
         }, stdIn);
@@ -71,9 +71,9 @@ for (const type of Object.keys(kCreateTypes)) {
         for (const file of openfiles) {
           if (file.endsWith(".qmd")) {
             // provide a step name and function
-            const cmd = [quartoDevCmd(), "render", file];
-            const process = await execProcess({
-              cmd,
+            const args = ["render", file];
+            const process = await execProcess(quartoDevCmd(), {
+              args,
               cwd: path,
               stdout: "piped",
               stderr: "piped",

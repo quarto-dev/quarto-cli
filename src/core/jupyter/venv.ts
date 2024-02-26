@@ -1,9 +1,8 @@
 /*
-* venv.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * venv.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
@@ -23,8 +22,8 @@ export async function jupyterCreateVenv(dir: string, packages?: string[]) {
   const caps = await jupyterCapabilitiesNoConda();
   if (caps) {
     const executable = caps.pyLauncher ? "py" : caps.executable;
-    const result = await execProcess({
-      cmd: [executable, "-m", "venv", kEnvDir],
+    const result = await execProcess(executable, {
+      args: ["-m", "venv", kEnvDir],
       cwd: dir,
     });
     if (!result.success) {
@@ -36,8 +35,8 @@ export async function jupyterCreateVenv(dir: string, packages?: string[]) {
       isWindows() ? "Scripts\\pip.exe" : "bin/pip3",
     );
     packages = ld.uniq(["jupyter"].concat(packages || []));
-    const installResult = await execProcess({
-      cmd: [pip3, "install", ...packages],
+    const installResult = await execProcess(pip3, {
+      args: ["install", ...packages],
       cwd: dir,
     });
     if (!installResult.success) {
@@ -55,8 +54,8 @@ export async function jupyterCreateCondaenv(dir: string, packages?: string[]) {
   if (conda) {
     info(`Using conda at ${conda}`);
     packages = ld.uniq(["jupyter"].concat(packages || []));
-    const installResult = await execProcess({
-      cmd: ["conda", "create", "--yes", "--prefix", "env", ...packages],
+    const installResult = await execProcess("conda", {
+      args: ["create", "--yes", "--prefix", "env", ...packages],
       cwd: dir,
     });
     if (!installResult.success) {

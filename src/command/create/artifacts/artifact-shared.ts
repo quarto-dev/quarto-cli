@@ -149,8 +149,8 @@ export async function ejsData(
 }
 
 async function gitAuthor() {
-  const result = await execProcess({
-    cmd: ["git", "config", "--global", "user.name"],
+  const result = await execProcess("git", {
+    args: ["config", "--global", "user.name"],
     stdout: "piped",
     stderr: "piped",
   });

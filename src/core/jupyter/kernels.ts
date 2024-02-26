@@ -80,13 +80,12 @@ async function computeJupyterKernelspecs(): Promise<
   Map<string, JupyterKernelspec>
 > {
   try {
-    const result = await execProcess(
-      {
-        cmd: [...(await jupyterExec()), "--paths", "--json"],
-        stdout: "piped",
-        stderr: "piped",
-      },
-    );
+    const cmd = [...(await jupyterExec()), "--paths", "--json"];
+    const result = await execProcess(cmd[0], {
+      args: cmd.slice(1),
+      stdout: "piped",
+      stderr: "piped",
+    });
     if (result.success) {
       const kernelmap = new Map<string, JupyterKernelspec>();
       const dataPaths = JSON.parse(result.stdout!).data;

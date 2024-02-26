@@ -39,8 +39,8 @@ export const pandocIngestSelfContainedContent = async (
   if (resourcePath && resourcePath.length) {
     cmd.push("--resource-path", resourcePath.join(":"));
   }
-  const result = await execProcess({
-    cmd,
+  const result = await execProcess(cmd[0], {
+    args: cmd.slice(1),
     stdout: "piped",
     cwd: workingDir,
   }, input.join("\n"));

@@ -1,9 +1,8 @@
 /*
-* zip.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * zip.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { dirname } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { isWindows } from "./platform.ts";
@@ -24,25 +23,27 @@ export function unzip(file: string) {
         "powershell",
         args,
         (cmd: string[]) => {
-          return execProcess(
-            {
-              cmd: cmd,
-              stdout: "piped",
-            },
-          );
+          return execProcess(cmd[0], {
+            args: cmd.slice(1),
+            stdout: "piped",
+          });
         },
       );
     } else {
       // Use the built in unzip command
-      return execProcess(
-        { cmd: ["unzip", "-o", file], cwd: dir, stdout: "piped" },
-      );
+      return execProcess("unzip", {
+        args: ["-o", file],
+        cwd: dir,
+        stdout: "piped",
+      });
     }
   } else {
     // use the tar command to untar this
-    return execProcess(
-      { cmd: ["tar", "xfz", file], cwd: dir, stdout: "piped" },
-    );
+    return execProcess("tar", {
+      args: ["xfz", file],
+      cwd: dir,
+      stdout: "piped",
+    });
   }
 }
 
@@ -80,8 +81,9 @@ export function zip(
       ];
     }
   };
-  return execProcess({
-    cmd: zipCmd(),
+  const cmd = zipCmd();
+  return execProcess(cmd[0], {
+    args: cmd.slice(1),
     cwd: options?.cwd,
     stdout: "piped",
     stderr: "piped",

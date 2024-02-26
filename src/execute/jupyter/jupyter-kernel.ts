@@ -189,27 +189,25 @@ async function execJupyter(
   kernelspec: JupyterKernelspec,
 ): Promise<ProcessResult> {
   try {
-    const result = await execProcess(
-      {
-        cmd: [
-          ...(await pythonExec(kernelspec)),
-          resourcePath("jupyter/jupyter.py"),
-        ],
-        env: {
-          // Force default matplotlib backend. something simillar is done here:
-          // https://github.com/ipython/ipykernel/blob/d7339c2c70115bbe6042880d29eeb273b5a2e350/ipykernel/kernelapp.py#L549-L554
-          // however this respects existing environment variables, which we've seen in at least
-          // one case result in an inability to render due to the iTerm2 backend being configured
-          // (see https://github.com/quarto-dev/quarto-cli/issues/502). Our current position is
-          // that the way to use a different backend w/ Quarto is to call the matplotlib.use()
-          // function within the notebook
-          "MPLBACKEND": "module://matplotlib_inline.backend_inline",
-          "PYDEVD_DISABLE_FILE_VALIDATION": "1",
-        },
-        stdout: "piped",
+    const cmd = [
+      ...(await pythonExec(kernelspec)),
+      resourcePath("jupyter/jupyter.py"),
+    ];
+    const result = await execProcess(cmd[0], {
+      args: cmd.slice(1),
+      env: {
+        // Force default matplotlib backend. something simillar is done here:
+        // https://github.com/ipython/ipykernel/blob/d7339c2c70115bbe6042880d29eeb273b5a2e350/ipykernel/kernelapp.py#L549-L554
+        // however this respects existing environment variables, which we've seen in at least
+        // one case result in an inability to render due to the iTerm2 backend being configured
+        // (see https://github.com/quarto-dev/quarto-cli/issues/502). Our current position is
+        // that the way to use a different backend w/ Quarto is to call the matplotlib.use()
+        // function within the notebook
+        "MPLBACKEND": "module://matplotlib_inline.backend_inline",
+        "PYDEVD_DISABLE_FILE_VALIDATION": "1",
       },
-      kernelCommand(command, "", options),
-    );
+      stdout: "piped",
+    }, kernelCommand(command, "", options));
     if (!result.success) {
       // forward error (print some diagnostics if python and/or jupyter couldn't be found)
       await printExecDiagnostics(kernelspec, result.stderr);

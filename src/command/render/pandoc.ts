@@ -1165,13 +1165,11 @@ export async function runPandoc(
   }
 
   // run pandoc
-  const result = await execProcess(
-    {
-      cmd,
-      cwd,
-      env: pandocEnv,
-    },
-  );
+  const result = await execProcess(cmd[0], {
+    args: cmd.slice(1),
+    cwd,
+    env: pandocEnv,
+  });
 
   // run afterPandoc hooks
   for (const hook of afterPandocHooks) {

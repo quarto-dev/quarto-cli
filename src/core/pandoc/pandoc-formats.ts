@@ -14,8 +14,8 @@ import { kPandocExtensions } from "./format-extension.ts";
 export const kYamlMetadataBlock = "yaml_metadata_block";
 
 export async function pandocListFormats() {
-  const result = await execProcess({
-    cmd: [pandocBinaryPath(), "--list-output-formats"],
+  const result = await execProcess(pandocBinaryPath(), {
+    args: ["--list-output-formats"],
     stdout: "piped",
   });
   if (result.success) {
@@ -30,8 +30,8 @@ export async function pandocListFormatDefaultExtensions(format: string) {
   if (format === "pdf") {
     return [];
   }
-  const result = await execProcess({
-    cmd: [pandocBinaryPath(), `--list-extensions=${format}`],
+  const result = await execProcess(pandocBinaryPath(), {
+    args: [`--list-extensions=${format}`],
     stdout: "piped",
   });
   if (result.success) {

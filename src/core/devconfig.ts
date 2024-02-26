@@ -146,12 +146,11 @@ export async function reconfigureQuarto(
     join(quartoConfig.sharePath(), "..", ".."),
   );
 
-  const process = Deno.run({
-    cmd: configureScript,
+  const process = new Deno.Command(configureScript[0], {
+    args: configureScript.slice(1),
     cwd: quartoDir,
   });
-
-  await process.status();
+  await process.output();
 
   info("");
   error(

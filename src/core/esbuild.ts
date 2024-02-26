@@ -28,14 +28,10 @@ export async function esbuildCommand(
   input: string,
   workingDir: string,
 ) {
-  const cmd = [
-    Deno.env.get("QUARTO_ESBUILD") || architectureToolsPath("esbuild"),
-    ...args,
-  ];
-
   const result = await execProcess(
+    Deno.env.get("QUARTO_ESBUILD") || architectureToolsPath("esbuild"),
     {
-      cmd,
+      args,
       cwd: workingDir,
       stdout: "piped",
     },

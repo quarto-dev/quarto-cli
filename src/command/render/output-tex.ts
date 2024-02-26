@@ -193,7 +193,7 @@ export function contextPdfOutputRecipe(
     );
 
     // run context
-    const result = await execProcess({ cmd });
+    const result = await execProcess(cmd[0], { args: cmd.slice(1) });
     if (result.success) {
       const [dir, stem] = dirAndStem(input);
       return computePath(stem, dir, format);
