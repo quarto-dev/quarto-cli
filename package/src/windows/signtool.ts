@@ -1,6 +1,6 @@
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
-import { decode as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64.ts";
 
 import { runCmd } from "../util/cmd.ts";
 

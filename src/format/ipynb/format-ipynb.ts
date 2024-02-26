@@ -26,7 +26,7 @@ import {
 import { formatResourcePath } from "../../core/resources.ts";
 import { createFormat } from "../formats-shared.ts";
 
-import { decode as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64.ts";
 import {
   JupyterOutput,
   JupyterOutputDisplayData,
@@ -85,7 +85,7 @@ export function ipynbFormat(): Format {
           // prevent the YAML representation from mangling it. Restore
           // it here if it is so hidden
           const widgets = nb.metadata.widgets;
-          if (widgets && typeof (widgets) === "string") {
+          if (widgets && typeof widgets === "string") {
             nb.metadata.widgets = JSON.parse(
               new TextDecoder().decode(base64decode(widgets)),
             );
