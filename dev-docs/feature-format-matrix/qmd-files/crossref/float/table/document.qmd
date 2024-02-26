@@ -1,0 +1,92 @@
+---
+validate-yaml: false
+format: 
+  html: &tested
+    quality: 2
+  dashboard: *tested
+  markdown: &missing
+    quality: -1
+    comment: Missing implementation
+  pdf: *tested
+  typst:
+    output-ext: typ # for the test below
+    quality: 2
+  docusaurus-md: *tested
+  revealjs: *tested
+  beamer: 
+    output-ext: tex
+    quality: 2
+  ipynb:
+    quality: 1
+    comment: Writing ipynb tests is horrible right now.
+_quarto:
+  tests:
+    html: &dom-tests
+      ensureHtmlElements: 
+        - 
+          - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl img"
+          - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "a[href=\"#tbl-1\"].quarto-xref"
+          - "a[href=\"#tbl-2\"].quarto-xref"
+    dashboard: *dom-tests
+    revealjs: # reveal resolves anchors differently, using the section headings instead of the float ids
+        - 
+          - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl table"
+          - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl img"
+          - "div#tbl-1.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "div#tbl-2.quarto-float figure.quarto-float.quarto-float-tbl figcaption"
+          - "a[href=\"#crossreferenceable-tables\"].quarto-xref"
+          - "a[href=\"#as-images\"].quarto-xref"
+    latex: &latex-tests
+      ensureFileRegexMatches:
+        - 
+          - "\\\\ref\\{tbl-1\\}"
+          - "\\\\ref\\{tbl-2\\}"
+          - "\\\\label\\{tbl-1\\}"
+          - "\\\\label\\{tbl-2\\}"
+          - "\\\\begin\\{longtable\\}"
+          - "\\\\includegraphics.*media.*table\\.jpg"
+    beamer: *latex-tests
+    typst:
+      ensureFileRegexMatches:
+        - 
+          - "\\<tbl-1\\>"
+          - "\\<tbl-2\\>"
+          - "@tbl-1"
+          - "@tbl-2"
+    docusaurus-md:
+      ensureFileRegexMatches:
+        -
+          - "\\<div id=\"tbl-1\"\\>"
+          - "\\<div id=\"tbl-2\"\\>"
+          - "\\| Default \\| Left \\| Right \\| Center \\|" # search for md table header
+          - "\\!\\[\\]\\(.*media.*table\\.jpg\\)"
+---
+
+## Crossreferenceable "Table"s
+
+Tables with a caption and a label can be referenced using the `@ref` syntax, as @tbl-1 shows.
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: This is the caption for the table {#tbl-1}
+
+Tables can contain arbitrary content instead of an image. This lets you, for example, use an image to represent the table, in case its formatting is too complex for it to be rendered in HTML.
+
+## As images
+
+::: {#tbl-2}
+
+![](/media/table.jpg)
+
+This is the caption for the table rendered as an image.
+
+:::
+
+See @tbl-2.

@@ -35,7 +35,7 @@ const sortUi = listing['sort-ui'];
   <% if (filterUi) { %>
     <div class="input-group input-group-sm quarto-listing-filter">
       <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input type="text" class="search form-control" placeholder="Filter" />
+      <input type="text" class="search form-control" placeholder="<%- listing.utilities.localizedString("listing-page-filter")%>" />
     </div>
   <% } %>
 </div>

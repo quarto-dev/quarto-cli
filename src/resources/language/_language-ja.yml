@@ -25,6 +25,7 @@ section-title-citation: "引用"
 
 appendix-attribution-cite-as: "引用方法"
 appendix-attribution-bibtex: "BibTeX"
+appendix-view-license: "ライセンスを表示"
 
 title-block-author-single: "作者"
 title-block-author-plural: "作者"
@@ -121,3 +122,6 @@ listing-page-category-all: "すべて"
 listing-page-no-matches: "一致なし"
 listing-page-field-wordcount: "単語数"
 listing-page-words: "{0}語"
+listing-page-filter: "フィルター"
+
+draft: "下書き"

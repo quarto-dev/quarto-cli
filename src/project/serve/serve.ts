@@ -82,7 +82,11 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources, kTargetFormat } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import { RenderFlags, RenderResult } from "../../command/render/types.ts";
+import {
+  RenderFlags,
+  RenderOptions,
+  RenderResult,
+} from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -124,26 +128,53 @@ export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  flags: RenderFlags,
+  renderOptions: RenderOptions,
   pandocArgs: string[],
   options: ServeOptions,
   noServe: boolean,
 ) {
   let project: ProjectContext | undefined;
-  const nbContext = notebookContext();
+  let flags = renderOptions.flags;
+  const nbContext = renderOptions.services.notebook;
   if (typeof target === "string") {
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, nbContext, flags);
+    project = await projectContext(
+      target,
+      nbContext,
+      renderOptions,
+    );
     if (!project || !project?.config) {
       throw new Error(`${target} is not a project`);
     }
 
+    const isDocusaurusMd = (
+      format?: string | Record<string, unknown> | unknown,
+    ) => {
+      if (!format) {
+        return false;
+      }
+
+      if (typeof format === "string") {
+        return format === "docusaurus-md";
+      } else if (typeof format === "object") {
+        const formats = Object.keys(format);
+        if (formats.length > 0) {
+          const firstFormat = Object.keys(format)[0];
+          return firstFormat === "docusaurus-md";
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    };
+
     // Default project types can't be served
     const projType = projectType(project?.config?.project?.[kProjectType]);
     if (
-      projType.type === "default" && project?.config?.format !== "docusaurus-md"
+      projType.type === "default" && !isDocusaurusMd(project?.config?.format)
     ) {
       const hasIndex = project.files.input.some((file) => {
         let relPath = file;
@@ -279,7 +310,7 @@ export async function serveProject(
     project,
     extensionDirs,
     resourceFiles,
-    flags,
+    { ...renderOptions, flags },
     pandocArgs,
     options,
     !pdfOutput, // we don't render on reload for pdf output
@@ -931,7 +962,7 @@ async function serveFiles(
 
         // partition markdown and read globs
         const partitioned = await partitionedMarkdownForInput(
-          project.dir,
+          project,
           projRelative,
         );
         const globs: string[] = [];

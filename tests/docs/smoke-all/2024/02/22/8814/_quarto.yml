@@ -1,0 +1,25 @@
+project:
+  type: book
+
+book:
+  title: "Url-bib"
+  author: "Norah Jones"
+  date: "22/02/2024"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: 
+  - references.bib
+  - https://raw.githubusercontent.com/quarto-dev/quarto-cli/main/tests/docs/biblio/biblio.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+
+

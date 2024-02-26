@@ -211,7 +211,9 @@ function makeHandlerContext(
     },
     resolvePath(path: string): string {
       const sourceDir = dirname(options.context.target.source);
-      const rootDir = options.context.project?.dir || sourceDir;
+      const rootDir = options.context.project.isSingleFile
+        ? sourceDir
+        : options.context.project.dir;
       if (path.startsWith("/")) {
         // it's a root-relative path
         return resolve(rootDir, `.${path}`);
@@ -348,6 +350,8 @@ const processMarkdownIncludes = async (
             mapResult!.originalString,
             mapResult!.index,
           );
+        } else {
+          throw e;
         }
       }
     }
@@ -356,6 +360,26 @@ const processMarkdownIncludes = async (
     }
   }
 };
+
+export async function expandIncludes(
+  markdown: MappedString,
+  options: LanguageCellHandlerOptions,
+): Promise<MappedString> {
+  const mdCells = (await breakQuartoMd(markdown, false)).cells;
+  if (mdCells.length === 0) {
+    return markdown;
+  }
+  const newCells: MappedString[] = [];
+  for (let i = 0; i < mdCells.length; ++i) {
+    const cell = mdCells[i];
+    newCells.push(
+      i === 0 ? cell.sourceVerbatim : mappedConcat(["\n", cell.sourceVerbatim]),
+    );
+  }
+
+  await processMarkdownIncludes(newCells, options);
+  return mappedJoin(newCells, "");
+}
 
 export async function handleLanguageCells(
   options: LanguageCellHandlerOptions,

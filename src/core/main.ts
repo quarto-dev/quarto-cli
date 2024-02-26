@@ -1,70 +1,60 @@
 /*
-* main.ts
-*
-* Utilities for main() functions (setup, cleanup, etc)
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * main.ts
+ *
+ * Utilities for main() functions (setup, cleanup, etc)
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import {
-  cleanupLogger,
-  initializeLogger,
-  logError,
-  logOptions,
-} from "../../src/core/log.ts";
-
+import { initializeLogger, logError, logOptions } from "../../src/core/log.ts";
+import { Args } from "flags/mod.ts";
 import { parse } from "flags/mod.ts";
-import { cleanupSessionTempDir } from "./temp.ts";
-// import { cleanupEsbuild } from "./esbuild.ts";
+import { exitWithCleanup } from "./cleanup.ts";
+import {
+  captureFileReads,
+  reportPeformanceMetrics,
+} from "./performance/metrics.ts";
 
-// const cleanupHandlers: (() => undefined)[] = [];
-
-// export function addCleanupHandler(handler: () => undefined) {
-//   cleanupHandlers.push(handler);
-// }
-
-export async function mainRunner(
-  runner: (() => Promise<unknown>),
-): Promise<unknown> {
+type Runner = (args: Args) => Promise<unknown>;
+export async function mainRunner(runner: Runner) {
   try {
+    // Parse the raw args to read globals and initialize logging
+    const args = parse(Deno.args);
+    await initializeLogger(logOptions(args));
+
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
       Deno.addSignalListener("SIGINT", abend);
       Deno.addSignalListener("SIGTERM", abend);
     }
 
-    await initializeLogger(logOptions(parse(Deno.args)));
+    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
+      captureFileReads();
+    }
 
-    await runner();
+    await runner(args);
 
-    await cleanupLogger();
-    cleanup();
+    // if profiling, wait for 10 seconds before quitting
+    if (Deno.env.get("QUARTO_TS_PROFILE") !== undefined) {
+      console.log("Program finished. Turn off the Chrome profiler now!");
+      console.log("Waiting for 10 seconds ...");
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
 
-    // exit
-    Deno.exit(0);
+    if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") !== undefined) {
+      reportPeformanceMetrics();
+    }
+
+    exitWithCleanup(0);
   } catch (e) {
     if (e) {
       logError(e);
     }
+  } finally {
     abend();
   }
-
-  // we never get here because of Deno.exit() on both sides
-  // of the try{} clause, but the typescript compiler doesn't
-  // like an async function without a return statement
-  return undefined;
 }
 
 function abend() {
-  cleanup();
-  Deno.exit(1);
-}
-
-function cleanup() {
-  cleanupSessionTempDir();
-  // cleanupEsbuild();
-  // for (const handler of cleanupHandlers) {
-  //   handler();
-  // }
+  exitWithCleanup(1);
 }

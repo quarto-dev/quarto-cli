@@ -109,14 +109,37 @@ const resolvingMatchers = [
 
 // Finds missing hyphenation files (these appear as warnings in the log file)
 export function findMissingHyphenationFiles(logText: string) {
+  //ngerman gets special cased
+  const filterLang = (lang: string) => {
+    // NOTE Although the names of the corresponding lfd files match those in this list,
+    // there are some exceptions, particularly in German and Serbian. So, ngerman is
+    // called here german, which is the name in the CLDR and, actually, the most logical.
+    //
+    // See https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/required/babel/base/babel.pdf
+    if (lang === "ngerman") {
+      return "hyphen-german";
+    }
+    return `hyphen-${lang.toLowerCase()}`;
+  };
+
   const babelWarningRegex = /^Package babel Warning:/m;
   const hasWarning = logText.match(babelWarningRegex);
   if (hasWarning) {
     const languageRegex = /^\(babel\).* language `(\S+)'.*$/m;
     const languageMatch = logText.match(languageRegex);
     if (languageMatch) {
-      const language = languageMatch[1];
-      return `hyphen-${language.toLowerCase()}`;
+      return filterLang(languageMatch[1]);
+    }
+  }
+
+  // Try an alternative way of parsing
+  const hyphenRulesRegex =
+    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/m;
+  const match = logText.match(hyphenRulesRegex);
+  if (match) {
+    const language = match[1];
+    if (language) {
+      return filterLang(language);
     }
   }
 }

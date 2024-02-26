@@ -106,7 +106,7 @@ export async function emplaceNotebookPreviews(
   doc: Document,
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
   output?: string,
   quiet?: boolean,
 ) {
@@ -153,6 +153,7 @@ export async function emplaceNotebookPreviews(
           input,
           input,
           undefined, // title
+          undefined, // order
           (nbPreview) => {
             // If this is a cell _in_ a source notebook, it will not be parented
             // by an embed cell
@@ -175,7 +176,7 @@ export async function emplaceNotebookPreviews(
     }
 
     // For any notebooks explicitly provided, ensure they are rendered
-    if (typeof (notebookView) !== "boolean") {
+    if (typeof notebookView !== "boolean") {
       const nbs = Array.isArray(notebookView) ? notebookView : [notebookView];
       for (const nb of nbs) {
         // Filter out the root article notebook, since that was resolved
@@ -184,7 +185,7 @@ export async function emplaceNotebookPreviews(
           const nbAbsPath = isAbsolute(nb.notebook)
             ? nb.notebook
             : join(dirname(input), nb.notebook);
-          previewer.enQueuePreview(input, nbAbsPath, nb.title);
+          previewer.enQueuePreview(input, nbAbsPath, nb.title, nb.order);
         }
       }
     }
@@ -208,6 +209,7 @@ export async function emplaceNotebookPreviews(
           input,
           nbAbsPath(input, notebookPath),
           title === null ? undefined : title,
+          undefined, // order
           (nbPreview) => {
             // Add a decoration to this div node
             if (inline) {
@@ -221,8 +223,20 @@ export async function emplaceNotebookPreviews(
     // Render the notebook previews
     const previews = await previewer.renderPreviews(output, quiet);
 
+    // Get the preview notebooks in the correct order
+    const previewNotebooks = Object.values(previews).sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      } else if (a.order !== undefined && b.order === undefined) {
+        return -1;
+      } else if (a.order === undefined && b.order !== undefined) {
+        return 1;
+      } else {
+        return a.title.localeCompare(b.title);
+      }
+    });
+
     // Emit global links to the notebooks
-    const previewNotebooks = Object.values(previews);
     if (global && previewNotebooks.length > 0) {
       const containerEl = doc.createElement("div");
       containerEl.classList.add("quarto-alternate-notebooks");

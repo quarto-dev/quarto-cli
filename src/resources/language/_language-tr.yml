@@ -25,6 +25,7 @@ section-title-citation: "Alıntı"
 
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Lütfen bu çalışmayı şu şekilde alıntılayın:"
+appendix-view-license: "Lisansı Görüntüle"
 
 title-block-author-single: "Yazar"
 title-block-author-plural: "Yazarlar"
@@ -121,3 +122,6 @@ listing-page-category-all: "Hepsi"
 listing-page-no-matches: "Eşleşen öğe yok"
 listing-page-field-wordcount: "Kelime Sayımı"
 listing-page-words: "{0} kelime"
+listing-page-filter: "Filtre"
+
+draft: "Taslak"

@@ -737,6 +737,40 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      announcement:
+        anyOf:
+          - string
+          - object:
+              properties:
+                content:
+                  schema: string
+                  description: "The content of the announcement"
+                dismissable:
+                  schema: boolean
+                  description: "Whether this announcement may be dismissed by the user."
+                icon:
+                  schema: string
+                  description: "The icon to display in the annoucement"
+                position:
+                  schema:
+                    enum: ["above-navbar", "below-navbar"]
+                  description: "The position of the announcement."
+                type:
+                  schema:
+                    enum:
+                      [
+                        primary,
+                        secondary,
+                        success,
+                        danger,
+                        warning,
+                        info,
+                        light,
+                        dark,
+                      ]
+                  description: "The type of announcement. Affects the appearance of the announcement."
+
+        description: Provides an announcement displayed at the top of the page.
       cookie-consent:
         anyOf:
           - enum: [express, implied]
@@ -940,6 +974,10 @@
                     enum: [left, right]
                   description: "The position of the collapsed navbar toggle when in responsive mode"
                   default: "left"
+                tools-collapse:
+                  boolean:
+                    description: "Collapse tools into the navbar menu when the display becomes narrow."
+                    default: false
 
         description: "Top navigation options"
 
@@ -960,6 +998,12 @@
                   logo:
                     path:
                       description: "Path to a logo image that will be displayed in the sidebar."
+                  logo-alt:
+                    string:
+                      description: "Alternate text for the logo image."
+                  logo-href:
+                    string:
+                      description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                   search:
                     boolean:
                       description: "Include a search control in the sidebar."
@@ -1086,6 +1130,21 @@
         tags:
           formats: [$html-doc]
         description: "A list of code links to appear with this document."
+      drafts:
+        schema:
+          maybeArrayOf: path
+        description: "A list of input documents that should be treated as drafts"
+      draft-mode:
+        schema:
+          enum: ["visible", "unlinked", "gone"]
+        description:
+          short: "How to handle drafts that are encountered."
+          long: |
+            How to handle drafts that are encountered.
+
+            `visible` - the draft will visible and fully available
+            `unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.
+            `gone` - the draft will have no content and will not be linked to (default).
 
 - id: book-schema
   schema:

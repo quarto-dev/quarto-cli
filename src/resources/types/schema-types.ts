@@ -435,8 +435,25 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
   "code-links"?: boolean | CodeLinksSchema;
+  "draft-mode"?: "visible" | "unlinked" | "gone";
+  announcement?: string | {
+    content?: string;
+    dismissable?: boolean;
+    icon?: string;
+    position?: "above-navbar" | "below-navbar";
+    type?:
+      | "primary"
+      | "secondary"
+      | "success"
+      | "danger"
+      | "warning"
+      | "info"
+      | "light"
+      | "dark";
+  } /* Provides an announcement displayed at the top of the page. */;
   comments?: Comments;
   description?: string /* Website description */;
+  drafts?: MaybeArrayOf<string>;
   favicon?: string /* The path to the favicon for this website */;
   image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
   navbar?: boolean | {
@@ -450,6 +467,8 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       | "xl"
       | "xxl" /* The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`). */;
     "toggle-position"?: "left" | "right";
+    "tools-collapse"?:
+      boolean /* Collapse tools into the navbar menu when the display becomes narrow. */;
     background?:
       | (
         | "primary"
@@ -524,6 +543,9 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | boolean
     | MaybeArrayOf<
       {
+        "logo-alt"?: string /* Alternate text for the logo image. */;
+        "logo-href"?:
+          string /* Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html). */;
         "collapse-level"?:
           number /* The depth at which the sidebar contents should be collapsed by default. */;
         alignment?:

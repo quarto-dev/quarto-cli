@@ -112,13 +112,13 @@ export function bootstrapFormatDependency() {
   };
 }
 
-export function boostrapExtras(
+export function bootstrapExtras(
   input: string,
   flags: PandocFlags,
   format: Format,
   services: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
@@ -277,8 +277,8 @@ function bootstrapHtmlPostprocessor(
   format: Format,
   flags: PandocFlags,
   services: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ): HtmlPostProcessor {
   return async (
@@ -671,7 +671,7 @@ async function processOtherLinks(
     context: ProjectContext,
   ): Promise<OtherLink | undefined> => {
     if (link === "repo") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (env.github.repoUrl) {
         return {
           icon: "github",
@@ -685,7 +685,7 @@ async function processOtherLinks(
         );
       }
     } else if (link === "devcontainer") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (
         env.github.organization && env.github.repository && env.github.repoUrl
       ) {
@@ -703,7 +703,7 @@ async function processOtherLinks(
         );
       }
     } else if (link === "binder") {
-      const env = await context.environment(context);
+      const env = await context.environment();
       if (env.github.organization && env.github.repository) {
         const containerUrl = binderUrl(
           env.github.organization,
@@ -1058,8 +1058,11 @@ function bootstrapHtmlFinalizer(format: Format, flags: PandocFlags) {
     // then lower the z-order so everything else can get on top
     // of the sidebar
     const isFullLayout = format.metadata[kPageLayout] === "full";
-    if (!hasMarginContent && isFullLayout && !hasRightContent) {
-      const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
+    const marginSidebarEl = doc.getElementById("quarto-margin-sidebar");
+    if (
+      (!hasMarginContent && isFullLayout && !hasRightContent) ||
+      marginSidebarEl?.childElementCount === 0
+    ) {
       marginSidebarEl?.classList.add("zindex-bottom");
     }
     return Promise.resolve();
@@ -1453,6 +1456,8 @@ const figCapInCalloutMarginProcessor: MarginNodeProcessor = {
   },
 };
 
+const kPreviewFigColumnForwarding = [".grid"];
+
 const processFigureOutputs = (doc: Document) => {
   // For any non-margin figures, we want to actually place the figure itself
   // into the column, and leave the caption as is, if possible
@@ -1474,6 +1479,18 @@ const processFigureOutputs = (doc: Document) => {
   for (const columnNode of columnEls) {
     // See if this is a code cell with a single figure output
     const columnEl = columnNode as Element;
+
+    // See if there are any classes which should prohibit forwarding
+    // the column information
+    if (
+      kPreviewFigColumnForwarding.some((sel) => {
+        return columnEl.querySelector(sel) !== null;
+      })
+    ) {
+      // There are matching ignore selectors, just skip
+      // this column
+      continue;
+    }
 
     // If there is a single figure, then forward the column class onto that
     const figures = columnEl.querySelectorAll("figure img.figure-img");
@@ -1551,7 +1568,32 @@ const simpleMarginProcessor: MarginNodeProcessor = {
   },
   process(el: Element, doc: Document) {
     el.classList.remove("column-margin");
-    addContentToMarginContainerForEl(el, el, doc);
+
+    const kPopMarginElOutOfTags = ["DD"];
+
+    // Specially deal with DD
+    if (
+      el.parentElement &&
+      kPopMarginElOutOfTags.includes(el.parentElement?.tagName)
+    ) {
+      const parentElement = el.parentElement;
+      // This is in a tag which itself can't be a container
+      // pop it out
+      // make a container which is next to the parent and
+      // place that in the margin
+      // For examples of this, see:
+      // https://github.com/quarto-dev/quarto-cli/issues/8862
+      const marginContainer = doc.createElement("DIV");
+      el.remove();
+      marginContainer.appendChild(el);
+      parentElement.parentElement?.insertBefore(
+        marginContainer,
+        parentElement.nextSibling,
+      );
+      addContentToMarginContainerForEl(marginContainer, marginContainer, doc);
+    } else {
+      addContentToMarginContainerForEl(el, el, doc);
+    }
   },
 };
 
@@ -1618,9 +1660,13 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
 
           if (refContentsEl.tagName === "LI") {
             // Ensure that there is a list to place this footnote within
-            addNodesToMarginContainerForEl(
+            const containerEl = doc.createElement("DIV");
+            containerEl.id = refContentsEl.id;
+            containerEl.append(...refContentsEl.childNodes);
+
+            addContentToMarginContainerForEl(
               validParent || el,
-              refContentsEl.childNodes,
+              containerEl,
               doc,
             );
           } else {

@@ -96,6 +96,7 @@ import("./normalize/extractquartodom.lua")
 import("./normalize/astpipeline.lua")
 import("./normalize/capturereaderstate.lua")
 import("./normalize/fixupdatauri.lua")
+import("./normalize/draft.lua")
 
 import("./layout/meta.lua")
 import("./layout/width.lua")
@@ -222,6 +223,9 @@ local quarto_init_filters = {
 -- our custom AST infrastructure (FloatRefTarget specifically).
 
 local quarto_normalize_filters = {
+  { name = "normalize-draft", 
+    filter = normalize_draft() },
+
   { name = "normalize", filter = filterIf(function()
     if quarto_global_state.active_filters == nil then
       return false
@@ -344,6 +348,9 @@ local quarto_post_filters = {
 
   { name = "post-ojs", filter = ojs() },
 
+  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
+    flags = { "has_pandoc3_figure" } },
+
   -- extensible rendering
   { name = "post-render_extended_nodes", filter = render_extended_nodes() },
 
@@ -357,9 +364,7 @@ local quarto_post_filters = {
   { name = "post-render-typst-fixups", filter = render_typst_fixups() },
   { name = "post-render-gfm-fixups", filter = render_gfm_fixups() },
   { name = "post-render-hugo-fixups", filter = render_hugo_fixups() },
-  { name = "post-render-pandoc3-figure", filter = render_pandoc3_figure(),
-    flags = { "has_pandoc3_figure" } },
-  { name = "post-render-email", filter = render_email() },
+  { name = "post-render-email", filters = render_email() },
 }
 
 local quarto_finalize_filters = {
@@ -388,8 +393,8 @@ local quarto_layout_filters = {
   { name = "layout-columns", filter = columns() },
   { name = "layout-cites-preprocess", filter = cites_preprocess() },
   { name = "layout-cites", filter = cites() },
-  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
   { name = "layout-panels", filter = layout_panels() },
+  { name = "post-fold-code-and-lift-codeblocks-from-floats", filter = fold_code_and_lift_codeblocks() },
 }
 
 local quarto_crossref_filters = {

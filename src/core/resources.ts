@@ -94,7 +94,7 @@ export async function rBinaryPath(binary: string): Promise<string> {
       debug(`Found in ${rBinDir}`);
       return join(rBinDir, binary);
     } else {
-      warning(`Specified QUARTO_R '${quartoR}' does not exist.`);
+      warnOnce(`Specified QUARTO_R '${quartoR}' does not exist.`);
     }
   }
 

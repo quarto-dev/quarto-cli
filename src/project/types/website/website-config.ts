@@ -27,6 +27,8 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,
+  kDraftMode,
+  kDrafts,
   kImage,
   kMarginFooter,
   kMarginHeader,
@@ -73,7 +75,10 @@ type WebsiteConfigKey =
   | "comments"
   | "other-links"
   | "code-links"
-  | "reader-mode";
+  | "reader-mode"
+  | "announcement"
+  | "draft-mode"
+  | "drafts";
 
 export function websiteConfigBoolean(
   name: WebsiteConfigKey,
@@ -330,10 +335,11 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
 export function websiteProjectConfig(
-  projectDir: string,
+  project: ProjectContext,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
+  const projectDir = project.dir;
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
     | string
@@ -431,6 +437,16 @@ export function websiteProjectConfig(
     (config[kCodeLinks] === undefined)
   ) {
     config[kCodeLinks] = websiteConfigUnknown(kCodeLinks, config);
+  }
+
+  // Move drafts, draft-mode
+  const draftMode = websiteConfigString(kDraftMode, config);
+  if (draftMode) {
+    config[kDraftMode] = draftMode;
+  }
+  const drafts = websiteConfigArray(kDrafts, config);
+  if (drafts) {
+    config[kDrafts] = drafts;
   }
 
   return Promise.resolve(config);

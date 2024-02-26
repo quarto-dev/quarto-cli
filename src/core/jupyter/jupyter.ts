@@ -126,6 +126,7 @@ import {
   isJupyterKernelspec,
   jupyterDefaultPythonKernelspec,
   jupyterKernelspec,
+  jupyterKernelspecForLanguage,
   jupyterKernelspecs,
 } from "./kernels.ts";
 import {
@@ -151,7 +152,7 @@ import {
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
 import { encode as encodeBase64 } from "encoding/base64.ts";
 import {
@@ -493,14 +494,13 @@ export async function jupyterKernelspecFromMarkdown(
   if (!yamlJupyter) {
     const languages = languagesInMarkdown(markdown);
     languages.add("python"); // python as a default/failsafe
-    const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
-      for (const kernelspec of kernelspecs.values()) {
-        if (kernelspec.language.toLowerCase() === language) {
-          return [kernelspec, {}];
-        }
+      const kernelspec = await jupyterKernelspecForLanguage(language);
+      if (kernelspec) {
+        return [kernelspec, {}];
       }
     }
+    const kernelspecs = await jupyterKernelspecs();
     return Promise.reject(
       new Error(
         `No kernel found for any language checked (${
@@ -689,16 +689,17 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  // If there is already a title in the metadata, don't run the
-  // full set of fixups, only do the minimal
-  const fixups = options.executeOptions.projectType === "book"
+
+  const projType = options.executeOptions.project?.config?.project
+    ?.[kProjectType];
+  const fixups = projType === "book"
     ? bookFixups
-    : options.executeOptions.format.metadata.title
+    : options.executeOptions.project?.config?.title !== undefined &&
+        (projType === "default" || projType === undefined)
     ? minimalFixups
     : undefined;
 
   nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
-
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;
@@ -1386,7 +1387,7 @@ async function mdFromCodeCell(
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
-  if (includeCode(cell, options)) {
+  if (includeCode(cell, options) || options.preserveCodeCellYaml) {
     const fenced = echoFenced(cell, options);
     const ticks = "`".repeat(
       Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),

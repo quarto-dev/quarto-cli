@@ -298,7 +298,7 @@ function formatCrossref(
     return crossref.join("");
   }
 
-  if (format.pandoc["number-sections"] === false) {
+  if (format.pandoc["number-sections"] === false && type === "sec") {
     return entry.caption || entry.key;
   }
 

@@ -81,6 +81,9 @@ export function outputForInput(
     if (baseFormat === "dashboard") {
       outputExt = "html";
     }
+    if (baseFormat === "email") {
+      outputExt = "html";
+    }
   }
 
   const outputPath = projectOutDir

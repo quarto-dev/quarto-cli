@@ -185,7 +185,13 @@ export const jupyterEngine: ExecutionEngine = {
     if (isQmdFile(file) || isPercentScript) {
       // write a transient notebook
       const [fileDir, fileStem] = dirAndStem(file);
-      const notebook = join(fileDir, fileStem + ".ipynb");
+      // See #4802
+      // I don't love using an extension other than .ipynb for this file,
+      // but doing something like .quarto.ipynb would require a lot
+      // of additional changes to our file handling code (without changes,
+      // our output files would be called $FILE.quarto.html, which
+      // is not what we want). So for now, we'll use .quarto_ipynb
+      const notebook = join(fileDir, fileStem + ".quarto_ipynb");
       const target = {
         source: file,
         input: notebook,

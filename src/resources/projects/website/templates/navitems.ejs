@@ -1,7 +1,7 @@
 <% if (items) { %>
 <ul class="navbar-nav navbar-nav-scroll <%- align === 'start' ? 'me-auto' : 'ms-auto' %>">
 <% for(const item of items) { %>
-  <% partial('navitem.ejs', { item, align }) %> 
+  <% partial('navitem.ejs', { item, align, draftMode }) %> 
 <% } %>
 </ul>
 <% } %>

@@ -31,14 +31,12 @@
       toolsLocation = "fallthrough";
     }
   %>
-
-
     
   <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
     <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
-      <a href="/index.html" class="sidebar-logo-link">
-      <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
+      <a href="<%- sidebar['logo-href'] || '/index.html' %>" class="sidebar-logo-link">
+      <img src="<%- sidebar.logo %>" alt="<%- navbar['logo-alt'] || '' %>" class="sidebar-logo py-0 d-lg-inline d-none"/>
       </a>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>
@@ -82,7 +80,7 @@
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
     <% sidebar.contents.forEach(item => { %>
-        <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor, language: language }) %>
+        <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor, language: language, draftMode }) %>
     <% }) %>
     </ul>
     </div>

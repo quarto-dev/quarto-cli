@@ -47,8 +47,12 @@ $quarto-search-collapse-icon-size: 26px !default;
 
 .navbar .quarto-navbar-tools {
   @include media-breakpoint-up(lg) {
-    margin-left: auto;
     order: 900;
+  }
+  &.tools-end {
+    @include media-breakpoint-up(lg) {
+      margin-left: auto !important;
+    }
   }
 }
 

@@ -19,6 +19,7 @@ import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kBodyClasses,
   kCodeLink,
   kFigResponsive,
   kFilterParams,
@@ -56,7 +57,7 @@ import {
   formatHasBootstrap,
 } from "./format-html-info.ts";
 
-import { boostrapExtras } from "./format-html-bootstrap.ts";
+import { bootstrapExtras } from "./format-html-bootstrap.ts";
 
 import {
   clipboardDependency,
@@ -640,6 +641,14 @@ function htmlFormatPostprocessor(
     : format.metadata[kAnchorSections] || false;
 
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // Add body class, if present
+    if (format.render[kBodyClasses]) {
+      const clz = format.render[kBodyClasses].split(" ");
+      clz.forEach((cls) => {
+        doc.body.classList.add(cls);
+      });
+    }
+
     // process all of the code blocks
     const codeBlocks = doc.querySelectorAll("pre.sourceCode");
     for (let i = 0; i < codeBlocks.length; i++) {
@@ -759,6 +768,34 @@ function htmlFormatPostprocessor(
           }
         }
       });
+    }
+
+    // Process drafts, if needed
+    const metadraftEl = doc.querySelector("meta[name='quarto:status']");
+    if (metadraftEl !== null) {
+      const status = metadraftEl.getAttribute("content");
+      if (status === "draft") {
+        const draftDivEl = doc.createElement("DIV");
+
+        const iconEl = doc.createElement("I");
+        iconEl.classList.add("bi");
+        iconEl.classList.add("bi-pencil-square");
+        const textNode = doc.createTextNode(format.language.draft || "Draft");
+
+        draftDivEl.appendChild(iconEl);
+        draftDivEl.appendChild(textNode);
+        draftDivEl.setAttribute("id", "quarto-draft-alert");
+        draftDivEl.classList.add("alert");
+        draftDivEl.classList.add("alert-warning");
+
+        // Find the header and place it there
+        let targetEl = doc.body;
+        const headerEl = doc.getElementById("quarto-header");
+        if (headerEl !== null) {
+          targetEl = headerEl;
+        }
+        targetEl.insertBefore(draftDivEl, targetEl.firstChild);
+      }
     }
 
     // no resource refs
@@ -954,8 +991,8 @@ function themeFormatExtras(
   flags: PandocFlags,
   format: Format,
   sevices: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ) {
   const theme = format.metadata[kTheme];
@@ -968,7 +1005,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(
+    return bootstrapExtras(
       input,
       flags,
       format,

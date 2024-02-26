@@ -1,0 +1,39 @@
+name: Documentation issue
+description: Report issues on quarto.org, give documentation feedback, or suggest documentation improvements
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to the quarto GitHub repository!
+
+        We are always happy to hear feedback from our users.
+
+        When reporting an issue with the documentation, please consider adding a link to the page you are referring to and a screenshot of the issue.
+
+        If you want to report a bug, please use the [Bug Reports GitHub Issues](https://github.com/quarto-dev/quarto-cli/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml).
+        If you want to ask for a feature, please use the [Feature Requests GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/feature-requests).
+        If you want to ask for help, please use the [Q&A GitHub Discussions](https://github.com/quarto-dev/quarto-cli/discussions/categories/q-a).
+
+        Thank you for using Quarto!
+
+  - type: dropdown
+    id: type-documentation
+    attributes:
+      label: What would you like to do?
+      options:
+        - Report an issue on quarto.org
+        - Give feedback or suggest an improvement
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: Describe the issue, give feedback or suggest an improvement.
+      placeholder: Please describe your issue/feedback/improvement here. For issues on quarto.org, include a link to the page you are referring to and a screenshot of the issue.
+
+  - type: markdown
+    attributes:
+      value: "_Thanks for submitting this bug report, feedback or improvement suggestion!_"

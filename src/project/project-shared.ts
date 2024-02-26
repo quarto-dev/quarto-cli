@@ -24,6 +24,11 @@ import { ProjectType } from "./types/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 import { existsSync1 } from "../core/file.ts";
 import { kManuscriptType } from "./types/manuscript/manuscript-types.ts";
+import { expandIncludes } from "../core/handlers/base.ts";
+import { asMappedString, MappedString } from "../core/mapped-text.ts";
+import { createTempContext } from "../core/temp.ts";
+import { RenderContext, RenderFlags } from "../command/render/types.ts";
+import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -318,4 +323,50 @@ export async function directoryMetadataForInputFile(
   }
 
   return config;
+}
+
+export async function projectResolveFullMarkdownForFile(
+  project: ProjectContext,
+  file: string,
+  markdown?: MappedString,
+  force?: boolean,
+): Promise<MappedString> {
+  if (!project.fullMarkdownCache) {
+    project.fullMarkdownCache = new Map();
+  }
+  if (!force && project.fullMarkdownCache.has(file)) {
+    return project.fullMarkdownCache.get(file)!;
+  }
+
+  const temp = createTempContext();
+
+  if (!markdown) {
+    const inputPath = isAbsolute(file) ? file : join(Deno.cwd(), file);
+    if (!existsSync(inputPath)) {
+      throw new Error("File does not exist: " + inputPath);
+    }
+    markdown = asMappedString(Deno.readTextFileSync(inputPath), inputPath);
+  }
+
+  const options: LanguageCellHandlerOptions = {
+    name: "",
+    temp,
+    stage: "pre-engine",
+    format: undefined as unknown as Format,
+    markdown,
+    context: {
+      project,
+      target: {
+        source: file,
+      },
+    } as unknown as RenderContext,
+    flags: {} as RenderFlags,
+  };
+  try {
+    const result = await expandIncludes(markdown, options);
+    project.fullMarkdownCache.set(file, result);
+    return result;
+  } finally {
+    temp.cleanup();
+  }
 }

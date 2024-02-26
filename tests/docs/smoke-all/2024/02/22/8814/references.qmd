@@ -1,0 +1,14 @@
+---
+_quarto:
+  html:
+    ensureHtmlElement:
+    - 
+      - 'div#ref-Blei09'
+      - 'div#ref-knuth84'
+  pdf: default
+---
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

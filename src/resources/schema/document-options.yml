@@ -26,6 +26,13 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
+- name: body-classes
+  tags:
+    formats: [$html-doc]
+  schema: string
+  description: |
+    Classes to apply to the body of the document.
+
 - name: minimal
   schema: boolean
   default: false
@@ -277,13 +284,6 @@
     Specify whether to use `atx` (`#`-prefixed) or
     `setext` (underlined) headings for level 1 and 2
     headings (`atx` or `setext`).
-
-- name: keep-yaml
-  tags:
-    formats: [$markdown-all]
-  schema: boolean
-  default: false
-  description: "Preserve the original YAML front matter in rendered markdown"
 
 - name: ipynb-output
   tags:

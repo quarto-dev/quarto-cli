@@ -1,8 +1,0 @@
----
-title: Cross-referenceable Figures
-format: docusaurus-md
----
-
-![This is the caption](https://placeholder.co/400){#fig-1}
-
-See @fig-1.

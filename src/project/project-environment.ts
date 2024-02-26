@@ -23,6 +23,20 @@ import { NotebookContext } from "../render/notebook/notebook-types.ts";
 
 const kDefaultContainerTitle = "Default Container";
 
+export const makeProjectEnvironmentMemoizer = (
+  notebookContext: NotebookContext,
+) => {
+  let cachedEnv: ProjectEnvironment | undefined = undefined;
+  return async (project: ProjectContext) => {
+    if (cachedEnv) {
+      return Promise.resolve(cachedEnv);
+    } else {
+      cachedEnv = await computeProjectEnvironment(notebookContext, project);
+      return cachedEnv;
+    }
+  };
+};
+
 export const computeProjectEnvironment = async (
   notebookContext: NotebookContext,
   context: ProjectContext,

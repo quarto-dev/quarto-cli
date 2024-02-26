@@ -2,10 +2,58 @@
 engine: jupyter
 format: html
 title: Features x Formats
+css:
+  - index.css
+  - dist/css/tabulator.min.css
 ---
+
+<!--
+If you're adding a new format to the table, you need to edit 
+the object constructor in the script tag in _tabulator.qmd,
+specifically the `columns` field.
+-->
 
 ::: column-screen-inset
 
 {{< include _tabulator.qmd >}}
 
 :::
+
+## Quality summary
+
+| Icon | Meaning |
+|------|---------|
+| [&#x1F6AB;]{.bad}|  A bug |
+| [&#x26A0;]{.ok}|  Needs improvement |
+| [&#x2713;]{.good}|  Good |
+| [&#x2713;&#x2713;]{.good}|  Good, with tests |
+| [&#x1F4AC;]{.unknown} |  A comment |
+
+```{python}
+#| echo: false
+ok_cells = 0
+tested_cells = 0
+good_cells = 0
+na_cells = 0
+for k, v in quality_summary["quality"].items():
+  if k == "NA":
+    na_cells += v
+  if type(k) == int and k >= 0:
+    ok_cells += v
+  if k == 1 or k == 2:
+    good_cells += v
+  if k == 2:
+    tested_cells += v
+n_features = quality_summary["n_rows"] 
+n_formats = 11
+all_cells = n_features * n_formats - na_cells
+```
+
+### Our coverage is at `{python} "%.2f%%" % (100 * ok_cells / all_cells)`
+
+* `{python} n_features` features 
+* `{python} n_formats` formats
+* `{python} all_cells` cells
+* `{python} tested_cells`/`{python} all_cells` explicitly tested cells
+* `{python} good_cells`/`{python} all_cells` good cells
+* `{python} ok_cells`/`{python} all_cells` ok cells

@@ -574,7 +574,7 @@ is_pandoc_html_format <- function(format) {
 
 # check if pandoc$to is latex output
 is_pandoc_latex_output <- function(format) {
-  knitr:::is_latex_output() || is_pandoc_to_format(format, "pdf")
+  is_pandoc_to_format(format, c("latex", "beamer", "pdf"))
 }
 
 # check if pandoc$to is among markdown outputs

@@ -25,6 +25,7 @@ section-title-citation: "Citácia"
 
 appendix-attribution-cite-as: "Prosím, toto dielo citujte ako:"
 appendix-attribution-bibtex: "BibTeX citácia:"
+appendix-view-license: "Zobraziť Licenciu"
 
 title-block-author-single: "Autor"
 title-block-author-plural: "Autori"
@@ -121,3 +122,6 @@ listing-page-category-all: "Všetko"
 listing-page-no-matches: "Žiadne nájdené výsledky"
 listing-page-field-wordcount: "Počet slov"
 listing-page-words: "{0} slov"
+listing-page-filter: "Filter"
+
+draft: "Návrh"

@@ -57,7 +57,7 @@ export function notebookContext(): NotebookContext {
     nbAbsPath: string,
     renderType: RenderType,
     result: NotebookRenderResult,
-    context?: ProjectContext,
+    context: ProjectContext,
     cached?: boolean,
   ) => {
     debug(`[NotebookContext]: Add Rendering (${renderType}):${nbAbsPath}`);
@@ -146,7 +146,7 @@ export function notebookContext(): NotebookContext {
   function reviveOutput(
     nbAbsPath: string,
     renderType: RenderType,
-    context?: ProjectContext,
+    context: ProjectContext,
   ) {
     debug(
       `[NotebookContext]: Attempting to Revive Rendering (${renderType}):${nbAbsPath}`,
@@ -174,7 +174,7 @@ export function notebookContext(): NotebookContext {
                   files: [],
                 },
               },
-              undefined,
+              context,
               true,
             );
           }
@@ -257,8 +257,8 @@ export function notebookContext(): NotebookContext {
       format: Format,
       renderType: RenderType,
       services: RenderServices,
-      notebookMetadata?: NotebookMetadata,
-      project?: ProjectContext,
+      notebookMetadata: NotebookMetadata | undefined,
+      project: ProjectContext,
     ) => {
       debug(`[NotebookContext]: Rendering (${renderType}):${nbAbsPath}`);
 

@@ -32,6 +32,7 @@ export interface NotebookPreview {
   filename?: string;
   supporting?: string[];
   resources?: string[];
+  order?: number;
 }
 
 export interface NotebookPreviewTask {
@@ -39,6 +40,7 @@ export interface NotebookPreviewTask {
   nbPath: string;
   title?: string;
   nbPreviewFile?: string;
+  order?: number;
   callback?: (nbPreview: NotebookPreview) => void;
 }
 
@@ -46,7 +48,7 @@ export const notebookPreviewer = (
   nbView: boolean | NotebookPreviewDescriptor | NotebookPreviewDescriptor[],
   format: Format,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) => {
   const isBook = projectIsBook(project);
   const previewQueue: NotebookPreviewTask[] = [];
@@ -54,7 +56,7 @@ export const notebookPreviewer = (
 
   const nbDescriptors: Record<string, NotebookPreviewDescriptor> = {};
   if (nbView) {
-    if (typeof (nbView) !== "boolean") {
+    if (typeof nbView !== "boolean") {
       asArray(nbView).forEach((view) => {
         const existingView = nbDescriptors[view.notebook];
         nbDescriptors[view.notebook] = {
@@ -74,15 +76,23 @@ export const notebookPreviewer = (
     input: string,
     nbAbsPath: string,
     title?: string,
+    order?: number,
     callback?: (nbPreview: NotebookPreview) => void,
   ) => {
-    // Try to provide a title
-    previewQueue.push({
-      input,
-      nbPath: nbAbsPath,
-      title: title,
-      callback,
-    });
+    if (
+      !previewQueue.find((work) => {
+        return work.nbPath === nbAbsPath;
+      })
+    ) {
+      // Try to provide a title
+      previewQueue.push({
+        input,
+        nbPath: nbAbsPath,
+        title: title,
+        callback,
+        order,
+      });
+    }
   };
 
   const renderPreviews = async (output?: string, quiet?: boolean) => {
@@ -245,6 +255,7 @@ export const notebookPreviewer = (
           href: relative(inputDir, renderedNotebook[kHtmlPreview].hrefPath),
           supporting,
           resources,
+          order: work.order,
         };
         rendered[work.nbPath] = nbPreview;
         if (work.callback) {
@@ -255,6 +266,7 @@ export const notebookPreviewer = (
           href: pathWithForwardSlashes(join(nbDir, filename)),
           title: title || filename,
           filename,
+          order: work.order,
         };
         rendered[work.nbPath] = nbPreview;
         if (work.callback) {

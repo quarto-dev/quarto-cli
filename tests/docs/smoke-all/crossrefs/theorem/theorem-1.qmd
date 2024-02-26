@@ -1,0 +1,46 @@
+---
+format:
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "a.quarto-xref"
+        - []
+    latex:
+      ensureFileRegexMatches:
+        -
+          - "hypertarget{thm-line}"
+          - "label{thm-line}"
+          - "Theorem~\\\\ref\\{thm-line\\}"
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<thm-line>"
+          - "@thm-line"
+          - "#theorem\\(\"Line\"\\)"
+        - []
+    markdown:
+      ensureFileRegexMatches:
+        -
+          - "\\[Theorem 1\\]\\(#thm-line\\)\\{.quarto-xref\\}"
+          - '\[\*\*Theorem 1 \(Line\)\*\*\]\{.theorem-title\}'
+    
+
+---
+
+::: {#thm-line}
+
+## Line
+
+The equation of any straight line, called a linear equation, can be written as:
+
+$$
+y = mx + b
+$$
+:::
+
+See @thm-line.

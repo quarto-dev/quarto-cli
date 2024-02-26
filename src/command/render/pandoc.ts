@@ -198,6 +198,7 @@ import {
   createMarkdownPipeline,
   MarkdownPipelineHandler,
 } from "../../core/markdown-pipeline.ts";
+import { getEnv } from "../../../package/src/util/utils.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -210,6 +211,39 @@ export async function runPandoc(
   const beforePandocHooks: (() => unknown)[] = [];
   const afterPandocHooks: (() => unknown)[] = [];
   const pandocEnv: { [key: string]: string } = {};
+
+  const setupPandocEnv = () => {
+    pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
+
+    const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
+      Deno.env.get("QUARTO_TRACE_FILTERS");
+
+    if (traceFilters) {
+      // in case we are running multiple pandoc processes
+      // we need to make sure we capture all of the trace files
+      let traceCountSuffix = "";
+      if (traceCount > 0) {
+        traceCountSuffix = `-${traceCount}`;
+      }
+      ++traceCount;
+      if (traceFilters === true) {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = "quarto-filter-trace.json" +
+          traceCountSuffix;
+      } else {
+        pandocEnv["QUARTO_TRACE_FILTERS"] = traceFilters + traceCountSuffix;
+      }
+    }
+
+    // https://github.com/quarto-dev/quarto-cli/issues/8274
+    // do not use the default LUA_CPATH, as it will cause pandoc to
+    // load the system lua libraries, which may not be compatible with
+    // the lua version we are using
+    if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
+      pandocEnv["LUA_CPATH"] = getEnv("QUARTO_LUA_CPATH");
+    } else {
+      pandocEnv["LUA_CPATH"] = "";
+    }
+  };
 
   // compute cwd for render
   const cwd = dirname(options.source);
@@ -347,7 +381,6 @@ export async function runPandoc(
   ) {
     const projectExtras = options.project?.formatExtras
       ? (await options.project.formatExtras(
-        options.project,
         options.source,
         options.flags || {},
         options.format,
@@ -549,9 +582,16 @@ export async function runPandoc(
           ? [documentNotebooks]
           : [];
 
+        // Only add notebooks that aren't already present
+        const uniqExtraNotebooks = extras[kNotebooks].filter((nb) => {
+          return !userNotebooks.find((userNb) => {
+            return userNb.notebook === nb.notebook;
+          });
+        });
+
         options.format.render[kNotebookView] = [
-          ...extras[kNotebooks],
           ...userNotebooks,
+          ...uniqExtraNotebooks,
         ];
       }
     }
@@ -1117,28 +1157,7 @@ export async function runPandoc(
   // workaround for our wonky Lua timing routines
   const luaEpoch = await getLuaTiming();
 
-  pandocEnv["QUARTO_FILTER_PARAMS"] = base64Encode(paramsJson);
-
-  const traceFilters = pandocMetadata?.["_quarto"]?.["trace-filters"] ||
-    Deno.env.get("QUARTO_TRACE_FILTERS");
-
-  if (traceFilters) {
-    beforePandocHooks.push(() => {
-      // in case we are running multiple pandoc processes
-      // we need to make sure we capture all of the trace files
-      let traceCountSuffix = "";
-      if (traceCount > 0) {
-        traceCountSuffix = `-${traceCount}`;
-      }
-      ++traceCount;
-      if (traceFilters === true) {
-        pandocEnv["QUARTO_TRACE_FILTERS"] = "quarto-filter-trace.json" +
-          traceCountSuffix;
-      } else {
-        pandocEnv["QUARTO_TRACE_FILTERS"] = traceFilters + traceCountSuffix;
-      }
-    });
-  }
+  setupPandocEnv();
 
   // run beforePandoc hooks
   for (const hook of beforePandocHooks) {

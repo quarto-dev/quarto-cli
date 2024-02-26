@@ -48,11 +48,11 @@ import {
   kTblColwidths,
   kTocTitleDocument,
   kUnrollMarkdownCells,
+  kUseRsvgConvert,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
   Format,
-  FormatLanguage,
   FormatPandoc,
   isFilterEntryPoint,
   QuartoFilter,
@@ -566,6 +566,11 @@ async function quartoFilterParams(
   if (htmlTableProcessing) {
     params[kHtmlTableProcessing] = htmlTableProcessing;
   }
+  const useRsvgConvert = format.render[kUseRsvgConvert];
+  if (useRsvgConvert !== undefined) {
+    params[kUseRsvgConvert] = useRsvgConvert;
+  }
+
   const tblColwidths = format.render[kTblColwidths];
   if (tblColwidths !== undefined) {
     params[kTblColwidths] = tblColwidths;

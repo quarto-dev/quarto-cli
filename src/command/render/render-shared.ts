@@ -18,7 +18,6 @@ import { renderProject } from "./project.ts";
 import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { RenderFlags, RenderOptions, RenderResult } from "./types.ts";
-import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import {
   isProjectInputFile,
@@ -33,6 +32,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { kTextPlain } from "../../core/mime.ts";
 import { normalizePath } from "../../core/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export async function render(
   path: string,
@@ -45,12 +45,12 @@ export async function render(
   const nbContext = notebookContext();
 
   // determine target context/files
-  let context = await projectContext(path, nbContext, options.flags);
+  let context = await projectContext(path, nbContext, options);
 
   // if there is no project parent and an output-dir was passed, then force a project
   if (!context && options.flags?.outputDir) {
     // recompute context
-    context = await projectContextForDirectory(path, nbContext, options.flags);
+    context = await projectContextForDirectory(path, nbContext, options);
 
     // force clean as --output-dir implies fully overwrite the target
     options.forceClean = options.flags.clean !== false;
@@ -95,11 +95,23 @@ export async function render(
   // validate that we didn't get any project-only options
   validateDocumentRenderFlags(options.flags);
 
+  // NB: singleFileProjectContext is currently not fully-featured
+  context = singleFileProjectContext(path, nbContext, options.flags);
+
   // otherwise it's just a file render
-  const result = await renderFiles([{ path }], options, nbContext);
+  const result = await renderFiles(
+    [{ path }],
+    options,
+    nbContext,
+    undefined,
+    undefined,
+    context,
+  );
 
   // get partitioned markdown if we had result files
-  const engine = fileExecutionEngine(path);
+  const { engine } = await context.fileExecutionEngineAndTarget(
+    path,
+  );
   const partitioned = (engine && result.files.length > 0)
     ? await engine.partitionedMarkdown(path)
     : undefined;
@@ -126,6 +138,7 @@ export async function render(
       };
     })),
     error: result.error,
+    baseDir: normalizePath(dirname(path)),
   };
 
   if (!renderResult.error && engine?.postRender) {

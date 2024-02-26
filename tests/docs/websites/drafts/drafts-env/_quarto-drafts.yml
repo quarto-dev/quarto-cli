@@ -1,0 +1,4 @@
+website:
+  drafts:
+    posts/draft-post/index.qmd
+  draft-mode: gone

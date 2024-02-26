@@ -50,3 +50,21 @@
   schema: string
   description:
     short: "Context to execute cell within."
+
+- name: content
+  tags:
+    formats: [dashboard]
+  schema:
+    enum: [valuebox, sidebar, toolbar, card-sidebar, card-toolbar]
+  description:
+    short: "The type of dashboard element being produced by this code cell."
+
+- name: color
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - enum: [primary, secondary, success, info, warning, danger, light, dark]
+  description:
+    short: "For code cells that produce a valuebox, the color of the valuebox.s"

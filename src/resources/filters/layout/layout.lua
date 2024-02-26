@@ -80,7 +80,9 @@ function partition_cells(float)
 
   local function is_preamble_block(el)
     return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
-           (is_regular_node(el, "Div") and el.attr.classes:includes("cell-output-stderr"))
+           (is_regular_node(el, "Div") and 
+            (el.attr.classes:includes("cell-output-stderr") or
+             el.attr.classes:includes("cell-annotation")))
   end
 
   local function handle_preamble_codeblock(block)

@@ -1,0 +1,7 @@
+---
+title: A file in a subdir
+---
+
+With a root-relative include:
+
+{{< include /docs/_in.qmd >}}

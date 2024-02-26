@@ -1,0 +1,22 @@
+---
+title: "Table test"
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\begin{table}\\[ht\\]"]
+        - []
+---
+
+```{=latex}
+\begin{table}[ht]
+\begin{tabular}{ll}
+foo & bar
+\end{tabular}
+\caption{label has dash: problem}
+\label{has-dash}
+\end{table}
+```
+
+See \ref{has-dash}.

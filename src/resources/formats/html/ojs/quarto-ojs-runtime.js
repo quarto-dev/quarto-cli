@@ -5428,6 +5428,7 @@ class QuartoInspector extends Inspector {
     this._cellAst = cellAst;
   }
   rejected(error) {
+    console.error(`Error evaluating OJS cell\n${this._cellAst.input}\n${String(error)}`);
     return super.rejected(error);
   }
 }
@@ -5504,8 +5505,8 @@ function extendObservableStdlib(lib) {
 }
 
 class ShinyInspector extends QuartoInspector {
-  constructor(node) {
-    super(node);
+  constructor(node, cellAst) {
+    super(node, cellAst);
   }
   fulfilled(value, name) {
     if (shinyInputVars.has(name) && window.Shiny) {

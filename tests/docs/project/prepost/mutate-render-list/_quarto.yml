@@ -1,0 +1,22 @@
+project:
+  type: website
+  pre-render: pre.ts
+  post-render: post.ts
+
+website:
+  title: "W"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - listing.qmd
+  sidebar:
+    contents: sidebar
+  
+format:
+  html:
+    theme: darkly
+    toc: true
+
+
+

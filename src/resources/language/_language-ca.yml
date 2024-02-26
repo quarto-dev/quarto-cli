@@ -25,6 +25,7 @@ section-title-citation: "Com citar"
 
 appendix-attribution-cite-as: "Per l'atribució, citeu aquest treball com:"
 appendix-attribution-bibtex: "Citació en BibTeX:"
+appendix-view-license: "Veure Llicència"
 
 title-block-author-single: "Autor/a"
 title-block-author-plural: "Autors/es"
@@ -121,3 +122,6 @@ listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "Tot"
 listing-page-no-matches: "Cap element coincident"
 listing-page-words: "{0} paraules"
+listing-page-filter: "Filtre"
+
+draft: "Esborrany"

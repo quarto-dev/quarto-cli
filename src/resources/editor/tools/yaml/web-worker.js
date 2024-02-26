@@ -7267,6 +7267,54 @@ try {
             description: {
               short: "Context to execute cell within."
             }
+          },
+          {
+            name: "content",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              enum: [
+                "valuebox",
+                "sidebar",
+                "toolbar",
+                "card-sidebar",
+                "card-toolbar"
+              ]
+            },
+            description: {
+              short: "The type of dashboard element being produced by this code cell."
+            }
+          },
+          {
+            name: "color",
+            tags: {
+              formats: [
+                "dashboard"
+              ]
+            },
+            schema: {
+              anyOf: [
+                "string",
+                {
+                  enum: [
+                    "primary",
+                    "secondary",
+                    "success",
+                    "info",
+                    "warning",
+                    "danger",
+                    "light",
+                    "dark"
+                  ]
+                }
+              ]
+            },
+            description: {
+              short: "For code cells that produce a valuebox, the color of the valuebox.s"
+            }
           }
         ],
         "schema/cell-codeoutput.yml": [
@@ -9354,6 +9402,54 @@ try {
                   ],
                   description: "Enable Google Analytics for this website"
                 },
+                announcement: {
+                  anyOf: [
+                    "string",
+                    {
+                      object: {
+                        properties: {
+                          content: {
+                            schema: "string",
+                            description: "The content of the announcement"
+                          },
+                          dismissable: {
+                            schema: "boolean",
+                            description: "Whether this announcement may be dismissed by the user."
+                          },
+                          icon: {
+                            schema: "string",
+                            description: "The icon to display in the annoucement"
+                          },
+                          position: {
+                            schema: {
+                              enum: [
+                                "above-navbar",
+                                "below-navbar"
+                              ]
+                            },
+                            description: "The position of the announcement."
+                          },
+                          type: {
+                            schema: {
+                              enum: [
+                                "primary",
+                                "secondary",
+                                "success",
+                                "danger",
+                                "warning",
+                                "info",
+                                "light",
+                                "dark"
+                              ]
+                            },
+                            description: "The type of announcement. Affects the appearance of the announcement."
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  description: "Provides an announcement displayed at the top of the page."
+                },
                 "cookie-consent": {
                   anyOf: [
                     {
@@ -9653,6 +9749,12 @@ try {
                             },
                             description: "The position of the collapsed navbar toggle when in responsive mode",
                             default: "left"
+                          },
+                          "tools-collapse": {
+                            boolean: {
+                              description: "Collapse tools into the navbar menu when the display becomes narrow.",
+                              default: false
+                            }
                           }
                         }
                       }
@@ -9682,6 +9784,16 @@ try {
                             logo: {
                               path: {
                                 description: "Path to a logo image that will be displayed in the sidebar."
+                              }
+                            },
+                            "logo-alt": {
+                              string: {
+                                description: "Alternate text for the logo image."
+                              }
+                            },
+                            "logo-href": {
+                              string: {
+                                description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                               }
                             },
                             search: {
@@ -9883,6 +9995,25 @@ try {
                     ]
                   },
                   description: "A list of code links to appear with this document."
+                },
+                drafts: {
+                  schema: {
+                    maybeArrayOf: "path"
+                  },
+                  description: "A list of input documents that should be treated as drafts"
+                },
+                "draft-mode": {
+                  schema: {
+                    enum: [
+                      "visible",
+                      "unlinked",
+                      "gone"
+                    ]
+                  },
+                  description: {
+                    short: "How to handle drafts that are encountered.",
+                    long: "How to handle drafts that are encountered.\n\n`visible` - the draft will visible and fully available\n`unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.\n`gone` - the draft will have no content and will not be linked to (default).\n"
+                  }
                 }
               }
             }
@@ -15054,7 +15185,7 @@ try {
                 "$html-doc"
               ]
             },
-            description: "Enable or disable lightbox treatment for images in this document."
+            description: "Enable or disable lightbox treatment for images in this document. See [Lightbox Figures](https://quarto.org/docs/output-formats/html-lightbox-figures.html) for more details."
           }
         ],
         "schema/document-links.yml": [
@@ -15753,6 +15884,16 @@ try {
             description: "Theme name, theme scss file, or a mix of both."
           },
           {
+            name: "body-classes",
+            tags: {
+              formats: [
+                "$html-doc"
+              ]
+            },
+            schema: "string",
+            description: "Classes to apply to the body of the document.\n"
+          },
+          {
             name: "minimal",
             schema: "boolean",
             default: false,
@@ -16122,17 +16263,6 @@ try {
             },
             default: "atx",
             description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
-          },
-          {
-            name: "keep-yaml",
-            tags: {
-              formats: [
-                "$markdown-all"
-              ]
-            },
-            schema: "boolean",
-            default: false,
-            description: "Preserve the original YAML front matter in rendered markdown"
           },
           {
             name: "ipynb-output",
@@ -16650,6 +16780,17 @@ try {
               ]
             },
             description: "If `none`, do not process tables in HTML input."
+          },
+          {
+            name: "use-rsvg-convert",
+            schema: "boolean",
+            default: true,
+            tags: {
+              formats: [
+                "$pdf-all"
+              ]
+            },
+            description: "If `true`, attempt to use `rsvg-convert` to convert SVG images to PDF."
           }
         ],
         "schema/document-reveal-content.yml": [
@@ -19567,6 +19708,12 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The position of the announcement.",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19627,6 +19774,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19642,6 +19791,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19668,6 +19819,11 @@ try {
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
           "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book title",
           "Description metadata for HTML version of book",
           "The path to the favicon for this website",
@@ -19702,6 +19858,12 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The position of the announcement.",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -19762,6 +19924,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19777,6 +19941,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -19803,6 +19969,11 @@ try {
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
           "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -20543,6 +20714,14 @@ try {
           },
           {
             short: "Context to execute cell within.",
+            long: ""
+          },
+          {
+            short: "The type of dashboard element being produced by this code cell.",
+            long: ""
+          },
+          {
+            short: "For code cells that produce a valuebox, the color of the\nvaluebox.s",
             long: ""
           },
           {
@@ -21335,7 +21514,7 @@ try {
           "The base url for s5 presentations.",
           "The base url for Slidy presentations.",
           "The base url for Slideous presentations.",
-          "Enable or disable lightbox treatment for images in this document.",
+          'Enable or disable lightbox treatment for images in this document. See\n<a href="https://quarto.org/docs/output-formats/html-lightbox-figures.html">Lightbox\nFigures</a> for more details.',
           {
             short: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment.",
             long: "Set this to <code>auto</code> if you\u2019d like any image to be given\nlightbox treatment. If you omit this, only images with the class\n<code>lightbox</code> will be given the lightbox treatment."
@@ -21446,6 +21625,7 @@ try {
           "The light theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
           "The dark theme name, theme scss file, or a mix of both.",
+          "Classes to apply to the body of the document.",
           "Disables the built in html features like theming, anchor sections,\ncode block behavior, and more.",
           "Enables inclusion of Pandoc default CSS for this document.",
           "One or more CSS style sheets.",
@@ -21488,7 +21668,6 @@ try {
           "The section number in man pages.",
           "Enable and disable extensions for markdown output (e.g.&nbsp;\u201C+emoji\u201D)",
           "Specify whether to use <code>atx</code> (<code>#</code>-prefixed) or\n<code>setext</code> (underlined) headings for level 1 and 2 headings\n(<code>atx</code> or <code>setext</code>).",
-          "Preserve the original YAML front matter in rendered markdown",
           {
             short: "Determines which ipynb cell output formats are rendered\n(<code>none</code>, <code>all</code>, or <code>best</code>).",
             long: "Determines which ipynb cell output formats are rendered."
@@ -21593,6 +21772,7 @@ try {
             long: "Specify the default dpi (dots per inch) value for conversion from\npixels to inch/ centimeters and vice versa. (Technically, the correct\nterm would be ppi: pixels per inch.) The default is <code>96</code>.\nWhen images contain information about dpi internally, the encoded value\nis used instead of the default specified by this option."
           },
           "If <code>none</code>, do not process tables in HTML input.",
+          "If <code>true</code>, attempt to use <code>rsvg-convert</code> to\nconvert SVG images to PDF.",
           "Logo image (placed in bottom right corner of slides)",
           {
             short: "Footer to include on all slides",
@@ -21876,6 +22056,12 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The position of the announcement.",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -21936,6 +22122,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -21951,6 +22139,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -21977,6 +22167,11 @@ try {
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
           "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22195,6 +22390,12 @@ try {
             short: "The version number of Google Analytics to use.",
             long: "The version number of Google Analytics to use."
           },
+          "Provides an announcement displayed at the top of the page.",
+          "The content of the announcement",
+          "Whether this announcement may be dismissed by the user.",
+          "The icon to display in the annoucement",
+          "The position of the announcement.",
+          "The type of announcement. Affects the appearance of the\nannouncement.",
           {
             short: "Request cookie consent before enabling scripts that set cookies",
             long: 'Quarto includes the ability to request cookie consent before enabling\nscripts that set cookies, using <a href="https://www.cookieconsent.com/">Cookie Consent</a>.\nThe user\u2019s cookie preferences will automatically control Google\nAnalytics (if enabled) and can be used to control custom scripts you add\nas well. For more information see <a href="https://quarto.org/docs/websites/website-tools.html#custom-scripts-and-cookie-consent">Custom\nScripts and Cookie Consent</a>.'
@@ -22255,6 +22456,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22270,6 +22473,8 @@ try {
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
           "Path to a logo image that will be displayed in the sidebar.",
+          "Alternate text for the logo image.",
+          "Target href from navbar logo / title. By default, the logo and title\nlink to the root page of the site (/index.html).",
           "Include a search control in the sidebar.",
           "List of sidebar tools",
           "List of items for the sidebar",
@@ -22296,6 +22501,11 @@ try {
           "Publish twitter card metadata",
           "A list of other links to appear below the TOC.",
           "A list of code links to appear with this document.",
+          "A list of input documents that should be treated as drafts",
+          {
+            short: "How to handle drafts that are encountered.",
+            long: "How to handle drafts that are encountered.\n<code>visible</code> - the draft will visible and fully available\n<code>unlinked</code> - the draft will be rendered, but will not appear\nin navigation, search, or listings. <code>gone</code> - the draft will\nhave no content and will not be linked to (default)."
+          },
           "Book subtitle",
           "Author or authors of the book",
           "Author or authors of the book",
@@ -22691,12 +22901,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180861,
+          _internalId: 181887,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180853,
+              _internalId: 181879,
               type: "enum",
               enum: [
                 "png",
@@ -22712,7 +22922,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180860,
+              _internalId: 181886,
               type: "anyOf",
               anyOf: [
                 {
@@ -33070,7 +33280,7 @@ ${tidyverseInfo(
       if (codeLines.length < 2) {
         return noIntelligence(kind);
       }
-      const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+      const m = codeLines[0].substring.match(/.*{([a-z]+)\s*.*}/);
       if (!m) {
         return noIntelligence(kind);
       }

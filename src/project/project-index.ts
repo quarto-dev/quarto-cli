@@ -8,10 +8,14 @@ import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import * as ld from "../core/lodash.ts";
 
-import { kProjectType, ProjectContext } from "./types.ts";
+import {
+  InputTarget,
+  InputTargetIndex,
+  kProjectType,
+  ProjectContext,
+} from "./types.ts";
 import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";
-import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 
 import {
   dirAndStem,
@@ -37,12 +41,7 @@ import { formatOutputFile } from "../core/render.ts";
 import { projectType } from "./types/project-types.ts";
 import { withRenderServices } from "../command/render/render-services.ts";
 import { RenderServices } from "../command/render/types.ts";
-
-export interface InputTargetIndex extends Metadata {
-  title?: string;
-  markdown: PartitionedMarkdown;
-  formats: Record<string, Format>;
-}
+import { kDraft } from "../format/html/format-html-shared.ts";
 
 export async function inputTargetIndex(
   project: ProjectContext,
@@ -87,7 +86,7 @@ export async function readBaseInputIndex(
   project: ProjectContext,
 ) {
   // check if this can be handled by one of our engines
-  const engine = fileExecutionEngine(inputFile);
+  const engine = await fileExecutionEngine(inputFile, undefined, project);
   if (engine === undefined) {
     return Promise.resolve(undefined);
   }
@@ -107,10 +106,24 @@ export async function readBaseInputIndex(
         | undefined,
     markdown,
     formats,
+    draft: (firstFormat?.metadata?.[kDraft] || markdown.yaml?.[kDraft]) as
+      | boolean
+      | undefined,
   };
 
   // if we got a title, make sure it doesn't carry attributes
   if (index.title) {
+    // locally guard against a badly-formed title.
+    // See https://github.com/quarto-dev/quarto-cli/issues/8594 for why
+    // we can't do a proper fix at this time
+    if (typeof index.title !== "string") {
+      throw new Error(
+        `${
+          relative(project.dir, inputFile)
+        }: Title must be a string, but is instead of type ${typeof index
+          .title}`,
+      );
+    }
     const parsedTitle = parsePandocTitle(index.title);
     index.title = parsedTitle.heading;
   } else {
@@ -250,7 +263,7 @@ export async function resolveInputTarget(
   project: ProjectContext,
   href: string,
   absolute = true,
-) {
+): Promise<InputTarget | undefined> {
   const index = await inputTargetIndex(project, href);
   if (index) {
     const formats = formatsPreferHtml(index.formats) as Record<string, Format>;
@@ -268,7 +281,17 @@ export async function resolveInputTarget(
     const outputHref = pathWithForwardSlashes(
       (absolute ? "/" : "") + join(hrefDir, outputFile),
     );
-    return { title: index.title, outputHref };
+    const inputTarget = {
+      input: href,
+      title: index.title,
+      outputHref,
+      draft: index.draft === true,
+    };
+    if (projType.filterInputTarget) {
+      return projType.filterInputTarget(inputTarget, project);
+    } else {
+      return inputTarget;
+    }
   } else {
     return undefined;
   }
@@ -321,9 +344,25 @@ export async function inputTargetIndexForOutputFile(
   if (!input) {
     return undefined;
   }
+
   return await inputTargetIndex(
     project,
     relative(project.dir, input.file),
+  );
+}
+
+export async function resolveInputTargetForOutputFile(
+  project: ProjectContext,
+  outputRelative: string,
+) {
+  const input = await inputFileForOutputFile(project, outputRelative);
+  if (!input) {
+    return undefined;
+  }
+
+  return await resolveInputTarget(
+    project,
+    pathWithForwardSlashes(relative(project.dir, input.file)),
   );
 }
 
