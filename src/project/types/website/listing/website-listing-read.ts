@@ -1003,6 +1003,13 @@ async function listItemFromMeta(
           ...(fileListing.item || {}),
           ...listingItem,
         };
+        // If the file itself provides a path (e.g. it is an input with an
+        // output path), that should be used rather than the path in the metadata
+        // which was literally just used to get the path to the file that
+        // we're now reading.
+        if (fileListing.item.path) {
+          listingItem.path = fileListing.item.path;
+        }
         source = ListingItemSource.metadataDocument;
       }
     }
