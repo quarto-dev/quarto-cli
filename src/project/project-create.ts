@@ -137,11 +137,12 @@ export async function projectCreate(options: ProjectCreateOptions) {
         dest = join(options.dir, supporting.to);
         displayName = supporting.to;
       }
-
-      ensureDirSync(dirname(dest));
-      copyTo(src, dest);
-      if (!options.quiet) {
-        info("- Created " + displayName, { indent: 2 });
+      if (!existsSync(dest)) {
+        ensureDirSync(dirname(dest));
+        copyTo(src, dest);
+        if (!options.quiet) {
+          info("- Created " + displayName, { indent: 2 });
+        }
       }
     }
   }
