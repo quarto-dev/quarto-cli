@@ -153,10 +153,19 @@ export async function projectContext(
           projectConfig,
           dir,
         );
+
+        // resolve includes
+        const configSchema = await getProjectConfigSchema();
+        const includedMeta = await includedMetadata(
+          dir,
+          projectConfig,
+          configSchema,
+        );
+        const metadata = includedMeta.metadata;
+        projectConfig = mergeProjectMetadata(projectConfig, metadata);
       }
 
       // collect then merge configuration profiles
-      const configSchema = await getProjectConfigSchema();
       const result = await initializeProfileConfig(
         dir,
         projectConfig,
