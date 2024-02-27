@@ -9,6 +9,7 @@
 - ([#8854](https://github.com/quarto-dev/quarto-cli/issues/8854)): Don't allow margin footnotes to break `hover-citations`
 - ([#8858](https://github.com/quarto-dev/quarto-cli/issues/8858)): Fix issue rendering markdown in bread-crumbs
 - ([#8843](https://github.com/quarto-dev/quarto-cli/issues/8843)): Fix issue in books when some R code cells emits LaTeX dependencies to be included in the LaTeX preamble.
+- ([#8857](https://github.com/quarto-dev/quarto-cli/issues/8857)): Fix issue with `format: dashboard` using Plotly in Jupyter on Windows.
 
 ## Fixed in previous releases
 
