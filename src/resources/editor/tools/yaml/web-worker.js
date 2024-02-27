@@ -16086,6 +16086,23 @@ try {
             }
           },
           {
+            name: "pdf-engine-opts",
+            tags: {
+              formats: [
+                "$pdf-all",
+                "ms",
+                "context"
+              ]
+            },
+            schema: {
+              arrayOf: "string"
+            },
+            description: {
+              short: "Pass multiple command-line arguments to the `pdf-engine`.",
+              long: "Use the given strings passed as a array as command-line arguments to the pdf-engine.\nThis is an alternative to `pdf-engine-opt` for passing multiple options.\n"
+            }
+          },
+          {
             name: "beamerarticle",
             schema: "boolean",
             tags: {
@@ -22676,7 +22693,11 @@ try {
           },
           "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
           "Manuscript configuration",
-          "internal-schema-hack"
+          "internal-schema-hack",
+          {
+            short: "Pass multiple command-line arguments to the\n<code>pdf-engine</code>.",
+            long: "Use the given strings passed as a array as command-line arguments to\nthe pdf-engine. This is an alternative to <code>pdf-engine-opt</code>\nfor passing multiple options."
+          }
         ],
         "schema/external-schemas.yml": [
           {
@@ -22905,12 +22926,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 177508,
+          _internalId: 181894,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 177500,
+              _internalId: 181886,
               type: "enum",
               enum: [
                 "png",
@@ -22926,7 +22947,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 177507,
+              _internalId: 181893,
               type: "anyOf",
               anyOf: [
                 {
