@@ -333,7 +333,7 @@ async function getJuliaServerConnection(
       "TODOsomesecret",
       options,
     ) as Promise<boolean>;
-    const timeoutMilliseconds = 5000;
+    const timeoutMilliseconds = 3000;
     const timeout = new Promise((_, reject) =>
       setTimeout(() => {
         trace(options, `Timed out after ${timeoutMilliseconds} milliseconds.`);
