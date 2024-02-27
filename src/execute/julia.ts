@@ -65,7 +65,9 @@ export const juliaEngine: ExecutionEngine = {
   claimsFile: (file: string, ext: string) => false,
 
   claimsLanguage: (language: string) => {
-    return language.toLowerCase() === "julia";
+    // we don't claim `julia` so the old behavior of using the jupyter
+    // backend by default stays intact
+    return false; // language.toLowerCase() === "julia";
   },
 
   partitionedMarkdown: async (file: string) => {
