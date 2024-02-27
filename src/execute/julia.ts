@@ -332,8 +332,7 @@ async function getJuliaServerConnection(
     const timeoutMilliseconds = 3000;
     const timeout = new Promise((_, reject) =>
       setTimeout(() => {
-        trace(options, `Timed out after ${timeoutMilliseconds} milliseconds.`);
-        reject("Timeout");
+        reject(`Timed out after ${timeoutMilliseconds} milliseconds.`);
       }, timeoutMilliseconds)
     );
     const result = await Promise.race([isready, timeout]);
