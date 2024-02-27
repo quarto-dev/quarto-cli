@@ -56,7 +56,7 @@ $Env:QUARTO_DEBUG = "true"
 # Preparing running Deno with default arguments
 
 $QUARTO_IMPORT_ARGMAP="--importmap=$(Join-Path $QUARTO_SRC_DIR "dev_import_map.json")"
-$QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check"
+$QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --check"
 
 # Parsing argument passed to the script
 

@@ -1,6 +1,6 @@
 export {
-  decode as base64Decode,
-  encode as base64Encode,
+  decodeBase64 as base64Decode,
+  encodeBase64 as base64Encode,
 } from "https://deno.land/std@0.93.0/encoding/base64.ts";
 export { concat as concatUint8Array } from "https://deno.land/std@0.93.0/bytes/mod.ts";
 export {

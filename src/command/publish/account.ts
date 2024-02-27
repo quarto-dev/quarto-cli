@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import { Checkbox, prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 
 import {

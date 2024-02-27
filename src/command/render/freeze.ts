@@ -11,7 +11,7 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
+} from "../../deno_ral/path.ts";
 import { ensureDirSync, EOL, existsSync, format, LF } from "fs/mod.ts";
 
 import { cloneDeep } from "../../core/lodash.ts";
@@ -37,7 +37,7 @@ import { ExecuteResult } from "../../execute/types.ts";
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { copyMinimal, copyTo } from "../../core/copy.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 export const kProjectFreezeDir = "_freeze";
 export const kOldFreezeExecuteResults = "execute";

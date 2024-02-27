@@ -8,7 +8,7 @@
 import { existsSync } from "fs/mod.ts";
 import { TestContext, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { testProjectRender } from "../project/common.ts";
 import { fileExists, validJsonWithFields } from "../../verify.ts";
 import { testRender } from "./render.ts";

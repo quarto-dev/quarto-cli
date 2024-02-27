@@ -45,4 +45,4 @@ if [[ ${return_code} -ne 0 ]]; then
 else
   rm -rf vendor-${today}
 fi
-$DENO_BIN_PATH run --no-config --unstable --allow-all --importmap=$QUARTO_SRC_PATH/import_map.json $QUARTO_PACKAGE_PATH/src/common/create-dev-import-map.ts
+$DENO_BIN_PATH run --no-config --unstable-ffi --allow-all --importmap=$QUARTO_SRC_PATH/import_map.json $QUARTO_PACKAGE_PATH/src/common/create-dev-import-map.ts

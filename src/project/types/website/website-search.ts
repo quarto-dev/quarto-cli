@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "../../../deno_ral/path.ts";
 
 // currently not building the index here so not using fuse
 // @ deno-types="fuse/dist/fuse.d.ts"
@@ -48,7 +48,7 @@ import {
 } from "./website-config.ts";
 import { sassLayer } from "../../../core/sass.ts";
 import { TempContext } from "../../../core/temp.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../../deno_ral/log.ts";
 import {
   cookieConsentEnabled,
   scriptTagWithConsent,

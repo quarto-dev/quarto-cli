@@ -4,10 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join, relative } from "path/mod.ts";
+import { isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 import { ProjectContext } from "../../types.ts";
 import { existsSync } from "fs/mod.ts";
-import { isAbsolute } from "path/mod.ts";
 import {
   ManuscriptConfig,
   ResolvedManuscriptConfig,

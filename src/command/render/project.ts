@@ -5,8 +5,8 @@
  */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 
 import * as colors from "fmt/colors.ts";
 

@@ -11,7 +11,7 @@ import {
 } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { formatResourcePath } from "../resources.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import {
   isIpynbOutput,
   isJavascriptCompatible,
@@ -39,7 +39,7 @@ import { convertFromYaml } from "../lib/yaml-schema/from-yaml.ts";
 import { readYamlFromString } from "../yaml.ts";
 import { pandocHtmlBlock, pandocRawStr } from "../pandoc/codegen.ts";
 import { LocalizedError } from "../lib/located-error.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { FormatDependency } from "../../config/types.ts";
 import { mappedDiff } from "../mapped-text.ts";
 import { escape } from "../../core/lodash.ts";

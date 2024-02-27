@@ -9,7 +9,7 @@ import { Checkbox } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import { removeExtension } from "../../extension/remove.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { extensionIdString } from "../../extension/extension-shared.ts";

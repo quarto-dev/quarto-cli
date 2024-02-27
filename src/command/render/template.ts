@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { basename, isAbsolute, join } from "path/mod.ts";
+import { basename, isAbsolute, join } from "../../deno_ral/path.ts";
 import {
   kEmbedResources,
   kHtmlMathMethod,

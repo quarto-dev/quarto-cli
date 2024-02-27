@@ -10,9 +10,9 @@
 // TODO: Configuration could be initialized with working dir and scripts dir so sub tasks can just use that directory (and have it cleaned up automatically)
 // TODO: Bundle and package Identifier - same or different?
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { error, info, warning } from "log/mod.ts";
+import { error, info, warning } from "../../../src/deno_ral/log.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";

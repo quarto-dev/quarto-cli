@@ -6,17 +6,17 @@
 */
 import { existsSync } from "fs/mod.ts";
 import { fail } from "testing/asserts.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
 import { cleanupLogger, initializeLogger, logError } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
-import { join } from "path/mod.ts";
+import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
-import { relative } from "path/mod.ts";
+import { rel"../src/deno_ral/path.ts"m "path/mod.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
-import { fromFileUrl } from "path/mod.ts";
+i"../src/deno_ral/path.ts"mFileUrl } from "path/mod.ts";
 
 export interface TestDescriptor {
   // The name of the test

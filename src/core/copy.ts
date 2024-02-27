@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, dirname, join, relative, resolve } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  join,
+  relative,
+  resolve,
+} from "../deno_ral/path.ts";
 
 import { CopyOptions, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { getFileInfoType } from "fs/_get_file_info_type.ts";

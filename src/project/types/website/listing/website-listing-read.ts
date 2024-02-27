@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { debug, warning } from "log/mod.ts";
+import { debug, warning } from "../../../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -13,7 +13,7 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
+} from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 

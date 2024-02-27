@@ -5,14 +5,14 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
 
 import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 import { buildAssets } from "../../../src/command/build-js/cmd.ts";
 import { initTreeSitter } from "../../../src/core/schema/deno-init-tree-sitter.ts";
 import {

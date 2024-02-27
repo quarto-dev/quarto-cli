@@ -11,7 +11,7 @@ import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
 import { isFileRef } from "./http.ts";
 import { cssFileRefs } from "./css.ts";
 import { HtmlPostProcessResult } from "../command/render/types.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 
 export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);

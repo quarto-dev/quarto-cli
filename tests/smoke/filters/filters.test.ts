@@ -1,7 +1,7 @@
 import { ensureHtmlElements } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { docs, outputForInput } from "../../utils.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 const verifySmallCaps = ["main.content span.smallcaps"];
 const verifyBehead = ["main.content em"];

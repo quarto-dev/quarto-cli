@@ -5,7 +5,7 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../../../src/deno_ral/path.ts";
 
 import { outputForInput } from "../../utils.ts";
 import { TestContext, testQuartoCmd, Verify } from "../../test.ts";

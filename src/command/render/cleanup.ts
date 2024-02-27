@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, extname, isAbsolute, join } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 

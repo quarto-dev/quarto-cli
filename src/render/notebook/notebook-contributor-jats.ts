@@ -35,7 +35,7 @@ import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 
 export const jatsContributor: NotebookContributor = {

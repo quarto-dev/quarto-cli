@@ -6,7 +6,7 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
 import {
@@ -16,7 +16,13 @@ import {
 } from "../project/types.ts";
 import { isSubdir } from "fs/_is_subdir.ts";
 
-import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+} from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import { kSkipHidden, normalizePath, resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";

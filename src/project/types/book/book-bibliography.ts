@@ -4,12 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../../core/lodash.ts";
 import { stringify } from "yaml/mod.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../../deno_ral/log.ts";
 
 import {
   Document,

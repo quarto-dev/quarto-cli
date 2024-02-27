@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "../../../deno_ral/path.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
 

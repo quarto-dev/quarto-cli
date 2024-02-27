@@ -5,7 +5,7 @@
  */
 
 import * as colors from "fmt/colors.ts";
-import { dirname, fromFileUrl, relative, resolve } from "path/mod.ts";
+import { dirname, fromFileUrl, relative, resolve } from "../../deno_ral/path.ts";
 import { encodeBase64 } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
@@ -24,7 +24,7 @@ import {
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 import { getNamedLifetime } from "../../core/lifetimes.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
 import { InternalError } from "../../core/lib/error.ts";

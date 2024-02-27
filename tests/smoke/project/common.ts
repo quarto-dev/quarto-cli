@@ -5,7 +5,7 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
-import { join, dirname } from "path/mod.ts";
+import { join, dirname } from "../../../src/deno_ral/path.ts";
 import { Verify, testQuartoCmd } from "../../test.ts";
 import { outputForInput } from "../../utils.ts";
 import { fileExists, noErrorsOrWarnings, noSupportingFiles } from "../../verify.ts";

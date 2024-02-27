@@ -5,7 +5,7 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import { inputFilesDir } from "../../core/render.ts";

@@ -14,7 +14,7 @@ import {
 import { fixupCssReferences } from "../../project-resources.ts";
 import { ProjectContext } from "../../types.ts";
 import { projectOffset } from "../../project-shared.ts";
-import { join, relative } from "path/mod.ts";
+import { join, relative } from "../../../deno_ral/path.ts";
 import { inputFileHref } from "./website-shared.ts";
 import { websitePath } from "./website-config.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";

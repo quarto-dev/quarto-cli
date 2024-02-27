@@ -5,9 +5,9 @@
  */
 
 import { ensureDirSync } from "fs/mod.ts";
-import { dirname } from "path/mod.ts";
+import { dirname } from "../deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
-import * as log from "log/mod.ts";
+import * as log from "../deno_ral/log.ts";
 import { LogRecord } from "log/logger.ts";
 import { BaseHandler } from "log/base_handler.ts";
 import { FileHandler } from "log/file_handler.ts";
@@ -16,11 +16,11 @@ import { Command } from "cliffy/command/mod.ts";
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
-import { debug, error, getLogger, setup, warning } from "log/mod.ts";
+import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
 import { onCleanup } from "./cleanup.ts";
 
-export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 export interface LogOptions {
   log?: string;
@@ -118,7 +118,7 @@ export class StdErrOutputHandler extends BaseHandler {
 
     let msg = super.format(logRecord);
 
-    if (prefix && (logRecord.level >= log.LogLevels.WARNING)) {
+    if (prefix && (logRecord.level >= log.LogLevels.WARN)) {
       msg = `${logRecord.levelName}: ${msg}`;
     }
 
@@ -128,7 +128,7 @@ export class StdErrOutputHandler extends BaseHandler {
       case log.LogLevels.DEBUG:
         msg = applyMsgOptions(msg, options);
         break;
-      case log.LogLevels.WARNING:
+      case log.LogLevels.WARN:
         if (options.colorize) {
           msg = colors.yellow(msg);
         }
@@ -164,7 +164,7 @@ export class StdErrOutputHandler extends BaseHandler {
 export class LogEventsHandler extends StdErrOutputHandler {
   constructor(levelName: log.LevelName) {
     super(levelName, {
-      formatter: "{msg}",
+      formatter: (({ msg }) => `${msg}`),
     });
   }
   handle(logRecord: LogRecord) {
@@ -214,7 +214,7 @@ export class LogFileHandler extends FileHandler {
       }
 
       // Error formatting
-      if (logRecord.level >= log.LogLevels.WARNING) {
+      if (logRecord.level >= log.LogLevels.WARN) {
         return `(${logRecord.levelName}) ${msg}`;
       } else {
         return msg;
@@ -267,7 +267,7 @@ export async function initializeLogger(logOptions: LogOptions) {
     handlers["console"] = new StdErrOutputHandler(
       logLevel(),
       {
-        formatter: "{msg}",
+        formatter: (({ msg }) => `${msg}`),
       },
     );
     defaultHandlers.push("console");
@@ -415,7 +415,7 @@ function parseLevel(
   if (lvl) {
     return lvl;
   } else {
-    return "WARNING";
+    return "WARN";
   }
 }
 const levelMap: Record<
@@ -424,6 +424,6 @@ const levelMap: Record<
 > = {
   debug: "DEBUG",
   info: "INFO",
-  warning: "WARNING",
+  warning: "WARN",
   error: "ERROR",
 };

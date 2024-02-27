@@ -5,7 +5,7 @@
  *
  */
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 
 import { resourcePath } from "../../core/resources.ts";
 import { kJupyterEngine } from "../../execute/types.ts";

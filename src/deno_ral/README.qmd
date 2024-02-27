@@ -1,0 +1,4 @@
+## A runtime abstraction layer for Deno
+
+Deno's stdlib changes too much and too fast.
+`src/deno_ral` is a centralized entry point for their stdlib, so that we're minimally affected by their changes.

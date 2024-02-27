@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { error, info } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
+import { join } from "../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { md5Hash } from "./hash.ts";

@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  relative,
+} from "../../deno_ral/path.ts";
 
 import {
   kDisplayName,
@@ -25,8 +31,6 @@ import {
   isPresentationOutput,
   isTypstOutput,
 } from "../../config/format.ts";
-import { basename } from "path/mod.ts";
-import { extname } from "path/mod.ts";
 
 export interface AlternateLink {
   title: string;

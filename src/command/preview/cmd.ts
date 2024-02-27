@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -44,7 +44,7 @@ import { renderServices } from "../render/render-services.ts";
 import { parseFormatString } from "../../core/pandoc/pandoc-formats.ts";
 import { normalizePath } from "../../core/path.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { renderFormats } from "../render/render-contexts.ts";
 import { Format } from "../../config/types.ts";
 import { isServerShiny, isServerShinyPython } from "../../core/render.ts";

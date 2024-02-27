@@ -1,5 +1,5 @@
 import { existsSync, ensureDirSync } from "https://deno.land/std/fs/mod.ts";
-import { join } from "https://deno.land/std/path/mod.ts";
+import { join } from "https://deno.land/std/"../../../../../src/deno_ral/path.ts"";
 
 const kNewFiles = [{file: "test1.qmd", title: "First Doc"}, {file: "test2.qmd", title: "Second Doc"}];
 

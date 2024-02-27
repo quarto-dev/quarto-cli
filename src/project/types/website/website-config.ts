@@ -45,7 +45,7 @@ import {
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 type WebsiteConfigKey =
   | "title"

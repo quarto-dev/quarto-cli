@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { debug, warning } from "log/mod.ts";
+import { debug, warning } from "../deno_ral/log.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../deno_ral/path.ts";
 import { warnOnce } from "./log.ts";
 import { safeExistsSync, which } from "./path.ts";
 import { quartoConfig } from "./quarto.ts";

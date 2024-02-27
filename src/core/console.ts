@@ -7,7 +7,7 @@
 import { ansi } from "cliffy/ansi/mod.ts";
 import { writeAllSync } from "io/write_all.ts";
 import { readAllSync } from "io/read_all.ts";
-import { info } from "log/mod.ts";
+import { info } from "../deno_ral/log.ts";
 import { runningInCI } from "./ci-info.ts";
 import { SpinnerOptions } from "./console-types.ts";
 

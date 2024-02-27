@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kDateFormat, kTocLocation } from "../../config/constants.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Document } from "../../core/deno-dom.ts";

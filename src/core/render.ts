@@ -8,7 +8,7 @@ import { kOutputExt, kOutputFile, kServer } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 import { dirAndStem } from "./path.ts";
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 
 export function inputFilesDir(input: string) {
   const [_, stem] = dirAndStem(input);

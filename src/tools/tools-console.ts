@@ -6,7 +6,7 @@
 import * as colors from "fmt/colors.ts";
 import { Confirm, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { info, warning } from "../deno_ral/log.ts";
 
 import {
   allTools,

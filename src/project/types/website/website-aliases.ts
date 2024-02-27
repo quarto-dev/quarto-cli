@@ -1,11 +1,10 @@
 /*
-* website-aliases.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-aliases.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../../deno_ral/path.ts";
 
 import { ProjectOutputFile } from "../types.ts";
 
@@ -14,7 +13,7 @@ import { projectOutputDir } from "../../project-shared.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../../deno_ral/log.ts";
 
 const kAliases = "aliases";
 

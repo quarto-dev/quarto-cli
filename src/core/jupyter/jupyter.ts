@@ -7,7 +7,7 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 import { walkSync } from "fs/walk.ts";
 import * as colors from "fmt/colors.ts";
 import { decodeBase64 as base64decode } from "encoding/base64.ts";

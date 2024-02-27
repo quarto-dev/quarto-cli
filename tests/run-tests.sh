@@ -23,7 +23,7 @@ export QUARTO_BIN_PATH=$DENO_DIR
 export QUARTO_SHARE_PATH="`cd "$QUARTO_ROOT/src/resources/";pwd`"
 export QUARTO_DEBUG=true
 
-QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check"
+QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --check"
 
 
 if [[ -z $GITHUB_ACTION ]] && [[ -z $QUARTO_TESTS_NO_CONFIG ]]
@@ -53,7 +53,7 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
     QUARTO_TEST_TIMING="timing.txt"
   fi
   echo "> Running tests with timing and writing to ${QUARTO_TEST_TIMING}"
-  QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
+  QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
   rm -f $QUARTO_TEST_TIMING
   FILES=$@
   if [ "$FILES" == "" ]; then
@@ -147,7 +147,7 @@ if [[ $@ == *"--coverage"* ]]; then
   [[ $@ =~ .*--coverage=(.+) ]] && export COV="${BASH_REMATCH[1]}"
 
   echo Generating coverage report...
-  ${DENO_DIR}/deno coverage --unstable ${COV} --lcov > ${COV}.lcov
+  ${DENO_DIR}/deno coverage --unstable-ffi ${COV} --lcov > ${COV}.lcov
   genhtml -o ${COV}/html ${COV}.lcov
   open ${COV}/html/index.html
 fi

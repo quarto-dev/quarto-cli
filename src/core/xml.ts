@@ -8,7 +8,7 @@
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 
 const kXmlLint = "xmllint";
 
