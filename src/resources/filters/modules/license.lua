@@ -6,7 +6,7 @@
 -- restructured into the standard license
 -- format
 
-local constants = require("./constants")
+local constants = require("modules/constants")
 
 local function ccLicenseUrl(type, lang, version) 
   local langStr = 'en'

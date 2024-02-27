@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { dirname } from "path/mod.ts";
+import { basename, dirname } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { isWindows } from "./platform.ts";
 import { execProcess } from "./process.ts";
@@ -16,22 +16,30 @@ export function unzip(file: string) {
   if (file.endsWith("zip")) {
     // It's a zip file
     if (isWindows()) {
-      const args = [
-        "-Command",
-        `"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('${file}', '${dir}'); }"`,
-      ];
-      return safeWindowsExec(
-        "powershell",
-        args,
-        (cmd: string[]) => {
-          return execProcess(
-            {
-              cmd: cmd,
-              stdout: "piped",
-            },
-          );
-        },
-      );
+      const filename = basename(file);
+      const current = Deno.cwd();
+      try {
+        Deno.chdir(dir);
+        const args = [
+          "-Command",
+          `"& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('${filename}', '.'); }"`,
+        ];
+
+        return safeWindowsExec(
+          "powershell",
+          args,
+          (cmd: string[]) => {
+            return execProcess(
+              {
+                cmd: cmd,
+                stdout: "piped",
+              },
+            );
+          },
+        );
+      } finally {
+        Deno.chdir(current);
+      }
     } else {
       // Use the built in unzip command
       return execProcess(
