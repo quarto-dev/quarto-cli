@@ -310,27 +310,43 @@ async function pollTransportFile(): Promise<JuliaTransportFile> {
   return Promise.reject();
 }
 
-async function establishServerConnection(
-  port: number,
-): Promise<Deno.TcpConn> {
-  // Because the transport file is written after the server goes live,
-  // the connection should succeed immediately.
-  return await Deno.connect({
-    port: port,
-  });
-}
-
 async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
 ): Promise<Deno.TcpConn> {
   const { reused } = await startOrReuseJuliaServer(options);
   const transportOptions = await pollTransportFile();
+
   trace(
     options,
     `Connecting to server at port ${transportOptions.port}, pid ${transportOptions.pid}`,
   );
+
   try {
-    return await establishServerConnection(transportOptions.port);
+    const conn = await Deno.connect({
+      port: transportOptions.port,
+    });
+    const isready = writeJuliaCommand(
+      conn,
+      "isready",
+      "TODOsomesecret",
+      options,
+    ) as Promise<boolean>;
+    const timeoutMilliseconds = 5000;
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => {
+        trace(options, `Timed out after ${timeoutMilliseconds} milliseconds.`);
+        reject("Timeout");
+      }, timeoutMilliseconds)
+    );
+    const result = await Promise.race([isready, timeout]);
+    if (result !== true) {
+      error(
+        `Expected isready command to return true, returned ${isready} instead. Closing connection.`,
+      );
+      conn.close();
+      return Promise.reject();
+    }
+    return conn;
   } catch {
     if (reused) {
       trace(
@@ -353,7 +369,15 @@ async function executeJulia(
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options);
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
-    await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+    const isopen = await writeJuliaCommand(
+      conn,
+      "isopen",
+      "TODOsomesecret",
+      options,
+    ) as boolean;
+    if (isopen) {
+      await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+    }
   }
   const response = await writeJuliaCommand(
     conn,
@@ -370,7 +394,7 @@ async function executeJulia(
 
 async function writeJuliaCommand(
   conn: Deno.Conn,
-  command: "run" | "close" | "stop",
+  command: "run" | "close" | "stop" | "isready" | "isopen",
   secret: string,
   options: JuliaExecuteOptions,
 ) {
