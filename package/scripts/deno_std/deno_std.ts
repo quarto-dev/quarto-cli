@@ -31,7 +31,7 @@ import * as http from "https://deno.land/std@0.159.0/http/mod.ts";
 import * as io from "https://deno.land/std@0.159.0/io/mod.ts";
 import * as log from "https://deno.land/std@0.159.0/log/mod.ts";
 import * as media_types from "https://deno.land/std@0.159.0/media_types/mod.ts";
-import * as path from "https://deno.land/std@0.159.0/"../../../src/deno_ral/path.ts"";
+import * as path from "https://deno.land/std@0.159.0/path/mod.ts";
 import * as permissions from "https://deno.land/std@0.159.0/permissions/mod.ts";
 import * as signal from "https://deno.land/std@0.159.0/signal/mod.ts";
 import * as streams from "https://deno.land/std@0.159.0/streams/mod.ts";

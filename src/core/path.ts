@@ -14,10 +14,8 @@ import {
   normalize,
 } from "../deno_ral/path.ts";
 
-import {
-  globToRegExp,
-  isGlob,
-} from "https://deno.land/std@0.204.0/path/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
+import { isGlob } from "path/mod.ts";
 
 import { warning } from "../deno_ral/log.ts";
 

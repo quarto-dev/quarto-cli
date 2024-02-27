@@ -52,10 +52,13 @@
     "https://deno.land/std@0.161.0/": "https://deno.land/std@0.217.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.217.0/",
     "https://deno.land/std@0.105.0/": "https://deno.land/std@0.217.0/",
+    "https://deno.land/std@0.93.0/encoding/base64.ts": "https://deno.land/std@0.196.0/encoding/base64.ts",
+    "https://deno.land/std@0.93.0/path/mod.ts": "https://deno.land/std@0.204.0/path/mod.ts",
     "https://deno.land/std@0.93.0/": "https://deno.land/std@0.217.0/",
 
     "https://deno.land/std@0.91.0/path/": "https://deno.land/std@0.217.0/path/",
-    "https://deno.land/std@0.91.0/fs/": "https://deno.land/std@0.217.0/fs/",
+    "https://deno.land/std@0.91.0/fs/exists.ts": "https://deno.land/std@0.217.0/fs/exists.ts",
+    "https://deno.land/std@0.91.0/fs/ensure_dir.ts": "https://deno.land/std@0.217.0/fs/ensure_dir.ts",
 
     "https://deno.land/std@0.91.0/hash/": "./resources/vendor/deno-land/std@0-91-0/hash/",
     "https://deno.land/x/cache@0.2.12/": "./resources/vendor/deno-land/x/cache@0-2-12/",

@@ -1,5 +1,5 @@
-import { expandGlobSync } from "https://deno.land/std/fs/expand_glob.ts";
-import { basename, relative } from "https://deno.land/std/"../src/deno_ral/path.ts"";
+import { expandGlobSync } from "https://deno.land/std/fs/mod.ts";
+import { basename, relative } from "https://deno.land/std/path/mod.ts";
 import { parse } from "https://deno.land/std/flags/mod.ts";
 
 // Command line flags to use when calling `run-paralell-tests.sh`.

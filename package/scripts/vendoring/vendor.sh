@@ -34,7 +34,7 @@ pushd ${QUARTO_SRC_PATH}
 today=`date +%Y-%m-%d`
 mv vendor vendor-${today}
 set +e
-$DENO_BIN_PATH vendor --no-config quarto.ts $QUARTO_ROOT/tests/test-deps.ts $QUARTO_ROOT/package/scripts/deno_std/deno_std.ts --importmap=$QUARTO_SRC_PATH/import_map.json
+$DENO_BIN_PATH vendor --no-config quarto.ts $QUARTO_ROOT/src/vendor_deps.ts $QUARTO_ROOT/tests/test-deps.ts $QUARTO_ROOT/package/scripts/deno_std/deno_std.ts --importmap=$QUARTO_SRC_PATH/import_map.json
 return_code="$?"
 set -e
 if [[ ${return_code} -ne 0 ]]; then

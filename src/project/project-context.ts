@@ -5,7 +5,7 @@
  */
 
 import { dirname, isAbsolute, join, relative, SEP } from "../deno_ral/path.ts";
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
@@ -153,10 +153,19 @@ export async function projectContext(
           projectConfig,
           dir,
         );
+
+        // resolve includes
+        const configSchema = await getProjectConfigSchema();
+        const includedMeta = await includedMetadata(
+          dir,
+          projectConfig,
+          configSchema,
+        );
+        const metadata = includedMeta.metadata;
+        projectConfig = mergeProjectMetadata(projectConfig, metadata);
       }
 
       // collect then merge configuration profiles
-      const configSchema = await getProjectConfigSchema();
       const result = await initializeProfileConfig(
         dir,
         projectConfig,

@@ -14,9 +14,8 @@ import { quarto } from "../src/quarto.ts";
 import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
-import { rel"../src/deno_ral/path.ts"m "path/mod.ts";
+import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
-i"../src/deno_ral/path.ts"mFileUrl } from "path/mod.ts";
 
 export interface TestDescriptor {
   // The name of the test

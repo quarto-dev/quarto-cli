@@ -8,6 +8,6 @@ import { extname } from "../deno_ral/path.ts";
 import { kQmdExtensions } from "./types.ts";
 
 export function isQmdFile(file: string) {
-  const ext = extname(file);
+  const ext = extname(file).toLowerCase();
   return kQmdExtensions.includes(ext);
 }
