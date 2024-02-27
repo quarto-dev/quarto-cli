@@ -231,11 +231,7 @@ async function startOrReuseJuliaServer(
   if (!existsSync(transportFile)) {
     trace(
       options,
-      `Transport file ${transportFile} doesn't exist, starting server.`,
-    );
-
-    info(
-      "Initializing julia control server. This might take a while...",
+      `Transport file ${transportFile} doesn't exist, starting server. This might take a while.`,
     );
     await ensureQuartoNotebookRunnerEnvironment(options);
 
