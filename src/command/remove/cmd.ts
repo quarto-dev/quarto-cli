@@ -261,7 +261,7 @@ async function selectExtensions(extensions: Extension[]) {
     }
   });
 
-  const extsToKeep: string[] = await Checkbox.prompt({
+  const extsToKeep: string[] = (await Checkbox.prompt({
     message: "Select extension(s) to keep",
     options: sorted.map((ext) => {
       return {
@@ -275,7 +275,7 @@ async function selectExtensions(extensions: Extension[]) {
     hint:
       `Use the arrow keys and spacebar to specify extensions you'd like to remove.\n` +
       "   Press Enter to confirm the list of accounts you wish to remain available.",
-  });
+  })).map((x) => x.value);
 
   return extensions.filter((extension) => {
     return !extsToKeep.includes(extensionIdString(extension.id));

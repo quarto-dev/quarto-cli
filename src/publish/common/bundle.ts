@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from "path/mod.ts";
-import { copy } from "streams/copy.ts";
+import { copy } from "io/copy.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { Tar } from "archive/tar.ts";

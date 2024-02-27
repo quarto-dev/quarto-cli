@@ -10,11 +10,10 @@ import { ensureDirSync, walkSync } from "fs/mod.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Select } from "cliffy/prompt/select.ts";
-import { Confirm } from "cliffy/prompt/confirm.ts";
 
 import { dirname, join, relative } from "path/mod.ts";
 import { crypto } from "crypto/mod.ts";
-import { encode as hexEncode } from "encoding/hex.ts";
+import { encodeHex } from "encoding/hex.ts";
 
 import { sleep } from "../../core/wait.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
@@ -132,15 +131,14 @@ export async function handlePublish<
   await withSpinner({
     message: `Preparing to publish ${type}`,
   }, async () => {
-    const textDecoder = new TextDecoder();
     let size = 0;
     for (const file of publishFiles.files) {
       const filePath = publishFilePath(file);
       const fileBuffer = Deno.readFileSync(filePath);
       size = size + fileBuffer.byteLength;
       const sha1 = await crypto.subtle.digest("SHA-1", fileBuffer);
-      const encodedSha1 = hexEncode(new Uint8Array(sha1));
-      files.push([file, textDecoder.decode(encodedSha1)]);
+      const encodedSha1 = encodeHex(new Uint8Array(sha1));
+      files.push([file, encodedSha1]);
     }
 
     // create deploy

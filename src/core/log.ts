@@ -9,7 +9,8 @@ import { dirname } from "path/mod.ts";
 import * as colors from "fmt/colors.ts";
 import * as log from "log/mod.ts";
 import { LogRecord } from "log/logger.ts";
-import { BaseHandler, FileHandler } from "log/handlers.ts";
+import { BaseHandler } from "log/base_handler.ts";
+import { FileHandler } from "log/file_handler.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { getenv } from "./env.ts";
@@ -224,13 +225,22 @@ export class LogFileHandler extends FileHandler {
     }
   }
 
-  log(msg: string): void {
+  async log(msg: string) {
     // Ignore any messages that are blank
     if (msg !== "") {
       // Strip any color information that may have been applied
       msg = colors.stripColor(msg);
-      this._buf.writeSync(this._encoder.encode(msg));
-      this._buf.flush();
+      if (!this._file) {
+        throw new Error("Internal error: logging file not open");
+      }
+      let buf = this._encoder.encode(msg);
+      let total = 0;
+      while (total < buf.length) {
+        const offset = this._file.writeSync(buf);
+        total += offset;
+        buf = buf.subarray(offset);
+      }
+      Deno.fsyncSync(this._file.rid);
     }
   }
 }

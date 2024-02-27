@@ -6,7 +6,7 @@
 
 import * as colors from "fmt/colors.ts";
 import { dirname, fromFileUrl, relative, resolve } from "path/mod.ts";
-import { encode as base64Encode } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";
@@ -715,7 +715,7 @@ export async function makeSelfContainedResources(
     content: ArrayBuffer | string,
     mimeType: string,
   ) => {
-    const b64Src = base64Encode(content);
+    const b64Src = encodeBase64(content);
     return `data:${mimeType};base64,${b64Src}`;
   };
 

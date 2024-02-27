@@ -232,9 +232,10 @@ export async function chooseDeployment(
     options,
   });
 
-  if (confirm !== kOther) {
+  if (confirm.value !== kOther) {
     return depoyments.find((deployment) =>
-      publishRecordIdentifier(deployment.target, deployment.account) === confirm
+      publishRecordIdentifier(deployment.target, deployment.account) ===
+        confirm.value
     );
   } else {
     return undefined;
