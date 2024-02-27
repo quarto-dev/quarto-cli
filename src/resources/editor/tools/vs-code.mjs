@@ -21671,6 +21671,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Use the given string as a command-line argument to the\n<code>pdf-engine</code>.",
           long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use <code>pdf-engine-opt: -outdir=foo</code>. Note that no check\nfor duplicate options is done."
         },
+        {
+          short: "Pass multiple command-line arguments to the\n<code>pdf-engine</code>.",
+          long: "Use the given strings passed as a array as command-line arguments to\nthe pdf-engine. This is an alternative to <code>pdf-engine-opt</code>\nfor passing multiple options."
+        },
         "Whether to produce a Beamer article from this presentation.",
         "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
         "The aspect ratio for this presentation.",
@@ -22692,11 +22696,7 @@ var require_yaml_intelligence_resources = __commonJS({
         },
         "Disambiguating year suffix in author-date styles (e.g.&nbsp;\u201Ca\u201D in \u201CDoe,\n1999a\u201D).",
         "Manuscript configuration",
-        "internal-schema-hack",
-        {
-          short: "Pass multiple command-line arguments to the\n<code>pdf-engine</code>.",
-          long: "Use the given strings passed as a array as command-line arguments to\nthe pdf-engine. This is an alternative to <code>pdf-engine-opt</code>\nfor passing multiple options."
-        }
+        "internal-schema-hack"
       ],
       "schema/external-schemas.yml": [
         {
@@ -22925,12 +22925,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 181894,
+        _internalId: 182250,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 181886,
+            _internalId: 182242,
             type: "enum",
             enum: [
               "png",
@@ -22946,7 +22946,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 181893,
+            _internalId: 182249,
             type: "anyOf",
             anyOf: [
               {
