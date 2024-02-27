@@ -278,7 +278,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
   const { success, stderr } = await command.output();
   if (!success) {
     error(
-      `Ensuring an updated julia server environment failed: ${
+      `Ensuring an updated julia server environment failed:\n${
         stderr && new TextDecoder().decode(stderr)
       }`,
     );
