@@ -76,7 +76,7 @@ function code_block(code_block_slot, filename)
       if not lang then
         lang = 'text'
       end
-      local backticks = string.rep("`", max_backticks(el) + 1)
+      local backticks = string.rep("`", math.max(3, max_backticks(el) + 1))
       local code = "\n" .. backticks .. lang
       if codeLineNumbers then
         code = code .. " {" .. codeLineNumbers .. "}"
