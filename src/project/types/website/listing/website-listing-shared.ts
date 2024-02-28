@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../../../deno_ral/path.ts";
 import {
   DOMParser,
   Element,

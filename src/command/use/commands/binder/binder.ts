@@ -10,8 +10,8 @@ import { createTempContext } from "../../../../core/temp.ts";
 import { rBinaryPath, resourcePath } from "../../../../core/resources.ts";
 
 import SemVer from "semver/mod.ts";
-import { extname, join } from "path/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { extname, join } from "../../../../deno_ral/path.ts";
+import { info, warning } from "../../../../deno_ral/log.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import {
   EnvironmentConfiguration,

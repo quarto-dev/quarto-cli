@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join, relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { join, relative } from "../../../../deno_ral/path.ts";
+import { warning } from "../../../../deno_ral/log.ts";
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { uniqBy } from "../../../../core/lodash.ts";

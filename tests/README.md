@@ -197,7 +197,7 @@ Setting up Julia environment
 tinytex is already installed and up to date.
 > Preparing running tests...
 > Activating virtualenv for Python tests
-> Running tests with "C:\Users\chris\Documents\DEV_R\quarto-cli\package\dist\bin\tools\deno.exe test --config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check --importmap=C:\Users\chris\Documents\DEV_R\quarto-cli\src\dev_import_map.json smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd"
+> Running tests with "C:\Users\chris\Documents\DEV_R\quarto-cli\package\dist\bin\tools\deno.exe test --config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --check --importmap=C:\Users\chris\Documents\DEV_R\quarto-cli\src\dev_import_map.json smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd"
 running 1 test from ./smoke/smoke-all.test.ts
 [smoke] > quarto render docs\smoke-all\2023\01\04\issue-3847.qmd --to html ...
 ------- output -------

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, normalize, relative } from "path/mod.ts";
+import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";

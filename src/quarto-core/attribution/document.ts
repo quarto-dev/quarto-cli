@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import {
   kAbstract,
   kAuthor,
@@ -32,7 +38,6 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { basename } from "path/mod.ts";
 import { resolveAndFormatDate } from "../../core/date.ts";
 
 const kDOI = "DOI";

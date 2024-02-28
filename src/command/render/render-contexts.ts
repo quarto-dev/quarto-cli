@@ -13,7 +13,7 @@ import {
   RenderServices,
 } from "./types.ts";
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 import { projectType } from "../../project/types/project-types.ts";

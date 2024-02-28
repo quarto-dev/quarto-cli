@@ -28,12 +28,12 @@ import { NotebookContributor, NotebookMetadata } from "./notebook-types.ts";
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 export const outputNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,

@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/exists.ts";
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 
 import { parse } from "yaml/mod.ts";
 import { lines, matchAll, normalizeNewlines } from "./text.ts";

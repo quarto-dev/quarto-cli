@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join, relative } from "path/mod.ts";
+import { basename, join, relative } from "../../../deno_ral/path.ts";
 import { kOrder } from "../../../config/constants.ts";
 import { asNumber } from "../../../core/cast.ts";
 

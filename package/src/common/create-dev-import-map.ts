@@ -6,7 +6,7 @@
 */
 
 import { mergeImportMaps } from "../../../src/core/deno/import-maps.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 const QUARTO_SRC_PATH = Deno.env.get("QUARTO_SRC_PATH") || ".";
 

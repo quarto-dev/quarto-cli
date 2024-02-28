@@ -5,7 +5,7 @@
 *
 */
 
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 
 export async function handleHttpRequests(
   listener: Deno.Listener,

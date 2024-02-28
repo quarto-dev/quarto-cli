@@ -12,7 +12,7 @@ import {
   join,
   relative,
   SEP_PATTERN,
-} from "path/mod.ts";
+} from "../../deno_ral/path.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";

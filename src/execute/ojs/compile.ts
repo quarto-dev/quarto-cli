@@ -5,8 +5,8 @@
  */
 
 import * as ld from "../../core/lodash.ts";
-import { dirname, join, relative, resolve } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { parseModule } from "observablehq/parser";
 import { escape } from "../../core/lodash.ts";

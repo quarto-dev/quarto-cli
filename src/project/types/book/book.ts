@@ -6,7 +6,7 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 

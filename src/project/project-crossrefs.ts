@@ -1,13 +1,12 @@
 /*
-* project-crossrefs.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * project-crossrefs.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
-import { basename, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, isAbsolute, join, relative } from "../deno_ral/path.ts";
 import {
   kCrossref,
   kCrossrefChapterId,

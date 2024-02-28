@@ -6,8 +6,8 @@
 */
 
 
-import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 import { Configuration } from "../common/config.ts";
 import { execProcess } from "../../../src/core/process.ts";
 

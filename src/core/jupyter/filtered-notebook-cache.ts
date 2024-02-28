@@ -7,7 +7,7 @@
 
 import { existsSync } from "fs/exists.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { quartoCacheDir } from "../appdirs.ts";

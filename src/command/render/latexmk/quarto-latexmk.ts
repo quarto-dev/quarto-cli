@@ -1,4 +1,4 @@
-import { debug } from "log/mod.ts";
+import { debug } from "../../../deno_ral/log.ts";
 import {
   Command,
   CompletionsCommand,

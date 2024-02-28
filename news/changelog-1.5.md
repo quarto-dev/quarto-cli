@@ -7,12 +7,16 @@ All changes included in 1.5:
 - ([#8311](https://github.com/quarto-dev/quarto-cli/issues/8311)): Correct z-order for margins with no contents
 - ([#8862](https://github.com/quarto-dev/quarto-cli/issues/8862)): Properly deal with an `aside` within a definition list.
 
-## PDF Format:
+## PDF Format
 
 - ([#8299](https://github.com/quarto-dev/quarto-cli/issues/8299)): Don't use `rsvg-convert` to convert an SVG to PDF when the PDF is already available; add `use-rsvg-convert` option to control this behavior.
 - ([#8684](https://github.com/quarto-dev/quarto-cli/issues/8684)): Improve detection and automatic installation of locale specific hyphenation files.
 - ([#8711](https://github.com/quarto-dev/quarto-cli/issues/8711)): Enforce rendering of tables as `tabular` environments when custom float environments are present.
 - ([#8841](https://github.com/quarto-dev/quarto-cli/issues/8841)): Do not parse LaTeX table when crossref label doesn't start with `tbl-`.
+
+## RevealJS Format
+
+- ([#8382](https://github.com/quarto-dev/quarto-cli/issues/8382)): Strip whitespace from `div.columns` elements that might have been introduced by third-party processing.
 
 ## Website
 
@@ -46,6 +50,7 @@ All changes included in 1.5:
 - ([#4802](https://github.com/quarto-dev/quarto-cli/issues/4802)): Change name of temporary input notebook to avoid accidental overwriting.
 - ([#8433](https://github.com/quarto-dev/quarto-cli/issues/8433)): Escape jupyter widget states that contain `</script>` so they can be embedded in HTML documents.
 - When searching for kernelspecs that match `python`, prefer one one that matches an active Python venv.
+- ([#8454](https://github.com/quarto-dev/quarto-cli/issues/8454)): Allow Jupyter engine to handle markdown files with mixed-case extensions.
 
 ## Website Listings
 
@@ -101,3 +106,4 @@ All changes included in 1.5:
 - ([#8873](https://github.com/quarto-dev/quarto-cli/issues/8873)): Don't overwrite supporting files when creating a project.
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Specify a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
+- Upgrade Deno to 1.41.0

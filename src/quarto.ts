@@ -14,7 +14,7 @@ import {
 
 import { commands } from "./command/command.ts";
 import { appendLogOptions } from "./core/log.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "./deno_ral/log.ts";
 
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { removeFlags } from "./core/flags.ts";

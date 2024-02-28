@@ -20,7 +20,7 @@ import {
 import { isRStudio, isServerSession } from "../../core/platform.ts";
 import { openUrl } from "../../core/shell.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 

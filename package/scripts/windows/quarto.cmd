@@ -96,7 +96,7 @@ IF NOT DEFINED QUARTO_DENO (
 
 SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
-SET "QUARTO_DENO_OPTIONS=--unstable --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
+SET "QUARTO_DENO_OPTIONS=--unstable-ffi --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
 
 IF NOT DEFINED QUARTO_DENO_EXTRA_OPTIONS (
 		set "QUARTO_DENO_EXTRA_OPTIONS=--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"

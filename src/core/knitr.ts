@@ -10,7 +10,7 @@ import { execProcess } from "./process.ts";
 import { rBinaryPath, resourcePath } from "./resources.ts";
 import { readYamlFromString } from "./yaml.ts";
 import { coerce, satisfies } from "semver/mod.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 
 export interface KnitrCapabilities {
   versionMajor: number;

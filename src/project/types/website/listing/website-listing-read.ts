@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { debug, warning } from "log/mod.ts";
+import { debug, warning } from "../../../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -13,7 +13,7 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
+} from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -107,7 +107,7 @@ import {
   projectOutputDir,
 } from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
@@ -1003,6 +1003,13 @@ async function listItemFromMeta(
           ...(fileListing.item || {}),
           ...listingItem,
         };
+        // If the file itself provides a path (e.g. it is an input with an
+        // output path), that should be used rather than the path in the metadata
+        // which was literally just used to get the path to the file that
+        // we're now reading.
+        if (fileListing.item.path) {
+          listingItem.path = fileListing.item.path;
+        }
         source = ListingItemSource.metadataDocument;
       }
     }

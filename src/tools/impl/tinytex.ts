@@ -3,10 +3,10 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { debug, warning } from "log/mod.ts";
+import { debug, warning } from "../../deno_ral/log.ts";
 
 import { existsSync } from "fs/exists.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, join, relative } from "../../deno_ral/path.ts";
 
 import { expandPath, which } from "../../core/path.ts";
 import { unzip } from "../../core/zip.ts";
@@ -32,7 +32,6 @@ import { copyTo } from "../../core/copy.ts";
 import { suggestUserBinPaths } from "../../core/path.ts";
 
 import { ensureDirSync, walkSync } from "fs/mod.ts";
-import { relative } from "path/mod.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [

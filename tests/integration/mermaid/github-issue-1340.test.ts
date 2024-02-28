@@ -13,7 +13,7 @@ import {
 } from "../../verify.ts";
 import { testRender } from "../../smoke/render/render.ts";
 import { ExecuteOutput } from "../../test.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 const input = docs("bug-repros/issue-1340/");
 const output = join(input, "_book");

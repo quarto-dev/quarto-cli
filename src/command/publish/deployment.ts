@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { Select } from "cliffy/prompt/select.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
@@ -232,9 +232,10 @@ export async function chooseDeployment(
     options,
   });
 
-  if (confirm !== kOther) {
+  if (confirm.value !== kOther) {
     return depoyments.find((deployment) =>
-      publishRecordIdentifier(deployment.target, deployment.account) === confirm
+      publishRecordIdentifier(deployment.target, deployment.account) ===
+        confirm.value
     );
   } else {
     return undefined;

@@ -5,8 +5,8 @@
 *
 */
 
-import { join } from "path/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { join } from "../../../../src/deno_ral/path.ts";
+import { info, warning } from "../../../../src/deno_ral/log.ts";
 import { PlatformConfiguration } from "../config.ts";
 
 import { dartSass } from "./dartsass.ts";

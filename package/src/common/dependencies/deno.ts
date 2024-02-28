@@ -6,7 +6,7 @@
 */
 import { Dependency } from "./dependencies.ts";
 import { Configuration } from "../config.ts";
-import { join, dirname } from "path/mod.ts";
+import { join, dirname } from "../../../../src/deno_ral/path.ts";
 import { unzip } from "../../util/utils.ts";
 
 export function deno(version: string): Dependency {

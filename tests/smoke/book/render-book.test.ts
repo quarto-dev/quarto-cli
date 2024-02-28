@@ -2,7 +2,7 @@ import { testQuartoCmd } from "../../test.ts";
 import { fileExists, noErrorsOrWarnings } from "../../verify.ts";
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { docs } from "../../utils.ts";
 
 // Test a simple book

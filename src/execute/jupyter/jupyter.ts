@@ -4,12 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -109,7 +109,6 @@ import {
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { runExternalPreviewServer } from "../../preview/preview-server.ts";
 import { onCleanup } from "../../core/cleanup.ts";
-import { basename } from "path/mod.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 
 export const jupyterEngine: ExecutionEngine = {

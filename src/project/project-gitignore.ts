@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";

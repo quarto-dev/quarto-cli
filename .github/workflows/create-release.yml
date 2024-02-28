@@ -31,7 +31,7 @@ jobs:
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -88,7 +88,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -107,7 +107,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -141,7 +141,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -175,7 +175,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -220,7 +220,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -251,7 +251,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -305,7 +305,7 @@ jobs:
           rustup.exe toolchain install 1.63.0 --component rustfmt --component clippy --no-self-update
           rustup.exe default 1.63.0
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -366,7 +366,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -562,7 +562,7 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Revert commit of version.txt
         if: ${{ needs.configure.outputs.pushed }}

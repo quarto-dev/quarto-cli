@@ -5,8 +5,8 @@
  */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -66,7 +66,7 @@ import {
 } from "../../project/project-shared.ts";
 import { asArray } from "../../core/array.ts";
 import { normalizePath } from "../../core/path.ts";
-import { isSubdir } from "fs/_util.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
 import { Format } from "../../config/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { projectContextForDirectory } from "../../project/project-context.ts";

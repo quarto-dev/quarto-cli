@@ -5,8 +5,8 @@
  */
 import { ensureDir, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
-import { info } from "log/mod.ts";
-import { dirname, extname, join } from "path/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
+import { dirname, extname, join } from "../../../src/deno_ral/path.ts";
 import { lines } from "../../../src/core/text.ts";
 import * as ld from "../../../src/core/lodash.ts";
 

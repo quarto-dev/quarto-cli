@@ -7,8 +7,8 @@
 import * as ld from "../core/lodash.ts";
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
-import { error } from "log/mod.ts";
+import { join } from "../deno_ral/path.ts";
+import { error } from "../deno_ral/log.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeArrayCustomizer } from "../core/config.ts";
@@ -220,7 +220,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
 
   // coalese ipynb-filter to ipynb-filters
   const filter = format.execute[kIpynbFilter];
-  if (typeof (filter) === "string") {
+  if (typeof filter === "string") {
     typedFormat.execute[kIpynbFilters] = typedFormat.execute[kIpynbFilters] ||
       [];
     typedFormat.execute[kIpynbFilters]?.push(filter);
@@ -302,7 +302,7 @@ export function mergeProjectMetadata<T>(
   return mergeConfigsCustomized<T>(
     (objValue: unknown, srcValue: unknown, key: string) => {
       if (
-        kExandableStringKeys.includes(key) && typeof (objValue) === "string"
+        kExandableStringKeys.includes(key) && typeof objValue === "string"
       ) {
         return srcValue;
       } else {
@@ -361,7 +361,7 @@ export function mergeDisablableArray(objValue: unknown, srcValue: unknown) {
 
 export function mergePandocVariant(objValue: unknown, srcValue: unknown) {
   if (
-    typeof (objValue) === "string" && typeof (srcValue) === "string" &&
+    typeof objValue === "string" && typeof srcValue === "string" &&
     (objValue !== srcValue)
   ) {
     // merge srcValue into objValue

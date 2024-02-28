@@ -7,7 +7,7 @@
  * Adapted from: https://github.com/watson/ci-info
  */
 
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "../deno_ral/path.ts";
 import { kBibliography } from "../config/constants.ts";
 import { Metadata } from "../config/types.ts";
 import { asArray } from "./array.ts";

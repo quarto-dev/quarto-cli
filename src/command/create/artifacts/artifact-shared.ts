@@ -10,8 +10,8 @@ import { execProcess } from "../../../core/process.ts";
 import { gfmAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
 import { coerce } from "semver/mod.ts";
-import { info } from "log/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { info } from "../../../deno_ral/log.ts";
+import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
 import { ensureDirSync, walkSync } from "fs/mod.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { safeExistsSync } from "../../../core/path.ts";

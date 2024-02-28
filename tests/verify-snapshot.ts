@@ -4,7 +4,7 @@
  * Copyright (C) 2024 Posit Software, PBC
  */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../src/deno_ral/path.ts";
 import { normalizeNewlines } from "../src/core/text.ts";
 import { withDocxContent } from "./verify.ts";
 

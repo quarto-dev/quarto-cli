@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../../deno_ral/path.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 import { execProcess } from "../process.ts";
 import { jupyterExec } from "./exec.ts";

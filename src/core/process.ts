@@ -6,7 +6,7 @@
 
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
-import { debug, info } from "log/mod.ts";
+import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
 

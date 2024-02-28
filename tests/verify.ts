@@ -7,7 +7,7 @@
 import { existsSync, walkSync} from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { join, relative } from "path/mod.ts";
+import { join, relative } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
 import * as ld from "../src/core/lodash.ts";

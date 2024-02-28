@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/exists.ts";
-import { basename, dirname, isAbsolute, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kIpynbFilters } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 

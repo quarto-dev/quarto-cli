@@ -21,11 +21,11 @@ import {
 } from "../../../project/types/project-types.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 // ensures project types are registered
 import "../../../project/types/register.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../../deno_ral/log.ts";
 
 const kProjectTypes = projectTypes();
 const kProjectTypeAliases = projectTypeAliases();

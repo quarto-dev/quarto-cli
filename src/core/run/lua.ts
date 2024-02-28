@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
-import { dirname, extname } from "path/mod.ts";
+import { dirname, extname } from "../../deno_ral/path.ts";
 import { normalizePath } from "../path.ts";
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
