@@ -34,7 +34,9 @@ runs:
 
     - if: ${{ inputs.daily == 'false' }}
       shell: bash
-      run: echo "LATEST_TAG=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
+      run: |
+        echo "LATEST_TAG_BASE=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
+        echo "LATEST_TAG_FULL=-t ${{ env.FULL_NM }}:latest" >> $GITHUB_ENV
 
     - if: ${{ inputs.daily == 'true' }}
       shell: bash
@@ -53,7 +55,7 @@ runs:
       shell: bash
       run: |
         echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
-        docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
+        docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG_BASE }} ${{ env.DAILY_TAG }} .
         docker push ${{ env.BASE_NM }} --all-tags
 
     - name: Create Full DockerFile
@@ -67,11 +69,10 @@ runs:
         RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
         RUN quarto install tinytex --no-prompt
         EOF
-    
+
     - name: Push Full Image
       shell: bash
       run: |
         echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
-        docker build -t ${{ env.FULL_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
+        docker build -t ${{ env.FULL_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG_FULL }} ${{ env.DAILY_TAG }} .
         docker push ${{ env.FULL_NM }} --all-tags
-        
