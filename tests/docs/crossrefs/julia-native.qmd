@@ -1,0 +1,22 @@
+---
+title: Julia Crossref Test
+engine: julia
+---
+
+```{julia}
+Pkg.activate(temp = true)
+Pkg.add(name = "Plots", version = "1.40.1")
+```
+
+## Julia Crossref Figure
+
+```{julia}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+using Plots
+Plots.gr(format="png")
+plot([1,23,2,4])
+```
+
+For example, see @fig-plot.
