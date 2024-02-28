@@ -20,7 +20,7 @@ All changes included in 1.5:
 
 ## Docusaurus Format
 
-- ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
+- ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in code cell declarations.
 
 ## Website
 
