@@ -18,6 +18,10 @@ All changes included in 1.5:
 
 - ([#8382](https://github.com/quarto-dev/quarto-cli/issues/8382)): Strip whitespace from `div.columns` elements that might have been introduced by third-party processing.
 
+## Docusaurus Format
+
+- ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
+
 ## Website
 
 - ([#6779](https://github.com/quarto-dev/quarto-cli/issues/6779)): Add support for `logo-href` and `logo-alt` in `sidebar` (books and websites)
@@ -51,6 +55,7 @@ All changes included in 1.5:
 - ([#8433](https://github.com/quarto-dev/quarto-cli/issues/8433)): Escape jupyter widget states that contain `</script>` so they can be embedded in HTML documents.
 - When searching for kernelspecs that match `python`, prefer one one that matches an active Python venv.
 - ([#8454](https://github.com/quarto-dev/quarto-cli/issues/8454)): Allow Jupyter engine to handle markdown files with mixed-case extensions.
+- ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
 
 ## Website Listings
 
