@@ -144,8 +144,14 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // determine the largest number of backticks in the cell
+  const maxBackticks = Math.max(
+    ...cell.source.map((line) => line.match(/^`+/g)?.[0].length || 0),
+  );
+  const backticks = "`".repeat(maxBackticks + 1);
+
   // begin code cell
-  const md: string[] = ["```{" + language + "}\n"];
+  const md: string[] = [backticks + "{" + language + "}\n"];
 
   // partition
   const { yaml, source } = await partitionCellOptions(language, cell.source);
@@ -215,7 +221,7 @@ async function mdFromCodeCell(
   md.push(...mdEnsureTrailingNewline(source));
 
   // end code cell
-  md.push("```\n");
+  md.push(backticks + "\n");
 
   return md;
 }
