@@ -321,6 +321,7 @@ async function getJuliaServerConnection(
 
   try {
     const conn = await Deno.connect({
+      hostname: "localhost",
       port: transportOptions.port,
     });
     const isready = writeJuliaCommand(
