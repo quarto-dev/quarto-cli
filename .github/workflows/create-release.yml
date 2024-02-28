@@ -94,7 +94,7 @@ jobs:
 
       - name: Make Tarball
         run: |
-          tar -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
+          tar --owner=root --group=root -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -125,7 +125,7 @@ jobs:
         run: |
           pushd package/
           mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
+          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
@@ -159,7 +159,7 @@ jobs:
         run: |
           pushd package/
           mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
+          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-arm64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
@@ -204,7 +204,7 @@ jobs:
         run: |
           pushd package/
           mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
+          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
@@ -289,7 +289,7 @@ jobs:
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
       - run: |
-          ls -R
+          ls -lR
           echo $PATH
           quarto check
           quarto --paths
