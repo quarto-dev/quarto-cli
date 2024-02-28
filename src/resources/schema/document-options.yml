@@ -177,6 +177,17 @@
       files, use `pdf-engine-opt: -outdir=foo`. Note that no check for 
       duplicate options is done.
 
+- name: pdf-engine-opts
+  tags:
+    formats: [$pdf-all, ms, context]
+  schema:
+    arrayOf: string
+  description:
+    short: "Pass multiple command-line arguments to the `pdf-engine`."
+    long: |
+      Use the given strings passed as a array as command-line arguments to the pdf-engine.
+      This is an alternative to `pdf-engine-opt` for passing multiple options.
+
 - name: beamerarticle
   schema: boolean
   tags:
