@@ -33,11 +33,14 @@ export function deno(version: string): Dependency {
 
   // Handle the configuration for this dependency
   const linuxAmd64DenoRelease = () => {
+    // Before 1.41 available at: 
     // https://github.com/LukeChannings/deno-arm64/releases/download/v1.28.2/deno-linux-arm64.zip
+    // but after 1.41 available at:
+    // https://github.com/denoland/deno/releases/download/v1.41.0/deno-aarch64-unknown-linux-gnu.zip
     return {
-      filename: `deno-linux-arm64.zip`,
+      filename: `deno-aarch64-unknown-linux-gnu.zip`,
       url:
-        `https://github.com/LukeChannings/deno-arm64/releases/download/${version}/`,
+        `https://github.com/denoland/deno/releases/download/${version}/`,
       configure: async (_config: Configuration, path: string) => {
         const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
         if (vendor === undefined || vendor === "true") {
