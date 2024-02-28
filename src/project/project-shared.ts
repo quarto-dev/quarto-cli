@@ -5,7 +5,13 @@
  */
 
 import { existsSync } from "fs/exists.ts";
-import { dirname, isAbsolute, join, relative, SEP_PATTERN } from "path/mod.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  SEP_PATTERN,
+} from "../deno_ral/path.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";

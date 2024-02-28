@@ -1,11 +1,10 @@
 /*
-* engine-shared.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * engine-shared.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "../deno_ral/path.ts";
 
 import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 import { PostProcessOptions } from "./types.ts";

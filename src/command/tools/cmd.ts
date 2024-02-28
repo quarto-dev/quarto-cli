@@ -11,7 +11,7 @@ import {
   updateOrInstallTool,
 } from "../../tools/tools-console.ts";
 import { printToolInfo } from "../../tools/tools.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
 // The quarto install command
 export const toolsCommand = new Command()

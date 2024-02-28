@@ -5,7 +5,7 @@
  */
 
 import { Document, Element } from "../../../core/deno-dom.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../../deno_ral/path.ts";
 import {
   kAbstract,
   kDescription,

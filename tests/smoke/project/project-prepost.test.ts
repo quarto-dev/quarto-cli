@@ -6,8 +6,8 @@
 */
 import { docs } from "../../utils.ts";
 
-import { join } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { fileExists, noErrors, printsMessage } from "../../verify.ts";
 

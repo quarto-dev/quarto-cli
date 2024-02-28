@@ -15,7 +15,7 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
+} from "../deno_ral/path.ts";
 
 import {
   InputMetadata,

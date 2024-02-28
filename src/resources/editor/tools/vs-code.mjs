@@ -19769,6 +19769,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -19919,6 +19920,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22117,6 +22119,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22451,6 +22454,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22900,12 +22904,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 181887,
+        _internalId: 177508,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 181879,
+            _internalId: 177500,
             type: "enum",
             enum: [
               "png",
@@ -22921,7 +22925,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 181886,
+            _internalId: 177507,
             type: "anyOf",
             anyOf: [
               {

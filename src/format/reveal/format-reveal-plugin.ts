@@ -5,10 +5,10 @@
  */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../../deno_ral/path.ts";
 import { kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 
 import {
   Format,

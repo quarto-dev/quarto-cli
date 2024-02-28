@@ -1,10 +1,16 @@
+/*
+ * confluence-helper.ts
+ *
+ * Copyright (C) 2020-2024 Posit Software, PBC
+ */
+
 import { trace } from "./confluence-logger.ts";
 import { ApiError, PublishRecord } from "../types.ts";
 import {
   ensureTrailingSlash,
   pathWithForwardSlashes,
 } from "../../core/path.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { isHttpUrl } from "../../core/url.ts";
 import { AccountToken, InputMetadata } from "../provider-types.ts";
 import {

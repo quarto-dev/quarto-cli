@@ -5,7 +5,7 @@
 *
 */
 
-import { extname, join } from "path/mod.ts";
+import { extname, join } from "../../../src/deno_ral/path.ts";
 import { docs, outputForInput } from "../../utils.ts";
 import {
  ensureXmlValidatesWithXsd,

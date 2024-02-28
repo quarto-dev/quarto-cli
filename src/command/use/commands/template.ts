@@ -8,9 +8,9 @@ import {
   ExtensionSource,
   extensionSource,
 } from "../../../extension/extension-host.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../deno_ral/log.ts";
 import { Confirm, Input } from "cliffy/prompt/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
 import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { TempContext } from "../../../core/temp-types.ts";
 import { downloadWithProgress } from "../../../core/download.ts";

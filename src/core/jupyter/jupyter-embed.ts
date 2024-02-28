@@ -43,17 +43,15 @@ import {
   JupyterCellOutput,
 } from "../jupyter/types.ts";
 
-import { dirname, extname, join } from "path/mod.ts";
+import { dirname, extname, join, basename, isAbsolute } from "../../deno_ral/path.ts";
 import { languages } from "../handlers/base.ts";
 import {
   extractJupyterWidgetDependencies,
   includesForJupyterWidgetDependencies,
 } from "./widgets.ts";
 import { globalTempContext } from "../temp.ts";
-import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
 import { dirAndStem, normalizePath, safeExistsSync } from "../path.ts";
-import { basename } from "path/mod.ts";
 import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
 import {

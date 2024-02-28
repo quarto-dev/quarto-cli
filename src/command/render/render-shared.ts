@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname } from "path/mod.ts";
+import { dirname } from "../../deno_ral/path.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 
 import {

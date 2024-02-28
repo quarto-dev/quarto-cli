@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import { dirname, isAbsolute, join, relative, SEP } from "../deno_ral/path.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
@@ -90,7 +90,7 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";

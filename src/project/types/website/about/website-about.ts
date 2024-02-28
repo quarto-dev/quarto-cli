@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../../deno_ral/path.ts";
 import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
 import { kToc, kTocLocation } from "../../../../config/constants.ts";
 import {

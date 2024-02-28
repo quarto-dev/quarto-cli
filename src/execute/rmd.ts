@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { error, info, warning } from "log/mod.ts";
+import { error, info, warning } from "../deno_ral/log.ts";
 import { existsSync } from "fs/exists.ts";
-import { basename, extname } from "path/mod.ts";
+import { basename, extname } from "../deno_ral/path.ts";
 
 import * as colors from "fmt/colors.ts";
 

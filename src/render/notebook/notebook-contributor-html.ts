@@ -41,11 +41,11 @@ import {
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { Format } from "../../config/types.ts";
 import { isQmdFile } from "../../execute/qmd.ts";
 import { dirAndStem } from "../../core/path.ts";

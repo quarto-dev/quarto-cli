@@ -4,7 +4,7 @@
  * Copyright (C) 2020 by RStudio, PBC
  */
 
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { quarto } from "../../../src/quarto.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { testRender } from "../render/render.ts";

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 
 import { HTMLDocument, initParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { register } from "deno_dom/src/parser.ts";

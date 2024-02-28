@@ -5,7 +5,7 @@
  */
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 
 import { quartoDataDir } from "../../core/appdirs.ts";
 import { normalizePath } from "../../core/path.ts";

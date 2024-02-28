@@ -10,8 +10,8 @@ import { rangedLines } from "./lib/ranged-text.ts";
 import { asMappedString, mappedString } from "./lib/mapped-text.ts";
 
 import { Range } from "./lib/text-types.ts";
-import { relative } from "path/mod.ts";
-import { debug } from "log/mod.ts";
+import { relative } from "../deno_ral/path.ts";
+import { debug } from "../deno_ral/log.ts";
 
 import * as mt from "./lib/mapped-text.ts";
 import { withTiming } from "./timing.ts";

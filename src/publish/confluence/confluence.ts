@@ -1,4 +1,4 @@
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { Confirm, Input, Secret } from "cliffy/prompt/mod.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
@@ -95,7 +95,7 @@ import {
 import { logError, trace } from "./confluence-logger.ts";
 import { md5Hash } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
