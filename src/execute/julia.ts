@@ -344,7 +344,7 @@ async function getJuliaServerConnection(
       return Promise.reject();
     }
     return conn;
-  } catch {
+  } catch (e) {
     if (reused) {
       trace(
         options,
@@ -356,7 +356,7 @@ async function getJuliaServerConnection(
       error(
         "Connecting to server failed. A transport file was successfully created by the server process, so something in the server process might be broken.",
       );
-      return Promise.reject();
+      throw e;
     }
   }
 }
