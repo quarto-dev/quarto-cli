@@ -289,6 +289,7 @@ jobs:
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
       - run: |
+          tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
           ls -lR
           echo $PATH
           quarto check
@@ -438,7 +439,8 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-      - run: ls -R
+      - run: tar -tzvf ${{needs.configure.outputs.version}}-macos.tar.gz | head
+      - run: ls -lR
       - run: echo $PATH
       - run: |
           quarto check
