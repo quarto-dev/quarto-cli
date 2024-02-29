@@ -10,6 +10,7 @@
 - ([#8858](https://github.com/quarto-dev/quarto-cli/issues/8858)): Fix issue rendering markdown in bread-crumbs
 - ([#8843](https://github.com/quarto-dev/quarto-cli/issues/8843)): Fix issue in books when some R code cells emits LaTeX dependencies to be included in the LaTeX preamble.
 - ([#8857](https://github.com/quarto-dev/quarto-cli/issues/8857)): Fix issue with `format: dashboard` using Plotly in Jupyter on Windows.
+- ([#8937](https://github.com/quarto-dev/quarto-cli/pull/8937)): Fix unix `quarto` launcher in the case of paths with spaces.
 
 ## Fixed in previous releases
 
