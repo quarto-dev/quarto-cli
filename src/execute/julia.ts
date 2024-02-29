@@ -398,15 +398,21 @@ async function writeJuliaCommand(
   // send the options along with the "run" command
   const content = command === "run"
     ? { file: options.target.input, options }
+    : command === "stop" || command === "isready"
+    ? {}
     : options.target.input;
 
+  const commandData = {
+    type: command,
+    content,
+  };
+
+  console.log(commandData);
+
+  const message = JSON.stringify(commandData) + "\n";
+
   // TODO: no secret used, yet
-  const messageBytes = new TextEncoder().encode(
-    JSON.stringify({
-      type: command,
-      content,
-    }) + "\n",
-  );
+  const messageBytes = new TextEncoder().encode(message);
 
   // // don't send the message if it's big.
   // // Instead, write it to a file and send the file path
