@@ -407,8 +407,6 @@ async function writeJuliaCommand(
     content,
   };
 
-  console.log(commandData);
-
   const message = JSON.stringify(commandData) + "\n";
 
   // TODO: no secret used, yet
