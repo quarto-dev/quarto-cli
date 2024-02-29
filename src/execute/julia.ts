@@ -243,14 +243,16 @@ async function startOrReuseJuliaServer(
     // as a replacement for the old Deno.run anyway.
     const command = new Deno.Command(options.julia_cmd, {
       args: [
-        `--project=${juliaRuntimeDir()}`,
+        resourcePath("julia/start_quartonotebookrunner_detached.jl"),
+        options.julia_cmd,
+        juliaRuntimeDir(),
         resourcePath("julia/quartonotebookrunner.jl"),
         transportFile,
       ],
     });
-    // this process is supposed to outlive the quarto process, because
-    // in it, the references to the cached julia worker processes live
-    command.spawn();
+    // when this process finishes, a detached julia process with the quartonotebookrunner server will have been started
+    trace(options, "Spawning detached julia server through julia");
+    command.outputSync();
   } else {
     trace(
       options,
