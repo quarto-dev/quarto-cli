@@ -299,7 +299,7 @@ export async function ojsCompile(
         );
         ojsParseError(err, cellSrc);
 
-        const preDiv = pandocBlock("````")({
+        const preDiv = pandocCode({
           classes: ["numberLines", "java"],
           attrs: [
             `startFrom="${cellStartingLoc - 1}"`,
@@ -543,7 +543,7 @@ export async function ojsCompile(
           `startFrom="${cellStartingLoc - 1}"`,
           `source-offset="${cell.sourceOffset}"`,
         );
-        const srcDiv = pandocBlock("````")({
+        const srcDiv = pandocCode({
           classes: ourClasses,
           attrs: ourAttrs,
         });

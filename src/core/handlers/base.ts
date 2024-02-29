@@ -27,7 +27,12 @@ import {
   optionCommentPatternFromLanguage,
 } from "../lib/partition-cell-options.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
-import { pandocBlock, pandocList, pandocRawStr } from "../pandoc/codegen.ts";
+import {
+  pandocCode,
+  pandocDiv,
+  pandocList,
+  pandocRawStr,
+} from "../pandoc/codegen.ts";
 
 import {
   kCapLoc,
@@ -61,7 +66,13 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { basename, dirname, join, relative, resolve } from "../../deno_ral/path.ts";
+import {
+  basename,
+  dirname,
+  join,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
@@ -629,12 +640,9 @@ export const baseHandler: LanguageHandler = {
 
     const unrolledOutput = isPowerpointOutput && !hasLayoutAttributes;
 
-    const t3 = pandocBlock("```");
-    const t4 = pandocBlock("````");
-
     const cellBlock = unrolledOutput
       ? pandocList({ skipFirstLineBreak: true })
-      : pandocBlock(":::")({
+      : pandocDiv({
         classes: ["cell", ...classes],
         attrs,
       });
@@ -667,7 +675,7 @@ export const baseHandler: LanguageHandler = {
 
     switch (options.echo) {
       case true: {
-        const cellInput = t3({
+        const cellInput = pandocCode({
           classes: cellInputClasses,
           attrs: cellInputAttrs,
         });
@@ -676,11 +684,11 @@ export const baseHandler: LanguageHandler = {
         break;
       }
       case "fenced": {
-        const cellInput = t4({
+        const cellInput = pandocCode({
           classes: ["markdown", ...cellInputClasses.slice(1)], // replace the language class with markdown
           attrs: cellInputAttrs,
         });
-        const cellFence = t3({
+        const cellFence = pandocCode({
           language: this.languageName,
           skipFirstLineBreak: true,
         });
@@ -695,7 +703,7 @@ export const baseHandler: LanguageHandler = {
       }
     }
 
-    const divBlock = pandocBlock(":::");
+    const divBlock = pandocDiv;
 
     // PandocNodes ignore self-pushes (n.push(n))
     // this makes it much easier to write the logic around "unrolled blocks"
