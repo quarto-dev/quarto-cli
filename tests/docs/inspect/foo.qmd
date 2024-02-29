@@ -1,0 +1,5 @@
+---
+title: foo
+---
+
+{{< include _bar.qmd >}}

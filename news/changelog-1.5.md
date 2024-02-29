@@ -95,6 +95,10 @@ All changes included in 1.5:
 
 - ([#8614](https://github.com/quarto-dev/quarto-cli/issues/8614)): Don't improperly forward column classes onto grids.
 
+## `quarto inspect`
+
+- ([#8939](https://github.com/quarto-dev/quarto-cli/pull/8939)): `quarto inspect` now takes an additional optional parameter to specify the output file, and provides the graph of include dependencies for the inspection target.
+
 ## Other Fixes
 
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.

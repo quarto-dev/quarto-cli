@@ -272,6 +272,7 @@ export async function projectContext(
           },
           dir,
           engines: [],
+          fileInformationCache: new Map(),
           files: {
             input: [],
           },
@@ -349,6 +350,7 @@ export async function projectContext(
           dir,
           config: projectConfig,
           engines: [],
+          fileInformationCache: new Map(),
           files: {
             input: [],
           },
@@ -407,6 +409,7 @@ export async function projectContext(
                 [kProjectOutputDir]: flags?.outputDir,
               },
             },
+            fileInformationCache: new Map(),
             files: {
               input: [],
             },
