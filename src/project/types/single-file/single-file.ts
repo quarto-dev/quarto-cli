@@ -37,6 +37,7 @@ export function singleFileProjectContext(
     notebookContext,
     environment: () => environmentMemoizer(result),
     renderFormats,
+    fileInformationCache: new Map(),
     fileExecutionEngineAndTarget: (
       file: string,
     ) => {
