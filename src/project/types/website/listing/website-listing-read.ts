@@ -793,17 +793,20 @@ async function readContents(
           const items = yaml as Array<unknown>;
           for (const yamlItem of items) {
             if (typeof yamlItem === "object") {
-              const { item, source } = await listItemFromMeta(
+              const result = await listItemFromMeta(
                 yamlItem as Metadata,
                 project,
                 listing,
                 dirname(file),
               );
-              validateItem(listing, item, (field: string) => {
-                return `An item from the file '${file}' is missing the required field '${field}'.`;
-              });
-              listingItemSources.add(source);
-              listingItems.push(item);
+              if (result) {
+                const { item, source } = result;
+                validateItem(listing, item, (field: string) => {
+                  return `An item from the file '${file}' is missing the required field '${field}'.`;
+                });
+                listingItemSources.add(source);
+                listingItems.push(item);
+              }
             } else {
               throw new Error(
                 `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
@@ -811,17 +814,20 @@ async function readContents(
             }
           }
         } else if (typeof yaml === "object") {
-          const { item, source } = await listItemFromMeta(
+          const result = await listItemFromMeta(
             yaml as Metadata,
             project,
             listing,
             dirname(file),
           );
-          validateItem(listing, item, (field: string) => {
-            return `The item defined in file '${file}' is missing the required field '${field}'.`;
-          });
-          listingItemSources.add(source);
-          listingItems.push(item);
+          if (result) {
+            const { item, source } = result;
+            validateItem(listing, item, (field: string) => {
+              return `The item defined in file '${file}' is missing the required field '${field}'.`;
+            });
+            listingItemSources.add(source);
+            listingItems.push(item);
+          }
         } else {
           throw new Error(
             `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
@@ -852,17 +858,20 @@ async function readContents(
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
     for (const content of contentMetadatas) {
-      const { item, source: itemSource } = await listItemFromMeta(
+      const result = await listItemFromMeta(
         content,
         project,
         listing,
         dirname(source),
       );
-      validateItem(listing, item, (field: string) => {
-        return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
-      });
-      listingItemSources.add(itemSource);
-      listingItems.push(item);
+      if (result) {
+        const { item, source: itemSource } = result;
+        validateItem(listing, item, (field: string) => {
+          return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
+        });
+        listingItemSources.add(itemSource);
+        listingItems.push(item);
+      }
     }
   }
 
@@ -975,7 +984,7 @@ async function listItemFromMeta(
   project: ProjectContext,
   listing: ListingDehydrated,
   baseDir: string,
-): Promise<{ item: ListingItem; source: ListingItemSource }> {
+): Promise<{ item: ListingItem; source: ListingItemSource } | undefined> {
   let listingItem: ListingItem = cloneDeep(meta);
   let source = ListingItemSource.metadata;
 
@@ -995,9 +1004,12 @@ async function listItemFromMeta(
 
       const fileListing = await listItemFromFile(inputPath, project, listing);
       if (fileListing === undefined) {
-        warning(
-          `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
-        );
+        // Since a draft document was found in this listing,
+        // go ahead and exclude it. This is acceptable because the draft
+        // list should be independent of YAML / front matter since
+        // we don't way users to have to coordinate their front matter with
+        // document draft status.
+        return undefined;
       } else {
         listingItem = {
           ...(fileListing.item || {}),
