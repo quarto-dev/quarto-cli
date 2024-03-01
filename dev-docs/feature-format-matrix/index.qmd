@@ -36,7 +36,7 @@ tested_cells = 0
 good_cells = 0
 na_cells = 0
 for k, v in quality_summary["quality"].items():
-  if k == "NA":
+  if k == "na":
     na_cells += v
   if type(k) == int and k >= 0:
     ok_cells += v

@@ -88,7 +88,9 @@ def table_cell(entry, _feature, _format_name, format_config):
     result = []
     quality = format_config.get("quality", "unknown")
     if quality is not None:
-        qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;", 2: "&#x2713;&#x2713;"}
+        if type(quality) == str:
+            quality = quality.lower()
+        qualities = {-1: "&#x1F6AB;", 0: "&#x26A0;", 1: "&#x2713;", 2: "&#x2713;&#x2713;", "unknown": "&#x2753;", "na": "NA"}
         colors = {-1: "bad", 0: "ok", 1: "good", 2: "good", "unknown": "unknown", "na": "na"}
         color = colors[quality]
         quality_icon = qualities.get(quality, "&#x2753;")
@@ -138,6 +140,8 @@ def compute_quality_summary(trie = None):
             if type(config) == str:
                 config = {}
             quality = config.get("quality", "unknown")
+            if type(quality) == str:
+                quality = quality.lower()
             if quality_summary.get(quality) is None:
                 raise ValueError("Invalid quality value %s" % quality)
             quality_summary[quality] += 1
