@@ -28,7 +28,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	IF NOT DEFINED QUARTO_ACTION (
 		SET QUARTO_ACTION=run
 	)
-	SET "QUARTO_IMPORT_ARGMAP=--importmap=""!QUARTO_SRC_PATH!\dev_import_map.json"""
+	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""!QUARTO_SRC_PATH!\dev_import_map.json"""
 
 	IF NOT DEFINED QUARTO_TARGET (
 		SET "QUARTO_TARGET=!QUARTO_TS_PATH!"
@@ -74,7 +74,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	SET QUARTO_ACTION=run
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_PATH%"
-	SET "QUARTO_IMPORT_ARGMAP=--importmap=""%SCRIPT_PATH%\vendor\import_map.json"""
+	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""%SCRIPT_PATH%\vendor\import_map.json"""
 )
 
 IF "%1"=="--paths" (
@@ -98,7 +98,7 @@ SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
 SET "QUARTO_DENO_OPTIONS=--unstable --no-config --cached-only --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi"
 
-!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_ARGMAP! !QUARTO_TARGET! %*
+!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*
 
 
 :end
