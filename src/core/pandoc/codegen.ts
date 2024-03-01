@@ -142,7 +142,7 @@ export function pandocList(opts: {
   };
 }
 
-export function pandocBlock(delimiter: string) {
+export function pandocBlock(delimiterCharacter: ":" | "`") {
   return function (
     opts?: {
       language?: string;
@@ -197,21 +197,42 @@ export function pandocBlock(delimiter: string) {
         }
       },
       emit: function (ls: EitherString[]) {
+        const innerLs: EitherString[] = [];
         const lb = skipFirstLineBreak ? "" : "\n";
-        ls.push(`${lb}${delimiter}${attrString()}\n`);
+
         for (const entry of contents!) {
-          entry.emit(ls);
+          entry.emit(innerLs);
         }
-        if (!asMappedString(ls[ls.length - 1] || "\n").value.endsWith("\n")) {
-          ls.push(`\n`);
+        if (
+          !asMappedString(innerLs[innerLs.length - 1] || "\n").value.endsWith(
+            "\n",
+          )
+        ) {
+          innerLs.push(`\n`);
         }
+
+        // now find the longest streak of delimiter characters in the innerLs
+        const longestStreak = Math.max(...innerLs.map((eitherS) => {
+          const s = asMappedString(eitherS).value;
+          return s.match(new RegExp(`${delimiterCharacter}+`, "g"))?.[0]
+            ?.length || 0;
+        }));
+        const delimiter = delimiterCharacter.repeat(
+          Math.max(3, longestStreak + 1),
+        );
+        ls.push(`${lb}${delimiter}${attrString()}\n`);
+
+        // FIXME this will incur a runtime of eventually O(n * m) where n is the number of lines and m is the depth of
+        // the PandocNode tree.
+        ls.push(...innerLs);
+
         ls.push(`${delimiter}\n`);
       },
     };
   };
 }
 
-export const pandocDiv = pandocBlock(":::");
-export const pandocCode = pandocBlock("```");
+export const pandocDiv = pandocBlock(":");
+export const pandocCode = pandocBlock("`");
 export const pandocFigure = pandocHtmlBlock("figure");
 export const pandocFigCaption = pandocHtmlBlock("figcaption");

@@ -55,7 +55,7 @@ $Env:QUARTO_DEBUG = "true"
 
 # Preparing running Deno with default arguments
 
-$QUARTO_IMPORT_ARGMAP="--importmap=$(Join-Path $QUARTO_SRC_DIR "dev_import_map.json")"
+$QUARTO_IMPORT_MAP_ARG="--importmap=$(Join-Path $QUARTO_SRC_DIR "dev_import_map.json")"
 $QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --check"
 
 # Parsing argument passed to the script
@@ -134,7 +134,7 @@ $DENO_ARGS += -split $QUARTO_DENO_OPTIONS
 If ($QUARTO_DENO_EXTRA_OPTIONS -ne $null) { 
   $DENO_ARGS += -split $QUARTO_DENO_EXTRA_OPTIONS
 }
-$DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
+$DENO_ARGS += -split $QUARTO_IMPORT_MAP_ARG
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv

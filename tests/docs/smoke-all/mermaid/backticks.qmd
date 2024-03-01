@@ -1,0 +1,21 @@
+---
+title: "mermaid backtick test"
+keep-md: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - []
+        - ["<p>This would have been"] # it can't be in a paragraph, it should be inside a code cell.
+---
+
+It's not important right now whether this syntax is correct for mermaid;
+the relevant aspect is that our pandoc codegen wasn't taking the
+inner number of backticks into account. This test checks for that.
+
+````{mermaid}
+%%| echo: true
+```
+This would have been a problem.
+```
+````
