@@ -128,6 +128,7 @@ export async function makeInstallerDeb(
     "gzip",
     "-z",
     "9",
+    "--root-owner-group",
     "--build",
     workingDir,
     join(configuration.directoryInfo.out, packageName),
