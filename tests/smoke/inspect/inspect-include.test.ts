@@ -15,7 +15,7 @@ import { assert } from "testing/asserts.ts";
   const input = "docs/inspect/foo.qmd";
   const output = "docs/inspect/foo.json";
   testQuartoCmd(
-    "convert",
+    "inspect",
     [input, output],
     [
       {
