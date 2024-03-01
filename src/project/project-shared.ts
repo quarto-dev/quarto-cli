@@ -368,7 +368,7 @@ export async function projectResolveFullMarkdownForFile(
     flags: {} as RenderFlags,
   };
   try {
-    const result = await expandIncludes(markdown, options);
+    const result = await expandIncludes(markdown, options, file);
     cache.fullMarkdown = result;
     cache.includeMap = options.state?.include as Record<string, string>;
     return result;
