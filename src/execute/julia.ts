@@ -332,13 +332,18 @@ async function getJuliaServerConnection(
       options,
     ) as Promise<boolean>;
     const timeoutMilliseconds = 10000;
-    const timeout = new Promise((_, reject) =>
+    const timeout = new Promise((accept, _) =>
       setTimeout(() => {
-        reject(`Timed out after ${timeoutMilliseconds} milliseconds.`);
+        accept(
+          `Timed out after getting no response for ${timeoutMilliseconds} milliseconds.`,
+        );
       }, timeoutMilliseconds)
     );
     const result = await Promise.race([isready, timeout]);
-    if (result !== true) {
+    if (typeof result === "string") {
+      // timed out
+      throw new Error(result);
+    } else if (result !== true) {
       error(
         `Expected isready command to return true, returned ${isready} instead. Closing connection.`,
       );
