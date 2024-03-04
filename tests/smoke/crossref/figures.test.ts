@@ -62,7 +62,7 @@ testRender(pythonSubfigQmd.input, "html", false, [
   ]),
 ]);
 
-for (const file of ["julia.qmd", "julia-native.qmd"]) {
+for (const file of ["julia.qmd", "julianative.qmd"]) {
   const juliaQmd = crossref(file, "html");
   testRender(juliaQmd.input, "html", false, [
     ensureHtmlElements(juliaQmd.output.outputPath, [
@@ -78,22 +78,24 @@ for (const file of ["julia.qmd", "julia-native.qmd"]) {
   ]);
 }
 
-const juliaSubfigQmd = crossref("julia-subfig.qmd", "html");
-testRender(juliaSubfigQmd.input, "html", false, [
-  ensureHtmlElements(juliaSubfigQmd.output.outputPath, [
-    "section#julia-crossref-figure  div.quarto-layout-panel > figure div.quarto-layout-row",
-    "section#julia-crossref-figure  div.quarto-layout-panel > figure > figcaption.quarto-float-fig.quarto-float-caption",
-  ]),
-  ensureFileRegexMatches(juliaSubfigQmd.output.outputPath, [
-    /Figure&nbsp;1: Plots/,
-    /Figure&nbsp;1/,
-    /Figure&nbsp;1 \(b\)/,
-    /\(a\) Plot 1/,
-    /\(b\) Plot 2/,
-  ], [
-    /\?@fig-/,
-  ]),
-]);
+for (const file of ["julia-subfig.qmd", "julianative-subfig.qmd"]) {
+  const juliaSubfigQmd = crossref(file, "html");
+  testRender(juliaSubfigQmd.input, "html", false, [
+    ensureHtmlElements(juliaSubfigQmd.output.outputPath, [
+      "section#julia-crossref-figure  div.quarto-layout-panel > figure div.quarto-layout-row",
+      "section#julia-crossref-figure  div.quarto-layout-panel > figure > figcaption.quarto-float-fig.quarto-float-caption",
+    ]),
+    ensureFileRegexMatches(juliaSubfigQmd.output.outputPath, [
+      /Figure&nbsp;1: Plots/,
+      /Figure&nbsp;1/,
+      /Figure&nbsp;1 \(b\)/,
+      /\(a\) Plot 1/,
+      /\(b\) Plot 2/,
+    ], [
+      /\?@fig-/,
+    ]),
+  ]);
+}
 
 const knitrQmd = crossref("knitr.qmd", "html");
 testRender(knitrQmd.input, "html", false, [
