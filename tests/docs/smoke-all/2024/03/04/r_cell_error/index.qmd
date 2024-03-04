@@ -1,0 +1,21 @@
+---
+title: r_cell_error
+authors:
+  - name: Norah Jones
+    affiliation: The University
+    roles: writing
+    corresponding: true
+bibliography: references.bib
+---
+
+```{r}
+#| label: test_label
+
+x <- 3
+```
+
+::: {#lem-test-lem}
+
+Test lemma goes here
+
+:::
