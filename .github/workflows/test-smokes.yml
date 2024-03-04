@@ -242,6 +242,9 @@ jobs:
         working-directory: tests
         shell: pwsh
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Create Pull Request for new tests timing
         if: matrix.time-test
         id: cpr
