@@ -322,10 +322,6 @@ async function getJuliaServerConnection(
   );
 
   try {
-    const comm = new Deno.Command("lsof", {
-      args: ["-i", `:${transportOptions.port}`],
-    });
-    comm.spawn();
     const conn = await Deno.connect({
       port: transportOptions.port,
     });
