@@ -188,7 +188,7 @@ jobs:
       - name: Warmup Julia native server
         continue-on-error: true # this will fail as long as the bug with deno exists
         run: |
-          quarto render tests/docs/markdown/commonmark-julia.qmd --execute-debug
+          quarto render tests/docs/markdown/commonmark-julianative.qmd --execute-debug
 
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}

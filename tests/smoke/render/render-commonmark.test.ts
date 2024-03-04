@@ -13,8 +13,8 @@ const tests = [
   { file: "commonmark-plain.qmd" },
   { file: "commonmark-r.qmd" },
   { file: "commonmark-python.qmd"},
-  { file: "commonmark-julia-jupyter.qmd" },
   { file: "commonmark-julia.qmd" },
+  { file: "commonmark-julianative.qmd" },
 ];
 tests.forEach((test) => {
   const input = docs(join("markdown", test.file));
