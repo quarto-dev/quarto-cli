@@ -179,6 +179,9 @@ jobs:
         run: |
           echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
         env:
@@ -241,9 +244,6 @@ jobs:
           }
         working-directory: tests
         shell: pwsh
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
 
       - name: Create Pull Request for new tests timing
         if: matrix.time-test
