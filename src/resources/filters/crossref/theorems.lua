@@ -38,7 +38,6 @@ function crossref_theorems()
       return proof
     end,
     Div = function(el)
-
       local type = refType(el.attr.identifier)
       local theoremType = theorem_types[type]
       if theoremType then
