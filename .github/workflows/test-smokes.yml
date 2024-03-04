@@ -201,6 +201,7 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QUARTO_LOG_LEVEL: DEBUG
         run: |
           haserror=0
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')
