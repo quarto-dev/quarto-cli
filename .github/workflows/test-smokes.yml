@@ -186,6 +186,7 @@ jobs:
       # from the parent deno process fails. But if we run this step beforehand, that one server should be able to handle
       # the remaining connections coming from new quarto processes
       - name: Warmup Julia native server
+        continue-on-error: true # this will fail as long as the bug with deno exists
         run: |
           quarto render tests/docs/markdown/commonmark-julia.qmd --execute-debug
 
