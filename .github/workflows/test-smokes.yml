@@ -185,10 +185,10 @@ jobs:
       # FIXME: for some reason on CI, it seems that communicating with the child process julia (even if it's detached)
       # from the parent deno process fails. But if we run this step beforehand, that one server should be able to handle
       # the remaining connections coming from new quarto processes
-      - name: Warmup Julia native server
-        continue-on-error: true # this will fail as long as the bug with deno exists
-        run: |
-          quarto render tests/docs/markdown/commonmark-julianative.qmd --execute-debug
+      # - name: Warmup Julia native server
+      #   continue-on-error: true # this will fail as long as the bug with deno exists
+      #   run: |
+      #     quarto render tests/docs/markdown/commonmark-julianative.qmd --execute-debug
 
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
