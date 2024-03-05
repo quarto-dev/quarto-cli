@@ -41,6 +41,9 @@ export const markdownEngine: ExecutionEngine = {
   claimsLanguage: (_language: string) => {
     return false;
   },
+  markdownForFile(file: string): Promise<MappedString> {
+    return Promise.resolve(mappedStringFromFile(file));
+  },
 
   target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
     if (markdown === undefined) {

@@ -32,10 +32,11 @@ import { kWebsite } from "./types/website/website-constants.ts";
 import { existsSync1 } from "../core/file.ts";
 import { kManuscriptType } from "./types/manuscript/manuscript-types.ts";
 import { expandIncludes } from "../core/handlers/base.ts";
-import { asMappedString, MappedString } from "../core/mapped-text.ts";
+import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
 import { createTempContext } from "../core/temp.ts";
 import { RenderContext, RenderFlags } from "../command/render/types.ts";
 import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
+import { ExecutionEngine } from "../execute/types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -334,6 +335,7 @@ export async function directoryMetadataForInputFile(
 
 export async function projectResolveFullMarkdownForFile(
   project: ProjectContext,
+  engine: ExecutionEngine | undefined,
   file: string,
   markdown?: MappedString,
   force?: boolean,
@@ -346,11 +348,12 @@ export async function projectResolveFullMarkdownForFile(
   const temp = createTempContext();
 
   if (!markdown) {
-    const inputPath = isAbsolute(file) ? file : join(Deno.cwd(), file);
-    if (!existsSync(inputPath)) {
-      throw new Error("File does not exist: " + inputPath);
+    if (engine) {
+      markdown = await engine.markdownForFile(file);
+    } else {
+      // Last resort, just read the file
+      markdown = mappedStringFromFile(file);
     }
-    markdown = asMappedString(Deno.readTextFileSync(inputPath), inputPath);
   }
 
   const options: LanguageCellHandlerOptions = {

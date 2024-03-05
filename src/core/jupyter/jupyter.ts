@@ -690,16 +690,22 @@ export async function jupyterToMarkdown(
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
 
-  const projType = options.executeOptions.project?.config?.project
-    ?.[kProjectType];
-  const fixups = projType === "book"
-    ? bookFixups
-    : options.executeOptions.project?.config?.title !== undefined &&
-        (projType === "default" || projType === undefined)
-    ? minimalFixups
-    : undefined;
+  const project = options.executeOptions.project;
+  const projType = project?.config?.project?.[kProjectType];
 
-  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
+  if (projType === "book") {
+    nb = fixupJupyterNotebook(nb, bookFixups);
+  } else if (project?.isSingleFile) {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  } else if (
+    (project?.config?.title !== undefined &&
+      (projType === "default" || projType === undefined))
+  ) {
+    nb = fixupJupyterNotebook(nb, minimalFixups);
+  } else {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  }
+
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;

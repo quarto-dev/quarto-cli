@@ -58,7 +58,7 @@ import {
   fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
 } from "../execute/engine.ts";
-import { kMarkdownEngine } from "../execute/types.ts";
+import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 
@@ -69,11 +69,7 @@ import {
   projectResolveFullMarkdownForFile,
   projectVarsFile,
 } from "./project-shared.ts";
-import {
-  RenderFlags,
-  RenderOptions,
-  RenderServices,
-} from "../command/render/types.ts";
+import { RenderOptions, RenderServices } from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -259,12 +255,14 @@ export async function projectContext(
 
         const result: ProjectContext = {
           resolveFullMarkdownForFile: (
+            engine: ExecutionEngine | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
           ) => {
             return projectResolveFullMarkdownForFile(
               result,
+              engine,
               file,
               markdown,
               force,
@@ -336,12 +334,14 @@ export async function projectContext(
         debug(`projectContext: Found Quarto project in ${dir}`);
         const result: ProjectContext = {
           resolveFullMarkdownForFile: (
+            engine: ExecutionEngine | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
           ) => {
             return projectResolveFullMarkdownForFile(
               result,
+              engine,
               file,
               markdown,
               force,
@@ -391,12 +391,14 @@ export async function projectContext(
         } else if (force) {
           const context: ProjectContext = {
             resolveFullMarkdownForFile: (
+              engine: ExecutionEngine | undefined,
               file: string,
               markdown?: MappedString,
               force?: boolean,
             ) => {
               return projectResolveFullMarkdownForFile(
                 context,
+                engine,
                 file,
                 markdown,
                 force,

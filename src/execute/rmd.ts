@@ -73,18 +73,26 @@ export const knitrEngine: ExecutionEngine = {
     return language.toLowerCase() === "r";
   },
 
+  async markdownForFile(file: string): Promise<MappedString> {
+    const isSpin = isKnitrSpinScript(file);
+    if (isSpin) {
+      return asMappedString(await markdownFromKnitrSpinScript(file));
+    }
+    return mappedStringFromFile(file);
+  },
+
   target: async (
     file: string,
     _quiet: boolean | undefined,
     markdown: MappedString | undefined,
     project: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
-    const isSpin = isKnitrSpinScript(file);
-    if (isSpin) {
-      markdown = asMappedString(await markdownFromKnitrSpinScript(file));
-    }
+    markdown = await project.resolveFullMarkdownForFile(
+      knitrEngine,
+      file,
+      markdown,
+    );
     let metadata;
-    markdown = await project.resolveFullMarkdownForFile(file, markdown, isSpin);
     try {
       metadata = readYamlFromMarkdown(markdown.value);
     } catch (e) {
