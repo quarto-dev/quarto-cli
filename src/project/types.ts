@@ -63,8 +63,8 @@ export interface ProjectContext {
   // input file doesn't have to be markdown; it can be, for example, a knitr spin file
   // output file is always markdown, though, and it is cached in the project
 
-  // what happens if input file is not markdown?
   resolveFullMarkdownForFile: (
+    engine: ExecutionEngine | undefined,
     file: string,
     markdown?: MappedString,
     force?: boolean,

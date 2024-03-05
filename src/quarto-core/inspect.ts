@@ -90,8 +90,9 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
   const inspectedProjectConfig = async () => {
     if (context?.config) {
       const fileInformation: Record<string, FileInspection> = {};
-      for (const file of Object.keys(context.files)) {
-        await context.resolveFullMarkdownForFile(file);
+      for (const file of context.files.input) {
+        const engine = await fileExecutionEngine(file, undefined, context);
+        await context.resolveFullMarkdownForFile(engine, file);
         fileInformation[file] = {
           includeMap: context.fileInformationCache.get(file)?.includeMap ?? {},
         };
@@ -125,7 +126,6 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
       singleFileProjectContext(path, nbContext);
     const engine = await fileExecutionEngine(path, undefined, project);
     if (engine) {
-      debugger;
       // partition markdown
       const partitioned = await engine.partitionedMarkdown(path);
 
@@ -178,7 +178,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
         );
       }
 
-      await context.resolveFullMarkdownForFile(path);
+      await context.resolveFullMarkdownForFile(engine, path);
 
       // data to write
       const config: InspectedDocumentConfig = {

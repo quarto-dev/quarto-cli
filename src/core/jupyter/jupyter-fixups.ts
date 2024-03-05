@@ -243,13 +243,17 @@ export const bookFixups: JupyterFixup[] = [
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
-  nbFixups: "minimal" | "default",
-  explicitFixups?: JupyterFixup[],
+  fixups: JupyterFixup[] | "minimal" | "default",
 ): JupyterNotebook {
-  const fixups = explicitFixups || nbFixups === "minimal"
-    ? minimalFixups
-    : defaultFixups;
-  for (const fixup of fixups) {
+  let nbFixups: JupyterFixup[] | undefined;
+  if (fixups === "minimal") {
+    nbFixups = minimalFixups;
+  } else if (fixups === "default") {
+    nbFixups = defaultFixups;
+  } else {
+    nbFixups = fixups;
+  }
+  for (const fixup of nbFixups) {
     nb = fixup(nb);
   }
   return nb;
