@@ -1,6 +1,5 @@
 import subprocess
 import sys
-import re
 
 
 julia_bin = sys.argv[1]
@@ -19,7 +18,6 @@ print("ran that")
 # detached process flags for windows
 flags = 0
 if sys.platform == 'win32':
-  python_exe = re.sub('python\\.exe$', 'pythonw.exe', python_exe)
   flags |= 0x00000008  # DETACHED_PROCESS
   flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
   flags |= 0x08000000  # CREATE_NO_WINDOW
