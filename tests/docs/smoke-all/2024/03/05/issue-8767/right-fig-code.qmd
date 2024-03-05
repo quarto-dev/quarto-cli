@@ -1,0 +1,38 @@
+---
+format:
+  typst:
+    output-ext: typ
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#align\\(right\\)\\[\n*#box"
+        -
+          - "#block\\[\n#block\\[\n#align\\(right\\)\\["
+
+
+---
+
+```{python}
+#| echo: false
+#| fig-align: right
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Data for plotting
+t = np.arange(0.0, 2.0, 0.01)
+s = 1 + np.sin(2 * np.pi * t)
+
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+       title='no fig-align')
+ax.grid()
+
+plt.show()
+```
