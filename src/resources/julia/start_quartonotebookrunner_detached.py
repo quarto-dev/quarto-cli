@@ -11,9 +11,6 @@ if len(sys.argv) > 5:
   raise ValueError("Too many arguments")
 
 cmd = [julia_bin, f"--project={project}", julia_file, transport_file]
-print("cmd:", cmd)
-subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-print("ran that")
 
 # detached process flags for windows
 flags = 0
