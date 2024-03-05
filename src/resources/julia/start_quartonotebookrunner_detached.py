@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import re
 
 
 julia_bin = sys.argv[1]
