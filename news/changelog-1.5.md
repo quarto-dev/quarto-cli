@@ -35,6 +35,7 @@ All changes included in 1.5:
 - ([#8588](https://github.com/quarto-dev/quarto-cli/issues/8588)): Fix display of `bread-crumbs` on pages with banner style title blocks.
 - ([#8830](https://github.com/quarto-dev/quarto-cli/issues/8830)): Add support for `tools-collapse` to control whether the tools collapse when the navbar does.
 - ([#8851](https://github.com/quarto-dev/quarto-cli/issues/8851)): Don't strip `index.html` from external paths.
+- ([#8977](https://github.com/quarto-dev/quarto-cli/issues/8977)): Don't decorate about links within external link icons.
 
 ## Book
 
