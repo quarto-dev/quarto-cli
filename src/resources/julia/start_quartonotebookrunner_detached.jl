@@ -13,4 +13,3 @@ cmd = `$julia_bin --project=$project $julia_file $transport_file`
 @info cmd
 run(detach(cmd), wait = false)
 @info "ran that"
-exit()

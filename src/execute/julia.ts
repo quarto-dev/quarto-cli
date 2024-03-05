@@ -40,6 +40,7 @@ import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync } from "fs/mod.ts";
+import { pythonExecForCaps } from "../core/jupyter/exec.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -241,9 +242,19 @@ async function startOrReuseJuliaServer(
     // run anything was written to stderr. This goes away when redirecting stderr to
     // a file on the julia side, but also when using Deno.Command which is recommended
     // as a replacement for the old Deno.run anyway.
-    const command = new Deno.Command(options.julia_cmd, {
+    // const command = new Deno.Command(options.julia_cmd, {
+    //   args: [
+    //     resourcePath("julia/start_quartonotebookrunner_detached.jl"),
+    //     options.julia_cmd,
+    //     juliaRuntimeDir(),
+    //     resourcePath("julia/quartonotebookrunner.jl"),
+    //     transportFile,
+    //   ],
+    // });
+    const pybinary = pythonExecForCaps(undefined)[0];
+    const command = new Deno.Command(pybinary, {
       args: [
-        resourcePath("julia/start_quartonotebookrunner_detached.jl"),
+        resourcePath("julia/start_quartonotebookrunner_detached.py"),
         options.julia_cmd,
         juliaRuntimeDir(),
         resourcePath("julia/quartonotebookrunner.jl"),
