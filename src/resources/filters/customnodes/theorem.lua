@@ -109,7 +109,8 @@ _quarto.ast.add_renderer("Theorem", function()
   return true 
 end, function(thm)
   local el = thm.div
-  if pandoc.utils.type(el) == "Blocks" then
+  local pt = pandoc.utils.type(el)
+  if pt == "Blocks" or el.t ~= "Div" then
     el = pandoc.Div(el)
   end
 
@@ -169,6 +170,14 @@ end, function(thm)
     return callthm
 
   else
+    -- order might be nil in the case of an ipynb rendering in
+    -- manuscript mode
+    --
+    -- FIXME format == ipynb and enableCrossRef == false should be
+    -- its own rendering format
+    if order == nil then
+      return el
+    end
     -- create caption prefix
     local captionPrefix = captionPrefix(name, type, theorem_type, order)
     local prefix =  { 

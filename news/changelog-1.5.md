@@ -69,6 +69,7 @@ All changes included in 1.5:
 ## Manuscripts
 
 - ([#8277](https://github.com/quarto-dev/quarto-cli/issues/8277)): Improve notebook ordering within Manuscript projects
+- ([#8974](https://github.com/quarto-dev/quarto-cli/issues/8974)): Fix theorem rendering in Manuscript projects
 
 ## Extensions
 
