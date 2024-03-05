@@ -251,8 +251,11 @@ async function startOrReuseJuliaServer(
       ],
     });
     // when this process finishes, a detached julia process with the quartonotebookrunner server will have been started
-    trace(options, "Spawning detached julia server through julia");
-    command.outputSync();
+    trace(
+      options,
+      "Spawning detached julia server through julia, once transport file exists, server should be running.",
+    );
+    command.spawn();
   } else {
     trace(
       options,
@@ -297,14 +300,18 @@ interface JuliaTransportFile {
   pid: number;
 }
 
-async function pollTransportFile(): Promise<JuliaTransportFile> {
+async function pollTransportFile(
+  options: JuliaExecuteOptions,
+): Promise<JuliaTransportFile> {
   const transportFile = juliaTransportFile();
 
   for (let i = 0; i < 20; i++) {
     if (existsSync(transportFile)) {
       const content = Deno.readTextFileSync(transportFile);
+      trace(options, "Transport file read successfully.");
       return JSON.parse(content) as JuliaTransportFile;
     }
+    trace(options, "Transport file did not exist, yet.");
     await sleep(i * 100);
   }
   return Promise.reject();
@@ -314,7 +321,7 @@ async function getJuliaServerConnection(
   options: JuliaExecuteOptions,
 ): Promise<Deno.TcpConn> {
   const { reused } = await startOrReuseJuliaServer(options);
-  const transportOptions = await pollTransportFile();
+  const transportOptions = await pollTransportFile(options);
 
   trace(
     options,
