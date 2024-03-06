@@ -236,13 +236,13 @@ async function startOrReuseJuliaServer(
     );
     await ensureQuartoNotebookRunnerEnvironment(options);
 
-    // when quarto's execProc function is used here, there is a strange bug.
-    // The first time render is called on a file, the julia server is started correctly.
-    // The second time it is called, however, the socket server hangs if during the first
-    // run anything was written to stderr. This goes away when redirecting stderr to
-    // a file on the julia side, but also when using Deno.Command which is recommended
-    // as a replacement for the old Deno.run anyway.
-
+    // We need to spawn the julia server in its own process that can outlive quarto.
+    // Apparently, `run(detach(cmd))` in julia does not do that reliably on Windows,
+    // at least deno never seems to recognize that the spawning julia process has finished,
+    // presumably because it waits for the active child process to exit. This makes the
+    // tests on windows hang forever if we use the same launching mechanism as for Unix systems.
+    // So we utilize powershell instead which can start completely detached processes with
+    // the Start-Process commandlet.
     if (Deno.build.os === "windows") {
       const command = new Deno.Command(
         "PowerShell",
