@@ -654,6 +654,9 @@ function htmlFormatPostprocessor(
 
     // process all of the code blocks
     const codeBlocks = doc.querySelectorAll("pre.sourceCode");
+    const EmbedSourceModal = doc.querySelector(
+      `#${kEmbeddedSourceModalId}`,
+    );
     for (let i = 0; i < codeBlocks.length; i++) {
       const code = codeBlocks[i] as Element;
 
@@ -677,8 +680,8 @@ function htmlFormatPostprocessor(
       if (codeCopy) {
         code.classList.add("code-with-copy");
         const copyButton = createCodeCopyButton(doc, format);
-        if (doc.querySelector(`#${kEmbeddedSourceModalId}`).contains(code)) {
-          copyButton.setAttribute("data-in-modal", "");
+        if (EmbedSourceModal && EmbedSourceModal.contains(code)) {
+          copyButton.setAttribute("data-in-quarto-modal", "");
         }
         code.appendChild(copyButton);
       }
