@@ -258,7 +258,7 @@ async function startOrReuseJuliaServer(
             ",",
             transportFile,
             "-WindowStyle",
-            "-Hidden",
+            "Hidden",
           ],
         },
       );
