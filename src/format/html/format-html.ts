@@ -47,7 +47,10 @@ import {
   SassBundle,
 } from "../../config/types.ts";
 
-import { formatHasCodeTools } from "../../command/render/codetools.ts";
+import {
+  formatHasCodeTools,
+  kEmbeddedSourceModalId,
+} from "../../command/render/codetools.ts";
 
 import { createHtmlFormat } from "./../formats-shared.ts";
 
@@ -651,6 +654,9 @@ function htmlFormatPostprocessor(
 
     // process all of the code blocks
     const codeBlocks = doc.querySelectorAll("pre.sourceCode");
+    const EmbedSourceModal = doc.querySelector(
+      `#${kEmbeddedSourceModalId}`,
+    );
     for (let i = 0; i < codeBlocks.length; i++) {
       const code = codeBlocks[i] as Element;
 
@@ -670,10 +676,13 @@ function htmlFormatPostprocessor(
         code.parentElement?.classList.add("hidden");
       }
 
-      // insert code copy button
+      // insert code copy button (with specfic attribute when inside a modal)
       if (codeCopy) {
         code.classList.add("code-with-copy");
         const copyButton = createCodeCopyButton(doc, format);
+        if (EmbedSourceModal && EmbedSourceModal.contains(code)) {
+          copyButton.setAttribute("data-in-quarto-modal", "");
+        }
         code.appendChild(copyButton);
       }
 
