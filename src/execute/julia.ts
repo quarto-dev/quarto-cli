@@ -264,9 +264,9 @@ async function startOrReuseJuliaServer(
       );
       trace(
         options,
-        "Spawning detached julia server through powershell, once transport file exists, server should be running.",
+        "Starting detached julia server through powershell, once transport file exists, server should be running.",
       );
-      command.spawn();
+      command.outputSync();
     } else {
       const command = new Deno.Command(options.julia_cmd, {
         args: [
@@ -279,9 +279,9 @@ async function startOrReuseJuliaServer(
       });
       trace(
         options,
-        "Spawning detached julia server through julia, once transport file exists, server should be running.",
+        "Starting detached julia server through julia, once transport file exists, server should be running.",
       );
-      command.spawn();
+      command.outputSync();
     }
   } else {
     trace(
