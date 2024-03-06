@@ -103,6 +103,10 @@ export const juliaEngine: ExecutionEngine = {
     return true;
   },
 
+  markdownForFile(file: string): Promise<MappedString> {
+    return Promise.resolve(mappedStringFromFile(file));
+  },
+
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     options.target.source;
 
@@ -252,6 +256,7 @@ async function startOrReuseJuliaServer(
             "Start-Process",
             options.julia_cmd,
             "-ArgumentList",
+            "--startup-file=no",
             `--project=${juliaRuntimeDir()}`,
             ",",
             resourcePath("julia/quartonotebookrunner.jl"),
@@ -270,6 +275,7 @@ async function startOrReuseJuliaServer(
     } else {
       const command = new Deno.Command(options.julia_cmd, {
         args: [
+          "--startup-file=no",
           resourcePath("julia/start_quartonotebookrunner_detached.jl"),
           options.julia_cmd,
           juliaRuntimeDir(),
@@ -425,6 +431,10 @@ async function executeJulia(
   );
   if (options.oneShot) {
     await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+  }
+
+  if (response.error !== undefined) {
+    throw new Error("Running notebook failed:\n" + response.juliaError);
   }
 
   return response.notebook as JupyterNotebook;
