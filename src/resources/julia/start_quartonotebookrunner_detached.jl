@@ -12,6 +12,5 @@ end
 cmd = `$julia_bin --project=$project $julia_file $transport_file`
 @info cmd
 
-proc = run(detach(cmd), wait = false)
-Base.uv_unref(proc.handle)
+run(detach(cmd), wait = false)
 @info "ran that"
