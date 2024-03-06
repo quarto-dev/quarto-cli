@@ -1,5 +1,6 @@
 ---
 title: Julia Subfig Test
+engine: julia
 ---
 
 ## Julia Crossref Figure
