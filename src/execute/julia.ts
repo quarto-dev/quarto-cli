@@ -242,31 +242,47 @@ async function startOrReuseJuliaServer(
     // run anything was written to stderr. This goes away when redirecting stderr to
     // a file on the julia side, but also when using Deno.Command which is recommended
     // as a replacement for the old Deno.run anyway.
-    const command = new Deno.Command(options.julia_cmd, {
-      args: [
-        resourcePath("julia/start_quartonotebookrunner_detached.jl"),
-        options.julia_cmd,
-        juliaRuntimeDir(),
-        resourcePath("julia/quartonotebookrunner.jl"),
-        transportFile,
-      ],
-    });
-    // const pybinary = pythonExecForCaps(undefined)[0];
-    // const command = new Deno.Command(pybinary, {
-    //   args: [
-    //     resourcePath("julia/start_quartonotebookrunner_detached.py"),
-    //     options.julia_cmd,
-    //     juliaRuntimeDir(),
-    //     resourcePath("julia/quartonotebookrunner.jl"),
-    //     transportFile,
-    //   ],
-    // });
-    // when this process finishes, a detached julia process with the quartonotebookrunner server will have been started
-    trace(
-      options,
-      "Spawning detached julia server through julia, once transport file exists, server should be running.",
-    );
-    command.spawn();
+
+    if (Deno.build.os === "windows") {
+      const command = new Deno.Command(
+        "PowerShell",
+        {
+          args: [
+            "-Command",
+            "Start-Process",
+            options.julia_cmd,
+            "-ArgumentList",
+            `--project=${juliaRuntimeDir()}`,
+            ",",
+            resourcePath("julia/quartonotebookrunner.jl"),
+            ",",
+            transportFile,
+            "-WindowStyle",
+            "-Hidden",
+          ],
+        },
+      );
+      trace(
+        options,
+        "Spawning detached julia server through powershell, once transport file exists, server should be running.",
+      );
+      command.spawn();
+    } else {
+      const command = new Deno.Command(options.julia_cmd, {
+        args: [
+          resourcePath("julia/start_quartonotebookrunner_detached.jl"),
+          options.julia_cmd,
+          juliaRuntimeDir(),
+          resourcePath("julia/quartonotebookrunner.jl"),
+          transportFile,
+        ],
+      });
+      trace(
+        options,
+        "Spawning detached julia server through julia, once transport file exists, server should be running.",
+      );
+      command.spawn();
+    }
   } else {
     trace(
       options,
