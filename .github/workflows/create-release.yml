@@ -60,8 +60,9 @@ jobs:
           echo -e "\n\nFull ${version} changelog up to this version:\n" >> "release_note.md"
           echo -e "  * View: https://github.com/${GITHUB_REPOSITORY}/blob/v${version_full}/news/changelog-${version}.md\n" >> "release_note.md"
           echo -e "  * Download: https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version_full}/changelog.md\n" >> "release_note.md"
-          echo -e "" >> "release_note.md"
-          echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release. Follow #8944 for more information." >> "release_note.md"
+          # TODO: uncomment this again if new issue with RHEL build
+          # echo -e "" >> "release_note.md"
+          # echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release." >> "release_note.md"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
