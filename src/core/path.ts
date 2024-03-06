@@ -12,14 +12,12 @@ import {
   isAbsolute,
   join,
   normalize,
-} from "path/mod.ts";
+} from "../deno_ral/path.ts";
 
-import {
-  globToRegExp,
-  isGlob,
-} from "https://deno.land/std@0.204.0/path/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
+import { isGlob } from "path/mod.ts";
 
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";

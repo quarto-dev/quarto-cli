@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { error, info, warning } from "log/mod.ts";
+import { error, info, warning } from "../deno_ral/log.ts";
 import { existsSync } from "fs/exists.ts";
-import { basename, extname } from "path/mod.ts";
+import { basename, extname } from "../deno_ral/path.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -73,18 +73,26 @@ export const knitrEngine: ExecutionEngine = {
     return language.toLowerCase() === "r";
   },
 
+  async markdownForFile(file: string): Promise<MappedString> {
+    const isSpin = isKnitrSpinScript(file);
+    if (isSpin) {
+      return asMappedString(await markdownFromKnitrSpinScript(file));
+    }
+    return mappedStringFromFile(file);
+  },
+
   target: async (
     file: string,
     _quiet: boolean | undefined,
     markdown: MappedString | undefined,
     project: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
-    const isSpin = isKnitrSpinScript(file);
-    if (isSpin) {
-      markdown = asMappedString(await markdownFromKnitrSpinScript(file));
-    }
+    markdown = await project.resolveFullMarkdownForFile(
+      knitrEngine,
+      file,
+      markdown,
+    );
     let metadata;
-    markdown = await project.resolveFullMarkdownForFile(file, markdown, isSpin);
     try {
       metadata = readYamlFromMarkdown(markdown.value);
     } catch (e) {

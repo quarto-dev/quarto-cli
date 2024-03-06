@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { dirname, extname, join } from "path/mod.ts";
+import { dirname, extname, join } from "../../../src/deno_ral/path.ts";
 import { docs, outputForInput } from "../../utils.ts";
 import {
   ensureFileRegexMatches,

@@ -1,5 +1,5 @@
-import { info, warning } from "log/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
+import { info, warning } from "../../../src/deno_ral/log.ts";
+import { basename, dirname, join } from "../../../src/deno_ral/path.ts";
 import { emptyDirSync, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";

@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 
 import { render } from "../render/render-shared.ts";
 import { renderServices } from "../render/render-services.ts";
@@ -42,7 +42,7 @@ import { dartCommand } from "../../core/dart-sass.ts";
 import { allTools } from "../../tools/tools.ts";
 import { texLiveContext, tlVersion } from "../render/latexmk/texlive.ts";
 import { which } from "../../core/path.ts";
-import { dirname } from "path/mod.ts";
+import { dirname } from "../../deno_ral/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 const kIndent = "      ";

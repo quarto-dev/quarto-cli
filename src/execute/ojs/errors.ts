@@ -5,7 +5,7 @@
 *
 */
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { mappedIndexToLineCol } from "../../core/lib/mapped-text.ts";
 import { MappedString } from "../../core/lib/text-types.ts";
 

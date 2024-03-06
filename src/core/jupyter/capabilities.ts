@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { isAbsolute, join } from "path/mod.ts";
+import { isAbsolute, join } from "../../deno_ral/path.ts";
 import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { isWindows } from "../platform.ts";

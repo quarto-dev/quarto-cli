@@ -37,7 +37,7 @@ import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import {
   DashboardMeta,
   dashboardMeta,

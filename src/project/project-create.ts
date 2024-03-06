@@ -6,8 +6,8 @@
 
 import * as ld from "../core/lodash.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { basename, dirname, join } from "../deno_ral/path.ts";
+import { info } from "../deno_ral/log.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
 import {
@@ -137,11 +137,12 @@ export async function projectCreate(options: ProjectCreateOptions) {
         dest = join(options.dir, supporting.to);
         displayName = supporting.to;
       }
-
-      ensureDirSync(dirname(dest));
-      copyTo(src, dest);
-      if (!options.quiet) {
-        info("- Created " + displayName, { indent: 2 });
+      if (!existsSync(dest)) {
+        ensureDirSync(dirname(dest));
+        copyTo(src, dest);
+        if (!options.quiet) {
+          info("- Created " + displayName, { indent: 2 });
+        }
       }
     }
   }

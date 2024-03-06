@@ -8,7 +8,7 @@ import { reformat } from "../../core/xml.ts";
 import { RenderServices } from "../../command/render/types.ts";
 import { JatsRenderSubArticle, xmlPlaceholder } from "./format-jats-types.ts";
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { copySync } from "fs/copy.ts";
 import { readLines } from "io/mod.ts";
 import { ProjectContext } from "../../project/types.ts";

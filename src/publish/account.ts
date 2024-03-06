@@ -4,7 +4,7 @@
  * Copyright (C) 2022 Posit Software, PBC
  */
 
-import { error } from "log/mod.ts";
+import { error } from "../deno_ral/log.ts";
 
 import { prompt } from "cliffy/prompt/mod.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";

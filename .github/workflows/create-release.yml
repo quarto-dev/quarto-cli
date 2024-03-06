@@ -31,7 +31,7 @@ jobs:
       tag_pushed: ${{ steps.version_commit.outputs.tag_pushed }}
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -60,6 +60,8 @@ jobs:
           echo -e "\n\nFull ${version} changelog up to this version:\n" >> "release_note.md"
           echo -e "  * View: https://github.com/${GITHUB_REPOSITORY}/blob/v${version_full}/news/changelog-${version}.md\n" >> "release_note.md"
           echo -e "  * Download: https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version_full}/changelog.md\n" >> "release_note.md"
+          echo -e "" >> "release_note.md"
+          echo -e "Due to an issue with upstream dependency, the RHEL build may not included in this release. Follow #8944 for more information." >> "release_note.md"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -88,13 +90,13 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
       - name: Make Tarball
         run: |
-          tar -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
+          tar --owner=root --group=root -zcvf  quarto-${{needs.configure.outputs.version}}.tar.gz *
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
@@ -107,7 +109,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -125,7 +127,7 @@ jobs:
         run: |
           pushd package/
           mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
+          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-amd64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
@@ -141,7 +143,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -159,7 +161,7 @@ jobs:
         run: |
           pushd package/
           mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
+          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-arm64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-arm64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
@@ -175,7 +177,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -204,7 +206,7 @@ jobs:
         run: |
           pushd package/
           mv pkg-working quarto-${{needs.configure.outputs.version}}
-          tar -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
+          tar --owner=root --group=root -cvf  quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar quarto-${{needs.configure.outputs.version}}
           gzip quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar
           mv quarto-${{needs.configure.outputs.version}} pkg-working
           popd
@@ -220,7 +222,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -251,7 +253,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -289,7 +291,8 @@ jobs:
           tar -zxf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
           echo "$GITHUB_WORKSPACE/quarto-${{needs.configure.outputs.version}}/bin" >> $GITHUB_PATH
       - run: |
-          ls -R
+          tar -tzvf quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz | head
+          ls -lR
           echo $PATH
           quarto check
           quarto --paths
@@ -305,7 +308,7 @@ jobs:
           rustup.exe toolchain install 1.63.0 --component rustfmt --component clippy --no-self-update
           rustup.exe default 1.63.0
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -366,7 +369,7 @@ jobs:
     needs: [configure]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.configure.outputs.version_commit }}
 
@@ -438,7 +441,8 @@ jobs:
       - run: |
           tar -zxf quarto-${{needs.configure.outputs.version}}-macos.tar.gz
           echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-      - run: ls -R
+      - run: tar -tzvf ${{needs.configure.outputs.version}}-macos.tar.gz | head
+      - run: ls -lR
       - run: echo $PATH
       - run: |
           quarto check
@@ -448,14 +452,14 @@ jobs:
   publish-release:
     if: ${{ inputs.publish-release }}
     runs-on: ubuntu-latest
-    needs:
-      [
+    needs: [
         configure,
         make-installer-deb,
         make-installer-arm64-deb,
         make-installer-win,
         make-installer-mac,
-        make-tarball-rhel,
+        # optional in release to not be blocked by RHEL build depending on conda-forge deno dependency
+        # make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
         make-source-tarball,
@@ -492,9 +496,11 @@ jobs:
           sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
           popd
 
-          pushd RHEL\ Zip
-          sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
-          popd           
+          if [ -f "RHEL Zip/quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz" ]; then
+            pushd RHEL\ Zip
+            sha256sum quarto-${{needs.configure.outputs.version}}-linux-rhel7-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+            popd
+          fi         
            
           pushd Deb\ Zip
           sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
@@ -518,7 +524,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@4634c16e79c963813287e889244c50009e7f0981
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -528,6 +534,7 @@ jobs:
           body_path: ./News/release_note.md
           draft: false
           prerelease: ${{ inputs.pre-release }}
+          fail_on_unmatched_files: false # rhel build may not be included
           files: |
             ./Source/quarto-${{needs.configure.outputs.version}}.tar.gz
             ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
@@ -544,14 +551,14 @@ jobs:
 
   cleanup-when-failure:
     if: ${{ (failure() || cancelled()) && inputs.publish-release }}
-    needs:
-      [
+    needs: [
         configure,
         make-installer-deb,
         make-installer-arm64-deb,
         make-installer-win,
         make-installer-mac,
-        make-tarball-rhel,
+        # optional in release to not be blocked by RHEL build depending on conda-forge deno dependency
+        # make-tarball-rhel,
         make-arm64-tarball,
         make-tarball,
         make-source-tarball,
@@ -562,7 +569,7 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Revert commit of version.txt
         if: ${{ needs.configure.outputs.pushed }}

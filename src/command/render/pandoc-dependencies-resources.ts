@@ -12,7 +12,7 @@ import {
 import { copyTo } from "../../core/copy.ts";
 import { lines } from "../../core/text.ts";
 
-import { basename, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import {
   appendDependencies,
   FormatResourceDependency,

@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "../src/deno_ral/path.ts";
 import { parseFormatString } from "../src/core/pandoc/pandoc-formats.ts";
 import { kMetadataFormat, kOutputExt } from "../src/config/constants.ts";
 

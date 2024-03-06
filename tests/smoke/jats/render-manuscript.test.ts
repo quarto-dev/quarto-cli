@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../src/deno_ral/path.ts";
 import { docs, outputForInput } from "../../utils.ts";
 import { ensureMECAValidates, ensureXmlValidatesWithXsd } from "../../verify.ts";
 import { testRender } from "../render/render.ts";

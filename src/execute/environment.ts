@@ -4,7 +4,7 @@
  * Copyright (C) 2024 Posit Software, PBC
  */
 
-import { dirname } from "path/mod.ts";
+import { dirname } from "../deno_ral/path.ts";
 import { ExecuteOptions } from "./types.ts";
 import { InternalError } from "../core/lib/error.ts";
 

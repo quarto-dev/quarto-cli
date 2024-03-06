@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 
 import { kDefaultHighlightStyle } from "../command/render/constants.ts";
 import { kHighlightStyle } from "../config/constants.ts";
@@ -28,7 +28,7 @@ export function textHighlightThemePath(
   style?: "dark" | "light",
 ) {
   let resolvedTheme: string;
-  if (typeof (theme) === "object") {
+  if (typeof theme === "object") {
     if (style && theme[style]) {
       resolvedTheme = theme[style] as string;
     } else {
@@ -96,7 +96,7 @@ export function hasTextHighlighting(pandoc: FormatPandoc): boolean {
 }
 
 export function isAdaptiveTheme(theme: string | Record<string, string>) {
-  if (typeof (theme) === "string") {
+  if (typeof theme === "string") {
     return [
       "a11y",
       "arrow",

@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2023 Posit Software, PBC
  */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { projectType } from "../project/types/project-types.ts";
 import {

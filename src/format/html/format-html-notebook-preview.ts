@@ -14,7 +14,7 @@ import { Format, NotebookPreviewDescriptor } from "../../config/types.ts";
 
 import { RenderServices } from "../../command/render/types.ts";
 
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { projectIsBook } from "../../project/project-shared.ts";

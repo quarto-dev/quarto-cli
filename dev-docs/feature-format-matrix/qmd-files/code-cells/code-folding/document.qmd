@@ -2,6 +2,13 @@
 title: Code fold
 format: 
   docusaurus-md: {}
+  html:
+    quality: 1
+  markdown:
+    quality: -1
+    comment: we are emitting raw html blocks that Pandoc doesn't filter
+  pdf:
+    quality: NA
 code-fold: true
 ---
 

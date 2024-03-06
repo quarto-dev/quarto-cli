@@ -25,6 +25,14 @@ export const standaloneInclude = async (
   const retrievedFiles: string[] = [source];
 
   const textFragments: EitherString[] = [];
+  if (!handlerContext.options.state) {
+    handlerContext.options.state = {};
+  }
+  if (!handlerContext.options.state.include) {
+    handlerContext.options.state.include = {};
+  }
+  const includeState: Record<string, string> = handlerContext.options.state
+    .include as Record<string, string>;
 
   const retrieveInclude = async (filename: string) => {
     const path = handlerContext.resolvePath(filename);
@@ -70,6 +78,7 @@ export const standaloneInclude = async (
           throw new Error("Include directive needs file parameter");
         }
 
+        includeState[filename] = path;
         await retrieveInclude(params[0]);
       }
     }

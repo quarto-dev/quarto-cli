@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname, join, resolve } from "path/mod.ts";
+import { extname, join, resolve } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -167,7 +167,7 @@ export async function fileExecutionEngine(
   // if we were passed a transformed markdown, use that for the text instead
   // of the contents of the file.
   if (kMdExtensions.includes(ext) || kQmdExtensions.includes(ext)) {
-    const markdown = await project.resolveFullMarkdownForFile(file);
+    const markdown = await project.resolveFullMarkdownForFile(undefined, file);
     // https://github.com/quarto-dev/quarto-cli/issues/6825
     // In case the YAML _parsing_ fails, we need to annotate the error
     // with the filename so that the user knows which file is the problem.
@@ -199,10 +199,10 @@ export async function fileExecutionEngineAndTarget(
   }
 
   const engine = await fileExecutionEngine(file, flags, project);
-  const markdown = await project.resolveFullMarkdownForFile(file);
   if (!engine) {
     throw new Error("Can't determine execution engine for " + file);
   }
+  const markdown = await project.resolveFullMarkdownForFile(engine, file);
 
   const target = await engine.target(file, flags?.quiet, markdown, project);
   if (!target) {

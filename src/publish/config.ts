@@ -4,9 +4,9 @@
  * Copyright (C) 2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 import { stringify } from "yaml/mod.ts";
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../core/lodash.ts";

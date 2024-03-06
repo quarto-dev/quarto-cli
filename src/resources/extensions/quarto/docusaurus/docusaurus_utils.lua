@@ -58,6 +58,14 @@ function render_folded_block(block)
   end
 end
 
+local function max_backticks(el)
+  local v = 0
+  for w in el.text:gmatch("`+") do
+    v = math.max(v, #w)
+  end
+  return v
+end
+
 function code_block(code_block_slot, filename)
   function process(el)
     local lang = el.attr.classes[1]
@@ -68,7 +76,8 @@ function code_block(code_block_slot, filename)
       if not lang then
         lang = 'text'
       end
-      local code = "\n```" .. lang
+      local backticks = string.rep("`", math.max(3, max_backticks(el) + 1))
+      local code = "\n" .. backticks .. lang
       if codeLineNumbers then
         code = code .. " {" .. codeLineNumbers .. "}"
       end
@@ -78,7 +87,7 @@ function code_block(code_block_slot, filename)
       if title then
         code = code .. " title=\"" .. title .. "\""
       end
-      code = code .. "\n" .. el.text .. "\n```\n"
+      code = code .. "\n" .. el.text .. "\n" .. backticks .. "\n"
   
       -- docusaures code block attributes don't conform to any syntax
       -- that pandoc natively understands, so return the CodeBlock as

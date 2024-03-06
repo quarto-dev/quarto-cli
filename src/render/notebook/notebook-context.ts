@@ -21,14 +21,14 @@ import {
   RenderType,
 } from "./notebook-types.ts";
 
-import { basename, dirname, isAbsolute, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { jatsContributor } from "./notebook-contributor-jats.ts";
 import { htmlNotebookContributor } from "./notebook-contributor-html.ts";
 import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
 import { Format } from "../../config/types.ts";
 import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
 import { qmdNotebookContributor } from "./notebook-contributor-qmd.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,

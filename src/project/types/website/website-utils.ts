@@ -12,8 +12,8 @@ import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { engineValidExtensions } from "../../../execute/engine.ts";
 import { ProjectContext } from "../../types.ts";
 
-import { warning } from "log/mod.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { warning } from "../../../deno_ral/log.ts";
+import { dirname, extname, join, relative } from "../../../deno_ral/path.ts";
 import { websiteConfigArray, websiteConfigString } from "./website-config.ts";
 import { kDraftMode, kDraftModeGone, kDrafts } from "./website-constants.ts";
 

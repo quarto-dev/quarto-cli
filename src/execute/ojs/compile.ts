@@ -5,8 +5,8 @@
  */
 
 import * as ld from "../../core/lodash.ts";
-import { dirname, join, relative, resolve } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { dirname, join, relative, resolve } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { parseModule } from "observablehq/parser";
 import { escape } from "../../core/lodash.ts";
@@ -299,7 +299,7 @@ export async function ojsCompile(
         );
         ojsParseError(err, cellSrc);
 
-        const preDiv = pandocBlock("````")({
+        const preDiv = pandocCode({
           classes: ["numberLines", "java"],
           attrs: [
             `startFrom="${cellStartingLoc - 1}"`,
@@ -543,7 +543,7 @@ export async function ojsCompile(
           `startFrom="${cellStartingLoc - 1}"`,
           `source-offset="${cell.sourceOffset}"`,
         );
-        const srcDiv = pandocBlock("````")({
+        const srcDiv = pandocCode({
           classes: ourClasses,
           attrs: ourAttrs,
         });

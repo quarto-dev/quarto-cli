@@ -6,7 +6,7 @@
 
 import { walkSync } from "fs/walk.ts";
 
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 // REES Compatible execution files

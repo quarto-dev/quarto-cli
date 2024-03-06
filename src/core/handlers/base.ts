@@ -27,7 +27,12 @@ import {
   optionCommentPatternFromLanguage,
 } from "../lib/partition-cell-options.ts";
 import { ConcreteSchema } from "../lib/yaml-schema/types.ts";
-import { pandocBlock, pandocList, pandocRawStr } from "../pandoc/codegen.ts";
+import {
+  pandocCode,
+  pandocDiv,
+  pandocList,
+  pandocRawStr,
+} from "../pandoc/codegen.ts";
 
 import {
   kCapLoc,
@@ -61,11 +66,17 @@ import {
   kTblCapLoc,
 } from "../../config/constants.ts";
 import { DirectiveCell } from "../lib/break-quarto-md-types.ts";
-import { basename, dirname, join, relative, resolve } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  join,
+  relative,
+  resolve,
+} from "../../deno_ral/path.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { withCriClient } from "../cri/cri.ts";
 import { normalizePath } from "../path.ts";
 import {
@@ -322,10 +333,20 @@ export function install(handler: LanguageHandler) {
 const processMarkdownIncludes = async (
   newCells: MappedString[],
   options: LanguageCellHandlerOptions,
+  filename?: string,
 ) => {
-  const includeHandler = makeHandlerContext({
-    ...options,
-  });
+  const includeHandler = makeHandlerContext(options);
+
+  if (!includeHandler.context.options.state) {
+    includeHandler.context.options.state = {};
+  }
+  if (!includeHandler.context.options.state.include) {
+    includeHandler.context.options.state.include = {};
+  }
+  const includeState: Record<string, string> = includeHandler.context.options
+    .state
+    .include as Record<string, string>;
+
   // search for include shortcodes in the cell content
   for (let i = 0; i < newCells.length; ++i) {
     const lines = mappedLines(newCells[i], true);
@@ -338,6 +359,9 @@ const processMarkdownIncludes = async (
           const param = shortcode.params[0];
           if (!param) {
             throw new Error("Include directive needs filename as a parameter");
+          }
+          if (filename) {
+            includeState[filename] = param;
           }
           lines[j] = await standaloneInclude(includeHandler.context, param);
         }
@@ -364,6 +388,7 @@ const processMarkdownIncludes = async (
 export async function expandIncludes(
   markdown: MappedString,
   options: LanguageCellHandlerOptions,
+  filename: string,
 ): Promise<MappedString> {
   const mdCells = (await breakQuartoMd(markdown, false)).cells;
   if (mdCells.length === 0) {
@@ -377,7 +402,7 @@ export async function expandIncludes(
     );
   }
 
-  await processMarkdownIncludes(newCells, options);
+  await processMarkdownIncludes(newCells, options, filename);
   return mappedJoin(newCells, "");
 }
 
@@ -629,12 +654,9 @@ export const baseHandler: LanguageHandler = {
 
     const unrolledOutput = isPowerpointOutput && !hasLayoutAttributes;
 
-    const t3 = pandocBlock("```");
-    const t4 = pandocBlock("````");
-
     const cellBlock = unrolledOutput
       ? pandocList({ skipFirstLineBreak: true })
-      : pandocBlock(":::")({
+      : pandocDiv({
         classes: ["cell", ...classes],
         attrs,
       });
@@ -667,7 +689,7 @@ export const baseHandler: LanguageHandler = {
 
     switch (options.echo) {
       case true: {
-        const cellInput = t3({
+        const cellInput = pandocCode({
           classes: cellInputClasses,
           attrs: cellInputAttrs,
         });
@@ -676,11 +698,11 @@ export const baseHandler: LanguageHandler = {
         break;
       }
       case "fenced": {
-        const cellInput = t4({
+        const cellInput = pandocCode({
           classes: ["markdown", ...cellInputClasses.slice(1)], // replace the language class with markdown
           attrs: cellInputAttrs,
         });
-        const cellFence = t3({
+        const cellFence = pandocCode({
           language: this.languageName,
           skipFirstLineBreak: true,
         });
@@ -695,7 +717,7 @@ export const baseHandler: LanguageHandler = {
       }
     }
 
-    const divBlock = pandocBlock(":::");
+    const divBlock = pandocDiv;
 
     // PandocNodes ignore self-pushes (n.push(n))
     // this makes it much easier to write the logic around "unrolled blocks"

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
+import { dirname, isAbsolute, join, relative, SEP } from "../deno_ral/path.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import * as ld from "../core/lodash.ts";
@@ -58,7 +58,7 @@ import {
   fileExecutionEngineAndTarget,
   projectIgnoreGlobs,
 } from "../execute/engine.ts";
-import { kMarkdownEngine } from "../execute/types.ts";
+import { ExecutionEngine, kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 
@@ -69,11 +69,7 @@ import {
   projectResolveFullMarkdownForFile,
   projectVarsFile,
 } from "./project-shared.ts";
-import {
-  RenderFlags,
-  RenderOptions,
-  RenderServices,
-} from "../command/render/types.ts";
+import { RenderOptions, RenderServices } from "../command/render/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
@@ -90,7 +86,7 @@ import { ConcreteSchema } from "../core/lib/yaml-schema/types.ts";
 import { ExtensionContext } from "../extension/types.ts";
 import { asArray } from "../core/array.ts";
 import { renderFormats } from "../command/render/render-contexts.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 import { computeProjectEnvironment } from "./project-environment.ts";
 import { ProjectEnvironment } from "./project-environment-types.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
@@ -153,10 +149,19 @@ export async function projectContext(
           projectConfig,
           dir,
         );
+
+        // resolve includes
+        const configSchema = await getProjectConfigSchema();
+        const includedMeta = await includedMetadata(
+          dir,
+          projectConfig,
+          configSchema,
+        );
+        const metadata = includedMeta.metadata;
+        projectConfig = mergeProjectMetadata(projectConfig, metadata);
       }
 
       // collect then merge configuration profiles
-      const configSchema = await getProjectConfigSchema();
       const result = await initializeProfileConfig(
         dir,
         projectConfig,
@@ -250,12 +255,14 @@ export async function projectContext(
 
         const result: ProjectContext = {
           resolveFullMarkdownForFile: (
+            engine: ExecutionEngine | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
           ) => {
             return projectResolveFullMarkdownForFile(
               result,
+              engine,
               file,
               markdown,
               force,
@@ -263,6 +270,7 @@ export async function projectContext(
           },
           dir,
           engines: [],
+          fileInformationCache: new Map(),
           files: {
             input: [],
           },
@@ -326,12 +334,14 @@ export async function projectContext(
         debug(`projectContext: Found Quarto project in ${dir}`);
         const result: ProjectContext = {
           resolveFullMarkdownForFile: (
+            engine: ExecutionEngine | undefined,
             file: string,
             markdown?: MappedString,
             force?: boolean,
           ) => {
             return projectResolveFullMarkdownForFile(
               result,
+              engine,
               file,
               markdown,
               force,
@@ -340,6 +350,7 @@ export async function projectContext(
           dir,
           config: projectConfig,
           engines: [],
+          fileInformationCache: new Map(),
           files: {
             input: [],
           },
@@ -380,12 +391,14 @@ export async function projectContext(
         } else if (force) {
           const context: ProjectContext = {
             resolveFullMarkdownForFile: (
+              engine: ExecutionEngine | undefined,
               file: string,
               markdown?: MappedString,
               force?: boolean,
             ) => {
               return projectResolveFullMarkdownForFile(
                 context,
+                engine,
                 file,
                 markdown,
                 force,
@@ -398,6 +411,7 @@ export async function projectContext(
                 [kProjectOutputDir]: flags?.outputDir,
               },
             },
+            fileInformationCache: new Map(),
             files: {
               input: [],
             },

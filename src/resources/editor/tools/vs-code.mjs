@@ -16059,14 +16059,16 @@ var require_yaml_intelligence_resources = __commonJS({
               "tectonic",
               "wkhtmltopdf",
               "weasyprint",
+              "pagedjs-cli",
               "prince",
               "context",
-              "pdfroff"
+              "pdfroff",
+              "typst"
             ]
           },
           description: {
             short: "Use the specified engine when producing PDF output.",
-            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n"
+            long: "Use the specified engine when producing PDF output. If the engine is not\nin your PATH, the full path of the engine may be specified here. If this\noption is not specified, Quarto uses the following defaults\ndepending on the output format in use:\n\n- `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,\n  `tectonic`, `latexmk`)\n- `context`: `context`\n- `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;\n  see [print-css.rocks](https://print-css.rocks) for a good\n  introduction to PDF generation from HTML/CSS.)\n- `ms`:  `pdfroff`\n- `typst`: `typst`\n"
           }
         },
         {
@@ -16082,6 +16084,23 @@ var require_yaml_intelligence_resources = __commonJS({
           description: {
             short: "Use the given string as a command-line argument to the `pdf-engine`.",
             long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use `pdf-engine-opt: -outdir=foo`. Note that no check for \nduplicate options is done.\n"
+          }
+        },
+        {
+          name: "pdf-engine-opts",
+          tags: {
+            formats: [
+              "$pdf-all",
+              "ms",
+              "context"
+            ]
+          },
+          schema: {
+            arrayOf: "string"
+          },
+          description: {
+            short: "Pass multiple command-line arguments to the `pdf-engine`.",
+            long: "Use the given strings passed as a array as command-line arguments to the pdf-engine.\nThis is an alternative to `pdf-engine-opt` for passing multiple options.\n"
           }
         },
         {
@@ -19769,6 +19788,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -19919,6 +19939,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -21652,6 +21673,10 @@ var require_yaml_intelligence_resources = __commonJS({
           short: "Use the given string as a command-line argument to the\n<code>pdf-engine</code>.",
           long: "Use the given string as a command-line argument to the pdf-engine.\nFor example, to use a persistent directory foo for latexmk\u2019s auxiliary\nfiles, use <code>pdf-engine-opt: -outdir=foo</code>. Note that no check\nfor duplicate options is done."
         },
+        {
+          short: "Pass multiple command-line arguments to the\n<code>pdf-engine</code>.",
+          long: "Use the given strings passed as a array as command-line arguments to\nthe pdf-engine. This is an alternative to <code>pdf-engine-opt</code>\nfor passing multiple options."
+        },
         "Whether to produce a Beamer article from this presentation.",
         "Add an extra Beamer option using <code>\\setbeameroption{}</code>.",
         "The aspect ratio for this presentation.",
@@ -22117,6 +22142,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22451,6 +22477,7 @@ var require_yaml_intelligence_resources = __commonJS({
         "List of items for the left side of the navbar.",
         "List of items for the right side of the navbar.",
         "The position of the collapsed navbar toggle when in responsive\nmode",
+        "Collapse tools into the navbar menu when the display becomes\nnarrow.",
         "Side navigation options",
         "The identifier for this sidebar.",
         "The sidebar title. Uses the project title if none is specified.",
@@ -22900,12 +22927,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 181887,
+        _internalId: 182250,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 181879,
+            _internalId: 182242,
             type: "enum",
             enum: [
               "png",
@@ -22921,7 +22948,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 181886,
+            _internalId: 182249,
             type: "anyOf",
             anyOf: [
               {

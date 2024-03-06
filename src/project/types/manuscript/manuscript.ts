@@ -7,7 +7,13 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { basename, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../../deno_ral/path.ts";
 import {
   Format,
   FormatExtras,
@@ -101,7 +107,6 @@ import { isQmdFile } from "../../../execute/qmd.ts";
 import * as ld from "../../../core/lodash.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
-import { dirname, isAbsolute } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
 import { resolveProjectInputLinks } from "../website/website-utils.ts";

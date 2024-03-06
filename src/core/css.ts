@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, extname, join } from "path/mod.ts";
+import { dirname, extname, join } from "../deno_ral/path.ts";
 import { isFileRef } from "./http.ts";
 import { normalizePath } from "./path.ts";
 
@@ -102,7 +102,7 @@ export function asCssFont(value: unknown): string | undefined {
 }
 
 export function asCssNumber(value: unknown): string | undefined {
-  if (typeof (value) === "number") {
+  if (typeof value === "number") {
     return String(value);
   } else if (!value) {
     return undefined;
@@ -118,7 +118,7 @@ export function asCssNumber(value: unknown): string | undefined {
 }
 
 export function asCssSize(value: unknown): string | undefined {
-  if (typeof (value) === "number") {
+  if (typeof value === "number") {
     if (value === 0) {
       return "0";
     } else {
@@ -137,7 +137,7 @@ export function asCssSize(value: unknown): string | undefined {
 }
 
 export function asCssColor(value: unknown): string | undefined {
-  if (typeof (value) === "string") {
+  if (typeof value === "string") {
     if (value === "none") {
       return "transparent";
     } else {
@@ -163,7 +163,7 @@ const kBootstrapPaletteRegex = RegExp(
 );
 
 export function asBootstrapColor(value: unknown): string | undefined {
-  if (typeof (value) === "string") {
+  if (typeof value === "string") {
     if (
       kBootstrapColors.includes(value) || value.match(kBootstrapPaletteRegex)
     ) {

@@ -9,7 +9,7 @@ import { breakQuartoMd } from "../lib/break-quarto-md.ts";
 import { mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { partitionCellOptionsMapped } from "../lib/partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";

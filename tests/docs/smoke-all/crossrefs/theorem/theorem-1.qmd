@@ -12,6 +12,7 @@ _quarto:
     latex:
       ensureFileRegexMatches:
         -
+          - "\\\\begin{theorem}\\[Line\\]"
           - "hypertarget{thm-line}"
           - "label{thm-line}"
           - "Theorem~\\\\ref\\{thm-line\\}"

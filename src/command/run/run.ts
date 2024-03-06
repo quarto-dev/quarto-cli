@@ -7,7 +7,7 @@
 import { Command } from "cliffy/command/command.ts";
 
 import { existsSync } from "fs/exists.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { handlerForScript } from "../../core/run/run.ts";
 
 export async function runScript(args: string[], env?: Record<string, string>) {

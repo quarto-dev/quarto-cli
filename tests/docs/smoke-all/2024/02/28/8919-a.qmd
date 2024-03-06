@@ -1,0 +1,18 @@
+---
+jupyter: python3
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["````"]
+---
+
+````{python}
+message = """
+Content
+```python
+print("Hello, world!")
+```
+"""
+````
+

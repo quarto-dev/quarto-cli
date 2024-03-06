@@ -5,8 +5,8 @@
  */
 
 import * as colors from "fmt/colors.ts";
-import { dirname, fromFileUrl, relative, resolve } from "path/mod.ts";
-import { encode as base64Encode } from "encoding/base64.ts";
+import { dirname, fromFileUrl, relative, resolve } from "../../deno_ral/path.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";
@@ -24,7 +24,7 @@ import {
 import { QuartoMdCell } from "../../core/lib/break-quarto-md.ts";
 import { getNamedLifetime } from "../../core/lifetimes.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
 import { InternalError } from "../../core/lib/error.ts";
@@ -715,7 +715,7 @@ export async function makeSelfContainedResources(
     content: ArrayBuffer | string,
     mimeType: string,
   ) => {
-    const b64Src = base64Encode(content);
+    const b64Src = encodeBase64(content);
     return `data:${mimeType};base64,${b64Src}`;
   };
 

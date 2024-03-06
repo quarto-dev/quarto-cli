@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join, relative } from "path/mod.ts";
+import { join, relative } from "../../../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { ProjectContext } from "../../../types.ts";
@@ -15,7 +15,7 @@ import { resolveInputTarget } from "../../../project-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { projectOutputDir } from "../../../project-shared.ts";
 import { kListing } from "./website-listing-shared.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../../../deno_ral/log.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
 
 export async function createListingIndex(

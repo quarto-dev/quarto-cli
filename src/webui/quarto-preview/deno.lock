@@ -199,5 +199,27 @@
       }
     }
   },
-  "remote": {}
+  "remote": {},
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@fluentui/react-components@^9.19.1",
+        "npm:@fluentui/react-icons@^2.0.201",
+        "npm:@types/react-dom@^18.2.0",
+        "npm:@types/react@^18.2.0",
+        "npm:ansi-output@^0.0.1",
+        "npm:esbuild@^0.15.9",
+        "npm:has@^1.0.3",
+        "npm:postcss@^8.4.18",
+        "npm:react-dom@^18.2.0",
+        "npm:react@^18.2.0",
+        "npm:resolve@^1.22.1",
+        "npm:rollup@^2.79.1",
+        "npm:typescript@^4.5.2",
+        "npm:vite-plugin-css-injected-by-js@^3.1.0",
+        "npm:vite-plugin-static-copy@^0.13.0",
+        "npm:vite@^3.0.0"
+      ]
+    }
+  }
 }

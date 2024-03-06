@@ -5,7 +5,7 @@
 *
 */
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../../src/deno_ral/path.ts";
 
 import { unTar } from "../../util/tar.ts";
 import { unzip } from "../../util/utils.ts";

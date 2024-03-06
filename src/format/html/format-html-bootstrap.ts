@@ -5,7 +5,7 @@
  */
 
 import { Document, Element, NodeList } from "../../core/deno-dom.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -83,7 +83,7 @@ import { isHtmlOutput } from "../../config/format.ts";
 import { emplaceNotebookPreviews } from "./format-html-notebook.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { AlternateLink, otherFormatLinks } from "./format-html-links.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 import { binderUrl } from "../../core/container.ts";
 import { codeSpacesUrl } from "../../core/container.ts";
 

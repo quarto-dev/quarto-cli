@@ -5,7 +5,7 @@
  */
 
 import { existsSync, expandGlobSync } from "fs/mod.ts";
-import { extname, join, normalize } from "path/mod.ts";
+import { extname, join, normalize } from "../../deno_ral/path.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
 import { architectureToolsPath, resourcePath } from "../resources.ts";
@@ -44,7 +44,7 @@ export const denoRunHandler: RunHandler = {
           importMap,
           "--cached-only",
           "--allow-all",
-          "--unstable",
+          "--unstable-ffi",
           script,
           ...args,
         ],

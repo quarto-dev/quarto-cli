@@ -29,8 +29,8 @@ import {
   xmlPlaceholder,
 } from "./format-jats-types.ts";
 
-import { join } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { join } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 import {
   reformatXmlPostProcessor,
   renderSubarticlePostProcessor,

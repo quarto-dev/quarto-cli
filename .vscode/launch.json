@@ -14,7 +14,7 @@
       "runtimeExecutable": "${workspaceFolder}/package/dist/bin/tools/deno",
       "runtimeArgs": [
         "run",
-        "--unstable",
+        "--unstable-ffi",
         "--importmap=${workspaceFolder}/src/import_map.json",
         "--inspect-brk",
         "--allow-all"
@@ -39,7 +39,7 @@
       "runtimeArgs": [
         "test",
         "--config=test-conf.json",
-        "--unstable",
+        "--unstable-ffi",
         "--allow-all",
         "--check",
         "--importmap=${workspaceFolder}/src/import_map.json",

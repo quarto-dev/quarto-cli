@@ -7,7 +7,7 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join } from "../src/deno_ral/path.ts";
 
 export function localFileURL(path: string) {
   const match = path.match(/^(.+)\.[^.]+$/)!;

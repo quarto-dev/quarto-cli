@@ -10,4 +10,4 @@ fi
 
 
 export DENO_DIR="$QUARTO_SRC_PATH/resources/deno_std/cache"
-"$QUARTO_DENO" cache --no-config --unstable --lock "$QUARTO_SRC_PATH/resources/deno_std/deno_std.lock" "$@" "$QUARTO_PACKAGE_PATH/scripts/deno_std/deno_std.ts"
+"$QUARTO_DENO" cache --no-config --unstable-ffi --lock "$QUARTO_SRC_PATH/resources/deno_std/deno_std.lock" "$@" "$QUARTO_PACKAGE_PATH/scripts/deno_std/deno_std.ts"

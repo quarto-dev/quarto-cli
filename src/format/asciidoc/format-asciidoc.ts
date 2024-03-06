@@ -21,7 +21,7 @@ import {
   kBookAppendix,
   kBookChapters,
 } from "../../project/types/book/book-constants.ts";
-import { join, relative } from "path/mod.ts";
+import { join, relative } from "../../deno_ral/path.ts";
 
 import { plaintextFormat } from "../formats-shared.ts";
 import { dirAndStem } from "../../core/path.ts";

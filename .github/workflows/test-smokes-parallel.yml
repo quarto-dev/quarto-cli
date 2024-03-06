@@ -35,7 +35,7 @@ jobs:
       BUCKETS: ${{ steps.tests-buckets.outputs.BUCKETS }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -45,7 +45,12 @@ jobs:
       - name: Create Job for tests
         id: tests-buckets
         run: |
-          echo "BUCKETS=$(./run-parallel-tests.sh -n=${{ inputs.nBuckets || 20 }} --json-for-ci --timing-file=timing-for-ci.txt | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')" >> "$GITHUB_OUTPUT"
+          BUCKETS=$(./run-parallel-tests.sh -n=${{ inputs.nBuckets || 20 }} --json-for-ci --timing-file=timing-for-ci.txt | jq -rc 'def lpad(n): tostring | if (n > length) then ((n - length) * "0") + . else . end; to_entries | map(.key |= tostring)| map({ num: .key| tonumber | (. + 1) | lpad(2), files: .value | tojson }) | {buckets: .}')
+          if [ -z $BUCKETS ]; then
+            echo "::error::Failed to create buckets. Something possibly wrong in run-parallel-tests.sh."
+            exit 1
+          fi
+          echo "BUCKETS=$BUCKETS" >> "$GITHUB_OUTPUT"
         working-directory: tests
       - name: Read buckets
         run: |
@@ -65,6 +70,7 @@ jobs:
           echo $matrix
           echo $matrix | jq .
           echo $matrix | json2yaml
+
   run-smoke-tests:
     needs: jobs-matrix
     name: Running Tests buckets ${{ matrix.buckets.num }}

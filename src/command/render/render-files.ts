@@ -62,9 +62,9 @@ import {
   RenderFlags,
   RenderOptions,
 } from "./types.ts";
-import { error, info } from "log/mod.ts";
+import { error, info } from "../../deno_ral/log.ts";
 import * as ld from "../../core/lodash.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { Format } from "../../config/types.ts";
 import {
   figuresDir,

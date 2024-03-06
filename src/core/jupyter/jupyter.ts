@@ -7,10 +7,10 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 import { walkSync } from "fs/walk.ts";
 import * as colors from "fmt/colors.ts";
-import { decode as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64.ts";
 import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
@@ -154,7 +154,7 @@ import {
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
 import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
-import { encode as encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 import {
   isHtmlOutput,
   isIpynbOutput,
@@ -690,16 +690,22 @@ export async function jupyterToMarkdown(
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
 
-  const projType = options.executeOptions.project?.config?.project
-    ?.[kProjectType];
-  const fixups = projType === "book"
-    ? bookFixups
-    : options.executeOptions.project?.config?.title !== undefined &&
-        (projType === "default" || projType === undefined)
-    ? minimalFixups
-    : undefined;
+  const project = options.executeOptions.project;
+  const projType = project?.config?.project?.[kProjectType];
 
-  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
+  if (projType === "book") {
+    nb = fixupJupyterNotebook(nb, bookFixups);
+  } else if (project?.isSingleFile) {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  } else if (
+    (project?.config?.title !== undefined &&
+      (projType === "default" || projType === undefined))
+  ) {
+    nb = fixupJupyterNotebook(nb, minimalFixups);
+  } else {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  }
+
   // optional content injection / html preservation for html output
   // that isn't an ipynb
   const isHtml = options.toHtml && !options.toIpynb;

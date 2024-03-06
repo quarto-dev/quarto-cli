@@ -32,7 +32,7 @@ import {
 import { readYaml, readYamlFromMarkdown } from "../../src/core/yaml.ts";
 import { outputForInput } from "../utils.ts";
 import { jupyterNotebookToMarkdown } from "../../src/command/convert/jupyter.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../src/deno_ral/path.ts";
 import { existsSync, WalkEntry } from "fs/mod.ts";
 import { quarto } from "../../src/quarto.ts";
 

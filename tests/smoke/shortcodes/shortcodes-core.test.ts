@@ -1,4 +1,4 @@
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 import { docs, outputForInput } from "../../utils.ts";
 import { ensureFileRegexMatches, noErrorsOrWarnings } from "../../verify.ts";

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, extname, join } from "path/mod.ts";
+import { basename, extname, join } from "../../deno_ral/path.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";

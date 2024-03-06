@@ -5,9 +5,9 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { copySync } from "fs/copy.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 
 import { Configuration } from "../common/config.ts";
 

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join, relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { basename, join, relative } from "../../../deno_ral/path.ts";
+import { warning } from "../../../deno_ral/log.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { Document, Element } from "../../../core/deno-dom.ts";
@@ -150,7 +150,6 @@ import { isAboutPage } from "./about/website-about.ts";
 export const kSidebarLogo = "logo";
 export const kSidebarLogoHref = "logo-href";
 export const kSidebarLogoAlt = "logo-alt";
-
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // reset unique menu ids

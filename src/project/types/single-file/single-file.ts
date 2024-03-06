@@ -20,6 +20,7 @@ import { RenderFlags } from "../../../command/render/types.ts";
 import { MappedString } from "../../../core/mapped-text.ts";
 import { fileExecutionEngineAndTarget } from "../../../execute/engine.ts";
 import { projectResolveFullMarkdownForFile } from "../../project-shared.ts";
+import { ExecutionEngine } from "../../../execute/types.ts";
 
 export function singleFileProjectContext(
   source: string,
@@ -37,6 +38,7 @@ export function singleFileProjectContext(
     notebookContext,
     environment: () => environmentMemoizer(result),
     renderFormats,
+    fileInformationCache: new Map(),
     fileExecutionEngineAndTarget: (
       file: string,
     ) => {
@@ -47,11 +49,18 @@ export function singleFileProjectContext(
       );
     },
     resolveFullMarkdownForFile: (
+      engine: ExecutionEngine | undefined,
       file: string,
       markdown?: MappedString,
       force?: boolean,
     ) => {
-      return projectResolveFullMarkdownForFile(result, file, markdown, force);
+      return projectResolveFullMarkdownForFile(
+        result,
+        engine,
+        file,
+        markdown,
+        force,
+      );
     },
     isSingleFile: true,
   };

@@ -31,6 +31,7 @@ export interface ExecutionEngine {
   validExtensions: () => string[];
   claimsFile: (file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
+  markdownForFile(file: string): Promise<MappedString>;
   target: (
     file: string,
     quiet: boolean | undefined,

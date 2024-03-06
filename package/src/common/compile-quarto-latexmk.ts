@@ -5,9 +5,9 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 
 import { Configuration, readConfiguration } from "../common/config.ts";
 import { compile, install, updateDenoPath } from "../util/deno.ts";

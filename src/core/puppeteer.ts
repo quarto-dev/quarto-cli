@@ -6,7 +6,7 @@
 
 import { readRegistryKey } from "./windows.ts";
 import { which } from "./path.ts";
-import { error, info } from "log/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
 import { existsSync } from "fs/mod.ts";
 import { UnreachableError } from "./lib/error.ts";
 import { quartoDataDir } from "./appdirs.ts";

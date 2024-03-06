@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { basename, dirname } from "path/mod.ts";
+import { basename, dirname } from "../deno_ral/path.ts";
 import { removeIfEmptyDir } from "../core/path.ts";
 import { kBuiltInExtOrg, kExtensionDir } from "./constants.ts";
 import { Extension } from "./types.ts";
