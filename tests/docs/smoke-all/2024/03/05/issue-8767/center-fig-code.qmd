@@ -9,7 +9,7 @@ _quarto:
         -
           - "#align\\(center\\)\\[\n*#box"
         -
-          - "#block\\[\n#block\\[\n#align\\(center\\)\\["
+          - "#block\\[\\s*#block\\[\\s*#align\\(center\\)\\["
 
 
 ---
