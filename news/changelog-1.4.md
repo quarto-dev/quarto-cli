@@ -1,5 +1,9 @@
 ## Fixed in this release
 
+- ([#8439](https://github.com/quarto-dev/quarto-cli/issues/8439)): ensure that lack of subject line is handled
+
+## Fixed in previous releases
+
 - ([#8749](https://github.com/quarto-dev/quarto-cli/issues/8749)): Fix bundle creation for publishing Quarto projects to Posit Connect using `quarto publish connect`.
 - ([#8785](https://github.com/quarto-dev/quarto-cli/issues/8785)): Fix issue with noncentered, non-referenceable subfigures in LaTeX format.
 - ([#8795](https://github.com/quarto-dev/quarto-cli/issues/8795)): Fix issue with select controls appearing in Dashboard toolbar.
@@ -11,8 +15,6 @@
 - ([#8843](https://github.com/quarto-dev/quarto-cli/issues/8843)): Fix issue in books when some R code cells emits LaTeX dependencies to be included in the LaTeX preamble.
 - ([#8857](https://github.com/quarto-dev/quarto-cli/issues/8857)): Fix issue with `format: dashboard` using Plotly in Jupyter on Windows.
 - ([#8937](https://github.com/quarto-dev/quarto-cli/pull/8937)): Fix unix `quarto` launcher in the case of paths with spaces.
-
-## Fixed in previous releases
 
 - ([#8417](https://github.com/quarto-dev/quarto-cli/issues/8417)): Maintain a single AST element in the output cell when parsing HTML from RawBlock
 - ([#8490](https://github.com/quarto-dev/quarto-cli/issues/8490)): Properly embed `qmd` cells even when they include an explicit `echo` declaration.
