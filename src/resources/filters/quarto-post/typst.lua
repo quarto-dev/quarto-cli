@@ -101,6 +101,9 @@ function render_typst()
 end
 
 function render_typst_fixups()
+  if not _quarto.format.isTypstOutput() then
+    return {}
+  end
   local function is_ratio_or_relative(value)
     if value == nil then
       return nil
@@ -108,9 +111,6 @@ function render_typst_fixups()
     if value:find("%%") then
       return true
     end
-  end
-  if not _quarto.format.isTypstOutput() then
-    return {}
   end
 
   return {
@@ -135,12 +135,20 @@ function render_typst_fixups()
         return pandoc.RawInline("typst", "#box(" .. attr_str .. "image(\"" .. escaped_src .. "\"))")
       end
     end,
+    Div = function(div)
+      local cod = quarto.utils.match(".cell/:child/.cell-output-display")(div)
+      if cod then
+          div.classes:extend({'quarto-scaffold'})
+          cod.classes:extend({'quarto-scaffold'})
+      end
+      return div
+    end,
     Para = function(para)
       if #para.content ~= 1 then
         return nil
       end
       local img = quarto.utils.match("[1]/Image")(para)
-      if not img then 
+      if not img then
         return nil
       end
       local align = img.attributes["fig-align"]
