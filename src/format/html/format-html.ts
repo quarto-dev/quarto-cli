@@ -47,7 +47,10 @@ import {
   SassBundle,
 } from "../../config/types.ts";
 
-import { formatHasCodeTools } from "../../command/render/codetools.ts";
+import {
+  formatHasCodeTools,
+  kEmbeddedSourceModalId,
+} from "../../command/render/codetools.ts";
 
 import { createHtmlFormat } from "./../formats-shared.ts";
 
@@ -670,10 +673,13 @@ function htmlFormatPostprocessor(
         code.parentElement?.classList.add("hidden");
       }
 
-      // insert code copy button
+      // insert code copy button (with specfic attribute when inside a modal)
       if (codeCopy) {
         code.classList.add("code-with-copy");
         const copyButton = createCodeCopyButton(doc, format);
+        if (doc.querySelector(`#${kEmbeddedSourceModalId}`).contains(code)) {
+          copyButton.setAttribute("data-in-modal", "");
+        }
         code.appendChild(copyButton);
       }
 

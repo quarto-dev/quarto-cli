@@ -228,20 +228,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     return false;
   }
 
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-
-
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -277,7 +264,33 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-modal])', {
+    text: getTextToCopy
   });
+
+
+  clipboard.on('success', onCopySuccess);
+
+  // For code content inside modals, clipBoardJS needs to be initialized with a container option
+  // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+  const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-modal]', {
+    text: getTextToCopy,
+    container: window.document.getElementById('quarto-embedded-source-code-modal')
+  });
+
+  clipboardModal.on('success', onCopySuccess);
 
   <% } %>
 
