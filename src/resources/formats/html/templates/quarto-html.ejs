@@ -281,13 +281,16 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   });
   clipboard.on('success', onCopySuccess);
 
-  // For code content inside modals, clipBoardJS needs to be initialized with a container option
-  // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
-  const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
-    text: getTextToCopy,
-    container: window.document.getElementById('quarto-embedded-source-code-modal')
-  });
-  clipboardModal.on('success', onCopySuccess);
+  
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
 
   <% } %>
 
