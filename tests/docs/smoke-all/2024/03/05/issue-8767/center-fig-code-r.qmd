@@ -3,20 +3,21 @@ format:
   typst:
     output-ext: typ
 keep-typ: true
+keep-md: true
 _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "#align\\(center\\)\\[\\s*#box"
+          - "#align\\(center\\)\\[\\n\\r?#box"
         -
-          - "#block\\[\\s*#block\\[\\s*#align\\(center\\)\\["
+          - "#block\\[\\n\\r?#block\\[\\n\\r?#align\\(center\\)\\["
 
 
 ---
 
 ```{r}
-#| echo: false
+#| echo: true
 #| fig-align: center
 
 plot(0:9)
