@@ -514,6 +514,19 @@ async function writeJuliaCommand(
   const json = response.split("\n")[0];
   const data = JSON.parse(json);
 
+  const err = data.error;
+  if (err !== undefined) {
+    const juliaError = data.juliaError ?? "No julia error message available.";
+    error(
+      `Julia server returned error after receiving "${command}" command:\n` +
+        err,
+    );
+    if (!juliaError !== undefined) {
+      error(juliaError);
+    }
+    throw new Error("Internal julia server error");
+  }
+
   return data;
 }
 
