@@ -316,6 +316,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
   Deno.copyFileSync(projectTomlTemplate, projectToml);
   const command = new Deno.Command(options.julia_cmd, {
     args: [
+      "--startup-file=no",
       `--project=${juliaRuntimeDir()}`,
       juliaResourcePath("ensure_environment.jl"),
     ],
