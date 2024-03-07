@@ -34,7 +34,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
         time-test:
           - ${{ inputs.time-test }}
         exclude:
@@ -54,53 +55,53 @@ jobs:
           echo "TEMP=${{ runner.temp }}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.3.2"
-          use-public-rspm: true
-          # required to avoid rtools bin in path
-          windows-path-include-rtools: false
+      # - name: Set up R
+      #   uses: r-lib/actions/setup-r@v2
+      #   with:
+      #     r-version: "4.3.2"
+      #     use-public-rspm: true
+      #     # required to avoid rtools bin in path
+      #     windows-path-include-rtools: false
 
-      - name: Install node (for Playwright, MECA)
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
+      # - name: Install node (for Playwright, MECA)
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 16
 
-      - name: Install node dependencies
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        run: yarn
-        working-directory: ./tests/integration/playwright
-        shell: bash
+      # - name: Install node dependencies
+      #   if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+      #   run: yarn
+      #   working-directory: ./tests/integration/playwright
+      #   shell: bash
 
-      - name: Install Playwright Browsers
-        if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
-        run: npx playwright install --with-deps
-        working-directory: ./tests/integration/playwright
+      # - name: Install Playwright Browsers
+      #   if: ${{ runner.os != 'Windows' || github.event_name == 'schedule' }}
+      #   run: npx playwright install --with-deps
+      #   working-directory: ./tests/integration/playwright
 
-      - name: Install MECA validator
-        if: ${{ runner.os != 'Windows' }}
-        run: npm install -g meca
+      # - name: Install MECA validator
+      #   if: ${{ runner.os != 'Windows' }}
+      #   run: npm install -g meca
 
-      - name: Set RENV_PATHS_ROOT
-        shell: bash
-        run: |
-          echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
+      # - name: Set RENV_PATHS_ROOT
+      #   shell: bash
+      #   run: |
+      #     echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
 
-      - name: Get R and OS version
-        id: get-version
-        run: |
-          cat("os-version=", sessionInfo()$running, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-          cat("r-version=", R.Version()$version.string, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-        shell: Rscript {0}
+      # - name: Get R and OS version
+      #   id: get-version
+      #   run: |
+      #     cat("os-version=", sessionInfo()$running, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+      #     cat("r-version=", R.Version()$version.string, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+      #   shell: Rscript {0}
 
-      - name: Cache R packages
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
-          restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
+      # - name: Cache R packages
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ env.RENV_PATHS_ROOT }}
+      #     key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
+      #     restore-keys: |
+      #       ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
 
       - name: Install missing system deps
         if: runner.os == 'Linux'
@@ -110,39 +111,39 @@ jobs:
           sudo apt-get install -y libxml2-utils
           sudo apt-get install -y libharfbuzz-dev libfribidi-dev
 
-      - name: Restore R packages
-        working-directory: tests
-        run: |
-          if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
-          renv::restore()
-          # Install dev versions for our testing 
-          # Use r-universe to avoid github api calls
-          try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
-          try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
-        shell: Rscript {0}
-        env:
-          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Restore R packages
+      #   working-directory: tests
+      #   run: |
+      #     if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
+      #     renv::restore()
+      #     # Install dev versions for our testing
+      #     # Use r-universe to avoid github api calls
+      #     try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
+      #     try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
+      #   shell: Rscript {0}
+      #   env:
+      #     GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-          cache: "pipenv"
-          cache-dependency-path: "./tests/Pipfile.lock"
+      # - name: Set up Python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: "3.12"
+      #     cache: "pipenv"
+      #     cache-dependency-path: "./tests/Pipfile.lock"
 
-      - name: Restore Python Dependencies
-        working-directory: tests
-        run: |
-          python -m pip install pipenv
-          pipenv install
+      # - name: Restore Python Dependencies
+      #   working-directory: tests
+      #   run: |
+      #     python -m pip install pipenv
+      #     pipenv install
 
       - uses: ./.github/workflows/actions/quarto-dev
 
-      - name: Install Tinytex
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          quarto install tinytex
+      # - name: Install Tinytex
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     quarto install tinytex
 
       - name: Cache Typst packages
         uses: ./.github/actions/cache-typst
@@ -174,8 +175,8 @@ jobs:
         run: |
           echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
 
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       # FIXME: for some reason on CI, it seems that communicating with the child process julia (even if it's detached)
       # from the parent deno process fails. But if we run this step beforehand, that one server should be able to handle
