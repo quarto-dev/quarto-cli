@@ -1,11 +1,12 @@
 ---
 title: Julia Crossref Test
 engine: julia
+julia:
+  exeflags: ["--project=../.."]
 ---
 
 ```{julia}
-Pkg.activate(temp = true)
-Pkg.add(name = "Plots", version = "1.40.1")
+Pkg.instantiate()
 ```
 
 ## Julia Crossref Figure

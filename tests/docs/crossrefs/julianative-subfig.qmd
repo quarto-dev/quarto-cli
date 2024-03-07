@@ -1,7 +1,13 @@
 ---
 title: Julia Subfig Test
 engine: julia
+julia:
+  exeflags: ["--project=../.."]
 ---
+
+```{julia}
+Pkg.instantiate()
+```
 
 ## Julia Crossref Figure
 
