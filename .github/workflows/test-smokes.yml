@@ -159,21 +159,21 @@ jobs:
       - name: Cache Julia Packages
         uses: julia-actions/cache@v1
 
-      - name: Restore Julia Packages
-        working-directory: tests
-        shell: bash
-        run: |
-          # Setup IJulia with the jupyter from the Python environment
-          # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")        
-          pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
-          echo "Julia Jupyter:"
-          julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
+      # - name: Restore Julia Packages
+      #   working-directory: tests
+      #   shell: bash
+      #   run: |
+      #     # Setup IJulia with the jupyter from the Python environment
+      #     # https://julialang.github.io/IJulia.jl/stable/manual/installation/
+      #     export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
+      #     pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
+      #     echo "Julia Jupyter:"
+      #     julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
 
-      - name: Setup timing file for timed test
-        if: ${{ matrix.time-test == true }}
-        run: |
-          echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
+      # - name: Setup timing file for timed test
+      #   if: ${{ matrix.time-test == true }}
+      #   run: |
+      #     echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
