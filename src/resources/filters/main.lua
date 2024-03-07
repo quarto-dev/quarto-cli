@@ -157,7 +157,6 @@ import("./quarto-pre/table-captions.lua")
 import("./quarto-pre/table-colwidth.lua")
 import("./quarto-pre/table-rawhtml.lua")
 import("./quarto-pre/theorems.lua")
-import("./quarto-pre/typst-pre.lua")
 
 import("./customnodes/panellayout.lua")
 
@@ -280,10 +279,6 @@ local quarto_pre_filters = {
 
   { name = "pre-output-location", 
     filter = output_location()
-  },
-
-  { name = "pre-typst",
-    filter = quarto_pre_typst_unclutter()
   },
 
   { name = "pre-combined-figures-theorems-etc", filter = combineFilters({
