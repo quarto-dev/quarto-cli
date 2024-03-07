@@ -9,5 +9,5 @@ if length(ARGS) > 4
   error("Too many arguments")
 end
 
-cmd = `$julia_bin --project=$project $julia_file $transport_file`
+cmd = `$julia_bin --startup-file=no --project=$project $julia_file $transport_file`
 run(detach(cmd), wait = false)
