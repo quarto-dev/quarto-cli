@@ -256,12 +256,15 @@ async function startOrReuseJuliaServer(
             "Start-Process",
             options.julia_cmd,
             "-ArgumentList",
+            // string array argument list, each element but the last must have a "," element after
             "--startup-file=no",
+            ",",
             `--project=${juliaRuntimeDir()}`,
             ",",
             resourcePath("julia/quartonotebookrunner.jl"),
             ",",
             transportFile,
+            // end of string array
             "-WindowStyle",
             "Hidden",
           ],
@@ -271,7 +274,10 @@ async function startOrReuseJuliaServer(
         options,
         "Starting detached julia server through powershell, once transport file exists, server should be running.",
       );
-      command.outputSync();
+      const result = command.outputSync();
+      if (!result.success) {
+        throw new Error(new TextDecoder().decode(result.stderr));
+      }
     } else {
       const command = new Deno.Command(options.julia_cmd, {
         args: [
@@ -287,7 +293,10 @@ async function startOrReuseJuliaServer(
         options,
         "Starting detached julia server through julia, once transport file exists, server should be running.",
       );
-      command.outputSync();
+      const result = command.outputSync();
+      if (!result.success) {
+        throw new Error(new TextDecoder().decode(result.stderr));
+      }
     }
   } else {
     trace(
