@@ -7,9 +7,9 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         -
-          - "#align\\(center\\)\\[\n\r?#box"
+          - "#align\\(center\\)\\[(\r\n?|\n)#box"
         -
-          - "#block\\[\n\r?#block\\[\n\r?#align\\(center\\)\\["
+          - "#block\\[(\r\n?|\n)#block\\[(\r\n?|\n)#align\\(center\\)\\["
 
 
 ---
