@@ -1,5 +1,6 @@
 ---
 title: "Notebook"
+html-table-processing: none # TODO: To fix in #8927
 format:
   ipynb: 
     notebook-preserve-cells: true

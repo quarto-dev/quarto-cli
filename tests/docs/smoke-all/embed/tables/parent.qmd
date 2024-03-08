@@ -9,11 +9,11 @@ _quarto:
       ensureHtmlElements:
         - 
           - '#kable .quarto-embed-nb-cell #tbl-kable .cell-output-display > *'
-          # TODO: Fix in #8927 - raw html table are not shown in embedded output
-          # - '#gt .quarto-embed-nb-cell #tbl-gt .cell-output-display > *'
+          # TODO: requires html-table-processing: none in embed file - fix #8927
+          - '#gt .quarto-embed-nb-cell #tbl-gt .cell-output-display > *'
           - '#flextable .quarto-embed-nb-cell #tbl-flextable .cell-output-display > *'
-          # TODO: Fix in #8927 - raw html table are not shown in embedded output
-          # - '#kable-extra .quarto-embed-nb-cell #tbl-kable-extra .cell-output-display > *'
+          # TODO: requires html-table-processing: none in embed file - fix #8927
+          - '#kable-extra .quarto-embed-nb-cell #tbl-kable-extra .cell-output-display > *'
 ---
 
 # With kable {#kable}
