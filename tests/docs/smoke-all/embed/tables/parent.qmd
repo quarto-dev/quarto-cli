@@ -3,7 +3,32 @@ title: "Test of embedding tables"
 format:
   html:
     toc: true
+_quarto:
+  tests:
+    html: 
+      ensureHtmlElements:
+        - 
+          - '#kable .quarto-embed-nb-cell #tbl-kable .cell-output-display > *'
+          # TODO: requires html-table-processing: none in embed file - fix #8927
+          - '#gt .quarto-embed-nb-cell #tbl-gt .cell-output-display > *'
+          - '#flextable .quarto-embed-nb-cell #tbl-flextable .cell-output-display > *'
+          # TODO: requires html-table-processing: none in embed file - fix #8927
+          - '#kable-extra .quarto-embed-nb-cell #tbl-kable-extra .cell-output-display > *'
 ---
 
-{{< embed inset-table.qmd#tbl-three >}}
+# With kable {#kable}
+
+{{< embed inset-table.qmd#tbl-kable >}}
+
+# with GT {#gt}
+
+{{< embed inset-table.qmd#tbl-gt >}}
+
+# with flextable {#flextable}
+
+{{< embed inset-table.qmd#tbl-flextable >}}
+
+# with kableExtra {#kable-extra}
+
+{{< embed inset-table.qmd#tbl-kable-extra >}}
 

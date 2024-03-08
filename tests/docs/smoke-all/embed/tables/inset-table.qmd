@@ -1,5 +1,6 @@
 ---
 title: "Notebook"
+html-table-processing: none # TODO: To fix in #8927
 format:
   ipynb: 
     notebook-preserve-cells: true
@@ -8,7 +9,7 @@ format:
 ---
 
 ```{r}
-#| label: tbl-one
+#| label: tbl-kable
 #| tbl-cap: This is a kable table
 
 library(knitr)
@@ -16,7 +17,7 @@ kable(head(mtcars))
 ```
 
 ```{r}
-#| label: tbl-two
+#| label: tbl-gt
 #| tbl-cap: This is a gt table
 
 library(gt)
@@ -25,7 +26,7 @@ gt(head(mtcars))
 
 
 ```{r}
-#| label: tbl-three
+#| label: tbl-flextable
 #| tbl-cap: This is a flextable table
 
 library(flextable)
@@ -33,5 +34,12 @@ flextable(head(mtcars))
 ```
 
 
+```{r}
+#| label: tbl-kable-extra
+#| tbl-cap: This is a kableExtra table
+
+library(kableExtra)
+kableExtra::kbl(head(mtcars))
+```
 
 
