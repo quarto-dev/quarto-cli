@@ -236,8 +236,9 @@ async function startOrReuseJuliaServer(
   if (!existsSync(transportFile)) {
     trace(
       options,
-      `Transport file ${transportFile} doesn't exist, starting server. This might take a while.`,
+      `Transport file ${transportFile} doesn't exist`,
     );
+    info("Installing and starting julia server. This might take a while.");
     await ensureQuartoNotebookRunnerEnvironment(options);
 
     // We need to spawn the julia server in its own process that can outlive quarto.
@@ -330,7 +331,7 @@ async function ensureQuartoNotebookRunnerEnvironment(
     );
     return Promise.reject();
   }
-  trace(options, "The julia server environment is correctly instantiated.");
+  info("The julia server environment is correctly instantiated.");
   return Promise.resolve();
 }
 
