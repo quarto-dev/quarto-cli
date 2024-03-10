@@ -47,6 +47,7 @@
     "js-yaml": "./vendor/cdn.skypack.dev/js-yaml@4.1.0.js",
     "slimdom": "./vendor/cdn.skypack.dev/slimdom@4.2.0.js",
     "fontoxpath": "./vendor/cdn.skypack.dev/fontoxpath@3.29.1.js",
+    "qrcode": "npm:qrcode",
     "https://deno.land/std@0.161.0/": "./vendor/deno.land/std@0.217.0/",
     "https://deno.land/std@0.101.0/": "./vendor/deno.land/std@0.217.0/",
     "https://deno.land/std@0.105.0/": "./vendor/deno.land/std@0.217.0/",
@@ -123,6 +124,7 @@
     "yaml/schema/failsafe.ts": "./vendor/deno.land/std@0.217.0/yaml/schema/failsafe.ts",
     "log/mod.ts": "./vendor/deno.land/std@0.217.0/log/mod.ts",
     "path/posix/mod.ts": "./vendor/deno.land/std@0.217.0/path/posix/mod.ts",
+    "testing/asserts.ts": "./vendor/deno.land/std@0.217.0/testing/asserts.ts",
     "media_types/mod.ts": "./vendor/deno.land/x/media_types@v2.10.1/mod.ts",
     "fs/copy.ts": "./vendor/deno.land/std@0.217.0/fs/copy.ts",
     "io/read_lines.ts": "./vendor/deno.land/std@0.217.0/io/read_lines.ts",
@@ -135,7 +137,6 @@
     "encoding/hex.ts": "./vendor/deno.land/std@0.217.0/encoding/hex.ts",
     "cliffy/prompt/secret.ts": "./vendor/deno.land/x/cliffy@v1.0.0-rc.3/prompt/secret.ts",
     "another_cookiejar/mod.ts": "./vendor/deno.land/x/another_cookiejar@v5.0.3/mod.ts",
-    "testing/asserts.ts": "./vendor/deno.land/std@0.217.0/testing/asserts.ts",
     "https://deno.land/std@0.105.0/path/mod.ts": "./vendor/deno.land/std@0.217.0/path/mod.ts",
     "https://cdn.skypack.dev/": "./vendor/cdn.skypack.dev/",
     "https://deno.land/": "./vendor/deno.land/"
