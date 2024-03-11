@@ -39,6 +39,7 @@
     "deno_dom/src/api.ts": "./deno.land/x/deno_dom@v0.1.35-alpha/src/api.ts",
     "deno_dom/src/dom/node.ts": "./deno.land/x/deno_dom@v0.1.35-alpha/src/dom/node.ts",
     "streams/mod.ts": "./deno.land/std@0.217.0/streams/mod.ts",
+    "qrcode": "./cdn.skypack.dev/qrcode@1.5.3.js",
     "crypto/mod.ts": "./deno.land/std@0.217.0/crypto/mod.ts",
     "blueimpMd5": "./cdn.skypack.dev/blueimp-md5@2.19.0.js",
     "fs/ensure_dir.ts": "./deno.land/std@0.217.0/fs/ensure_dir.ts",
@@ -173,6 +174,8 @@
       "/-/acorn@v8.4.0-TUBEehokUmfefnUMjao9/dist=es2019,mode=imports/optimized/acorn.js": "./cdn.skypack.dev/-/acorn@v8.4.0-TUBEehokUmfefnUMjao9/dist=es2019,mode=imports/optimized/acorn.js",
       "/-/xspattern@v3.1.0-ChOssaTvtX8cZQgPaNnM/dist=es2019,mode=imports/optimized/xspattern.js": "./cdn.skypack.dev/-/xspattern@v3.1.0-ChOssaTvtX8cZQgPaNnM/dist=es2019,mode=imports/optimized/xspattern.js",
       "/-/prsc@v4.0.0-yiYip3qo0YwPataeg654/dist=es2019,mode=imports/optimized/prsc.js": "./cdn.skypack.dev/-/prsc@v4.0.0-yiYip3qo0YwPataeg654/dist=es2019,mode=imports/optimized/prsc.js",
+      "/-/encode-utf8@v1.0.3-DnKGEsaBpFaYTp6Pp8vc/dist=es2019,mode=imports/optimized/encode-utf8.js": "./cdn.skypack.dev/-/encode-utf8@v1.0.3-DnKGEsaBpFaYTp6Pp8vc/dist=es2019,mode=imports/optimized/encode-utf8.js",
+      "/-/dijkstrajs@v1.0.3-OWjFuN52EraKtSJbLxCP/dist=es2019,mode=imports/optimized/dijkstrajs.js": "./cdn.skypack.dev/-/dijkstrajs@v1.0.3-OWjFuN52EraKtSJbLxCP/dist=es2019,mode=imports/optimized/dijkstrajs.js",
       "/-/whynot@v5.0.0-TIWeI93neceQKiPCfmA6/dist=es2019,mode=imports/optimized/whynot.js": "./cdn.skypack.dev/-/whynot@v5.0.0-TIWeI93neceQKiPCfmA6/dist=es2019,mode=imports/optimized/whynot.js",
       "/-/@observablehq/parser@v4.5.0-rWZiNfab8flhVomtfVvr/dist=es2019,mode=imports/optimized/@observablehq/parser.js": "./cdn.skypack.dev/-/@observablehq/parser@v4.5.0-rWZiNfab8flhVomtfVvr/dist=es2019,mode=imports/optimized/@observablehq/parser.js",
       "/-/acorn-class-fields@v1.0.0-VEggkLxq9gMrdwRuKkzZ/dist=es2019,mode=imports/optimized/acorn-class-fields.js": "./cdn.skypack.dev/-/acorn-class-fields@v1.0.0-VEggkLxq9gMrdwRuKkzZ/dist=es2019,mode=imports/optimized/acorn-class-fields.js",
@@ -199,6 +202,7 @@
       "/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniq.js": "./cdn.skypack.dev/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniq.js",
       "/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniqBy.js": "./cdn.skypack.dev/-/lodash@v4.17.21-K6GEbP02mWFnLA45zAmi/dist=es2019,mode=imports/unoptimized/uniqBy.js",
       "/-/moment-guess@v1.2.4-bDXl7KQy0hLGNuGhyGb4/dist=es2019,mode=imports/optimized/moment-guess.js": "./cdn.skypack.dev/-/moment-guess@v1.2.4-bDXl7KQy0hLGNuGhyGb4/dist=es2019,mode=imports/optimized/moment-guess.js",
+      "/-/qrcode@v1.5.3-0BCaoHYjxhZIt6wnQrWc/dist=es2019,mode=imports/optimized/qrcode.js": "./cdn.skypack.dev/-/qrcode@v1.5.3-0BCaoHYjxhZIt6wnQrWc/dist=es2019,mode=imports/optimized/qrcode.js",
       "/-/slimdom@v4.2.0-QzuHPU3P67qdOzczKt6u/dist=es2019,mode=imports/optimized/slimdom.js": "./cdn.skypack.dev/-/slimdom@v4.2.0-QzuHPU3P67qdOzczKt6u/dist=es2019,mode=imports/optimized/slimdom.js"
     }
   }

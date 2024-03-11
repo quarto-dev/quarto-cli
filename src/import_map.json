@@ -49,7 +49,7 @@
     "slimdom": "https://cdn.skypack.dev/slimdom@4.2.0",
     "fontoxpath": "https://cdn.skypack.dev/fontoxpath@3.29.1",
 
-    "qrcode": "npm:qrcode",
+    "qrcode": "https://cdn.skypack.dev/qrcode@1.5.3",
 
     "https://deno.land/std@0.161.0/": "https://deno.land/std@0.217.0/",
     "https://deno.land/std@0.101.0/": "https://deno.land/std@0.217.0/",
