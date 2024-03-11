@@ -1,0 +1,275 @@
+{
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:qrcode": "npm:qrcode@1.5.3"
+    },
+    "npm": {
+      "ansi-regex@5.0.1": {
+        "integrity": "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==",
+        "dependencies": {}
+      },
+      "ansi-styles@4.3.0": {
+        "integrity": "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==",
+        "dependencies": {
+          "color-convert": "color-convert@2.0.1"
+        }
+      },
+      "camelcase@5.3.1": {
+        "integrity": "sha512-L28STB170nwWS63UjtlEOE3dldQApaJXZkOI1uMFfzf3rRuPegHaHesyee+YxQ+W6SvRDQV6UrdOdRiR153wJg==",
+        "dependencies": {}
+      },
+      "cliui@6.0.0": {
+        "integrity": "sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==",
+        "dependencies": {
+          "string-width": "string-width@4.2.3",
+          "strip-ansi": "strip-ansi@6.0.1",
+          "wrap-ansi": "wrap-ansi@6.2.0"
+        }
+      },
+      "color-convert@2.0.1": {
+        "integrity": "sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==",
+        "dependencies": {
+          "color-name": "color-name@1.1.4"
+        }
+      },
+      "color-name@1.1.4": {
+        "integrity": "sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==",
+        "dependencies": {}
+      },
+      "decamelize@1.2.0": {
+        "integrity": "sha512-z2S+W9X73hAUUki+N+9Za2lBlun89zigOyGrsax+KUQ6wKW4ZoWpEYBkGhQjwAjjDCkWxhY0VKEhk8wzY7F5cA==",
+        "dependencies": {}
+      },
+      "dijkstrajs@1.0.3": {
+        "integrity": "sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==",
+        "dependencies": {}
+      },
+      "emoji-regex@8.0.0": {
+        "integrity": "sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==",
+        "dependencies": {}
+      },
+      "encode-utf8@1.0.3": {
+        "integrity": "sha512-ucAnuBEhUK4boH2HjVYG5Q2mQyPorvv0u/ocS+zhdw0S8AlHYY+GOFhP1Gio5z4icpP2ivFSvhtFjQi8+T9ppw==",
+        "dependencies": {}
+      },
+      "find-up@4.1.0": {
+        "integrity": "sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==",
+        "dependencies": {
+          "locate-path": "locate-path@5.0.0",
+          "path-exists": "path-exists@4.0.0"
+        }
+      },
+      "get-caller-file@2.0.5": {
+        "integrity": "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==",
+        "dependencies": {}
+      },
+      "is-fullwidth-code-point@3.0.0": {
+        "integrity": "sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==",
+        "dependencies": {}
+      },
+      "locate-path@5.0.0": {
+        "integrity": "sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==",
+        "dependencies": {
+          "p-locate": "p-locate@4.1.0"
+        }
+      },
+      "p-limit@2.3.0": {
+        "integrity": "sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==",
+        "dependencies": {
+          "p-try": "p-try@2.2.0"
+        }
+      },
+      "p-locate@4.1.0": {
+        "integrity": "sha512-R79ZZ/0wAxKGu3oYMlz8jy/kbhsNrS7SKZ7PxEHBgJ5+F2mtFW2fK2cOtBh1cHYkQsbzFV7I+EoRKe6Yt0oK7A==",
+        "dependencies": {
+          "p-limit": "p-limit@2.3.0"
+        }
+      },
+      "p-try@2.2.0": {
+        "integrity": "sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==",
+        "dependencies": {}
+      },
+      "path-exists@4.0.0": {
+        "integrity": "sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==",
+        "dependencies": {}
+      },
+      "pngjs@5.0.0": {
+        "integrity": "sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==",
+        "dependencies": {}
+      },
+      "qrcode@1.5.3": {
+        "integrity": "sha512-puyri6ApkEHYiVl4CFzo1tDkAZ+ATcnbJrJ6RiBM1Fhctdn/ix9MTE3hRph33omisEbC/2fcfemsseiKgBPKZg==",
+        "dependencies": {
+          "dijkstrajs": "dijkstrajs@1.0.3",
+          "encode-utf8": "encode-utf8@1.0.3",
+          "pngjs": "pngjs@5.0.0",
+          "yargs": "yargs@15.4.1"
+        }
+      },
+      "require-directory@2.1.1": {
+        "integrity": "sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==",
+        "dependencies": {}
+      },
+      "require-main-filename@2.0.0": {
+        "integrity": "sha512-NKN5kMDylKuldxYLSUfrbo5Tuzh4hd+2E8NPPX02mZtn1VuREQToYe/ZdlJy+J3uCpfaiGF05e7B8W0iXbQHmg==",
+        "dependencies": {}
+      },
+      "set-blocking@2.0.0": {
+        "integrity": "sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==",
+        "dependencies": {}
+      },
+      "string-width@4.2.3": {
+        "integrity": "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==",
+        "dependencies": {
+          "emoji-regex": "emoji-regex@8.0.0",
+          "is-fullwidth-code-point": "is-fullwidth-code-point@3.0.0",
+          "strip-ansi": "strip-ansi@6.0.1"
+        }
+      },
+      "strip-ansi@6.0.1": {
+        "integrity": "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==",
+        "dependencies": {
+          "ansi-regex": "ansi-regex@5.0.1"
+        }
+      },
+      "which-module@2.0.1": {
+        "integrity": "sha512-iBdZ57RDvnOR9AGBhML2vFZf7h8vmBjhoaZqODJBFWHVtKkDmKuHai3cx5PgVMrX5YDNp27AofYbAwctSS+vhQ==",
+        "dependencies": {}
+      },
+      "wrap-ansi@6.2.0": {
+        "integrity": "sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==",
+        "dependencies": {
+          "ansi-styles": "ansi-styles@4.3.0",
+          "string-width": "string-width@4.2.3",
+          "strip-ansi": "strip-ansi@6.0.1"
+        }
+      },
+      "y18n@4.0.3": {
+        "integrity": "sha512-JKhqTOwSrqNA1NY5lSztJ1GrBiUodLMmIZuLiDaMRJ+itFd+ABVE8XBjOvIWL+rSqNDC74LCSFmlb/U4UZ4hJQ==",
+        "dependencies": {}
+      },
+      "yargs-parser@18.1.3": {
+        "integrity": "sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ==",
+        "dependencies": {
+          "camelcase": "camelcase@5.3.1",
+          "decamelize": "decamelize@1.2.0"
+        }
+      },
+      "yargs@15.4.1": {
+        "integrity": "sha512-aePbxDmcYW++PaqBsJ+HYUFwCdv4LVvdnhBy78E57PIor8/OVvhMrADFFEDh8DHDFRv/O9i3lPhsENjO7QX0+A==",
+        "dependencies": {
+          "cliui": "cliui@6.0.0",
+          "decamelize": "decamelize@1.2.0",
+          "find-up": "find-up@4.1.0",
+          "get-caller-file": "get-caller-file@2.0.5",
+          "require-directory": "require-directory@2.1.1",
+          "require-main-filename": "require-main-filename@2.0.0",
+          "set-blocking": "set-blocking@2.0.0",
+          "string-width": "string-width@4.2.3",
+          "which-module": "which-module@2.0.1",
+          "y18n": "y18n@4.0.3",
+          "yargs-parser": "yargs-parser@18.1.3"
+        }
+      }
+    }
+  },
+  "remote": {
+    "https://deno.land/std@0.217.0/assert/assert.ts": "bec068b2fccdd434c138a555b19a2c2393b71dfaada02b7d568a01541e67cdc5",
+    "https://deno.land/std@0.217.0/assert/assertion_error.ts": "9f689a101ee586c4ce92f52fa7ddd362e86434ffdf1f848e45987dc7689976b8",
+    "https://deno.land/std@0.217.0/fs/_create_walk_entry.ts": "5d9d2aaec05bcf09a06748b1684224d33eba7a4de24cf4cf5599991ca6b5b412",
+    "https://deno.land/std@0.217.0/fs/_get_file_info_type.ts": "da7bec18a7661dba360a1db475b826b18977582ce6fc9b25f3d4ee0403fe8cbd",
+    "https://deno.land/std@0.217.0/fs/_is_same_path.ts": "709c95868345fea051c58b9e96af95cff94e6ae98dfcff2b66dee0c212c4221f",
+    "https://deno.land/std@0.217.0/fs/_is_subdir.ts": "c68b309d46cc8568ed83c000f608a61bbdba0943b7524e7a30f9e450cf67eecd",
+    "https://deno.land/std@0.217.0/fs/_to_path_string.ts": "29bfc9c6c112254961d75cbf6ba814d6de5349767818eb93090cecfa9665591e",
+    "https://deno.land/std@0.217.0/fs/copy.ts": "dc0f68c4b6c3b090bfdb909387e309f6169b746bd713927c9507c9ef545d71f6",
+    "https://deno.land/std@0.217.0/fs/empty_dir.ts": "4f01e6d56e2aa8d90ad60f20bc25601f516b00f6c3044cdf6863a058791d91aa",
+    "https://deno.land/std@0.217.0/fs/ensure_dir.ts": "dffff68de0d10799b5aa9e39dec4e327e12bbd29e762292193684542648c4aeb",
+    "https://deno.land/std@0.217.0/fs/ensure_file.ts": "ac5cfde94786b0284d2c8e9f7f9425269bea1b2140612b4aea1f20b508870f59",
+    "https://deno.land/std@0.217.0/fs/ensure_link.ts": "d42af2edefeaa9817873ec6e46dc5d209ac4d744f8c69c5ecc2dffade78465b6",
+    "https://deno.land/std@0.217.0/fs/ensure_symlink.ts": "aee3f1655700f60090b4a3037f5b6c07ab37c36807cccad746ce89987719e6d2",
+    "https://deno.land/std@0.217.0/fs/eol.ts": "c9807291f78361d49fd986a9be04654610c615c5e2ec63d748976197d30ff206",
+    "https://deno.land/std@0.217.0/fs/exists.ts": "d2757ef764eaf5c6c5af7228e8447db2de42ab084a2dae540097f905723d83f5",
+    "https://deno.land/std@0.217.0/fs/expand_glob.ts": "a1ce02b05ed7b96985b0665067c9f1018f3f2ade7ee0fb0d629231050260b158",
+    "https://deno.land/std@0.217.0/fs/mod.ts": "107f5afa4424c2d3ce2f7e9266173198da30302c69af662c720115fe504dc5ee",
+    "https://deno.land/std@0.217.0/fs/move.ts": "39e0d7ccb88a566d20b949712020e766b15ef1ec19159573d11f949bd677909c",
+    "https://deno.land/std@0.217.0/fs/walk.ts": "78e1d01a9f75715614bf8d6e58bd77d9fafb1222c41194e607cd3849d7a0e771",
+    "https://deno.land/std@0.217.0/path/_common/assert_path.ts": "dbdd757a465b690b2cc72fc5fb7698c51507dec6bfafce4ca500c46b76ff7bd8",
+    "https://deno.land/std@0.217.0/path/_common/basename.ts": "569744855bc8445f3a56087fd2aed56bdad39da971a8d92b138c9913aecc5fa2",
+    "https://deno.land/std@0.217.0/path/_common/common.ts": "6157c7ec1f4db2b4a9a187efd6ce76dcaf1e61cfd49f87e40d4ea102818df031",
+    "https://deno.land/std@0.217.0/path/_common/constants.ts": "dc5f8057159f4b48cd304eb3027e42f1148cf4df1fb4240774d3492b5d12ac0c",
+    "https://deno.land/std@0.217.0/path/_common/dirname.ts": "684df4aa71a04bbcc346c692c8485594fc8a90b9408dfbc26ff32cf3e0c98cc8",
+    "https://deno.land/std@0.217.0/path/_common/format.ts": "92500e91ea5de21c97f5fe91e178bae62af524b72d5fcd246d6d60ae4bcada8b",
+    "https://deno.land/std@0.217.0/path/_common/from_file_url.ts": "d672bdeebc11bf80e99bf266f886c70963107bdd31134c4e249eef51133ceccf",
+    "https://deno.land/std@0.217.0/path/_common/glob_to_reg_exp.ts": "6cac16d5c2dc23af7d66348a7ce430e5de4e70b0eede074bdbcf4903f4374d8d",
+    "https://deno.land/std@0.217.0/path/_common/normalize.ts": "684df4aa71a04bbcc346c692c8485594fc8a90b9408dfbc26ff32cf3e0c98cc8",
+    "https://deno.land/std@0.217.0/path/_common/normalize_string.ts": "dfdf657a1b1a7db7999f7c575ee7e6b0551d9c20f19486c6c3f5ff428384c965",
+    "https://deno.land/std@0.217.0/path/_common/relative.ts": "faa2753d9b32320ed4ada0733261e3357c186e5705678d9dd08b97527deae607",
+    "https://deno.land/std@0.217.0/path/_common/strip_trailing_separators.ts": "7024a93447efcdcfeaa9339a98fa63ef9d53de363f1fbe9858970f1bba02655a",
+    "https://deno.land/std@0.217.0/path/_common/to_file_url.ts": "7f76adbc83ece1bba173e6e98a27c647712cab773d3f8cbe0398b74afc817883",
+    "https://deno.land/std@0.217.0/path/_interface.ts": "a1419fcf45c0ceb8acdccc94394e3e94f99e18cfd32d509aab514c8841799600",
+    "https://deno.land/std@0.217.0/path/_os.ts": "8fb9b90fb6b753bd8c77cfd8a33c2ff6c5f5bc185f50de8ca4ac6a05710b2c15",
+    "https://deno.land/std@0.217.0/path/basename.ts": "5d341aadb7ada266e2280561692c165771d071c98746fcb66da928870cd47668",
+    "https://deno.land/std@0.217.0/path/common.ts": "03e52e22882402c986fe97ca3b5bb4263c2aa811c515ce84584b23bac4cc2643",
+    "https://deno.land/std@0.217.0/path/constants.ts": "0c206169ca104938ede9da48ac952de288f23343304a1c3cb6ec7625e7325f36",
+    "https://deno.land/std@0.217.0/path/dirname.ts": "85bd955bf31d62c9aafdd7ff561c4b5fb587d11a9a5a45e2b01aedffa4238a7c",
+    "https://deno.land/std@0.217.0/path/extname.ts": "593303db8ae8c865cbd9ceec6e55d4b9ac5410c1e276bfd3131916591b954441",
+    "https://deno.land/std@0.217.0/path/format.ts": "98fad25f1af7b96a48efb5b67378fcc8ed77be895df8b9c733b86411632162af",
+    "https://deno.land/std@0.217.0/path/from_file_url.ts": "911833ae4fd10a1c84f6271f36151ab785955849117dc48c6e43b929504ee069",
+    "https://deno.land/std@0.217.0/path/glob_to_regexp.ts": "5e51f78a0248c75464bf1d49173de3ec2c032880a530578e56b3fed2a57e69d3",
+    "https://deno.land/std@0.217.0/path/is_absolute.ts": "4791afc8bfd0c87f0526eaa616b0d16e7b3ab6a65b62942e50eac68de4ef67d7",
+    "https://deno.land/std@0.217.0/path/is_glob.ts": "a65f6195d3058c3050ab905705891b412ff942a292bcbaa1a807a74439a14141",
+    "https://deno.land/std@0.217.0/path/join.ts": "ae2ec5ca44c7e84a235fd532e4a0116bfb1f2368b394db1c4fb75e3c0f26a33a",
+    "https://deno.land/std@0.217.0/path/join_globs.ts": "5b3bf248b93247194f94fa6947b612ab9d3abd571ca8386cf7789038545e54a0",
+    "https://deno.land/std@0.217.0/path/mod.ts": "2821a1bb3a4148a0ffe79c92aa41aa9319fef73c6d6f5178f52b2c720d3eb02d",
+    "https://deno.land/std@0.217.0/path/normalize.ts": "4155743ccceeed319b350c1e62e931600272fad8ad00c417b91df093867a8352",
+    "https://deno.land/std@0.217.0/path/normalize_glob.ts": "cc89a77a7d3b1d01053b9dcd59462b75482b11e9068ae6c754b5cf5d794b374f",
+    "https://deno.land/std@0.217.0/path/parse.ts": "65e8e285f1a63b714e19ef24b68f56e76934c3df0b6e65fd440d3991f4f8aefb",
+    "https://deno.land/std@0.217.0/path/posix/_util.ts": "1e3937da30f080bfc99fe45d7ed23c47dd8585c5e473b2d771380d3a6937cf9d",
+    "https://deno.land/std@0.217.0/path/posix/basename.ts": "39ee27a29f1f35935d3603ccf01d53f3d6e0c5d4d0f84421e65bd1afeff42843",
+    "https://deno.land/std@0.217.0/path/posix/common.ts": "26f60ccc8b2cac3e1613000c23ac5a7d392715d479e5be413473a37903a2b5d4",
+    "https://deno.land/std@0.217.0/path/posix/constants.ts": "93481efb98cdffa4c719c22a0182b994e5a6aed3047e1962f6c2c75b7592bef1",
+    "https://deno.land/std@0.217.0/path/posix/dirname.ts": "6535d2bdd566118963537b9dda8867ba9e2a361015540dc91f5afbb65c0cce8b",
+    "https://deno.land/std@0.217.0/path/posix/extname.ts": "8d36ae0082063c5e1191639699e6f77d3acf501600a3d87b74943f0ae5327427",
+    "https://deno.land/std@0.217.0/path/posix/format.ts": "185e9ee2091a42dd39e2a3b8e4925370ee8407572cee1ae52838aed96310c5c1",
+    "https://deno.land/std@0.217.0/path/posix/from_file_url.ts": "951aee3a2c46fd0ed488899d024c6352b59154c70552e90885ed0c2ab699bc40",
+    "https://deno.land/std@0.217.0/path/posix/glob_to_regexp.ts": "54d3ff40f309e3732ab6e5b19d7111d2d415248bcd35b67a99defcbc1972e697",
+    "https://deno.land/std@0.217.0/path/posix/is_absolute.ts": "cebe561ad0ae294f0ce0365a1879dcfca8abd872821519b4fcc8d8967f888ede",
+    "https://deno.land/std@0.217.0/path/posix/is_glob.ts": "8a8b08c08bf731acf2c1232218f1f45a11131bc01de81e5f803450a5914434b9",
+    "https://deno.land/std@0.217.0/path/posix/join.ts": "744fadcbee7047688696455c7cbb368a9625ffde67fc3058a61c98948fcd04de",
+    "https://deno.land/std@0.217.0/path/posix/join_globs.ts": "f6e2619c196b82d8fd67ba2cf680e5b44461f38bdfeec26d7b3f55bd92a85988",
+    "https://deno.land/std@0.217.0/path/posix/mod.ts": "2301fc1c54a28b349e20656f68a85f75befa0ee9b6cd75bfac3da5aca9c3f604",
+    "https://deno.land/std@0.217.0/path/posix/normalize.ts": "baeb49816a8299f90a0237d214cef46f00ba3e95c0d2ceb74205a6a584b58a91",
+    "https://deno.land/std@0.217.0/path/posix/normalize_glob.ts": "41b477068deb832df7f51d6e2b3c0bc274d20919e20c5240d785ba535572d3d0",
+    "https://deno.land/std@0.217.0/path/posix/parse.ts": "d5bac4eb21262ab168eead7e2196cb862940c84cee572eafedd12a0d34adc8fb",
+    "https://deno.land/std@0.217.0/path/posix/relative.ts": "3907d6eda41f0ff723d336125a1ad4349112cd4d48f693859980314d5b9da31c",
+    "https://deno.land/std@0.217.0/path/posix/resolve.ts": "08b699cfeee10cb6857ccab38fa4b2ec703b0ea33e8e69964f29d02a2d5257cf",
+    "https://deno.land/std@0.217.0/path/posix/to_file_url.ts": "7aa752ba66a35049e0e4a4be5a0a31ac6b645257d2e031142abb1854de250aaf",
+    "https://deno.land/std@0.217.0/path/posix/to_namespaced_path.ts": "28b216b3c76f892a4dca9734ff1cc0045d135532bfd9c435ae4858bfa5a2ebf0",
+    "https://deno.land/std@0.217.0/path/relative.ts": "ab739d727180ed8727e34ed71d976912461d98e2b76de3d3de834c1066667add",
+    "https://deno.land/std@0.217.0/path/resolve.ts": "a6f977bdb4272e79d8d0ed4333e3d71367cc3926acf15ac271f1d059c8494d8d",
+    "https://deno.land/std@0.217.0/path/to_file_url.ts": "88f049b769bce411e2d2db5bd9e6fd9a185a5fbd6b9f5ad8f52bef517c4ece1b",
+    "https://deno.land/std@0.217.0/path/to_namespaced_path.ts": "b706a4103b104cfadc09600a5f838c2ba94dbcdb642344557122dda444526e40",
+    "https://deno.land/std@0.217.0/path/windows/_util.ts": "d5f47363e5293fced22c984550d5e70e98e266cc3f31769e1710511803d04808",
+    "https://deno.land/std@0.217.0/path/windows/basename.ts": "e2dbf31d1d6385bfab1ce38c333aa290b6d7ae9e0ecb8234a654e583cf22f8fe",
+    "https://deno.land/std@0.217.0/path/windows/common.ts": "26f60ccc8b2cac3e1613000c23ac5a7d392715d479e5be413473a37903a2b5d4",
+    "https://deno.land/std@0.217.0/path/windows/constants.ts": "5afaac0a1f67b68b0a380a4ef391bf59feb55856aa8c60dfc01bd3b6abb813f5",
+    "https://deno.land/std@0.217.0/path/windows/dirname.ts": "33e421be5a5558a1346a48e74c330b8e560be7424ed7684ea03c12c21b627bc9",
+    "https://deno.land/std@0.217.0/path/windows/extname.ts": "165a61b00d781257fda1e9606a48c78b06815385e7d703232548dbfc95346bef",
+    "https://deno.land/std@0.217.0/path/windows/format.ts": "bbb5ecf379305b472b1082cd2fdc010e44a0020030414974d6029be9ad52aeb6",
+    "https://deno.land/std@0.217.0/path/windows/from_file_url.ts": "ced2d587b6dff18f963f269d745c4a599cf82b0c4007356bd957cb4cb52efc01",
+    "https://deno.land/std@0.217.0/path/windows/glob_to_regexp.ts": "6dcd1242bd8907aa9660cbdd7c93446e6927b201112b0cba37ca5d80f81be51b",
+    "https://deno.land/std@0.217.0/path/windows/is_absolute.ts": "4a8f6853f8598cf91a835f41abed42112cebab09478b072e4beb00ec81f8ca8a",
+    "https://deno.land/std@0.217.0/path/windows/is_glob.ts": "8a8b08c08bf731acf2c1232218f1f45a11131bc01de81e5f803450a5914434b9",
+    "https://deno.land/std@0.217.0/path/windows/join.ts": "8d03530ab89195185103b7da9dfc6327af13eabdcd44c7c63e42e27808f50ecf",
+    "https://deno.land/std@0.217.0/path/windows/join_globs.ts": "f6e2619c196b82d8fd67ba2cf680e5b44461f38bdfeec26d7b3f55bd92a85988",
+    "https://deno.land/std@0.217.0/path/windows/mod.ts": "2301fc1c54a28b349e20656f68a85f75befa0ee9b6cd75bfac3da5aca9c3f604",
+    "https://deno.land/std@0.217.0/path/windows/normalize.ts": "78126170ab917f0ca355a9af9e65ad6bfa5be14d574c5fb09bb1920f52577780",
+    "https://deno.land/std@0.217.0/path/windows/normalize_glob.ts": "c57c186b0785ba5320a85e573c264f42c46eb1d0a4a78611f4791a7083baaa17",
+    "https://deno.land/std@0.217.0/path/windows/parse.ts": "b9239edd892a06a06625c1b58425e199f018ce5649ace024d144495c984da734",
+    "https://deno.land/std@0.217.0/path/windows/relative.ts": "3e1abc7977ee6cc0db2730d1f9cb38be87b0ce4806759d271a70e4997fc638d7",
+    "https://deno.land/std@0.217.0/path/windows/resolve.ts": "8dae1dadfed9d46ff46cc337c9525c0c7d959fb400a6308f34595c45bdca1972",
+    "https://deno.land/std@0.217.0/path/windows/to_file_url.ts": "40e560ee4854fe5a3d4d12976cef2f4e8914125c81b11f1108e127934ced502e",
+    "https://deno.land/std@0.217.0/path/windows/to_namespaced_path.ts": "4ffa4fb6fae321448d5fe810b3ca741d84df4d7897e61ee29be961a6aac89a4c"
+  }
+}
