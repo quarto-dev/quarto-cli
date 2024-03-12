@@ -318,8 +318,12 @@ async function createPublishOptions(
 
   if (provider && provider.resolveProjectPath) {
     const resolvedPath = provider.resolveProjectPath(path);
-    if (Deno.statSync(resolvedPath).isDirectory) {
-      path = resolvedPath;
+    try {
+      if (Deno.statSync(resolvedPath).isDirectory) {
+        path = resolvedPath;
+      }
+    } catch (_e) {
+      // ignore
     }
   }
 

@@ -37,8 +37,8 @@ export const huggingfaceProvider: PublishProvider = {
     target: PublishRecord,
   ): Promise<PublishRecord | undefined> => Promise.resolve(target),
   publish,
-  isUnauthorized,
-  isNotFound,
+  isUnauthorized: () => false,
+  isNotFound: () => false,
   resolveProjectPath: (path: string) => join(path, "src"),
 };
 
@@ -120,8 +120,36 @@ async function publish(
   await gitCmds(input, [
     ["stash"],
     ["fetch", "origin", "main"],
-    ["merge", "origin/main"],
-    ["stash", "pop"],
+  ]);
+  try {
+    await gitCmds(input, [
+      ["merge", "origin/main"],
+    ]);
+  } catch (_e) {
+    info(colors.yellow([
+      "Could not merge origin/main. This is likely because of git conflicts.",
+      "Please resolve those manually and run `quarto publish` again.",
+    ].join("\n")));
+    return Promise.resolve([
+      undefined,
+      undefined,
+    ]);
+  }
+  try {
+    await gitCmds(input, [
+      ["stash", "pop"],
+    ]);
+  } catch (_e) {
+    info(colors.yellow([
+      "Could not pop git stash.",
+      "This is likely because there are no changes to push to the repository.",
+    ].join("\n")));
+    return Promise.resolve([
+      undefined,
+      undefined,
+    ]);
+  }
+  await gitCmds(input, [
     ["add", "-Af", "."],
     ["commit", "--allow-empty", "-m", "commit from `quarto publish`"],
     ["remote", "-v"],
@@ -134,108 +162,11 @@ async function publish(
       "You might need to wait a moment for Hugging Face to rebuild your site, and\n" +
       "then click the refresh button within your web browser to see changes after deployment.\n",
   ));
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   return Promise.resolve([
     undefined,
     new URL(ghContext.originUrl!),
-  ]);
-}
-
-function isUnauthorized(_err: Error) {
-  return false;
-}
-
-function isNotFound(_err: Error) {
-  return false;
-}
-
-async function gitStash(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "stash"],
-    cwd: dir,
-  });
-  if (!result.success) {
-    throw new Error();
-  }
-}
-
-async function gitStashApply(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "stash", "apply"],
-    cwd: dir,
-  });
-  if (!result.success) {
-    throw new Error();
-  }
-}
-
-async function gitDirIsClean(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "diff", "HEAD"],
-    cwd: dir,
-    stdout: "piped",
-  });
-  if (result.success) {
-    return result.stdout!.trim().length === 0;
-  } else {
-    throw new Error();
-  }
-}
-
-async function gitCurrentBranch(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-    cwd: dir,
-    stdout: "piped",
-  });
-  if (result.success) {
-    return result.stdout!.trim();
-  } else {
-    throw new Error();
-  }
-}
-
-async function withWorktree(
-  dir: string,
-  siteDir: string,
-  f: () => Promise<void>,
-) {
-  await execProcess({
-    cmd: [
-      "git",
-      "worktree",
-      "add",
-      "--track",
-      "-B",
-      "gh-pages",
-      siteDir,
-      "origin/gh-pages",
-    ],
-    cwd: dir,
-  });
-
-  // remove files in existing site, i.e. start clean
-  await execProcess({
-    cmd: ["git", "rm", "-r", "--quiet", "."],
-    cwd: join(dir, siteDir),
-  });
-
-  try {
-    await f();
-  } finally {
-    await execProcess({
-      cmd: ["git", "worktree", "remove", siteDir],
-      cwd: dir,
-    });
-  }
-}
-
-async function gitCreateGhPages(dir: string) {
-  await gitCmds(dir, [
-    ["checkout", "--orphan", "gh-pages"],
-    ["rm", "-rf", "--quiet", "."],
-    ["commit", "--allow-empty", "-m", `Initializing gh-pages branch`],
-    ["push", "origin", `HEAD:gh-pages`],
   ]);
 }
 
