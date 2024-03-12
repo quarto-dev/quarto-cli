@@ -3,8 +3,8 @@ format:
   html:
     quality: 1
   pdf:
-    quality: -1
-    comment: "left unless caption or any value of `fig-align` then center"
+    quality: 0
+    comment: "only works with #fig-id, does not work in code"
   typst:
     quality: 0
     comment: "works only if there is no caption, otherwise center"
@@ -18,6 +18,9 @@ format:
     quality: -1
     comment: "centered or to side of text; caption causes figures to pile up instead of going to new slide"
 keep-typ: true
+_quarto:
+  tests: {} # tests are in the cases, don't count this as #format successes
+
 ---
 
 ![default `fig-align`](100.png){#fig-1}

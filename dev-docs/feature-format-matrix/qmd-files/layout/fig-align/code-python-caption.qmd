@@ -5,7 +5,7 @@ format:
   pdf:
     quality: 0
   typst:
-    quality: 2
+    quality: 0
   dashboard:
     quality: -1
   docx:
@@ -23,9 +23,28 @@ _quarto:
           - "#block\\[(\r\n?|\n)#align\\(right\\)\\["
 ---
 
-```{r}
+
+---
+
+```{python}
 #| fig-width: 3
 #| fig-align: right
+#| fig-cap: a figure
 
-plot(0:9)
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Data for plotting
+t = np.arange(0.0, 2.0, 0.01)
+s = 1 + np.sin(2 * np.pi * t)
+
+
+fig, ax = plt.subplots()
+fig.set_figwidth(2)
+ax.plot(t, s)
+
+ax.set(xlabel='time (s)', ylabel='voltage (mV)')
+ax.grid()
+
+plt.show()
 ```
