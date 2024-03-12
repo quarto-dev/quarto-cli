@@ -12,6 +12,29 @@ Note that you should use `quarto.log.output()` instead of this function.
 function quarto.utils.dump(value) end
 
 --[[
+Checks if the given table is a simple array
+]]
+---@param table table Table to check
+---@returns boolean
+function quarto.utils.table.isarray(table) end
+
+--[[
+Checks if the given table contains a value
+]]
+---@param table table Table to check
+---@param value any Value to check
+---@returns boolean
+function quarto.utils.table.isarray(table, value) end
+
+--[[
+Returns type information related to pandoc or 
+quarto-specific elements
+]]
+---@param type any Type to check
+---@returns string
+function quarto.utils.type(type) end
+
+--[[
 Compute the absolute path to a file that is installed alongside the Lua script. 
 
 This is useful for internal resources that your filter needs but should 
@@ -30,10 +53,22 @@ syntax in the string.
 ---@return pandoc.Inlines
 function quarto.utils.string_to_inlines(path, sep) end
 
+function quarto.utils.as_inlines(v) end
+
+function quarto.utils.as_blocks(v) end
+
 --[[
 Converts a string to a list of Pandoc Blocks, processing any Quarto custom
 syntax in the string.
 ]]
 ---@param path string String to be converted
 ---@return pandoc.Blocks
-function quarto.utils.string_to_blocks(path) end
+function quarto.utils.string_to_blocks(string) end
+
+function quarto.utils.string_to_inlines(string) end
+
+function quarto.utils.render() end
+
+function quarto.utils.match(...) end
+
+function quarto.utils.add_to_blocks(blocks, block) end
