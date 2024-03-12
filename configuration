@@ -25,9 +25,6 @@ export TYPST=0.10.0
 
 # 0.5.1 + consolidated components
 export BOOTSTRAP=ad946cafdbf1c91cfd714cb39948bb203ae66e66
-# NOTE: HTML TOOLS has a manually committed fill.css file which will be officially
-# released in htmltools 0.5.7
-
 export HTMLTOOLS=0.5.7
 export BOOTSTRAP_FONT=1.11.1
 export BOOTSWATCH=5.3.1
