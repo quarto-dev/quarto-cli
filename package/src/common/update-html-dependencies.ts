@@ -354,7 +354,8 @@ export async function updateHtmlDependencies(config: Configuration) {
       );
       return Promise.resolve();
     },
-    true // not a commit
+    false, // not a commit
+    false, // no v prefix,
   );
 
   // revealjs-menu
