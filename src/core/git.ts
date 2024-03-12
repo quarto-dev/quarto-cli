@@ -12,8 +12,8 @@ export async function lsFiles(
   args?: string[],
 ): Promise<string[] | undefined> {
   if (await which("git")) {
-    const result = await execProcess({
-      cmd: ["git", "ls-files", ...(args || [])],
+    const result = await execProcess("git", {
+      args: ["ls-files", ...(args || [])],
       cwd,
       stdout: "piped",
       stderr: "piped",

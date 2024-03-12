@@ -681,13 +681,13 @@ export const ensureXmlValidatesWithXsd = (
     name: "Validating XML",
     verify: async (_output: ExecuteOutput[]) => {
       if (!isWindows()) {
-        const cmd = ["xmllint", "--noout", "--valid", file, "--path", xsdPath];
-        const runOptions: Deno.RunOptions = {
-          cmd,
+        const args = ["--noout", "--valid", file, "--path", xsdPath];
+        const commandOptions: Deno.CommandOptions = {
+          args,
           stderr: "piped",
           stdout: "piped",
         };
-        const result = await execProcess(runOptions);
+        const result = await execProcess("xmllint", commandOptions);
         assert(
           result.success,
           `Failed XSD Validation for file ${file}\n${result.stderr}`,
@@ -708,8 +708,8 @@ export const ensureMECAValidates = (
         if (hasNpm) {
           const hasMeca = await which("meca");
           if (hasMeca) {
-            const result = await execProcess({
-              cmd: ["meca", "validate", mecaFile],
+            const result = await execProcess("meca", {
+              args: ["validate", mecaFile],
               stderr: "piped",
               stdout: "piped",
             });

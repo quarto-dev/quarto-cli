@@ -104,13 +104,11 @@ export async function rswURL(port: number, path: string) {
 }
 
 async function rswPortToken(port: number) {
-  const result = await execProcess(
-    {
-      cmd: ["/usr/lib/rstudio-server/bin/rserver-url", String(port)],
-      stdout: "piped",
-      stderr: "piped",
-    },
-  );
+  const result = await execProcess("/usr/lib/rstudio-server/bin/rserver-url", {
+    args: [String(port)],
+    stdout: "piped",
+    stderr: "piped",
+  });
   if (result.success) {
     return result.stdout;
   } else {

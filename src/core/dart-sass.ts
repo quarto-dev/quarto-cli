@@ -70,18 +70,12 @@ export async function dartCommand(args: string[]) {
   };
   const sass = resolvePath();
 
-  const cmd = [
-    sass,
-    ...args,
-  ];
   // Run the sass compiler
-  const result = await execProcess(
-    {
-      cmd,
-      stdout: "piped",
-      stderr: "piped",
-    },
-  );
+  const result = await execProcess(sass, {
+    args,
+    stdout: "piped",
+    stderr: "piped",
+  });
 
   if (result.success) {
     if (result.stderr) {

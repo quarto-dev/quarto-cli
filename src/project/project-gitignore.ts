@@ -53,8 +53,8 @@ export async function ensureGitignore(
     return true;
   } else if (await which("git")) {
     // if it doesn't exist then auto-create if we are in a git project or we had the force flag
-    const result = await execProcess({
-      cmd: ["git", "rev-parse"],
+    const result = await execProcess("git", {
+      args: ["rev-parse"],
       cwd: dir,
       stdout: "piped",
       stderr: "piped",

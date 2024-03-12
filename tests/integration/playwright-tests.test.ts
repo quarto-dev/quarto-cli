@@ -37,8 +37,8 @@ for (const { path: fileName } of globOutput) {
   // sigh, we have a race condition somewhere in
   // mediabag inspection if we don't wait all renders
   // individually. This is very slow..
-  await execProcess({
-    cmd: [quartoDevCmd(), "render", input, "--to", "html"],
+  await execProcess(quartoDevCmd(), {
+    args: ["render", input, "--to", "html"],
   });
   fileNames.push(fileName);
 }
@@ -57,8 +57,8 @@ const proc = Deno.run({
 
 try {
   // run playwright
-  await execProcess({
-    cmd: [Deno.build.os == "windows" ? "npx.cmd" : "npx", "playwright", "test"],
+  await execProcess(Deno.build.os == "windows" ? "npx.cmd" : "npx", {
+    args: ["playwright", "test"],
     cwd: "integration/playwright",
   });
 } finally {

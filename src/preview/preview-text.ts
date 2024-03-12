@@ -146,15 +146,15 @@ async function textPreviewHtml(file: string, req: Request) {
     kFence;
 
   // build the pandoc command (we'll feed it the input on stdin)
-  const cmd = [pandocBinaryPath()];
+  const cmd = [];
   cmd.push("--to", "html");
   cmd.push(
     "--highlight-style",
     textHighlightThemePath("atom-one", darkMode ? "dark" : "light")!,
   );
   cmd.push("--standalone");
-  const result = await execProcess({
-    cmd,
+  const result = await execProcess(pandocBinaryPath(), {
+    args: cmd,
     stdout: "piped",
   }, markdown);
   if (result.success) {
@@ -223,7 +223,7 @@ async function gfmPreview(file: string, request: Request) {
       darkMode ? "dark" : "light",
     );
 
-    const cmd = [pandocBinaryPath()];
+    const cmd = [];
     cmd.push("-f");
     cmd.push("gfm");
     cmd.push("-t");
@@ -240,10 +240,11 @@ async function gfmPreview(file: string, request: Request) {
       cmd.push("--highlight-style");
       cmd.push(highlightPath);
     }
-    const result = await execProcess(
-      { cmd, stdout: "piped", stderr: "piped" },
-      Deno.readTextFileSync(file),
-    );
+    const result = await execProcess(pandocBinaryPath(), {
+      args: cmd,
+      stdout: "piped",
+      stderr: "piped",
+    }, Deno.readTextFileSync(file));
     if (result.success) {
       return result.stdout;
     } else {

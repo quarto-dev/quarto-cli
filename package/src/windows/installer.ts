@@ -208,17 +208,16 @@ export async function makeInstallerWindows(configuration: Configuration) {
 export function zip(input: string, output: string) {
   const dir = dirname(input);
   const cmd = [
-    "powershell",
     "Compress-Archive",
     "-Force",
     input,
     "-DestinationPath",
     output,
   ];
-  info(cmd);
-  return execProcess(
+  info(["powershell", ...cmd]);
+  return execProcess("powershell",
     {
-      cmd,
+      args: cmd,
       cwd: dir,
       stdout: "piped",
     },

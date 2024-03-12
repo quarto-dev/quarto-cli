@@ -853,8 +853,8 @@ async function runScripts(
         throw new Error();
       }
     } else {
-      const result = await execProcess({
-        cmd: args,
+      const result = await execProcess(args[0], {
+        args: args.slice(1),
         cwd: projDir,
         stdout: quiet ? "piped" : "inherit",
         env,

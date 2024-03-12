@@ -107,12 +107,10 @@ function resolveTarget(
 }
 
 async function gitVersion(): Promise<SemVer> {
-  const result = await execProcess(
-    {
-      cmd: ["git", "--version"],
-      stdout: "piped",
-    },
-  );
+  const result = await execProcess("git", {
+    args: ["--version"],
+    stdout: "piped",
+  });
   if (!result.success) {
     throw new Error(
       "Unable to determine git version. Please check that git is installed and available on your PATH.",
@@ -317,8 +315,8 @@ function isNotFound(_err: Error) {
 }
 
 async function gitStash(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "stash"],
+  const result = await execProcess("git", {
+    args: ["stash"],
     cwd: dir,
   });
   if (!result.success) {
@@ -327,8 +325,8 @@ async function gitStash(dir: string) {
 }
 
 async function gitStashApply(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "stash", "apply"],
+  const result = await execProcess("git", {
+    args: ["stash", "apply"],
     cwd: dir,
   });
   if (!result.success) {
@@ -337,8 +335,8 @@ async function gitStashApply(dir: string) {
 }
 
 async function gitDirIsClean(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "diff", "HEAD"],
+  const result = await execProcess("git", {
+    args: ["diff", "HEAD"],
     cwd: dir,
     stdout: "piped",
   });
@@ -350,8 +348,8 @@ async function gitDirIsClean(dir: string) {
 }
 
 async function gitCurrentBranch(dir: string) {
-  const result = await execProcess({
-    cmd: ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+  const result = await execProcess("git", {
+    args: ["rev-parse", "--abbrev-ref", "HEAD"],
     cwd: dir,
     stdout: "piped",
   });
@@ -367,9 +365,8 @@ async function withWorktree(
   siteDir: string,
   f: () => Promise<void>,
 ) {
-  await execProcess({
-    cmd: [
-      "git",
+  await execProcess("git", {
+    args: [
       "worktree",
       "add",
       "--track",
@@ -382,16 +379,16 @@ async function withWorktree(
   });
 
   // remove files in existing site, i.e. start clean
-  await execProcess({
-    cmd: ["git", "rm", "-r", "--quiet", "."],
+  await execProcess("git", {
+    args: ["rm", "-r", "--quiet", "."],
     cwd: join(dir, siteDir),
   });
 
   try {
     await f();
   } finally {
-    await execProcess({
-      cmd: ["git", "worktree", "remove", siteDir],
+    await execProcess("git", {
+      args: ["worktree", "remove", siteDir],
       cwd: dir,
     });
   }
@@ -409,8 +406,8 @@ async function gitCreateGhPages(dir: string) {
 async function gitCmds(dir: string, cmds: Array<string[]>) {
   for (const cmd of cmds) {
     if (
-      !(await execProcess({
-        cmd: ["git", ...cmd],
+      !(await execProcess("git", {
+        args: cmd,
         cwd: dir,
       })).success
     ) {

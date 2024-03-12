@@ -10,9 +10,8 @@ import { assert } from "testing/asserts.ts";
 import { unitTest } from "../../test.ts";
 
 unitTest("yaml-intelligence-unit-regression", async () => {
-  const result = await execProcess({
-    cmd: [
-      "quarto",
+  const result = await execProcess("quarto", {
+    args: [
       "run",
       "docs/run/test-stdlib.ts",
     ],

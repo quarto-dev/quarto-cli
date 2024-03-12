@@ -1,9 +1,8 @@
 /*
-* xml.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * xml.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
@@ -17,9 +16,8 @@ export async function reformat(xmlFile: string) {
   if (Deno.build.os !== "windows") {
     const xmlLint = await which(kXmlLint);
     if (xmlLint) {
-      const result = await execProcess({
-        cmd: [
-          kXmlLint,
+      const result = await execProcess(kXmlLint, {
+        args: [
           xmlFile,
           "--format",
           "-o",

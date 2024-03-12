@@ -35,24 +35,21 @@ export async function openUrl(url: string) {
         cmd,
         safeArgs.args,
         (cmd: string[]) => {
-          return execProcess({
-            cmd,
+          return execProcess(cmd[0], {
+            args: cmd.slice(1),
             stdout: "piped",
             stderr: "piped",
           });
         },
       );
-    } else {
-      // The traditional and simple way to run, which usually works
-      if (await which(cmd)) {
-        Deno.run({ cmd: [cmd, url] });
-      }
+      return;
     }
-  } else {
-    // The traditional and simple way to run, which always
-    // works outside of windows
-    if (await which(cmd)) {
-      Deno.run({ cmd: [cmd, url] });
-    }
+  }
+  // The traditional and simple way to run, which usually works
+  if (await which(cmd)) {
+    // note that we explicitly do not await this
+    new Deno.Command(cmd, {
+      args: [url],
+    });
   }
 }

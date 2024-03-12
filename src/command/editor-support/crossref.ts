@@ -115,18 +115,15 @@ const makeCrossrefCommand = () => {
       );
 
       // run pandoc
-      const result = await execProcess(
-        {
-          cmd,
-          cwd: indexingDir,
-          env: {
-            "QUARTO_FILTER_PARAMS": filterParams,
-            "QUARTO_SHARE_PATH": resourcePath(),
-          },
-          stdout: "piped",
+      const result = await execProcess(cmd[0], {
+        args: cmd.slice(1),
+        cwd: indexingDir,
+        env: {
+          "QUARTO_FILTER_PARAMS": filterParams,
+          "QUARTO_SHARE_PATH": resourcePath(),
         },
-        input,
-      );
+        stdout: "piped",
+      }, input);
 
       // check for error
       if (!result.success) {

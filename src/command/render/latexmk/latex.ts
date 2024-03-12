@@ -28,8 +28,8 @@ export interface LatexCommandReponse {
 
 export async function hasLatexDistribution() {
   try {
-    const result = await execProcess({
-      cmd: ["pdftex", "--version"],
+    const result = await execProcess("pdftex", {
+      args: ["--version"],
       stdout: "piped",
       stderr: "piped",
     });
@@ -211,21 +211,24 @@ async function runLatexCommand(
 ): Promise<ProcessResult> {
   const fullLatexCmd = texLiveCmd(latexCmd, context.texLive);
 
-  const runOptions: Deno.RunOptions = {
-    cmd: [fullLatexCmd.fullPath, ...args],
+  const cmd = fullLatexCmd.fullPath;
+  const commandOptions: Deno.CommandOptions = {
+    args,
     stdout: "piped",
     stderr: "piped",
   };
 
   //Ensure that the bin directory is available as a part of PDF compilation
   if (context.texLive.binDir) {
-    runOptions.env = runOptions.env || {};
-    runOptions.env["PATH"] = withPath({ prepend: [context.texLive.binDir] });
+    commandOptions.env = commandOptions.env || {};
+    commandOptions.env["PATH"] = withPath({
+      prepend: [context.texLive.binDir],
+    });
   }
 
   // Set the working directory
   if (context.cwd) {
-    runOptions.cwd = context.cwd;
+    commandOptions.cwd = context.cwd;
   }
 
   // Add a tex search path
@@ -233,14 +236,19 @@ async function runLatexCommand(
   // the trailing colon means "append the standard value of TEXINPUTS" (which you don't need to provide).
   if (context.texInputDirs && context.texInputDirs.length > 0) {
     // note this  //
-    runOptions.env = runOptions.env || {};
-    runOptions.env["TEXINPUTS"] = `${context.texInputDirs.join(";")};`;
-    runOptions.env["BSTINPUTS"] = `${context.texInputDirs.join(";")};`;
+    commandOptions.env = commandOptions.env || {};
+    commandOptions.env["TEXINPUTS"] = `${context.texInputDirs.join(";")};`;
+    commandOptions.env["BSTINPUTS"] = `${context.texInputDirs.join(";")};`;
   }
 
   // Run the command
   const runCmd = async () => {
-    const result = await execProcess(runOptions, undefined, "stdout>stderr");
+    const result = await execProcess(
+      cmd,
+      commandOptions,
+      undefined,
+      "stdout>stderr",
+    );
     if (!quiet && result.stderr) {
       info(result.stderr, kLatexBodyMessageOptions);
     }

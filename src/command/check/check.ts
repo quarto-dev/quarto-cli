@@ -93,8 +93,8 @@ async function checkVersions(_services: RenderServices) {
   completeMessage("Checking versions of quarto binary dependencies...");
 
   let pandocVersion = lines(
-    (await execProcess({
-      cmd: [pandocBinaryPath(), "--version"],
+    (await execProcess(pandocBinaryPath(), {
+      args: ["--version"],
       stdout: "piped",
     })).stdout!,
   )[0]?.split(" ")[1];
