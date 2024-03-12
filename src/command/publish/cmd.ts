@@ -163,7 +163,7 @@ async function publishAction(
   await initYamlIntelligence();
 
   // coalesce options
-  const publishOptions = await createPublishOptions(options, path);
+  const publishOptions = await createPublishOptions(options, provider, path);
 
   // helper to publish (w/ account confirmation)
   const doPublish = async (
@@ -302,6 +302,7 @@ async function publish(
 
 async function createPublishOptions(
   options: PublishCommandOptions,
+  provider?: PublishProvider,
   path?: string,
 ): Promise<PublishOptions> {
   const nbContext = notebookContext();
@@ -315,27 +316,27 @@ async function createPublishOptions(
   // determine publish input
   let input: ProjectContext | string | undefined;
 
+  if (provider && provider.resolveProjectPath) {
+    const resolvedPath = provider.resolveProjectPath(path);
+    if (Deno.statSync(resolvedPath).isDirectory) {
+      path = resolvedPath;
+    }
+  }
+
   // check for directory (either website or single-file project)
   const project = (await projectContext(path, nbContext)) ||
     singleFileProjectContext(path, nbContext);
+  console.log(project);
   if (Deno.statSync(path).isDirectory) {
-    if (project) {
-      if (projectIsWebsite(project)) {
-        input = project;
-      } else if (
-        projectIsManuscript(project) && project.files.input.length > 0
-      ) {
-        input = project;
-      } else if (project.files.input.length === 1) {
-        input = project.files.input[0];
-      }
+    if (projectIsWebsite(project)) {
+      input = project;
+    } else if (
+      projectIsManuscript(project) && project.files.input.length > 0
+    ) {
+      input = project;
+    } else if (project.files.input.length === 1) {
+      input = project.files.input[0];
     } else {
-      const inputFiles = await projectInputFiles(project);
-      if (inputFiles.files.length === 1) {
-        input = inputFiles.files[0];
-      }
-    }
-    if (!input) {
       throw new Error(
         `The specified path (${path}) is not a website, manuscript or book project so cannot be published.`,
       );

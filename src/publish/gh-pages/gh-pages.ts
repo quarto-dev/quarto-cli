@@ -29,8 +29,7 @@ import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
 import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import SemVer from "semver/mod.ts";
-import { gitHubContext } from "../../core/github.ts";
+import { gitHubContext, gitVersion } from "../../core/github.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -104,28 +103,6 @@ function resolveTarget(
   target: PublishRecord,
 ): Promise<PublishRecord | undefined> {
   return Promise.resolve(target);
-}
-
-async function gitVersion(): Promise<SemVer> {
-  const result = await execProcess(
-    {
-      cmd: ["git", "--version"],
-      stdout: "piped",
-    },
-  );
-  if (!result.success) {
-    throw new Error(
-      "Unable to determine git version. Please check that git is installed and available on your PATH.",
-    );
-  }
-  const match = result.stdout?.match(/git version (\d+\.\d+\.\d+)/);
-  if (match) {
-    return new SemVer(match[1]);
-  } else {
-    throw new Error(
-      `Unable to determine git version from string ${result.stdout}`,
-    );
-  }
 }
 
 async function publish(
