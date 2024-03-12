@@ -120,7 +120,8 @@ All changes included in 1.5:
 - ([#8873](https://github.com/quarto-dev/quarto-cli/issues/8873)): Don't overwrite supporting files when creating a project.
 - ([#8937](https://github.com/quarto-dev/quarto-cli/issues/8937)): Fix unix launcher script to properly handle spaces in the path to the quarto executable.
 - ([#8898](https://github.com/quarto-dev/quarto-cli/issues/8898)): `.deb` and `.tar.gz` bundle contents are now associated to root user and group instead of default user and group for CI build runners.
-- Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Specify a specific number of paragraphs (`{{< lipsum 3 >}}`).
+- ([#9041](https://github.com/quarto-dev/quarto-cli/issues/9041)): When creating an automatic citation key, replace spaces with underscores in inferred keys.
+- Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
 - Upgrade Deno to 1.41.0
