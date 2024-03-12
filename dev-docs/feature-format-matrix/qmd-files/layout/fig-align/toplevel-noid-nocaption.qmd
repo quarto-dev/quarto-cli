@@ -1,0 +1,31 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: -1
+    comment: "left unless caption or any value of `fig-align` then center"
+  typst:
+    quality: 0
+    comment: "works only if there is no caption, otherwise center"
+  dashboard:
+    quality: -1
+    comment: "always left"
+  docx:
+    quality: -1
+    comment: "always left"
+  pptx:
+    quality: -1
+    comment: "centered or to side of text; caption causes figures to pile up instead of going to new slide"
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#align\\(center\\)\\[(\r\n?|\n)#box"
+        -
+          - "#block\\[(\r\n?|\n)#align\\(center\\)\\["
+---
+
+![](100.png){fig-align="center"}
