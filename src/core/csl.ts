@@ -154,7 +154,9 @@ export function suggestId(author: CSLName[], date?: CSLDate) {
   }
 
   // Create a deduplicated string against the existing entries
-  let suggestedId = `${citeIdLeading.toLowerCase()}${datePart}`;
+  let suggestedId = `${
+    citeIdLeading.replaceAll(/\s+/g, "_").toLowerCase()
+  }${datePart}`;
   if (suggestedId.length === 0) {
     suggestedId = "untitled";
   }
