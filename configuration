@@ -35,10 +35,9 @@ export POPPER_JS=2.11.7
 export CLIPBOARD_JS=2.0.11
 export TIPPY_JS=6.3.7
 export PDF_JS=2.8.335
-# Using commit to fix https://github.com/quarto-dev/quarto-cli/issues/2430 - revert to using a release tag when included
-export REVEAL_JS=e281b3234e7991283ce4dcca705dd9a6a9ebe5d2
+export REVEAL_JS=5.0.5
 export REVEAL_JS_MENU=2.1.0
-export REVEAL_JS_CHALKBOARD=a88c134e2cf3c7780448db003e7329c3cbd8cfb4
+export REVEAL_JS_CHALKBOARD=4.2.5
 export REVEAL_JS_PDFEXPORT=2.0.1
 export LIST_JS=2.3.1
 export DAY_JS=1.11.7
