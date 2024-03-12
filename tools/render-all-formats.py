@@ -2,6 +2,7 @@
 
 import sys
 import os
+import shutil
 import subprocess
 import yaml
 
@@ -65,7 +66,9 @@ for qmdfile in qmdfiles:
             print(f'unsupported format {format}, skipping')
             continue
         outdir = '/'.join([output_root, qmdroot, format])
-        os.makedirs(outdir, exist_ok=True)
+        print(f'mkdir -p {outdir}')
+        if not dryrun:
+            os.makedirs(outdir, exist_ok=True)
         metadata = []
         if keepext := format_keep.get(format):
             metadata = [
@@ -97,6 +100,6 @@ for qmdfile in qmdfiles:
             print(f'mv {movefile} {dest}')
             if not dryrun:
                 try:
-                    os.rename(movefile, dest)
+                    shutil.move(movefile, dest)
                 except FileNotFoundError:
                     print('... not found')
