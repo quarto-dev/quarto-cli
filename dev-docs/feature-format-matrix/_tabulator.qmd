@@ -2,9 +2,13 @@
 <script type="text/javascript" src="dist/js/tabulator.min.js"></script>
 ```
 ```{python}
+#| tags: [parameters]
+detailed = False
+```
+```{python}
 #| echo: false
 from create_table import compute_trie, compute_quality_summary, render_features_formats_data
-trie = compute_trie()
+trie = compute_trie(detailed)
 quality_summary = compute_quality_summary(trie)
 ```
 ```{python}
