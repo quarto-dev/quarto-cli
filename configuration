@@ -24,7 +24,7 @@ export TYPST=0.10.0
 # (use commit hash from bslib repo)
 
 # 0.5.1 + consolidated components
-export BOOTSTRAP=ad946cafdbf1c91cfd714cb39948bb203ae66e66 
+export BOOTSTRAP=ad946cafdbf1c91cfd714cb39948bb203ae66e66
 # NOTE: HTML TOOLS has a manually committed fill.css file which will be officially
 # released in htmltools 0.5.7
 
