@@ -264,7 +264,7 @@ export async function getBrowserExecutablePath() {
   if (executablePath === undefined) {
     error("Chrome not found");
     info(
-      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto tools install chromium' to install Chromium.\n",
+      "\nNo Chrome or Chromium installation was detected.\n\nPlease run 'quarto install chromium' to install Chromium.\n",
     );
     throw new Error();
   }
