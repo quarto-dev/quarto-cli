@@ -92,6 +92,10 @@ export const publishCommand =
       "quarto publish document.qmd",
     )
     .example(
+      "Publish project to Hugging Face Spaces",
+      "quarto publish huggingface",
+    )
+    .example(
       "Publish project to Netlify",
       "quarto publish netlify",
     )
