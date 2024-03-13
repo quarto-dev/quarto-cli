@@ -17,7 +17,6 @@ import { execProcess } from "../../core/process.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   AccountToken,
-  AccountTokenType,
   PublishFiles,
   PublishProvider,
 } from "../provider-types.ts";
@@ -27,9 +26,13 @@ import { sleep } from "../../core/wait.ts";
 import { joinUrl } from "../../core/url.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { renderForPublish } from "../common/publish.ts";
-import { websiteBaseurl } from "../../project/types/website/website-config.ts";
 import { RenderFlags } from "../../command/render/types.ts";
-import { gitHubContext, gitVersion } from "../../core/github.ts";
+import { gitCmds, gitVersion } from "../../core/git.ts";
+import {
+  anonymousAccount,
+  gitHubContextForPublish,
+  verifyContext,
+} from "../common/git.ts";
 
 export const kGhpages = "gh-pages";
 const kGhpagesDescription = "GitHub Pages";
@@ -49,35 +52,13 @@ export const ghpagesProvider: PublishProvider = {
   isNotFound,
 };
 
-function anonymousAccount(): AccountToken {
-  return {
-    type: AccountTokenType.Anonymous,
-    name: "anonymous",
-    server: null,
-    token: "anonymous",
-  };
-}
-
 function accountTokens() {
   return Promise.resolve([anonymousAccount()]);
 }
 
 async function authorizeToken(options: PublishOptions) {
   const ghContext = await gitHubContextForPublish(options.input);
-
-  if (!ghContext.git) {
-    throwUnableToPublish("git does not appear to be installed on this system");
-  }
-
-  // validate we are in a git repo
-  if (!ghContext.repo) {
-    throwUnableToPublish("the target directory is not a git repository");
-  }
-
-  // validate that we have an origin
-  if (!ghContext.originUrl) {
-    throwUnableToPublish("the git repository does not have a remote origin");
-  }
+  verifyContext(ghContext, "GitHub Pages");
 
   // good to go!
   return Promise.resolve(anonymousAccount());
@@ -381,39 +362,4 @@ async function gitCreateGhPages(dir: string) {
     ["commit", "--allow-empty", "-m", `Initializing gh-pages branch`],
     ["push", "origin", `HEAD:gh-pages`],
   ]);
-}
-
-async function gitCmds(dir: string, cmds: Array<string[]>) {
-  for (const cmd of cmds) {
-    if (
-      !(await execProcess({
-        cmd: ["git", ...cmd],
-        cwd: dir,
-      })).success
-    ) {
-      throw new Error();
-    }
-  }
-}
-
-// validate we have git
-const throwUnableToPublish = (reason: string) => {
-  throw new Error(
-    `Unable to publish to GitHub Pages (${reason})`,
-  );
-};
-
-async function gitHubContextForPublish(input: string | ProjectContext) {
-  // Create the base context
-  const dir = typeof input === "string" ? dirname(input) : input.dir;
-  const context = await gitHubContext(dir);
-
-  // always prefer configured website URL
-  if (typeof input !== "string") {
-    const configSiteUrl = websiteBaseurl(input?.config);
-    if (configSiteUrl) {
-      context.siteUrl = configSiteUrl;
-    }
-  }
-  return context;
 }
