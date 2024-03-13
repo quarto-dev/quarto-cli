@@ -3,7 +3,7 @@ format:
   html:
     quality: 1
   pdf:
-    quality: 1
+    quality: 2
   typst:
     quality: 0
   dashboard:
@@ -15,13 +15,11 @@ format:
 keep-typ: true
 _quarto:
   tests:
-# couldn't get either of these to work
-#   pdf:
-#     ensureFileRegexMatches:
-#     -
-#       - "\\\\hfill\\\\captionsetup\\{labelsep=none\\}\\\\includegraphics\\{100.png\\}"
-#       - '\\hfill\\captionsetup\{labelsep=none\}\\includegraphics\{100.png\}'
-#     - []
+    latex:
+      ensureFileRegexMatches:
+      -
+        - '\\hfill\\captionsetup\{labelsep=none\}\\includegraphics\{100.png\}'
+      - []
     typst:
       ensureTypstFileRegexMatches:
         -
