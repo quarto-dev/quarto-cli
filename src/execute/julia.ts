@@ -40,7 +40,7 @@ import { runningInCI } from "../core/ci-info.ts";
 import { sleep } from "../core/async.ts";
 import { JupyterNotebook } from "../core/jupyter/types.ts";
 import { existsSync } from "fs/mod.ts";
-import { pythonExecForCaps } from "../core/jupyter/exec.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 
 export interface JuliaExecuteOptions extends ExecuteOptions {
   julia_cmd: string;
@@ -342,6 +342,7 @@ function juliaResourcePath(...parts: string[]) {
 interface JuliaTransportFile {
   port: number;
   pid: number;
+  key: string;
 }
 
 async function pollTransportFile(
@@ -379,7 +380,7 @@ async function getJuliaServerConnection(
     const isready = writeJuliaCommand(
       conn,
       "isready",
-      "TODOsomesecret",
+      transportOptions.key,
       options,
     ) as Promise<boolean>;
     const timeoutMilliseconds = 10000;
@@ -423,25 +424,26 @@ async function executeJulia(
   options: JuliaExecuteOptions,
 ): Promise<JupyterNotebook> {
   const conn = await getJuliaServerConnection(options);
+  const transportOptions = await pollTransportFile(options);
   if (options.oneShot || options.format.execute[kExecuteDaemonRestart]) {
     const isopen = await writeJuliaCommand(
       conn,
       "isopen",
-      "TODOsomesecret",
+      transportOptions.key,
       options,
     ) as boolean;
     if (isopen) {
-      await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+      await writeJuliaCommand(conn, "close", transportOptions.key, options);
     }
   }
   const response = await writeJuliaCommand(
     conn,
     "run",
-    "TODOsomesecret",
+    transportOptions.key,
     options,
   );
   if (options.oneShot) {
-    await writeJuliaCommand(conn, "close", "TODOsomesecret", options);
+    await writeJuliaCommand(conn, "close", transportOptions.key, options);
   }
 
   if (response.error !== undefined) {
@@ -469,9 +471,27 @@ async function writeJuliaCommand(
     content,
   };
 
-  const message = JSON.stringify(commandData) + "\n";
+  const payload = JSON.stringify(commandData);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    true,
+    ["sign"],
+  );
+  const canonicalRequestBytes = new TextEncoder().encode(
+    JSON.stringify(commandData),
+  );
+  const signatureArrayBuffer = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    canonicalRequestBytes,
+  );
+  const signatureBytes = new Uint8Array(signatureArrayBuffer);
+  const hmac = encodeBase64(signatureBytes);
 
-  // TODO: no secret used, yet
+  const message = JSON.stringify({ hmac, payload }) + "\n";
+
   const messageBytes = new TextEncoder().encode(message);
 
   // // don't send the message if it's big.
