@@ -13,11 +13,12 @@ import * as ld from "../../../src/core/lodash.ts";
 import { runCmd } from "../util/cmd.ts";
 import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
 
-import { download, unzip } from "../util/utils.ts";
+import { download } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
 import { copyMinimal } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
+import { unzip } from "../../../src/core/zip.ts";
 
 export async function updateHtmlDependencies(config: Configuration) {
   info("Updating Bootstrap with version info:");
