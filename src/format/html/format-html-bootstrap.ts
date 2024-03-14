@@ -1156,7 +1156,10 @@ function processColumnElements(
         // Add the grid system. Children of the grid system
         // are placed into the body-content column by default
         // (CSS implements this)
-        if (!el.classList.contains("page-columns")) {
+        if (
+          !el.classList.contains("quarto-layout-row") &&
+          !el.classList.contains("page-columns")
+        ) {
           el.classList.add("page-columns");
         }
 
