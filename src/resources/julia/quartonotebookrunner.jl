@@ -9,7 +9,7 @@ atexit() do
   rm(transport_file; force=true)
 end
 
-server = QuartoNotebookRunner.serve()
+server = QuartoNotebookRunner.serve(; timeout = 300)
 port = server.port
 
 open(transport_file, "w") do io
