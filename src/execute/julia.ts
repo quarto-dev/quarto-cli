@@ -238,7 +238,7 @@ async function startOrReuseJuliaServer(
       options,
       `Transport file ${transportFile} doesn't exist`,
     );
-    info("Installing and starting julia server. This might take a while.");
+    info("Starting julia control server process. This might take a while...");
     await ensureQuartoNotebookRunnerEnvironment(options);
 
     // We need to spawn the julia server in its own process that can outlive quarto.
@@ -322,16 +322,11 @@ async function ensureQuartoNotebookRunnerEnvironment(
       juliaResourcePath("ensure_environment.jl"),
     ],
   });
-  const { success, stderr } = await command.output();
+  const proc = command.spawn();
+  const { success } = await proc.output();
   if (!success) {
-    error(
-      `Ensuring an updated julia server environment failed:\n${
-        stderr && new TextDecoder().decode(stderr)
-      }`,
-    );
-    return Promise.reject();
+    throw (new Error("Ensuring an updated julia server environment failed"));
   }
-  info("The julia server environment is correctly instantiated.");
   return Promise.resolve();
 }
 
@@ -367,6 +362,10 @@ async function getJuliaServerConnection(
 ): Promise<Deno.TcpConn> {
   const { reused } = await startOrReuseJuliaServer(options);
   const transportOptions = await pollTransportFile(options);
+
+  if (!reused) {
+    info("Julia server process started.");
+  }
 
   trace(
     options,
