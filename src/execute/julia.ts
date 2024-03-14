@@ -541,9 +541,7 @@ async function writeJuliaCommand(
       `Julia server returned error after receiving "${command}" command:\n` +
         err,
     );
-    if (!juliaError !== undefined) {
-      error(juliaError);
-    }
+    error(juliaError);
     throw new Error("Internal julia server error");
   }
 
