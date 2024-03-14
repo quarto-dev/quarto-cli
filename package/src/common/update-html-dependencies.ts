@@ -16,7 +16,7 @@ import { applyGitPatches, Repo, withRepo } from "../util/git.ts";
 import { download } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 import { visitLines } from "../../../src/core/file.ts";
-import { copyMinimal } from "../../../src/core/copy.ts";
+import { copyTo } from "../../../src/core/copy.ts";
 import { kSourceMappingRegexes } from "../../../src/config/constants.ts";
 import { unzip } from "../../../src/core/zip.ts";
 
@@ -309,10 +309,10 @@ export async function updateHtmlDependencies(config: Configuration) {
       ensureDirSync(revealJs);
 
       info("Copying css/");
-      copySync(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"));
+      copyTo(join(dir, `reveal.js-${version}`, "css"), join(revealJs, "css"), { overwrite: true, preserveTimestamps: true });
       info("Copying dist/");
       const dist = join(revealJs, "dist");
-      copySync(join(dir, `reveal.js-${version}`, "dist"), dist);
+      copyTo(join(dir, `reveal.js-${version}`, "dist"), dist, { overwrite: true, preserveTimestamps: true });
       // remove unneeded CSS files
       const theme = join(dist, "theme");
       for (const fileEntry of Deno.readDirSync(theme)) {
@@ -322,9 +322,10 @@ export async function updateHtmlDependencies(config: Configuration) {
         }
       }
       info("Copying plugin/");
-      copySync(
+      copyTo(
         join(dir, `reveal.js-${version}`, "plugin"),
-        join(revealJs, "plugin")
+        join(revealJs, "plugin"),
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
@@ -348,9 +349,10 @@ export async function updateHtmlDependencies(config: Configuration) {
     workingDir,
     (dir: string, version: string) => {
       ensureDirSync(dirname(revealJsChalkboard));
-      copyMinimal(
+      copyTo(
         join(dir, `reveal.js-plugins-${version}`, "chalkboard"),
-        revealJsChalkboard
+        revealJsChalkboard,
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
@@ -390,9 +392,10 @@ export async function updateHtmlDependencies(config: Configuration) {
       );
 
       // copy font-awesome to chalkboard
-      copyMinimal(
+      copyTo(
         join(dir, `reveal.js-menu-${version}`, "font-awesome"),
-        join(revealJsChalkboard, "font-awesome")
+        join(revealJsChalkboard, "font-awesome"),
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
@@ -417,9 +420,10 @@ export async function updateHtmlDependencies(config: Configuration) {
     workingDir,
     (dir: string, version: string) => {
       ensureDirSync(revealJsPdfExport);
-      Deno.copyFileSync(
+      copyTo(
         join(dir, `reveal-pdfexport-${version}`, "pdfexport.js"),
-        join(revealJsPdfExport, "pdfexport.js")
+        join(revealJsPdfExport, "pdfexport.js"),
+        { overwrite: true, preserveTimestamps: true }
       );
       return Promise.resolve();
     },
