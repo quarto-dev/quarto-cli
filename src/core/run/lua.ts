@@ -1,9 +1,8 @@
 /*
-* lua.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * lua.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { info } from "../../deno_ral/log.ts";
 
@@ -25,7 +24,7 @@ export const luaRunHandler: RunHandler = {
     options?: RunHandlerOptions,
   ) => {
     // lua run handlers don't support stdin
-    if (typeof (stdin) === "string") {
+    if (typeof stdin === "string") {
       throw new Error("Lua run handlers cannot be passed stdin");
     }
 
@@ -37,10 +36,6 @@ export const luaRunHandler: RunHandler = {
       "--to",
       "plain",
     ];
-    if (isWindows()) {
-      cmd.push("--lua-filter");
-      cmd.push(resourcePath("filters/init/init.lua"));
-    }
     cmd.push(
       "--lua-filter",
       script,

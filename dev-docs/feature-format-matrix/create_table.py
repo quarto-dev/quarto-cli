@@ -1,6 +1,6 @@
 import yaml
 import json
-import glob
+import pathlib
 
 class Trie:
 
@@ -103,8 +103,8 @@ def table_cell(entry, _feature, _format_name, format_config):
 
 def compute_trie():
     trie = Trie()
-    for entry in glob.glob("qmd-files/**/document.qmd", recursive=True):
-        feature = entry.split("/")[1:-1]
+    for entry in pathlib.Path(".").glob("qmd-files/**/document.qmd"):
+        feature = entry.parts[1:-1]
         front_matter = extract_metadata_from_file(entry)
         try:
             format = front_matter["format"]

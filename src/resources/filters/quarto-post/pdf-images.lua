@@ -101,7 +101,9 @@ function pdfImages()
             image.src = mediabag.resolved_url_cache[image.src]
             return image
           end 
-          local relativePath = image.src:match("https?://[%w%$%-%_%.%+%!%*%'%(%)%:%%]+/(.+)")
+          
+          local relativePath = image.src:match("https?://[%w%$%-%_%.%+%!%*%'%(%)%:%%]+/(.+)") or
+            image.src:match("data:image/.+;base64,(.+)")
           if not (relativePath or param("has-resource-path", false)) then
             return nil
           end

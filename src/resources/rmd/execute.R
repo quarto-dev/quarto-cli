@@ -577,6 +577,10 @@ is_pandoc_latex_output <- function(format) {
   is_pandoc_to_format(format, c("latex", "beamer", "pdf"))
 }
 
+is_pandoc_ipynb_output <- function(format) {
+  is_pandoc_to_format(format, c("ipynb"))
+}
+
 # check if pandoc$to is among markdown outputs
 is_pandoc_markdown_output <- function(format) {
   markdown_formats <- c(
@@ -593,9 +597,16 @@ is_pandoc_markdown_output <- function(format) {
   is_pandoc_to_format(format, markdown_formats)
 }
 
-# `prefer-html: true` can be set in markdown format that supports HTML outputs
+# should be equivalent of TS function: 
+# isHtmlCompatible() in src/config/format.ts
 is_html_prefered <- function(format) {
-  is_pandoc_markdown_output(format) && isTRUE(format$render$`prefer-html`)
+  # `prefer-html: true` can be set in markdown format that supports HTML outputs
+  (
+    is_pandoc_markdown_output(format) &&
+    isTRUE(format$render$`prefer-html`)
+  ) ||
+  # this could happen when using embed shortcode which convert to ipynb output format.
+  is_pandoc_ipynb_output(format)
 }
 
 is_dashboard_output <- function(format) {

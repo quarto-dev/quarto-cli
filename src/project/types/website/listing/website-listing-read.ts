@@ -778,7 +778,7 @@ async function readContents(
     });
     if (readFiles.length === 0) {
       const projRelativePath = relative(project.dir, source);
-      throw new Error(
+      warning(
         `The listing in '${projRelativePath}' using the following contents:\n- ${
           contentGlobs.join("\n- ")
         }\ndoesn't match any files or folders.`,

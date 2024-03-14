@@ -1,9 +1,8 @@
 /*
-* codetools.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * codetools.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { Document, Element } from "../../core/deno-dom.ts";
 import {
@@ -32,7 +31,7 @@ const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";
 const kViewSourceLinkId = "quarto-view-source";
 const kEmbeddedSourceClass = "quarto-embedded-source-code";
-const kEmbeddedSourceModalId = kEmbeddedSourceClass + "-modal";
+export const kEmbeddedSourceModalId = kEmbeddedSourceClass + "-modal";
 const kEmbeddedSourceModalLabelId = kEmbeddedSourceClass + "-modal-label";
 const kKeepSourceSentinel = "quarto-executable-code-5450563D";
 
@@ -56,7 +55,7 @@ export function resolveKeepSource(
   const codeTools = format.render?.[kCodeTools];
   if (
     codeTools === true ||
-    (typeof (codeTools) === "object" &&
+    (typeof codeTools === "object" &&
       (codeTools?.source === undefined || codeTools?.source === true))
   ) {
     format.render[kKeepSource] = true;
@@ -328,17 +327,17 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
   const kCodeCaption = format.language[kCodeToolsMenuCaption]!;
   const codeTools = format?.render[kCodeTools];
   const codeToolsResolved = {
-    source: typeof (codeTools) === "boolean"
+    source: typeof codeTools === "boolean"
       ? codeTools
       : codeTools?.source !== undefined
       ? codeTools?.source
       : true,
-    toggle: typeof (codeTools) === "boolean"
+    toggle: typeof codeTools === "boolean"
       ? codeTools
       : codeTools?.toggle !== undefined
       ? !!codeTools?.toggle
       : true,
-    caption: typeof (codeTools) === "boolean"
+    caption: typeof codeTools === "boolean"
       ? kCodeCaption
       : codeTools?.caption || kCodeCaption,
   };
