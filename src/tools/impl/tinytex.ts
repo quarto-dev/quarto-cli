@@ -329,7 +329,7 @@ async function afterInstall(context: InstallContext) {
 
     // Set the default repo to an https repo
     let restartRequired = false;
-    const defaultRepo = textLiveRepo();
+    const defaultRepo = await textLiveRepo();
     await context.withSpinner(
       {
         message: `Setting default repository`,
@@ -471,9 +471,24 @@ function exec(path: string, cmd: string[]) {
 
 const kTlMgrKey = "tlmgr";
 
-function textLiveRepo(): string {
-  const randomInt = Math.floor(Math.random() * kDefaultRepos.length);
-  return kDefaultRepos[randomInt];
+async function textLiveRepo() {
+  // We don't set the default to `ctan` because one caveat of mirror.ctan.org
+  // is that it resolves to many different hosts, and they are not perfectly synchronized;
+  // Recommendation is to update only daily (at most), and not more often, which we don't want.
+  // So:
+  // 1. Try to get the automatic CTAN mirror returned from mirror.ctan.org
+  // 2. If that fails, use one of the selected mirrors
+  let autoUrl;
+  try {
+    const url = "https://mirror.ctan.org/systems/texlive/tlnet";
+    const response = await fetch(url, { redirect: "follow" });
+    autoUrl = response.url;
+  } catch (_e) {}
+  if (!autoUrl) {
+    const randomInt = Math.floor(Math.random() * kDefaultRepos.length);
+    autoUrl = kDefaultRepos[randomInt];
+  }
+  return autoUrl;
 }
 
 function tinyTexPkgName(base?: string, ver?: string) {

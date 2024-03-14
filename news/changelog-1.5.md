@@ -126,3 +126,4 @@ All changes included in 1.5:
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
 - Upgrade Deno to 1.41.0
+- `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.
