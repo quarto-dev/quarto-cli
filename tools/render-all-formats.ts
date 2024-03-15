@@ -1,10 +1,17 @@
 #!/usr/bin/env -S deno run --unstable
 
-import { existsSync, ensureDir, move } from 'https://deno.land/std/fs/mod.ts';
-import { BufReader } from 'https://deno.land/std/io/bufio.ts';
-import { parse } from 'https://deno.land/std/encoding/yaml.ts';
-import { exec } from 'https://deno.land/x/exec/mod.ts';
-import { dirname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
+// import { existsSync, ensureDir, move } from 'fs/mod.ts';
+import fs from 'node:fs';
+
+// x import yaml from 'yaml/mod.ts';
+// x import 'node:yaml;
+
+// Relative import path "yaml/schema/failsafe.ts" not prefixed with / or ./ or ../
+// and not in import map from "file:///Users/gordon/src/quarto-cli/src/core/yaml.ts"
+// import readYamlFromMarkdownFile from "../src/core/yaml.ts";
+
+// import { dirname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
+import path from 'node:path';
 
 const formatKeep: Record<string, string> = {
   'pdf': 'tex',
@@ -37,7 +44,7 @@ function extractMetadataFromFile(file: string): Metadata {
         start = i;
       } else {
         end = i;
-        const metadata = parse(lines.slice(start + 1, end).join('\n'));
+        const metadata = yaml.parse(lines.slice(start + 1, end).join('\n'));
         return metadata;
       }
     }
@@ -74,10 +81,9 @@ if (import.meta.main) {
     }
 
     console.log(qmdFile);
-    const qmdFilePath = fromFileUrl(new URL(qmdFile, import.meta.url));
-    const qmdbase = qmdFilePath.slice(0, -4);
-    const qmdroot = qmdFilePath.split('/').pop();
+    const qmdbase = path.basename(qmdFile).slice(0, -4);
     const meta = extractMetadataFromFile(qmdFilePath);
+    //const meta = readYamlFromMarkdownFile(qmdFile);
 
     for (const [format, spec] of Object.entries(meta['format'])) {
       const outext = formatOutput[format];
@@ -85,10 +91,10 @@ if (import.meta.main) {
         console.log(`unsupported format ${format}, skipping`);
         continue;
       }
-      const outdir = join(outputRoot, qmdroot, format);
+      const outdir = path.join(outputRoot, qmdbase, format);
       console.log(`mkdir -p ${outdir}`);
-      if (!dryRun && !existsSync(outdir)) {
-        ensureDir(outdir);
+      if (!dryRun) {
+        fs.ensureDir(outdir);
       }
       const metadata: string[] = [];
       const keepext = formatKeep[format];
@@ -97,9 +103,8 @@ if (import.meta.main) {
         metadata.push('-M output-ext:pdf');
       }
       const qcmd = [
-        'quarto',
         'render',
-        qmdFilePath,
+        qmdFile,
         '-t',
         format,
         '-M',
@@ -108,9 +113,13 @@ if (import.meta.main) {
       ];
       console.log(qcmd.join(' '));
       if (!dryRun) {
-        const { code } = await exec(qcmd.join(' '));
-        if (code !== 0) {
-          Deno.exit(1);
+        const cmd = Deno.Command('quarto', {
+            args: qcmd
+        });
+        const output = cmd.outputSync();
+        if (!output.success) {
+            console.log(new TextDecoder().decode(output.stderr));
+            Deno.exit(1);
         }
       }
       const movefiles = [
@@ -122,12 +131,11 @@ if (import.meta.main) {
       }
       movefiles.push(`${qmdbase}_files`);
       for (const movefile of movefiles) {
-        const filename = movefile.split('/').pop();
-        const dest = join(outdir, filename);
+        const dest = path.join(outdir, movefile);
         console.log(`mv ${movefile} ${dest}`);
         if (!dryRun) {
           try {
-            await move(movefile, dest);
+            await fs.move(movefile, dest);
           } catch (error) {
             console.log('... not found');
           }
