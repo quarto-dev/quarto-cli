@@ -147,6 +147,7 @@ async function mdFromCodeCell(
   // determine the largest number of backticks in the cell
   const maxBackticks = Math.max(
     ...cell.source.map((line) => line.match(/^`+/g)?.[0].length || 0),
+    2,
   );
   const backticks = "`".repeat(maxBackticks + 1);
 
