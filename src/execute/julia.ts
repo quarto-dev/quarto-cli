@@ -241,64 +241,23 @@ async function startOrReuseJuliaServer(
     info("Starting julia control server process. This might take a while...");
     await ensureQuartoNotebookRunnerEnvironment(options);
 
-    // We need to spawn the julia server in its own process that can outlive quarto.
-    // Apparently, `run(detach(cmd))` in julia does not do that reliably on Windows,
-    // at least deno never seems to recognize that the spawning julia process has finished,
-    // presumably because it waits for the active child process to exit. This makes the
-    // tests on windows hang forever if we use the same launching mechanism as for Unix systems.
-    // So we utilize powershell instead which can start completely detached processes with
-    // the Start-Process commandlet.
-    if (Deno.build.os === "windows") {
-      const command = new Deno.Command(
-        "PowerShell",
-        {
-          args: [
-            "-Command",
-            "Start-Process",
-            options.julia_cmd,
-            "-ArgumentList",
-            // string array argument list, each element but the last must have a "," element after
-            "--startup-file=no",
-            ",",
-            `--project=${juliaRuntimeDir()}`,
-            ",",
-            resourcePath("julia/quartonotebookrunner.jl"),
-            ",",
-            transportFile,
-            // end of string array
-            "-WindowStyle",
-            "Hidden",
-          ],
-        },
-      );
-      trace(
-        options,
-        "Starting detached julia server through powershell, once transport file exists, server should be running.",
-      );
-      const result = command.outputSync();
-      if (!result.success) {
-        throw new Error(new TextDecoder().decode(result.stderr));
-      }
-    } else {
-      const command = new Deno.Command(options.julia_cmd, {
-        args: [
-          "--startup-file=no",
-          resourcePath("julia/start_quartonotebookrunner_detached.jl"),
-          options.julia_cmd,
-          juliaRuntimeDir(),
-          resourcePath("julia/quartonotebookrunner.jl"),
-          transportFile,
-        ],
-      });
-      trace(
-        options,
-        "Starting detached julia server through julia, once transport file exists, server should be running.",
-      );
-      const result = command.outputSync();
-      if (!result.success) {
-        throw new Error(new TextDecoder().decode(result.stderr));
-      }
-    }
+    const command = new Deno.Command(options.julia_cmd, {
+      args: [
+        "--startup-file=no",
+        resourcePath("julia/start_quartonotebookrunner_detached.jl"),
+        options.julia_cmd,
+        juliaRuntimeDir(),
+        resourcePath("julia/quartonotebookrunner.jl"),
+        transportFile,
+      ],
+    });
+    trace(
+      options,
+      "Starting detached julia server through julia, once transport file exists, server should be running.",
+    );
+    // unref seems to be needed to let deno exit in the tests after having spawned the julia process
+    // that creates the detached child process
+    command.spawn().unref();
   } else {
     trace(
       options,
