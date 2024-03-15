@@ -1,9 +1,10 @@
 #!/usr/bin/env -S deno run --unstable
 
-import { existsSync, mkdirSync, move } from 'https://deno.land/std/fs/mod.ts';
+import { existsSync, ensureDir, move } from 'https://deno.land/std/fs/mod.ts';
 import { BufReader } from 'https://deno.land/std/io/bufio.ts';
 import { parse } from 'https://deno.land/std/encoding/yaml.ts';
 import { exec } from 'https://deno.land/x/exec/mod.ts';
+import { dirname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 
 const formatKeep: Record<string, string> = {
   'pdf': 'tex',
@@ -73,9 +74,10 @@ if (import.meta.main) {
     }
 
     console.log(qmdFile);
-    const qmdbase = qmdFile.slice(0, -4);
-    const qmdroot = qmdbase.split('/').pop();
-    const meta = extractMetadataFromFile(qmdFile);
+    const qmdFilePath = fromFileUrl(new URL(qmdFile, import.meta.url));
+    const qmdbase = qmdFilePath.slice(0, -4);
+    const qmdroot = qmdFilePath.split('/').pop();
+    const meta = extractMetadataFromFile(qmdFilePath);
 
     for (const [format, spec] of Object.entries(meta['format'])) {
       const outext = formatOutput[format];
@@ -83,10 +85,10 @@ if (import.meta.main) {
         console.log(`unsupported format ${format}, skipping`);
         continue;
       }
-      const outdir = `${outputRoot}/${qmdroot}/${format}`;
+      const outdir = join(outputRoot, qmdroot, format);
       console.log(`mkdir -p ${outdir}`);
       if (!dryRun && !existsSync(outdir)) {
-        mkdirSync(outdir, { recursive: true });
+        ensureDir(outdir);
       }
       const metadata: string[] = [];
       const keepext = formatKeep[format];
@@ -97,7 +99,7 @@ if (import.meta.main) {
       const qcmd = [
         'quarto',
         'render',
-        qmdFile,
+        qmdFilePath,
         '-t',
         format,
         '-M',
@@ -121,7 +123,7 @@ if (import.meta.main) {
       movefiles.push(`${qmdbase}_files`);
       for (const movefile of movefiles) {
         const filename = movefile.split('/').pop();
-        const dest = `${outdir}/${filename}`;
+        const dest = join(outdir, filename);
         console.log(`mv ${movefile} ${dest}`);
         if (!dryRun) {
           try {
