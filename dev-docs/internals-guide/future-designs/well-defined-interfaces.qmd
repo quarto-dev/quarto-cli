@@ -1,0 +1,39 @@
+## Input syntax
+
+We currently don't have a well-defined input syntax.
+
+This is an ongoing source of friction:
+
+- Markdown is parsed slightly differently, and inconsistently, among knitr and Jupyter engines, as well as our typescript handlers like mermaid, dot and ojs code blocks
+- it causes confusion among our users about what is allowed syntax and what isn't
+- it causes confusion among ourselves about what's a regression and what isn't
+  - it makes it hard to change code
+  - it makes it hard to reduce test cases
+
+Ideally, all Quarto code that takes Markdown and produces Markdown should happen by shipping Markdown ASTs instead.
+
+The main technical reason we can't do this at the moment lies in the treatment of YAML metadata. Metadata is consumed by Pandoc
+in a fundamentally different way from the rest of the document, and is always destructive.
+
+At the same time, we already have some syntax extensions over Pandoc, Jupyter, and Knitr anyway:
+
+- Executable code blocks in the style of RMarkdown and Quarto are not supported in Pandoc 3, and so require special treatment
+- Shortcode syntax is Quarto-specific
+- execute code inlines are Quarto-specific
+
+Both of these are currently handled by LPEG parsers in Lua at the very beginning of our Pandoc filter chain. Instead, we
+could parse .qmd at the top of the file-handling code, and get rid of all the special cases
+
+### What this would unlock
+
+- much better error messages for users (fewer issues on GitHub, fewer feelbads)
+  - the kind of fine-grained tracking of YAML source code we do in our validators could be extended this way
+  - even block-level tracking of source would allow us to write error messages with line numbers throughout our whole code base.
+- Explicitly separating text syntax from internal representation would unlock any number of other concrete syntaxes. 
+  Any of those could be supported by Quarto directly, but anyone could declare an extension with a parser into Pandoc AST and we would be done.
+
+### Future-looking
+
+jgm's [djot](https://github.com/jgm/djot/blob/master/doc/syntax.html) seems perfect for our use cases. .qdj files, anyone?
+
+We already support .ipynb and .py in Jupyter engines, so I think the horse has left the barn in any case.

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../../deno_ral/path.ts";
 import { stringify } from "yaml/mod.ts";
 
 import * as ld from "../../core/lodash.ts";

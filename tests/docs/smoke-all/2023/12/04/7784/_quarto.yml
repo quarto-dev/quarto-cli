@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "Quarto-typst"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+
+bibliography: refs.bib

@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
-import { error, info } from "log/mod.ts";
+import { error, info } from "../../../deno_ral/log.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
 

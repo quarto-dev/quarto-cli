@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { error, info, warning } from "log/mod.ts";
+import { error, info, warning } from "../deno_ral/log.ts";
 import { existsSync } from "fs/exists.ts";
-import { basename, extname } from "path/mod.ts";
+import { basename, extname } from "../deno_ral/path.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -45,6 +45,7 @@ import {
 import { lineColToIndex } from "../core/lib/text.ts";
 import { executeInlineCodeHandler } from "../core/execute-inline.ts";
 import { globalTempContext } from "../core/temp.ts";
+import { ProjectContext } from "../project/types.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -72,18 +73,25 @@ export const knitrEngine: ExecutionEngine = {
     return language.toLowerCase() === "r";
   },
 
+  async markdownForFile(file: string): Promise<MappedString> {
+    const isSpin = isKnitrSpinScript(file);
+    if (isSpin) {
+      return asMappedString(await markdownFromKnitrSpinScript(file));
+    }
+    return mappedStringFromFile(file);
+  },
+
   target: async (
     file: string,
-    _quiet?: boolean,
-    markdown?: MappedString,
+    _quiet: boolean | undefined,
+    markdown: MappedString | undefined,
+    project: ProjectContext,
   ): Promise<ExecutionTarget | undefined> => {
-    if (markdown === undefined) {
-      if (isKnitrSpinScript(file)) {
-        markdown = asMappedString(await markdownFromKnitrSpinScript(file));
-      } else {
-        markdown = mappedStringFromFile(file);
-      }
-    }
+    markdown = await project.resolveFullMarkdownForFile(
+      knitrEngine,
+      file,
+      markdown,
+    );
     let metadata;
     try {
       metadata = readYamlFromMarkdown(markdown.value);
@@ -331,21 +339,30 @@ async function printCallRDiagnostics() {
     } else {
       if (
         !caps?.packages.rmarkdown || !caps?.packages.knitr ||
-        !caps?.packages.knitrVersOk
+        !caps?.packages.knitrVersOk || !caps?.packages.rmarkdownVersOk
       ) {
-        info("");
         info("R installation:");
         info(knitrCapabilitiesMessage(caps, "  "));
-        info("");
-        info(
-          knitrInstallationMessage(
-            "",
-            caps.packages.knitr && !caps?.packages.knitrVersOk
-              ? "knitr"
-              : "rmarkdown",
-            !!caps.packages.knitr && !caps.packages.knitrVersOk,
-          ),
-        );
+        if (!!!caps?.packages.knitr || !caps?.packages.knitrVersOk) {
+          info("");
+          info(
+            knitrInstallationMessage(
+              "",
+              "knitr",
+              !!caps.packages.knitr && !caps.packages.knitrVersOk,
+            ),
+          );
+        }
+        if (!!!caps?.packages.rmarkdown || !caps?.packages.rmarkdownVersOk) {
+          info("");
+          info(
+            knitrInstallationMessage(
+              "",
+              "rmarkdown",
+              !!caps?.packages.rmarkdown && !caps?.packages.rmarkdownVersOk,
+            ),
+          );
+        }
         info("");
       }
     }

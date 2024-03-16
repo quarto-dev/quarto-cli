@@ -1,4 +1,4 @@
-import { isAbsolute, join } from "path/mod.ts";
+import { isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { RenderResult, RenderResultFile } from "../../command/render/types.ts";
 import { md5Hash } from "../../core/hash.ts";

@@ -1,0 +1,33 @@
+---
+title: "Quarto Playground"
+format: html
+lightbox: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - 
+          - "main > p > a.lightbox"
+          - "div.quarto-figure-center"
+---
+
+![](https://placehold.co/600x400.png){
+  fig-alt="A placeholder image."
+  fig-align="right"
+  width=20%
+}
+
+![A placeholder image](https://placehold.co/600x400.png){
+  fig-alt="A placeholder image."
+  fig-align="right"
+  width=20%
+}
+
+![A placeholder image](https://placehold.co/600x400.png){
+  fig-alt="A placeholder image."
+  fig-align="right"
+  width=20%
+  #fig-placeholder
+}
+

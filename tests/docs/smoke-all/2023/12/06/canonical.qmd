@@ -1,0 +1,13 @@
+---
+title: Test canonical url
+format:
+  html:
+    canonical-url: "https://www.charlesteague.com"
+_quarto:
+   tests: 
+     html:
+       ensureHtmlElements:
+         - ["link[rel='canonical'][href='https://www.charlesteague.com']"]
+---
+
+## Hello World

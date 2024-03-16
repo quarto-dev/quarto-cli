@@ -14,6 +14,7 @@
   tags:
     contexts: [document-tables]
     engine: [knitr, jupyter]
+    formats: [$pdf-all, $html-all]
   schema:
     anyOf:
       - boolean

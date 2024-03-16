@@ -62,38 +62,40 @@
 }
 
 #show figure: it => {
-  let kind_match = it.kind.matches(regex("^quarto-callout-(.*)")).at(0, default: none)
-  if kind_match != none {
-    let kind = kind_match.captures.at(0, default: "other")
-    kind = upper(kind.first()) + kind.slice(1)
-    // now we pull apart the callout and reassemble it with the crossref name and counter
-
-    // when we cleanup pandoc's emitted code to avoid spaces this will have to change
-    let old_callout = it.body.children.at(1).body.children.at(1)
-    let old_title_block = old_callout.body.children.at(0)
-    let old_title = old_title_block.body.body.children.at(2)
-
-    // TODO use custom separator if available
-    let new_title = if empty(old_title) {
-      [#kind #it.counter.display()]
-    } else {
-      [#kind #it.counter.display(): #old_title]
-    }
-
-    let new_title_block = block_with_new_content(
-      old_title_block, 
-      block_with_new_content(
-        old_title_block.body, 
-        old_title_block.body.body.children.at(0) +
-        old_title_block.body.body.children.at(1) +
-        new_title))
-
-    block_with_new_content(old_callout,
-      new_title_block +
-      old_callout.body.children.at(1))
-  } else {
-    it
+  if type(it.kind) != "string" {
+    return it
   }
+  let kind_match = it.kind.matches(regex("^quarto-callout-(.*)")).at(0, default: none)
+  if kind_match == none {
+    return it
+  }
+  let kind = kind_match.captures.at(0, default: "other")
+  kind = upper(kind.first()) + kind.slice(1)
+  // now we pull apart the callout and reassemble it with the crossref name and counter
+
+  // when we cleanup pandoc's emitted code to avoid spaces this will have to change
+  let old_callout = it.body.children.at(1).body.children.at(1)
+  let old_title_block = old_callout.body.children.at(0)
+  let old_title = old_title_block.body.body.children.at(2)
+
+  // TODO use custom separator if available
+  let new_title = if empty(old_title) {
+    [#kind #it.counter.display()]
+  } else {
+    [#kind #it.counter.display(): #old_title]
+  }
+
+  let new_title_block = block_with_new_content(
+    old_title_block, 
+    block_with_new_content(
+      old_title_block.body, 
+      old_title_block.body.body.children.at(0) +
+      old_title_block.body.body.children.at(1) +
+      new_title))
+
+  block_with_new_content(old_callout,
+    new_title_block +
+    old_callout.body.children.at(1))
 }
 
 #show ref: it => locate(loc => {

@@ -5,7 +5,13 @@
  */
 
 import { existsSync } from "fs/exists.ts";
-import { dirname, isAbsolute, join, relative, SEP_PATTERN } from "path/mod.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  SEP_PATTERN,
+} from "../deno_ral/path.ts";
 import { kHtmlMathMethod } from "../config/constants.ts";
 import { Format, Metadata } from "../config/types.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -14,6 +20,7 @@ import { getFrontMatterSchema } from "../core/lib/yaml-schema/front-matter.ts";
 import { normalizePath, pathWithForwardSlashes } from "../core/path.ts";
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import {
+  FileInformation,
   kProjectOutputDir,
   kProjectType,
   ProjectConfig,
@@ -24,6 +31,12 @@ import { ProjectType } from "./types/types.ts";
 import { kWebsite } from "./types/website/website-constants.ts";
 import { existsSync1 } from "../core/file.ts";
 import { kManuscriptType } from "./types/manuscript/manuscript-types.ts";
+import { expandIncludes } from "../core/handlers/base.ts";
+import { MappedString, mappedStringFromFile } from "../core/mapped-text.ts";
+import { createTempContext } from "../core/temp.ts";
+import { RenderContext, RenderFlags } from "../command/render/types.ts";
+import { LanguageCellHandlerOptions } from "../core/handlers/types.ts";
+import { ExecutionEngine } from "../execute/types.ts";
 
 export function projectExcludeDirs(context: ProjectContext): string[] {
   const outputDir = projectOutputDir(context);
@@ -59,10 +72,10 @@ export function projectOutputDir(context: ProjectContext): string {
   } else {
     outputDir = context.dir;
   }
-  if (existsSync(outputDir)) {
-    return normalizePath(outputDir);
+  if (existsSync(outputDir!)) {
+    return normalizePath(outputDir!);
   } else {
-    return outputDir;
+    return outputDir!;
   }
 }
 
@@ -293,7 +306,7 @@ export async function directoryMetadataForInputFile(
       // There is a metadata file, read it and merge it
       // Note that we need to convert paths that are relative
       // to the metadata file to be relative to input
-      const errMsg = "Directory metadata validation failed.";
+      const errMsg = "Directory metadata validation failed for " + file + ".";
       const yaml = ((await readAndValidateYamlFromFile(
         file,
         frontMatterSchema,
@@ -319,3 +332,60 @@ export async function directoryMetadataForInputFile(
 
   return config;
 }
+
+export async function projectResolveFullMarkdownForFile(
+  project: ProjectContext,
+  engine: ExecutionEngine | undefined,
+  file: string,
+  markdown?: MappedString,
+  force?: boolean,
+): Promise<MappedString> {
+  const cache = ensureFileInformationCache(project, file);
+  if (!force && cache.fullMarkdown) {
+    return cache.fullMarkdown;
+  }
+
+  const temp = createTempContext();
+
+  if (!markdown) {
+    if (engine) {
+      markdown = await engine.markdownForFile(file);
+    } else {
+      // Last resort, just read the file
+      markdown = mappedStringFromFile(file);
+    }
+  }
+
+  const options: LanguageCellHandlerOptions = {
+    name: "",
+    temp,
+    stage: "pre-engine",
+    format: undefined as unknown as Format,
+    markdown,
+    context: {
+      project,
+      target: {
+        source: file,
+      },
+    } as unknown as RenderContext,
+    flags: {} as RenderFlags,
+  };
+  try {
+    const result = await expandIncludes(markdown, options, file);
+    cache.fullMarkdown = result;
+    cache.includeMap = options.state?.include as Record<string, string>;
+    return result;
+  } finally {
+    temp.cleanup();
+  }
+}
+
+const ensureFileInformationCache = (project: ProjectContext, file: string) => {
+  if (!project.fileInformationCache) {
+    project.fileInformationCache = new Map();
+  }
+  if (!project.fileInformationCache.has(file)) {
+    project.fileInformationCache.set(file, {} as FileInformation);
+  }
+  return project.fileInformationCache.get(file)!;
+};

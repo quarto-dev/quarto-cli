@@ -12,6 +12,8 @@
 export const kPandocExtensions = [
   "+abbreviations",
   "-abbreviations",
+  "+alerts",
+  "-alerts",
   "+all_symbols_escapable",
   "-all_symbols_escapable",
   "+amuse",

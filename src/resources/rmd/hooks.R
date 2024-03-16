@@ -672,6 +672,7 @@ knitr_plot_hook <- function(format) {
       
       # result = "asis" specific
       if (identical(options[["results"]], "asis")) return(md)
+      
       # enclose in output div 
       output_div(md, NULL, classes)
     }
@@ -954,7 +955,9 @@ engine_comment_chars <- function(engine) {
     asy = "//",
     haskell = "--",
     dot = "//",
-    apl = "\u235D"
+    apl = "\u235D",
+    ocaml = c("(*", "*)"),
+    rust = "//"
   )
   comment_chars[[engine]] %||% "#"
 }

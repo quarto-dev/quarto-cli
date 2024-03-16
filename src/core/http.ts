@@ -5,8 +5,8 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, extname, join, normalize, posix } from "path/mod.ts";
-import { error, info } from "log/mod.ts";
+import { basename, extname, join, normalize, posix } from "../deno_ral/path.ts";
+import { error, info } from "../deno_ral/log.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -169,7 +169,7 @@ export function httpContentResponse(
   content: Uint8Array | string,
   contentType?: string,
 ): Response {
-  if (typeof (content) === "string") {
+  if (typeof content === "string") {
     content = new TextEncoder().encode(content);
   }
   // content headers

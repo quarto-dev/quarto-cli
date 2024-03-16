@@ -1,0 +1,7 @@
+---
+title: A Listing
+listing:
+  contents: sidebar
+---
+
+## A Listing Which Should Be Populated

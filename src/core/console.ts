@@ -5,9 +5,9 @@
  */
 
 import { ansi } from "cliffy/ansi/mod.ts";
-import { writeAllSync } from "streams/write_all.ts";
-import { readAllSync } from "streams/read_all.ts";
-import { info } from "log/mod.ts";
+import { writeAllSync } from "io/write_all.ts";
+import { readAllSync } from "io/read_all.ts";
+import { info } from "../deno_ral/log.ts";
 import { runningInCI } from "./ci-info.ts";
 import { SpinnerOptions } from "./console-types.ts";
 
@@ -55,7 +55,7 @@ export function progressBar(total: number, prefixMessage?: string): {
         clearLine();
       }
 
-      if (typeof (finalMsg) === "string") {
+      if (typeof finalMsg === "string") {
         if (isCi) {
           info(finalMsg);
         } else {
@@ -94,7 +94,7 @@ export function spinner(
   let spin = 0;
 
   // status fn
-  const statusFn = typeof (status) === "string"
+  const statusFn = typeof status === "string"
     ? () => {
       return status;
     }
@@ -129,7 +129,7 @@ export function spinner(
 
     // Clear the line and display an optional final message
     clearLine();
-    if (typeof (finalMsg) === "string") {
+    if (typeof finalMsg === "string") {
       completeMessage(finalMsg);
     } else {
       if (finalMsg !== false) {

@@ -1,0 +1,25 @@
+---
+title: "testing table"
+format: 
+   html:
+     keep-md: true
+   pdf:
+     keep-tex: true
+     number-sections: true
+_quarto:
+  tests:
+    html: null
+    pdf: null
+    typst: null
+    docusaurus-md: null
+---
+
+## Don't trip on links format 
+
+[content](https://quarto.org)
+
+<https://quarto.org>
+
+[ ](https://docusaurus.io/)
+
+[content](https://quarto.org){.class target="_blank"}

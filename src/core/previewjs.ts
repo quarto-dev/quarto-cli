@@ -4,11 +4,19 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 
-export function buildQuartoPreviewJs(srcDir: string, denoDir?: string) {
+export function buildQuartoPreviewJs(
+  srcDir: string,
+  denoDir?: string,
+  force?: boolean,
+) {
+  const args = ["run", "-A", "build.ts"];
+  if (force) {
+    args.push("--force");
+  }
   const buildCmd = new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", "build.ts"],
+    args: args,
     cwd: quartoPreviewJsDir(srcDir),
     env: denoDir ? { DENO_DIR: denoDir } : undefined,
     stderr: "inherit",

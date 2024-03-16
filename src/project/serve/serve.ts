@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "log/mod.ts";
+import { info, warning } from "../../deno_ral/log.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "../../deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -21,7 +21,7 @@ import {
   isPdfContent,
   isTextContent,
 } from "../../core/mime.ts";
-import { isModifiedAfter } from "../../core/path.ts";
+import { dirAndStem, isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 
 import {
@@ -82,7 +82,11 @@ import { htmlResourceResolverPostprocessor } from "../../project/types/website/w
 import { inputFilesDir } from "../../core/render.ts";
 import { kResources, kTargetFormat } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../../command/render/resources.ts";
-import { RenderFlags, RenderResult } from "../../command/render/types.ts";
+import {
+  RenderFlags,
+  RenderOptions,
+  RenderResult,
+} from "../../command/render/types.ts";
 import {
   kPdfJsInitialPath,
   pdfJsBaseDir,
@@ -124,20 +128,73 @@ export const kRenderDefault = "default";
 
 export async function serveProject(
   target: string | ProjectContext,
-  flags: RenderFlags,
+  renderOptions: RenderOptions,
   pandocArgs: string[],
   options: ServeOptions,
   noServe: boolean,
 ) {
   let project: ProjectContext | undefined;
-  const nbContext = notebookContext();
+  let flags = renderOptions.flags;
+  const nbContext = renderOptions.services.notebook;
   if (typeof target === "string") {
     if (target === ".") {
       target = Deno.cwd();
     }
-    project = await projectContext(target, nbContext, flags);
+    project = await projectContext(
+      target,
+      nbContext,
+      renderOptions,
+    );
     if (!project || !project?.config) {
       throw new Error(`${target} is not a project`);
+    }
+
+    const isMdFormat = (
+      mdFormat: string,
+      format?: string | Record<string, unknown> | unknown,
+    ) => {
+      if (!format) {
+        return false;
+      }
+
+      if (typeof format === "string") {
+        return format === mdFormat;
+      } else if (typeof format === "object") {
+        const formats = Object.keys(format);
+        if (formats.length > 0) {
+          const firstFormat = Object.keys(format)[0];
+          return firstFormat === mdFormat;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    };
+
+    // Default project types can't be served
+    const projType = projectType(project?.config?.project?.[kProjectType]);
+    if (
+      projType.type === "default" &&
+      !isMdFormat("docusaurus-md", project?.config?.format) &&
+      !isMdFormat("hugo-md", project?.config?.format)
+    ) {
+      const hasIndex = project.files.input.some((file) => {
+        let relPath = file;
+        if (project) {
+          relPath = relative(project.dir, file);
+        }
+        const [dir, stem] = dirAndStem(relPath);
+        return dir === "." && stem === "index";
+      });
+
+      if (!hasIndex && options.browser !== false) {
+        throw new Error(
+          `The project '${
+            project.config.project.title || ""
+          }' is a default type project which doesn't support project wide previewing unless there is an 'index' file present.\n\nPlease preview an individual file within this project instead.`,
+        );
+      }
     }
   } else {
     project = target;
@@ -256,7 +313,7 @@ export async function serveProject(
     project,
     extensionDirs,
     resourceFiles,
-    flags,
+    { ...renderOptions, flags },
     pandocArgs,
     options,
     !pdfOutput, // we don't render on reload for pdf output
@@ -768,18 +825,7 @@ function previewControlChannelRequestHandler(
                 watcher.project(),
               );
 
-              const projType = projectType(
-                project.config?.project?.[kProjectType],
-              );
-
-              if (projType.filterOutputFile) {
-                info(
-                  "Output created: " + projType.filterOutputFile(finalOutput) +
-                    "\n",
-                );
-              } else {
-                info("Output created: " + finalOutput + "\n");
-              }
+              info("Output created: " + finalOutput + "\n");
 
               // notify user we are watching for reload
               printWatchingForChangesMessage();
@@ -919,7 +965,7 @@ async function serveFiles(
 
         // partition markdown and read globs
         const partitioned = await partitionedMarkdownForInput(
-          project.dir,
+          project,
           projRelative,
         );
         const globs: string[] = [];

@@ -5,7 +5,7 @@
  */
 
 import { make, simple } from "acorn/walk";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { InternalError } from "../../core/lib/error.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes

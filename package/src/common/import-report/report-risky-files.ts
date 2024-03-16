@@ -1,4 +1,4 @@
-import { resolve, toFileUrl } from "https://deno.land/std/path/mod.ts";
+import { resolve, toFileUrl } from "../../../../src/deno_ral/path.ts";
 import {
   DependencyGraph,
   Edge,

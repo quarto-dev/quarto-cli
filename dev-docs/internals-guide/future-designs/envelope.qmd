@@ -1,0 +1,7 @@
+We should turn the envelope into custom AST nodes:
+
+- Navbar, Sidebar, Footer, etc should be injected in the document and become custom AST nodes that are parsed and processed
+  appropriately.
+
+Long term, we should be thinking about dropping the EJS templates we have.
+

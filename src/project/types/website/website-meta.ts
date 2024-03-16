@@ -5,7 +5,7 @@
  */
 
 import { Document, Element } from "../../../core/deno-dom.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../../deno_ral/path.ts";
 import {
   kAbstract,
   kDescription,
@@ -179,7 +179,7 @@ export function metadataHtmlPostProcessor(
       }
 
       // find a preview image if one is not provided
-      if (metadata[kImage] === undefined) {
+      if (metadata[kImage] === undefined && format.metadata[kImage] !== false) {
         metadata[kImage] = findPreviewImg(doc, true) ||
           websiteImage(project.config);
       }
@@ -192,7 +192,14 @@ export function metadataHtmlPostProcessor(
       // Convert image to absolute href and add height and width
       const imagePath = resolveImageMetadata(source, project, format, metadata);
       if (imagePath) {
-        resources.push(imagePath);
+        if (imagePath.startsWith("/")) {
+          // This is a project relative path
+          const absPath = join(project.dir, imagePath);
+          resources.push(relative(dirname(source), absPath));
+        } else {
+          // This is an input relative path
+          resources.push(imagePath);
+        }
       }
 
       // Allow the provider to resolve any defaults
@@ -244,11 +251,12 @@ function opengraphMetadata(
   }
 
   // Read open graph data in
-  if (openGraph && typeof (openGraph) === "object") {
+  if (openGraph && typeof openGraph === "object") {
     [
       kTitle,
       kDescription,
       kImage,
+      kImageAlt,
       kImageHeight,
       kImageWidth,
       kLocale,
@@ -267,8 +275,16 @@ function twitterMetadata(format: Format) {
 
   // populate defaults
   const twitterData = mergedSiteAndDocumentData(kTwitterCard, format);
-  if (twitterData && typeof (twitterData) === "object") {
-    [kTitle, kDescription, kImage, kCreator, kTwitterSite, kCardStyle].forEach(
+  if (twitterData && typeof twitterData === "object") {
+    [
+      kTitle,
+      kDescription,
+      kImage,
+      kImageAlt,
+      kCreator,
+      kTwitterSite,
+      kCardStyle,
+    ].forEach(
       (key) => {
         if (twitterData[key] !== undefined) {
           metadata[key] = twitterData[key];
@@ -285,7 +301,9 @@ function pageMetadata(
 ): Record<string, unknown> {
   const pageTitle = computePageTitle(format, extras) as string;
   const pageDescription = format.metadata[kDescription] as string;
-  const pageImage = format.metadata[kImage] as string;
+  const pageImage = format.metadata[kImage]
+    ? format.metadata[kImage] as string
+    : undefined;
 
   return {
     [kTitle]: pageTitle,
@@ -340,13 +358,13 @@ function mergedSiteAndDocumentData(
     ? format.metadata[key]
     : false;
 
-  if (typeof (siteMetadata) === "object" && format.metadata[kImage]) {
+  if (typeof siteMetadata === "object" && format.metadata[kImage]) {
     const siteMeta = siteMetadata as Metadata;
     siteMeta[kImage] = format.metadata[kImage];
   }
   if (
-    typeof (siteMetadata) === "object" &&
-    typeof (docMetadata) === "object"
+    typeof siteMetadata === "object" &&
+    typeof docMetadata === "object"
   ) {
     return mergeConfigs(
       siteMetadata,
@@ -414,10 +432,12 @@ const kOgTitle = "quarto-ogcardtitle";
 const kOgDesc = "quarto-ogcardddesc";
 const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
+  const resolvedTitle = computePageTitle(format);
+
   const titleMetaHandler = {
     getUnrendered() {
       const inlines: Record<string, string> = {};
-      const resolvedTitle = computePageTitle(format);
+
       if (resolvedTitle !== undefined) {
         inlines[kMetaTitleId] = resolvedTitle;
       }
@@ -437,7 +457,7 @@ function metaMarkdownPipeline(format: Format, extras: FormatExtras) {
         const el = doc.querySelector(
           `head title`,
         );
-        if (el) {
+        if (el && el.innerText === resolvedTitle) {
           if (format.pandoc[kNumberSections] === false) {
             // Remove chapter numbers if not numbered
             const numberEl = renderedEl.querySelector("span.chapter-number");

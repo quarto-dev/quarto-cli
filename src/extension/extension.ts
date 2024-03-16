@@ -6,7 +6,7 @@
 
 import { existsSync, walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
 import {
@@ -14,9 +14,15 @@ import {
   ProjectConfig,
   ProjectContext,
 } from "../project/types.ts";
-import { isSubdir } from "fs/_util.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
 
-import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
+import {
+  dirname,
+  isAbsolute,
+  join,
+  normalize,
+  relative,
+} from "../deno_ral/path.ts";
 import { Metadata, QuartoFilter } from "../config/types.ts";
 import { kSkipHidden, normalizePath, resolvePathGlobs } from "../core/path.ts";
 import { toInputRelativePaths } from "../project/project-shared.ts";
@@ -59,6 +65,7 @@ import {
 import { resourcePath } from "../core/resources.ts";
 import { warnOnce } from "../core/log.ts";
 import { existsSync1 } from "../core/file.ts";
+import { kFormatResources } from "../config/constants.ts";
 
 // This is where we maintain a list of extensions that have been promoted
 // to 'built-in' status. If we see these extensions, we will filter them
@@ -139,7 +146,10 @@ export function createExtensionContext(): ExtensionContext {
 // _extensions/confluence/logo.png
 // will be copied and resolved to:
 // site_lib/quarto-contrib/quarto-project/confluence/logo.png
-export function projectExtensionPathResolver(libDir: string) {
+export function projectExtensionPathResolver(
+  libDir: string,
+  projectDir: string,
+) {
   return (href: string, projectOffset: string) => {
     const projectRelativeHref = relative(projectOffset, href);
 
@@ -149,7 +159,11 @@ export function projectExtensionPathResolver(libDir: string) {
         `${libDir}/quarto-contrib/quarto-project/`,
       );
 
-      copyResourceFile(".", projectRelativeHref, projectTargetHref);
+      copyResourceFile(
+        projectDir,
+        join(projectDir, projectRelativeHref),
+        join(projectDir, projectTargetHref),
+      );
       return join(projectOffset, projectTargetHref);
     }
 
@@ -694,6 +708,20 @@ async function readExtension(
 
     const formatMeta = formats[key] as Metadata;
 
+    if (formatMeta[kFormatResources]) {
+      // Resolve any globs in format resources
+      const resolved = resolvePathGlobs(
+        extensionDir,
+        formatMeta[kFormatResources] as string[],
+        [],
+      );
+      if (resolved.include.length > 0) {
+        formatMeta[kFormatResources] = resolved.include.map((include) => {
+          return relative(extensionDir, include);
+        });
+      }
+    }
+
     // If this is a custom writer, set the writer for the format
     // using the full path to the lua file
     if (key.endsWith(".lua")) {
@@ -912,6 +940,12 @@ function resolveFilter(
   filter: QuartoFilter,
 ) {
   if (typeof filter === "string") {
+    // First check for the sentinel quarto filter, and allow that through
+    // if it is present
+    if (filter === "quarto") {
+      return filter;
+    }
+
     // First attempt to load this shortcode from an embedded extension
     const extensionId = toExtensionId(filter);
     const extensions = findExtensions(

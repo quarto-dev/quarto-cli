@@ -13,7 +13,7 @@ import {
 import { Format } from "../../config/types.ts";
 import { RenderFlags } from "./types.ts";
 
-import { extname } from "path/mod.ts";
+import { extname } from "../../deno_ral/path.ts";
 import { logProgress } from "../../core/log.ts";
 
 export function isSelfContained(flags: RenderFlags, format: Format) {

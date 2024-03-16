@@ -34,9 +34,19 @@ runs:
     - name: Basic dev mode sanity check
       shell: pwsh
       run: |
-        If ( "$(quarto --version)" -ne "99.9.9") { Exit 1 }
-        If ( $(quarto --paths | Select-String -Pattern "package[/\\]+dist[/\\]+share") -ne $null ) { Exit 1 }
-        If ( "$(git status --porcelain)" -ne "" ) { Exit 1 }
+        If ( "$(quarto --version)" -ne "99.9.9") { 
+          echo "Unexpected version detected: $(quarto --version)"
+          Exit 1 
+        }
+        If ( $(quarto --paths | Select-String -Pattern "package[/\\]+dist[/\\]+share") -ne $null ) { 
+          echo "Unexpected package/dist/share path detected: $(quarto --paths)"
+          Exit 1 
+        }
+        If ( "$(git status --porcelain)" -ne "" ) {
+          echo "Uncommitted changes detected:"
+          git status --porcelain
+          Exit 1 
+        }
 
     - name: Quarto Check
       if:  runner.debug == '1'

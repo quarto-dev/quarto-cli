@@ -1,7 +1,7 @@
 import { Format } from "../../config/types.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { sassLayer } from "../../core/sass.ts";
 
 const kStylePandoc = "pandoc";

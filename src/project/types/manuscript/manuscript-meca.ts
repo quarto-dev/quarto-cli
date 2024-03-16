@@ -14,9 +14,14 @@ import { contentType } from "../../../core/mime.ts";
 import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
-import { globToRegExp } from "https://deno.land/std@0.204.0/path/glob.ts";
-
-import { dirname, isAbsolute, join, relative, SEP } from "path/mod.ts";
+import {
+  dirname,
+  globToRegExp,
+  isAbsolute,
+  join,
+  relative,
+  SEP,
+} from "../../../deno_ral/path.ts";
 import { copySync, ensureDirSync, moveSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
@@ -35,7 +40,7 @@ import * as ld from "../../../core/lodash.ts";
 import { projectType } from "../project-types.ts";
 import { engineIgnoreDirs } from "../../../execute/engine.ts";
 import { lsFiles } from "../../../core/git.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../deno_ral/log.ts";
 import {
   isDevContainerFile,
   isReesEnvronmentFile,

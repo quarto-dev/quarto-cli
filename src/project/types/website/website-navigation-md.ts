@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { dirname, extname, isAbsolute, join } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join } from "../../../deno_ral/path.ts";
 import { Document, Element } from "../../../core/deno-dom.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
@@ -21,13 +21,13 @@ import {
   BodyDecorators,
   flattenItems,
   Navigation,
+  NavigationAnnouncement,
   NavigationPagination,
   PageMargin,
 } from "./website-shared.ts";
 import { removeChapterNumber } from "./website-utils.ts";
 import { MarkdownPipelineHandler } from "../../../core/markdown-pipeline.ts";
 import { safeExistsSync } from "../../../core/path.ts";
-import { md5Hash } from "../../../core/hash.ts";
 
 const kSidebarTitleId = "quarto-int-sidebar-title";
 const kNavbarTitleId = "quarto-int-navbar-title";
@@ -47,6 +47,7 @@ export interface NavigationPipelineContext {
   bodyDecorators?: BodyDecorators;
   breadCrumbs?: SidebarItem[];
   pageNavigation: NavigationPagination;
+  announcement?: NavigationAnnouncement;
 }
 
 export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
@@ -62,6 +63,7 @@ export function navigationMarkdownHandlers(context: NavigationPipelineContext) {
     marginHeaderFooterHandler(context),
     bodyHeaderFooterHandler(context),
     breadCrumbHandler(context),
+    announcementHandler(context),
   ];
 }
 
@@ -195,10 +197,6 @@ const prevPageTitleHandler = (context: NavigationPipelineContext) => {
   };
 };
 
-const safeKey = (key: string) => {
-  return md5Hash(key);
-};
-
 const breadCrumbHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
@@ -206,7 +204,7 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
         const markdown: Record<string, string> = {};
         for (const item of context.breadCrumbs) {
           if (item.text) {
-            markdown[`${kBreadcrumbPrefix}-${safeKey(item.text)}`] = item.text;
+            markdown[`${kBreadcrumbPrefix}-${textKey(item.text)}`] = item.text;
           }
         }
         return { inlines: markdown };
@@ -214,12 +212,14 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
     },
     processRendered(rendered: Record<string, Element>, doc: Document) {
       const breadCrumbs = doc.querySelectorAll(
-        ".quarto-page-breadcrumbs .breadcrumb-item > a",
+        ".quarto-page-breadcrumbs .breadcrumb-item",
       );
       for (const breadCrumb of breadCrumbs) {
-        const breadCrumbEl = breadCrumb as Element;
-        const key = breadCrumbEl.innerText;
-        const renderedEl = rendered[`${kBreadcrumbPrefix}-${safeKey(key)}`];
+        const linkEl = (breadCrumb as Element).querySelector("a");
+
+        const breadCrumbEl = linkEl !== null ? linkEl : breadCrumb as Element;
+        const key = breadCrumbEl.innerHTML;
+        const renderedEl = rendered[`${kBreadcrumbPrefix}-${textKey(key)}`];
         if (renderedEl) {
           breadCrumbEl.innerHTML = renderedEl.innerHTML;
         }
@@ -228,6 +228,33 @@ const breadCrumbHandler = (context: NavigationPipelineContext) => {
   };
 };
 
+const announcementHandler = (context: NavigationPipelineContext) => {
+  return {
+    getUnrendered() {
+      if (context.announcement?.content) {
+        return { blocks: { announcement: context.announcement.content } };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const announceEl = doc.querySelector(
+        "#quarto-announcement .quarto-announcement-content",
+      );
+      if (announceEl) {
+        const renderedEl = rendered["announcement"];
+        announceEl.innerHTML = renderedEl.innerHTML;
+      }
+    },
+  };
+};
+
+// TODO: This is a pretty hack workaround to improve our matching in cases like book
+// where we inject HTML right into the sidebar. Instead, we really need to switch this
+// to requiring that each sidebar item has an id (either user provided or automatically)
+// provisioned and then use that id to match for replacement. This is way too brittle and
+// terrible
+const textKey = (text: string) => {
+  return text.replaceAll(/\s|&nbsp;/gm, "-").replaceAll(/"/gm, "'");
+};
 const sidebarContentsHandler = (context: NavigationPipelineContext) => {
   return {
     getUnrendered() {
@@ -243,7 +270,8 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
             if (item.sectionId) {
               markdown[`${kSidebarIdPrefix}${item.sectionId}`] = item.text;
             } else {
-              markdown[`${kSidebarIdPrefix}${item.href}`] = item.text;
+              markdown[`${kSidebarIdPrefix}${item.href}${textKey(item.text)}`] =
+                item.text;
             }
           }
         });
@@ -258,10 +286,11 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       for (let i = 0; i < sidebarItemEls.length; i++) {
         const sidebarEl = sidebarItemEls[i] as Element;
         const href = sidebarEl.getAttribute("href");
-        const sidebarText = rendered[`${kSidebarIdPrefix}${href}`];
-        if (sidebarText) {
-          const link = sidebarEl.querySelector(".menu-text");
-          if (link) {
+        const link = sidebarEl.querySelector(".menu-text");
+        if (link) {
+          const text = textKey(link.innerHTML);
+          const sidebarText = rendered[`${kSidebarIdPrefix}${href}${text}`];
+          if (sidebarText) {
             link.innerHTML = sidebarText.innerHTML;
           }
         }
@@ -308,7 +337,9 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
             markdown[`${kNavbarIdPrefix}${entry.text.trim()}`] = entry.text;
           }
           if (entry.href) {
-            markdown[`${kNavbarIdPrefix}${entry.href.trim()}`] = entry.href;
+            markdown[`${kNavbarIdPrefix}${entry.href.trim()}`] = mdSafeHref(
+              entry.href,
+            );
           }
 
           if (entry.menu?.entries) {
@@ -326,7 +357,9 @@ const navbarContentsHandler = (context: NavigationPipelineContext) => {
         if (tools) {
           tools.forEach((tool) => {
             if (tool.href) {
-              markdown[`${kToolsPrefix}${tool.href.trim()}`] = tool.href;
+              markdown[`${kToolsPrefix}${tool.href.trim()}`] = mdSafeHref(
+                tool.href,
+              );
             }
           });
         }
@@ -604,11 +637,11 @@ const footerHandler = (context: NavigationPipelineContext) => {
           key: string,
           value: string | (string | NavItem)[],
         ) => {
-          if (typeof (value) === "string") {
+          if (typeof value === "string") {
             markdown[`${kNavFooterPrefix}${key}`] = value;
           } else {
             value.forEach((navItem) => {
-              if (typeof (navItem) === "object") {
+              if (typeof navItem === "object") {
                 if (navItem.text) {
                   markdown[
                     `${kNavFooterPrefix}${key}-${navItem.href || navItem.text}`
@@ -673,7 +706,7 @@ function expandMarkdown(source: string, name: string, val: unknown): string[] {
     return val.map((pathOrMarkdown) => {
       return expandMarkdownFilePath(source, pathOrMarkdown);
     });
-  } else if (typeof (val) == "string") {
+  } else if (typeof val == "string") {
     return [expandMarkdownFilePath(source, val)];
   } else {
     throw Error(`Invalid value for ${name}:\n${val}`);
@@ -695,4 +728,11 @@ function expandMarkdownFilePath(source: string, path: string): string {
   } else {
     return path;
   }
+}
+
+export function mdSafeHref(href: string) {
+  href = href.replaceAll("---", "\\-\\-\\-");
+  href = href.replaceAll("--", "\\-\\-");
+  href = href.replaceAll("@", "\\@");
+  return href;
 }

@@ -25,6 +25,7 @@ section-title-citation: "Цитата"
 
 appendix-attribution-cite-as: "Будь-ласка, цитуйте цю роботу як:"
 appendix-attribution-bibtex: "BibTeX citation:"
+appendix-view-license: "Переглянути Ліцензію"
 
 title-block-author-single: "Автор"
 title-block-author-plural: "Автори"
@@ -67,6 +68,7 @@ search-hide-matches-text: "Сховати додаткові результат�
 search-more-match-text: "додатковий результат у цьому документі"
 search-more-matches-text: "додаткових результатів у цьому документі"
 search-clear-button-title: "Очистити"
+search-text-placeholder: ""
 search-detached-cancel-button-title: "Відмінити"
 search-submit-button-title: "Надіслати"
 search-label: "Пошук"
@@ -120,3 +122,6 @@ listing-page-minutes-compact: "{0} хвилин"
 listing-page-category-all: "Все"
 listing-page-no-matches: "Немає відповідних елементів"
 listing-page-words: "{0} слів"
+listing-page-filter: "Фільтр"
+
+draft: "Чернетка"

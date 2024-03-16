@@ -27,6 +27,8 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 import {
   kBodyFooter,
   kBodyHeader,
+  kDraftMode,
+  kDrafts,
   kImage,
   kMarginFooter,
   kMarginHeader,
@@ -43,7 +45,7 @@ import {
 } from "./website-constants.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 type WebsiteConfigKey =
   | "title"
@@ -53,6 +55,8 @@ type WebsiteConfigKey =
   | "site-url"
   | "site-path"
   | "repo-url"
+  | "repo-link-target"
+  | "repo-link-rel"
   | "repo-subdir"
   | "repo-branch"
   | "repo-actions"
@@ -71,7 +75,10 @@ type WebsiteConfigKey =
   | "comments"
   | "other-links"
   | "code-links"
-  | "reader-mode";
+  | "reader-mode"
+  | "announcement"
+  | "draft-mode"
+  | "drafts";
 
 export function websiteConfigBoolean(
   name: WebsiteConfigKey,
@@ -79,9 +86,9 @@ export function websiteConfigBoolean(
   project?: ProjectConfig,
 ) {
   const config = websiteConfig(name, project);
-  if (typeof (config) === "string") {
+  if (typeof config === "string") {
     return !!config;
-  } else if (typeof (config) == "boolean") {
+  } else if (typeof config == "boolean") {
     return config;
   } else {
     return defaultValue;
@@ -93,7 +100,7 @@ export function websiteConfigString(
   project?: ProjectConfig,
 ) {
   const config = websiteConfig(name, project);
-  if (typeof (config) === "string") {
+  if (typeof config === "string") {
     return config;
   } else {
     return undefined;
@@ -105,7 +112,7 @@ export function websiteConfigMetadata(
   project?: ProjectConfig,
 ) {
   const config = websiteConfig(name, project);
-  if (typeof (config) === "object" && !Array.isArray(config)) {
+  if (typeof config === "object" && !Array.isArray(config)) {
     return config;
   } else {
     return undefined;
@@ -208,14 +215,18 @@ export interface WebsiteRepoInfo {
 }
 
 export function websiteRepoInfo(
+  format: Format,
   project?: ProjectConfig,
 ): WebsiteRepoInfo | undefined {
   let repoUrl = websiteConfigString(kSiteRepoUrl, project);
+  if (format.metadata[kSiteRepoUrl] !== undefined) {
+    repoUrl = format.metadata[kSiteRepoUrl] as string;
+  }
   if (repoUrl) {
     repoUrl = ensureTrailingSlash(repoUrl);
     // is there an explicit subdir?
     const repoSubdir = websiteConfigString(kSiteRepoSubdir, project);
-    if ((repoSubdir)) {
+    if (repoSubdir) {
       return {
         baseUrl: repoUrl,
         path: ensureTrailingSlash(repoSubdir),
@@ -257,7 +268,7 @@ export function websiteConfigActions(
     | undefined;
   if (book) {
     const value = book[key];
-    if (typeof (value) === "string") {
+    if (typeof value === "string") {
       if (value === "none") {
         return [];
       } else {
@@ -278,7 +289,7 @@ export function websiteFormatPreferHtml(
   format: string | Record<string, unknown> | undefined,
 ): Record<string, unknown> {
   if (format !== undefined) {
-    if (typeof (format) === "string") {
+    if (typeof format === "string") {
       return {
         [format]: "default",
       };
@@ -324,10 +335,11 @@ export function formatsPreferHtml(formats: Record<string, unknown>) {
 // provide a project context that elevates html to the default
 // format for documents (unless they explicitly declare another format)
 export function websiteProjectConfig(
-  projectDir: string,
+  project: ProjectContext,
   config: ProjectConfig,
   flags?: RenderFlags,
 ): Promise<ProjectConfig> {
+  const projectDir = project.dir;
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
     | string
@@ -340,7 +352,7 @@ export function websiteProjectConfig(
   const ensureArray = (val: unknown) => {
     if (Array.isArray(val)) {
       return val;
-    } else if (typeof (val) === "string") {
+    } else if (typeof val === "string") {
       return [val];
     }
   };
@@ -383,7 +395,7 @@ export function websiteProjectConfig(
   const sidebars =
     (Array.isArray(sidebarRaw)
       ? sidebarRaw
-      : typeof (sidebarRaw) == "object"
+      : typeof sidebarRaw == "object"
       ? [sidebarRaw]
       : undefined) as Sidebar[] | undefined;
 
@@ -425,6 +437,16 @@ export function websiteProjectConfig(
     (config[kCodeLinks] === undefined)
   ) {
     config[kCodeLinks] = websiteConfigUnknown(kCodeLinks, config);
+  }
+
+  // Move drafts, draft-mode
+  const draftMode = websiteConfigString(kDraftMode, config);
+  if (draftMode) {
+    config[kDraftMode] = draftMode;
+  }
+  const drafts = websiteConfigArray(kDrafts, config);
+  if (drafts) {
+    config[kDrafts] = drafts;
   }
 
   return Promise.resolve(config);

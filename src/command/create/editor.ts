@@ -9,9 +9,8 @@ import { CreateResult } from "./cmd-types.ts";
 import { which } from "../../core/path.ts";
 import { isRStudioTerminal, isVSCodeTerminal } from "../../core/platform.ts";
 
-import { join } from "path/mod.ts";
+import { basename, dirname, join } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname } from "path/mod.ts";
 
 export interface Editor {
   // A short, command line friendly id

@@ -123,8 +123,12 @@ local kLangCommentChars = {
   vhdl = { "--"},
   html = { "<!--", "-->"},
   markdown = {"<!--", "-->"},
-  gap = { "#" }
+  gap = { "#" },
+  dockerfile = { "#" },
+  ocaml = { "(*", "*)"},
+  rust = { "// "}
 }
+local kDefaultCodeAnnotationComment =  {"#"}
 
 return {
   kCitation = kCitation,
@@ -192,5 +196,6 @@ return {
   kLicense = kLicense,
 
   kLangCommentChars = kLangCommentChars,
+  kDefaultCodeAnnotationComment = kDefaultCodeAnnotationComment,
   kHtmlTableProcessing = kHtmlTableProcessing
 }

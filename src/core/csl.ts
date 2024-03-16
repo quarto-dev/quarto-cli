@@ -1,9 +1,8 @@
 /*
-* csl.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * csl.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { formatDate, parsePandocDate } from "./date.ts";
 
@@ -155,7 +154,9 @@ export function suggestId(author: CSLName[], date?: CSLDate) {
   }
 
   // Create a deduplicated string against the existing entries
-  let suggestedId = `${citeIdLeading.toLowerCase()}${datePart}`;
+  let suggestedId = `${
+    citeIdLeading.replaceAll(/\s+/g, "_").toLowerCase()
+  }${datePart}`;
   if (suggestedId.length === 0) {
     suggestedId = "untitled";
   }
@@ -166,7 +167,7 @@ export function suggestId(author: CSLName[], date?: CSLDate) {
 // See https://www.loc.gov/standards/datetime/
 // Currently omits time component so this isn't truly level 0
 export function cslDateToEDTFDate(date: CSLDate) {
-  if (date["date-parts"]) {
+  if (date["date-parts"] && date["date-parts"].length > 0) {
     const paddedParts = date["date-parts"][0].map((part) => {
       const partStr = part?.toString();
       if (partStr?.length === 1) {
@@ -193,7 +194,7 @@ export function cslNames(authors: unknown) {
 }
 
 const isCslDate = (dateRaw: unknown) => {
-  if (typeof (dateRaw) === "object") {
+  if (typeof dateRaw === "object") {
     // deno-lint-ignore no-explicit-any
     return ((dateRaw as any)["date-parts"] !== undefined) &&
       // deno-lint-ignore no-explicit-any
@@ -237,7 +238,7 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
   if (Array.isArray(dateRaw)) {
     const dateArr = dateRaw as number[];
     return toDateArray(dateArr);
-  } else if (typeof (dateRaw) === "number") {
+  } else if (typeof dateRaw === "number") {
     const parseNumeric = (dateStr: string) => {
       let dateParsed = dateStr;
       const chomps = [4, 2, 2];
@@ -267,7 +268,7 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
     if (dateArr) {
       return toDateArray(dateArr);
     }
-  } else if (typeof (dateRaw) === "string") {
+  } else if (typeof dateRaw === "string") {
     // Look for an explicit month year like 1999-04
     const match = dateRaw.match(/^(\d\d\d\d)[-/](\d\d)$/);
     if (match) {
@@ -299,13 +300,30 @@ export function cslDate(dateRaw: unknown): CSLDate | undefined {
     return undefined;
   } else if (isCslDate(dateRaw)) {
     return dateRaw as CSLDate;
+  } else if (dateRaw !== null && typeof dateRaw === "object") {
+    const dateParts: number[] = [];
+    if ("year" in dateRaw) {
+      dateParts.push((dateRaw as { year: number })["year"]);
+      if ("month" in dateRaw) {
+        dateParts.push((dateRaw as { month: number })["month"]);
+        if ("day" in dateRaw) {
+          dateParts.push((dateRaw as { day: number })["day"]);
+        }
+      }
+      return {
+        "date-parts": [dateParts as [number, number?, number?]],
+        "iso-8601": dateParts.join("-"),
+      };
+    } else {
+      return undefined;
+    }
   }
 }
 
 function authorToCslName(
   author: unknown,
 ): CSLName | undefined {
-  if (typeof (author) === "string") {
+  if (typeof author === "string") {
     const parts = author.split(" ");
     if (parts.length > 0) {
       const given = parts.shift() || "";

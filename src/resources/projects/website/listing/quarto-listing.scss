@@ -613,6 +613,10 @@ div.quarto-post {
     .description {
       font-size: 0.9em;
     }
+
+    pre code {
+      white-space: pre-wrap;
+    }
   }
 
   a {

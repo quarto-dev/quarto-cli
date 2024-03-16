@@ -5,7 +5,7 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 import { printConfiguration } from "../common/config.ts";
 

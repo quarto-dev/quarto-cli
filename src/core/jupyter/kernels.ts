@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../../deno_ral/path.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 import { execProcess } from "../process.ts";
 import { jupyterExec } from "./exec.ts";
@@ -15,7 +15,7 @@ import { JupyterKernelspec } from "./types.ts";
 
 // deno-lint-ignore no-explicit-any
 export function isJupyterKernelspec(x: any): x is JupyterKernelspec {
-  if (x && typeof (x) === "object") {
+  if (x && typeof x === "object") {
     return typeof (x.name) === "string" &&
       typeof (x.language) === "string" &&
       typeof (x.display_name) === "string";
@@ -28,11 +28,34 @@ export async function jupyterKernelspecForLanguage(
   language: string,
 ): Promise<JupyterKernelspec | undefined> {
   const kernelspecs = await jupyterKernelspecs();
-  for (const kernelspec of kernelspecs.values()) {
-    if (kernelspec.language === language) {
-      return kernelspec;
+  const defaultResolver = () => {
+    for (const kernelspec of kernelspecs.values()) {
+      if (kernelspec.language === language) {
+        return kernelspec;
+      }
     }
-  }
+  };
+  const python = () => {
+    const env = Deno.env.get("VIRTUAL_ENV");
+    if (env) {
+      for (const kernelspec of kernelspecs.values()) {
+        if (
+          kernelspec.language === "python" && kernelspec.path?.includes(env)
+        ) {
+          debug("Preferring a venv-based python kernel at " + kernelspec.path);
+          return kernelspec;
+        }
+      }
+    }
+    return defaultResolver();
+  };
+
+  const resolvers: Record<string, () => JupyterKernelspec | undefined> = {
+    python,
+  };
+
+  const resolver = resolvers[language] || defaultResolver;
+  return resolver();
 }
 
 export async function jupyterKernelspec(
@@ -88,6 +111,7 @@ async function computeJupyterKernelspecs(): Promise<
               name,
               language: config.language,
               display_name: config.display_name,
+              path: walk.path,
             });
           }
         }

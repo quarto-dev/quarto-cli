@@ -4,13 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info } from "log/mod.ts";
-import {
-  Checkbox,
-  prompt,
-  Select,
-  SelectOption,
-} from "cliffy/prompt/mod.ts";
+import { info } from "../../deno_ral/log.ts";
+import { Checkbox, prompt, Select, SelectOption } from "cliffy/prompt/mod.ts";
 
 import {
   accountTokenText,
@@ -108,7 +103,7 @@ export async function accountPrompt(
   _provider: PublishProvider,
   accounts: AccountToken[],
 ): Promise<AccountToken | undefined> {
-  const options: SelectOption[] = accounts
+  const options: SelectOption<string>[] = accounts
     .filter((account) => account.type !== AccountTokenType.Anonymous).map((
       account,
     ) => ({
@@ -175,15 +170,19 @@ export async function manageAccounts() {
   for (const account of accounts) {
     if (
       !keepAccounts.find((keepAccountJson) => {
-        const keepAccount = JSON.parse(keepAccountJson) as ProviderAccountToken;
+        const keepAccount = JSON.parse(
+          keepAccountJson.value,
+        ) as ProviderAccountToken;
         return account.provider == keepAccount.provider &&
           account.name == keepAccount.name &&
           account.server == keepAccount.server;
       })
     ) {
       info(
-        `Removing ${findProvider(account.provider)
-          ?.description} account ${account.name}`,
+        `Removing ${
+          findProvider(account.provider)
+            ?.description
+        } account ${account.name}`,
       );
       removeAccounts.push(account);
     }

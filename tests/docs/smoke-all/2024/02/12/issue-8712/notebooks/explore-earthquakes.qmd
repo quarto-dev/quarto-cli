@@ -1,0 +1,16 @@
+---
+title: Explore Earthquakes
+author: Charlotte Wickham
+---
+
+Create spatial plot:
+
+```{r}
+#| label: fig-spatial-plot
+#| fig-cap: "Locations of earthquakes on La Palma since 2017"
+#| fig-alt: "A scatterplot of earthquake locations plotting latitude
+#|   against longitude."
+library(ggplot2)
+mtcars |> ggplot(aes(mpg, cyl)) + geom_point()
+```
+

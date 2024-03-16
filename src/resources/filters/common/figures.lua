@@ -15,6 +15,14 @@ function isFigAttribute(name)
   return string.find(name, "^fig%-")
 end
 
+function figAlignAttributeDefault(el, default)
+  local align = attribute(el, kFigAlign, default)
+  if align == "default" then
+    align = default
+  end
+  return validatedAlign(align, default)
+end
+
 function figAlignAttribute(el)
   local default = pandoc.utils.stringify(
     param(kFigAlign, pandoc.Str("default"))
@@ -23,7 +31,7 @@ function figAlignAttribute(el)
   if align == "default" then
     align = default
   end
-  return validatedAlign(align)
+  return validatedAlign(align, "center")
 end
 
 -- is this a Div containing a figure

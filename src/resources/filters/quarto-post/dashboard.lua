@@ -328,11 +328,11 @@ function render_dashboard()
                   local prefixLen = pandoc.text.len(titlePrefix)
 
                   local strValue = codeBlockEl.text
-                  if pandoc.text.len(strValue) > prefixLen then
+                  if pandoc.text.len(strValue) > prefixLen and strValue:match('^title=') then                    
                     options['title'] = trim(pandoc.text.sub(codeBlockEl.text, prefixLen + 1))
+                    cardContent = tslice(cardContent, 2)
                   end
                 end
-                cardContent = tslice(cardContent, 2)
               end
             end
 

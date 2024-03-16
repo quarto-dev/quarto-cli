@@ -7,7 +7,7 @@
 import { LanguageCellHandlerContext, LanguageHandler } from "./types.ts";
 import { baseHandler, install } from "./base.ts";
 import { resourcePath } from "../resources.ts";
-import { join, toFileUrl } from "path/mod.ts";
+import { join, toFileUrl } from "../../deno_ral/path.ts";
 import {
   isIpynbOutput,
   isJavascriptCompatible,

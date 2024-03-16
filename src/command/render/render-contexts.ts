@@ -13,7 +13,7 @@ import {
   RenderServices,
 } from "./types.ts";
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -76,10 +76,7 @@ import { isHtmlDashboardOutput, isHtmlOutput } from "../../config/format.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { warnOnce } from "../../core/log.ts";
 import { dirAndStem } from "../../core/path.ts";
-import {
-  fileEngineClaimReason,
-  fileExecutionEngineAndTarget,
-} from "../../execute/engine.ts";
+import { fileExecutionEngineAndTarget } from "../../execute/engine.ts";
 import { removePandocTo } from "./flags.ts";
 import { filesDirLibDir } from "./render-paths.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
@@ -210,8 +207,9 @@ export async function renderContexts(
   options: RenderOptions,
   forExecute: boolean,
   notebookContext: NotebookContext,
-  project?: ProjectContext,
+  project: ProjectContext,
   cloneOptions: boolean = true,
+  enforceProjectFormats: boolean = true,
 ): Promise<Record<string, RenderContext>> {
   if (cloneOptions) {
     // clone options (b/c we will modify them)
@@ -224,11 +222,8 @@ export async function renderContexts(
   const { engine, target } = await fileExecutionEngineAndTarget(
     file.path,
     options.flags,
-    undefined,
     project,
   );
-
-  const engineClaimReason = fileEngineClaimReason(file.path);
 
   // resolve render target
   const formats = await resolveFormats(
@@ -238,6 +233,7 @@ export async function renderContexts(
     options,
     notebookContext,
     project,
+    enforceProjectFormats,
   );
 
   // remove --to (it's been resolved into contexts)
@@ -298,19 +294,6 @@ export async function renderContexts(
       if (results) {
         context.target.preEngineExecuteResults = results;
       }
-
-      if (engineClaimReason === "markdown") {
-        // since the content decided the engine, and the content now changed,
-        // we need to re-evaluate the engine and target based on new content.
-        const { engine, target } = await fileExecutionEngineAndTarget(
-          file.path,
-          options.flags,
-          markdown,
-          project,
-        );
-        context.engine = engine;
-        context.target = target;
-      }
     }
 
     // if this isn't for execute then cleanup context
@@ -325,7 +308,7 @@ export async function renderFormats(
   file: string,
   services: RenderServices,
   to = "all",
-  project?: ProjectContext,
+  project: ProjectContext,
 ): Promise<Record<string, Format>> {
   const contexts = await renderContexts(
     { path: file },
@@ -412,6 +395,7 @@ async function resolveFormats(
   options: RenderOptions,
   _notebookContext: NotebookContext,
   project?: ProjectContext,
+  enforceProjectFormats: boolean = true,
 ): Promise<Record<string, { format: Format; active: boolean }>> {
   // input level metadata
   const inputMetadata = target.metadata;
@@ -523,9 +507,28 @@ async function resolveFormats(
       formatHasBootstrap(projFormat) && projectTypeIsWebsite(projType)
     ) {
       if (formatHasBootstrap(inputFormat)) {
+        if (
+          inputFormat.metadata[kTheme] !== undefined &&
+          !ld.isEqual(inputFormat.metadata[kTheme], projFormat.metadata[kTheme])
+        ) {
+          warnOnce(
+            `The file ${file.path} contains a theme property which is being ignored. Website projects do not support per document themes since all pages within a website share the website's theme.`,
+          );
+        }
         delete inputFormat.metadata[kTheme];
       }
       if (formatHasBootstrap(directoryFormat)) {
+        if (
+          directoryFormat.metadata[kTheme] !== undefined &&
+          !ld.isEqual(
+            directoryFormat.metadata[kTheme],
+            projFormat.metadata[kTheme],
+          )
+        ) {
+          warnOnce(
+            `The file ${file.path} contains a theme provided by a metadata file. This theme metadata is being ignored. Website projects do not support per directory themes since all pages within a website share the website's theme.`,
+          );
+        }
         delete directoryFormat.metadata[kTheme];
       }
     }
@@ -606,14 +609,16 @@ async function resolveFormats(
   }
 
   // filter on formats supported by this project
-  for (const formatName of Object.keys(mergedFormats)) {
-    const format: Format = mergedFormats[formatName];
-    if (projType.isSupportedFormat) {
-      if (!projType.isSupportedFormat(format)) {
-        delete mergedFormats[formatName];
-        warnOnce(
-          `The ${formatName} format is not supported by ${projType.type} projects`,
-        );
+  if (enforceProjectFormats) {
+    for (const formatName of Object.keys(mergedFormats)) {
+      const format: Format = mergedFormats[formatName];
+      if (projType.isSupportedFormat) {
+        if (!projType.isSupportedFormat(format)) {
+          delete mergedFormats[formatName];
+          warnOnce(
+            `The ${formatName} format is not supported by ${projType.type} projects`,
+          );
+        }
       }
     }
   }

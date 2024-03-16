@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join, relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { basename, join, relative } from "../../../deno_ral/path.ts";
+import { warning } from "../../../deno_ral/log.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { Document, Element } from "../../../core/deno-dom.ts";
@@ -16,7 +16,11 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
-import { removeChapterNumber } from "./website-utils.ts";
+import {
+  projectDraftMode,
+  removeChapterNumber,
+  resolveProjectInputLinks,
+} from "./website-utils.ts";
 import {
   breadCrumbs,
   itemHasNavTarget,
@@ -94,6 +98,8 @@ import {
   kSitePageNavigation,
   kSiteReaderMode,
   kSiteRepoActions,
+  kSiteRepoLinkRel,
+  kSiteRepoLinkTarget,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
@@ -113,7 +119,6 @@ import {
 import {
   flattenItems,
   inputFileHref,
-  Navigation,
   NavigationFooter,
   NavigationPagination,
   websiteNavigationConfig,
@@ -137,12 +142,14 @@ import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
-import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
 import { navigation } from "./website-shared.ts";
+import { isAboutPage } from "./about/website-about.ts";
 
 export const kSidebarLogo = "logo";
+export const kSidebarLogoHref = "logo-href";
+export const kSidebarLogoAlt = "logo-alt";
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // reset unique menu ids
@@ -156,6 +163,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     footer,
     pageMargin,
     bodyDecorators,
+    announcement,
   } = websiteNavigationConfig(
     project,
   );
@@ -189,6 +197,29 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.bodyDecorators = bodyDecorators;
 
   navigation.pageMargin = pageMargin;
+  navigation.announcement = announcement;
+}
+
+export async function websiteNoThemeExtras(
+  project: ProjectContext,
+  source: string,
+  _flags: PandocFlags,
+  _format: Format,
+  _temp: TempContext,
+): Promise<FormatExtras> {
+  return {
+    html: {
+      [kHtmlPostprocessors]: [
+        async (doc: Document): Promise<HtmlPostProcessResult> => {
+          await resolveProjectInputLinks(source, project, doc);
+          return Promise.resolve({
+            resources: [],
+            supporting: [],
+          });
+        },
+      ],
+    },
+  };
 }
 
 export async function websiteNavigationExtras(
@@ -211,6 +242,14 @@ export async function websiteNavigationExtras(
       return false;
     } else {
       return true;
+    }
+  };
+
+  const tocLocation = () => {
+    if (isAboutPage(format)) {
+      return "right";
+    } else {
+      return format.metadata[kTocLocation] || "right";
     }
   };
 
@@ -249,9 +288,12 @@ export async function websiteNavigationExtras(
   const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href, format);
 
+  // Forward the draft mode, if present
+  const draftMode = projectDraftMode(project);
+
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
-    [kTocLocation]: format.metadata[kTocLocation] || "right",
+    [kTocLocation]: tocLocation(),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
@@ -263,6 +305,8 @@ export async function websiteNavigationExtras(
       true,
       project.config,
     ),
+    announcement: navigation.announcement,
+    draftMode,
   };
 
   // Determine the previous and next page
@@ -343,6 +387,7 @@ export async function websiteNavigationExtras(
     pageNavigation,
     bodyDecorators: navigation.bodyDecorators,
     breadCrumbs: navigation.breadCrumbs,
+    announcement: navigation.announcement,
   });
   const markdownPipeline = createMarkdownPipeline(
     "quarto-navigation-envelope",
@@ -411,7 +456,7 @@ function navigationHtmlPostprocessor(
     kBreadCrumbNavigation,
     true,
     project.config,
-  );
+  ) && format.metadata[kBreadCrumbNavigation] !== false;
 
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process the breadcrumbs and collapsed title
@@ -457,7 +502,15 @@ function navigationHtmlPostprocessor(
           doc,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
-        titleBlockEl.prepend(titleBreadCrumbEl);
+        // See if there is deeper target
+        const bannerTitle = titleBlockEl.querySelector(
+          ".quarto-title-banner .quarto-title",
+        );
+        if (bannerTitle !== null) {
+          bannerTitle.prepend(titleBreadCrumbEl);
+        } else {
+          titleBlockEl.prepend(titleBreadCrumbEl);
+        }
       }
     }
 
@@ -613,61 +666,87 @@ function handleRepoLinks(
   );
 
   if (repoActions.length > 0 || elRepoSource) {
-    const repoInfo = websiteRepoInfo(config);
+    const repoInfo = websiteRepoInfo(format, config);
     if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
-        let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
-        if (repoTarget === null && forceRepoActions) {
-          repoTarget = doc.querySelector("#quarto-margin-sidebar");
-        } else if (repoTarget === null) {
-          repoTarget = doc.querySelector(".nav-footer .nav-footer-center");
-          if (!repoTarget) {
-            const ensureEl = (
-              doc: Document,
-              tagname: string,
-              classname: string,
-              parent: Element,
-              afterEl?: Element | null,
-            ) => {
-              let el = parent.querySelector(`${tagname}.${classname}`);
-              if (!el) {
-                el = doc.createElement(tagname);
-                el.classList.add(classname);
-                if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
-                  parent.insertBefore(el, afterEl.nextElementSibling);
-                } else {
-                  parent.appendChild(el);
-                }
-              }
-              return el;
-            };
 
-            const footerEl = ensureEl(
-              doc,
-              "footer",
-              "footer",
-              doc.body,
-              doc.querySelector("div#quarto-content"),
-            );
-            const footerContainer = ensureEl(
-              doc,
-              "div",
-              "nav-footer",
-              footerEl,
-            );
-            const footerCenterEl = ensureEl(
-              doc,
-              "div",
-              "nav-footer-center",
-              footerContainer,
-              footerContainer.querySelector(".nav-footer-left"),
-            );
-            repoTarget = footerCenterEl;
+        // Collect the places to write the repo actions
+        const repoTargets: Array<{ el: Element; clz?: string[] }> = [];
+        const tocRepoTarget = doc.querySelector(`nav[role="doc-toc"]`);
+        if (tocRepoTarget) {
+          repoTargets.push({ el: tocRepoTarget });
+        }
+        if (repoTargets.length === 0 && forceRepoActions) {
+          const sidebarRepoTarget = doc.querySelector("#quarto-margin-sidebar");
+          if (sidebarRepoTarget) {
+            repoTargets.push({ el: sidebarRepoTarget });
           }
         }
 
-        if (repoTarget) {
+        const footerRepoTarget = doc.querySelector(
+          ".nav-footer .nav-footer-center",
+        );
+        if (footerRepoTarget) {
+          repoTargets.push({
+            el: footerRepoTarget,
+            clz: repoTargets.length > 0
+              ? ["d-sm-block", "d-md-none"]
+              : undefined,
+          });
+        } else {
+          const ensureEl = (
+            doc: Document,
+            tagname: string,
+            classname: string,
+            parent: Element,
+            afterEl?: Element | null,
+          ) => {
+            let el = parent.querySelector(`${tagname}.${classname}`);
+            if (!el) {
+              el = doc.createElement(tagname);
+              el.classList.add(classname);
+              if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
+                parent.insertBefore(el, afterEl.nextElementSibling);
+              } else {
+                parent.appendChild(el);
+              }
+            }
+            return el;
+          };
+
+          const footerEl = ensureEl(
+            doc,
+            "footer",
+            "footer",
+            doc.body,
+            doc.querySelector("div#quarto-content"),
+          );
+          const footerContainer = ensureEl(
+            doc,
+            "div",
+            "nav-footer",
+            footerEl,
+          );
+          const footerCenterEl = ensureEl(
+            doc,
+            "div",
+            "nav-footer-center",
+            footerContainer,
+            footerContainer.querySelector(".nav-footer-left"),
+          );
+          repoTargets.push({
+            el: footerCenterEl,
+            clz: repoTargets.length > 0
+              ? ["d-sm-block", "d-md-none"]
+              : undefined,
+          });
+        }
+
+        if (repoTargets.length > 0) {
+          const linkTarget = websiteConfigString(kSiteRepoLinkTarget, config);
+          const linkRel = websiteConfigString(kSiteRepoLinkRel, config);
+
           // get the action links
           const links = repoInfo
             ? repoActionLinks(
@@ -683,33 +762,46 @@ function handleRepoLinks(
               url: issueUrl!,
               icon: "chat-right",
             }];
-          const actionsDiv = doc.createElement("div");
-          actionsDiv.classList.add("toc-actions");
+          repoTargets.forEach((repoTarget) => {
+            const actionsDiv = doc.createElement("div");
+            actionsDiv.classList.add("toc-actions");
 
-          const ulEl = doc.createElement("ul");
-          links.forEach((link) => {
-            const a = doc.createElement("a");
-            a.setAttribute("href", link.url);
-            a.classList.add("toc-action");
-            a.innerHTML = link.text;
+            const ulEl = doc.createElement("ul");
+            links.forEach((link) => {
+              const a = doc.createElement("a");
+              a.setAttribute("href", link.url);
+              if (linkTarget) {
+                a.setAttribute("target", linkTarget);
+              }
+              if (linkRel) {
+                a.setAttribute("rel", linkRel);
+              }
+              a.classList.add("toc-action");
+              a.innerHTML = link.text;
 
-            const i = doc.createElement("i");
-            i.classList.add("bi");
-            if (link.icon) {
-              i.classList.add(`bi-${link.icon}`);
-            } else {
-              i.classList.add(`empty`);
+              const i = doc.createElement("i");
+              i.classList.add("bi");
+              if (link.icon) {
+                i.classList.add(`bi-${link.icon}`);
+              } else {
+                i.classList.add(`empty`);
+              }
+
+              a.prepend(i);
+
+              const liEl = doc.createElement("li");
+              liEl.appendChild(a);
+
+              ulEl.appendChild(liEl);
+            });
+            actionsDiv.appendChild(ulEl);
+            repoTarget.el.appendChild(actionsDiv);
+            if (repoTarget.clz) {
+              repoTarget.clz.forEach((cls) => {
+                actionsDiv.classList.add(cls);
+              });
             }
-
-            a.prepend(i);
-
-            const liEl = doc.createElement("li");
-            liEl.appendChild(a);
-
-            ulEl.appendChild(liEl);
           });
-          actionsDiv.appendChild(ulEl);
-          repoTarget.appendChild(actionsDiv);
         }
       }
       if (elRepoSource && repoInfo) {
@@ -929,7 +1021,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure collapse & alignment are defaulted
   sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
-  sidebar.aligment = sidebar.aligment || "center";
+  sidebar.alignment = sidebar.alignment || sidebar.align || "left";
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
@@ -1322,7 +1414,13 @@ function uniqueMenuId(navItem: NavigationItemObject) {
 }
 
 async function resolveItem<
-  T extends { href?: string; text?: string; icon?: string },
+  T extends {
+    href?: string;
+    text?: string;
+    icon?: string;
+    plainText?: string;
+    draft?: boolean;
+  },
 >(
   project: ProjectContext,
   href: string,
@@ -1330,22 +1428,28 @@ async function resolveItem<
   number = false,
 ): Promise<T> {
   if (!isExternalPath(href)) {
-    const resolved = await resolveInputTarget(project, href);
+    const resolved = await resolveInputTarget(
+      project,
+      pathWithForwardSlashes(href),
+    );
     if (resolved) {
       const inputItem = {
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
+        draft: resolved.draft,
       };
 
       const projType = projectType(project.config?.project?.[kProjectType]);
       if (projType.navItemText) {
-        inputItem.text = await projType.navItemText(
+        const navItemFormatted = await projType.navItemText(
           project,
           href,
           inputItem.text,
           number,
         );
+        inputItem.text = navItemFormatted.html;
+        inputItem.plainText = navItemFormatted.text;
       }
       return inputItem;
     } else if (looksLikeShortCode(href)) {

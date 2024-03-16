@@ -102,9 +102,12 @@ function handlerForShortcode(shortCode)
   return handlers[shortCode.name]
 end
 
-local function read_arg(args)
-  local arg = args[1]
+local function read_arg(args, n)
+  local arg = args[n or 1]
   local varName
+  if arg == nil then
+    return nil
+  end
   if type(arg) ~= "string" then
     varName = inlinesToString(arg)
   else
@@ -118,9 +121,10 @@ function handleEnv(args)
   if #args > 0 then
     -- the args are the var name
     local varName = read_arg(args)
+    local defaultValue = read_arg(args, 2)
 
     -- read the environment variable
-    local envValue = os.getenv(varName)
+    local envValue = os.getenv(varName) or defaultValue
     if envValue ~= nil then
       return { pandoc.Str(envValue) }  
     else 
@@ -141,6 +145,16 @@ function handleMeta(args)
   if #args > 0 then
     -- the args are the var name
     local varName = read_arg(args)
+
+    -- strip quotes if present
+    -- works around the real bug that we don't have
+    -- great control over quoting in shortcode params
+    -- see https://github.com/quarto-dev/quarto-cli/issues/7882
+    if varName:sub(1,1) == '"' and varName:sub(-1) == '"' then
+      varName = varName:sub(2,-2)
+    elseif varName:sub(1,1) == "'" and varName:sub(-1) == "'" then
+      varName = varName:sub(2,-2)
+    end
 
     -- read the option value
     local optionValue = option(varName, nil)

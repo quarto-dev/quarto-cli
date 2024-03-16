@@ -78,6 +78,7 @@ export interface JupyterKernelspec {
   name: string;
   language: string;
   display_name: string;
+  path?: string;
 }
 
 export interface JupyterAssets {
@@ -233,6 +234,7 @@ export interface JupyterToMarkdownOptions {
   figDpi?: number;
   figPos?: string | null;
   fixups?: "minimal" | "default";
+  outputPrefix?: string;
 }
 
 export interface JupyterToMarkdownResult {

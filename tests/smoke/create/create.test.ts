@@ -6,7 +6,7 @@
 */
 
 import { execProcess } from "../../../src/core/process.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { CreateResult } from "../../../src/command/create/cmd-types.ts";
 import { assert } from "testing/asserts.ts";
 import { quartoDevCmd } from "../../utils.ts";

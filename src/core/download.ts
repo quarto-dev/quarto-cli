@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { writeAll } from "streams/write_all.ts";
+import { writeAll } from "io/write_all.ts";
 import { progressBar } from "./console.ts";
 
 export interface DownloadError extends Error {

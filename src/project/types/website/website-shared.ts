@@ -4,13 +4,17 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
-import { ProjectConfig, ProjectContext } from "../../types.ts";
+import {
+  NavigationItemObject,
+  ProjectConfig,
+  ProjectContext,
+} from "../../types.ts";
 import {
   Navbar,
   NavigationFooter,
@@ -19,6 +23,7 @@ import {
   SidebarItem,
 } from "../../types.ts";
 import {
+  kAnnouncement,
   kBodyFooter,
   kBodyHeader,
   kMarginFooter,
@@ -38,6 +43,7 @@ import {
 import { cookieConsentEnabled } from "./website-analytics.ts";
 import { Format, FormatExtras } from "../../../config/types.ts";
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
+import { md5Hash } from "../../../core/hash.ts";
 export { type NavigationFooter } from "../../types.ts";
 
 export interface Navigation {
@@ -48,6 +54,7 @@ export interface Navigation {
   pageMargin?: PageMargin;
   bodyDecorators?: BodyDecorators;
   breadCrumbs?: SidebarItem[];
+  announcement?: NavigationAnnouncement;
 }
 
 export interface NavigationPagination {
@@ -65,6 +72,15 @@ export interface BodyDecorators {
   footer?: string[];
 }
 
+export interface NavigationAnnouncement {
+  id: string;
+  content: string;
+  dismissable: boolean;
+  type: string;
+  position: string;
+  icon?: string;
+}
+
 export function computePageTitle(
   format: Format,
   extras?: FormatExtras,
@@ -72,6 +88,7 @@ export function computePageTitle(
   const meta = extras?.metadata || {};
   const pageTitle = meta[kPageTitle] || format.metadata[kPageTitle];
   const titlePrefix = extras?.pandoc?.[kTitlePrefix] ||
+    format.pandoc[kTitlePrefix] ||
     (format.metadata[kWebsite] as Record<string, unknown>)?.[kTitle];
   const title = format.metadata[kTitle];
 
@@ -84,7 +101,7 @@ export function computePageTitle(
     } else if (title !== undefined) {
       return titlePrefix + " - " + title;
     } else {
-      return undefined;
+      return titlePrefix + "";
     }
   } else {
     return title as string;
@@ -197,6 +214,30 @@ export function websiteNavigationConfig(project: ProjectContext) {
     bodyDecorators.footer = bodyFooterVal;
   }
 
+  // parse the announcement for this website
+  const announcementRaw = websiteConfig(kAnnouncement, project.config);
+  let announcement: NavigationAnnouncement | undefined;
+  if (typeof announcementRaw === "string") {
+    announcement = {
+      id: md5Hash(announcementRaw),
+      icon: undefined,
+      dismissable: true,
+      content: announcementRaw,
+      position: "above-navbar",
+      type: "primary",
+    };
+  } else if (announcementRaw && !Array.isArray(announcementRaw)) {
+    announcement = {
+      id: md5Hash(announcementRaw.content as string),
+      icon: announcementRaw.icon as string | undefined,
+      dismissable: announcementRaw.dismissable !== false,
+      content: announcementRaw.content as string,
+      type: announcementRaw.type as string | undefined || "primary",
+      position: announcementRaw.position as string | undefined ||
+        "above-navbar",
+    };
+  }
+
   // return
   return {
     navbar,
@@ -205,6 +246,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
     footer,
     pageMargin,
     bodyDecorators,
+    announcement,
   };
 }
 
@@ -301,7 +343,10 @@ export const navigation: Navigation = {
 
 export function sidebarForHref(href: string, format: Format) {
   // if there is a single sidebar then it applies to all hrefs
-  if (navigation.sidebars.length === 1) {
+  // (unless it has an id, in which restrict it)
+  if (
+    navigation.sidebars.length === 1 && navigation.sidebars[0].id === undefined
+  ) {
     return navigation.sidebars[0];
   } else {
     const explicitSidebar = navigation.sidebars.find((sidebar) => {
@@ -320,6 +365,47 @@ export function sidebarForHref(href: string, format: Format) {
       }
     }
   }
+}
+
+// Given a sidebar, this function will look through the navbar items and attempt
+// to find a matching NavItem from the Navbar
+export function navbarItemForSidebar(sidebar: Sidebar, format: Format) {
+  const findNavItemWithSidebar = (navItems: NavItem[] | undefined) => {
+    if (navItems) {
+      const navItem = navItems.find((val: NavItem) => {
+        let href: string | undefined;
+        if (typeof val === "object") {
+          href = (val as NavigationItemObject).href;
+        } else {
+          href = val;
+        }
+        if (href) {
+          const navSidebar = sidebarForHref(
+            href,
+            format,
+          );
+          if (navSidebar === sidebar) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (navItem) {
+        return navItem;
+      }
+    }
+  };
+
+  const leftNavItem = findNavItemWithSidebar(navigation.navbar?.left);
+  if (leftNavItem) {
+    return leftNavItem;
+  }
+
+  const rightNavItem = findNavItemWithSidebar(navigation.navbar?.right);
+  if (rightNavItem) {
+    return rightNavItem;
+  }
+  return undefined;
 }
 
 export function containsHref(href: string, items: SidebarItem[]) {

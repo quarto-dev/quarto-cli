@@ -8,7 +8,7 @@ import { Table } from "cliffy/table/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { extensionIdString } from "../../extension/extension-shared.ts";
 import { Extension, ExtensionContext } from "../../extension/types.ts";
