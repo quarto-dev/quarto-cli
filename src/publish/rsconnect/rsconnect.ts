@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
@@ -254,8 +254,12 @@ async function publish(
     await withSpinner({
       message: () => `Uploading files`,
     }, async () => {
-      const bundleTargz = await createBundle(type, publishFiles, tempContext);
-      const bundleBytes = Deno.readFileSync(bundleTargz);
+      const { bundlePath } = await createBundle(
+        type,
+        publishFiles,
+        tempContext,
+      );
+      const bundleBytes = Deno.readFileSync(bundlePath);
       const bundleBlob = new Blob([bundleBytes.buffer]);
       const bundle = await client.uploadBundle(target!.id, bundleBlob);
       task = await client.deployBundle(bundle);

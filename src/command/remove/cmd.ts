@@ -9,7 +9,7 @@ import { Checkbox } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { createTempContext } from "../../core/temp.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import { removeExtension } from "../../extension/remove.ts";
 import { createExtensionContext } from "../../extension/extension.ts";
 import { extensionIdString } from "../../extension/extension-shared.ts";
@@ -21,9 +21,9 @@ import {
   removeTool,
   selectTool,
 } from "../../tools/tools-console.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const removeCommand = new Command()
-  .hidden()
   .name("remove")
   .arguments("[target...]")
   .option(
@@ -120,8 +120,9 @@ export const removeCommand = new Command()
               info("No matching extension found.");
             }
           } else {
+            const nbContext = notebookContext();
             // Provide the with with a list
-            const project = await projectContext(targetDir);
+            const project = await projectContext(targetDir, nbContext);
             const extensions = await extensionContext.extensions(
               targetDir,
               project?.config,
@@ -260,7 +261,7 @@ async function selectExtensions(extensions: Extension[]) {
     }
   });
 
-  const extsToKeep: string[] = await Checkbox.prompt({
+  const extsToKeep: string[] = (await Checkbox.prompt({
     message: "Select extension(s) to keep",
     options: sorted.map((ext) => {
       return {
@@ -274,7 +275,7 @@ async function selectExtensions(extensions: Extension[]) {
     hint:
       `Use the arrow keys and spacebar to specify extensions you'd like to remove.\n` +
       "   Press Enter to confirm the list of accounts you wish to remain available.",
-  });
+  })).map((x) => x.value);
 
   return extensions.filter((extension) => {
     return !extsToKeep.includes(extensionIdString(extension.id));

@@ -3,11 +3,10 @@
 
 -- preprocess theorem to ensure that embedded headings are unnumered
 function crossref_preprocess_theorems()
-  local types = theoremTypes
   return {
     Div = function(el)
       local type = refType(el.attr.identifier)
-      if types[type] ~= nil or proofType(el) ~= nil then
+      if theorem_types[type] ~= nil or proof_type(el) ~= nil then
         return _quarto.ast.walk(el, {
           Header = function(el)
             el.classes:insert("unnumbered")
@@ -15,98 +14,41 @@ function crossref_preprocess_theorems()
           end
         })
       end
-
     end
   }
 end
 
 function crossref_theorems()
-
-  local types = theoremTypes
-
   return {
+    Theorem = function(thm)
+      local label = thm.identifier
+      local type = refType(label)
+      local title = quarto.utils.as_blocks(thm.name)
+      thm.order = add_crossref(label, type, title)
+      return thm
+    end,
+    Proof = function(proof)
+      local label = proof.identifier
+      if label == "" then
+        return nil -- it's an unnumbered proof
+      end
+      local type = refType(label)
+      local title = quarto.utils.as_blocks(proof.name)
+      proof.order = add_crossref(label, type, title)
+      return proof
+    end,
     Div = function(el)
-
       local type = refType(el.attr.identifier)
-      local theoremType = types[type]
+      local theoremType = theorem_types[type]
       if theoremType then
-
-        -- add class for type
-        el.attr.classes:insert("theorem")
-        if theoremType.env ~= "theorem" then
-          el.attr.classes:insert(theoremType.env)
-        end
-        
-        -- capture then remove name
-        local name = markdownToInlines(el.attr.attributes["name"])
-        if not name or #name == 0 then
-          name = resolveHeadingCaption(el)
-        end
-        el.attr.attributes["name"] = nil 
-        
-        -- add to index
-        local label = el.attr.identifier
-        local order = indexNextOrder(type)
-        indexAddEntry(label, nil, order, name)
-        
-        -- If this theorem has no content, then create a placeholder
-        if #el.content == 0 or el.content[1].t ~= "Para" then
-          tprepend(el.content, {pandoc.Para({pandoc.Str '\u{a0}'})})
-        end
-      
-        if _quarto.format.isLatexOutput() then
-          local preamble = pandoc.Para(pandoc.RawInline("latex", 
-            "\\begin{" .. theoremType.env .. "}"))
-          preamble.content:insert(pandoc.RawInline("latex", "["))
-          if name then
-            tappend(preamble.content, name) 
-          end
-          preamble.content:insert(pandoc.RawInline("latex", "]"))
-          preamble.content:insert(pandoc.RawInline("latex",
-            "\\protect\\hypertarget{" .. label .. "}{}\\label{" .. label .. "}")
-          )
-          el.content:insert(1, preamble)
-          el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
-            "\\end{" .. theoremType.env .. "}"
-          )))
-          -- Remove id on those div to avoid Pandoc inserting \hypertaget #3776
-          el.attr.identifier = ""
-        elseif _quarto.format.isJatsOutput() then
-
-          -- JATS XML theorem
-          local lbl = captionPrefix(nil, type, theoremType, order)
-          el = jatsTheorem(el, lbl, name)          
-          
-        else
-          -- create caption prefix
-          local captionPrefix = captionPrefix(name, type, theoremType, order)
-          local prefix =  { 
-            pandoc.Span(
-              pandoc.Strong(captionPrefix), 
-              pandoc.Attr("", { "theorem-title" })
-            )
-          }
-
-          -- prepend the prefix
-          local caption = el.content[1]
-
-          if caption.content == nil then
-            -- https://github.com/quarto-dev/quarto-cli/issues/2228
-            -- caption doesn't always have a content field; in that case,
-            -- use the parent?
-            tprepend(el.content, prefix)
-          else
-            tprepend(caption.content, prefix)
-          end
-        end
-
+        internal_error()
       else
         -- see if this is a proof, remark, or solution
-        local proof = proofType(el)
+        local proof = proof_type(el)
         if proof ~= nil then
 
           -- ensure requisite latex is injected
-          crossref.usingTheorems = true
+          crossref.using_theorems = true
 
           if proof.env ~= "proof" then
             el.attr.classes:insert("proof")
@@ -121,17 +63,35 @@ function crossref_theorems()
 
           -- output
           if _quarto.format.isLatexOutput() then
-            local preamble = pandoc.Para(pandoc.RawInline("latex", 
-              "\\begin{" .. proof.env .. "}"))
+            local preamble = pandoc.List()
+            preamble:insert(pandoc.RawInline("latex", "\\begin{" .. proof.env .. "}"))
             if name ~= nil then
-              preamble.content:insert(pandoc.RawInline("latex", "["))
-              tappend(preamble.content, name)
-              preamble.content:insert(pandoc.RawInline("latex", "]"))
-            end 
-            el.content:insert(1, preamble)
-            el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
-              "\\end{" .. proof.env .. "}"
-            )))
+              preamble:insert(pandoc.RawInline("latex", "["))
+              tappend(preamble, name)
+              preamble:insert(pandoc.RawInline("latex", "]"))
+            end
+            preamble:insert(pandoc.RawInline("latex", "\n"))
+            -- https://github.com/quarto-dev/quarto-cli/issues/6077
+            if el.content[1].t == "Para" then
+              preamble:extend(el.content[1].content)
+              el.content[1].content = preamble
+            else
+              if (el.content[1].t ~= "Para") then
+                -- required trick to get correct alignement when non Para content first
+                preamble:insert(pandoc.RawInline('latex', "\\leavevmode"))
+              end
+              el.content:insert(1, pandoc.Plain(preamble))
+            end
+            local end_env = "\\end{" .. proof.env .. "}"
+            -- https://github.com/quarto-dev/quarto-cli/issues/6077
+            if el.content[#el.content].t == "Para" then
+              el.content[#el.content].content:insert(pandoc.RawInline("latex", "\n" .. end_env))
+            elseif el.content[#el.content].t == "RawBlock" and el.content[#el.content].format == "latex" then
+              -- this is required for no empty line between end_env and previous latex block
+              el.content[#el.content].text = el.content[#el.content].text .. "\n" .. end_env
+            else
+              el.content:insert(pandoc.RawBlock("latex", end_env))
+            end
           elseif _quarto.format.isJatsOutput() then
             el = jatsTheorem(el,  nil, name )
           else
@@ -179,7 +139,7 @@ function jatsTheorem(el, label, title)
   --   </p>
   -- </statement> 
 
-  if title then
+  if #title > 0 then
     tprepend(el.content, {
       pandoc.RawBlock("jats", "<title>"),  
       pandoc.Plain(title), 
@@ -208,12 +168,11 @@ function captionPrefix(name, type, theoremType, order)
   local prefix = title(type, theoremType.title)
   table.insert(prefix, pandoc.Space())
   tappend(prefix, numberOption(type, order))
-  table.insert(prefix, pandoc.Space())
-  if name then
+  if #name > 0 then
+    table.insert(prefix, pandoc.Space())
     table.insert(prefix, pandoc.Str("("))
     tappend(prefix, name)
     table.insert(prefix, pandoc.Str(")"))
-    table.insert(prefix, pandoc.Space())
   end
   return prefix
 end
@@ -223,19 +182,17 @@ end
 function theoremLatexIncludes()
   
   -- determine which theorem types we are using
-  local types = theoremTypes
-  local refs = tkeys(crossref.index.entries)
-  local usingTheorems = crossref.usingTheorems
+  local using_theorems = crossref.using_theorems
   for k,v in pairs(crossref.index.entries) do
     local type = refType(k)
-    if types[type] then
-      usingTheorems = true
-      types[type].active = true
+    if theorem_types[type] then
+      using_theorems = true
+      theorem_types[type].active = true
     end
   end
   
   -- return requisite latex if we are using theorems
-  if usingTheorems then
+  if using_theorems then
     local secType 
     if crossrefOption("chapters", false) then 
       secType = "chapter" 
@@ -243,19 +200,22 @@ function theoremLatexIncludes()
       secType = "section" 
     end
     local theoremIncludes = "\\usepackage{amsthm}\n"
-    for _, type in ipairs(tkeys(types)) do
-      if types[type].active then
+    for _, type in ipairs(tkeys(theorem_types)) do
+      if theorem_types[type].active then
         theoremIncludes = theoremIncludes .. 
-          "\\theoremstyle{" .. types[type].style .. "}\n" ..
-          "\\newtheorem{" .. types[type].env .. "}{" .. 
-          titleString(type, types[type].title) .. "}[" .. secType .. "]\n"
+          "\\theoremstyle{" .. theorem_types[type].style .. "}\n" ..
+          "\\newtheorem{" .. theorem_types[type].env .. "}{" .. 
+          titleString(type, theorem_types[type].title) .. "}[" .. secType .. "]\n"
       end
     end
     theoremIncludes = theoremIncludes ..
       "\\theoremstyle{remark}\n" ..
       "\\AtBeginDocument{\\renewcommand*{\\proofname}{" .. envTitle("proof", "Proof") .. "}}\n" ..
       "\\newtheorem*{remark}{" .. envTitle("remark", "Remark") .. "}\n" ..
-      "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n"
+      "\\newtheorem*{solution}{" .. envTitle("solution", "Solution") .. "}\n" ..
+      "\\newtheorem{refremark}{" .. envTitle("remark", "Remark") .. "}[" .. secType .. "]\n" ..
+      "\\newtheorem{refsolution}{" .. envTitle("solution", "Solution") .. "}[" .. secType .. "]\n"
+
     return theoremIncludes
   else
     return nil

@@ -35,7 +35,7 @@ import {
   RenderType,
 } from "../../../render/notebook/notebook-types.ts";
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
 import { InternalError } from "../../../core/lib/error.ts";
 import { logProgress } from "../../../core/log.ts";
 import { kOutputFile } from "../../../config/constants.ts";
@@ -161,6 +161,7 @@ export const manuscriptRenderer = (
       const notebookMetadata = {
         title: title || basename(input),
         filename: basename(input),
+        backHref: parentOutputFiles["html"] || index,
         downloadHref: downloadHref || basename(input),
         downloadFile: basename(input),
       };

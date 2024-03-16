@@ -1,0 +1,38 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    orientation: columns
+    theme: journal
+---
+
+
+## Sidebar {.sidebar width=350}
+
+
+Sidebar controls
+
+
+## Contents
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red"
+)
+```
+
+### row
+
+```{r}
+plot(cars)
+```
+
+
+```{r}
+plot(mtcars)
+```
+
+
+

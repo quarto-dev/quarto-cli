@@ -54,7 +54,7 @@ $h3-font-size:                2rem !default;
 
 // Tables
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Dropdowns
 
@@ -64,9 +64,9 @@ $dropdown-link-hover-bg:            $primary !default;
 
 // Navs
 
-$nav-link-padding-y:                .5rem !default !default;
+$nav-link-padding-y:                .5rem !default;
 $nav-link-padding-x:                2rem !default;
-$nav-link-disabled-color:           $gray-600 !default !default;
+$nav-link-disabled-color:           $gray-600 !default;
 $nav-tabs-border-color:             $gray-200 !default;
 
 // Navbar
@@ -170,8 +170,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
 }
 
 .alert {
-  border: none;
   color: $white;
+  border: none;
 
   a,
   .alert-link {
@@ -201,9 +201,10 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0
 // Containers
 
 .modal,
-.toast {
+.toast,
+.offcanvas {
   .btn-close {
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'><path d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/></svg>");
+    background-image: escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='#{$black}'><path d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/></svg>"));
   }
 }
 

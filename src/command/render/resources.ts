@@ -4,13 +4,14 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../deno_ral/path.ts";
 import {
   normalizePath,
   ResolvedPathGlobs,
   resolvePathGlobs,
   safeExistsSync,
 } from "../../core/path.ts";
+import * as ld from "../../core/lodash.ts";
 import { engineIgnoreGlobs } from "../../execute/engine.ts";
 import { kQuartoScratch } from "../../project/project-scratch.ts";
 import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extract-resources.ts";
@@ -50,7 +51,10 @@ export async function resolveFileResources(
       ...excludeDirs,
     );
 
-  const resources = resolvePathGlobs(fileDir, globs, ignore);
+  const resources = resolvePathGlobs(fileDir, globs, ignore, {
+    mode: "always",
+    explicitSubfolderSearch: true,
+  });
   if (markdown.length > 0 && !skipOjsDiscovery) {
     resources.include.push(
       ...(await extractResolvedResourceFilenamesFromQmd(
@@ -128,5 +132,6 @@ export async function resourceFilesFromFile(
       }
     },
   );
-  return resourceFiles;
+  // return  unique entries
+  return ld.uniq(resourceFiles) as string[];
 }

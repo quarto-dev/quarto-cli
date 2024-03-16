@@ -1,0 +1,32 @@
+---
+title: Card Advanced
+format: 
+  dashboard:
+    orientation: columns
+    fill: true
+---
+
+:::{.tabset title="Reports on the set of cool stuff"}
+
+```{r}
+#| title: Historical Cars
+plot(cars)
+```
+
+```{r}
+#| title: Summary Iris
+plot(iris)
+plot(mtcars)
+```
+
+
+```{r}
+#| title: Text
+#| layout: [[100],[50,50]]
+
+plot(cars)
+plot(iris)
+plot(mtcars)
+```
+
+:::

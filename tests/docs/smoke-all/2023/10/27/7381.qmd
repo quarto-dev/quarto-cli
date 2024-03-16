@@ -1,0 +1,27 @@
+---
+title: test
+code-fold: show
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["details.code-fold"]
+        - ["div.figure-content details.code-fold"]
+---
+
+::: {#fig-1}
+
+::: {.figure-content}
+  
+```{r}
+#| code-fold: true
+plot(1:100)
+```
+
+:::
+
+A caption.
+
+:::
+
+See @fig-1.

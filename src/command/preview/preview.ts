@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "log/mod.ts";
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { info, warning } from "../../deno_ral/log.ts";
+import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import * as ld from "../../core/lodash.ts";
@@ -33,14 +33,14 @@ import { kQuartoRenderCommand } from "../render/constants.ts";
 
 import {
   previewUnableToRenderResponse,
-  previewURL,
-  printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
   renderToken,
-  rswURL,
 } from "../render/render-shared.ts";
-import { renderServices } from "../render/render-services.ts";
+import {
+  renderServices,
+  withRenderServices,
+} from "../render/render-services.ts";
 import {
   RenderFlags,
   RenderResult,
@@ -58,7 +58,6 @@ import {
   pdfJsFileHandler,
 } from "../../core/pdfjs.ts";
 import {
-  kProjectType,
   kProjectWatchInputs,
   ProjectContext,
   ProjectPreview,
@@ -71,10 +70,9 @@ import {
   safeExistsSync,
 } from "../../core/path.ts";
 import {
-  isJupyterHubServer,
   isRStudio,
-  isRStudioServer,
   isRStudioWorkbench,
+  isServerSession,
   isVSCodeServer,
   vsCodeServerProxyUri,
 } from "../../core/platform.ts";
@@ -96,7 +94,13 @@ import { findOpenPort, waitForPort } from "../../core/port.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { staticResource } from "../../preview/preview-static.ts";
 import { previewTextContent } from "../../preview/preview-text.ts";
-import { projectType } from "../../project/types/project-types.ts";
+import {
+  previewURL,
+  printBrowsePreviewMessage,
+  rswURL,
+} from "../../core/previewurl.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export async function resolvePreviewOptions(
   options: ProjectPreview,
@@ -142,19 +146,20 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
+  const nbContext = notebookContext();
   // see if this is project file
-  const project = await projectContext(file);
+  const project = await projectContext(file, nbContext);
 
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
-  const format = await previewFormat(file, flags.to, project);
+  const format = await previewFormat(file, flags.to, undefined, project);
   setPreviewFormat(format, flags, pandocArgs);
 
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
   const render = async (to?: string) => {
     const renderFlags = { ...flags, to: to || flags.to };
-    const services = renderServices();
+    const services = renderServices(nbContext);
     try {
       HttpDevServerRenderMonitor.onRenderStart();
       isRendering = true;
@@ -247,7 +252,7 @@ export async function preview(
     : "";
   if (
     options.browser &&
-    !isRStudioServer() && !isRStudioWorkbench() && !isJupyterHubServer() &&
+    !isServerSession() &&
     isBrowserPreviewable(result.outputFile)
   ) {
     await openUrl(previewURL(options.host!, options.port!, initialPath));
@@ -335,14 +340,19 @@ export function previewRenderRequest(
 
 export async function previewRenderRequestIsCompatible(
   request: PreviewRenderRequest,
-  flags: RenderFlags,
+  format?: string,
   project?: ProjectContext,
 ) {
   if (request.version === 1) {
     return true; // rstudio manages its own request compatibility state
   } else {
-    const format = await previewFormat(request.path, request.format, project);
-    return format === flags.to;
+    const reqFormat = await previewFormat(
+      request.path,
+      request.format,
+      undefined,
+      project,
+    );
+    return reqFormat === format;
   }
 }
 
@@ -350,11 +360,21 @@ export async function previewRenderRequestIsCompatible(
 export async function previewFormat(
   file: string,
   format?: string,
+  formats?: Record<string, Format>,
   project?: ProjectContext,
 ) {
-  format = format ||
-    Object.keys(await renderFormats(file, "all", project))[0] ||
-    "html";
+  if (format) {
+    return format;
+  }
+  const nbContext = notebookContext();
+  project = project || singleFileProjectContext(file, nbContext);
+  formats = formats ||
+    await withRenderServices(
+      nbContext,
+      (services: RenderServices) =>
+        renderFormats(file, services, "all", project!),
+    );
+  format = Object.keys(formats)[0] || "html";
   return format;
 }
 
@@ -370,7 +390,6 @@ export function setPreviewFormat(
 export function handleRenderResult(
   file: string,
   renderResult: RenderResult,
-  project?: ProjectContext,
 ) {
   // print output created
   const finalOutput = renderResultFinalOutput(
@@ -380,25 +399,11 @@ export function handleRenderResult(
   if (!finalOutput) {
     throw new Error("No output created by quarto render " + basename(file));
   }
-  const projType = project
-    ? projectType(
-      project.config?.project?.[kProjectType],
-    )
-    : undefined;
-
-  if (projType && projType.filterOutputFile) {
-    info(
-      "Output created: " + projType.filterOutputFile(finalOutput) +
-        "\n",
-    );
-  } else {
-    info("Output created: " + finalOutput + "\n");
-  }
-
+  info("Output created: " + finalOutput + "\n");
   return finalOutput;
 }
 
-interface RenderForPreviewResult {
+export interface RenderForPreviewResult {
   file: string;
   format: Format;
   outputFile: string;
@@ -406,7 +411,7 @@ interface RenderForPreviewResult {
   resourceFiles: string[];
 }
 
-async function renderForPreview(
+export async function renderForPreview(
   file: string,
   services: RenderServices,
   flags: RenderFlags,
@@ -419,13 +424,14 @@ async function renderForPreview(
     flags,
     pandocArgs: pandocArgs,
     previewServer: true,
+    setProjectDir: project !== undefined,
   });
   if (renderResult.error) {
     throw renderResult.error;
   }
 
   // print output created
-  const finalOutput = handleRenderResult(file, renderResult, project);
+  const finalOutput = handleRenderResult(file, renderResult);
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();
@@ -482,15 +488,17 @@ async function renderForPreview(
   };
 }
 
-interface ChangeHandler {
+export interface ChangeHandler {
   render: () => Promise<RenderForPreviewResult | undefined>;
 }
 
-function createChangeHandler(
+export function createChangeHandler(
   result: RenderForPreviewResult,
-  reloader: HttpDevServer,
+  reloader: { reloadClients: (reloadTarget?: string) => Promise<void> },
   render: (to?: string) => Promise<RenderForPreviewResult | undefined>,
   renderOnChange: boolean,
+  reloadFileFilter: (file: string) => boolean = () => true,
+  ignoreChanges?: (files: string[]) => boolean,
 ): ChangeHandler {
   const renderQueue = new PromiseQueue<RenderForPreviewResult | undefined>();
   let watcher: Watcher | undefined;
@@ -564,7 +572,7 @@ function createChangeHandler(
         : "";
 
       watches.push({
-        files: reloadFiles,
+        files: reloadFiles.filter(reloadFileFilter),
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
             await reloader.reloadClients(reloadTarget);
@@ -573,7 +581,7 @@ function createChangeHandler(
         }, 50),
       });
 
-      watcher = previewWatcher(watches);
+      watcher = previewWatcher(watches, ignoreChanges);
       watcher.start();
     }
   };
@@ -593,7 +601,10 @@ interface Watcher {
   stop: VoidFunction;
 }
 
-function previewWatcher(watches: Watch[]): Watcher {
+function previewWatcher(
+  watches: Watch[],
+  ignoreChanges?: (files: string[]) => boolean,
+): Watcher {
   existsSync;
   watches = watches.map((watch) => {
     return {
@@ -614,7 +625,10 @@ function previewWatcher(watches: Watch[]): Watcher {
   const watchForChanges = async () => {
     for await (const event of fsWatcher) {
       try {
-        if (event.kind === "modify") {
+        if (
+          event.kind === "modify" &&
+          (!ignoreChanges || !ignoreChanges(event.paths))
+        ) {
           const handlers = new Set<() => Promise<void>>();
           event.paths.forEach((path) => {
             const handler = handlerForFile(path);
@@ -720,7 +734,7 @@ function htmlFileRequestHandlerOptions(
           prevReq &&
           existsSync(prevReq.path) &&
           normalizePath(prevReq.path) === normalizePath(inputFile) &&
-          await previewRenderRequestIsCompatible(prevReq, flags)
+          await previewRenderRequestIsCompatible(prevReq, flags.to)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply

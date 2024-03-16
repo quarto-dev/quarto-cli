@@ -1,0 +1,35 @@
+---
+title: Python Subfig Test
+format: jats
+# FIXME: we're now emitting "boxed-text", need to figure out what that's about.
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - //code[@language="python"] # tests if subfloat preamble was included
+          - '//fig[@id="fig-plots"]//caption'
+          - '//fig//fig[@id="fig-plots-1"]//caption'
+          - '//fig//fig[@id="fig-plots-2"]//caption'
+        - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plots
+#| fig-cap: "Plots" 
+#| fig-subcap:
+#|   - "Plot 1"
+#|   - "Plot 2" 
+#| layout-ncol: 2
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+
+plt.plot([8,65,23,90])
+plt.show()
+```
+
+See @fig-plots for examples. In particular, @fig-plots-2.

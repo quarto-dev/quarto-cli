@@ -1,0 +1,22 @@
+---
+title: Knitr Crossref Test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"fig-plot\"]//w:t[contains(text(), \"Figure\u00a01\")]"
+        - []
+---
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

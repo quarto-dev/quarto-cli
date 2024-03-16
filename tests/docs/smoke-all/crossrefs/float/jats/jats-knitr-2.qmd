@@ -1,0 +1,31 @@
+---
+title: Knitr Crossref Test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"fig-plot\"]//caption//italic" # markdown test
+          - "//fig[@id=\"fig-plot\"]//caption//inline-formula//tex-math" # math processing test
+          - "//fig[@id=\"fig-plot\"]//caption//inline-formula//mml:math" # math processing test
+          - "//fig[@id=\"fig-plot\"]//graphic"
+          - "//xref[@rid=\"fig-plot\"]"
+---
+
+
+This tests:
+
+- float figures from knitr
+- Markdown support for captions from knitr
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Fancy *caption* with math: $e=mc^2$"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

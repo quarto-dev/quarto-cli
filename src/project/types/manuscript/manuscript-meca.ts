@@ -15,21 +15,21 @@ import { kProjectType, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
 import {
-  basename,
   dirname,
   globToRegExp,
   isAbsolute,
   join,
   relative,
   SEP,
-} from "path/mod.ts";
-import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
+} from "../../../deno_ral/path.ts";
+import { copySync, ensureDirSync, moveSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
 import {
   kEnvironmentFiles,
   kMecaBundle,
   ManuscriptConfig,
+  ManuscriptOutputBundle,
   ResolvedManuscriptConfig,
 } from "./manuscript-types.ts";
 import { Format } from "../../../config/types.ts";
@@ -40,37 +40,21 @@ import * as ld from "../../../core/lodash.ts";
 import { projectType } from "../project-types.ts";
 import { engineIgnoreDirs } from "../../../execute/engine.ts";
 import { lsFiles } from "../../../core/git.ts";
+import { info } from "../../../deno_ral/log.ts";
+import {
+  isDevContainerFile,
+  isReesEnvronmentFile,
+} from "../../../core/container.ts";
 
 const kArticleMetadata = "article-metadata";
 const kArticleSupportingFile = "article-supporting-file";
 const kArticleSource = "article-source";
-const kArticleSourceDirectory = "article-source-directory";
 const kArticleSourceEnvironment = "article-source-environment";
 const kManuscript = "manuscript";
 const kManuscriptSupportingFile = "manuscript-supporting-file";
 
 const kSrcDirName = "source";
-
-// REES Compatible execution files
-// from https://repo2docker.readthedocs.io/en/latest/config_files.html#config-files
-const kExecutionFiles = [
-  "environment.yml",
-  "requirements.txt",
-  "renv.lock",
-  "Pipfile",
-  "Pipfile.lock",
-  "setup.py",
-  "Project.toml",
-  "REQUIRE",
-  "install.R",
-  "apt.txt",
-  "DESCRIPTION",
-  "postBuild",
-  "start",
-  "runtime.txt",
-  "default.nix",
-  "Dockerfile",
-];
+const kSrcDirMecaType = "article-source-directory";
 
 const kMecaSuffix = "-meca.zip";
 
@@ -86,7 +70,7 @@ export const shouldMakeMecaBundle = (
 
     // See if we're producing JATS, then enable it
     return formats.find((format) => {
-      if (typeof (format) === "string") {
+      if (typeof format === "string") {
         return isJatsOutput(format);
       } else {
         return isJatsOutput(format.pandoc);
@@ -113,6 +97,7 @@ export const createMecaBundle = async (
   outputDir: string,
   outputFiles: ProjectOutputFile[],
   manuscriptConfig: ResolvedManuscriptConfig,
+  otherOutputBundle?: ManuscriptOutputBundle,
 ) => {
   const workingDir = globalTempContext().createDir();
 
@@ -142,7 +127,7 @@ export const createMecaBundle = async (
 
   const srcType = (path: string) => {
     return !hasExplicitEnvironment &&
-        kExecutionFiles.includes(basename(path))
+          isReesEnvronmentFile(path) || isDevContainerFile(path)
       ? kArticleSourceEnvironment
       : kArticleSource;
   };
@@ -165,8 +150,15 @@ export const createMecaBundle = async (
 
   // If git is available, use the ls-files command to enumerate the
   // tracked files and use that to build the source list
-  const gitFiles = await lsFiles(context.dir);
+  let gitFiles = await lsFiles(context.dir);
   if (gitFiles) {
+    const unstagedDeletes = await (lsFiles(context.dir, ["--deleted"]));
+    if (unstagedDeletes) {
+      gitFiles = gitFiles.filter((file) => {
+        return !unstagedDeletes.includes(file);
+      });
+    }
+
     for (const file of gitFiles) {
       // Find execution resources and include them in the bundle
       // (if they weren't explicitly assigned)
@@ -194,6 +186,15 @@ export const createMecaBundle = async (
     const item = toMecaItem(relPath, type);
     sourceFiles.push(item);
     sourceZipFiles.push(relPath);
+  };
+
+  // Create a meca item for the source directory itself
+  const srcDirMetaItem = {
+    type: kSrcDirMecaType,
+    instance: {
+      mediaType: "application/x-directory",
+      href: kSrcDirName,
+    },
   };
 
   for (const path of Object.keys(srcFiles)) {
@@ -235,7 +236,7 @@ export const createMecaBundle = async (
       const targetDir = dirname(target);
       ensureDirSync(targetDir);
       if (move) {
-        Deno.renameSync(input, target);
+        moveSync(input, target);
       } else {
         copySync(input, target, { overwrite: true });
       }
@@ -271,6 +272,56 @@ export const createMecaBundle = async (
         manuscriptZipFiles.push(workingPath);
       });
     }
+
+    // Deal with 'other manuscript'
+    if (otherOutputBundle) {
+      if (otherOutputBundle.manuscript) {
+        const relativePath = toWorkingDir(
+          otherOutputBundle.manuscript,
+          relative(outputDir, otherOutputBundle.manuscript),
+          false,
+        );
+        articleRenderingPaths.push(relativePath);
+      }
+
+      // Deal with 'other supporting'
+      for (const otherSupporting of otherOutputBundle.supporting) {
+        const relativePath = toWorkingDir(
+          otherSupporting,
+          relative(outputDir, otherSupporting),
+          false,
+        );
+        const isDir = Deno.statSync(otherSupporting).isDirectory;
+
+        const otherItems = mecaItemsForPath(
+          workingDir,
+          relativePath,
+          "manuscript",
+          isDir,
+        );
+        manuscriptResources.push(...otherItems);
+
+        // Note to include in zip
+        manuscriptZipFiles.push(relativePath);
+      }
+    }
+
+    const msg = (count: number, nameSing: string, namePlur: string) => {
+      if (count === 1) {
+        info(`  ${count} ${nameSing}`);
+      } else if (count > 1) {
+        info(`  ${count} ${namePlur}`);
+      }
+    };
+
+    // +1 for the manuscript file itself
+    msg(
+      1 + manuscriptResources.length + articleRenderingPaths.length,
+      "article file",
+      "article files",
+    );
+    msg(Object.keys(srcFiles).length, "source file", "source files");
+
     // Copy resources
     const resources = [];
     resources.push(...jatsArticle.resources);
@@ -283,6 +334,7 @@ export const createMecaBundle = async (
     notebooks.forEach((notebook) => {
       resources.push(notebook.notebook);
     });
+    msg(notebooks.length, "notebook", "notebooks");
 
     resources.forEach((file) => {
       const relPath = isAbsolute(file) ? relative(context.dir, file) : file;
@@ -300,6 +352,7 @@ export const createMecaBundle = async (
       // Note to include in zip
       manuscriptZipFiles.push(workingPath);
     });
+    msg(resources.length, "other file", "other files");
 
     // Generate a manifest
     const articleItem = toMecaItem(articlePath, kArticleMetadata);
@@ -313,8 +366,11 @@ export const createMecaBundle = async (
         ...renderedItems,
         ...manuscriptResources,
         ...sourceFiles,
+        srcDirMetaItem,
       ],
     };
+
+    info("");
 
     // Write the manifest
     const manifestFile = "manifest.xml";

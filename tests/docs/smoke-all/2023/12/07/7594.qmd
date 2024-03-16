@@ -1,0 +1,22 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.cell-annotation"]
+        - ["ol"]
+---
+
+```{r}
+#| layout-ncol: 1
+#| fig-cap: "Caption."
+#| fig-subcap:
+#|   - "Subcaption 2."
+#|   - "Subcaption 1."
+#| label: fig-label
+library(ggplot2)
+ggplot(data = mtcars, aes(y = mpg, x = wt)) + geom_point() # <1>
+ggplot(data = mtcars, aes(y = mpg, x = wt)) + geom_point()
+```
+1. Code-annotation.

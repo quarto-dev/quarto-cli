@@ -1,0 +1,38 @@
+---
+title: float crossref test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<fig-foo>"
+          - "<tbl-foo>"
+          - "@fig-foo"
+          - "@tbl-foo"
+          - "This is the figure"
+          - "This is the table"
+---
+
+This tests:
+
+- div float with image element as payload.
+- div float with image element as payload for non-figure floats.
+
+
+::: {#fig-foo}
+![](img/surus.jpg)
+
+This is the figure
+:::
+See @fig-foo for more.
+
+
+::: {#tbl-foo}
+![](img/surus.jpg)
+
+This is the table
+:::
+See @tbl-foo for more.
+

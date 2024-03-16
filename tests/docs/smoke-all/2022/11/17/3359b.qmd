@@ -1,9 +1,13 @@
 ---
 title: "MEW"
-format:
-  pdf:
-    pdf-engine: latexmk
-    pdf-engine-opts: ["-pdflua"]
+# FIXME: 2023-10-16, removing this format block from our suite
+#     because it hangs github action's CI intermittently;
+#     The test passes locally, and we don't understand it.
+#
+# format:
+#   pdf:
+#     pdf-engine: latexmk
+#     pdf-engine-opts: ["-pdflua"]
 ---
 
 ## Quarto

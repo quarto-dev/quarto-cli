@@ -1,0 +1,44 @@
+---
+title: float crossref test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"fig-1\"]//caption"
+          - "//fig[@id=\"tbl-1\"]//caption"
+          - "//xref[@rid=\"fig-1\"]"
+          - "//xref[@rid=\"tbl-1\"]"
+        - []
+---
+
+This tests:
+
+- custom content in floats
+- classes of float captions
+
+::: {#fig-1}
+
+::: {.figure-content}
+This is the figure content.
+:::
+
+This is a caption.
+
+:::
+
+See @fig-1.
+
+
+::: {#tbl-1}
+
+::: {.table-content}
+This is the table content.
+:::
+
+This is a table.
+
+:::
+
+See @tbl-1.

@@ -5,9 +5,8 @@
 *
 */
 
-import { info } from "log/mod.ts";
-import { dirname } from "path/mod.ts";
-import { extname } from "../../../src/vendor/deno.land/std@0.185.0/path/win32.ts";
+import { info } from "../../../src/deno_ral/log.ts";
+import { dirname, extname } from "../../../src/deno_ral/path.ts";
 
 export async function makeTarball(
   input: string,

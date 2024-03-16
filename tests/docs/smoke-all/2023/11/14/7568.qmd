@@ -1,0 +1,40 @@
+---
+format: latex
+_quarto:
+  tests:
+    pdf: null
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - '\\#mutate\(speed \= speed \* 2\)'
+          - '\\CommentTok\{\\# with a comment \}'
+          - '\\CommentTok\{// return \}'
+          - '\\CommentTok\{// let greeting \= name \+ hello; \}'
+          - '\\circled\{1\}'
+          - '\\circled\{2\}'
+          - '\\circled\{3\}'
+        - []
+---
+
+```r
+library(dplyr)
+cars %>%  # <1>
+  #mutate(speed = speed * 2) %>%  # <2>
+  mutate(speed = speed * 4) # with a comment # <3>
+```
+
+1. test1
+2. test2
+3. test3
+
+```js
+let name = "Bingo"; // <1>
+name;
+let hello = " dit bonjour&nbsp;!";
+hello; // return // <2>
+// let greeting = name + hello; // <3>
+```
+
+1. test1
+2. test2
+3. test3

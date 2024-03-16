@@ -32,12 +32,12 @@ import {
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 
 export const qmdNotebookContributor: NotebookContributor = {
   resolve: resolveOutputNotebook,
@@ -104,6 +104,7 @@ function resolveOutputNotebook(
   resolved.recipe.format.metadata[kRemoveHidden] = "none";
   resolved.recipe.format.metadata[kIPynbTitleBlockTemplate] = template;
   resolved.recipe.format.render[kIpynbProduceSourceNotebook] = true;
+  resolved.recipe.format.pandoc.citeproc = false;
 
   // Configure markdown behavior for this rendering
   resolved.recipe.format.metadata[kUnrollMarkdownCells] = false;
@@ -114,8 +115,8 @@ async function renderOutputNotebook(
   _format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  _notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  _notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   const rendered = await renderFile(
     { path: nbPath, formats: ["ipynb"] },
@@ -127,6 +128,7 @@ async function renderOutputNotebook(
           [kOutputFile]: ipynbOutputFile(nbPath),
           [kNotebookPreserveCells]: true,
           [kIpynbProduceSourceNotebook]: true,
+          citeproc: false,
         },
         quiet: false,
       },
@@ -136,6 +138,7 @@ async function renderOutputNotebook(
     },
     services,
     project,
+    false, // Don't enforce project constraints on format since this is an intermediary rendering
   );
 
   // An error occurred rendering this subarticle
@@ -156,5 +159,5 @@ async function renderOutputNotebook(
 
 function ipynbOutputFile(nbAbsPath: string) {
   const [_dir, stem] = dirAndStem(nbAbsPath);
-  return `${stem}.ipynb`;
+  return `${stem}.embed.ipynb`;
 }

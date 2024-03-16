@@ -12,28 +12,21 @@ _quarto.ast.add_handler({
   -- the name of the ast node, used as a key in extended ast filter tables
   ast_name = "DecoratedCodeBlock",
 
-  -- callouts will be rendered as blocks
+  -- DecoratedCodeblocks will be rendered as blocks
   kind = "Block",
+
+  slots = { "code_block" },
 
   -- a function that takes the div node as supplied in user markdown
   -- and returns the custom node
   parse = function(div)
     -- luacov: disable
-    fatal("internal error, DecoratedCodeBlock has no native parser")
+    internal_error()
     -- luacov: enable
   end,
 
   constructor = function(tbl)
-    local caption = tbl.caption
-    if tbl.code_block.attributes["lst-cap"] ~= nil then
-      caption = pandoc.read(tbl.code_block.attributes["lst-cap"], "markdown").blocks[1].content
-    end
-    return {
-      filename = tbl.filename,
-      order = tbl.order,
-      caption = caption,
-      code_block = tbl.code_block
-    }
+    return tbl
   end
 })
 
@@ -45,7 +38,9 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     return true
   end,
   function(node)
-    return node.code_block
+    return _quarto.ast.walk(node.code_block, {
+      CodeBlock = render_folded_block
+    })
   end)
 
 -- markdown renderer
@@ -62,29 +57,43 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     -- But that'll be done in 1.4 with crossrefs overhaul.
 
     if node.filename then
+      -- a user filter could have replaced
+      -- a single code block in a decorated code block with a list of elements,
+      -- so we need to handle that.
+      local blocks = quarto.utils.as_blocks(el) or pandoc.Blocks({})
       -- if we have a filename, add it as a header
+      blocks:insert(1, pandoc.Plain{pandoc.Strong{pandoc.Str(node.filename)}})
       return pandoc.Div(
-        { pandoc.Plain{pandoc.Strong{pandoc.Str(node.filename)}}, el },
+        blocks,
         pandoc.Attr("", {"code-with-filename"})
       )
     else
-      return el
+      return _quarto.ast.walk(quarto.utils.as_blocks(el), {
+        CodeBlock = render_folded_block
+      })
     end
   end)
 
--- latex renderer
+  -- latex renderer
 _quarto.ast.add_renderer("DecoratedCodeBlock",
   function(_)
     return _quarto.format.isLatexOutput()    
   end,
   function(node)
-    local el = node.code_block
     -- add listing class to the code block
-    el.attr.classes:insert("listing")
+    -- need to walk the code block instead of assigning directly
+    -- because upstream filters might have replaced the code block with
+    -- more than one element
+    node.code_block = _quarto.ast.walk(quarto.utils.as_blocks(node.code_block), {
+      CodeBlock = function(el)
+        el.attr.classes:insert("listing")
+        return render_folded_block(el)
+      end
+    }) or node.code_block -- unneeded but the Lua analyzer doesn't know that
 
     -- if we are use the listings package we don't need to do anything
     -- further, otherwise generate the listing div and return it
-    if not latexListings() then
+    if not param("listings", false) then
       local listingDiv = pandoc.Div({})
       local position = ""
       if _quarto.format.isBeamerOutput() then
@@ -99,7 +108,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         -- with both filename and captionContent we need to add a colon
         local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
         listingCaption.content:insert(
-          pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}: ")
+          pandoc.RawInline("latex", "\\texttt{" .. stringEscape(node.filename, "latex") .. "}: ")
         )
         listingCaption.content:extend(captionContent)
         listingCaption.content:insert(pandoc.RawInline("latex", "}"))
@@ -108,7 +117,7 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
         -- with just filename we don't add a colon
         listingCaption.content:insert(
-          pandoc.RawInline("latex", "\\texttt{" .. node.filename .. "}")
+          pandoc.RawInline("latex", "\\texttt{" .. stringEscape(node.filename, "latex") .. "}")
         )
         listingCaption.content:insert(pandoc.RawInline("latex", "}"))
         listingDiv.content:insert(listingCaption)
@@ -119,11 +128,14 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
         listingDiv.content:insert(listingCaption)
       end
 
-      listingDiv.content:insert(el)
+      -- a user filter could have replaced
+      -- a single code block in a decorated code block with a list of elements,
+      -- so we need to handle that.
+      listingDiv.content:extend(quarto.utils.as_blocks(node.code_block) or {})
       listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
       return listingDiv
     end
-    return el
+    return node.code_block
   end)
 
 -- html renderer
@@ -132,46 +144,40 @@ _quarto.ast.add_renderer("DecoratedCodeBlock",
     return _quarto.format.isHtmlOutput()
   end,
   function(node)
+    if node.filename == nil then
+      return _quarto.ast.walk(quarto.utils.as_blocks(node.code_block), {
+        CodeBlock = render_folded_block
+      })
+    end
     local el = node.code_block
     local filenameEl
     local caption
     local classes = pandoc.List()
-    local fancy_output = false
-    if node.filename ~= nil then
-      filenameEl = pandoc.Div({pandoc.Plain{
-        pandoc.RawInline("html", "<pre>"),
-        pandoc.Strong{pandoc.Str(node.filename)},
-        pandoc.RawInline("html", "</pre>")
-      }}, pandoc.Attr("", {"code-with-filename-file"}))
-      classes:insert("code-with-filename")
-      fancy_output = true
-    end
-    if node.caption ~= nil then
-      local order = node.order
-      if order == nil then
-        warn("Node with caption " .. pandoc.utils.stringify(node.caption) .. " is missing a listing id (lst-*).")
-        warn("This usage is unsupported in HTML formats.")
-        return el
-      end
-      local captionContent = node.caption
-      tprepend(captionContent, listingTitlePrefix(order))
-      caption = pandoc.Para(captionContent)
-      classes:insert("listing")
-      fancy_output = true
-    end
-
-    if not fancy_output then
-      return el
-    end
+    filenameEl = pandoc.Div({pandoc.Plain{
+      pandoc.RawInline("html", "<pre>"),
+      pandoc.Strong{pandoc.Str(node.filename)},
+      pandoc.RawInline("html", "</pre>")
+    }}, pandoc.Attr("", {"code-with-filename-file"}))
+    classes:insert("code-with-filename")
 
     local blocks = pandoc.Blocks({})
     if caption ~= nil then
       blocks:insert(caption)
     end
+    el = _quarto.ast.walk(quarto.utils.as_blocks(el), {
+      CodeBlock = render_folded_block
+    }) or pandoc.Blocks({})
     if filenameEl ~= nil then
-      blocks:insert(filenameEl)
+      el = _quarto.ast.walk(quarto.utils.as_blocks(el), {
+        CodeBlock = function(block)
+          return pandoc.Blocks({
+            filenameEl,
+            block
+          })
+        end
+      }) or pandoc.Blocks({})
     end
-    blocks:insert(el)
+    blocks:extend(el)
 
     return pandoc.Div(blocks, pandoc.Attr("", classes))
   end)

@@ -5,10 +5,10 @@
  */
 
 import { stringify } from "yaml/mod.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { kTitle } from "../../config/constants.ts";
-import { Metadata } from "../../publish/netlify/api/index.ts";
+import { Metadata } from "../../config/types.ts";
 import { lines } from "../lib/text.ts";
 import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
@@ -135,17 +135,17 @@ export function fixupBokehCells(nb: JupyterNotebook): JupyterNotebook {
   return nb;
 }
 
-export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
-  // helper to generate yaml
-  const asYamlText = (yaml: Metadata) => {
-    return stringify(yaml, {
-      indent: 2,
-      lineWidth: -1,
-      sortKeys: false,
-      skipInvalid: true,
-    });
-  };
+// helper to generate yaml
+export function asYamlText(yaml: Metadata) {
+  return stringify(yaml, {
+    indent: 2,
+    lineWidth: -1,
+    sortKeys: false,
+    skipInvalid: true,
+  });
+}
 
+export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   // helper to create nb lines (w/ newline after)
   const nbLines = (lns: string[]) => {
     return lns.map((line) => line.endsWith("\n") ? line : `${line}\n`);
@@ -171,19 +171,25 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
     return nb;
   }
 
-  // snip the title out of the markdown
+  // Check the first non-front matter (or front matter cell)
+  // for a heading that could be snipped out
   let title: string | undefined;
+  let currentCellIdx = 0;
   for (const cell of nb.cells) {
     if (cell.cell_type === "markdown") {
-      const { lines, headingText } = markdownWithExtractedHeading(
-        nbLines(cell.source).join(""),
-      );
-      if (headingText) {
+      const { lines, headingText, contentBeforeHeading } =
+        markdownWithExtractedHeading(
+          nbLines(cell.source).join(""),
+        );
+      if (headingText && !contentBeforeHeading) {
         title = headingText;
         cell.source = nbLines(lines);
         break;
+      } else if (currentCellIdx !== frontMatterCellIndex) {
+        break;
       }
     }
+    currentCellIdx++;
   }
 
   // if there is no title then we are done (the doc will have no title)
@@ -219,17 +225,13 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
 
 type JupyterFixup = (nb: JupyterNotebook) => JupyterNotebook;
 
-const defaultFixups: ((
-  nb: JupyterNotebook,
-) => JupyterNotebook)[] = [
+export const defaultFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupFrontMatter,
   fixupStreams,
 ];
 
-const minimalFixups: ((
-  nb: JupyterNotebook,
-) => JupyterNotebook)[] = [
+export const minimalFixups: JupyterFixup[] = [
   fixupBokehCells,
   fixupStreams,
 ];
@@ -241,13 +243,17 @@ export const bookFixups: JupyterFixup[] = [
 
 export function fixupJupyterNotebook(
   nb: JupyterNotebook,
-  nbFixups: "minimal" | "default",
-  explicitFixups?: JupyterFixup[],
+  fixups: JupyterFixup[] | "minimal" | "default",
 ): JupyterNotebook {
-  const fixups = explicitFixups || nbFixups === "minimal"
-    ? minimalFixups
-    : defaultFixups;
-  for (const fixup of fixups) {
+  let nbFixups: JupyterFixup[] | undefined;
+  if (fixups === "minimal") {
+    nbFixups = minimalFixups;
+  } else if (fixups === "default") {
+    nbFixups = defaultFixups;
+  } else {
+    nbFixups = fixups;
+  }
+  for (const fixup of nbFixups) {
     nb = fixup(nb);
   }
   return nb;

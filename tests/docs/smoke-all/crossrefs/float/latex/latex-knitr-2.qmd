@@ -1,0 +1,27 @@
+---
+title: Knitr Crossref Test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - []
+---
+
+
+This tests:
+
+- float figures from knitr
+- Markdown support for captions from knitr
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Fancy _caption_ with math: $e=mc^2$"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

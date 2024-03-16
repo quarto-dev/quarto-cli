@@ -1,0 +1,35 @@
+---
+engine: knitr
+format: 
+  html:
+    fig-asp: 0.5
+    fig-width: 30
+    fig-dpi: 9
+    fig-format: png
+    df-print: kable
+execute:
+ echo: false
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "dpi: 9"
+          - "fig[.]asp: 0[.]5"
+          - "fig[.]width: 30"
+          - "dev: png"
+          - "df_print: kable"
+---
+
+## Options 
+
+```{r}
+#| output: asis
+opts <- knitr::opts_current$get(c("dpi", "fig.asp", "fig.width", "dev"))
+cat(paste0("* ", names(opts), ": ", opts), sep = "\n")
+```
+
+```{r}
+#| output: asis
+cat(paste0("* df_print: ", knitr::opts_knit$get("rmarkdown.df_print")))
+```

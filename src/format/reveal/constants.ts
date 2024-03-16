@@ -22,3 +22,4 @@ export const kAutoAnimateEasing = "autoAnimateEasing";
 export const kAutoAnimateDuration = "autoAnimateDuration";
 export const kAutoAnimateUnmatched = "autoAnimateUnmatched";
 export const kAutoStretch = "auto-stretch";
+export const kCodeBlockHeight = "code-block-height";

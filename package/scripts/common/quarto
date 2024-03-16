@@ -20,7 +20,7 @@ else
 fi
 
 # Check if we are running 'Dev Mode' and if so, override values for devs
-SCRIPT_BASENAME=$(basename $SCRIPT_PATH)
+SCRIPT_BASENAME=$(basename "$SCRIPT_PATH")
 if [ "${SCRIPT_BASENAME}" == "bin" ]; then
   # we can be running dev mode with a symlink to the package/dist/bin folder. In this case, our relative path is two levels up.
   export QUARTO_ROOT="`cd "$SCRIPT_PATH/../../.." > /dev/null 2>&1 && pwd`"
@@ -49,7 +49,7 @@ if [ -f "$DEV_PATH" ]; then
   fi
 
   # Local import map
-  QUARTO_IMPORT_ARGMAP=--importmap="$QUARTO_SRC_PATH/dev_import_map.json"
+  QUARTO_IMPORT_MAP_ARG=--importmap=$QUARTO_SRC_PATH/dev_import_map.json
 
   # Turn on type checking for dev version
   QUARTO_DENO_OPTIONS=--check
@@ -104,7 +104,7 @@ else
   fi
 
   # release vendored import map
-  QUARTO_IMPORT_ARGMAP=--importmap="$SCRIPT_PATH/vendor/import_map.json"
+  QUARTO_IMPORT_MAP_ARG=--importmap=$SCRIPT_PATH/vendor/import_map.json
 
   if [ "$1" == "--version" ] || [ "$1" == "-v" ]; then
     if [ "$QUARTO_FORCE_VERSION" != "" ]; then
@@ -126,7 +126,7 @@ fi
 if [[ $OSTYPE == 'darwin'* ]]; then
   # We cannot use uname to determine the _machine_ architecture:
   # https://github.com/quarto-dev/quarto-cli/issues/2420#issuecomment-1245768732
-  FULLARCH="$(sysctl machdep.cpu.brand_string)"
+  FULLARCH="$(/usr/sbin/sysctl machdep.cpu.brand_string)"
   
   if [[ $FULLARCH == *"Intel"* ]]; then
     ARCH_DIR=x86_64
@@ -160,18 +160,22 @@ fi
 
 
 if [ "$QUARTO_DENO" == "" ]; then
-  DENO_DIR=$ARCH_DIR
-  export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_DIR}/deno"
+  DENO_ARCH_DIR=$ARCH_DIR
+  export QUARTO_DENO="${SCRIPT_PATH}/tools/${DENO_ARCH_DIR}/deno"
 fi
 
 export DENO_TLS_CA_STORE=system,mozilla
 export DENO_NO_UPDATE_CHECK=1
 # Be sure to include any already defined QUARTO_DENO_OPTIONS
-QUARTO_DENO_OPTIONS="--unstable --no-config ${QUARTO_CACHE_OPTIONS} --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
+QUARTO_DENO_OPTIONS="--unstable-ffi --no-config ${QUARTO_CACHE_OPTIONS} --allow-read --allow-write --allow-run --allow-env --allow-net --allow-ffi ${QUARTO_DENO_OPTIONS}"
+
+if [ "$QUARTO_DENO_EXTRA_OPTIONS" == "" ]; then
+  QUARTO_DENO_EXTRA_OPTIONS="--v8-flags=--max-old-space-size=8192,--max-heap-size=8192"
+fi
 
 if [ "$QUARTO_TS_PROFILE" != "" ]; then
   QUARTO_DENO_EXTRA_OPTIONS="--inspect-brk ${QUARTO_DENO_EXTRA_OPTIONS}"
-  QUARTO_TS_PROFILE=true "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_ARGMAP}" "${QUARTO_TARGET}" "$@"
+  QUARTO_TS_PROFILE=true "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${QUARTO_TARGET}" "$@"
 else
-  "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} "${QUARTO_TARGET}" "$@" 
+  "${QUARTO_DENO}" ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${QUARTO_TARGET}" "$@" 
 fi

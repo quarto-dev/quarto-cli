@@ -1,9 +1,8 @@
 /*
-* date.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * date.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import momentGuess from "moment-guess";
 
 import { parse } from "datetime/mod.ts";
@@ -16,13 +15,12 @@ import weekOfYearPlugin from "../resources/library/dayjs/plugins/weekofyear.js";
 import weekYearPlugin from "../resources/library/dayjs/plugins/weekyear.js";
 import { existsSync } from "fs/mod.ts";
 
-import { toFileUrl } from "path/mod.ts";
+import { toFileUrl } from "../deno_ral/path.ts";
 import { resourcePath } from "./resources.ts";
 
 // Special date constants
 export const kLastModified = "last-modified";
 export const kToday = "today";
-export const rSysDate = "`r Sys.time()`";
 export const kNow = "now";
 
 export type DateFormat = "full" | "long" | "medium" | "short" | "iso" | string;
@@ -44,12 +42,12 @@ export function resolveAndFormatDate(
 ) {
   const resolveDate = (date?: unknown) => {
     if (date) {
-      if (typeof (date) === "string") {
+      if (typeof date === "string") {
         return {
           value: date,
           format: format || "iso",
         };
-      } else if (typeof (date) === "object") {
+      } else if (typeof date === "object") {
         const schemaDate = date as { value: string; format?: string };
         return {
           value: schemaDate.value,
@@ -102,7 +100,7 @@ export function parseSpecialDate(
   input: string | string[],
   val: unknown,
 ): string {
-  if (val === kLastModified || val === rSysDate) {
+  if (val === kLastModified) {
     if (!Array.isArray(input)) {
       input = [input];
     }

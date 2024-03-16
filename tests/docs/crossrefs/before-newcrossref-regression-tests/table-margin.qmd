@@ -1,0 +1,15 @@
+---
+title: table-margin
+keep-md: true
+---
+
+
+```{r}
+#| label: tbl-kable
+#| tbl-cap: "A margin table with caption"
+#| column: margin
+
+knitr::kable(
+  mtcars[1:6, 1:3]
+)
+```

@@ -8,6 +8,7 @@ import { PandocInputTraits } from "../../command/render/types.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kLang,
   kPositionedRefs,
   kSectionTitleCitation,
@@ -41,6 +42,8 @@ const kAppendixCreativeCommonsLic = [
   "CC BY-SA",
   "CC BY-ND",
   "CC BY-NC",
+  "CC BY-NC-SA",
+  "CC BY-NC-ND",
 ];
 
 const kStylePlain = "plain";
@@ -135,6 +138,7 @@ export async function processDocumentAppendix(
         const existingTitle = findRefTitle(refsEl);
         addSection((sectionEl) => {
           sectionEl.setAttribute("role", "doc-bibliography");
+          sectionEl.id = "quarto-bibliography";
           sectionEl.appendChild(refsEl);
 
           if (existingTitle) {
@@ -154,9 +158,10 @@ export async function processDocumentAppendix(
 
     // Move the footnotes into the appendix
     if (!hasMarginRefs(format, flags)) {
-      const footnoteEls = doc.querySelectorAll('aside[role="doc-endnotes"]');
+      const footnoteEls = doc.querySelectorAll('section[role="doc-endnotes"]');
       if (footnoteEls && footnoteEls.length === 1) {
         const footnotesEl = footnoteEls.item(0) as Element;
+        footnotesEl.tagName = "SECTION";
         insertFootnotesTitle(
           doc,
           footnotesEl,
@@ -172,7 +177,7 @@ export async function processDocumentAppendix(
     if (format.metadata[kLicense]) {
       addSection((sectionEl) => {
         const contentsDiv = doc.createElement("DIV");
-        contentsDiv.id = "quarto-reuse";
+        sectionEl.id = "quarto-reuse";
         contentsDiv.classList.add(
           kAppendixContentsClass,
         );
@@ -182,18 +187,15 @@ export async function processDocumentAppendix(
         //
         // this will allow us to not include the following code.
         const normalizedLicense = (license: unknown) => {
-          if (typeof (license) === "string") {
+          if (typeof license === "string") {
             const creativeCommons = creativeCommonsLicense(license);
             if (creativeCommons) {
-              const licenseUrl = creativeCommonsUrl(
+              const licenseUrlInfo = creativeCommonsUrl(
                 creativeCommons.base,
                 format.metadata[kLang] as string | undefined,
                 creativeCommons.version,
               );
-              return {
-                url: licenseUrl,
-                text: licenseUrl,
-              };
+              return licenseUrlInfo;
             } else {
               return { text: license };
             }
@@ -201,8 +203,9 @@ export async function processDocumentAppendix(
             const licenseObj = license as Record<string, unknown>;
             return {
               text: licenseObj.text as string,
-              url: licenseObj.link,
+              url: licenseObj.url,
               type: licenseObj.type,
+              inlineLink: false,
             };
           }
         };
@@ -220,7 +223,8 @@ export async function processDocumentAppendix(
         const normalized = normalizedLicenses(license);
         for (const normalLicense of normalized) {
           const licenseEl = doc.createElement("DIV");
-          if (normalLicense.url) {
+
+          if (normalLicense.url && normalLicense.inlineLink) {
             const linkEl = doc.createElement("A");
             linkEl.innerText = normalLicense.text;
             linkEl.setAttribute("rel", "license");
@@ -228,7 +232,17 @@ export async function processDocumentAppendix(
             licenseEl.appendChild(linkEl);
           } else {
             licenseEl.innerText = normalLicense.text;
+            if (normalLicense.url) {
+              const linkEl = doc.createElement("A");
+              linkEl.innerText = `(${
+                format.language[kAppendixViewLicense] || "View License"
+              })`;
+              linkEl.setAttribute("rel", "license");
+              linkEl.setAttribute("href", normalLicense.url);
+              licenseEl.appendChild(linkEl);
+            }
           }
+
           contentsDiv.appendChild(licenseEl);
         }
 
@@ -242,7 +256,7 @@ export async function processDocumentAppendix(
       //
       // this will allow us to not include the following code.
       const normalizedCopyright = (copyright: unknown) => {
-        if (typeof (copyright) === "string") {
+        if (typeof copyright === "string") {
           return copyright;
         } else if (copyright) {
           return (copyright as { statement?: string }).statement;
@@ -253,7 +267,7 @@ export async function processDocumentAppendix(
       if (copyright) {
         addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
-          contentsDiv.id = "quarto-copyright";
+          sectionEl.id = "quarto-copyright";
           contentsDiv.classList.add(
             kAppendixContentsClass,
           );
@@ -275,6 +289,7 @@ export async function processDocumentAppendix(
         addSection((sectionEl) => {
           const contentsDiv = doc.createElement("DIV");
           sectionEl.appendChild(contentsDiv);
+          sectionEl.id = "quarto-citation";
 
           if (cite?.bibtex) {
             // Add the bibtext representation to the appendix
@@ -327,7 +342,6 @@ export async function processDocumentAppendix(
         if (appendSectionEl.id) {
           const selector = `#TOC a[href="#${appendSectionEl.id}"]`;
           const tocEl = doc.querySelector(selector);
-          console.log(selector);
           if (tocEl && tocEl.parentElement) {
             tocEl.parentElement.remove();
           }
@@ -432,7 +446,13 @@ function creativeCommonsLicense(
       const version = match[2];
       if (kAppendixCreativeCommonsLic.includes(base)) {
         return {
-          base: base as "CC BY" | "CC BY-SA" | "CC BY-ND" | "CC BY-NC",
+          base: base as
+            | "CC BY"
+            | "CC BY-SA"
+            | "CC BY-ND"
+            | "CC BY-NC"
+            | "CC BY-NC-ND"
+            | "CC BY-NC-SA",
           version: version || "4.0",
         };
       } else {
@@ -449,11 +469,21 @@ function creativeCommonsLicense(
 function creativeCommonsUrl(license: string, lang?: string, version?: string) {
   const licenseType = license.substring(3);
   if (lang && lang !== "en") {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
-      lang.toLowerCase().replace("-", "_")
-    }`;
+    return {
+      url:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/deed.${
+          lang.toLowerCase().replace("-", "_")
+        }`,
+      text: `CC ${licenseType} ${version}`,
+      inlineLink: true,
+    };
   } else {
-    return `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`;
+    return {
+      url:
+        `https://creativecommons.org/licenses/${licenseType.toLowerCase()}/${version}/`,
+      text: `CC ${licenseType} ${version}`,
+      inlineLink: true,
+    };
   }
 }
 

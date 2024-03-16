@@ -6,6 +6,7 @@ contributes:
     project:
       type: default
       detect:
+        - ["hugo.toml", "content"]
         - ["config.toml", "content"]
         - ["config/_default/config.toml", "content"]
       render:

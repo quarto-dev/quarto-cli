@@ -1,11 +1,10 @@
 /*
-* markdown.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * markdown.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 
 import { readYamlFromMarkdown } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
@@ -36,11 +35,14 @@ export const markdownEngine: ExecutionEngine = {
 
   validExtensions: () => kQmdExtensions.concat(kMdExtensions),
 
-  claimsExtension: (ext: string) => {
+  claimsFile: (_file: string, ext: string) => {
     return kMdExtensions.includes(ext.toLowerCase());
   },
   claimsLanguage: (_language: string) => {
     return false;
+  },
+  markdownForFile(file: string): Promise<MappedString> {
+    return Promise.resolve(mappedStringFromFile(file));
   },
 
   target: (file: string, _quiet?: boolean, markdown?: MappedString) => {
@@ -75,6 +77,7 @@ export const markdownEngine: ExecutionEngine = {
     }
 
     return Promise.resolve({
+      engine: kMarkdownEngine,
       markdown,
       supporting: [],
       filters: [],

@@ -28,9 +28,23 @@ runs:
   using: "composite"
   steps:
     - shell: bash
-      run: echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
+      run: |
+        echo "BASE_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}" >> $GITHUB_ENV
+        echo "FULL_NM=ghcr.io/${{ inputs.org }}/${{ inputs.name }}-full" >> $GITHUB_ENV
 
-    - name: Create DockerFile
+    - if: ${{ inputs.daily == 'false' }}
+      shell: bash
+      run: |
+        echo "LATEST_TAG_BASE=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
+        echo "LATEST_TAG_FULL=-t ${{ env.FULL_NM }}:latest" >> $GITHUB_ENV
+
+    - if: ${{ inputs.daily == 'true' }}
+      shell: bash
+      run: |
+        echo "DAILY_TAG_BASE=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
+        echo "DAILY_TAG_FULL=-t ${{ env.FULL_NM }}:daily" >> $GITHUB_ENV
+
+    - name: Create Base DockerFile
       shell: bash
       run: |
         cat << 'EOF' >> Dockerfile
@@ -39,17 +53,28 @@ runs:
         RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
         EOF
 
-    - if: ${{ inputs.daily == 'false' }}
-      shell: bash
-      run: echo "LATEST_TAG=-t ${{ env.BASE_NM }}:latest" >> $GITHUB_ENV
-
-    - if: ${{ inputs.daily == 'true' }}
-      shell: bash
-      run: echo "DAILY_TAG=-t ${{ env.BASE_NM }}:daily" >> $GITHUB_ENV
-
-    - name: Push image
+    - name: Push Base Image
       shell: bash
       run: |
         echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
-        docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG }} ${{ env.DAILY_TAG }} .
+        docker build -t ${{ env.BASE_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG_BASE }} ${{ env.DAILY_TAG_BASE }} .
         docker push ${{ env.BASE_NM }} --all-tags
+
+    - name: Create Full DockerFile
+      shell: bash
+      run: |
+        rm -rf Dockerfile
+        cat << 'EOF' >> Dockerfile
+        FROM rstudio/r-base:4.3-focal
+        ENV DEBIAN_FRONTEND=noninteractive
+        COPY ["${{ inputs.source }}", "quarto-linux-amd64.deb"]
+        RUN dpkg -i quarto-linux-amd64.deb && rm quarto-linux-amd64.deb
+        RUN quarto install tinytex --no-prompt
+        EOF
+
+    - name: Push Full Image
+      shell: bash
+      run: |
+        echo ${{ inputs.token }} | docker login https://ghcr.io -u ${{ inputs.username }} --password-stdin
+        docker build -t ${{ env.FULL_NM }}:${{ inputs.version }} ${{ env.LATEST_TAG_FULL }} ${{ env.DAILY_TAG_FULL }} .
+        docker push ${{ env.FULL_NM }} --all-tags

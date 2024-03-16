@@ -1,11 +1,10 @@
 /*
-* archive-binary-dependencies.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
-import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+ * archive-binary-dependencies.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
+import { join } from "../../../src/deno_ral/path.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 
 import { execProcess } from "../../../src/core/process.ts";
 import { Configuration, withWorkingDir } from "./config.ts";
@@ -43,6 +42,59 @@ export async function archiveBinaryDependencies(_config: Configuration) {
   });
 }
 
+// Archives dependencies (if they are not present in the archive already)
+export async function checkBinaryDependencies(_config: Configuration) {
+  await withWorkingDir(async (workingDir) => {
+    info(`Updating binary dependencies...\n`);
+
+    for (const dependency of kDependencies) {
+      await checkBinaryDependency(dependency, workingDir);
+    }
+  });
+}
+
+export async function checkBinaryDependency(
+  dependency: Dependency,
+  workingDir: string,
+) {
+  info(`** ${dependency.name} ${dependency.version} **`);
+
+  const dependencyBucketPath = `${dependency.bucket}/${dependency.version}`;
+  info("Checking archive status...\n");
+
+  const archive = async (
+    architectureDependency: ArchitectureDependency,
+  ) => {
+    const platformDeps = [
+      architectureDependency.darwin,
+      architectureDependency.linux,
+      architectureDependency.windows,
+    ];
+    for (const platformDep of platformDeps) {
+      if (platformDep) {
+        // This dependency doesn't exist, archive it
+        info(
+          `Checking ${dependencyBucketPath} - ${platformDep.filename}`,
+        );
+
+        // Download the file
+        await download(
+          workingDir,
+          platformDep,
+        );
+      }
+    }
+  };
+
+  for (const arch of Object.keys(dependency.architectureDependencies)) {
+    info(`Checking ${dependency.name}`);
+    const archDep = dependency.architectureDependencies[arch];
+    await archive(archDep);
+  }
+
+  info("");
+}
+
 export async function archiveBinaryDependency(
   dependency: Dependency,
   workingDir: string,
@@ -62,9 +114,16 @@ export async function archiveBinaryDependency(
     ];
     for (const platformDep of platformDeps) {
       if (platformDep) {
+        
         const dependencyAwsPath =
           `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
+        info(`Checking ${dependencyAwsPath}`);
         const response = await s3cmd("ls", [dependencyAwsPath]);
+        if (response?.includes('Unable to locate credentials')) {
+          throw new Error("Unable to locate S3 credentials, please try again.");
+        }
+        
+
         if (!response) {
           // This dependency doesn't exist, archive it
           info(
@@ -79,12 +138,15 @@ export async function archiveBinaryDependency(
 
           // Sync to S3
           info(`Copying to ${dependencyAwsPath}\n`);
-          await s3cmd("cp", [
+          const result = await s3cmd("cp", [
             localPath,
             dependencyAwsPath,
             "--acl",
             "public-read",
           ]);
+          
+          info(`(Reponse): ${result}`);
+
         } else {
           info(`${dependencyAwsPath} already archived.`);
         }

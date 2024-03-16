@@ -12,3 +12,7 @@ export const kAuthor = "author";
 export const kVersion = "version";
 export const kQuartoRequired = "quarto-required";
 export const kRevealJSPlugins = "revealjs-plugins";
+
+// Special case for our lightbox extension, which we've built in
+// manually (to better control filter placement)
+export const kBuiltInExtNames = ["lightbox"];

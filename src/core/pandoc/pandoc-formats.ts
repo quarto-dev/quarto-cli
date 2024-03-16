@@ -2,9 +2,8 @@
  * pandoc-formats.ts
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
- *
  */
-import { extname } from "path/mod.ts";
+import { extname } from "../../deno_ral/path.ts";
 import { FormatPandoc } from "../../config/types.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath, resourcePath } from "../resources.ts";
@@ -167,9 +166,10 @@ export const parseFormatString = (formatStr: string): FormatDescriptor => {
 // Static container to hang on to aliases once they've been read once
 class FormatAliases {
   static pandoc: string[];
+  static custom: string[];
 }
 
-function isBuiltInFormat(format: string) {
+function ensureFormats() {
   if (!FormatAliases.pandoc) {
     const formatAliases = readYaml(
       resourcePath("schema/format-aliases.yml"),
@@ -180,8 +180,22 @@ function isBuiltInFormat(format: string) {
     FormatAliases.pandoc = pandocFormats;
   }
 
+  // Custom build in aliases
+  if (!FormatAliases.custom) {
+    FormatAliases.custom = ["dashboard", "email"];
+  }
+}
+
+export function pandocBuiltInFormats() {
+  ensureFormats();
+  return FormatAliases.pandoc;
+}
+
+function isBuiltInFormat(format: string) {
   // Allow either a built in format or a path to a LUA file
+  ensureFormats();
   return FormatAliases.pandoc.includes(format) ||
+    FormatAliases.custom.includes(format) ||
     extname(format) === ".lua";
 }
 

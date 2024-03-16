@@ -1,0 +1,14 @@
+---
+title: "BugDemo"
+format: html
+crossref:
+  subref-labels: alpha α
+---
+
+```{r}
+#| label: fig-rawCN
+#| fig-cap: Raw copy number profile.
+#| fig-subcap: ["a", "b"]
+plot(1, 2)
+plot(3, 4)
+```

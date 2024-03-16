@@ -21,6 +21,7 @@ export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
 export const kFigDpi = "fig-dpi";
+export const kFigAsp = "fig-asp";
 
 export const kMermaidFormat = "mermaid-format";
 export const kDfPrint = "df-print";
@@ -45,12 +46,17 @@ export const kEnableCrossRef = "enable-crossref";
 export const kFormatLinks = "format-links";
 export const kNotebookLinks = "notebook-links";
 export const kOtherLinks = "other-links";
+export const kCodeLinks = "code-links";
 export const kNotebookSubarticles = "notebook-subarticles";
 export const kNotebookView = "notebook-view";
 export const kNotebookViewStyle = "notebook-view-style";
 export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
+export const kLightbox = "lightbox";
+export const kCanonicalUrl = "canonical-url";
+
+export const kMath = "math";
 
 export const kNotebookPreviewOptions = "notebook-preview-options";
 export const kNotebookPreviewOptionBack = "back";
@@ -69,7 +75,9 @@ export const kExecuteDebug = "debug";
 
 export const kIpynbFilter = "ipynb-filter";
 export const kIpynbFilters = "ipynb-filters";
+export const kIpynbShellInteractivity = "ipynb-shell-interactivity";
 export const kIPynbTitleBlockTemplate = "ipynb-title-block";
+export const kPlotlyConnected = "plotly-connected";
 
 export const kJatsSubarticleId = "jats-subarticle-id";
 
@@ -100,6 +108,7 @@ export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
+export const kBodyClasses = "body-classes";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -124,6 +133,12 @@ export const kQuartoRequired = "quarto-required";
 export const kPreviewMode = "preview-mode";
 export const kPreviewModeRaw = "raw";
 
+export const kFontPaths = "font-paths";
+
+export const kHtmlTableProcessing = "html-table-processing";
+export const kUseRsvgConvert = "use-rsvg-convert";
+export const kValidateYaml = "validate-yaml";
+
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
   kDisplayName,
@@ -135,6 +150,7 @@ export const kExecuteDefaultsKeys = [
   kFigHeight,
   kFigFormat,
   kFigDpi,
+  kFigAsp,
   kMermaidFormat,
   kDfPrint,
   kError,
@@ -155,6 +171,8 @@ export const kExecuteDefaultsKeys = [
   kExecuteDebug,
   kIpynbFilter,
   kIpynbFilters,
+  kIpynbShellInteractivity,
+  kPlotlyConnected,
 ];
 
 export const kRenderDefaultsKeys = [
@@ -206,6 +224,10 @@ export const kRenderDefaultsKeys = [
   kNotebookViewStyle,
   kNotebookPreserveCells,
   kClearCellOptions,
+  kHtmlTableProcessing,
+  kValidateYaml,
+  kCanonicalUrl,
+  kBodyClasses,
 ];
 
 // language fields
@@ -214,6 +236,9 @@ export const kTocTitleWebsite = "toc-title-website";
 export const kRelatedFormatsTitle = "related-formats-title";
 export const kRelatedNotebooksTitle = "related-notebooks-title";
 export const kOtherLinksTitle = "other-links-title";
+export const kCodeLinksTitle = "code-links-title";
+export const kLaunchDevContainerTitle = "launch-dev-container-title";
+export const kLaunchBinderTitle = "launch-binder-title";
 export const kSourceNotebookPrefix = "source-notebooks-prefix";
 export const kCalloutTipCaption = "callout-tip-title";
 export const kCalloutNoteCaption = "callout-note-title";
@@ -229,6 +254,7 @@ export const kSectionTitleCopyright = "section-title-copyright";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
+export const kAppendixViewLicense = "appendix-view-license";
 export const kTitleBlockAuthorSingle = "title-block-author-single";
 export const kTitleBlockAuthorPlural = "title-block-author-plural";
 export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
@@ -246,6 +272,8 @@ export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kSearchLabel = "search-label";
+export const kToolsShare = "tools-share";
+export const kToolsDownload = "tools-download";
 
 export const kToggleSection = "toggle-section";
 export const kToggleSidebar = "toggle-sidebar";
@@ -265,6 +293,7 @@ export const kSearchHideMatchesText = "search-hide-matches-text";
 export const kSearchMoreMatchText = "search-more-match-text";
 export const kSearchMoreMatchesText = "search-more-matches-text";
 export const kSearchClearButtonTitle = "search-clear-button-title";
+export const kSearchTextPlaceholder = "search-text-placeholder";
 export const kSearchDetatchedCancelButtonTitle =
   "search-detached-cancel-button-title";
 export const kSearchSubmitButtonTitle = "search-submit-button-title";
@@ -301,6 +330,7 @@ export const kEnvironmentProofTitle = "environment-proof-title";
 export const kEnvironmentRemarkTitle = "environment-remark-title";
 export const kEnvironmentSolutionTitle = "environment-solution-title";
 export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageFilter = "listing-page-filter";
 export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
 export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
@@ -315,8 +345,10 @@ export const kListingPageFieldFileName = "listing-page-field-filename";
 export const kListingPageFieldFileModified = "listing-page-field-filemodified";
 export const kListingPageFieldSubtitle = "listing-page-field-subtitle";
 export const kListingPageFieldReadingTime = "listing-page-field-readingtime";
+export const kListingPageFieldWordCount = "listing-page-field-wordcount";
 export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
+export const kListingPageWords = "listing-page-words";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
@@ -324,12 +356,16 @@ export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
 export const kArticleNotebookLabel = "article-notebook-label";
 export const kManuscriptMecaBundle = "manuscript-meca-bundle";
+export const kDraftLabel = "draft";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
   kTocTitleWebsite,
   kRelatedFormatsTitle,
   kOtherLinksTitle,
+  kCodeLinksTitle,
+  kLaunchDevContainerTitle,
+  kLaunchBinderTitle,
   kRelatedNotebooksTitle,
   kSourceNotebookPrefix,
   kCalloutTipCaption,
@@ -346,6 +382,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,
@@ -358,6 +395,8 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsHideAllCode,
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
+  kToolsShare,
+  kToolsDownload,
   kSearchNoResultsText,
   kSearchLabel,
   kToggleDarkMode,
@@ -377,6 +416,7 @@ export const kLanguageDefaultsKeys = [
   kSearchMoreMatchText,
   kSearchMoreMatchesText,
   kSearchClearButtonTitle,
+  kSearchTextPlaceholder,
   kSearchDetatchedCancelButtonTitle,
   kSearchSubmitButtonTitle,
   kCrossrefFigTitle,
@@ -411,6 +451,7 @@ export const kLanguageDefaultsKeys = [
   kEnvironmentProofTitle,
   kEnvironmentRemarkTitle,
   kEnvironmentSolutionTitle,
+  kListingPageFilter,
   kListingPageOrderBy,
   kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,
@@ -425,8 +466,10 @@ export const kLanguageDefaultsKeys = [
   kListingPageFieldFileModified,
   kListingPageFieldSubtitle,
   kListingPageFieldReadingTime,
+  kListingPageFieldWordCount,
   kListingPageFieldCategories,
   kListingPageMinutesCompact,
+  kListingPageWords,
   kListingPageCategoryAll,
   kListingPageNoMatches,
   kTitleBlockAuthorSingle,
@@ -440,6 +483,7 @@ export const kLanguageDefaultsKeys = [
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
   kArticleNotebookLabel,
+  kDraftLabel,
   kManuscriptMecaBundle,
 ];
 
@@ -718,3 +762,18 @@ export const kLayout = "layout";
 
 // https://github.com/quarto-dev/quarto-cli/issues/3581
 export const kCliffyImplicitCwd = "5a6d2e4f-f9a2-43bc-8019-8149fbb76c85";
+
+export const kSourceMappingRegexes = [
+  /^\/\/#\s*sourceMappingURL\=.*\.map$/gm,
+  /\/\*\# sourceMappingURL=.* \*\//g,
+];
+
+export const kFormatIdentifier = "format-identifier";
+
+// named lifetimes
+export const kRenderFileLifetime = "render-file";
+export const kRenderServicesLifetime = "render-services";
+
+// quarto entry point names for old-style filter declarations
+export const kQuartoPre = "pre-quarto";
+export const kQuartoPost = "post-render";

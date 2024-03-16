@@ -1,0 +1,46 @@
+---
+title: Layout
+format: dashboard
+---
+
+## Row
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+:::{.rows}
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+:::{.columns}
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+:::
+
+:::
+
+## Row
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+```{r}
+#| title: Hello World
+plot(cars)
+```

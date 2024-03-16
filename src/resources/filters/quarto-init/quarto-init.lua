@@ -20,7 +20,10 @@ import("resourcerefs.lua")
 -- [/import]
 
 return {
-  read_includes(),
+  {
+    Meta = read_includes
+  },
+  -- read_includes(),
   combineFilters({
     file_metadata(),
     resourceRefs()

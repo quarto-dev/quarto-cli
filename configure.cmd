@@ -25,7 +25,10 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
 
   ECHO Bootstrapping Deno...
   REM Download Deno
-  SET "DENO_FILE=deno-x86_64-pc-windows-msvc.zip"
+  SET DENO_ARCH_DIR=x86_64
+  MKDIR !DENO_ARCH_DIR!
+  PUSHD !DENO_ARCH_DIR!
+  SET DENO_FILE=deno-!DENO_ARCH_DIR!-pc-windows-msvc.zip
   CURL --fail -L "https://github.com/denoland/deno/releases/download/!DENO!/!DENO_FILE!" -o "!DENO_FILE!"
   REM Windows doesn't have unzip installed by default, but starting in Windows 10 build 17063 they did 
   REM include a build in 'tar' command. Windows 10 build 17063 was released in 2017.
@@ -33,15 +36,15 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
   %WINDIR%/System32/tar -xf !DENO_FILE!
 
   REM If tar failed, try unzipping it.
-  IF %ERRORLEVEL% NEQ 0 ( 
+  IF ERRORLEVEL 1 ( 
     ECHO tar failed; trying to unzip...
-    unzip !DENO_FILE!	
+    unzip -o !DENO_FILE!	
   )
 
   REM If both failed, exit with error.
   REM These blocks aren't nested because of the way Windows evaluates variables in control blocks;
   REM %ERRORLEVEL% won't update without jumping through more hoops in a nested if.
-  IF %ERRORLEVEL% NEQ 0 (
+  IF ERRORLEVEL 1 (
     ECHO Unable to decompress !DENO_FILE!
     exit 1
   )
@@ -54,7 +57,8 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
     deno upgrade --canary --version %DENO_CANARY_COMMIT%
   )
 
-  SET QUARTO_DENO=!QUARTO_BIN_PATH!\tools\deno.exe
+  SET QUARTO_DENO=!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!\deno.exe
+  POPD
   POPD
 )
 

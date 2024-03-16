@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { error, info } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { error, info } from "../deno_ral/log.ts";
+import { join } from "../deno_ral/path.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { md5Hash } from "./hash.ts";
@@ -125,14 +125,29 @@ export async function reconfigureQuarto(
   installed: DevConfig | null,
   source: DevConfig,
 ) {
-  const configureScript = isWindows() ? ".\\configure.cmd" : "./configure.sh";
+  // Running configuration from within quarto does not work on windows
+  // because deno.exe is running and this lock and prevent reinstallation
+  // So we fail and print comment to run
+  if (isWindows()) {
+    error(
+      `Quarto requires reconfiguration to ${
+        reconfigureReason(installed, source)
+      }. Please run \`./configure.cmd\` command.\n`,
+    );
+    return;
+  }
+  // Leaving Windows here if we find a way to reconfigure
+  // to not forget how to call the script
+  const configureScript = isWindows()
+    ? ["cmd", "/c", ".\\configure.cmd"]
+    : ["./configure.sh"];
 
   const quartoDir = normalizePath(
     join(quartoConfig.sharePath(), "..", ".."),
   );
 
   const process = Deno.run({
-    cmd: [configureScript],
+    cmd: configureScript,
     cwd: quartoDir,
   });
 

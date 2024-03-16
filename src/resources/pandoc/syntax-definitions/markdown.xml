@@ -22,7 +22,7 @@
           Example: **bold text and _italic and bold text_**
                    __bold and ~~strikeout and bold~~__
 -->
-<!DOCTYPE language SYSTEM "language.dtd"
+<!DOCTYPE language
 [
 <!-- NOTE: To correctly detect bold, italic or strike out text, use minimal="true" in RegExpr rules -->
 <!ENTITY contentregex_ast "(?:(?:[^\*\s\\]|\\.)(?:[^\\]|\\.)*)?(?:[^\*\s\\]|\\\S)">
@@ -88,9 +88,15 @@
 <!ENTITY startcomment "&lt;!--">
 <!ENTITY endcomment "--&gt;">
 <!ENTITY checkbox "\[[ x]\](?=\s)">
+
+<!-- html stuff -->
+	<!ENTITY name          "[A-Za-z_:][\w.:_-]*">
+	<!ENTITY attributeName "[A-Za-z_:*#\(\[][\)\]\w.:_-]*">
+	<!ENTITY entref        "&amp;(?:#[0-9]+|#[xX][0-9A-Fa-f]+|&name;);">
+
 ]>
 
-<language name="Markdown" version="21" kateversion="5.79" section="Markup" extensions="*.md;*.mmd;*.markdown" priority="15" author="Darrin Yeager, Claes Holmerson" license="GPL,BSD">
+<language name="Markdown" version="27" kateversion="5.79" section="Markup" extensions="*.md;*.mmd;*.markdown" mimetype="text/markdown" priority="15" author="Darrin Yeager, Claes Holmerson" license="GPL,BSD">
   <highlighting>
     <contexts>
       <!-- Start of the Markdown document: find metadata or code block -->
@@ -149,40 +155,39 @@
       </context>
 
       <context name="find-header" attribute="Normal Text" lineEndContext="#pop">
-        <RegExpr attribute="Header H1" context="#pop!close-H2-region" String="^(#\s.*[#]?)$" column="0" endRegion="H1" beginRegion="H1" lookAhead="true"/>
-        <RegExpr attribute="Header H2" context="#pop!close-H3-region" String="^(##\s.*[#]?)$" column="0" endRegion="H2" beginRegion="H2" lookAhead="true"/>
-        <RegExpr attribute="Header H3" context="#pop!close-H4-region" String="^(###\s.*[#]?)$" column="0" endRegion="H3" beginRegion="H3" lookAhead="true"/>
-        <RegExpr attribute="Header H4" context="#pop!close-H5-region" String="^(####\s.*[#]?)$" column="0" endRegion="H4" beginRegion="H4" lookAhead="true"/>
-        <RegExpr attribute="Header H5" context="#pop!close-H6-region" String="^(#####\s.*[#]?)$" column="0" endRegion="H5" beginRegion="H5" lookAhead="true"/>
-        <RegExpr attribute="Header H6" context="#pop!close-sentinel-region" String="^(######\s.*[#]?)$" column="0" endRegion="H6" beginRegion="H6" lookAhead="true"/>
+        <RegExpr attribute="Header H1" context="#pop!close-H2-region" String="^#\s" column="0" endRegion="H1" beginRegion="H1" lookAhead="true"/>
+        <RegExpr attribute="Header H2" context="#pop!close-H3-region" String="^##\s" column="0" endRegion="H2" beginRegion="H2" lookAhead="true"/>
+        <RegExpr attribute="Header H3" context="#pop!close-H4-region" String="^###\s" column="0" endRegion="H3" beginRegion="H3" lookAhead="true"/>
+        <RegExpr attribute="Header H4" context="#pop!close-H5-region" String="^####\s" column="0" endRegion="H4" beginRegion="H4" lookAhead="true"/>
+        <RegExpr attribute="Header H5" context="#pop!close-H6-region" String="^#####\s" column="0" endRegion="H5" beginRegion="H5" lookAhead="true"/>
+        <RegExpr attribute="Header H6" context="#pop" String="^######\s.*" column="0" endRegion="H6" beginRegion="H6"/>
         <DetectChar attribute="Normal Text" context="#pop" char="#"/>
       </context>
       <!-- BUG: 441278 sub-headers should be closed when their parent header is closed  (e.g. in h1 h2 h3 h1, h1-h3 should all be closed at the 2nd h1) -->
       <!-- TODO: Port to a less hacky version (maybe a new attribute for declaring multiple endRegions)  -->
       <context name="close-H2-region" attribute="Header H2" lineEndContext="#pop!close-H3-region" fallthroughContext="#pop!close-H3-region">
-        <RegExpr attribute="Header H2" context="#pop!close-H3-region" String="(%1)" dynamic="true" lookAhead="true" endRegion="H2"/>
+        <DetectChar attribute="Header H2" context="#pop!close-H3-region" char="#" lookAhead="true" endRegion="H2"/>
       </context>
       <context name="close-H3-region" attribute="Header H3" lineEndContext="#pop!close-H4-region" fallthroughContext="#pop!close-H4-region">
-        <RegExpr attribute="Header H3" context="#pop!close-H4-region" String="(%1)" dynamic="true" lookAhead="true" endRegion="H3"/>
+        <DetectChar attribute="Header H3" context="#pop!close-H4-region" char="#" lookAhead="true" endRegion="H3"/>
       </context>
       <context name="close-H4-region" attribute="Header H4" lineEndContext="#pop!close-H5-region" fallthroughContext="#pop!close-H5-region">
-        <RegExpr attribute="Header H4" context="#pop!close-H5-region" String="(%1)" dynamic="true" lookAhead="true" endRegion="H4"/>
+        <DetectChar attribute="Header H4" context="#pop!close-H5-region" char="#" lookAhead="true" endRegion="H4"/>
       </context>
       <context name="close-H5-region" attribute="Header H5" lineEndContext="#pop!close-H6-region" fallthroughContext="#pop!close-H6-region">
-        <RegExpr attribute="Header H5" context="#pop!close-H6-region" String="(%1)" dynamic="true" lookAhead="true" endRegion="H5"/>
+        <DetectChar attribute="Header H5" context="#pop!close-H6-region" char="#" lookAhead="true" endRegion="H5"/>
       </context>
       <context name="close-H6-region" attribute="Header H6" lineEndContext="#pop" fallthroughContext="#pop">
-        <RegExpr attribute="Header H6" context="#pop!close-sentinel-region" String="(%1)" dynamic="true" lookAhead="true" endRegion="H6"/>
+        <DetectChar attribute="Header H6" context="#pop!close-sentinel-region" char="#" lookAhead="true" endRegion="H6"/>
       </context>
       <!-- This sentinel does not close any actual region, it's just here so that the proper attribute/highlighting is applied and -->
       <!--to ensure that H6 headers won't be set as the "primary" region that was closed just because it was closed last -->
       <context name="close-sentinel-region" attribute="Normal Text" lineEndContext="#pop" fallthroughContext="#pop">
-        <RegExpr attribute="Header H1" context="#pop" String="^(?=#\s)%1$" column="0" dynamic="true"/>
-        <RegExpr attribute="Header H2" context="#pop" String="^(?=##\s)%1$" column="0" dynamic="true"/>
-        <RegExpr attribute="Header H3" context="#pop" String="^(?=###\s)%1$" column="0" dynamic="true"/>
-        <RegExpr attribute="Header H4" context="#pop" String="^(?=####\s)%1$" column="0" dynamic="true"/>
-        <RegExpr attribute="Header H5" context="#pop" String="^(?=#####\s)%1$" column="0" dynamic="true"/>
-        <RegExpr attribute="Header H6" context="#pop" String="^(?=######\s)%1$" column="0" dynamic="true"/>
+        <RegExpr attribute="Header H1" context="#pop" String="^#\s.*" column="0"/>
+        <RegExpr attribute="Header H2" context="#pop" String="^##\s.*" column="0"/>
+        <RegExpr attribute="Header H3" context="#pop" String="^###\s.*" column="0"/>
+        <RegExpr attribute="Header H4" context="#pop" String="^####\s.*" column="0"/>
+        <RegExpr attribute="Header H5" context="#pop" String="^#####\s.*" column="0"/>
       </context>
 
 
@@ -313,40 +318,42 @@
       <!-- Fenced Code Blocks -->
       <context name="find-lang-fenced-code" attribute="Normal Text" lineEndContext="#pop">
         <!-- Apply syntax highlighting to fenced code blocks for some languages -->
-        <RegExpr attribute="Fenced Code" context="#pop!code" String="&fcode;&end;"/>
-        <RegExpr attribute="Fenced Code" context="#pop!bash-code" String="&fcode;\s*\{?\.?(?:bash(?:rc|_profile|_login|_logout)?|shell|sh|zsh|profile|PKGBUILD|APKBUILD|ebuild|eclass|nix).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!cpp-code" String="&fcode;\s*\{?\.?(?:[ch]pp|[ch]\+\+|[ch]xx|h?cc|hh|cuh?|ino|pde|moc).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!csharp-code" String="&fcode;\s*\{?\.?(?:cs|csharp|c\#).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!cmake-code" String="&fcode;\s*\{?\.?(?:cmake|CMakeLists(?:\.txt)?).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!css-code" String="&fcode;\s*\{?\.?css.*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!c-code" String="&fcode;\s*\{?\.?[ch].*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!doxygen-code" String="&fcode;\s*\{?\.?doxygen.*&end;" insensitive="true"/> <!-- Block comment of Doxygen -->
-        <RegExpr attribute="Fenced Code" context="#pop!email-code" String="&fcode;\s*\{?\.?(?:email|emlx?|mbo?x).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!go-code" String="&fcode;\s*\{?\.?go(?:lang)?.*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!hamlet-code" String="&fcode;\s*\{?\.?[wxs]?hamlet.*&end;" insensitive="true"/> <!-- Included in the Haskell definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!haskell-code" String="&fcode;\s*\{?\.?(?:haskell|c?hs|hs\-boot).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!html-code" String="&fcode;\s*\{?\.?(?:[sx]?html?|inc|tmpl|tpl).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!java-code" String="&fcode;\s*\{?\.?(?:java|bsh).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*\{?\.?(?:javascript|[mo]?js|es6|kwinscript|julius).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!jsx-code" String="&fcode;\s*\{?\.?(?:jsx|tsx|(?:java|type)script\-react).*&end;" insensitive="true"/> <!-- Included in the HTML definition. Also apply for TSX. -->
-        <RegExpr attribute="Fenced Code" context="#pop!json-code" String="&fcode;\s*\{?\.?(?:json5?|gltf).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!yaml-code" String="&fcode;\s*\{?\.?(?:ya?ml).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*\{?\.?matlab.*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*\{?\.?(?:markdown|m?md).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*\{?\.?(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk).*&end;" insensitive="true"/> <!-- Included in the HTML definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*\{?\.?(?:julia|mermaid|dot|perl|p[lm]|pod|psgi|vcl).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*\{?\.?(?:php[3457t]?|wml|phtml?|aw|ctp).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*\{?\.?(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*\{?\.?qml(?:types)?.*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!r-code" String="&fcode;\s*\{?\.?(?:r|rprofile|rscript).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!raku-code" String="&fcode;\s*\{?\.?(?:raku(?:mod|doc|test)?|perl6|p[lm]?6|pod6|nqp).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!rest-code" String="&fcode;\s*\{?\.?(?:rst|rest|restructuredtext).*&end;" insensitive="true"/> <!-- Included in the CMake definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!ruby-code" String="&fcode;\s*\{?\.?(?:ruby|rbx?|rjs|rake|f?cgi|gemspec|irbrc|ru|prawn|Appraisals|(?:Rake|Cap|Chef|Gem|Guard|Hobo|Vagrant||Rant|Berks|Thor|Puppet)file|rxml|(?:xml|js)\.erb).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!rust-code" String="&fcode;\s*\{?\.?(?:rust|rs).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!mysql-code" String="&fcode;\s*\{?\.?(?:mysql|sql|ddl).*&end;" insensitive="true"/> <!-- Included in the PHP definition -->
-        <RegExpr attribute="Fenced Code" context="#pop!typescript-code" String="&fcode;\s*\{?\.?(?:typescript|ts).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!xml-code" String="&fcode;\s*\{?\.?(?:xml|xsd|xspf|tld|jsp|c?pt|dtml|rss|opml|svg|daml|rdf|ui|kcfg|qrc|wsdl|scxml|xbel|dae|sch|brd|docbook).*&end;" insensitive="true"/>
-        <RegExpr attribute="Fenced Code" context="#pop!code" String="&fcode;.*$"/>
+        <RegExpr attribute="Fenced Code" context="#pop!code" String="&fcode;&end;" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!bash-code" String="&fcode;\s*(?:bash(?:rc|_profile|_login|_logout)?|shell|sh|profile|PKGBUILD|APKBUILD|ebuild|eclass|nix)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!zsh-code" String="&fcode;\s*(?:zsh)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!cpp-code" String="&fcode;\s*(?:[ch]pp|[ch]\+\+|[ch]xx|h?cc|hh|cuh?|ino|pde|moc)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!csharp-code" String="&fcode;\s*(?:cs|csharp|c\#)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!cmake-code" String="&fcode;\s*(?:cmake|CMakeLists(?:\.txt)?)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!css-code" String="&fcode;\s*css&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!c-code" String="&fcode;\s*[ch]&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!doxygen-code" String="&fcode;\s*doxygen&end;" insensitive="true" beginRegion="code-block"/> <!-- Block comment of Doxygen -->
+        <RegExpr attribute="Fenced Code" context="#pop!email-code" String="&fcode;\s*(?:email|emlx?|mbo?x)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!go-code" String="&fcode;\s*go(?:lang)?&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!hamlet-code" String="&fcode;\s*[wxs]?hamlet&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the Haskell definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!haskell-code" String="&fcode;\s*(?:haskell|c?hs|hs\-boot)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!html-code" String="&fcode;\s*(?:[sx]?html?|inc|tmpl|tpl)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!java-code" String="&fcode;\s*(?:java|bsh)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!javascript-code" String="&fcode;\s*(?:javascript|m?js|es6|kwinscript|julius)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!jsx-code" String="&fcode;\s*(?:jsx|tsx|(?:java|type)script\-react)&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the HTML definition. Also apply for TSX. -->
+        <RegExpr attribute="Fenced Code" context="#pop!json-code" String="&fcode;\s*(?:json5?|gltf)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!yaml-code" String="&fcode;\s*(?:ya?ml)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!matlab-code" String="&fcode;\s*matlab&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!markdown-code" String="&fcode;\s*(?:markdown|m?md)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!mustache-code" String="&fcode;\s*(?:handlebars|hbs|mustache|mst|ractive|hogan|hulk)&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the HTML definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!perl-code" String="&fcode;\s*(?:perl|p[lm]|pod|psgi|vcl)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!php-code" String="&fcode;\s*(?:php[3457t]?|wml|phtml?|aw|ctp)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!python-code" String="&fcode;\s*(?:python[23]?|py[23w]?|[rc]py|sconstruct|gypi?)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!qml-code" String="&fcode;\s*qml(?:types)?&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!r-code" String="&fcode;\s*(?:r|rprofile|rscript)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!raku-code" String="&fcode;\s*(?:raku(?:mod|doc|test)?|perl6|p[lm]?6|pod6|nqp)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!rest-code" String="&fcode;\s*(?:rst|rest|restructuredtext)&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the CMake definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!ruby-code" String="&fcode;\s*(?:ruby|rbx?|rjs|rake|f?cgi|gemspec|irbrc|ru|prawn|Appraisals|(?:Rake|Cap|Chef|Gem|Guard|Hobo|Vagrant||Rant|Berks|Thor|Puppet)file|rxml|(?:xml|js)\.erb)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!rust-code" String="&fcode;\s*(?:rust|rs)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!mysql-code" String="&fcode;\s*(?:mysql|sql|ddl)&end;" insensitive="true" beginRegion="code-block"/> <!-- Included in the PHP definition -->
+        <RegExpr attribute="Fenced Code" context="#pop!nim-code" String="&fcode;\s*(?:nims?)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!typescript-code" String="&fcode;\s*(?:typescript|ts)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!xml-code" String="&fcode;\s*(?:xml|xsd|xspf|tld|jsp|c?pt|dtml|rss|opml|svg|daml|rdf|ui|kcfg|qrc|wsdl|scxml|xbel|dae|sch|brd|docbook)&end;" insensitive="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="#pop!code" String="&fcode;.*$" beginRegion="code-block"/>
       </context>
       <context name="code" attribute="Code" lineEndContext="#stay"> <!-- Unknown language -->
         <RegExpr attribute="Fenced Code" context="#pop" String="%1[~`]*(?=&end;)" firstNonSpace="true" dynamic="true" endRegion="code-block"/>
@@ -354,6 +361,10 @@
       <context attribute="Normal Text" lineEndContext="#stay" name="bash-code" fallthroughContext="Command##Bash">
         <IncludeRules context="code"/>
         <IncludeRules context="##Bash" includeAttrib="true"/>
+      </context>
+      <context attribute="Normal Text" lineEndContext="#stay" name="zsh-code" fallthroughContext="Command##Zsh">
+        <IncludeRules context="code"/>
+        <IncludeRules context="##Zsh" includeAttrib="true"/>
       </context>
       <context attribute="Normal Text" lineEndContext="#stay" name="cmake-code">
         <IncludeRules context="code"/>
@@ -445,7 +456,7 @@
       </context>
       <context attribute="Normal Text" lineEndContext="#stay" name="qml-code">
         <IncludeRules context="code"/>
-        <IncludeRules context="##QML" includeAttrib="true"/>
+        <IncludeRules context="Normal##QML" includeAttrib="true"/>
       </context>
       <context attribute="Normal Text" lineEndContext="#stay" name="r-code">
         <IncludeRules context="code"/>
@@ -471,6 +482,10 @@
         <IncludeRules context="code"/>
         <IncludeRules context="##SQL (MySQL)" includeAttrib="true"/>
       </context>
+      <context attribute="Normal Text" lineEndContext="#stay" name="nim-code">
+        <IncludeRules context="code"/>
+        <IncludeRules context="##Nim" includeAttrib="true"/>
+      </context>
       <context attribute="Normal Text" lineEndContext="#stay" name="typescript-code">
         <IncludeRules context="code"/>
         <IncludeRules context="Normal##TypeScript" includeAttrib="true"/>
@@ -485,7 +500,7 @@
         <!-- Code -->
         <RegExpr attribute="Code" String="`[^`]+`(?!`)|`{2}[^`](?:.*?[^`])?`{2}(?!`)|`{3}[^`](?:.*?[^`])?`{3}(?!`)|`{4}[^`](?:.*?[^`])?`{4}(?!`)|`{5,}[^`](?:.*?[^`])?`{5,}"/>
         <!-- Find Fenced Code Block -->
-        <RegExpr attribute="Fenced Code" context="find-lang-fenced-code" String="`{3,}(?=[^`]*$)|~{3,}(?=[^~]*$)" firstNonSpace="true" lookAhead="true" beginRegion="code-block"/>
+        <RegExpr attribute="Fenced Code" context="find-lang-fenced-code" String="`{3,}(?=[^`]*$)|~{3,}(?=[^~]*$)" firstNonSpace="true" lookAhead="true"/>
         <!-- Comment -->
         <StringDetect attribute="Comment" context="comment" String="&startcomment;" beginRegion="comment"/>
         <!-- Links and References -->
@@ -522,8 +537,7 @@
         <RegExpr context="find-html-block" String="&lt;/?&htmlname;(?:[\s&gt;]|/&gt;|$)" lookAhead="true"/>
       </context>
       <context name="find-html-block" attribute="Normal Text" lineEndContext="#pop" fallthroughContext="#pop">
-        <IncludeRules context="FindSpecialHTMLTags##HTML"/>
-        <IncludeRules context="FindHTMLTags##HTML"/>
+        <IncludeRules context="FindElements"/>
       </context>
 
       <!-- Links and email: <https://example.com>, <example@kde.org> -->
@@ -590,6 +604,302 @@
         <Detect2Chars attribute="Inline Image" char="\" char1=")"/>
         <RegExpr attribute="Inline Image: Link" String="\b&startlink;(?:\\.|[^&quot;&gt;\s\)\\])+"/>
       </context>
+
+  <context name="FindHTML" attribute="Normal Text" lineEndContext="#stay">
+    <DetectSpaces/>
+    <DetectIdentifier/>
+    <StringDetect attribute="Comment" context="Comment" String="&lt;!--" beginRegion="comment" />
+    <StringDetect attribute="CDATA" context="CDATA" String="&lt;![CDATA[" beginRegion="cdata" />
+    <RegExpr attribute="Doctype" context="Doctype" String="&lt;!DOCTYPE\s+" insensitive="true" beginRegion="doctype" />
+    <IncludeRules context="FindElements" />
+    <RegExpr attribute="Processing Instruction" context="PI" String="&lt;\?[\w:-]*" beginRegion="pi" />
+
+    <!-- as long as kde gives DTDs the text/html mimetype--><IncludeRules context="FindDTDRules" />
+    <IncludeRules context="FindEntityRefs" />
+  </context>
+
+  <context name="FindElements" attribute="Other Text" lineEndContext="#pop">
+    <RegExpr attribute="Element Symbols" context="ElementTagName" String="&lt;(?=(&name;))" />
+    <RegExpr attribute="Element Symbols" context="ElementTagNameClose" String="&lt;/(?=(&name;))" />
+  </context>
+
+  <context name="ElementTagName" attribute="Other Text" lineEndContext="#pop">
+    <IncludeRules context="FindHTMLTags" />
+    <IncludeRules context="FindSpecialHTMLTags" />
+    <StringDetect attribute="Element" context="#pop!El Open" String="%1" dynamic="true" />
+  </context>
+
+  <context name="ElementTagNameClose" attribute="Other Text" lineEndContext="#pop">
+    <IncludeRules context="FindHTMLTagsClose" />
+    <StringDetect attribute="Element" context="#pop!El Close" String="%1" dynamic="true" />
+  </context>
+
+  <!-- This allows you to insert HTML tags in other syntax definitions -->
+  <context name="FindSpecialHTMLTags" attribute="Normal Text" lineEndContext="#stay">
+    <WordDetect attribute="Element" context="#pop!CSS" String="style" insensitive="true" beginRegion="style" />
+    <WordDetect attribute="Element" context="#pop!JS" String="script" insensitive="true" beginRegion="script" />
+  </context>
+
+  <context name="FindHTMLTags" attribute="Normal Text" lineEndContext="#stay">
+    <WordDetect attribute="Element" context="#pop!El Open" String="pre" insensitive="true" beginRegion="pre" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="div" insensitive="true" beginRegion="div" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="table" insensitive="true" beginRegion="table" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="ul" insensitive="true" beginRegion="ul" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="ol" insensitive="true" beginRegion="ol" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="dl" insensitive="true" beginRegion="dl" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="article" insensitive="true" beginRegion="article" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="aside" insensitive="true" beginRegion="aside" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="details" insensitive="true" beginRegion="details" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="figure" insensitive="true" beginRegion="figure" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="footer" insensitive="true" beginRegion="footer" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="header" insensitive="true" beginRegion="header" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="main" insensitive="true" beginRegion="main" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="nav" insensitive="true" beginRegion="nav" />
+    <WordDetect attribute="Element" context="#pop!El Open" String="section" insensitive="true" beginRegion="section" />
+  </context>
+
+  <context name="FindHTMLTagsClose" attribute="Normal Text" lineEndContext="#stay">
+    <WordDetect attribute="Element" context="#pop!El Close" String="pre" insensitive="true" endRegion="pre" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="div" insensitive="true" endRegion="div" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="table" insensitive="true" endRegion="table" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="ul" insensitive="true" endRegion="ul" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="ol" insensitive="true" endRegion="ol" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="dl" insensitive="true" endRegion="dl" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="article" insensitive="true" endRegion="article" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="aside" insensitive="true" endRegion="aside" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="details" insensitive="true" endRegion="details" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="figure" insensitive="true" endRegion="figure" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="footer" insensitive="true" endRegion="footer" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="header" insensitive="true" endRegion="header" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="main" insensitive="true" endRegion="main" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="nav" insensitive="true" endRegion="nav" />
+    <WordDetect attribute="Element" context="#pop!El Close" String="section" insensitive="true" endRegion="section" />
+  </context>
+
+  <context name="FindEntityRefs" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="EntityRef" context="#stay" String="&entref;" />
+    <AnyChar attribute="Error" context="#stay" String="&amp;&lt;" />
+  </context>
+
+  <context name="FindPEntityRefs" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="EntityRef" context="#stay" String="&entref;" />
+    <RegExpr attribute="PEntityRef" context="#stay" String="%&name;;" />
+    <AnyChar attribute="Error" context="#stay" String="&amp;%" />
+  </context>
+
+  <context name="FindAttributes" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="Attribute" context="#stay" String="^&attributeName;|\s+&attributeName;" />
+    <DetectChar attribute="Attribute Separator" context="Value" char="=" />
+  </context>
+
+  <context name="FindDTDRules" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="Doctype" context="Doctype Markupdecl" String="&lt;!(?:ELEMENT|ENTITY|ATTLIST|NOTATION)\b" />
+  </context>
+
+
+  <context name="Comment" attribute="Comment" lineEndContext="#stay">
+    <DetectSpaces/>
+    <StringDetect attribute="Comment" context="#pop" String="--&gt;" endRegion="comment" />
+    <IncludeRules context="##Comments" />
+    <DetectIdentifier/>
+    <RegExpr attribute="Error" context="#stay" String="-(?:-(?!-&gt;))+" />
+  </context>
+
+  <context name="CDATA" attribute="Other Text" lineEndContext="#stay">
+    <DetectSpaces/>
+    <DetectIdentifier/>
+    <StringDetect attribute="CDATA" context="#pop" String="]]&gt;" endRegion="cdata" />
+    <StringDetect attribute="EntityRef" context="#stay" String="]]&amp;gt;" />
+  </context>
+
+  <context name="PI" attribute="Other Text" lineEndContext="#stay">
+    <Detect2Chars attribute="Processing Instruction" context="#pop" char="?" char1="&gt;" endRegion="pi" />
+  </context>
+
+  <context name="Doctype" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Doctype" context="#pop" char="&gt;" endRegion="doctype" />
+    <DetectChar attribute="Doctype" context="Doctype Internal Subset" char="[" beginRegion="int_subset" />
+  </context>
+
+  <context name="Doctype Internal Subset" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Doctype" context="#pop" char="]" endRegion="int_subset" />
+    <IncludeRules context="FindDTDRules" />
+    <StringDetect attribute="Comment" context="Comment" String="&lt;!--" beginRegion="comment" />
+    <RegExpr attribute="Processing Instruction" context="PI" String="&lt;\?[\w:-]*" beginRegion="pi" />
+    <IncludeRules context="FindPEntityRefs" />
+  </context>
+
+  <context name="Doctype Markupdecl" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Doctype" context="#pop" char="&gt;" />
+    <DetectChar attribute="Value" context="Doctype Markupdecl DQ" char="&quot;" />
+    <DetectChar attribute="Value" context="Doctype Markupdecl SQ" char="&apos;" />
+  </context>
+
+  <context name="Doctype Markupdecl DQ" attribute="Value" lineEndContext="#stay">
+    <DetectChar attribute="Value" context="#pop" char="&quot;" />
+    <IncludeRules context="FindPEntityRefs" />
+  </context>
+
+  <context name="Doctype Markupdecl SQ" attribute="Value" lineEndContext="#stay">
+    <DetectChar attribute="Value" context="#pop" char="&apos;" />
+    <IncludeRules context="FindPEntityRefs" />
+  </context>
+
+  <context name="El Open" attribute="Other Text" lineEndContext="#stay">
+    <Detect2Chars attribute="Element Symbols" context="#pop" char="/" char1="&gt;" />
+    <DetectChar attribute="Element Symbols" context="#pop" char="&gt;" />
+    <IncludeRules context="FindAttributes" />
+    <RegExpr attribute="Error" context="#stay" String="\S" />
+  </context>
+
+  <context name="El Close" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Element Symbols" context="#pop" char="&gt;" />
+    <RegExpr attribute="Error" context="#stay" String="\S" />
+  </context>
+
+  <context name="CSS" attribute="Other Text" lineEndContext="#stay">
+    <Detect2Chars attribute="Element Symbols" context="#pop" char="/" char1="&gt;" endRegion="style" />
+    <DetectChar attribute="Element Symbols" context="CSS content" char="&gt;" />
+    <IncludeRules context="FindAttributes" />
+    <RegExpr attribute="Error" context="#stay" String="\S" />
+  </context>
+
+  <context name="CSS content" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="Element Symbols" context="CSS content Close" String="&lt;/(?=style\b)" insensitive="true" />
+    <IncludeRules context="##CSS" includeAttrib="true"/>
+  </context>
+  <context name="CSS content Close" attribute="Other Text" lineEndContext="#stay">
+    <DetectIdentifier attribute="Element" context="#pop#pop#pop!El Close" endRegion="style" />
+  </context>
+
+  <context name="JS" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="Attribute" context="Script-Type" String="(?:\s+|^)type(?=\=|\s|$)" insensitive="true"/>
+    <DetectChar attribute="Element Symbols" context="JS content" char="&gt;" />
+    <IncludeRules context="DefaultJS" />
+  </context>
+  <context name="DefaultJS" attribute="Other Text" lineEndContext="#stay">
+    <Detect2Chars attribute="Element Symbols" context="#pop" char="/" char1="&gt;" endRegion="script" />
+    <IncludeRules context="FindAttributes" />
+    <RegExpr attribute="Error" context="#stay" String="\S" />
+  </context>
+
+  <context name="JS content" attribute="Other Text" lineEndContext="#stay">
+    <IncludeRules context="Default JS content"/>
+    <IncludeRules context="Normal##JavaScript" includeAttrib="true"/>
+  </context>
+  <context name="Default JS content" attribute="Other Text" lineEndContext="#stay">
+    <IncludeRules context="FindScriptTagClose" />
+    <RegExpr attribute="Comment" context="JS comment close" String="//(?=.*&lt;/script\b)" insensitive="true" />
+  </context>
+
+  <context name="FindScriptTagClose" attribute="Other Text" lineEndContext="#stay">
+    <RegExpr attribute="Element Symbols" context="ScriptTagClose" String="&lt;/(?=script\b)" insensitive="true" />
+  </context>
+  <context name="ScriptTagClose" attribute="Other Text" lineEndContext="#stay">
+    <DetectIdentifier attribute="Element" context="#pop#pop#pop!El Close" endRegion="script" />
+  </context>
+
+  <context name="JS comment close" attribute="Comment" lineEndContext="#pop">
+    <RegExpr attribute="Element Symbols" context="#pop!ScriptTagClose" String="&lt;/(?=script\b)" insensitive="true" />
+    <DetectSpaces />
+    <IncludeRules context="##Comments" />
+  </context>
+
+  <context name="Value" attribute="Other Text" lineEndContext="#stay" fallthrough="true" fallthroughContext="Value NQ">
+    <DetectChar attribute="Value" context="Value DQ" char="&quot;" />
+    <DetectChar attribute="Value" context="Value SQ" char="&apos;" />
+    <DetectSpaces />
+  </context>
+
+  <context name="Value NQ" attribute="Other Text" lineEndContext="#pop#pop" fallthrough="true" fallthroughContext="#pop#pop">
+    <IncludeRules context="FindEntityRefs" />
+    <RegExpr attribute="Value" context="#stay" String="/(?!&gt;)|[^/&gt;&lt;&quot;&apos;\s]" />
+  </context>
+
+  <context name="Value DQ" attribute="Value" lineEndContext="#stay">
+    <DetectChar attribute="Value" context="#pop#pop" char="&quot;" />
+    <IncludeRules context="FindEntityRefs" />
+  </context>
+
+  <context name="Value SQ" attribute="Value" lineEndContext="#stay">
+    <DetectChar attribute="Value" context="#pop#pop" char="&apos;" />
+    <IncludeRules context="FindEntityRefs" />
+  </context>
+
+  <!-- Read content from the "type" attribute to change the language to
+       highlight in the <script> tag. The default language is JavaScript. -->
+
+  <context name="Script-Type" attribute="Other Text" lineEndContext="#stay" fallthrough="true" fallthroughContext="#pop">
+    <DetectSpaces />
+    <DetectChar attribute="Attribute" context="#pop!Script-Type Value" char="=" />
+  </context>
+  <context name="Script-Type Value" attribute="Other Text" lineEndContext="#stay" fallthrough="true" fallthroughContext="#pop!Value">
+    <DetectSpaces />
+    <!-- TypeScript -->
+    <StringDetect attribute="Value" context="#pop#pop!TypeScript" String="&quot;text/typescript&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!TypeScript" String="&apos;text/typescript&apos;"/>
+    <!-- JSX (JavaScript React) -->
+    <StringDetect attribute="Value" context="#pop#pop!JSX" String="&quot;text/jsx&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!JSX" String="&apos;text/jsx&apos;"/>
+    <StringDetect attribute="Value" context="#pop#pop!JSX" String="&quot;text/babel&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!JSX" String="&apos;text/babel&apos;"/>
+    <!-- MustacheJS / HandlebarsJS / RactiveJS -->
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&quot;x-tmpl-mustache&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&apos;x-tmpl-mustache&apos;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&quot;text/mustache&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&apos;text/mustache&apos;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&quot;text/x-mustache-template&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&apos;text/x-mustache-template&apos;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&quot;text/x-handlebars-template&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&apos;text/x-handlebars-template&apos;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&quot;text/ractive&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!MustacheJS" String="&apos;text/ractive&apos;"/>
+    <!-- HTML templates -->
+    <StringDetect attribute="Value" context="#pop#pop!Script HTML template" String="&quot;text/html&quot;"/>
+    <StringDetect attribute="Value" context="#pop#pop!Script HTML template" String="&apos;text/html&apos;"/>
+  </context>
+
+  <context name="JSX" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Element Symbols" context="JSX content" char="&gt;" />
+    <IncludeRules context="DefaultJS" />
+  </context>
+  <context name="JSX content" attribute="Other Text" lineEndContext="#stay">
+    <IncludeRules context="Default JS content"/>
+    <IncludeRules context="Normal##JavaScript React (JSX)" includeAttrib="true"/>
+  </context>
+
+  <context name="TypeScript" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Element Symbols" context="TypeScript content" char="&gt;" />
+    <IncludeRules context="DefaultJS" />
+  </context>
+  <context name="TypeScript content" attribute="Other Text" lineEndContext="#stay">
+    <IncludeRules context="Default JS content"/>
+    <IncludeRules context="Normal##TypeScript" includeAttrib="true"/>
+  </context>
+
+  <context name="MustacheJS" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Element Symbols" context="MustacheJS content" char="&gt;" />
+    <IncludeRules context="DefaultJS" />
+  </context>
+  <context name="MustacheJS content" attribute="Other Text" lineEndContext="#stay">
+    <IncludeRules context="FindScriptTagClose" />
+    <StringDetect attribute="Error" context="#stay" String="&lt;script&gt;" insensitive="true" />
+    <RegExpr attribute="Error" context="#stay" String="&lt;script\b" insensitive="true" />
+    <IncludeRules context="Base##Mustache/Handlebars (HTML)" includeAttrib="true"/>
+  </context>
+
+  <context name="Script HTML template" attribute="Other Text" lineEndContext="#stay">
+    <DetectChar attribute="Element Symbols" context="Script HTML template content" char="&gt;" />
+    <IncludeRules context="DefaultJS" />
+  </context>
+  <context name="Script HTML template content" attribute="Other Text" lineEndContext="#stay">
+    <IncludeRules context="FindScriptTagClose" />
+    <StringDetect attribute="Error" context="#stay" String="&lt;script&gt;" insensitive="true" />
+    <RegExpr attribute="Error" context="#stay" String="&lt;script\b" insensitive="true" />
+    <IncludeRules context="FindHTML" />
+  </context>
+
+
     </contexts>
     <itemDatas>
       <itemData name="Normal Text" defStyleNum="dsNormal"/>

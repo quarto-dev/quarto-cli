@@ -1,0 +1,34 @@
+---
+title: table caption test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        -
+          - "//fig[@id=\"tbl-1\"]//caption"
+          - "//xref[@rid=\"tbl-1\"]"
+      ensureFileRegexMatches:
+        - 
+          - "Table 1: This is a caption."
+        - []
+---
+
+::: {#tbl-1}
+
+```{=html}
+<table>
+  <caption>This is a caption.</caption>
+  <thead>
+  <tr><th>col 1</th><th>col 2</th></tr>
+  </thead>
+  <tbody>
+  <tr><td>1</td><td>2</td></tr>
+  <tr><td>3</td><td>4</td></tr>
+  </tbody>
+</table>
+```
+
+:::
+
+See @tbl-1.

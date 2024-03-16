@@ -1,0 +1,22 @@
+---
+title: Simple Funding
+affiliations: 
+  - id: nsf
+    name: NSF Grant
+    city: Boston
+    state: MA
+    country: USA
+    isni: 0000 0001 2169 1945
+funding: 
+  statement: "The author(s) received no specific funding for this work."
+  open-access: "This is open access"
+  awards:
+    id: foo
+    name: Award Name
+    description: Award Description
+    source:
+      ref: nsf
+      country: USA
+      type: Grant
+format: jats
+---

@@ -98,6 +98,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     classNames: {
       form: "d-flex",
     },
+    placeholder: language["search-text-placeholder"],
     translations: {
       clearButtonTitle: language["search-clear-button-title"],
       detachedCancelButtonText: language["search-detached-cancel-button-title"],
@@ -361,7 +362,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 state,
                 setActiveItemId,
                 setContext,
-                refresh
+                refresh,
+                quartoSearchOptions
               );
             },
           },
@@ -379,7 +381,24 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   document.addEventListener("keyup", (event) => {
     const { key } = event;
     const kbds = quartoSearchOptions["keyboard-shortcut"];
-    if (kbds && kbds.includes(key)) {
+    const focusedEl = document.activeElement;
+
+    const isFormElFocused = [
+      "input",
+      "select",
+      "textarea",
+      "button",
+      "option",
+    ].find((tag) => {
+      return focusedEl.tagName.toLowerCase() === tag;
+    });
+
+    if (
+      kbds &&
+      kbds.includes(key) &&
+      !isFormElFocused &&
+      !document.activeElement.isContentEditable
+    ) {
       event.preventDefault();
       window.quartoOpenSearch();
     }
@@ -396,11 +415,30 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   }
 
+  function throttle(func, wait) {
+    let waiting = false;
+    return function () {
+      if (!waiting) {
+        func.apply(this, arguments);
+        waiting = true;
+        setTimeout(function () {
+          waiting = false;
+        }, wait);
+      }
+    };
+  }
+
   // If the main document scrolls dismiss the search results
   // (otherwise, since they're floating in the document they can scroll with the document)
-  window.document.body.onscroll = () => {
-    setIsOpen(false);
-  };
+  window.document.body.onscroll = throttle(() => {
+    // Only do this if we're not detached
+    // Bug #7117
+    // This will happen when the keyboard is shown on ios (resulting in a scroll)
+    // which then closed the search UI
+    if (!window.matchMedia(detachedMediaQuery).matches) {
+      setIsOpen(false);
+    }
+  }, 50);
 
   if (showSearchResults) {
     setIsOpen(true);
@@ -440,15 +478,27 @@ function configurePlugins(quartoSearchOptions) {
         const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({
           insightsClient: window.aa,
           onItemsChange({ insights, insightsEvents }) {
-            const events = insightsEvents.map((event) => {
-              const maxEvents = event.objectIDs.slice(0, 20);
-              return {
-                ...event,
-                objectIDs: maxEvents,
-              };
+            const events = insightsEvents.flatMap((event) => {
+              // This API limits the number of items per event to 20
+              const chunkSize = 20;
+              const itemChunks = [];
+              const eventItems = event.items;
+              for (let i = 0; i < eventItems.length; i += chunkSize) {
+                itemChunks.push(eventItems.slice(i, i + chunkSize));
+              }
+              // Split the items into multiple events that can be sent
+              const events = itemChunks.map((items) => {
+                return {
+                  ...event,
+                  items,
+                };
+              });
+              return events;
             });
 
-            insights.viewedObjectIDs(...events);
+            for (const event of events) {
+              insights.viewedObjectIDs(event);
+            }
           },
         });
         return algoliaInsightsPlugin;
@@ -625,6 +675,18 @@ function showCopyLink(query, options) {
 // create the index
 var fuseIndex = undefined;
 var shownWarning = false;
+
+// fuse index options
+const kFuseIndexOptions = {
+  keys: [
+    { name: "title", weight: 20 },
+    { name: "section", weight: 20 },
+    { name: "text", weight: 10 },
+  ],
+  ignoreLocation: true,
+  threshold: 0.1,
+};
+
 async function readSearchData() {
   // Initialize the search index on demand
   if (fuseIndex === undefined) {
@@ -635,17 +697,7 @@ async function readSearchData() {
       shownWarning = true;
       return;
     }
-    // create fuse index
-    const options = {
-      keys: [
-        { name: "title", weight: 20 },
-        { name: "section", weight: 20 },
-        { name: "text", weight: 10 },
-      ],
-      ignoreLocation: true,
-      threshold: 0.1,
-    };
-    const fuse = new window.Fuse([], options);
+    const fuse = new window.Fuse([], kFuseIndexOptions);
 
     // fetch the main search.json
     const response = await fetch(offsetURL("search.json"));
@@ -665,6 +717,7 @@ async function readSearchData() {
       );
     }
   }
+
   return fuseIndex;
 }
 
@@ -693,7 +746,8 @@ function renderItem(
   state,
   setActiveItemId,
   setContext,
-  refresh
+  refresh,
+  quartoSearchOptions
 ) {
   switch (item.type) {
     case kItemTypeDoc:
@@ -703,7 +757,9 @@ function renderItem(
         item.title,
         item.section,
         item.text,
-        item.href
+        item.href,
+        item.crumbs,
+        quartoSearchOptions
       );
     case kItemTypeMore:
       return createMoreCard(
@@ -728,15 +784,46 @@ function renderItem(
   }
 }
 
-function createDocumentCard(createElement, icon, title, section, text, href) {
+function createDocumentCard(
+  createElement,
+  icon,
+  title,
+  section,
+  text,
+  href,
+  crumbs,
+  quartoSearchOptions
+) {
   const iconEl = createElement("i", {
     class: `bi bi-${icon} search-result-icon`,
   });
   const titleEl = createElement("p", { class: "search-result-title" }, title);
+  const titleContents = [iconEl, titleEl];
+  const showParent = quartoSearchOptions["show-item-context"];
+  if (crumbs && showParent) {
+    let crumbsOut = undefined;
+    const crumbClz = ["search-result-crumbs"];
+    if (showParent === "root") {
+      crumbsOut = crumbs.length > 1 ? crumbs[0] : undefined;
+    } else if (showParent === "parent") {
+      crumbsOut = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined;
+    } else {
+      crumbsOut = crumbs.length > 1 ? crumbs.join(" > ") : undefined;
+      crumbClz.push("search-result-crumbs-wrap");
+    }
+
+    const crumbEl = createElement(
+      "p",
+      { class: crumbClz.join(" ") },
+      crumbsOut
+    );
+    titleContents.push(crumbEl);
+  }
+
   const titleContainerEl = createElement(
     "div",
     { class: "search-result-title-container" },
-    [iconEl, titleEl]
+    titleContents
   );
 
   const textEls = [];
@@ -1118,17 +1205,19 @@ function algoliaSearch(query, limit, algoliaOptions) {
         const remappedHits = response.hits.map((hit) => {
           return hit.map((item) => {
             const newItem = { ...item };
-            ["href", "section", "title", "text"].forEach((keyName) => {
-              const mappedName = indexFields[keyName];
-              if (
-                mappedName &&
-                item[mappedName] !== undefined &&
-                mappedName !== keyName
-              ) {
-                newItem[keyName] = item[mappedName];
-                delete newItem[mappedName];
+            ["href", "section", "title", "text", "crumbs"].forEach(
+              (keyName) => {
+                const mappedName = indexFields[keyName];
+                if (
+                  mappedName &&
+                  item[mappedName] !== undefined &&
+                  mappedName !== keyName
+                ) {
+                  newItem[keyName] = item[mappedName];
+                  delete newItem[mappedName];
+                }
               }
-            });
+            );
             newItem.text = highlightMatch(query, newItem.text);
             return newItem;
           });
@@ -1139,8 +1228,34 @@ function algoliaSearch(query, limit, algoliaOptions) {
   });
 }
 
-function fuseSearch(query, fuse, fuseOptions) {
-  return fuse.search(query, fuseOptions).map((result) => {
+let subSearchTerm = undefined;
+let subSearchFuse = undefined;
+const kFuseMaxWait = 125;
+
+async function fuseSearch(query, fuse, fuseOptions) {
+  let index = fuse;
+  // Fuse.js using the Bitap algorithm for text matching which runs in
+  // O(nm) time (no matter the structure of the text). In our case this
+  // means that long search terms mixed with large index gets very slow
+  //
+  // This injects a subIndex that will be used once the terms get long enough
+  // Usually making this subindex is cheap since there will typically be
+  // a subset of results matching the existing query
+  if (subSearchFuse !== undefined && query.startsWith(subSearchTerm)) {
+    // Use the existing subSearchFuse
+    index = subSearchFuse;
+  } else if (subSearchFuse !== undefined) {
+    // The term changed, discard the existing fuse
+    subSearchFuse = undefined;
+    subSearchTerm = undefined;
+  }
+
+  // Search using the active fuse
+  const then = performance.now();
+  const resultsRaw = await index.search(query, fuseOptions);
+  const now = performance.now();
+
+  const results = resultsRaw.map((result) => {
     const addParam = (url, name, value) => {
       const anchorParts = url.split("#");
       const baseUrl = anchorParts[0];
@@ -1154,6 +1269,18 @@ function fuseSearch(query, fuse, fuseOptions) {
       section: result.item.section,
       href: addParam(result.item.href, kQueryArg, query),
       text: highlightMatch(query, result.item.text),
+      crumbs: result.item.crumbs,
     };
   });
+
+  // If we don't have a subfuse and the query is long enough, go ahead
+  // and create a subfuse to use for subsequent queries
+  if (now - then > kFuseMaxWait && subSearchFuse === undefined) {
+    subSearchTerm = query;
+    subSearchFuse = new window.Fuse([], kFuseIndexOptions);
+    resultsRaw.forEach((rr) => {
+      subSearchFuse.add(rr.item);
+    });
+  }
+  return results;
 }

@@ -12,7 +12,7 @@ import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 import { kBookOutputFile } from "./book-constants.ts";
-import { basename } from "path/mod.ts";
+import { basename } from "../../../deno_ral/path.ts";
 import { texSafeFilename } from "../../../core/tex.ts";
 
 export type BookConfigKey =

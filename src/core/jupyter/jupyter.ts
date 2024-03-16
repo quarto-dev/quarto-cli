@@ -7,10 +7,10 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 import { walkSync } from "fs/walk.ts";
 import * as colors from "fmt/colors.ts";
-import { decode as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64.ts";
 import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
@@ -109,6 +109,7 @@ import {
   kError,
   kEval,
   kFigCapLoc,
+  kHtmlTableProcessing,
   kInclude,
   kLayout,
   kLayoutAlign,
@@ -125,6 +126,7 @@ import {
   isJupyterKernelspec,
   jupyterDefaultPythonKernelspec,
   jupyterKernelspec,
+  jupyterKernelspecForLanguage,
   jupyterKernelspecs,
 } from "./kernels.ts";
 import {
@@ -141,7 +143,7 @@ import {
   JupyterToMarkdownResult,
 } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
-import { lines } from "../text.ts";
+import { lines, trimEmptyLines } from "../lib/text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { languagesInMarkdown } from "../../execute/engine-shared.ts";
 import {
@@ -150,15 +152,19 @@ import {
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
-import { encode as encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 import {
   isHtmlOutput,
   isIpynbOutput,
   isJatsOutput,
 } from "../../config/format.ts";
-import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import {
+  bookFixups,
+  fixupJupyterNotebook,
+  minimalFixups,
+} from "./jupyter-fixups.ts";
 import {
   resolveUserExpressions,
   userExpressionsFromCell,
@@ -210,6 +216,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCodeLineNumbers,
   kCodeSummary,
   kCodeOverflow,
+  kHtmlTableProcessing,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -258,7 +265,7 @@ const countTicks = (code: string[]) => {
   // FIXME do we need trim() here?
   const countLeadingTicks = (s: string) => {
     // count leading ticks using regexps
-    const m = s.match(/^`+/);
+    const m = s.match(/^\s*`+/);
     if (m) {
       return m[0].length;
     } else {
@@ -298,12 +305,12 @@ export async function quartoMdToJupyter(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^(\\s*)```+\\s*\\{" + kernelspec.language.toLowerCase() +
+    "^(\\s*)(```+)\\s*\\{" + kernelspec.language.toLowerCase() +
       "( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^(\s*)```/;
-  const endCodeRegEx = (indent = "") => {
-    return new RegExp("^" + indent + "```\\s*$");
+  const endCodeRegEx = (indent = "", backtickCount = 0) => {
+    return new RegExp("^" + indent + "`".repeat(backtickCount) + "\\s*$");
   };
 
   // read the file into lines
@@ -347,7 +354,7 @@ export async function quartoMdToJupyter(
           delete yaml.jupyter;
           // write the cell only if there is metadata to write
           if (Object.keys(yaml).length > 0) {
-            const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
+            const yamlFrontMatter = trimEmptyLines(lines(stringify(yaml, {
               indent: 2,
               lineWidth: -1,
               sortKeys: false,
@@ -368,7 +375,7 @@ export async function quartoMdToJupyter(
           kernelspec.language.toLowerCase(),
           cell.source,
         );
-        if (yaml) {
+        if (yaml && !Array.isArray(yaml) && typeof yaml === "object") {
           // use label as id if necessary
           if (includeIds && yaml[kCellLabel] && !yaml[kCellId]) {
             yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
@@ -405,7 +412,7 @@ export async function quartoMdToJupyter(
       }
 
       // if the source is empty then don't add it
-      cell.source = mdTrimEmptyLines(cell.source);
+      cell.source = trimEmptyLines(cell.source);
       if (cell.source.length > 0) {
         nb.cells.push(cell);
       }
@@ -418,7 +425,8 @@ export async function quartoMdToJupyter(
   let parsedFrontMatter = false,
     inYaml = false,
     inCodeCell = false,
-    inCode = false;
+    inCode = false,
+    backtickCount = 0;
   for (const line of lines(inputContent)) {
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
@@ -433,13 +441,16 @@ export async function quartoMdToJupyter(
         inYaml = true;
       }
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line)) {
+    else if (!inCodeCell && startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
       codeIndent = line.match(startCodeCellRegEx)![1];
+      backtickCount = line.match(startCodeCellRegEx)![2].length;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx(codeIndent).test(line)) {
+    } else if (
+      inCodeCell && endCodeRegEx(codeIndent, backtickCount).test(line)
+    ) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
@@ -454,7 +465,7 @@ export async function quartoMdToJupyter(
       }
 
       // begin code block: ^```
-    } else if (startCodeRegEx.test(line)) {
+    } else if (!inCodeCell && startCodeRegEx.test(line)) {
       codeIndent = line.match(startCodeRegEx)![1];
       inCode = true;
       lineBuffer.push(line);
@@ -465,7 +476,6 @@ export async function quartoMdToJupyter(
 
   // if there is still a line buffer then make it a markdown cell
   flushLineBuffer("markdown");
-
   return nb;
 }
 
@@ -484,14 +494,13 @@ export async function jupyterKernelspecFromMarkdown(
   if (!yamlJupyter) {
     const languages = languagesInMarkdown(markdown);
     languages.add("python"); // python as a default/failsafe
-    const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
-      for (const kernelspec of kernelspecs.values()) {
-        if (kernelspec.language.toLowerCase() === language) {
-          return [kernelspec, {}];
-        }
+      const kernelspec = await jupyterKernelspecForLanguage(language);
+      if (kernelspec) {
+        return [kernelspec, {}];
       }
     }
+    const kernelspecs = await jupyterKernelspecs();
     return Promise.reject(
       new Error(
         `No kernel found for any language checked (${
@@ -501,17 +510,22 @@ export async function jupyterKernelspecFromMarkdown(
         }).`,
       ),
     );
-  } else if (typeof (yamlJupyter) === "string") {
+  } else if (typeof yamlJupyter === "string") {
     const kernel = yamlJupyter;
     const kernelspec = await jupyterKernelspec(kernel);
     if (kernelspec) {
       return [kernelspec, {}];
     } else {
       return Promise.reject(
-        new Error("Jupyter kernel '" + kernel + "' not found."),
+        new Error(
+          `Jupyter kernel '${kernel}' not found. Known kernels: ${
+            Array.from((await jupyterKernelspecs()).values())
+              .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+          }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+        ),
       );
     }
-  } else if (typeof (yamlJupyter) === "object") {
+  } else if (typeof yamlJupyter === "object") {
     const jupyter = { ...yamlJupyter } as Record<string, unknown>;
     if (isJupyterKernelspec(jupyter.kernelspec)) {
       const kernelspec = jupyter.kernelspec;
@@ -524,7 +538,12 @@ export async function jupyterKernelspecFromMarkdown(
         return [kernelspec, jupyter];
       } else {
         return Promise.reject(
-          new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
+          new Error(
+            `Jupyter kernel '${jupyter.kernel}' not found. Known kernels: ${
+              Array.from((await jupyterKernelspecs()).values())
+                .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+            }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+          ),
         );
       }
     } else {
@@ -670,11 +689,22 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  const fixups = options.executeOptions.projectType === "book"
-    ? bookFixups
-    : undefined;
 
-  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
+  const project = options.executeOptions.project;
+  const projType = project?.config?.project?.[kProjectType];
+
+  if (projType === "book") {
+    nb = fixupJupyterNotebook(nb, bookFixups);
+  } else if (project?.isSingleFile) {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  } else if (
+    (project?.config?.title !== undefined &&
+      (projType === "default" || projType === undefined))
+  ) {
+    nb = fixupJupyterNotebook(nb, minimalFixups);
+  } else {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  }
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb
@@ -895,7 +925,7 @@ export function jupyterCellOptionsAsComment(
       ...stringifyOptions,
     });
     const commentChars = langCommentChars(language);
-    const yamlOutput = mdTrimEmptyLines(lines(cellYaml)).map((line) => {
+    const yamlOutput = trimEmptyLines(lines(cellYaml)).map((line) => {
       line = optionCommentPrefix(commentChars[0]) + line +
         optionCommentSuffix(commentChars[1]);
       return line + "\n";
@@ -962,6 +992,26 @@ export function mdFromContentCell(
   return contentCellEnvelope(cell.id, mdEnsureTrailingNewline(source));
 }
 
+export function mdFormatOutput(format: string, source: string[]) {
+  const ticks = ticksForCode(source);
+  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
+}
+
+export function mdRawOutput(mimeType: string, source: string[]) {
+  switch (mimeType) {
+    case kTextHtml:
+      return mdHtmlOutput(source);
+    case kTextLatex:
+      return mdLatexOutput(source);
+    case kRestructuredText:
+      return mdFormatOutput("rst", source);
+    case kApplicationRtf:
+      return mdFormatOutput("rtf", source);
+    case kApplicationJavascript:
+      return mdScriptOutput(mimeType, source);
+  }
+}
+
 export function mdFromRawCell(
   cell: JupyterCellWithOptions,
   options?: JupyterToMarkdownOptions,
@@ -970,17 +1020,9 @@ export function mdFromRawCell(
 
   const mimeType = cell.metadata?.[kCellRawMimeType];
   if (mimeType) {
-    switch (mimeType) {
-      case kTextHtml:
-        return rawCellEnvelope(cell.id, mdHtmlOutput(cell.source));
-      case kTextLatex:
-        return rawCellEnvelope(cell.id, mdLatexOutput(cell.source));
-      case kRestructuredText:
-        return rawCellEnvelope(cell.id, mdFormatOutput("rst", cell.source));
-      case kApplicationRtf:
-        return rawCellEnvelope(cell.id, mdFormatOutput("rtf", cell.source));
-      case kApplicationJavascript:
-        return rawCellEnvelope(cell.id, mdScriptOutput(mimeType, cell.source));
+    const rawOutput = mdRawOutput(mimeType, cell.source);
+    if (rawOutput) {
+      return rawCellEnvelope(cell.id, rawOutput);
     }
   }
 
@@ -1139,6 +1181,8 @@ const kLangCommentChars: Record<string, string | string[]> = {
   dot: "//",
   mermaid: "%%",
   apl: "⍝",
+  ocaml: ["(*", "*)"],
+  rust: "//",
 };
 
 function cleanJupyterOutputDisplayData(
@@ -1188,6 +1232,9 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // check if we have any image output
+  const haveImage = !!cell.outputs?.some((output) => isImage(output, options));
+
   // filter and transform outputs as needed
   const outputs = (cell.outputs || []).filter((output) => {
     // filter warnings if requested
@@ -1200,7 +1247,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output)) {
+    if (isDiscadableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1310,19 +1357,31 @@ async function mdFromCodeCell(
     ...cell.options,
   };
 
+  let forwardedAttrs = false;
   for (const key of Object.keys(cellOptions)) {
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
-      if (value) {
-        if (typeof (value) !== "string") {
+      if (value !== undefined) {
+        if (typeof value !== "string") {
           value = JSON.stringify(value);
         }
         value = value.replaceAll("'", `\\'`);
         divMd.push(`${key}='${value}' `);
+        forwardedAttrs = true;
       }
     }
   }
+
+  // in analogy to src/resources/rmd/hooks.R:403--406
+  //
+  // if there is a label, additional classes, a forwardAttr, or a cell.cap
+  // then the user is deemed to have implicitly overridden results = "asis"
+  // (as those features don't work w/o an enclosing div)
+  const needCell = (label && labelCellContainer) || // isTRUE(nzchar(label))
+    classes.length > 0 || // length(classes) > 1
+    forwardedAttrs || // isTRUE(nzchar(forwardAttr))
+    (cellCaption !== undefined || outputCaptions.length > 0); // isTRUE(nzchar(cell.cap))
 
   // add execution_count if we have one
   if (typeof (cell.execution_count) === "number") {
@@ -1334,7 +1393,7 @@ async function mdFromCodeCell(
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
-  if (includeCode(cell, options)) {
+  if (includeCode(cell, options) || options.preserveCodeCellYaml) {
     const fenced = echoFenced(cell, options);
     const ticks = "`".repeat(
       Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
@@ -1364,7 +1423,7 @@ async function mdFromCodeCell(
       }
 
       if (typeof cell.options[kCellLstCap] === "string") {
-        md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
+        md.push(` lst-cap=\"${cell.options[kCellLstCap]}\"`);
       }
       if (typeof cell.options[kCodeFold] !== "undefined") {
         md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
@@ -1383,15 +1442,15 @@ async function mdFromCodeCell(
         line.search(/echo:\s+fenced/) === -1
       );
       if (optionsSource.length > 0) {
-        source = mdTrimEmptyLines(source, "trailing");
+        source = trimEmptyLines(source, "trailing");
       } else {
-        source = mdTrimEmptyLines(source, "all");
+        source = trimEmptyLines(source, "all");
       }
       source.unshift(...optionsSource);
       source.unshift("```{{" + options.language + "}}\n");
       source.push("\n```\n");
     } else if (cell.optionsSource.length > 0) {
-      source = mdTrimEmptyLines(source, "leading");
+      source = trimEmptyLines(source, "leading");
     }
     if (options.preserveCodeCellYaml) {
       md.push(...cell.optionsSource);
@@ -1408,8 +1467,9 @@ async function mdFromCodeCell(
       : ("cell-" + (cellIndex + 1));
 
     // strip spaces, special characters, etc. for latex friendly paths
-    const outputName = pandocAutoIdentifier(labelName, true) + "-output";
-
+    const outputName = `${
+      options.outputPrefix ? options.outputPrefix + "-" : ""
+    }${pandocAutoIdentifier(labelName, true)}-output`;
     let nextOutputSuffix = 1;
     const sortedOutputs = outputs.map((value, index) => ({
       index,
@@ -1460,6 +1520,11 @@ async function mdFromCodeCell(
           md.push(`.${outputTypeCssClass(output.output_type)}`);
         }
 
+        // if this is markdown output then include a special class for that
+        if (isMarkdown(output, options)) {
+          md.push(` .${outputTypeCssClass("markdown")}`);
+        }
+
         // add hidden if necessary
         if (
           hideOutput(cell, options) ||
@@ -1471,6 +1536,10 @@ async function mdFromCodeCell(
         // add execution count if we have one
         if (typeof (output.execution_count) === "number") {
           md.push(` execution_count=${output.execution_count}`);
+        }
+
+        if (cell.options[kHtmlTableProcessing] === "none") {
+          md.push(" html-table-processing=none");
         }
 
         md.push("}\n");
@@ -1528,7 +1597,7 @@ async function mdFromCodeCell(
           md.push(mdOutputStream(stream));
         }
       } else if (output.output_type === "error") {
-        md.push(mdOutputError(output as JupyterOutputError));
+        md.push(await mdOutputError(output as JupyterOutputError, options));
       } else if (isDisplayData(output)) {
         const fixedOutput = cleanJupyterOutputDisplayData(output);
         if (Object.keys(fixedOutput.data).length > 0) {
@@ -1575,7 +1644,7 @@ async function mdFromCodeCell(
   }
 
   // write md w/ div enclosure (if there is any md to write)
-  if (md.length > 0 && !asis) {
+  if (md.length > 0 && (needCell || !asis)) {
     // begin
     md.unshift(divBeginMd);
 
@@ -1606,17 +1675,25 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(output: JupyterOutput) {
+function isDiscadableTextExecuteResult(
+  output: JupyterOutput,
+  haveImage: boolean,
+) {
   if (output.output_type === "execute_result") {
     const data = (output as JupyterOutputDisplayData).data;
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        return [
-          "[<matplotlib",
-          "<seaborn.",
-          "<ggplot:",
-        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        if (haveImage && textPlain.length === 1) {
+          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        } else {
+          return [
+            "[<matplotlib",
+            "<matplotlib",
+            "<seaborn.",
+            "<ggplot:",
+          ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        }
       }
     }
   }
@@ -1650,7 +1727,6 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsImage);
 }
 
-// deno-lint-ignore no-unused-vars
 function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
@@ -1673,8 +1749,21 @@ function mdOutputStream(output: JupyterOutputStream) {
   return mdCodeOutput(output.text.map(colors.stripColor));
 }
 
-function mdOutputError(output: JupyterOutputError) {
-  return mdCodeOutput([output.ename + ": " + output.evalue]);
+async function mdOutputError(
+  output: JupyterOutputError,
+  options: JupyterToMarkdownOptions,
+) {
+  if (!options.toHtml || !hasAnsiEscapeCodes(output.evalue)) {
+    return mdCodeOutput([output.ename + ": " + output.evalue]);
+  }
+  const html = await convertToHtmlSpans(output.evalue);
+  return mdMarkdownOutput(
+    [
+      "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
+      html,
+      "</pre>\n```\n:::\n",
+    ],
+  );
 }
 
 async function mdOutputDisplayData(
@@ -1864,11 +1953,6 @@ function mdMarkdownOutput(md: string[]) {
   return md.join("") + "\n";
 }
 
-function mdFormatOutput(format: string, source: string[]) {
-  const ticks = ticksForCode(source);
-  return mdEnclosedOutput(ticks + "{=" + format + "}", source, ticks);
-}
-
 function mdLatexOutput(latex: string[]) {
   return mdFormatOutput("tex", latex);
 }
@@ -1896,36 +1980,6 @@ function mdScriptOutput(mimeType: string, script: string[]) {
     "\n</script>",
   ];
   return mdHtmlOutput(scriptTag);
-}
-
-function mdTrimEmptyLines(
-  lines: string[],
-  trim: "leading" | "trailing" | "all" = "all",
-) {
-  // trim leading lines
-  if (trim === "all" || trim === "leading") {
-    const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
-    if (firstNonEmpty === -1) {
-      return [];
-    }
-    lines = lines.slice(firstNonEmpty);
-  }
-
-  // trim trailing lines
-  if (trim === "all" || trim === "trailing") {
-    let lastNonEmpty = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i].trim().length > 0) {
-        lastNonEmpty = i;
-        break;
-      }
-    }
-    if (lastNonEmpty > -1) {
-      lines = lines.slice(0, lastNonEmpty + 1);
-    }
-  }
-
-  return lines;
 }
 
 function mdCodeOutput(code: string[], clz?: string) {

@@ -5,11 +5,47 @@ set -e
 # if per machine (run without sudo):
 
 if [[ $EUID -eq 0 ]]; then
-ln -fs /opt/quarto/bin/quarto /usr/local/bin/quarto
-ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/quarto.1
+  if [ -d "/usr/local/bin" ] 
+  then
+    ln -fs /opt/quarto/bin/quarto /usr/local/bin/quarto
+  else
+    echo "Quarto symlink not created, please be sure that you add Quarto to your path."
+  fi
+  
+  if [ -d "/usr/local/man/man1" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/man1/quarto.1
+  elif [ -d "/usr/local/man" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man /usr/local/man/quarto.1
+  fi
+  
 else
-ln -fs /opt/quarto/bin/quarto ~/bin/quarto
-ln -fs /opt/quarto/share/man/quarto.man ~/man/quarto.1
+  if [ -d "~/bin/quarto" ] 
+  then
+    ln -fs /opt/quarto/bin/quarto ~/bin/quarto
+  else
+    echo "Quarto symlink not created, please be sure that you add Quarto to your path."
+  fi
+
+  if [ -d "~/man/man1" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man ~/man/man1/quarto.1
+  elif [ -d "~/man" ] 
+  then
+    ln -fs /opt/quarto/share/man/quarto.man ~/man/quarto.1
+  fi
+  
 fi
+
+# Figure architecture
+NIXARCH=$(uname -m)
+if [[ $NIXARCH == "aarch64" ]]; then
+  ARCH_DIR=aarch64
+else 
+  ARCH_DIR=x86_64
+fi
+
+ln -fs /opt/quarto/bin/tools/${ARCH_DIR}/pandoc /opt/quarto/bin/tools/pandoc
 
 exit 0

@@ -61,8 +61,8 @@ export async function appendTextFile(
 export async function touch(path: string) {
   if (Deno.build.os === "windows") {
     // Touch the file be rewriting it
-    const contents = await Deno.readTextFile(path);
-    await Deno.writeTextFile(path, contents);
+    const contents = await Deno.readFileSync(path);
+    await Deno.writeFileSync(path, contents);
   } else {
     await execProcess({
       cmd: ["touch", path],

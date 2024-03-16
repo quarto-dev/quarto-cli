@@ -1,1 +1,3 @@
 # Summary
+
+A reference to @fig-1.

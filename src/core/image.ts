@@ -1,12 +1,11 @@
 /*
-* image.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * image.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { existsSync } from "fs/exists.ts";
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 import PngImage from "./png.ts";
 
 export function imageSize(path: string) {

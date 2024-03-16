@@ -71,7 +71,7 @@ export function isHtmlOutput(
   }
   format = format || "html";
   if (
-    isHtmlDocOutput(format)
+    isHtmlDocOutput(format) || isHtmlDashboardOutput(format)
   ) {
     return true;
   } else if (!strict) {
@@ -103,6 +103,10 @@ export function isHtmlSlideOutput(format?: string | FormatPandoc) {
     "slideous",
     "revealjs",
   ].includes(format);
+}
+
+export function isHtmlDashboardOutput(format?: string) {
+  return format === "dashboard" || format?.endsWith("-dashboard");
 }
 
 export function isJatsOutput(format?: string | FormatPandoc) {

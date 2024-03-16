@@ -1,0 +1,22 @@
+---
+format: gfm
+keep-md: true
+jupyter:
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+# example
+
+````{python}
+# using the f-string means the python string uses 2 curly braces in its syntax,
+# but the string itself is just single curly braces
+# otherwise, quarto tries to execute the code (a separate issue)
+# but quarto sees and interprets the double curly braces as a non-executable code block
+doc = f"""
+    ```{{python}}
+    ```
+"""
+````

@@ -1,0 +1,31 @@
+---
+title: Position citation
+bibliography: ref.bib
+format:
+  html: default
+  latex: default
+filters:
+  - at: post-finalize
+    path: check-refs.lua
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ['#references div#refs.references div.csl-entry']
+        - []
+    latex:
+      ensureFileRegexMatches:
+        - ['\\subsection\{References\}[\s\S]+\\begin\{CSLReferences\}[\s\S]+\\subsection\{Appendix\}']
+        - []
+---
+
+@Lovelace1842
+
+## References {#references}
+
+::: {#refs}
+:::
+
+## Appendix {#appendix}
+
+Blah.

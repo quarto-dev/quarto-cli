@@ -1,0 +1,24 @@
+---
+title: lst-cap-location-test
+format: typst
+# _quarto:
+#   tests:
+#     html:
+#       ensureHtmlElements:
+#         - 
+#           - "div#lst-customers figcaption:nth-child(1)"
+#           - "div#lst-customers-2 figcaption:nth-child(2)"
+---
+
+```{#lst-customers .sql lst-cap="Customers _query_"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).
+
+
+```{#lst-customers-2 .sql lst-cap="Customers _query_" lst-cap-location="bottom"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database again (@lst-customers-2), with a caption in a different location.

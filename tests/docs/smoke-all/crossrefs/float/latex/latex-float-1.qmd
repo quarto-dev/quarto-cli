@@ -1,0 +1,46 @@
+---
+title: float crossref test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        -
+          - "\\\\ref\\{fig-1\\}"
+          - "\\\\caption\\{\\\\label\\{fig-1\\}This is a caption.\\}"
+          - "\\\\ref\\{tbl-1\\}"
+          - "\\\\caption\\{\\\\label\\{tbl-1\\}This is a table.\\}"
+          - "\\\\begin\\{figure\\}"
+          - "\\\\begin\\{table\\}"
+        - [] 
+---
+
+This tests:
+
+- custom content in floats
+- classes of float captions
+
+::: {#fig-1}
+
+::: {.figure-content}
+This is the figure content.
+:::
+
+This is a caption.
+
+:::
+
+See @fig-1.
+
+
+::: {#tbl-1}
+
+::: {.table-content}
+This is the table content.
+:::
+
+This is a table.
+
+:::
+
+See @tbl-1.

@@ -1,0 +1,15 @@
+---
+title: issue-6584
+format: html
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['{{&lt; video &gt;}}']
+        - []
+
+---
+
+## Overview
+
+You can embed videos in documents using the `{{{< video >}}}` shortcode. For example, here we embed a YouTube video:

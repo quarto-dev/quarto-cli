@@ -1,0 +1,16 @@
+---
+title: "Screen inset"
+format: 
+  html:
+    column: screen-inset-right
+editor_options: 
+  chunk_output_type: console
+---
+
+## Plot
+
+```{r}
+data(iris)
+
+plot(Sepal.Length ~ Sepal.Width, data = iris)
+```

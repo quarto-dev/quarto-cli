@@ -52,10 +52,6 @@ $input-btn-padding-x:         1rem !default;
 
 // Navbar
 
-$navbar-light-color:                rgba($black, .7) !default;
-$navbar-light-hover-color:          $black !default;
-$navbar-light-active-color:         $black !default;
-
 // Pagination
 
 $pagination-hover-color:            $white !default;
@@ -76,27 +72,9 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;70
 
 // Navbar
 
-.bg-dark {
-  background-color: $black !important;
-}
-
-.bg-light {
-  background-color: $white !important;
-  color: $black;
-  border: 1px solid $gray-200;
-
-  &.navbar-fixed-top {
-    border-width: 0 0 1px;
-  }
-
-  &.navbar-fixed-bottom {
-    border-width: 1px 0 0;
-  }
-}
-
 .navbar {
-  font-size: 18px;
   font-family: $headings-font-family;
+  font-size: 18px;
   font-weight: $headings-font-weight;
 }
 

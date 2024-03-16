@@ -1,0 +1,19 @@
+---
+title: Do not trim spaces in code output
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.cell-output-display > ul > li:nth-child(4)']
+        - ['div.cell-output-display > ul > li > ul']
+---
+
+Should output as a list of one level not two. First spaces should not be trimmed. 
+
+```{r}
+knitr::asis_output(
+  paste0(c("", "  * 1", "  * 2", "  * _3_", "  * _1_ and _2_", "", 
+"<!-- end of list -->", ""), collapse = "\n")
+)
+```

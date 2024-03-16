@@ -3,10 +3,10 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { dirname, join, SEP } from "path/mod.ts";
+import { dirname, join, SEP } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { info, warning } from "../../../src/deno_ral/log.ts";
 
 import { expandPath } from "../../../src/core/path.ts";
 import {
@@ -19,7 +19,7 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { suggestUserBinPaths } from "../../../src/core/env.ts";
+import { suggestUserBinPaths } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
 export async function configure(
@@ -27,36 +27,34 @@ export async function configure(
 ) {
   // Download dependencies
   for (const dependency of kDependencies) {
-    try {
-      const targetDir = join(
-        config.directoryInfo.bin,
-        "tools",
-      );
-      await configureDependency(dependency, targetDir, config);
-    } catch (e) {
-      if (
-        e.message ===
-          "The architecture aarch64 is missing the dependency deno_dom"
-      ) {
-        info("\nIgnoring deno_dom dependency on Apple Silicon");
-        continue;
-      } else {
-        throw e;
-      }
-    }
+    const targetDir = join(
+      config.directoryInfo.bin,
+      "tools",
+    );
+    await configureDependency(dependency, targetDir, config);
   }
 
+  info("Building quarto-preview.js...");
   const result = buildQuartoPreviewJs(config.directoryInfo.src);
   if (!result.success) {
     throw new Error();
   }
+  info("Build completed.");
 
   // Move the quarto script into place
   info("Placing Quarto script");
   copyQuartoScript(config, config.directoryInfo.bin);
 
-  info("Placing Pandoc script");
-  copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
+  info("Creating architecture specific Pandoc link");
+  const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+  if (vendor === undefined || vendor === "true") {
+    // Quarto tools may look right in the bin/tools directory for Pandoc
+    // so make a symlink that points to the architecture specific version.
+    // Note that if we are being instructed not to vendor binaries,
+    // Pandoc won't be present in the architecture specific directory, so 
+    // just skip this step.
+    copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
+  }
 
   // record dev config. These are versions as defined in the root configuration file.
   const devConfig = createDevConfig(
@@ -155,22 +153,20 @@ export function copyQuartoScript(config: Configuration, targetDir: string) {
 }
 
 export function copyPandocScript(config: Configuration, targetDir: string) {
-  const out = join(targetDir, "pandoc");
+  const linkTarget = join(config.arch, "pandoc");
+  
+  const pandocFile = join(targetDir, "pandoc");
+  if (existsSync(pandocFile)) {
+    info("> removing existing pandoc link");
+    Deno.removeSync(pandocFile);
+  }
 
-  // Move the quarto script into place
-  if (config.os === "darwin") {
-    Deno.copyFileSync(
-      join(config.directoryInfo.pkg, "scripts", "macos", "pandoc"),
-      out,
-    );
-    Deno.chmodSync(out, 0o755);
-
-  } else if (config.os === "linux") {
-    Deno.copyFileSync(
-      join(config.directoryInfo.pkg, "scripts", "linux", "pandoc"),
-      out,
-    );
-    Deno.chmodSync(out, 0o755);
+  if (Deno.build.os !== "windows") {
+    info("> creating pandoc symlink");
+    Deno.run({
+      cwd: targetDir,
+      cmd: ["ln", "-s", linkTarget, "pandoc"]
+    });  
   }
 }
 

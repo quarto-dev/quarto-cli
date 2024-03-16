@@ -4,8 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
-import { isAbsolute, join } from "path/mod.ts";
+import { isAbsolute, join } from "../../deno_ral/path.ts";
 import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { isWindows } from "../platform.ts";
@@ -15,6 +14,7 @@ import { readYamlFromString } from "../yaml.ts";
 import { which } from "../path.ts";
 
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
+import { warnOnce } from "../log.ts";
 
 // cache capabilities per language
 const kNoLanguage = "(none)";
@@ -25,10 +25,13 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 
   if (!jupyterCapsCache.has(language)) {
     // if we are targeting julia then prefer the julia installed miniconda
-    const juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
-    if (language === "julia" && juliaCaps) {
-      jupyterCapsCache.set(language, juliaCaps);
-      return juliaCaps;
+    let juliaCaps: JupyterCapabilities | undefined;
+    if (language === "julia") {
+      juliaCaps = await getVerifiedJuliaCondaJupyterCapabilities();
+      if (juliaCaps) {
+        jupyterCapsCache.set(language, juliaCaps);
+        return juliaCaps;
+      }
     }
 
     // if there is an explicit python requested then use it
@@ -77,9 +80,18 @@ export async function jupyterCapabilities(kernelspec?: JupyterKernelspec) {
 const S_IXUSR = 0o100;
 
 async function getVerifiedJuliaCondaJupyterCapabilities() {
-  const home = isWindows() ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
-  if (home) {
-    const juliaCondaPath = join(home, ".julia", "conda", "3");
+  let juliaHome = Deno.env.get("JULIA_HOME");
+  if (!juliaHome) {
+    const home = isWindows()
+      ? Deno.env.get("USERPROFILE")
+      : Deno.env.get("HOME");
+    if (home) {
+      juliaHome = join(home, ".julia");
+    }
+  }
+
+  if (juliaHome) {
+    const juliaCondaPath = join(juliaHome, "conda", "3");
     const bin = isWindows()
       ? ["python3.exe", "python.exe"]
       : [join("bin", "python3"), join("bin", "python")];
@@ -141,9 +153,11 @@ async function getQuartoJupyterCapabilities() {
       if (quartoJupyterBin) {
         return getJupyterCapabilities([quartoJupyterBin]);
       }
+    } else {
+      warnOnce(`Specified QUARTO_PYTHON '${quartoJupyter}' does not exist`);
     }
-    warning(
-      "Specified QUARTO_PYTHON '" + quartoJupyter + "' does not exist.",
+    warnOnce(
+      `No python binary found in specified QUARTO_PYTHON location '${quartoJupyter}'`,
     );
     return undefined;
   } else {
@@ -197,6 +211,9 @@ async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
       ],
       stdout: "piped",
       stderr: "piped",
+      env: {
+        ["PYDEVD_DISABLE_FILE_VALIDATION"]: "1",
+      },
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as JupyterCapabilities;

@@ -1,0 +1,88 @@
+---
+title: Table Appearance
+format: html
+---
+
+### With header
+
+A short sentence that makes a paragraph.
+
+header left  header right
+-----------  ------------
+left 1       right 1
+left 2       right 2
+-----------  ------------
+
+### Without header
+
+A short sentence that makes a paragraph.
+
+-----------  ------------
+left 1       right 1
+left 2       right 2
+-----------  ------------
+
+### Md table (w/caption)
+
+A short sentence that makes a paragraph.
+
+| Default | Left | Right | Center |
+|---------|:-----|------:|:------:|
+| 12      | 12   |    12 |   12   |
+| 123     | 123  |   123 |  123   |
+| 1       | 1    |     1 |   1    |
+
+: Demonstration of pipe table syntax
+
+### fancy table
+
+A short sentence that makes a paragraph.
+
+| fruit  | price  |
+|--------|--------|
+| apple  | 2.05   |
+| pear   | 1.37   |
+| orange | 3.09   |
+
+: Fruit prices {.striped .hover}
+
+
+### xref table
+
+A short sentence that makes a paragraph.
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.
+
+### subtables
+
+A short sentence that makes a paragraph.
+
+::: {#tbl-panel layout-ncol=2}
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: First Table {#tbl-first}
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: Second Table {#tbl-second}
+
+Main Caption
+:::
+
+See @tbl-panel for details, especially @tbl-second.

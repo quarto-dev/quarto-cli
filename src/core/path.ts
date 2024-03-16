@@ -9,14 +9,15 @@ import {
   dirname,
   extname,
   fromFileUrl,
-  globToRegExp,
   isAbsolute,
-  isGlob,
   join,
   normalize,
-} from "path/mod.ts";
+} from "../deno_ral/path.ts";
 
-import { warning } from "log/mod.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
+import { isGlob } from "path/mod.ts";
+
+import { warning } from "../deno_ral/log.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
@@ -42,6 +43,17 @@ export function safeRemoveIfExists(file: string) {
   }
 }
 
+export function safeRemoveSync(
+  file: string,
+  options: Deno.RemoveOptions = {},
+) {
+  try {
+    Deno.removeSync(file, options);
+  } catch (e) {
+    if (existsSync(file)) throw e;
+  }
+}
+
 export function removeIfEmptyDir(dir: string): boolean {
   if (existsSync(dir)) {
     let empty = true;
@@ -50,7 +62,7 @@ export function removeIfEmptyDir(dir: string): boolean {
       break;
     }
     if (empty) {
-      Deno.removeSync(dir, { recursive: true });
+      safeRemoveSync(dir, { recursive: true });
       return true;
     }
     return false;
@@ -150,6 +162,7 @@ export function filterPaths(
 
 export interface GlobOptions {
   mode: "strict" | "auto" | "always";
+  explicitSubfolderSearch?: boolean; // set this to true to never prepend `**/` to globs to create nested directory searching
 }
 
 export function resolvePathGlobs(
@@ -251,7 +264,7 @@ export function resolveGlobs(
     }
 
     if (!glob.startsWith("/")) {
-      if (smartGlob) {
+      if (smartGlob && (!options || !options.explicitSubfolderSearch)) {
         return "**/" + glob;
       } else {
         return glob;
@@ -297,4 +310,28 @@ export function normalizePath(path: string | URL): string {
   // some runtimes (e.g. nodejs) create paths w/ lowercase drive
   // letters, make those uppercase
   return file.replace(/^\w:\\/, (m) => m[0].toUpperCase() + ":\\");
+}
+
+// Moved here from env.ts to avoid circular dependency
+export function suggestUserBinPaths() {
+  if (Deno.build.os !== "windows") {
+    // List of paths that we consider bin paths
+    // in priority order (expanded and not)
+    const possiblePaths = [
+      "/usr/local/bin",
+      "~/.local/bin",
+      "~/bin",
+    ];
+
+    // Read the user path
+    const pathRaw = Deno.env.get("PATH");
+    const paths: string[] = pathRaw ? pathRaw.split(":") : [];
+
+    // Filter the above list by what is in the user path
+    return possiblePaths.filter((path) => {
+      return paths.includes(path) || paths.includes(expandPath(path));
+    });
+  } else {
+    throw new Error("suggestUserBinPaths not currently supported on Windows");
+  }
 }

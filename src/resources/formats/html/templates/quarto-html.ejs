@@ -1,6 +1,7 @@
 <% if (darkMode !== undefined || tabby || anchors || copyCode || codeTools || tippy || hoverFootnotes || hoverCitations || linkExternalIcon || linkExternalNewwindow || hoverXrefs) { %> 
 <script id = "quarto-html-after-body" type="application/javascript">
 
+
 window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
@@ -52,7 +53,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       }
     }
   }
-
 
   const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
     const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
@@ -228,20 +228,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     return false;
   }
 
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-
-
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -277,7 +264,33 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+
+  
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
 
   <% } %>
 
@@ -337,6 +350,52 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
+      <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
+    <% } else if (linkExternalFilter) { %>
+      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
+    <% } else { %>
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    <% } %>
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+        <% if (linkExternalNewwindow) { %> 
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+        <% } %>
+
+        
+        <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
+          // external icon, if provided
+          var extIcon = window.document.createElement('i');
+          extIcon.classList.add('bi-<%=linkExternalIcon%>');
+          extIcon.classList.add('quarto-ext-icon');
+          link.parentNode.insertBefore(extIcon, link.nextSibling)
+        <% } else if (linkExternalIcon) { %>
+          // default icon
+          link.classList.add("external");
+        <% } %>
+      }
+    }
+
+
+
   <% if (tippy) { %>
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
@@ -386,7 +445,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
 
@@ -408,25 +472,47 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     stripColumnClz(note)
 
-    if (id.startsWith('sec-')) {
+    if (id === null || id.startsWith('sec-')) {
       // Special case sections, only their first couple elements
       const container = document.createElement("div");
       if (note.children && note.children.length > 2) {
-        for (let i = 0; i < 2; i++) {
-          container.appendChild(note.children[i].cloneNode(true));
+
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
         }
         return container.innerHTML
       } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
         return note.innerHTML;
       }
     } else {
-
       // Remove any anchor links if they are present
       const anchorLink = note.querySelector('a.anchorjs-link');
       if (anchorLink) {
         anchorLink.remove();
       }
-      return note.innerHTML;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
     }
   }
 
@@ -473,6 +559,30 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             instance.show();
           });
         }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
       }
     }, function(instance) {
     });
@@ -564,6 +674,36 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       };
     <% } %>
 
+
+
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+
     <% if (codeAnnotations === true || codeAnnotations === "below")  { %>
       
       // Attach click handler to the DT
@@ -588,36 +728,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
       }
 
+    
 
     <% } else if (codeAnnotations === "hover" || codeAnnotations === "select") { %>
-      // Handle positioning of the toggle
-      window.addEventListener(
-      "resize",
-      throttle(() => {
-        elRect = undefined;
-        if (selectedAnnoteEl) {
-          selectCodeLines(selectedAnnoteEl);
-        }
-      }, 10)
-      );
-
-      function throttle(fn, ms) {
-      let throttle = false;
-      let timer;
-
-        return (...args) => {
-          if(!throttle) { // first call gets through
-              fn.apply(this, args);
-              throttle = true;
-          } else { // all the others get throttled
-              if(timer) clearTimeout(timer); // cancel #2
-              timer = setTimeout(() => {
-                fn.apply(this, args);
-                timer = throttle = false;
-              }, ms);
-          }
-        };
-      }
 
       const annoteTargets = window.document.querySelectorAll('.code-annotation-anchor');
       for (let i=0; i<annoteTargets.length; i++) {
@@ -667,7 +780,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
               options: {
                 flipVariations: false, // true by default
                 allowedAutoPlacements: ['right'],
-                fallbackPlacements: ['right', 'top', 'top-start', 'top-end'],
+                fallbackPlacements: ['right', 'top', 'top-start', 'top-end', 'bottom', 'bottom-start', 'bottom-end', 'left'],
               },
             },
             {
@@ -730,43 +843,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-
-  <% if (linkExternalIcon || linkExternalNewwindow) { %>
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    <% if (linkExternalFilter && linkExternalFilter.match(/\\\\/)) { %>
-      <%- `var filterRegex = new RegExp(/${linkExternalFilter}/);` %>
-    <% } else if (linkExternalFilter) { %>
-      <%= `var filterRegex = new RegExp("${linkExternalFilter}");` %>
-    <% } else { %>
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    <% } %>
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-        <% if (linkExternalNewwindow) { %> 
-          // target, if specified
-          link.setAttribute("target", "_blank");
-        <% } %>
-
-        
-        <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
-          // external icon, if provided
-          var extIcon = window.document.createElement('i');
-          extIcon.classList.add('bi-<%=linkExternalIcon%>');
-          extIcon.classList.add('quarto-ext-icon');
-          link.parentNode.insertBefore(extIcon, link.nextSibling)
-        <% } else if (linkExternalIcon) { %>
-          // default icon
-          link.classList.add("external");
-        <% } %>
-      }
-    }
-  <% } %>
 });
 
 </script>

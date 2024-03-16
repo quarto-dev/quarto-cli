@@ -4,10 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { cloneDeep, uniqBy } from "../../core/lodash.ts";
 
 import {
+  Format,
   FormatExtras,
   FormatPandoc,
   kDependencies,
@@ -21,6 +22,8 @@ import { TempContext } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 import { compileSass } from "../../core/sass.ts";
 
+import { kSourceMappingRegexes } from "../../config/constants.ts";
+
 import { kQuartoHtmlDependency } from "../../format/html/format-html-constants.ts";
 import {
   kAbbrevs,
@@ -32,6 +35,7 @@ import {
   cssHasDarkModeSentinel,
   generateCssKeyValues,
 } from "../../core/pandoc/css.ts";
+import { kMinimal } from "../../format/html/format-html-shared.ts";
 
 // The output target for a sass bundle
 // (controls the overall style tag that is emitted)
@@ -44,7 +48,7 @@ interface SassTarget {
 export async function resolveSassBundles(
   inputDir: string,
   extras: FormatExtras,
-  pandoc: FormatPandoc,
+  format: Format,
   temp: TempContext,
   formatBundles?: SassBundle[],
   projectBundles?: SassBundle[],
@@ -197,7 +201,7 @@ export async function resolveSassBundles(
   extras = await resolveQuartoSyntaxHighlighting(
     inputDir,
     extras,
-    pandoc,
+    format,
     temp,
     hasDarkStyles ? "light" : "default",
     defaultStyle,
@@ -208,14 +212,14 @@ export async function resolveSassBundles(
     extras = await resolveQuartoSyntaxHighlighting(
       inputDir,
       extras,
-      pandoc,
+      format,
       temp,
       "dark",
       defaultStyle,
     );
   }
 
-  if (isHtmlOutput(pandoc, true)) {
+  if (isHtmlOutput(format.pandoc, true)) {
     // We'll take care of text highlighting for HTML
     setTextHighlightStyle("none", extras);
   }
@@ -227,11 +231,17 @@ export async function resolveSassBundles(
 async function resolveQuartoSyntaxHighlighting(
   inputDir: string,
   extras: FormatExtras,
-  pandoc: FormatPandoc,
+  format: Format,
   temp: TempContext,
   style: "dark" | "light" | "default",
   defaultStyle?: "dark" | "light",
 ) {
+  // if
+  const minimal = format.metadata[kMinimal] === true;
+  if (minimal) {
+    return extras;
+  }
+
   extras = cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
@@ -249,7 +259,7 @@ async function resolveQuartoSyntaxHighlighting(
   }.css`;
 
   // Read the highlight style (theme name)
-  const themeDescriptor = readHighlightingTheme(inputDir, pandoc, style);
+  const themeDescriptor = readHighlightingTheme(inputDir, format.pandoc, style);
   if (themeDescriptor) {
     // Other variables that need to be injected (if any)
     const extraVariables = extras.html?.[kQuartoCssVariables] || [];
@@ -411,7 +421,10 @@ function processCssIntoExtras(
 ): CSSResult {
   extras.html = extras.html || {};
   const css = Deno.readTextFileSync(cssPath).replaceAll(
-    kSourceMappingRegex,
+    kSourceMappingRegexes[0],
+    "",
+  ).replaceAll(
+    kSourceMappingRegexes[1],
     "",
   );
 
@@ -473,7 +486,6 @@ function processCssIntoExtras(
 }
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
-const kSourceMappingRegex = /\/\*\# sourceMappingURL=.* \*\//g;
 
 // Attributes for the style tag
 // Note that we default disable the dark mode and rely on JS to enable it

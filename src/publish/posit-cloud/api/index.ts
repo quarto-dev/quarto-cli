@@ -9,18 +9,20 @@ import {
   Application,
   Bundle,
   Content,
+  ErrorBody,
   OutputRevision,
   Task,
   User,
 } from "./types.ts";
 
 import { md5Hash } from "../../../core/hash.ts";
+import { quartoConfig } from "../../../core/quarto.ts";
 
-import { crypto } from "https://deno.land/std@0.185.0/crypto/mod.ts";
+import { crypto } from "crypto/mod.ts";
 
 import {
-  decode as base64Decode,
-  encode as base64Encode,
+  decodeBase64 as base64Decode,
+  encodeBase64 as base64Encode,
 } from "encoding/base64.ts";
 
 interface FetchOpts {
@@ -53,6 +55,7 @@ export class PositCloudClient {
     name: string,
     spaceId: number | null,
     projectId: number | null,
+    contentCategory: string | null,
   ): Promise<Content> {
     return this.post<Content>(
       "outputs",
@@ -61,6 +64,7 @@ export class PositCloudClient {
         application_type: "static",
         space: spaceId,
         project: projectId,
+        content_category: contentCategory,
       }),
     );
   }
@@ -91,8 +95,13 @@ export class PositCloudClient {
     return this.get<Task>(`tasks/${id}`, { legacy: "false" });
   }
 
-  public createRevision(outputId: number) {
-    return this.post<OutputRevision>(`outputs/${outputId}/revisions`);
+  public createRevision(outputId: number, contentCategory: string | null) {
+    return this.post<OutputRevision>(
+      `outputs/${outputId}/revisions`,
+      JSON.stringify({
+        content_category: contentCategory,
+      }),
+    );
   }
 
   public getContent(id: number | string): Promise<Content> {
@@ -139,6 +148,7 @@ export class PositCloudClient {
 
     const headers = {
       Accept: "application/json",
+      "User-Agent": `quarto-cli/${quartoConfig.version()}`,
       ...authHeaders,
       ...contentTypeHeader,
     };
@@ -168,7 +178,19 @@ export class PositCloudClient {
         return await response.text() as unknown as T;
       }
     } else if (response.status >= 400) {
-      throw new ApiError(response.status, response.statusText);
+      const json = await response.json() as unknown as ErrorBody;
+      let errorDescription = undefined;
+      if (json.error) {
+        errorDescription = json.error;
+        if (json.error_type) {
+          errorDescription = `${errorDescription}, code=${json.error_type}`;
+        }
+      }
+      throw new ApiError(
+        response.status,
+        response.statusText,
+        errorDescription,
+      );
     } else {
       throw new Error(`${response.status} - ${response.statusText}`);
     }

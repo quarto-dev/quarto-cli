@@ -13,6 +13,7 @@ import {
   kListingPageOrderByDateDesc,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPageWords,
 } from "../../../../config/constants.ts";
 import { Format } from "../../../../config/types.ts";
 
@@ -27,7 +28,6 @@ import {
   kFieldSort,
   kFieldTypes,
   kImageHeight,
-  kImagePlaceholder,
   kMaxDescLength,
   kMaxItems,
   kPageSize,
@@ -83,6 +83,10 @@ export function templateMarkdownHandler(
       const dateFormat = listing[kDateFormat] as string ||
         format.metadata[kDateFormat] as string;
 
+      const fieldLabelLangKeys: Record<string, string> = {
+        "word-count": kListingPageWords,
+      };
+
       const fieldTypes = listing[kFieldTypes];
       for (const field of Object.keys(fieldTypes)) {
         if (fieldTypes[field] === kFieldDate) {
@@ -110,6 +114,14 @@ export function templateMarkdownHandler(
           const val = item[field] as number;
           record[field] = localizedString(format, kListingPageMinutesCompact, [
             Math.floor(val).toString(),
+          ]);
+        } else if (
+          fieldTypes[field] === "number" && item[field] !== undefined &&
+          fieldLabelLangKeys[field] !== undefined
+        ) {
+          const val = item[field] as number;
+          record[field] = localizedString(format, fieldLabelLangKeys[field], [
+            Math.floor(val).toLocaleString(),
           ]);
         }
       }
@@ -161,12 +173,20 @@ export function templateMarkdownHandler(
   );
 
   // Render the template
-  const templateRendered = renderEjs(
+  let templateRendered = renderEjs(
     template,
     paramsForType(listing.type),
-    true,
+    false,
     cache,
   );
+
+  // Collapses repeated whitespace
+  // this allows whitespace to appear, but prevents a huge amount of whitepsace from making
+  // super cluttered HTML
+  // whitespace is imporant since this prevents Pandoc from interpretting run-on HTML
+  // as potentially containing inlines, for example
+  // https://github.com/quarto-dev/quarto-cli/issues/6745
+  templateRendered = templateRendered.replace(/(\r\n|\r|\n){2,}/g, "$1$1");
 
   // Render the pagination
   const paginationRendered = renderEjs(

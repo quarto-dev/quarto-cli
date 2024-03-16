@@ -19,4 +19,6 @@ local codeBlock = require('docusaurus_utils').codeBlock
 --   return admonition
 -- end)
 
+-- luacov: disable
 return {} -- return an empty table as a hack to pretend we're a shortcode handler for now
+-- luacov: enable

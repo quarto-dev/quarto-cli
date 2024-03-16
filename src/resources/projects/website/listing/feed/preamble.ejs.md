@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<% if (feed['xml-stylesheet']) { %><?xml-stylesheet type="text/xsl" media="screen" href="<%- feed['xml-stylesheet'] %>"?><% } %>
+
 <rss  xmlns:atom="http://www.w3.org/2005/Atom" 
       xmlns:media="http://search.yahoo.com/mrss/" 
       xmlns:content="http://purl.org/rss/1.0/modules/content/" 

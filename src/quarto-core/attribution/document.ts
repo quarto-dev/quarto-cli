@@ -1,14 +1,20 @@
 /*
-* document.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * document.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../deno_ral/path.ts";
 import {
   kAbstract,
   kAuthor,
+  kAuthors,
   kCsl,
   kLang,
   kTitle,
@@ -32,7 +38,6 @@ import {
   kSiteUrl,
   kWebsite,
 } from "../../project/types/website/website-constants.ts";
-import { basename } from "path/mod.ts";
 import { resolveAndFormatDate } from "../../core/date.ts";
 
 const kDOI = "DOI";
@@ -111,7 +116,8 @@ export function documentCSL(
 
   // Author
   const authors = parseAuthor(
-    citationMetadata[kAuthor] || inputMetadata[kAuthor],
+    citationMetadata[kAuthor] || inputMetadata[kAuthor] ||
+      inputMetadata[kAuthors],
   );
   csl.author = cslNames(
     authors?.filter((auth) => auth !== undefined).map((auth) => auth?.name),
@@ -129,8 +135,8 @@ export function documentCSL(
   }
 
   // Categories
-  const categories =
-    (citationMetadata[kCategories] || inputMetadata[kCategories]);
+  const categories = citationMetadata[kCategories] ||
+    inputMetadata[kCategories];
   if (categories) {
     csl.categories = Array.isArray(categories) ? categories : [categories];
   }
@@ -395,7 +401,7 @@ export function documentCSL(
 
   // Process keywords
   const kwString = citationMetadata.keyword;
-  if (kwString && typeof (kwString) === "string") {
+  if (kwString && typeof kwString === "string") {
     extras.keywords = kwString.split(",");
   } else if (inputMetadata.keywords) {
     const kw = inputMetadata.keywords;
@@ -434,7 +440,7 @@ export function citationMeta(metadata: Metadata): Metadata {
   }
 }
 
-function synthesizeCitationUrl(
+export function synthesizeCitationUrl(
   input: string,
   metadata: Metadata,
   outputFile?: string,
@@ -466,7 +472,9 @@ function synthesizeCitationUrl(
 function pages(citationMetadata: Metadata): PageRange {
   let firstPage = citationMetadata[kFirstPage];
   let lastPage = citationMetadata[kLastPage];
-  let pages = citationMetadata[kPage] as string;
+  let pages = citationMetadata[kPage]
+    ? `${citationMetadata[kPage] as string}` // Force pages to string in case user writes `page: 7`
+    : undefined;
   if (pages && pages.includes("-")) {
     const pagesSplit = pages.split("-");
     if (!firstPage) {

@@ -1,0 +1,21 @@
+---
+title: Code Links Text
+format: html
+code-links:
+  - text: Hello World
+    href: https://www.charlesteague.com
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - 
+          - ".quarto-code-links > ul > li:only-child"
+---
+
+## Section 1
+
+{{< lipsum 1 >}}
+
+## Section 2
+
+{{< unsplash imgs/sunset.jpg >}}

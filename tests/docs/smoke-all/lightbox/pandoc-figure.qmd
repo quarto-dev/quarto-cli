@@ -1,0 +1,13 @@
+---
+title: Simple Lightbox Example
+lightbox: true
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'script[src="pandoc-figure_files/libs/quarto-contrib/glightbox/glightbox.min.js' # make sure that lightbox is enabled
+          - 'a.lightbox' # make sure there is a lightbox image        
+---
+
+![A Lovely Image](images/mv-0.jpg)

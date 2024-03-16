@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
 import { TempContext } from "./temp.ts";
@@ -16,7 +16,7 @@ import { dartCompile } from "./dart-sass.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { md5Hash } from "./hash.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../deno_ral/log.ts";
 import { safeExistsSync } from "./path.ts";
 
 export interface SassVariable {

@@ -71,7 +71,7 @@ function ojs()
 
   stringifyTokenInto = function(token, sequence)
     local function unknown()
-      fail("Don't know how to handle token " .. token.t)
+      fail_and_ask_for_bug_report("Don't know how to handle token " .. token.t)
     end
     if     token.t == 'Cite' then
       unknown()
@@ -186,26 +186,22 @@ function ojs()
       
       Pandoc = function(doc)
         if uid > 0 then
-          doc.blocks:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))
-          doc.blocks:insert(pandoc.RawBlock("html", '{"contents":['))
+          local div = pandoc.Div({}, pandoc.Attr("", {"ojs-auto-generated", "hidden"}, {}))
+          div.content:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))
+          local contents = pandoc.List({})
+          contents:insert('{"contents":[')
           for i, v in ipairs(cells) do
-            local inlineStr = ''
-            if v.inline then
-              inlineStr = 'true'
-            else
-              inlineStr = 'false'
-            end
             if i > 1 then
-              doc.blocks:insert(",")
+              contents:insert(",")
             end
-            doc.blocks:insert(
-              pandoc.RawBlock(
-                "html",
+            contents:insert(
                 ('  {"methodName":"interpret","inline":"true","source":"htl.html`<span>${' ..
-                 escape_quotes(v.src) .. '}</span>`", "cellName":"' .. v.id .. '"}')))
+                 escape_quotes(v.src) .. '}</span>`", "cellName":"' .. v.id .. '"}'))
           end
-          doc.blocks:insert(pandoc.RawBlock("html", ']}'))
-          doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
+          contents:insert(']}')
+          div.content:insert(pandoc.RawBlock("html", quarto.base64.encode(table.concat(contents, ""))))
+          div.content:insert(pandoc.RawBlock("html", "</script>"))
+          doc.blocks:insert(div)
         end
         return doc
       end,

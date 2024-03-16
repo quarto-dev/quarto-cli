@@ -4,10 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "fs/mod.ts";
+import { existsSync, walkSync} from "fs/mod.ts";
 import { DOMParser, NodeList } from "../src/core/deno-dom.ts";
 import { assert } from "testing/asserts.ts";
-import { dirname, join } from "path/mod.ts";
+import { join, relative } from "../src/deno_ral/path.ts";
+import { parseXmlDocument } from "slimdom";
+import xpath from "fontoxpath";
+import * as ld from "../src/core/lodash.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
@@ -17,6 +20,27 @@ import { unzip } from "../src/core/zip.ts";
 import { dirAndStem, which } from "../src/core/path.ts";
 import { isWindows } from "../src/core/platform.ts";
 import { execProcess } from "../src/core/process.ts";
+import { canonicalizeSnapshot, checkSnapshot } from "./verify-snapshot.ts";
+
+export const withDocxContent = async <T>(file: string,
+  k: (xml: string) => Promise<T>) => {
+    const [_dir, stem] = dirAndStem(file);
+    const temp = await Deno.makeTempDir();
+    try {
+      // Move the docx to a temp dir and unzip it
+      const zipFile = join(temp, stem + ".zip");
+      await Deno.copyFile(file, zipFile);
+      await unzip(zipFile);
+  
+      // Open the core xml document and match the matches
+      const docXml = join(temp, "word", "document.xml");
+      const xml = await Deno.readTextFile(docXml);
+      const result = await k(xml);
+      return result;
+    } finally {
+      await Deno.remove(temp, { recursive: true });
+    }
+  };
 
 export const noErrors: Verify = {
   name: "No Errors",
@@ -115,6 +139,63 @@ export const fileExists = (file: string): Verify => {
   };
 };
 
+export const directoryContainsOnlyAllowedPaths = (dir: string, paths: string[]): Verify => {
+  return {
+    name: `Ensure only has ${paths.length} paths in folder`,
+    verify: (_output: ExecuteOutput[]) => {
+
+      for (const walk of walkSync(dir)) {
+        const path = relative(dir, walk.path);
+        if (path !== "") {
+          assert(paths.includes(path), `Unexpected path ${path} encountered.`); 
+  
+        }
+      }    
+      return Promise.resolve();
+    },
+  };
+}
+
+export const folderExists = (path: string): Verify => {
+  return {
+    name: `Folder ${path} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      verifyPath(path);
+      assert(Deno.statSync(path).isDirectory, `Path ${path} isn't a folder`);
+      return Promise.resolve();
+    },
+  }; 
+}
+
+export const validJsonFileExists = (file: string): Verify => {
+  return {
+    name: `Valid Json ${file} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      JSON.parse(jsonStr);
+      return Promise.resolve();
+    }
+  }
+}
+
+export const validJsonWithFields = (file: string, fields: Record<string, unknown>) => {
+  return {
+    name: `Valid Json ${file} exists`,
+    verify: (_output: ExecuteOutput[]) => {
+      const jsonStr = Deno.readTextFileSync(file);
+      const json = JSON.parse(jsonStr);
+      for (const key of Object.keys(fields)) {
+
+        const value = json[key];
+        assert(ld.isEqual(value, fields[key]), `Key ${key} has invalid value in json.`);
+      }
+
+
+      return Promise.resolve();
+    }
+  }
+}
+
 export const outputCreated = (
   input: string,
   to: string,
@@ -154,6 +235,43 @@ export const directoryEmptyButFor = (
   };
 };
 
+// FIXME: do this properly without resorting on file having keep-typ
+export const ensureTypstFileRegexMatches = (
+  file: string,
+  matchesUntyped: (string | RegExp)[],
+  noMatchesUntyped?: (string | RegExp)[],
+): Verify => {
+  const matches = matchesUntyped.map(asRegexp);
+  const noMatches = noMatchesUntyped?.map(asRegexp);
+  return {
+    name: `Inspecting ${file} for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const keptTyp = file.replace(".pdf", ".typ");
+      const typ = await Deno.readTextFile(keptTyp);
+
+      try {
+        matches.forEach((regex) => {
+          assert(
+            regex.test(typ),
+            `Required match ${String(regex)} is missing from file ${keptTyp}.`,
+          );
+        });
+
+        if (noMatches) {
+          noMatches.forEach((regex) => {
+            assert(
+              !regex.test(typ),
+              `Illegal match ${String(regex)} was found in file ${keptTyp}.`,
+            );
+          });
+        }
+      } finally {
+        await Deno.remove(keptTyp);
+      }
+    },
+  };
+};
+
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
@@ -183,6 +301,63 @@ export const ensureHtmlElements = (
   };
 };
 
+export const ensureHtmlElementContents = (
+  file: string,
+  selectors: string[],
+  matches: (string | RegExp)[],
+  noMatches: (string | RegExp)[]
+) => {
+  return {
+    name: "Inspecting HTML for Selector Contents",
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      selectors.forEach((sel) => {
+        const el = doc.querySelector(sel);
+        if (el !== null) {
+          const contents = el.innerText;
+          matches.forEach((regex) => {
+            assert(
+              asRegexp(regex).test(contents),
+              `Required match ${String(regex)} is missing from selector ${sel}.`,
+            );
+          });
+
+          noMatches.forEach((regex) => {
+            assert(
+              !asRegexp(regex).test(contents),
+              `Unexpected match ${String(regex)} is present from selector ${sel}.`,
+            );
+          });
+  
+        }
+      });
+    },
+  };
+
+}
+
+export const ensureSnapshotMatches = (
+  file: string,
+): Verify => {
+  return {
+    name: "Inspecting Snapshot",
+    verify: async (_output: ExecuteOutput[]) => {
+      const good = await checkSnapshot(file);
+      if (!good) {
+        console.log("output:");
+        console.log(await canonicalizeSnapshot(file));
+        console.log("snapshot:");
+        console.log(await canonicalizeSnapshot(file + ".snapshot"));
+      }
+      assert(
+        good,
+        `Snapshot ${file}.snapshot doesn't match output`,
+      );
+    },
+  };
+}
+
 export const ensureFileRegexMatches = (
   file: string,
   matchesUntyped: (string | RegExp)[],
@@ -190,7 +365,7 @@ export const ensureFileRegexMatches = (
 ): Verify => {
   const asRegexp = (m: string | RegExp) => {
     if (typeof m === "string") {
-      return new RegExp(m);
+      return new RegExp(m, "m");
     } else {
       return m;
     }
@@ -220,39 +395,155 @@ export const ensureFileRegexMatches = (
   };
 };
 
+export const verifyJatsDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Jats",
+    verify: async (_output: ExecuteOutput[]) => {
+      const xml = await Deno.readTextFile(file);
+      await callback(xml);
+    },
+  });
+};
+
+export const verifyOdtDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Odt",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withDocxContent(file, callback);
+    },
+  });
+};
+
+export const verifyDocXDocument = (
+  callback: (doc: string) => Promise<void>,
+  name?: string,
+): (file: string) => Verify => {
+  return (file: string) => ({
+    name: name ?? "Inspecting Docx",
+    verify: async (_output: ExecuteOutput[]) => {
+      return await withDocxContent(file, callback);
+    },
+  });
+};
+
+const xmlChecker = (
+  selectors: string[],
+  noMatchSelectors?: string[],
+): (xmlText: string) => Promise<void> => {
+  return (xmlText: string) => {
+    const xmlDoc = parseXmlDocument(xmlText);
+    for (const selector of selectors) {
+      const xpathResult = xpath.evaluateXPath(selector, xmlDoc);
+      const passes = (!Array.isArray(xpathResult) && xpathResult !== null) ||
+        (Array.isArray(xpathResult) && xpathResult.length > 0);
+      assert(
+        passes,
+        `Required XPath selector ${selector} returned empty array. Failing document follows:\n\n${xmlText}}`,
+      );
+    }
+    for (const falseSelector of noMatchSelectors ?? []) {
+      const xpathResult = xpath.evaluateXPath(falseSelector, xmlDoc);
+      const passes = (!Array.isArray(xpathResult) && xpathResult !== null) ||
+        (Array.isArray(xpathResult) && xpathResult.length > 0);
+      assert(
+        !passes,
+        `Illegal XPath selector ${falseSelector} returned non-empty array. Failing document follows:\n\n${xmlText}}`,
+      );
+    }
+    return Promise.resolve();
+  };
+};
+
+export const ensureJatsXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyJatsDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Jats for XPath selectors",
+  )(file);
+};
+
+export const ensureOdtXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyOdtDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Odt for XPath selectors",
+  )(file);
+};
+
+export const ensureDocxXpath = (
+  file: string,
+  selectors: string[],
+  noMatchSelectors?: string[],
+): Verify => {
+  return verifyDocXDocument(
+    xmlChecker(selectors, noMatchSelectors),
+    "Inspecting Docx for XPath selectors",
+  )(file);
+};
+
 export const ensureDocxRegexMatches = (
   file: string,
   regexes: (string | RegExp)[],
 ): Verify => {
-  return {
-    name: "Inspecting Docx for Regex matches",
-    verify: async (_output: ExecuteOutput[]) => {
-      const [_dir, stem] = dirAndStem(file);
-      const temp = await Deno.makeTempDir();
-      try {
-        // Move the docx to a temp dir and unzip it
-        const zipFile = join(temp, stem + ".zip");
-        await Deno.rename(file, zipFile);
-        await unzip(zipFile);
-
-        // Open the core xml document and match the matches
-        const docXml = join(temp, "word", "document.xml");
-        const xml = await Deno.readTextFile(docXml);
-        regexes.forEach((regex) => {
-          if (typeof regex === "string") {
-            regex = new RegExp(regex);
-          }
-          assert(
-            regex.test(xml),
-            `Required DocX Element ${String(regex)} is missing.`,
-          );
-        });
-      } finally {
-        await Deno.remove(temp, { recursive: true });
+  return verifyDocXDocument((xml) => {
+    regexes.forEach((regex) => {
+      if (typeof regex === "string") {
+        regex = new RegExp(regex);
       }
-    },
-  };
+      assert(
+        regex.test(xml),
+        `Required DocX Element ${String(regex)} is missing.`,
+      );
+    });
+    return Promise.resolve();
+  }, "Inspecting Docx for Regex matches")(file);
 };
+
+// export const ensureDocxRegexMatches = (
+//   file: string,
+//   regexes: (string | RegExp)[],
+// ): Verify => {
+//   return {
+//     name: "Inspecting Docx for Regex matches",
+//     verify: async (_output: ExecuteOutput[]) => {
+//       const [_dir, stem] = dirAndStem(file);
+//       const temp = await Deno.makeTempDir();
+//       try {
+//         // Move the docx to a temp dir and unzip it
+//         const zipFile = join(temp, stem + ".zip");
+//         await Deno.rename(file, zipFile);
+//         await unzip(zipFile);
+
+//         // Open the core xml document and match the matches
+//         const docXml = join(temp, "word", "document.xml");
+//         const xml = await Deno.readTextFile(docXml);
+//         regexes.forEach((regex) => {
+//           if (typeof regex === "string") {
+//             regex = new RegExp(regex);
+//           }
+//           assert(
+//             regex.test(xml),
+//             `Required DocX Element ${String(regex)} is missing.`,
+//           );
+//         });
+//       } finally {
+//         await Deno.remove(temp, { recursive: true });
+//       }
+//     },
+//   };
+// };
 
 export const ensurePptxRegexMatches = (
   file: string,
@@ -399,7 +690,7 @@ export const ensureXmlValidatesWithXsd = (
         const result = await execProcess(runOptions);
         assert(
           result.success,
-          `Failed XSD Validation\n${result.stderr}`,
+          `Failed XSD Validation for file ${file}\n${result.stderr}`,
         );
       }
     },
@@ -425,15 +716,23 @@ export const ensureMECAValidates = (
             assert(
               result.success,
               `Failed MECA Validation\n${result.stderr}`,
-            );  
+            );
           } else {
             console.log("meca not present, skipping MECA validation");
           }
         } else {
           console.log("npm not present, skipping MECA validation");
         }
-  
       }
     },
   };
+};
+
+
+const asRegexp = (m: string | RegExp) => {
+  if (typeof m === "string") {
+    return new RegExp(m);
+  } else {
+    return m;
+  }
 };

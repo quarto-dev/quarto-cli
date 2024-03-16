@@ -1,0 +1,20 @@
+---
+title: Listings Test
+format: jats
+# FIXME: We've changed the output from <code ...> to <preformat>...</preformat>
+# Why is that?
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"lst-customers\"]//caption"
+          - "//xref[@rid=\"lst-customers\"]"
+        - []
+---
+
+```{#lst-customers .sql lst-cap="Customers Query"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

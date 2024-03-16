@@ -7,7 +7,7 @@
 return {
 
   --- Filename to store collected stats. Default: "luacov.stats.out".
-  statsfile = os.getenv("QUARTO_LUACOV"),
+  statsfile = os.getenv("QUARTO_LUACOV") or os.getenv("PWD") .. "/luacov.stats.out",
 
   reporter = "html",
   reportfile = "luacov.report.html",
@@ -53,7 +53,16 @@ return {
   -- Nothing will be excluded if nothing is listed.
   -- Do not include the '.lua' extension. Path separator is always '/'.
   -- Overrules `include`.
-  exclude = {},
+  exclude = {
+    -- don't include library files
+    "common/base64", 
+    "common/lunacolors",
+    "common/log",
+    "pandoc/datadir/_base64",
+    "pandoc/datadir/_json",
+    -- don't include test filters
+    "tests/docs"
+  },
 
   --- Table mapping names of modules to be included to their filenames.
   -- Has no effect if empty.

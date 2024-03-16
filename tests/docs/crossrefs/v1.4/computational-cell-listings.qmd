@@ -1,0 +1,31 @@
+---
+title: PDF subfloats breakage
+format: 
+  pdf:
+    lof: true
+validate-yaml: false
+---
+
+## Computational
+
+```{r}
+#| label: fig-cars
+#| fig-cap: This is a caption
+#| fig-subcap: 
+#|   - "subcap1"
+#|   - "subcap2"
+plot(cars)
+plot(mtcars)
+```
+
+## Manual
+
+::: {#fig-2 layout-ncol=2}
+
+![subcap1](./img/abbas.jpg){#fig-21}
+
+![subcap2](./img/painter.jpg){#fig-22}
+
+Caption.
+
+:::

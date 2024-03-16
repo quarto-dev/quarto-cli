@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, join } from "path/mod.ts";
-import { copy } from "streams/copy.ts";
+import { dirname, join } from "../../deno_ral/path.ts";
+import { copy } from "io/copy.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { Tar } from "archive/tar.ts";
@@ -13,6 +13,30 @@ import { Tar } from "archive/tar.ts";
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
+
+interface ManifestMetadata {
+  appmode: string;
+  primary_rmd: string | null;
+  primary_html: string;
+  content_category: string | null;
+  has_parameters: boolean;
+}
+
+interface Manifest {
+  version: number;
+  locale: string;
+  platform: string;
+  metadata: ManifestMetadata;
+  packages: null;
+  files: Record<string, { checksum: string }>;
+  users: null;
+}
+
+export interface BundleData {
+  bundlePath: string;
+  manifest: Manifest;
+}
 
 /** Creates a compressed bundle file in the format required by Posit Connect and Cloud.
  * @param type Whether this is a site or document.
@@ -24,7 +48,7 @@ export async function createBundle(
   type: "site" | "document",
   files: PublishFiles,
   tempContext: TempContext,
-): Promise<string> {
+): Promise<BundleData> {
   // create file md5 checksums
   const manifestFiles: Record<string, { checksum: string }> = {};
   for (const file of files.files) {
@@ -74,7 +98,9 @@ export async function createBundle(
   const tarFiles = [...files.files, "manifest.json"];
 
   for (const tarFile of tarFiles) {
-    await tar.append(tarFile, { filePath: join(stageDir, tarFile) });
+    await tar.append(pathWithForwardSlashes(tarFile), {
+      filePath: join(stageDir, tarFile),
+    });
   }
 
   // write to temp file
@@ -95,5 +121,8 @@ export async function createBundle(
     .pipeTo(dest.writable);
 
   // return tar.gz
-  return targzFile;
+  return {
+    bundlePath: targzFile,
+    manifest,
+  };
 }

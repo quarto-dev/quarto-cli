@@ -1,0 +1,25 @@
+---
+title: float test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "https://www.example.com/\\[image:img/surus.jpg\\[This is the figure"
+          - "https://www.example.com/\\[image:img/surus.jpg\\[This is the table"
+          - "\\[\\[fig-foo\\]\\]"
+          - "\\[\\[tbl-foo\\]\\]"
+          - "<<fig-foo>>"
+          - "<<tbl-foo>>"
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as linked images with identifiers
+
+[![This is the figure](img/surus.jpg){#fig-foo}](https://www.example.com/)
+
+[![This is the table](img/surus.jpg){#tbl-foo}](https://www.example.com/)
+
+See @fig-foo and @tbl-foo for more.

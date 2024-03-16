@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving
+and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+  <front>
+    <article-meta>
+      <title-group>
+        <article-title>Simple Funding</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Teague</surname>
+            <given-names>Charles</given-names>
+          </name>
+          <string-name>Charles Teague</string-name>
+          <role vocab="https://credit.niso.org" vocab-term="writing – original draft" vocab-term-identifier="https://credit.niso.org/contributor-roles/writing-original-draft/">writing</role>
+        </contrib>
+      </contrib-group>
+      <aff id="nsf">
+        <institution-wrap>
+          <institution>NSF Grant</institution>
+          <institution-id institution-id-type="ISNI">0000 0001 2169
+1945</institution-id>
+        </institution-wrap>
+        <city>Boston</city>
+        <state>MA</state>
+        <country>USA</country>
+      </aff>
+      <aff id="sloan">
+        <institution-wrap>
+          <institution>Sloan Foundation</institution>
+        </institution-wrap>
+      </aff>
+      <aff id="mac">
+        <institution-wrap>
+          <institution>Macalester College</institution>
+        </institution-wrap>
+      </aff>
+      <history/>
+      <funding-group>
+        <award-group>
+          <funding-source>
+            <institution-wrap>
+              <institution>NSF Grant</institution>
+              <institution-id institution-id-type="ISNI">0000 0001 2169
+1945</institution-id>
+            </institution-wrap>
+          </funding-source>
+          <award-id>foo</award-id>
+          <principal-award-recipient>
+            <name>
+              <surname>Teague</surname>
+              <given-names>Charles</given-names>
+            </name>
+            <string-name>Charles Teague</string-name>
+          </principal-award-recipient>
+          <principal-award-recipient>
+Another Recip
+</principal-award-recipient>
+        </award-group>
+        <award-group>
+          <funding-source country="USA">
+</funding-source>
+          <award-id>bar</award-id>
+          <principal-award-recipient>
+            <institution-wrap>
+              <institution>Macalester College</institution>
+            </institution-wrap>
+          </principal-award-recipient>
+          <principal-investigator>
+            <name>
+              <surname>Teague</surname>
+              <given-names>Charles</given-names>
+            </name>
+            <string-name>Charles Teague</string-name>
+          </principal-investigator>
+        </award-group>
+        <award-group>
+          <funding-source>
+</funding-source>
+          <award-id>bar2</award-id>
+        </award-group>
+        <open-access>
+          <p>This is open access</p>
+        </open-access>
+      </funding-group>
+      <funding-group>
+        <award-group>
+          <funding-source>
+            <institution-wrap>
+              <institution>Sloan Foundation</institution>
+            </institution-wrap>
+          </funding-source>
+          <award-id>grant-1</award-id>
+        </award-group>
+        <award-group>
+          <funding-source country="USA">
+</funding-source>
+          <award-id>grant-2</award-id>
+        </award-group>
+        <award-group>
+          <funding-source>
+            <institution-wrap>
+              <institution>Grant Provider</institution>
+              <institution-id institution-id-type="Ringgold">3242-2lkjl-2342</institution-id>
+            </institution-wrap>
+          </funding-source>
+          <award-id>grant-3</award-id>
+        </award-group>
+      </funding-group>
+    </article-meta>
+  </front>
+  <body>
+
+</body>
+  <back>
+</back>
+</article>

@@ -21,13 +21,11 @@
   margin-bottom: 0;
 }
 
-.code-with-filename .code-with-filename-file,
-.code-with-filename .code-with-filename-file pre {
+.code-with-filename .code-with-filename-file {
   background-color: rgba(219, 219, 219, 0.8);
 }
 
-.quarto-dark .code-with-filename .code-with-filename-file,
-.quarto-dark .code-with-filename .code-with-filename-file pre {
+.quarto-dark .code-with-filename .code-with-filename-file {
   background-color: #555;
 }
 

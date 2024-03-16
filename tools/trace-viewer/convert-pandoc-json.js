@@ -42,7 +42,8 @@ const convertCaption = (caption) => caption;
 
 const convertColSpec = (colSpec) => {
   const align = colSpec[0].t;
-  const width = colSpec[1].t;
+  const width = colSpec[1].c;
+
   return `(${align}, ${width})`;
 };
 
@@ -118,6 +119,7 @@ const convert = (data) => {
         "Strikeout",
         "Quoted",
         "SingleQuote",
+        "Note",
       ].includes(data.t)
     ) {
       return {
@@ -267,6 +269,9 @@ const convert = (data) => {
         displayType: data.c[0].t,
         text: data.c[1],
       };
+    }
+    if (data.t === "HorizontalRule") {
+      return data;
     }
     throw new Error(`Can't handle type ${data.t}`);
   } else if (typeof data === "string") {

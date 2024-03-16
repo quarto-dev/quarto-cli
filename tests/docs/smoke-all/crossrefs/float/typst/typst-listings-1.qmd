@@ -1,0 +1,20 @@
+---
+title: Listings Test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<lst-customers>"
+          - "@lst-customers"
+          - "Customers Query"
+        - []
+---
+
+```{#lst-customers .sql lst-cap="Customers Query"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

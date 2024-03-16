@@ -1,0 +1,22 @@
+---
+title: Layout ncol
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureDocxRegexMatches:
+        - ['<w:tbl>[\s\S]+?1\. Quarto[\s\S]+?</w:tbl>[\s\S]+?<w:tbl>[\s\S]+?3\. Passion[\s\S]+?</w:tbl>']
+        - []
+---
+
+::: {layout-ncol=2}
+
+**1.   Quarto** is a phenomenal software ecosystem for doing all steps of the scientific analysis and outreach all at once, possibly automated, definitely beautifully, and usually easily.
+
+**2.   Contributors:** Although many people contribute to the Quarto ecosystem, it seems to me that cderv, jjallaire, cscheid and dragonstyle are doing the heavy-lifting all day and night. We are very happy with your continuous improvements.
+
+**3.  Passion:** If I had become a millionaire I likely would have sponsored Quarto and related technologies even though I would not strictly needed it as an unemployed rich dude.
+
+**4.    Regrets:** Perhaps I should have just used the ipsum lorem generator at dragonstyle/lipsum instead of spending time flattering the authors.
+
+:::

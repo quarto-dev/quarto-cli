@@ -1,0 +1,14 @@
+---
+title: Knitr Crossref Test
+---
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

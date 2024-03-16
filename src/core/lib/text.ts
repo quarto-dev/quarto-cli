@@ -16,6 +16,36 @@ export function normalizeNewlines(text: string) {
   return lines(text).join("\n");
 }
 
+export function trimEmptyLines(
+  lines: string[],
+  trim: "leading" | "trailing" | "all" = "all",
+) {
+  // trim leading lines
+  if (trim === "all" || trim === "leading") {
+    const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
+    if (firstNonEmpty === -1) {
+      return [];
+    }
+    lines = lines.slice(firstNonEmpty);
+  }
+
+  // trim trailing lines
+  if (trim === "all" || trim === "trailing") {
+    let lastNonEmpty = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (lines[i].trim().length > 0) {
+        lastNonEmpty = i;
+        break;
+      }
+    }
+    if (lastNonEmpty > -1) {
+      lines = lines.slice(0, lastNonEmpty + 1);
+    }
+  }
+
+  return lines;
+}
+
 // NB we can't use JS matchAll or replaceAll here because we need to support old
 // Chromium in the IDE
 //

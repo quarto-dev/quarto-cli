@@ -1,0 +1,15 @@
+---
+title: caption-formatting-test
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "div#lst-customers figcaption em"
+---
+
+```{#lst-customers .sql lst-cap="Customers _query_"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

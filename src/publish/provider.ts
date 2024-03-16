@@ -10,20 +10,11 @@ import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { positCloudProvider } from "./posit-cloud/posit-cloud.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
-import { PublishProvider } from "./provider-types.ts";
-import { AccountToken, AccountTokenType } from "./provider-types.ts";
+import { huggingfaceProvider } from "./huggingface/huggingface.ts";
+import { AccountToken } from "./provider-types.ts";
 
 export function accountTokenText(token: AccountToken) {
   return token.name + (token.server ? ` (${token.server})` : "");
-}
-
-export function anonymousAccount(): AccountToken {
-  return {
-    type: AccountTokenType.Anonymous,
-    name: "anonymous",
-    server: null,
-    token: "anonymous",
-  };
 }
 
 const kPublishProviders = [
@@ -33,17 +24,11 @@ const kPublishProviders = [
   positCloudProvider,
   netlifyProvider,
   confluenceProvider,
+  huggingfaceProvider,
 ];
 
 export function publishProviders() {
-  const providers: Array<PublishProvider> = [];
-  providers.push(quartoPubProvider);
-  providers.push(ghpagesProvider);
-  providers.push(rsconnectProvider);
-  providers.push(positCloudProvider);
-  providers.push(netlifyProvider);
-  providers.push(confluenceProvider);
-  return providers;
+  return kPublishProviders.slice();
 }
 
 export function findProvider(name?: string) {

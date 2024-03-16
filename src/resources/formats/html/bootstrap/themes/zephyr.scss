@@ -104,14 +104,6 @@ $navbar-padding-y:                  .85rem !default;
 
 $navbar-nav-link-padding-x:         .75rem !default;
 
-$navbar-dark-color:                 $white !default;
-$navbar-dark-hover-color:           $white !default;
-$navbar-dark-active-color:          $white !default;
-
-$navbar-light-color:                $black !default;
-$navbar-light-hover-color:          $black !default;
-$navbar-light-active-color:         $black !default;
-
 // Dropdowns
 
 $dropdown-font-size:                $font-size-sm !default;
@@ -180,8 +172,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
   font-weight: 500;
 
   .nav-item {
-    margin-left: .5rem;
     margin-right: .5rem;
+    margin-left: .5rem;
   }
 
   .navbar-nav {
@@ -217,6 +209,10 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
       }
     }
   }
+}
+
+.navbar-nav {
+  --bs-nav-link-padding-x: .5rem;
 }
 
 // Buttons
@@ -258,13 +254,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700
 // Tables
 
 .table {
-  box-shadow: $box-shadow-lg;
   font-size: $font-size-sm;
+  box-shadow: $box-shadow-lg;
 }
 
 thead th {
-  text-transform: uppercase;
   font-size: $font-size-sm;
+  text-transform: uppercase;
 }
 
 // Forms
@@ -304,11 +300,11 @@ thead th {
 }
 
 .breadcrumb {
+  font-size: $font-size-sm;
+  font-weight: 500;
   border: 1px solid $gray-300;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
-  font-size: $font-size-sm;
-  font-weight: 500;
 
   &-item {
     padding: 1rem .5rem 1rem 0;
@@ -336,16 +332,30 @@ thead th {
 
 // Containers
 
+.list-group-item,
+.card {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .h1,
+  .h2,
+  .h3,
+  .h4,
+  .h5,
+  .h6 {
+    color: inherit;
+  }
+}
+
 .list-group {
   box-shadow: $box-shadow-lg;
 }
 
 .card {
   box-shadow: $box-shadow-lg;
-
-  &-title {
-    color: inherit;
-  }
 }
 
 .modal-footer {

@@ -3,13 +3,13 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 
 import { architectureToolsPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
-import { debug, info } from "log/mod.ts";
+import { debug, info } from "../deno_ral/log.ts";
 import { existsSync } from "fs/mod.ts";
 import { warnOnce } from "./log.ts";
 

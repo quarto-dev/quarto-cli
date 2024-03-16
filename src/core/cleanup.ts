@@ -5,7 +5,7 @@
 *
 */
 
-import { info } from "log/mod.ts";
+import { info } from "../deno_ral/log.ts";
 
 const cleanupHandlers: VoidFunction[] = [];
 

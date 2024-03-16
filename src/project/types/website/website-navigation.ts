@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join, relative } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { basename, join, relative } from "../../../deno_ral/path.ts";
+import { warning } from "../../../deno_ral/log.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { Document, Element } from "../../../core/deno-dom.ts";
@@ -16,7 +16,16 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { asHtmlId } from "../../../core/html.ts";
 import { sassLayer } from "../../../core/sass.ts";
-import { removeChapterNumber } from "./website-utils.ts";
+import {
+  projectDraftMode,
+  removeChapterNumber,
+  resolveProjectInputLinks,
+} from "./website-utils.ts";
+import {
+  breadCrumbs,
+  itemHasNavTarget,
+  sidebarForHref,
+} from "./website-shared.ts";
 
 import {
   Format,
@@ -89,6 +98,8 @@ import {
   kSitePageNavigation,
   kSiteReaderMode,
   kSiteRepoActions,
+  kSiteRepoLinkRel,
+  kSiteRepoLinkTarget,
   kSiteRepoUrl,
   kSiteSidebar,
   kWebsite,
@@ -108,7 +119,6 @@ import {
 import {
   flattenItems,
   inputFileHref,
-  Navigation,
   NavigationFooter,
   NavigationPagination,
   websiteNavigationConfig,
@@ -126,20 +136,20 @@ import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import {
   createMarkdownPipeline,
   MarkdownPipeline,
-} from "./website-pipeline-md.ts";
+} from "../../../core/markdown-pipeline.ts";
 import { TempContext } from "../../../core/temp.ts";
 import { HtmlPostProcessResult } from "../../../command/render/types.ts";
 import { isJupyterNotebook } from "../../../core/jupyter/jupyter.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
 import { expandAutoSidebarItems } from "./website-sidebar-auto.ts";
-import { resolveProjectInputLinks } from "../project-utilities.ts";
+import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-shared.ts";
 
-// static navigation (initialized during project preRender)
-const navigation: Navigation = {
-  sidebars: [],
-};
+import { navigation } from "./website-shared.ts";
+import { isAboutPage } from "./about/website-about.ts";
 
 export const kSidebarLogo = "logo";
+export const kSidebarLogoHref = "logo-href";
+export const kSidebarLogoAlt = "logo-alt";
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // reset unique menu ids
@@ -153,6 +163,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     footer,
     pageMargin,
     bodyDecorators,
+    announcement,
   } = websiteNavigationConfig(
     project,
   );
@@ -186,6 +197,29 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.bodyDecorators = bodyDecorators;
 
   navigation.pageMargin = pageMargin;
+  navigation.announcement = announcement;
+}
+
+export async function websiteNoThemeExtras(
+  project: ProjectContext,
+  source: string,
+  _flags: PandocFlags,
+  _format: Format,
+  _temp: TempContext,
+): Promise<FormatExtras> {
+  return {
+    html: {
+      [kHtmlPostprocessors]: [
+        async (doc: Document): Promise<HtmlPostProcessResult> => {
+          await resolveProjectInputLinks(source, project, doc);
+          return Promise.resolve({
+            resources: [],
+            supporting: [],
+          });
+        },
+      ],
+    },
+  };
 }
 
 export async function websiteNavigationExtras(
@@ -211,6 +245,14 @@ export async function websiteNavigationExtras(
     }
   };
 
+  const tocLocation = () => {
+    if (isAboutPage(format)) {
+      return "right";
+    } else {
+      return format.metadata[kTocLocation] || "right";
+    }
+  };
+
   // find the relative path for this input
   const inputRelative = relative(project.dir, source);
 
@@ -232,6 +274,9 @@ export async function websiteNavigationExtras(
     includeInHeader.push(websiteSearchIncludeInHeader(project, format, temp));
   }
 
+  // Inject dashboard dependencies so they are present if necessary
+  sassBundles.push(dashboardScssLayer());
+
   // Check to see whether the navbar or sidebar have been disabled on this page
   const disableNavbar = format.metadata[kSiteNavbar] !== undefined &&
     format.metadata[kSiteNavbar] === false;
@@ -243,9 +288,12 @@ export async function websiteNavigationExtras(
   const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href, format);
 
+  // Forward the draft mode, if present
+  const draftMode = projectDraftMode(project);
+
   const nav: Record<string, unknown> = {
     hasToc: hasToc(),
-    [kTocLocation]: format.metadata[kTocLocation] || "right",
+    [kTocLocation]: tocLocation(),
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
@@ -257,6 +305,8 @@ export async function websiteNavigationExtras(
       true,
       project.config,
     ),
+    announcement: navigation.announcement,
+    draftMode,
   };
 
   // Determine the previous and next page
@@ -337,6 +387,7 @@ export async function websiteNavigationExtras(
     pageNavigation,
     bodyDecorators: navigation.bodyDecorators,
     breadCrumbs: navigation.breadCrumbs,
+    announcement: navigation.announcement,
   });
   const markdownPipeline = createMarkdownPipeline(
     "quarto-navigation-envelope",
@@ -405,7 +456,7 @@ function navigationHtmlPostprocessor(
     kBreadCrumbNavigation,
     true,
     project.config,
-  );
+  ) && format.metadata[kBreadCrumbNavigation] !== false;
 
   return async (doc: Document): Promise<HtmlPostProcessResult> => {
     // Process the breadcrumbs and collapsed title
@@ -451,7 +502,15 @@ function navigationHtmlPostprocessor(
           doc,
           ["quarto-title-breadcrumbs", "d-none", "d-lg-block"],
         );
-        titleBlockEl.prepend(titleBreadCrumbEl);
+        // See if there is deeper target
+        const bannerTitle = titleBlockEl.querySelector(
+          ".quarto-title-banner .quarto-title",
+        );
+        if (bannerTitle !== null) {
+          bannerTitle.prepend(titleBreadCrumbEl);
+        } else {
+          titleBlockEl.prepend(titleBreadCrumbEl);
+        }
       }
     }
 
@@ -585,6 +644,13 @@ function handleRepoLinks(
   language: FormatLanguage,
   config?: ProjectConfig,
 ) {
+  // Don't process repo-actions if document disables it
+  if (format.metadata[kSiteRepoActions] === false) {
+    return;
+  }
+
+  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
+
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
     kWebsite,
@@ -595,68 +661,92 @@ function handleRepoLinks(
     repoActions.push("issue");
   }
 
-  const forceRepoActions = format.metadata[kSiteRepoActions] === true;
-
   const elRepoSource = doc.querySelector(
     "[" + kDataQuartoSourceUrl + '="repo"]',
   );
 
   if (repoActions.length > 0 || elRepoSource) {
-    const repoInfo = websiteRepoInfo(config);
+    const repoInfo = websiteRepoInfo(format, config);
     if (repoInfo || issueUrl) {
       if (repoActions.length > 0) {
         // find the toc
-        let repoTarget = doc.querySelector(`nav[role="doc-toc"]`);
-        if (repoTarget === null && forceRepoActions) {
-          repoTarget = doc.querySelector("#quarto-margin-sidebar");
-        } else if (repoTarget === null) {
-          repoTarget = doc.querySelector(".nav-footer .nav-footer-center");
-          if (!repoTarget) {
-            const ensureEl = (
-              doc: Document,
-              tagname: string,
-              classname: string,
-              parent: Element,
-              afterEl?: Element | null,
-            ) => {
-              let el = parent.querySelector(`${tagname}.${classname}`);
-              if (!el) {
-                el = doc.createElement(tagname);
-                el.classList.add(classname);
-                if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
-                  parent.insertBefore(el, afterEl.nextElementSibling);
-                } else {
-                  parent.appendChild(el);
-                }
-              }
-              return el;
-            };
 
-            const footerEl = ensureEl(
-              doc,
-              "footer",
-              "footer",
-              doc.body,
-              doc.querySelector("div#quarto-content"),
-            );
-            const footerContainer = ensureEl(
-              doc,
-              "div",
-              "nav-footer",
-              footerEl,
-            );
-            const footerCenterEl = ensureEl(
-              doc,
-              "div",
-              "nav-footer-center",
-              footerContainer,
-              footerContainer.querySelector(".nav-footer-left"),
-            );
-            repoTarget = footerCenterEl;
+        // Collect the places to write the repo actions
+        const repoTargets: Array<{ el: Element; clz?: string[] }> = [];
+        const tocRepoTarget = doc.querySelector(`nav[role="doc-toc"]`);
+        if (tocRepoTarget) {
+          repoTargets.push({ el: tocRepoTarget });
+        }
+        if (repoTargets.length === 0 && forceRepoActions) {
+          const sidebarRepoTarget = doc.querySelector("#quarto-margin-sidebar");
+          if (sidebarRepoTarget) {
+            repoTargets.push({ el: sidebarRepoTarget });
           }
         }
 
-        if (repoTarget) {
+        const footerRepoTarget = doc.querySelector(
+          ".nav-footer .nav-footer-center",
+        );
+        if (footerRepoTarget) {
+          repoTargets.push({
+            el: footerRepoTarget,
+            clz: repoTargets.length > 0
+              ? ["d-sm-block", "d-md-none"]
+              : undefined,
+          });
+        } else {
+          const ensureEl = (
+            doc: Document,
+            tagname: string,
+            classname: string,
+            parent: Element,
+            afterEl?: Element | null,
+          ) => {
+            let el = parent.querySelector(`${tagname}.${classname}`);
+            if (!el) {
+              el = doc.createElement(tagname);
+              el.classList.add(classname);
+              if (afterEl !== null && afterEl && afterEl.nextElementSibling) {
+                parent.insertBefore(el, afterEl.nextElementSibling);
+              } else {
+                parent.appendChild(el);
+              }
+            }
+            return el;
+          };
+
+          const footerEl = ensureEl(
+            doc,
+            "footer",
+            "footer",
+            doc.body,
+            doc.querySelector("div#quarto-content"),
+          );
+          const footerContainer = ensureEl(
+            doc,
+            "div",
+            "nav-footer",
+            footerEl,
+          );
+          const footerCenterEl = ensureEl(
+            doc,
+            "div",
+            "nav-footer-center",
+            footerContainer,
+            footerContainer.querySelector(".nav-footer-left"),
+          );
+          repoTargets.push({
+            el: footerCenterEl,
+            clz: repoTargets.length > 0
+              ? ["d-sm-block", "d-md-none"]
+              : undefined,
+          });
+        }
+
+        if (repoTargets.length > 0) {
+          const linkTarget = websiteConfigString(kSiteRepoLinkTarget, config);
+          const linkRel = websiteConfigString(kSiteRepoLinkRel, config);
+
           // get the action links
           const links = repoInfo
             ? repoActionLinks(
@@ -672,33 +762,46 @@ function handleRepoLinks(
               url: issueUrl!,
               icon: "chat-right",
             }];
-          const actionsDiv = doc.createElement("div");
-          actionsDiv.classList.add("toc-actions");
+          repoTargets.forEach((repoTarget) => {
+            const actionsDiv = doc.createElement("div");
+            actionsDiv.classList.add("toc-actions");
 
-          const ulEl = doc.createElement("ul");
-          links.forEach((link) => {
-            const a = doc.createElement("a");
-            a.setAttribute("href", link.url);
-            a.classList.add("toc-action");
-            a.innerHTML = link.text;
+            const ulEl = doc.createElement("ul");
+            links.forEach((link) => {
+              const a = doc.createElement("a");
+              a.setAttribute("href", link.url);
+              if (linkTarget) {
+                a.setAttribute("target", linkTarget);
+              }
+              if (linkRel) {
+                a.setAttribute("rel", linkRel);
+              }
+              a.classList.add("toc-action");
+              a.innerHTML = link.text;
 
-            const i = doc.createElement("i");
-            i.classList.add("bi");
-            if (link.icon) {
-              i.classList.add(`bi-${link.icon}`);
-            } else {
-              i.classList.add(`empty`);
+              const i = doc.createElement("i");
+              i.classList.add("bi");
+              if (link.icon) {
+                i.classList.add(`bi-${link.icon}`);
+              } else {
+                i.classList.add(`empty`);
+              }
+
+              a.prepend(i);
+
+              const liEl = doc.createElement("li");
+              liEl.appendChild(a);
+
+              ulEl.appendChild(liEl);
+            });
+            actionsDiv.appendChild(ulEl);
+            repoTarget.el.appendChild(actionsDiv);
+            if (repoTarget.clz) {
+              repoTarget.clz.forEach((cls) => {
+                actionsDiv.classList.add(cls);
+              });
             }
-
-            a.prepend(i);
-
-            const liEl = doc.createElement("li");
-            liEl.appendChild(a);
-
-            ulEl.appendChild(liEl);
           });
-          actionsDiv.appendChild(ulEl);
-          repoTarget.appendChild(actionsDiv);
         }
       }
       if (elRepoSource && repoInfo) {
@@ -826,7 +929,7 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
           if (item.href) {
             const linkEl = doc.createElement("a");
             linkEl.setAttribute("href", item.href);
-            if (typeof (contents) === "string") {
+            if (typeof contents === "string") {
               linkEl.innerHTML = contents;
             } else {
               linkEl.appendChild(contents);
@@ -835,7 +938,7 @@ function makeBreadCrumbs(doc: Document, clz?: string[]) {
             liEl.appendChild(linkEl);
             return liEl;
           } else {
-            if (typeof (contents) === "string") {
+            if (typeof contents === "string") {
               liEl.innerHTML = item.text || "";
             } else {
               liEl.appendChild(contents);
@@ -918,7 +1021,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure collapse & alignment are defaulted
   sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
-  sidebar.aligment = sidebar.aligment || "center";
+  sidebar.alignment = sidebar.alignment || sidebar.align || "left";
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
@@ -1035,54 +1138,12 @@ function validateTool(tool: SidebarTool) {
   }
 }
 
-function sidebarForHref(href: string, format: Format) {
-  // if there is a single sidebar then it applies to all hrefs
-  if (navigation.sidebars.length === 1) {
-    return navigation.sidebars[0];
-  } else {
-    const explicitSidebar = navigation.sidebars.find((sidebar) => {
-      return sidebar.id === format.metadata[kSiteSidebar];
-    });
-    if (explicitSidebar) {
-      return explicitSidebar;
-    } else {
-      const containingSidebar = navigation.sidebars.find((sidebar) => {
-        return containsHref(href, sidebar.contents);
-      });
-      if (containingSidebar) {
-        return containingSidebar;
-      } else {
-        return undefined;
-      }
-    }
-  }
-}
-
 function sidebarStyle() {
   if (navigation.sidebars.length > 0) {
     return navigation.sidebars[0].style;
   } else {
     return undefined;
   }
-}
-
-function containsHref(href: string, items: SidebarItem[]) {
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].href && items[i].href === href) {
-      return true;
-    } else if (Object.keys(items[i]).includes("contents")) {
-      const subItems = items[i].contents || [];
-      const subItemsHasHref = containsHref(href, subItems);
-      if (subItemsHasHref) {
-        return true;
-      }
-    } else {
-      if (itemHasNavTarget(items[i], href)) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
@@ -1113,11 +1174,6 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
     resolveExpandedItems(href, expandedSidebar.contents);
     return expandedSidebar;
   }
-}
-
-function itemHasNavTarget(item: SidebarItem, href: string) {
-  return item.href === href ||
-    item.href === href.replace(/\/index\.html/, "/");
 }
 
 function isSeparator(item?: SidebarItem) {
@@ -1162,48 +1218,6 @@ function nextAndPrevious(
     };
   } else {
     return {};
-  }
-}
-
-function breadCrumbs(href: string, sidebar?: Sidebar) {
-  if (sidebar?.contents) {
-    const crumbs: SidebarItem[] = [];
-
-    // find the href in the sidebar
-    const makeBreadCrumbs = (href: string, sidebarItems?: SidebarItem[]) => {
-      if (sidebarItems) {
-        for (const item of sidebarItems) {
-          if (item.href === href) {
-            crumbs.push(item);
-            return true;
-          } else {
-            if (item.contents) {
-              if (makeBreadCrumbs(href, item.contents)) {
-                // If this 'section' doesn't have an href, then just use the first
-                // child as the href
-                const breadCrumbItem = { ...item };
-                if (
-                  !breadCrumbItem.href && breadCrumbItem.contents &&
-                  breadCrumbItem.contents.length > 0
-                ) {
-                  breadCrumbItem.href = breadCrumbItem.contents[0].href;
-                }
-
-                crumbs.push(breadCrumbItem);
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      } else {
-        return false;
-      }
-    };
-    makeBreadCrumbs(href, sidebar.contents);
-    return crumbs.reverse();
-  } else {
-    return [];
   }
 }
 
@@ -1399,29 +1413,43 @@ function uniqueMenuId(navItem: NavigationItemObject) {
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
-async function resolveItem<T extends { href?: string; text?: string }>(
+async function resolveItem<
+  T extends {
+    href?: string;
+    text?: string;
+    icon?: string;
+    plainText?: string;
+    draft?: boolean;
+  },
+>(
   project: ProjectContext,
   href: string,
   item: T,
   number = false,
 ): Promise<T> {
   if (!isExternalPath(href)) {
-    const resolved = await resolveInputTarget(project, href);
+    const resolved = await resolveInputTarget(
+      project,
+      pathWithForwardSlashes(href),
+    );
     if (resolved) {
       const inputItem = {
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
+        draft: resolved.draft,
       };
 
       const projType = projectType(project.config?.project?.[kProjectType]);
       if (projType.navItemText) {
-        inputItem.text = await projType.navItemText(
+        const navItemFormatted = await projType.navItemText(
           project,
           href,
           inputItem.text,
           number,
         );
+        inputItem.text = navItemFormatted.html;
+        inputItem.plainText = navItemFormatted.text;
       }
       return inputItem;
     } else if (looksLikeShortCode(href)) {
@@ -1433,6 +1461,9 @@ async function resolveItem<T extends { href?: string; text?: string }>(
       };
     }
   } else {
+    if (!item.text && !item.icon) {
+      item.text = item.href;
+    }
     return item;
   }
 }
@@ -1531,17 +1562,17 @@ function resolveNavReferences(
       collection: Array<unknown> | Record<string, unknown>,
     ) => {
       const assign = (value: unknown) => {
-        if (typeof (index) === "number") {
+        if (typeof index === "number") {
           (collection as Array<unknown>)[index] = value;
-        } else if (typeof (index) === "string") {
+        } else if (typeof index === "string") {
           (collection as Record<string, unknown>)[index] = value;
         }
       };
       if (Array.isArray(value)) {
         assign(resolveNavReferences(value));
-      } else if (typeof (value) === "object") {
+      } else if (typeof value === "object") {
         assign(resolveNavReferences(value as Record<string, unknown>));
-      } else if (typeof (value) === "string") {
+      } else if (typeof value === "string") {
         const navRef = resolveNavReference(value);
         if (navRef) {
           const navItem = collection as Record<string, unknown>;

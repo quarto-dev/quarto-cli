@@ -1,0 +1,40 @@
+---
+title: "My Document"
+format: jats
+crossref:
+  fig-prefix: F.   # (default is "fig.")
+  tbl-prefix: T.    # (default is "tbl.")
+  title-delim: "—" # (default is ":")
+
+  ref-hyperlink: false # (default is true)
+_quarto:
+  tests:
+    jats:
+      ensureJatsXPath:
+        - []
+        - 
+          - "//xref[@rid=\"tbl-letters\"]"
+      ensureFileRegexMatches:
+        - 
+          # NB: JATS uses the unicode non-breaking space instead of the html entity
+          - "Figure 1— Elephant"
+          - "See T. 1."
+          - "See F. 1"
+---
+
+# Introduction
+
+![Elephant](img/painter.jpg){#fig-elephant}
+
+See @fig-elephant for an illustration.
+
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.

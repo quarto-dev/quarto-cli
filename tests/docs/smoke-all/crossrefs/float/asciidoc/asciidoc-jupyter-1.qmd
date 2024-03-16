@@ -1,0 +1,27 @@
+---
+title: Python Crossref Test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "<<fig-plot>>"
+          - "\\[#fig-plot\\]"
+          - "\\.Plot"
+          - "image:.*/fig-plot-output-1.png"
+        - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+For example, see @fig-plot.

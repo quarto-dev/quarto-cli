@@ -1,0 +1,36 @@
+---
+title: float crossref test
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - "\\\\ref\\{fig-foo\\}"
+          - "\\\\ref\\{tbl-foo\\}"
+          - "\\\\label\\{fig-foo\\}"
+          - "\\\\label\\{tbl-foo\\}"
+        - []
+---
+
+This tests:
+
+- div float with image element as payload.
+- div float with image element as payload for non-figure floats.
+
+
+::: {#fig-foo}
+![](img/surus.jpg)
+
+This is the figure
+:::
+See @fig-foo for more.
+
+
+::: {#tbl-foo}
+![](img/surus.jpg)
+
+This is the table
+:::
+See @tbl-foo for more.
+

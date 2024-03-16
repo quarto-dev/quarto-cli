@@ -1,0 +1,26 @@
+---
+title: float test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        -
+          - "\\[.*\\]\\(https://www.example.com/\\)"
+          - "<img src=\"img/surus.jpg\" id=\"fig-foo\""
+          - "alt=\"Figure 1: This is the figure\""
+          - "<a href=\"#fig-foo\" class=\"quarto-xref\">"
+          - "<img src=\"img/surus.jpg\" id=\"tbl-foo\""
+          - "alt=\"Table 1: This is the table\""
+          - "<a href=\"#tbl-foo\" class=\"quarto-xref\">"
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as linked images with identifiers
+
+[![This is the figure](img/surus.jpg){#fig-foo}](https://www.example.com/)
+
+[![This is the table](img/surus.jpg){#tbl-foo}](https://www.example.com/)
+
+See @fig-foo and @tbl-foo for more.

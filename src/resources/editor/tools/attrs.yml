@@ -1,3 +1,83 @@
+# dashboardDiv
+
+- group: aDashboardDiv
+  contexts: [div]
+  formats: [dashboard]
+  completions:
+    - value: ".card"
+      doc: Markdown content with its own card
+    - value: ".valuebox"
+      doc: Prominently display a value
+
+- group: aDashboardCard
+  contexts: [div]
+  formats: [dashboard]
+  filter: "\\.card"
+  completions:
+    - value: 'title="$0"'
+      doc: Title for markdown content card
+    - value: 'padding="$0"'
+      doc: Padding around card
+    - value: 'expandable="true"'
+      doc: Make card contents expandable
+    - value: 'expandable="false"'
+      doc: Do not make card contents expandable
+    - value: 'width="$0"'
+      doc: Width (% or absolute pixels)
+    - value: 'height="$0"'
+      doc: Height (% or absolute pixels)
+
+- group: aDashboardValueBox
+  contexts: [div]
+  formats: [dashboard]
+  filter: "\\.valuebox"
+  completions:
+    - value: 'icon="$0"'
+      doc: Bootstrap icon for value box
+    - value: 'color="$0"'
+    - value: 'color="primary"'
+    - value: 'color="secondary"'
+    - value: 'color="success"'
+    - value: 'color="info"'
+    - value: 'color="warning"'
+    - value: 'color="danger"'
+    - value: 'color="light"'
+    - value: 'color="dark"'
+
+- group: aDashboardSidebar
+  contexts: [heading]
+  formats: [dashboard]
+  filter: "^##? "
+  completions:
+    - value: ".sidebar"
+      doc: Layout contents in a sidebar
+
+- group: aDashboardPage
+  contexts: [heading]
+  formats: [dashboard]
+  filter: "^# "
+  completions:
+    - value: 'orientation="rows"'
+      doc: Orient layout by rows
+    - value: 'orientation="columns"'
+      doc: Orient layout by columns
+
+- group: aDashboardHeading
+  contexts: [heading]
+  formats: [dashboard]
+  filter: "^#{2,} "
+  completions:
+    - value: ".fill"
+      doc: Contents should fill available layout space
+    - value: ".flow"
+      doc: Contents should flow to their natural size
+    - value: ".tabset"
+      doc: Arrange contents into tabs
+    - value: 'width="$0"'
+      doc: Width (% or absolute pixels)
+    - value: 'height="$0"'
+      doc: Height (% or absolute pixels)
+
 ## callouts
 
 - group: "callout"
@@ -168,13 +248,11 @@
 
 ## style
 
-- group: style
-  contexts: [div, figure]
+- group: div-style
+  contexts: [div]
   completions:
     - value: 'style="$0"'
       doc: CSS style attributes
-    - value: 'width="$0"'
-    - value: 'height="$0"'
 
 ## figure
 
@@ -198,6 +276,10 @@
         LaTeX figure position arrangement to be used in `\\begin{figure}[]`
     - value: 'fig-scap="$0"'
       doc: LaTeX short caption
+    - value: 'style="$0"'
+      doc: CSS style attributes
+    - value: 'width="$0"'
+    - value: 'height="$0"'
 
 ## heading
 

@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
@@ -43,6 +43,7 @@ export const positCloudProvider: PublishProvider = {
   requiresServer: true,
   listOriginOnly: true,
   hidden: true,
+  accountDescriptor: "credential",
   accountTokens,
   authorizeToken,
   removeToken,
@@ -197,34 +198,45 @@ async function publish(
   // create client
   const client = createClientFromAccountToken(account);
 
+  // render
+  const publishFiles = await render();
+  const tempContext = createTempContext();
+  const { bundlePath, manifest } = await createBundle(
+    type,
+    publishFiles,
+    tempContext,
+  );
+  const { content_category } = manifest.metadata;
+
   const { content, applicationId } = await withSpinner({
     message: `Preparing to publish ${type}`,
   }, async () => {
     if (target) {
       const content = await client.getContent(target.id);
-      const revision = await client.createRevision(content.id);
+      const revision = await client.createRevision(
+        content.id,
+        content_category,
+      );
       return { content, applicationId: revision.application_id };
     } else {
-      const content = await createContent(client, title);
+      const content = await createContent(
+        client,
+        title,
+        content_category,
+      );
       target = { id: content.id.toString(), url: content.url, code: false };
       return { content, applicationId: content.source_id };
     }
   });
   info("");
 
-  // render
-  const publishFiles = await render();
-
   // publish
-  const tempContext = createTempContext();
   try {
     // create and upload bundle
     const bundle = await withSpinner({
       message: () => `Uploading files`,
     }, async () => {
-      const bundleTargz = await createBundle(type, publishFiles, tempContext);
-
-      const bundleBytes = Deno.readFileSync(bundleTargz);
+      const bundleBytes = Deno.readFileSync(bundlePath);
       const bundleSize = bundleBytes.length;
       const bundleHash = md5HashBytes(bundleBytes);
 
@@ -283,6 +295,7 @@ function contentAsTarget(content: Content): PublishRecord {
 async function createContent(
   client: PositCloudClient,
   title: string,
+  contentCategory: string | null,
 ): Promise<Content> {
   let spaceId = null;
   let projectId = null;
@@ -291,11 +304,11 @@ async function createContent(
     const projectApplication = await client.getApplication(
       projectApplicationId,
     );
-    const project = await client.getContent(projectApplication.id);
+    const project = await client.getContent(projectApplication.content_id);
     projectId = project.id;
     spaceId = project.space_id;
   }
-  return await client.createOutput(title, spaceId, projectId);
+  return await client.createOutput(title, spaceId, projectId, contentCategory);
 }
 
 function promptError(msg: string) {

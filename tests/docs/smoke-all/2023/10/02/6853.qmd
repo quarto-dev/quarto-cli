@@ -1,0 +1,19 @@
+---
+format: revealjs
+title: test
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - ["div.fragment", "div#hello-world"]
+        - []
+---
+
+
+::: {#hello-world .callout-note .fragment}
+
+## A title
+
+Some content
+
+:::

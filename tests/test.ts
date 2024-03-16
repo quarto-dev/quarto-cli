@@ -6,17 +6,16 @@
 */
 import { existsSync } from "fs/mod.ts";
 import { fail } from "testing/asserts.ts";
-import { warning } from "log/mod.ts";
+import { warning } from "../src/deno_ral/log.ts";
 import { initDenoDom } from "../src/core/deno-dom.ts";
 
 import { cleanupLogger, initializeLogger, logError } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
-import { join } from "path/mod.ts";
+import { join } from "../src/deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
 import { runningInCI } from "../src/core/ci-info.ts";
-import { relative } from "path/mod.ts";
+import { relative, fromFileUrl } from "../src/deno_ral/path.ts";
 import { quartoConfig } from "../src/core/quarto.ts";
-import { fromFileUrl } from "path/win32.ts";
 
 export interface TestDescriptor {
   // The name of the test
@@ -55,6 +54,9 @@ export interface TestContext {
 
   // control if test is ran or skipped
   ignore?: boolean;
+
+  // environment to pass to downstream processes
+  env?: Record<string, string>;
 }
 
 export function testQuartoCmd(
@@ -62,12 +64,21 @@ export function testQuartoCmd(
   args: string[],
   verify: Verify[],
   context?: TestContext,
+  name?: string
 ) {
-  const name = `quarto ${cmd} ${args.join(" ")}`;
+  if (name === undefined) {
+    name = `quarto ${cmd} ${args.join(" ")}`;
+  }
   test({
     name,
     execute: async () => {
-      await quarto([cmd, ...args]);
+      const timeout = new Promise((_resolve, reject) => {
+        setTimeout(reject, 600000, "timed out after 10 minutes");
+      });
+      await Promise.race([
+        quarto([cmd, ...args], undefined, context?.env),
+        timeout,
+      ]);
     },
     verify,
     context: context || {},

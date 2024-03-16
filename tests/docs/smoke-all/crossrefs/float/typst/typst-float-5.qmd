@@ -1,0 +1,19 @@
+---
+title: Crossref Test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "Elephant"
+          - "<fig-elephant>"
+          - "#strong\\[\\?[\\\\]\\@fig-elephant1\\]"
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](img/surus.jpg){#fig-elephant}
+
+See @fig-elephant1 for examples. 

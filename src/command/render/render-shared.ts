@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname } from "path/mod.ts";
+import { dirname } from "../../deno_ral/path.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 
 import {
@@ -18,18 +18,7 @@ import { renderProject } from "./project.ts";
 import { renderFiles } from "./render-files.ts";
 import { resourceFilesFromRenderedFile } from "./resources.ts";
 import { RenderFlags, RenderOptions, RenderResult } from "./types.ts";
-import { fileExecutionEngine } from "../../execute/engine.ts";
-import {
-  isJupyterHubServer,
-  isJupyterServer,
-  isRStudioServer,
-  isRStudioWorkbench,
-  isVSCodeServer,
-  isVSCodeTerminal,
-  jupyterHubHttpReferrer,
-  jupyterHubUser,
-  vsCodeServerProxyUri,
-} from "../../core/platform.ts";
+
 import {
   isProjectInputFile,
   projectExcludeDirs,
@@ -41,8 +30,9 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { kTextPlain } from "../../core/mime.ts";
-import { execProcess } from "../../core/process.ts";
 import { normalizePath } from "../../core/path.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
+import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 
 export async function render(
   path: string,
@@ -52,8 +42,19 @@ export async function render(
   setInitializer(initYamlIntelligenceResourcesFromFilesystem);
   await initState();
 
+  const nbContext = notebookContext();
+
   // determine target context/files
-  const context = await projectContext(path, options.flags);
+  let context = await projectContext(path, nbContext, options);
+
+  // if there is no project parent and an output-dir was passed, then force a project
+  if (!context && options.flags?.outputDir) {
+    // recompute context
+    context = await projectContextForDirectory(path, nbContext, options);
+
+    // force clean as --output-dir implies fully overwrite the target
+    options.forceClean = options.flags.clean !== false;
+  }
 
   // set env var if requested
   if (context && options.setProjectDir) {
@@ -73,7 +74,7 @@ export async function render(
         );
       }
       return renderProject(
-        context || await projectContextForDirectory(path, options.flags),
+        context,
         options,
         files,
       );
@@ -94,19 +95,31 @@ export async function render(
   // validate that we didn't get any project-only options
   validateDocumentRenderFlags(options.flags);
 
+  // NB: singleFileProjectContext is currently not fully-featured
+  context = singleFileProjectContext(path, nbContext, options.flags);
+
   // otherwise it's just a file render
-  const result = await renderFiles([{ path }], options);
+  const result = await renderFiles(
+    [{ path }],
+    options,
+    nbContext,
+    undefined,
+    undefined,
+    context,
+  );
 
   // get partitioned markdown if we had result files
-  const engine = fileExecutionEngine(path);
+  const { engine } = await context.fileExecutionEngineAndTarget(
+    path,
+  );
   const partitioned = (engine && result.files.length > 0)
     ? await engine.partitionedMarkdown(path)
     : undefined;
 
   const excludeDirs = context ? projectExcludeDirs(context) : [];
 
-  // return files
-  return {
+  // compute render result
+  const renderResult = {
     context,
     files: await Promise.all(result.files.map(async (file) => {
       const resourceFiles = await resourceFilesFromRenderedFile(
@@ -125,86 +138,21 @@ export async function render(
       };
     })),
     error: result.error,
+    baseDir: normalizePath(dirname(path)),
   };
+
+  if (!renderResult.error && engine?.postRender) {
+    for (const file of renderResult.files) {
+      await engine.postRender(file, renderResult.context);
+    }
+  }
+
+  // return
+  return renderResult;
 }
 
 export function printWatchingForChangesMessage() {
   info("Watching files for changes", { format: colors.green });
-}
-
-export function previewURL(host: string, port: number, path: string) {
-  // render 127.0.0.1 as localhost as not to break existing unit tests (see #947)
-  const showHost = host == "127.0.0.1" ? "localhost" : host;
-  const url = `http://${showHost}:${port}/${path}`;
-  return url;
-}
-
-export async function printBrowsePreviewMessage(
-  host: string,
-  port: number,
-  path: string,
-) {
-  if (
-    (isJupyterServer() || isVSCodeTerminal()) && isRStudioWorkbench()
-  ) {
-    const url = await rswURL(port, path);
-    info(`\nPreview server: ${previewURL(host, port, path = "")}`);
-    info(`\nBrowse at ${url}`, { format: colors.green });
-  } else if (isVSCodeTerminal() && isVSCodeServer()) {
-    const proxyUrl = vsCodeServerProxyUri()!;
-    if (proxyUrl.endsWith("/")) {
-      path = path.startsWith("/") ? path.slice(1) : path;
-    } else {
-      path = path.startsWith("/") ? path : "/" + path;
-    }
-    const browseUrl = proxyUrl.replace("{{port}}", `${port}`) +
-      path;
-    info(`\nBrowse at ${browseUrl}`, { format: colors.green });
-  } else if (isJupyterHubServer()) {
-    const httpReferrer = `${
-      jupyterHubHttpReferrer() || "<jupyterhub-server-url>/"
-    }user/${jupyterHubUser()}/`;
-    info(
-      `\nBrowse at ${httpReferrer}proxy/${port}/${path}`,
-      {
-        format: colors.green,
-      },
-    );
-  } else {
-    const url = previewURL(host, port, path);
-    if (!isRStudioServer()) {
-      info(`Browse at `, {
-        newline: false,
-        format: colors.green,
-      });
-    }
-    info(url, { format: (str: string) => colors.underline(colors.green(str)) });
-  }
-}
-
-export async function rswURL(port: number, path: string) {
-  const server = Deno.env.get("RS_SERVER_URL")!;
-  const session = Deno.env.get("RS_SESSION_URL")!;
-  const portToken = await rswPortToken(port);
-  const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
-  return url;
-}
-
-async function rswPortToken(port: number) {
-  const result = await execProcess(
-    {
-      cmd: ["/usr/lib/rstudio-server/bin/rserver-url", String(port)],
-      stdout: "piped",
-      stderr: "piped",
-    },
-  );
-  if (result.success) {
-    return result.stdout;
-  } else {
-    throw new Error(
-      `Failed to map RSW port token (status ${result.code})\n${result.stderr}`,
-    );
-  }
 }
 
 export function previewUnableToRenderResponse() {

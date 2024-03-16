@@ -6,7 +6,7 @@
 import { stringify } from "xml/mod.ts";
 
 export const kTypeArticleMeta = "article-metadata";
-export const kMecaVersion = "2.0";
+export const kMecaVersion = "1";
 
 export interface MecaItem {
   id?: string;

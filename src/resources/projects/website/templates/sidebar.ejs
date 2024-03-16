@@ -1,13 +1,13 @@
-<nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation <%- sidebarStyle || (toc ? "floating" : "") %> overflow-auto">
+<nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation <%- sidebarStyle || (toc ? "floating" : "") %> overflow-auto">
 
   <% if (sidebar) { %>
   <% 
     let borderColor = sidebar['border-color'] ? "border-" + sidebar['border-color'] : "";
 
     let alignCss = ""
-    if (sidebar.align === "center") {
+    if (sidebar.alignment === "center") {
       alignCss = "text-center";
-    } else if (sidebar.align === "right") {
+    } else if (sidebar.alignment === "right") {
       alignCss = "text-end";
     } else {
       alignCss = "text-left";
@@ -31,14 +31,12 @@
       toolsLocation = "fallthrough";
     }
   %>
-
-
     
   <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
     <div class="pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
-      <a href="/index.html" class="sidebar-logo-link">
-      <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
+      <a href="<%- sidebar['logo-href'] || '/index.html' %>" class="sidebar-logo-link">
+      <img src="<%- sidebar.logo %>" alt="<%- navbar['logo-alt'] || '' %>" class="sidebar-logo py-0 d-lg-inline d-none"/>
       </a>
     <% } %>
     <% if (needsTools && toolsLocation === "logo") { %>
@@ -82,7 +80,7 @@
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
     <% sidebar.contents.forEach(item => { %>
-        <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor, language: language }) %>
+        <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor, language: language, draftMode }) %>
     <% }) %>
     </ul>
     </div>
@@ -94,4 +92,4 @@
   <% } %>
 
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" ></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" ></div>

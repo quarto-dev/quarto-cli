@@ -4,11 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "../../../src/deno_ral/path.ts";
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import {
-ensureMECAValidates,
+  ensureMECAValidates,
   ensureXmlValidatesWithXsd,
   fileExists,
   noErrorsOrWarnings,
@@ -41,6 +41,7 @@ export const testManuscriptRender = (
       // Validate the MECA file as well
       const [dir, stem] = dirAndStem(output.outputPath);
       const mecaFile = join(dir, `${stem}-meca.zip`);
+     
       verifications.push(ensureMECAValidates(mecaFile));
     }
     return output;

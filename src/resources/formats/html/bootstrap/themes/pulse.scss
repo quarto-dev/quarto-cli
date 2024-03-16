@@ -74,11 +74,6 @@ $nav-tabs-link-hover-border-color:  $primary !default;
 // Navbar
 
 $navbar-padding-y:                  1.2rem !default;
-$navbar-dark-hover-color:           rgba($white, .9) !default;
-$navbar-dark-active-color:          rgba($white, .9) !default;
-$navbar-light-color:                rgba($black, .4) !default;
-$navbar-light-active-color:         rgba($black, .7) !default;
-$navbar-light-disabled-color:       rgba($black, .2) !default;
 
 // Progress bars
 
@@ -98,6 +93,9 @@ $list-group-disabled-color:         lighten($list-group-bg, 30%) !default;
 
 /*-- scss:rules --*/
 
+
+// Variables
+
 // Buttons
 
 .btn {
@@ -109,20 +107,20 @@ $list-group-disabled-color:         lighten($list-group-bg, 30%) !default;
   }
 
   &-secondary {
+    color: $gray-900;
     background-color: $white;
     border-color: #ccc;
-    color: $gray-900;
 
     &:hover {
+      color: $gray-900;
       background-color: $gray-300;
       border-color: $gray-500;
-      color: $gray-900;
     }
 
     &.disabled {
+      color: tint-color($gray-900, 5%);
       background-color: $white;
       border-color: tint-color(#ccc, 5%);
-      color: tint-color($gray-900, 5%);
     }
   }
 

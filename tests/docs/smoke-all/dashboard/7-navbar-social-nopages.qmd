@@ -1,0 +1,57 @@
+---
+title: Sidebar Example
+format: 
+  dashboard:
+    nav-buttons:
+      - icon: envelope
+        href: https://www.usps.gov?url=|url|
+      - twitter
+      - reddit
+      - github
+---
+
+## Row
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red",
+  icon = "envelope",
+  title = "Cool Things"
+)
+```
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red",
+  icon = "envelope",
+  title = "Cool Things"
+)
+```
+
+```{r}
+#| component: valuebox
+list(
+  value = 45.5,
+  color = "red",
+  icon = "envelope",
+  title = "Cool Things"
+)
+```
+
+## Row
+
+::: {.card}
+
+```{r}
+plot(cars)
+```
+
+This is some cool content what up^[Inlines notes are easier to write,
+since you don't have to pick an identifier and move down to
+type the note.] dog. 
+
+:::

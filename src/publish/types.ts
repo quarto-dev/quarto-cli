@@ -1,18 +1,22 @@
 /*
-* types.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * types.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { ProjectContext } from "../project/types.ts";
 
 export class ApiError extends Error {
   public constructor(
     public readonly status: number,
-    public readonly statusText: string
+    public readonly statusText: string,
+    public readonly description: string | undefined = undefined,
   ) {
-    super(`API Error: ${status} - ${statusText}`);
+    let message = `API Error: ${status} - ${statusText}`;
+    if (description) {
+      message = `${message} (${description})`;
+    }
+    super(message);
   }
 }
 

@@ -50,7 +50,7 @@ function quartoBook()
         local template = el.attr.attributes['template']
 
         -- process any author information
-        local processedMeta = authors.processAuthorMeta(renderedDoc.meta)
+        local processedMeta = authors.processAuthorMeta(renderedDoc.meta) or renderedDoc.meta
 
         -- process license information for the book
         processedMeta = license.processLicenseMeta(processedMeta)

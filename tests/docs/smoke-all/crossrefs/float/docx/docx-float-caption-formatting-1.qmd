@@ -1,0 +1,15 @@
+---
+title: caption-formatting-test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          - "//w:i"
+---
+
+```{#lst-customers .sql lst-cap="Customers _query_"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

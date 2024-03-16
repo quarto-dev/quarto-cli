@@ -134,4 +134,13 @@ function transferImageWidthToCell(img, divEl)
   img.attributes["height"] = nil
 end
 
+function transfer_float_image_width_to_cell(float, div_el)
+  local width_attr = float.attributes["width"]
+  div_el.attr.attributes["width"] = width_attr
+  if sizeToPercent(width_attr) then
+    float.attributes["width"] = nil
+  end
+  float.attributes["height"] = nil
+end
+
 

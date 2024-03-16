@@ -16,6 +16,18 @@ const showField = (field) => {
 return listing.fields.includes(field) && item[field] !== undefined;
 }
 
+const readField = (item, field) => {
+let value = item[field];
+if (field.includes(".") && !field.endsWith(".") && !field.startsWith(".")) {
+const fields = field.split(".");
+value = item;
+for (const deref of fields) {
+value = value[deref];
+}
+}
+return value;
+}
+
 // Capture the item number for utility functions that need it
 const itemNumber = listing.utilities.itemNumber();
 
@@ -74,10 +86,12 @@ const flexJustify = showField('author') && showField('date') ? "justify" : showF
 <% if (otherFields.length > 0) { %>
 
 <table class="card-other-values">
-<% for (const field of otherFields) { %>
+<% for (const field of otherFields) { 
+let value = readField(item, field);  
+%>
 <tr>
 <td><%= listing.utilities.fieldName(field) %></td>
-<td class="<%-field%>"><%= listing.utilities.outputLink(item, field) %></td>
+<td class="<%-field%>"><%= listing.utilities.outputLink(item, field, value) %></td>
 </tr>
 <% } %>
 </table>

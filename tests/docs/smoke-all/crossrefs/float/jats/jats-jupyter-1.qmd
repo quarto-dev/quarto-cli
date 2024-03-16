@@ -1,0 +1,26 @@
+---
+title: Python Crossref Test
+format: jats
+_quarto:
+  tests:
+    jats:
+      ensureJatsXpath:
+        - 
+          - "//fig[@id=\"fig-plot\"]//caption"
+          - "//fig[@id=\"fig-plot\"]//graphic"
+          - "//xref[@rid=\"fig-plot\"]"
+        - []
+---
+
+## Python Crossref Figure
+
+```{python}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+import matplotlib.pyplot as plt
+plt.plot([1,23,2,4])
+plt.show()
+```
+
+For example, see @fig-plot.

@@ -2,7 +2,7 @@
 title: Hello Callout!
 ---
 
-## Overview of callouts
+## Overview of callouts {#overview}
 
 ::: {.callout-warning}
 Callouts provide a simple way to attract attention, for example, to this warning.
@@ -24,6 +24,8 @@ Note that there are five types of callouts, including: `note`, `tip`, `warning`,
 This is an example of a callout with a caption.
 :::
 
+## Callout with markup {#markup}
+
 ::: {.callout-tip}
 ## Caption with **formatted** text, like `function_name()`
 
@@ -40,4 +42,28 @@ This is an example of a 'collapsed' caution callout that can be expanded by the 
 ## Exercise
 
 You can also use a plain `callout` class to get a simple callout treatment.
+:::
+
+## Callout Appearance {#appearance}
+
+::: {.callout-caution appearance="simple"}
+A simple callout with no title
+:::
+
+::: {.callout-caution appearance="default"}
+A default callout with no title
+:::
+
+::: {.callout-caution appearance="default" icon="false"}
+A default callout with no title or icon
+:::
+
+::: {.callout-caution appearance="simple" icon="false"}
+A simple callout with no title or icon
+:::
+
+## Minimal
+
+::: {.callout-caution appearance="minimal"}
+A minimal callout with no title
 :::

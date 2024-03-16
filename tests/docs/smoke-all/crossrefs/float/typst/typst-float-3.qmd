@@ -1,0 +1,26 @@
+---
+title: float crossref test
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "<fig-foo>"
+          - "<tbl-foo>"
+          - "@fig-foo"
+          - "@tbl-foo"
+          - "This is a figure"
+          - "This is a table"
+---
+
+This tests:
+
+- float syntax for implicit figures and tables as images with identifiers
+
+![This is a figure](img/surus.jpg){#fig-foo}
+
+![This is a table](img/surus.jpg){#tbl-foo}
+
+See @fig-foo and @tbl-foo for more.

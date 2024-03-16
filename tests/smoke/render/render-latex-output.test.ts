@@ -1,22 +1,25 @@
 /*
-* render.latex-output.test.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * render.latex-output.test.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 import { docs } from "../../utils.ts";
 import { renderVerifyLatexOutput } from "./render.ts";
 
 renderVerifyLatexOutput(docs("latex-output/captionless-margin-image.qmd"), [
-  /\\begin{marginfigure}/,
+  /{\\marginnote{\\begin{footnotesize}\\includegraphics{/,
 ]);
 renderVerifyLatexOutput(docs("latex-output/figure-div.qmd"), [
-  /{\\centering/,
+  /\\centering{/,
   /\\caption{\\label{fig-foo}This is the figure}/,
   /See Figure~\\ref{fig-foo} for more\./,
 ]);
 
+// FIXME before merging:
+//
+// I don't understand how this test works even in 1.3
+//
 // All captions should be placed at the bottom
 // Note that the 'D' or '\\' are present after the caption command because one of the
 // test tables purposely msisses the caption handling to be sure that we don't

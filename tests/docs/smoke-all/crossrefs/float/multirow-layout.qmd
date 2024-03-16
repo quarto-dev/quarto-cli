@@ -1,0 +1,84 @@
+---
+title: new-crossref-layout-test
+---
+
+Let's try lots of weird stuff here.
+
+::: {#fig-1 layout-nrow=2}
+![Surus](surus.png){#fig-1-1}
+
+![Hanno](hanno.png)
+
+![Abdul Abbas](abdul-abbas.png){#fig-1-3}
+
+![Lin Wang](lin-wang.png){#fig-1-4}
+
+Many many subfloats.
+:::
+
+See @fig-1.
+
+::: {layout-nrow=2}
+![Surus](surus.png){#fig-2-1}
+
+![Hanno](hanno.png){#fig-2-2}
+
+![Abdul Abbas](abdul-abbas.png){#fig-2-3}
+
+![Lin Wang](lin-wang.png){#fig-2-4}
+
+Many many subfloats.
+:::
+
+See @fig-2-1 and @fig-1-4.
+
+
+::: {layout-nrow=2}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+
+![Abdul Abbas](abdul-abbas.png)
+
+![Lin Wang](lin-wang.png)
+:::
+
+
+::: {#fig-3 layout-nrow=2}
+![Surus](surus.png){#fig-3-1}
+
+![Hanno](hanno.png){#fig-3-3}
+
+![Abdul Abbas](abdul-abbas.png){#fig-3-3}
+
+![Lin Wang](lin-wang.png){#fig-3-4}
+
+Many many subfloats.
+:::
+
+
+See @fig-3 and @fig-3-3.
+
+::: {#fig-4 layout-nrow=2}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+
+![Abdul Abbas](abdul-abbas.png)
+
+![Lin Wang](lin-wang.png)
+
+Many many subfloats.
+:::
+
+
+See @fig-4.
+
+::: {layout="[[1,1], [1]]"}
+![Surus](surus.png)
+
+![Hanno](hanno.png)
+
+![Lin Wang](lin-wang.png)
+:::
+

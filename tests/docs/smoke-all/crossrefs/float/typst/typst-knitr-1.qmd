@@ -1,0 +1,24 @@
+---
+title: Knitr Crossref Test
+keep-typ: true
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - 
+          - "Plot"
+          - "<fig-plot>"
+          - "@fig-plot"
+---
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Plot"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

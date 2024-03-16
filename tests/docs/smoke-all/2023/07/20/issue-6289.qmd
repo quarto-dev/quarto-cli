@@ -1,0 +1,12 @@
+---
+title: "Untitled"
+format: html
+---
+
+This is @tbl-t1.
+
+```{r}
+#| label: tbl-t1
+#| tbl-cap: ''
+gt::gt(mtcars)
+```

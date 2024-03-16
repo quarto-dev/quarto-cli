@@ -6,7 +6,7 @@
 
 import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iterateReader } from "streams/mod.ts";
-import { info } from "log/mod.ts";
+import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
 
@@ -43,6 +43,7 @@ export async function execProcess(
     // If the caller asked for stdout/stderr to be directed to the rid of an open
     // file, just allow that to happen. Otherwise, specify piped and we will implement
     // the proper behavior for inherit, etc....
+    debug(`[execProcess] ${options.cmd.join(" ")}`);
     const process = Deno.run({
       ...options,
       stdin: stdin !== undefined ? "piped" : options.stdin,
@@ -119,26 +120,37 @@ export async function execProcess(
       closeStream(process.stderr);
     } else {
       // Process the streams independently
+      const promises: Promise<void>[] = [];
+
       if (process.stdout !== null) {
-        stdoutText = await processOutput(
-          iterateReader(process.stdout),
-          options.stdout,
-          respectStreams ? "stdout" : undefined,
+        promises.push(
+          processOutput(
+            iterateReader(process.stdout),
+            options.stdout,
+            respectStreams ? "stdout" : undefined,
+          ).then((text) => {
+            stdoutText = text;
+            process.stdout!.close();
+          }),
         );
-        process.stdout.close();
       }
 
       if (process.stderr != null) {
         const iterator = stderrFilter
           ? filteredAsyncIterator(iterateReader(process.stderr), stderrFilter)
           : iterateReader(process.stderr);
-        stderrText = await processOutput(
-          iterator,
-          options.stderr,
-          respectStreams ? "stderr" : undefined,
+        promises.push(
+          processOutput(
+            iterator,
+            options.stderr,
+            respectStreams ? "stderr" : undefined,
+          ).then((text) => {
+            stderrText = text;
+            process.stderr!.close();
+          }),
         );
-        process.stderr.close();
       }
+      await Promise.all(promises);
     }
 
     // await result
@@ -148,6 +160,8 @@ export async function execProcess(
     process.close();
 
     processList.delete(thisProcessId);
+
+    debug(`[execProcess] Success: ${status.success}, code: ${status.code}`);
 
     return {
       success: status.success,

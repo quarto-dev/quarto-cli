@@ -1,0 +1,20 @@
+---
+title: Crossref Test
+format: asciidoc
+_quarto:
+  tests:
+    asciidoc:
+      ensureFileRegexMatches:
+        - 
+          - "\\.Elephant"
+          - "\\[#fig-elephant\\]"
+          - "image::img/thinker.jpg"
+        - 
+          - "<<fig-elephant1>>"
+---
+
+## Unresolved Crossref Figure
+
+![Elephant](img/thinker.jpg){#fig-elephant}
+
+See @fig-elephant1 for examples. 

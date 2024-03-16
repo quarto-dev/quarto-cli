@@ -1,0 +1,7 @@
+---
+title: Figure Syntax 1
+---
+
+[![This is the figure](img/surus.jpg){#fig-foo}](https://www.example.com/)
+
+See @fig-foo for more.

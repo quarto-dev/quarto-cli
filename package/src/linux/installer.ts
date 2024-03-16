@@ -4,10 +4,10 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
 import { copySync } from "fs/copy.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
@@ -70,10 +70,15 @@ export async function makeInstallerDeb(
     return accum + target;
   });
   const url = "https://github.com/quarto-dev/quarto-cli";
+  const recommends = ["unzip"];
+
   // Make the control file
   info("Creating control file");
   let control = "";
   control = control + val("Package", configuration.productName);
+  if (recommends.length) {
+    control = control + val("Recommends", recommends.join(","));
+  }
   control = control + val("Version", configuration.version);
   control = control + val("Architecture", architecture);
   control = control + val("Installed-Size", `${Math.round(size / 1024)}`);
@@ -106,7 +111,7 @@ export async function makeInstallerDeb(
   copyrightLines.push("");
   copyrightLines.push("Files: *");
   copyrightLines.push("Copyright: Posit, PBC.");
-  copyrightLines.push("License: GPL-2+");
+  copyrightLines.push("License: MIT");
   const copyrightText = copyrightLines.join("\n");
   Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);
 
@@ -123,6 +128,7 @@ export async function makeInstallerDeb(
     "gzip",
     "-z",
     "9",
+    "--root-owner-group",
     "--build",
     workingDir,
     join(configuration.directoryInfo.out, packageName),

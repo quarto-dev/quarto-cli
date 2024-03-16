@@ -1,0 +1,77 @@
+---
+title: Proposed syntax for custom crossrefs
+crossref:
+  custom:
+    - kind: float
+      key: dia
+      reference-prefix: Diagram
+      latex-env: diagram
+      latex-list-of-file-extension: lod
+    - kind: float
+      key: vid
+      reference-prefix: Video
+      latex-env: video
+      latex-list-of-file-extension: lov
+    - kind: float
+      key: supptbl
+      reference-prefix: Table S
+      space-before-numbering: false
+      latex-env: supptbl
+      latex-list-of-file-extension: lost
+---
+
+::: {#dia-1}
+
+```{mermaid}
+flowchart LR
+  A[Hard edge] --> B(Round edge)
+  B --> C{Decision}
+  C --> D[Result one]
+  C --> E[Result two]
+```
+
+A Mermaid diagram with a caption.
+:::
+
+See @dia-1.
+
+::: {#tbl-1}
+
+A table.
+
+A caption.
+
+:::
+
+::: {#tbl-2}
+
+A table.
+
+A caption.
+
+:::
+
+See @tbl-1 and @tbl-2.
+
+
+::: {#vid-1}
+
+{{< video https://www.youtube.com/watch?v=wo9vZccmqwc >}}
+
+A video from YouTube.
+
+:::
+
+See @vid-1.
+
+## Supplement
+
+::: {#supptbl-1}
+
+A table.
+
+A caption.
+
+:::
+
+See @supptbl-1.

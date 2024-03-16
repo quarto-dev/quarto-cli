@@ -1,0 +1,13 @@
+---
+title: "margin captions"
+---
+
+::: {#fig-cap-margin}
+
+![](img/abbas.jpg)
+
+A caption
+
+:::
+
+See @fig-cap-margin.

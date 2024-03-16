@@ -58,7 +58,7 @@ $headings-font-weight:        700 !default;
 
 $table-border-color:          rgba(0, 0, 0, .1) !default;
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Buttons
 
@@ -75,14 +75,9 @@ $btn-border-radius-sm:        .844em !default;
 // Forms
 
 $input-border-color:                    rgba(0, 0, 0, .1) !default;
-$input-group-addon-bg:                  $gray-200 !default !default;
+$input-group-addon-bg:                  $gray-200 !default;
 
 // Navbar
-
-$navbar-dark-color:                 rgba($white, .6) !default;
-$navbar-dark-hover-color:           $white !default;
-$navbar-light-hover-color:          $body-color !default;
-$navbar-light-active-color:         $body-color !default;
 
 // Tooltips
 
@@ -102,28 +97,14 @@ $alert-border-width:                0 !default;
 
 /*-- scss:rules --*/
 
+
+// Variables
+
 // Navbar
 
 .navbar {
   font-size: $font-size-sm;
   border: 1px solid rgba(0, 0, 0, .1);
-
-  &.bg-dark {
-    background-color: $success !important;
-  }
-
-  &.bg-light {
-    background-color: $white !important;
-    border: 1px solid rgba(0, 0, 0, .1);
-
-    &.navbar-fixed-top {
-      border-width: 0 0 1px;
-    }
-
-    &.navbar-fixed-bottom {
-      border-width: 1px 0 0;
-    }
-  }
 }
 
 // Typography
@@ -141,8 +122,8 @@ footer {
 }
 
 .lead {
-  color: $gray-600;
   font-family: $font-family-sans-serif;
+  color: $gray-600;
 }
 
 // Tables
@@ -167,8 +148,8 @@ table,
 // Indicators
 
 .alert {
-  color: $white;
   font-size: $font-size-sm;
+  color: $white;
 
   &,
   p {
@@ -177,8 +158,8 @@ table,
 
   a,
   .alert-link {
-    color: $white;
     font-weight: 400;
+    color: $white;
     text-decoration: underline;
   }
 

@@ -1,0 +1,25 @@
+---
+title: fig-cap on div test
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "Figure\\&nbsp;1: This is a caption on a div"
+          - "Table\\&nbsp;1: This is a table caption on a div"
+      ensureHtmlElements:
+        - ["figcaption"]
+---
+
+::: {#fig-1 fig-cap="This is a caption on a div"}
+
+![](img/surus.jpg)
+
+:::
+
+
+::: {#tbl-1 tbl-cap="This is a table caption on a div"}
+
+![](img/surus.jpg)
+
+:::

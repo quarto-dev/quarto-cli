@@ -11,7 +11,7 @@ import {
 import { Format, FormatPandoc, Metadata } from "../config/types.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-import { RenderOptions } from "../command/render/types.ts";
+import { RenderOptions, RenderResultFile } from "../command/render/types.ts";
 import { MappedString } from "../core/lib/text-types.ts";
 import { HandlerContextResults } from "../core/handlers/types.ts";
 import { ProjectContext } from "../project/types.ts";
@@ -28,13 +28,14 @@ export interface ExecutionEngine {
   defaultYaml: (kernel?: string) => string[];
   defaultContent: (kernel?: string) => string[];
   validExtensions: () => string[];
-  claimsExtension: (ext: string) => boolean;
+  claimsFile: (file: string, ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;
+  markdownForFile(file: string): Promise<MappedString>;
   target: (
     file: string,
-    quiet?: boolean,
-    markdown?: MappedString,
-    project?: ProjectContext,
+    quiet: boolean | undefined,
+    markdown: MappedString | undefined,
+    project: ProjectContext,
   ) => Promise<ExecutionTarget | undefined>;
   partitionedMarkdown: (
     file: string,
@@ -52,9 +53,13 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   generatesFigures: boolean;
   canKeepSource?: (target: ExecutionTarget) => boolean;
-  keepFiles?: (input: string) => string[] | undefined;
+  intermediateFiles?: (input: string) => string[] | undefined;
   ignoreDirs?: () => string[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
+  postRender?: (
+    file: RenderResultFile,
+    project?: ProjectContext,
+  ) => Promise<void>;
 }
 
 // execution target (filename and context 'cookie')
@@ -76,12 +81,12 @@ export interface ExecuteOptions {
   dependencies: boolean;
   projectDir?: string;
   libDir?: string;
-  cwd?: string;
+  cwd: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
   previewServer?: boolean;
   handledLanguages: string[]; // list of languages handled by cell language handlers, after the execution engine
-  projectType?: string;
+  project?: ProjectContext;
 }
 
 // result of execution
@@ -92,6 +97,7 @@ export interface ExecuteResult {
   metadata?: Metadata;
   pandoc?: FormatPandoc;
   includes?: PandocIncludes;
+  engine?: string;
   engineDependencies?: Record<string, Array<unknown>>;
   preserve?: Record<string, string>;
   postProcess?: boolean;
@@ -152,9 +158,13 @@ export interface PostProcessOptions {
 export interface RunOptions {
   input: string;
   render: boolean;
+  browser: boolean;
   tempDir: string;
+  reload?: boolean;
+  format?: string;
   projectDir?: string;
   port?: number;
   host?: string;
   quiet?: boolean;
+  onReady?: () => Promise<void>;
 }

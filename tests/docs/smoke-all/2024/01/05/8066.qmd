@@ -1,0 +1,15 @@
+---
+title: "Test"
+format:
+  html:
+    fig-cap-location: margin
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - 
+          - "figcaption.margin-caption"
+        - []
+---
+
+![Test figure caption](https://placeholder.co/400)

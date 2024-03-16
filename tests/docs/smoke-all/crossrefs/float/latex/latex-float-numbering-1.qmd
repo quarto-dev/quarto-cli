@@ -1,0 +1,42 @@
+---
+title: "My Document"
+crossref:
+  fig-labels: alpha x # (default is arabic)
+  tbl-labels: alpha A # (default is arabic)
+  subref-labels: roman i # (default is alpha a)
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - []
+        - []
+---
+
+# Introduction
+
+![Elephant](../img/surus.jpg){#fig-elephant}
+
+See @fig-elephant for an illustration.
+
+| Col1 | Col2 | Col3 |
+| ---- | ---- | ---- |
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.
+
+## Simple Sub Figure
+
+::: {#fig-elephants layout-ncol="2"}
+![Surus](../img/surus.jpg){#fig-surus}
+
+![Abbas](../img/surus.jpg){#fig-abbas}
+
+Famous Elephants
+:::
+
+See @fig-elephants for examples. In particular, @fig-abbas.

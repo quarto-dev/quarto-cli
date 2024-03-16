@@ -2,7 +2,7 @@
 <% if (Array.isArray(contents)) { %> 
   <ul class="footer-items list-unstyled">
   <% for(const item of contents) { %>
-    <% partial('nav-footer-navitem.ejs', { item, align: 'left' }) %> 
+    <% partial('nav-footer-navitem.ejs', { item, align: 'left', draftMode }) %> 
   <% } %>
 </ul>
 <% } else { %>

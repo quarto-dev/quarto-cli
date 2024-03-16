@@ -20,7 +20,7 @@ itself run.
 import { parse } from "yaml/mod.ts";
 import { toCapitalizationCase } from "../lib/text.ts";
 import { capitalizeWord as capitalize } from "../text.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 
 export async function generateTypesFromSchemas(resourcePath: string) {
   const definitionsSchema = parse(
@@ -85,6 +85,13 @@ export type SchemaObject = { [key: string]: string };`,
   }).status();
 }
 
+function yamlToTypeScriptKey(key: string) {
+  // if the key isn't a valid typescript identifier, quote it
+  if (!/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(key)) {
+    return JSON.stringify(key);
+  }
+  return key;
+}
 // deno-lint-ignore no-explicit-any
 export function schemaToType(schema: any): string {
   if ([true, false, null].indexOf(schema) !== -1) {
@@ -145,7 +152,7 @@ export function schemaToType(schema: any): string {
       return document(
         "{" +
           Object.entries(schema.record).map(([key, value]) => {
-            return `${key}: ${schemaToType(value)}`;
+            return `${yamlToTypeScriptKey(key)}: ${schemaToType(value)}`;
           }).join("; ") + "}",
         {},
       );
@@ -201,9 +208,9 @@ export function schemaToType(schema: any): string {
               : (schema.object.required === undefined
                 ? true
                 : schema.object.required.indexOf(key) === -1);
-            return `${key.indexOf("-") !== -1 ? JSON.stringify(key) : key}${
-              optionalFlag ? "?" : ""
-            }: ${schemaToType(value)}`;
+            return `${yamlToTypeScriptKey(key)}${optionalFlag ? "?" : ""}: ${
+              schemaToType(value)
+            }`;
           }).sort(([k1, _v1], [k2, _v2]) => k1.localeCompare(k2)).join("; ") +
           "}");
       if (schema.object?.super?.resolveRef) {

@@ -8,7 +8,7 @@ import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/u
 import { createTempContext } from "../../core/temp.ts";
 import { installExtension } from "../../extension/install.ts";
 
-import { info } from "log/mod.ts";
+import { info } from "../../deno_ral/log.ts";
 import {
   loadTools,
   selectTool,
@@ -36,7 +36,7 @@ export const installCommand = new Command()
     "Update system path when a tool is installed",
   )
   .description(
-    "Installs an extension or global dependency.",
+    "Installs a global dependency (TinyTex or Chromium).",
   )
   .example(
     "Install TinyTeX",

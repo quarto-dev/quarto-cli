@@ -5,10 +5,7 @@ run the following commands:
 
 ```bash
 cd quarto-cli/tests
-export QUARTO_LUACOV=`pwd`/luacov.stats.out
-rm -f luacov.stats.out # to get a fresh report; otherwise it appends
-./run-tests.sh
-quarto render docs/luacov/report.qmd
+./run-tests-with-luacov.sh
 ```
 
 The report is an HTML file, and will be under `docs/luacov/luacov.report.html`.

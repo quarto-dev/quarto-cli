@@ -1,0 +1,43 @@
+---
+title: Hello World
+code-annotations: none
+format:
+  html: default
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ['#wrong ol > li']
+        - ['#good ol > li', 'span[id^="annotated-cell"]']
+      ensureFileRegexMatches:
+        - []
+        - []
+    latex:
+      ensureFileRegexMatches:
+        - ["\\\\CommentTok\\{// \\\\textless\\{\\}1\\\\textgreater\\{\\}\\}", "\\item", "definiert"]
+        - ["\\\\circled", "Inhalt"]
+---
+
+Example from: https://github.com/quarto-dev/quarto-cli/issues/5286
+
+## wrong annotation comment {#wrong}
+
+``` c
+#define CriticalVariable() \
+  uint8_t cpuSR // <1>
+```
+1. definiert lokale Variable `cpuSR` für Sicherung des aktuellen Interrupt-Zustandes
+
+## Good {#good}
+
+``` c
+#define ExitCritical()    \
+  do {                    \
+    __asm(                \
+      "ldrb r0, cpuSR \n" \ /* <1> */
+      "msr PRIMASK,r0 \n" \ /* <2> */
+    );                    \
+  } while(0)
+```
+1. Inhalt von `cpuSR` in `R0` laden
+2. `R0` nach `PRIMASK` kopieren.

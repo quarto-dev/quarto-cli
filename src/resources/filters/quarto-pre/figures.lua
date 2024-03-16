@@ -3,69 +3,47 @@
 
 
 function quarto_pre_figures() 
-  
-  return {
-   
-    Div = function(el)
-      
-      -- propagate fig-cap on figure div to figure caption 
-      if hasFigureRef(el) then
-        local figCap = attribute(el, kFigCap, nil)
-        if figCap ~= nil then
-          local caption = pandoc.Para(markdownToInlines(figCap))
-          el.content:insert(caption)
-          el.attr.attributes[kFigCap] = nil
-        end
-      end
-      return el
-      
-    end,
+  -- provide default fig-pos or fig-env if specified
+  local function forward_pos_and_env(el)
+    local figPos = param(kFigPos)
+    if figPos and not el.attributes[kFigPos] then
+      el.attributes[kFigPos] = figPos
+    end
+    -- remove fig-pos if it is false, since it
+    -- signals "don't use any value"
+    if el.attributes[kFigPos] == "FALSE" then
+      el.attributes[kFigPos] = nil
+    end
+    local figEnv = param(kFigEnv)
     
-    -- create figure divs from linked figures
-    Para = function(el)
-      
-      -- create figure div if there is a tikz image
-      local fig = discoverFigure(el)
-      if fig and latexIsTikzImage(fig) then
-        return createFigureDiv(el, fig)
-      end
-      
-      -- create figure divs from linked figures
-      local linkedFig = discoverLinkedFigure(el)
-      if linkedFig then
-        return createFigureDiv(el, linkedFig)
+    if figEnv and not el.attributes[kFigEnv] then
+      el.attributes[kFigEnv] = figEnv
+    end
+    return el
+end
+  return {    
+    FloatRefTarget = function(float)
+      local kind = refType(float.identifier)
+      if kind ~= "fig" then
+        return
       end
 
-    end,
-
-    Image = function(image)
       -- propagate fig-alt
       if _quarto.format.isHtmlOutput() then
         -- read the fig-alt text and set the image alt
-        local altText = attribute(image, kFigAlt, nil);
+        local altText = attribute(float, kFigAlt, nil)
         if altText ~= nil then
-          image.attr.attributes["alt"] = altText
-          image.attr.attributes[kFigAlt] = nil
-          return image
+          float.attributes["alt"] = altText
+          float.attributes[kFigAlt] = nil
+          return float
         end
-      -- provide default fig-pos or fig-env if specified
       elseif _quarto.format.isLatexOutput() then
-        local figPos = param(kFigPos)
-        if figPos and not image.attr.attributes[kFigPos] then
-          image.attr.attributes[kFigPos] = figPos
-        end
-        -- remove fig-pos if it is false, since it
-        -- signals "don't use any value"
-        if image.attr.attributes[kFigPos] == "FALSE" then
-          image.attr.attributes[kFigPos] = nil
-        end
-        local figEnv = param(kFigEnv)
-        
-        if figEnv and not image.attr.attributes[kFigEnv] then
-          image.attr.attributes[kFigEnv] = figEnv
-        end
-      else 
-        return image
+        return forward_pos_and_env(float)
+      end
+    end,
+    Figure = function(figure)
+      if _quarto.format.isLatexOutput() then
+        return forward_pos_and_env(figure)
       end
     end
   }

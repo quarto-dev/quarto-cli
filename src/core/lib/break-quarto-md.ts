@@ -12,6 +12,7 @@ import { Range, rangedLines, RangedSubstring } from "./ranged-text.ts";
 import {
   asMappedString,
   EitherString,
+  MappedString,
   mappedString,
   mappedSubstring,
 } from "./mapped-text.ts";
@@ -32,6 +33,7 @@ export async function breakQuartoMd(
   if (typeof src === "string") {
     src = asMappedString(src);
   }
+  const fileName = (src as MappedString).fileName;
 
   // notebook to return
   const nb: QuartoMdChunks = {
@@ -41,10 +43,10 @@ export async function breakQuartoMd(
   // regexes
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
+    "^\\s*(```+)\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^\s*```+\s*$/;
+  const endCodeRegEx = /^\s*(```+)\s*$/;
 
   let language = ""; // current language block
   let directiveParams: Shortcode | undefined = undefined;
@@ -69,7 +71,11 @@ export async function breakQuartoMd(
         mappedChunks.push(line.range);
       }
 
-      const source = mappedString(src, mappedChunks);
+      const source = mappedString(
+        src,
+        mappedChunks,
+        fileName,
+      );
 
       const makeCellType = () => {
         if (cell_type === "code") {
@@ -135,12 +141,12 @@ export async function breakQuartoMd(
           codeStartRange!.range,
           ...mappedChunks,
           codeEndRange!.range,
-        ]);
+        ], fileName);
         cell.options = yaml;
         cell.sourceStartLine = sourceStartLine;
       } else if (cell_type === "directive") {
         // directives only carry tag source in sourceVerbatim, analogously to code
-        cell.source = mappedString(src, mappedChunks.slice(1, -1));
+        cell.source = mappedString(src, mappedChunks.slice(1, -1), fileName);
       }
       // if the source is empty then don't add it
       if (
@@ -186,7 +192,7 @@ export async function breakQuartoMd(
 
   for (let i = 0; i < srcLines.length; ++i) {
     const line = srcLines[i];
-    const directiveMatch = isBlockShortcode(line.substring);
+    const directiveMatch = isBlockShortcode(line.substring, true);
     // yaml front matter
     if (
       isYamlDelimiter(line.substring, i, !inYaml) &&
@@ -210,15 +216,17 @@ export async function breakQuartoMd(
     } // begin code cell: ^```python
     else if (startCodeCellRegEx.test(line.substring) && inPlainText()) {
       const m = line.substring.match(startCodeCellRegEx);
-      language = (m as string[])[1];
+      language = (m as string[])[2];
       await flushLineBuffer("markdown", i);
       inCodeCell = true;
+      inCode = (m as string[])[1].length;
+
       codeStartRange = line;
 
       // end code block: ^``` (tolerate trailing ws)
     } else if (
       endCodeRegEx.test(line.substring) &&
-      (inCodeCell || (inCode && tickCount(line.substring) === inCode))
+      (inCode && (line.substring.match(endCodeRegEx)!)[1].length === inCode)
     ) {
       // in a code cell, flush it
       if (inCodeCell) {

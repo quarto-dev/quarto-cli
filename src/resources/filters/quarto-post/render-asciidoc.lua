@@ -22,7 +22,7 @@ function render_asciidoc()
       -- We construct the title with cross ref information into the metadata
       -- if we see such a title, we need to move the identifier up outside the title
       local titleInlines = meta['title']
-      if #titleInlines == 1 and titleInlines[1].t == 'Span' then ---@diagnostic disable-line
+      if titleInlines ~= nil and #titleInlines == 1 and titleInlines[1].t == 'Span' then ---@diagnostic disable-line
         
         ---@type pandoc.Span
         local span = titleInlines[1]
@@ -55,21 +55,28 @@ function render_asciidoc()
     end,
     Callout = function(el) 
       -- callout -> admonition types pass through
-      local admonitionType = el.type:upper();
+      local admonitionType = el.type:upper()
 
-      -- render the callout contents
-      local admonitionContents = pandoc.write(pandoc.Pandoc(el.content), "asciidoc")
+      local admonitionPre
+      local admonitionPost = "====\n\n" 
 
-      local admonitionStr;
       if el.title then
         -- A titled admonition
         local admonitionTitle = pandoc.write(pandoc.Pandoc({el.title}), "asciidoc")
-        admonitionStr = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n" .. admonitionContents .. "====\n\n" 
+        admonitionPre = "[" .. admonitionType .. "]\n." .. admonitionTitle .. "====\n"
       else
         -- A titleless admonition
-          admonitionStr = "[" .. admonitionType .. "]\n====\n" .. admonitionContents .. "====\n\n" 
+        admonitionPre = "[" .. admonitionType .. "]\n====\n"
       end
-      return pandoc.RawBlock("asciidoc", admonitionStr)
+
+      if el.content.t == "Para" then
+        el.content.content:insert(1, pandoc.RawInline("asciidoc", admonitionPre))
+        el.content.content:insert(pandoc.RawInline("asciidoc", "\n" .. admonitionPost))
+      elseif pandoc.utils.type(el.content) == "Blocks" then
+        el.content:insert(1, pandoc.RawBlock("asciidoc", admonitionPre))
+        el.content:insert(pandoc.RawBlock("asciidoc", admonitionPost))
+      end
+      return el.content
     end,
     Inlines = function(el)
       -- Walk inlines and see if there is an inline code followed directly by a note. 

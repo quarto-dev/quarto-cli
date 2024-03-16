@@ -41,11 +41,11 @@ import {
 
 import * as ld from "../../core/lodash.ts";
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kNotebookViewStyleNotebook } from "../../format/html/format-html-constants.ts";
 import { kAppendixStyle } from "../../format/html/format-html-shared.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { Format } from "../../config/types.ts";
 import { isQmdFile } from "../../execute/qmd.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -130,7 +130,7 @@ function resolveHtmlNotebook(
 
   // Configure the appearance
   resolved.recipe.format.pandoc[kToc] = true;
-  resolved.recipe.format.metadata[kTocLocation] = "right";
+  resolved.recipe.format.metadata[kTocLocation] = "left";
   resolved.recipe.format.metadata[kAppendixStyle] = "none";
   resolved.recipe.format.render[kFormatLinks] = false;
 
@@ -144,8 +144,8 @@ async function renderHtmlNotebook(
   format: Format,
   _subArticleToken: string,
   services: RenderServices,
-  notebookMetadata?: NotebookMetadata,
-  project?: ProjectContext,
+  notebookMetadata: NotebookMetadata | undefined,
+  project: ProjectContext,
 ): Promise<RenderedFile> {
   // Use the special `embed` template for this render
   const template = formatResourcePath(
@@ -176,7 +176,7 @@ async function renderHtmlNotebook(
             backLabel: format.language[kNotebookPreviewBack],
           } as NotebookTemplateMetadata,
           [kToc]: true,
-          [kTocLocation]: "right",
+          [kTocLocation]: "left",
           [kDisableArticleLayout]: true,
         },
         quiet: false,

@@ -1,0 +1,24 @@
+---
+title: Crossrefs in data-qmds
+number-sections: true
+---
+
+```{=html}
+<table>
+  <caption><span data-qmd="As described in [Section -@sec-methods], computers are great."></span></caption>
+  <thead>
+    <tr>
+      <th><span data-qmd="_Header 1_"></span></th>
+      <th><span data-qmd="_Header 2_"></span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Data</td>
+      <td>Regular output</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+## Methods {#sec-methods}

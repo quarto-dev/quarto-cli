@@ -1,0 +1,16 @@
+---
+title: Listings Test
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:hyperlink[@w:anchor=\"lst-customers\"]//w:t[contains(text(), \"Listing\u00a01\")]"
+        - []
+---
+
+```{#lst-customers .sql lst-cap="Customers Query"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

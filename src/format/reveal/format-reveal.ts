@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 
 import { Document, Element, NodeType } from "../../core/deno-dom.ts";
 import {
@@ -63,7 +63,6 @@ import {
   kScrollable,
   kSlideFooter,
   kSlideLogo,
-  kSmaller,
 } from "./constants.ts";
 import { revealMetadataFilter } from "./metadata.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -312,6 +311,7 @@ export function revealjsFormat() {
 
 function revealMarkdownAfterBody(format: Format) {
   const lines: string[] = [];
+  lines.push("::: {.quarto-auto-generated-content}\n");
   if (format.metadata[kSlideLogo]) {
     lines.push(
       `<img src="${format.metadata[kSlideLogo]}" class="slide-logo" />`,
@@ -324,6 +324,8 @@ function revealMarkdownAfterBody(format: Format) {
   } else {
     lines.push("");
   }
+  lines.push(":::");
+  lines.push("\n");
   lines.push(":::");
   lines.push("\n");
 
@@ -458,6 +460,32 @@ function revealHtmlPostprocessor(
       }
     }
 
+    // bugfix for #6800
+    // if slides have content that was added by quarto then move that to the parent node
+    for (const slide of doc.querySelectorAll("section.slide")) {
+      const slideContentFromQuarto = (slide as Element).querySelector(
+        ".quarto-auto-generated-content",
+      );
+      if (
+        slideContentFromQuarto &&
+        (slide as Element).getAttribute("data-visibility") === "hidden"
+      ) {
+        if (slideContentFromQuarto.childElementCount === 0) {
+          slideContentFromQuarto.remove();
+        } else {
+          for (const otherSlide of doc.querySelectorAll("section.slide")) {
+            if (
+              (otherSlide as Element).getAttribute("data-visibility") !==
+                "hidden"
+            ) {
+              otherSlide.appendChild(slideContentFromQuarto);
+              break;
+            }
+          }
+        }
+      }
+    }
+
     // remove slides with data-visibility=hidden
     const invisibleSlides = doc.querySelectorAll(
       'section.slide[data-visibility="hidden"]',
@@ -477,6 +505,17 @@ function revealHtmlPostprocessor(
 
       // remove slide
       slide.parentNode?.removeChild(slide);
+    }
+
+    // remove from toc all slides that have no title
+    const tocEntries = Array.from(doc.querySelectorAll(
+      'nav[role="doc-toc"] a[href^="#/"]',
+    ));
+    for (const tocEntry of tocEntries) {
+      const tocEntryEl = tocEntry as Element;
+      if (tocEntryEl.textContent.trim() === "") {
+        tocEntryEl.parentElement?.remove();
+      }
     }
 
     // remove all attributes from slide headings (pandoc has already moved
@@ -667,6 +706,19 @@ function revealHtmlPostprocessor(
       removeClassesFromParentSlide(refs, ["center"]);
     }
 
+    // #6866: add .scrollable to all sections with ordered lists if format.scrollable is true
+    if (format.metadata[kScrollable] === true) {
+      const ol = doc.querySelectorAll("ol");
+      for (const olEl of ol) {
+        const olParent = findParent(olEl as Element, (el: Element) => {
+          return el.nodeName === "SECTION";
+        });
+        if (olParent) {
+          olParent.classList.add("scrollable");
+        }
+      }
+    }
+
     // handle citation links
     const cites = doc.querySelectorAll('a[role="doc-biblioref"]');
     for (const cite of cites) {
@@ -684,12 +736,22 @@ function revealHtmlPostprocessor(
       supporting: [],
     };
     const chalkboard = format.metadata["chalkboard"];
-    if (typeof (chalkboard) === "object") {
+    if (typeof chalkboard === "object") {
       const chalkboardSrc = (chalkboard as Record<string, unknown>)["src"];
-      if (typeof (chalkboardSrc) === "string") {
+      if (typeof chalkboardSrc === "string") {
         result.resources.push(chalkboardSrc);
       }
     }
+
+    // Remove anchors on numbered code chunks as they can't work
+    // because ids are used for sections in revealjs
+    const codeLinesAnchors = doc.querySelectorAll(
+      "span[id^='cb'] > a[href^='#c']",
+    );
+    codeLinesAnchors.forEach((codeLineAnchor) => {
+      const codeLineAnchorEl = codeLineAnchor as Element;
+      codeLineAnchorEl.removeAttribute("href");
+    });
 
     // https://github.com/quarto-dev/quarto-cli/issues/3533
     // redirect anchors to the slide they refer to
@@ -727,6 +789,12 @@ function applyStretch(doc: Document, autoStretch: boolean) {
     if (images.length === 1) {
       const image = images[0];
       const imageEl = image as Element;
+
+      // opt-out if nostrech is applied at image level too
+      if (imageEl.classList.contains("nostretch")) {
+        imageEl.classList.remove("nostretch");
+        continue;
+      }
 
       if (
         // screen out early specials divs (layout panels, columns, fragments, ...)
@@ -799,7 +867,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           imageEl.classList.add("r-stretch");
         }
 
-        // If <img class="stetch"> is not a direct child of <section>, move it
+        // If <img class="stretch"> is not a direct child of <section>, move it
         if (
           hasStretchClass(imageEl) &&
           imageEl.parentNode?.nodeName !== "SECTION"

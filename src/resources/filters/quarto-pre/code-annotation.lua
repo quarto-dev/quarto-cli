@@ -7,7 +7,7 @@ local constants = require("modules/constants")
 local hasAnnotations = false
 
 function isAnnotationCell(el) 
-  return el and el.t == "Div" and el.attr.classes:includes(constants.kCellAnnotationClass)
+  return el and is_regular_node(el, "Div") and el.attr.classes:includes(constants.kCellAnnotationClass)
 end
 -- annotations appear at the end of the line and are of the form
 -- # <1> 
@@ -20,7 +20,7 @@ end
 -- can be used to resolve annotation numbers and strip them from source 
 -- code
 local function annoteProvider(lang) 
-  local commentChars = constants.kLangCommentChars[lang]
+  local commentChars = constants.kLangCommentChars[lang] or constants.kDefaultCodeAnnotationComment
   if commentChars ~= nil then
 
     local startComment = patternEscape(commentChars[1])
@@ -55,8 +55,8 @@ local function annoteProvider(lang)
       stripAnnotation = function(line, annoteId) 
         return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, "")
       end,
-      replaceAnnotation = function(line, annoteId, replacement)
-        return line:gsub(patternEscape(expression.strip.prefix .. annoteId .. expression.strip.suffix), replacement)
+      replaceAnnotation = function(line, annoteId, replacement) 
+        return line:gsub(expression.strip.prefix .. annoteId .. expression.strip.suffix, replacement)
       end,
       createComment = function(value) 
         if #commentChars == 0 then
@@ -94,13 +94,27 @@ end
 -- removes the annotations
 local function resolveCellAnnotes(codeBlockEl, processAnnotation) 
 
+  -- The start line, this may be shifted for cases like 
+  -- fenced code blocks, which will have additional code injected
+  -- and so require an adjusted start line
+  local defaultStartLine = 1 
+
   -- collect any annotations on this code cell
   local lang = codeBlockEl.attr.classes[1] 
   -- handle fenced-echo block which will have no language
   if lang == "cell-code" then 
     _, _, matchedLang = string.find(codeBlockEl.text, "^`+%{%{([^%}]*)%}%}")
     lang = matchedLang or lang
+  elseif lang ~= nil and startsWith(lang, '{{') then
+    _, _, matchedLang = string.find(lang, "{{+(.-)}}+")
+    if matchedLang then
+      lang = matchedLang
+      defaultStartLine = defaultStartLine + 1
+    end
   end
+
+
+
   local annotationProvider = annoteProvider(lang)
   if annotationProvider ~= nil then
     local annotations = {}
@@ -108,11 +122,11 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     
     local outputs = pandoc.List({})
     local i = 1
+    local offset = codeBlockEl.attr.attributes['startFrom'] or defaultStartLine
     for line in toLines(code) do
   
       -- Look and annotation
       local annoteNumber = annotationProvider.annotationNumber(line)
-      
       if annoteNumber then
         -- Capture the annotation number and strip it
         local annoteId = toAnnoteId(annoteNumber)
@@ -120,8 +134,9 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
         if lineNumbers == nil then
           lineNumbers = pandoc.List({})
         end
-        lineNumbers:insert(i)
-        annotations[annoteId] = lineNumbers      
+        -- line numbers stored for targetting annotations line needs to take into account possible startFrom attribute
+        lineNumbers:insert(offset - 1 + i)
+        annotations[annoteId] = lineNumbers
         outputs:insert(processAnnotation(line, annoteNumber, annotationProvider))
       else
         outputs:insert(line)
@@ -134,7 +149,10 @@ local function resolveCellAnnotes(codeBlockEl, processAnnotation)
     if annotations and next(annotations) ~= nil then
       local outputText = ""
       for i, output in ipairs(outputs) do
-        outputText = outputText .. output .. '\n'
+        outputText = outputText .. output
+        if i < #outputs then
+          outputText = outputText .. '\n'
+        end
       end
       codeBlockEl.text = outputText
       hasAnnotations = true
@@ -216,13 +234,13 @@ function processLaTeXAnnotation(line, annoteNumber, annotationProvider)
   -- which will replace any of these tokens as appropriate.   
   local hasHighlighting = param('text-highlighting', false)
   if param(constants.kCodeAnnotationsParam) == constants.kCodeAnnotationStyleNone then
-    local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, '') 
+    local replaced = annotationProvider.stripAnnotation(line, annoteNumber) 
     return replaced
   else
     if hasHighlighting then
       -- highlighting is enabled, allow the comment through
       local placeholderComment = annotationProvider.createComment("<" .. tostring(annoteNumber) .. ">")
-      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, placeholderComment) 
+      local replaced = annotationProvider.replaceAnnotation(line, annoteNumber, percentEscape(" " .. placeholderComment)) 
       return replaced
     else
       -- no highlighting enabled, ensure we use a standard comment character
@@ -253,7 +271,7 @@ end
 function code_meta()
   return {
     Meta = function(meta)
-      if _quarto.format.isLatexOutput() and hasAnnotations then
+      if _quarto.format.isLatexOutput() and hasAnnotations and param(constants.kCodeAnnotationsParam) ~= constants.kCodeAnnotationStyleNone then
         -- ensure we have tikx for making the circles
         quarto.doc.use_latex_package("tikz");
         quarto.doc.include_text('in-header', [[
@@ -295,22 +313,26 @@ function code_annotations()
         local pendingCellId = nil
         local pendingCodeCell = nil
 
-        local clearPending = function() 
+        local clearPending = function()          
           pendingAnnotations = nil
           pendingCellId = nil
           pendingCodeCell = nil
         end
-
-        local outputBlockClearPending = function(block)
-          if pendingCodeCell then
-            outputs:insert(pendingCodeCell)
-          end
+   
+        local outputBlock = function(block)
           outputs:insert(block)
+        end
+        
+        local flushPending = function()
+          if pendingCodeCell then
+            outputBlock(pendingCodeCell)
+          end
           clearPending()
         end
 
-        local outputBlock = function(block)
-          outputs:insert(block)
+        local outputBlockClearPending = function(block)
+          flushPending()
+          outputBlock(block)
         end
 
         local allOutputs = function()
@@ -355,7 +377,14 @@ function code_annotations()
         end
 
         for i, block in ipairs(blocks) do
-          if block.t == 'Div' and block.attr.classes:find('cell') then
+          local found = is_regular_node(block, "Div") and block.attr.classes:find('cell')
+          if is_custom_node(block) then
+            local custom = _quarto.ast.resolve_custom_data(block)
+            if custom then
+              found = found or (custom.classes or pandoc.List({})):find('cell')
+            end
+          end
+          if found then
             -- Process executable code blocks 
             -- In the case of executable code blocks, we actually want
             -- to shift the OL up above the output, so we hang onto this outer
@@ -364,7 +393,6 @@ function code_annotations()
             local resolvedBlock = _quarto.ast.walk(block, {
               CodeBlock = function(el)
                 if el.attr.classes:find('cell-code') then
-
                   local cellId = resolveCellId(el.attr.identifier)
                   local codeCell = processCodeCell(el, cellId)
                   if codeCell then
@@ -384,6 +412,35 @@ function code_annotations()
               -- no annotations, just output it
               outputBlock(resolvedBlock)
             end
+
+          elseif block.t == "Div" then
+            local isDecoratedCodeBlock = is_custom_node(block, "DecoratedCodeBlock")
+            if isDecoratedCodeBlock then
+              -- If there is a pending code cell and we get here, just
+              -- output the pending code cell and continue
+              flushPending()
+
+              if #block.content == 1 and #block.content[1].content == 1 then
+                -- Find the code block and process that
+                local codeblock = block.content[1].content[1]
+                
+                local cellId = resolveCellId(codeblock.attr.identifier)
+                local codeCell = processCodeCell(codeblock, cellId)
+                if codeCell then
+                  if codeAnnotations ~= constants.kCodeAnnotationStyleNone then
+                    codeCell.attr.identifier = cellId;
+                  end
+                  block.content[1].content[1] = codeCell
+                  outputBlock(block)
+                else
+                  outputBlockClearPending(block)
+                end
+              else
+                outputBlockClearPending(block)
+              end
+            else
+              outputBlockClearPending(block)
+            end          
           elseif block.t == 'CodeBlock'  then
             -- don't process code cell output here - we'll get it above
             -- This processes non-executable code blocks
@@ -391,10 +448,7 @@ function code_annotations()
 
               -- If there is a pending code cell and we get here, just
               -- output the pending code cell and continue
-              if pendingCodeCell then
-                outputBlock(pendingCodeCell)
-                clearPending()
-              end
+              flushPending()
 
               local cellId = resolveCellId(block.attr.identifier)
               local codeCell = processCodeCell(block, cellId)
@@ -487,22 +541,27 @@ function code_annotations()
               if pendingCodeCell ~= nil then
                 -- wrap the definition list in a cell
                 local dlDiv = pandoc.Div({dl}, pandoc.Attr("", {constants.kCellAnnotationClass}))
-                pendingCodeCell.content:insert(2, dlDiv)
-                outputBlock(pendingCodeCell)
-                clearPending()
+                if is_custom_node(pendingCodeCell) then
+                  local custom = _quarto.ast.resolve_custom_data(pendingCodeCell) or pandoc.Div({}) -- won't happen but the Lua analyzer doesn't know it
+                  custom.content:insert(2, dlDiv)
+                else
+                  pendingCodeCell.content:insert(2, dlDiv)
+                end
+                flushPending()
               else
                 outputBlockClearPending(dl)
               end
             else
-              if pendingCodeCell then
-                outputBlock(pendingCodeCell)
-              end
-              clearPending()
+              flushPending()
             end
           else
             outputBlockClearPending(block)
           end
         end
+
+        -- Be sure to flush any pending Code Cell (usually when only annotated cell without annotation and no other following blocks)
+        flushPending()
+
         return allOutputs()
       end
     end

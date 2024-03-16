@@ -144,21 +144,31 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // determine the largest number of backticks in the cell
+  const maxBackticks = Math.max(
+    ...cell.source.map((line) => line.match(/^`+/g)?.[0].length || 0),
+    2,
+  );
+  const backticks = "`".repeat(maxBackticks + 1);
+
   // begin code cell
-  const md: string[] = ["```{" + language + "}\n"];
+  const md: string[] = [backticks + "{" + language + "}\n"];
 
   // partition
   const { yaml, source } = await partitionCellOptions(language, cell.source);
   const options = yaml ? yaml as JupyterCellOptions : {};
 
-  // handle id
-  if (cell.id) {
-    if (!includeIds) {
-      cell.id = undefined;
-    } else if (options[kCellLabel]) {
-      const label = String(options[kCellLabel]);
-      if (jupyterAutoIdentifier(label) === cell.id) {
-        cell.id = undefined;
+  if (!includeIds) {
+    delete cell.id;
+    delete cell.metadata["id"];
+    delete cell.metadata["outputId"];
+  } else {
+    if (cell.id) {
+      if (options[kCellLabel]) {
+        const label = String(options[kCellLabel]);
+        if (jupyterAutoIdentifier(label) === cell.id) {
+          cell.id = undefined;
+        }
       }
     }
   }
@@ -212,7 +222,7 @@ async function mdFromCodeCell(
   md.push(...mdEnsureTrailingNewline(source));
 
   // end code cell
-  md.push("```\n");
+  md.push(backticks + "\n");
 
   return md;
 }

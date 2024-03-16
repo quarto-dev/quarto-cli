@@ -136,7 +136,7 @@
 - name: title-block-style
   schema:
     anyOf:
-      - enum: ["default", "plain", "none"]
+      - enum: ["default", "plain", "manuscript", "none"]
   default: "default"
   tags:
     formats: [$html-doc]

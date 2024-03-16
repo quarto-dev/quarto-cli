@@ -1,0 +1,12 @@
+---
+title: issue-8299-2
+format: latex
+use-rsvg-convert: false
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["simple-svg.pdf"]
+---
+
+![An SVG image that exists as PDF in the filesystem and will be transparently converted](simple-svg.svg)

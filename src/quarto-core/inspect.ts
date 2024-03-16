@@ -5,7 +5,7 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -28,12 +28,22 @@ import { projectExcludeDirs } from "../project/project-shared.ts";
 import { normalizePath, safeExistsSync } from "../core/path.ts";
 import { kExtensionDir } from "../extension/constants.ts";
 import { extensionFilesFromDirs } from "../extension/extension.ts";
+import { withRenderServices } from "../command/render/render-services.ts";
+import { notebookContext } from "../render/notebook/notebook-context.ts";
+import { RenderServices } from "../command/render/types.ts";
+import { singleFileProjectContext } from "../project/types/single-file/single-file.ts";
+import { debugPrint, getStack } from "../core/deno/debug.ts";
+
+export interface FileInspection {
+  includeMap: Record<string, string>;
+}
 
 export interface InspectedConfig {
   quarto: {
     version: string;
   };
   engines: string[];
+  fileInformation: Record<string, FileInspection>;
 }
 
 export interface InspectedProjectConfig extends InspectedConfig {
@@ -60,7 +70,7 @@ export function isDocumentConfig(
   return (config as InspectedDocumentConfig).formats !== undefined;
 }
 
-export async function inspectConfig(path: string): Promise<InspectedConfig> {
+export async function inspectConfig(path?: string): Promise<InspectedConfig> {
   path = path || Deno.cwd();
 
   if (!existsSync(path)) {
@@ -73,11 +83,20 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
     version = "99.9.9";
   }
 
+  const nbContext = notebookContext();
   // get project context (if any)
-  const context = await projectContext(path);
+  const context = await projectContext(path, nbContext);
 
-  const inspectedProjectConfig = () => {
+  const inspectedProjectConfig = async () => {
     if (context?.config) {
+      const fileInformation: Record<string, FileInspection> = {};
+      for (const file of context.files.input) {
+        const engine = await fileExecutionEngine(file, undefined, context);
+        await context.resolveFullMarkdownForFile(engine, file);
+        fileInformation[file] = {
+          includeMap: context.fileInformationCache.get(file)?.includeMap ?? {},
+        };
+      }
       const config: InspectedProjectConfig = {
         quarto: {
           version,
@@ -86,6 +105,7 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         engines: context.engines,
         config: context.config,
         files: context.files,
+        fileInformation,
       };
       return config;
     } else {
@@ -95,20 +115,28 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
 
   const stat = Deno.statSync(path);
   if (stat.isDirectory) {
-    const config = inspectedProjectConfig();
+    const config = await inspectedProjectConfig();
     if (config) {
       return config;
     } else {
       throw new Error(`${path} is not a quarto project.`);
     }
   } else {
-    const engine = fileExecutionEngine(path);
+    const project = await projectContext(path, nbContext) ||
+      singleFileProjectContext(path, nbContext);
+    const engine = await fileExecutionEngine(path, undefined, project);
     if (engine) {
       // partition markdown
       const partitioned = await engine.partitionedMarkdown(path);
 
       // get formats
-      const formats = await renderFormats(path);
+      const context = (await projectContext(path, nbContext)) ||
+        singleFileProjectContext(path, nbContext);
+      const formats = await withRenderServices(
+        nbContext,
+        (services: RenderServices) =>
+          renderFormats(path!, services, "all", context),
+      );
 
       // accumulate resources from formats then resolve them
       const resourceConfig: string[] = Object.values(formats).reduce(
@@ -128,7 +156,6 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         [],
       );
 
-      const context = await projectContext(path);
       const fileDir = normalizePath(dirname(path));
 
       const excludeDirs = context ? projectExcludeDirs(context) : [];
@@ -151,6 +178,8 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         );
       }
 
+      await context.resolveFullMarkdownForFile(engine, path);
+
       // data to write
       const config: InspectedDocumentConfig = {
         quarto: {
@@ -159,11 +188,17 @@ export async function inspectConfig(path: string): Promise<InspectedConfig> {
         engines: [engine.name],
         formats,
         resources,
+        fileInformation: {
+          [path]: {
+            includeMap: context.fileInformationCache.get(path)?.includeMap ??
+              {},
+          },
+        },
       };
 
       // if there is a project then add it
       if (context?.config) {
-        config.project = inspectedProjectConfig();
+        config.project = await inspectedProjectConfig();
       }
       return config;
     } else {

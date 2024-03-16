@@ -78,7 +78,9 @@ export function findPreviewImgEl(
   for (let i = 0; i < imgs.length; i++) {
     const img = imgs[i] as Element;
     const src = getDecodedAttribute(img, "src");
-    if (src !== null && kNamedFileRegex.test(src)) {
+    if (
+      src !== null && (src.startsWith("data:") || kNamedFileRegex.test(src))
+    ) {
       return img;
     }
   }
@@ -103,12 +105,12 @@ export function findPreviewImgEl(
 const kWpm = 200;
 export function estimateReadingTimeMinutes(
   markdown?: string,
-): number | undefined {
+): { wordCount: number; readingTime: number } | undefined {
   if (markdown) {
     const wordCount = markdown.split(" ").length;
-    return Math.ceil(wordCount / kWpm);
+    return { wordCount, readingTime: Math.ceil(wordCount / kWpm) };
   }
-  return 0;
+  return undefined;
 }
 
 export function findPreviewImgMd(markdown?: string): string | undefined {

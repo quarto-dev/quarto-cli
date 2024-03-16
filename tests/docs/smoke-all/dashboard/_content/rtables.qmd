@@ -1,0 +1,18 @@
+---
+title: R Tables
+subtitle: Clownin on tables
+format: dashboard
+orientation: columns
+---
+
+
+
+```{r}
+knitr::kable(mtcars)
+```
+
+
+```{r}
+library(DT)
+datatable(mtcars)
+```

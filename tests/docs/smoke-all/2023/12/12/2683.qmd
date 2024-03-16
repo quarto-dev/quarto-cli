@@ -1,0 +1,23 @@
+---
+title: Test
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["details div.code-with-filename-file"]
+---
+
+Non computation code filename
+
+```{.r filename="file.R"}
+1 + 1 
+```
+
+Inside code-fold
+
+```{r filename="file.R"}
+#| code-fold: true
+
+1 + 1
+```

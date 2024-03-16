@@ -5,7 +5,7 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 
 import { Metadata } from "../../../src/config/types.ts";
 
@@ -36,9 +36,6 @@ testQuartoCmd(
       if (existsSync(siteOutDir)) {
         await Deno.remove(siteOutDir, { recursive: true });
       }
-    },
-    // TODO: Make the test works for Windows
-    // https://github.com/quarto-dev/quarto-cli/issues/4194
-    ignore: Deno.build.os == "windows",
+    }
   },
 );

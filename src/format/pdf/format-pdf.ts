@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, extname, join } from "path/mod.ts";
+import { basename, extname, join } from "../../deno_ral/path.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
@@ -51,6 +51,7 @@ import { isLatexPdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
+import { kCodeAnnotations } from "../html/format-html-shared.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -75,6 +76,7 @@ export function beamerFormat(): Format {
         [kEcho]: false,
         [kWarning]: false,
       },
+      classoption: ["notheorems"],
     },
   );
 }
@@ -239,6 +241,7 @@ function createPdfFormat(
           "pandoc",
           "tables",
           "tightlist",
+          "before-title",
           "title",
           "toc",
         ];
@@ -316,6 +319,8 @@ function pdfLatexPostProcessor(
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
       calloutFloatHoldLineProcessor(),
+      tableColumnMarginLineProcessor(),
+      guidsProcessor(),
     ];
 
     if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -349,6 +354,7 @@ function pdfLatexPostProcessor(
         // to replace cites with the rendered versions.
         lineProcessors.push(
           indexAndSuppressPandocBibliography(renderedCites),
+          cleanReferencesChapter(),
         );
       }
     }
@@ -363,18 +369,29 @@ function pdfLatexPostProcessor(
       // Replace notes with side notes
       lineProcessors.push(sideNoteLineProcessor());
     }
-
     lineProcessors.push(captionFootnoteLineProcessor());
-    lineProcessors.push(codeAnnotationPostProcessor());
-    lineProcessors.push(codeListAnnotationPostProcessor());
-    lineProcessors.push(longTableSidenoteProcessor());
 
-    await processLines(output, lineProcessors, temp);
-    if (Object.keys(renderedCites).length > 0) {
-      await processLines(output, [
-        placePandocBibliographyEntries(renderedCites),
-      ], temp);
+    if (
+      format.metadata[kCodeAnnotations] as boolean !== false &&
+      format.metadata[kCodeAnnotations] as string !== "none"
+    ) {
+      lineProcessors.push(codeAnnotationPostProcessor());
+      lineProcessors.push(codeListAnnotationPostProcessor());
     }
+
+    lineProcessors.push(tableSidenoteProcessor());
+
+    // This is pass 1
+    await processLines(output, lineProcessors, temp);
+
+    // This is pass 2; we need these to happen after the first pass
+    const pass2Processors: LineProcessor[] = [
+      longTableSidenoteProcessor(),
+    ];
+    if (Object.keys(renderedCites).length > 0) {
+      pass2Processors.push(placePandocBibliographyEntries(renderedCites));
+    }
+    await processLines(output, pass2Processors, temp);
   };
 }
 
@@ -588,13 +605,106 @@ const processElementCaptionFootnotes = (latexFigure: string) => {
   }
 };
 
+const kMatchLongTableSize = /^(.*)p{\(\\columnwidth - (\d+\\tabcolsep\).*$)/;
+
+const kStartLongTable = /^\\begin{longtable}/;
+const kEndLongTable = /^\\end{longtable}/;
+
+const guidsProcessor = () => {
+  let state: "looking-for-definition-start" | "looking-for-definition-end" =
+    "looking-for-definition-start";
+  const guidDefinitions: [string, string][] = [];
+  let guidBeingProcessed: string | undefined;
+  let guidContents: string[] = [];
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-definition-start": {
+        if (line.startsWith("%quarto-define-uuid: ")) {
+          state = "looking-for-definition-end";
+          line = line.replace(/^%quarto-define-uuid:\s*/, "");
+          guidBeingProcessed = line.trim();
+          return undefined;
+        }
+        for (const [key, value] of guidDefinitions) {
+          line = line.replaceAll(key, value);
+        }
+        return line;
+      }
+      case "looking-for-definition-end": {
+        if (line === "%quarto-end-define-uuid") {
+          state = "looking-for-definition-start";
+          if (guidBeingProcessed === undefined) {
+            throw new Error("guidBeingProcessed is undefined");
+          }
+          guidDefinitions.push([
+            guidBeingProcessed,
+            guidContents.join("").trim(),
+          ]);
+          guidContents = [];
+          guidBeingProcessed = undefined;
+          return undefined;
+        } else {
+          guidContents.push(line);
+          return undefined;
+        }
+      }
+    }
+  };
+};
+
+const tableColumnMarginLineProcessor = () => {
+  let state: "looking-for-boundaries" | "looking-for-tables" | "processing" =
+    "looking-for-boundaries";
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-boundaries": {
+        if (line === "% quarto-tables-in-margin-AB1927C9:begin") {
+          state = "looking-for-tables";
+          return undefined;
+        }
+        return line;
+      }
+      case "looking-for-tables": {
+        if (line.match(kStartLongTable)) {
+          state = "processing";
+          return line;
+        } else if (line === "% quarto-tables-in-margin-AB1927C9:end") {
+          state = "looking-for-boundaries";
+          return undefined;
+        }
+        return line;
+      }
+      case "processing": {
+        if (line.match(kEndLongTable)) {
+          state = "looking-for-tables";
+          return line;
+        } else {
+          const match = line.match(kMatchLongTableSize);
+          if (match) {
+            return `${
+              match[1]
+            }p{(\\marginparwidth + \\marginparsep + \\columnwidth - ${
+              match[2]
+            }`;
+          } else {
+            return line;
+          }
+        }
+      }
+      default: {
+        return line;
+      }
+    }
+  };
+};
+
 const captionFootnoteLineProcessor = () => {
   let state: "scanning" | "capturing" = "scanning";
   let capturedLines: string[] = [];
   return (line: string): string | undefined => {
     switch (state) {
       case "scanning":
-        if (line.match(/^\\begin{figure}$/)) {
+        if (line.match(/^\\begin{figure}.*$/)) {
           state = "capturing";
           capturedLines = [line];
           return undefined;
@@ -603,7 +713,7 @@ const captionFootnoteLineProcessor = () => {
         }
       case "capturing":
         capturedLines.push(line);
-        if (line.match(/^\\end{figure}$/)) {
+        if (line.match(/^\\end{figure}%*$/)) {
           state = "scanning";
 
           // read the whole figure and clear any capture state
@@ -619,96 +729,118 @@ const captionFootnoteLineProcessor = () => {
   };
 };
 
-const processLongTableSidenotes = (latexLongTable: string) => {
-  const sideNoteMarker = "\\sidenote{\\footnotesize ";
-  let strProcessing = latexLongTable;
-  const strOutput: string[] = [];
-  const sidenotes: string[] = [];
+const processSideNotes = (endMarker: string) => {
+  return (latexLongTable: string) => {
+    const sideNoteMarker = "\\sidenote{\\footnotesize ";
+    let strProcessing = latexLongTable;
+    const strOutput: string[] = [];
+    const sidenotes: string[] = [];
 
-  let sidenotePos = strProcessing.indexOf(sideNoteMarker);
-  while (sidenotePos > -1) {
-    strOutput.push(strProcessing.substring(0, sidenotePos));
+    let sidenotePos = strProcessing.indexOf(sideNoteMarker);
+    while (sidenotePos > -1) {
+      strOutput.push(strProcessing.substring(0, sidenotePos));
 
-    const remainingStr = strProcessing.substring(
-      sidenotePos + sideNoteMarker.length,
-    );
-    let escaped = false;
-    let sideNoteEnd = -1;
-    for (let i = 0; i < remainingStr.length; i++) {
-      const ch = remainingStr[i];
-      if (ch === "\\") {
-        escaped = true;
-      } else {
-        if (!escaped && ch === "}") {
-          sideNoteEnd = i;
-          break;
+      const remainingStr = strProcessing.substring(
+        sidenotePos + sideNoteMarker.length,
+      );
+      let escaped = false;
+      let sideNoteEnd = -1;
+      for (let i = 0; i < remainingStr.length; i++) {
+        const ch = remainingStr[i];
+        if (ch === "\\") {
+          escaped = true;
         } else {
-          escaped = false;
+          if (!escaped && ch === "}") {
+            sideNoteEnd = i;
+            break;
+          } else {
+            escaped = false;
+          }
         }
+      }
+
+      if (sideNoteEnd > -1) {
+        strOutput.push("\\sidenotemark{}");
+        const contents = remainingStr.substring(0, sideNoteEnd);
+        sidenotes.push(contents);
+        strProcessing = remainingStr.substring(sideNoteEnd + 1);
+        sidenotePos = strProcessing.indexOf(sideNoteMarker);
+      } else {
+        strOutput.push(remainingStr);
       }
     }
 
-    if (sideNoteEnd > -1) {
-      strOutput.push("\\sidenotemark{}");
-      const contents = remainingStr.substring(0, sideNoteEnd);
-      sidenotes.push(contents);
-      strProcessing = remainingStr.substring(sideNoteEnd + 1);
-      sidenotePos = strProcessing.indexOf(sideNoteMarker);
-    } else {
-      strOutput.push(remainingStr);
+    // Ensure that we inject sidenotes after the longtable
+    const endTable = endMarker;
+    const endPos = strProcessing.indexOf(endTable);
+    const prefix = strProcessing.substring(0, endPos + endTable.length);
+    const suffix = strProcessing.substring(
+      endPos + endTable.length,
+      strProcessing.length,
+    );
+
+    strOutput.push(prefix);
+    for (const note of sidenotes) {
+      strOutput.push(`\\sidenotetext{${note}}\n`);
     }
-  }
-
-  // Ensure that we inject sidenotes after the longtable
-  const endTable = "\\end{longtable}";
-  const endPos = strProcessing.indexOf(endTable);
-  const prefix = strProcessing.substring(0, endPos + endTable.length);
-  const suffix = strProcessing.substring(
-    endPos + endTable.length,
-    strProcessing.length,
-  );
-
-  strOutput.push(prefix);
-  for (const note of sidenotes) {
-    strOutput.push(`\\sidenotetext{${note}}\n`);
-  }
-  if (suffix) {
-    strOutput.push(suffix);
-  }
-
-  return strOutput.join("");
-};
-
-const longTableSidenoteProcessor = () => {
-  let state: "scanning" | "capturing" = "scanning";
-  let capturedLines: string[] = [];
-  return (line: string): string | undefined => {
-    switch (state) {
-      case "scanning":
-        if (line.match(/^\\begin{longtable}.*$/)) {
-          state = "capturing";
-          capturedLines = [line];
-          return undefined;
-        } else {
-          return line;
-        }
-      case "capturing":
-        capturedLines.push(line);
-        if (line.match(/\\end{longtable}/)) {
-          state = "scanning";
-
-          // read the whole figure and clear any capture state
-          const lines = capturedLines.join("\n");
-          capturedLines = [];
-
-          // Process the captions and relocate footnotes
-          return processLongTableSidenotes(lines);
-        } else {
-          return undefined;
-        }
+    if (suffix) {
+      strOutput.push(suffix);
     }
+
+    return strOutput.join("");
   };
 };
+
+const processLongTableSidenotes = processSideNotes("\\end{longtable}");
+const processTableSidenotes = processSideNotes("\\end{table}");
+
+const sideNoteProcessor = (
+  beginRegex: RegExp,
+  endRegex: RegExp,
+  callback: (str: string) => string,
+) => {
+  return () => {
+    let state: "scanning" | "capturing" = "scanning";
+    let capturedLines: string[] = [];
+    return (line: string): string | undefined => {
+      switch (state) {
+        case "scanning":
+          if (line.match(beginRegex)) {
+            state = "capturing";
+            capturedLines = [line];
+            return undefined;
+          } else {
+            return line;
+          }
+        case "capturing":
+          capturedLines.push(line);
+          if (line.match(endRegex)) {
+            state = "scanning";
+
+            // read the whole figure and clear any capture state
+            const lines = capturedLines.join("\n");
+            capturedLines = [];
+
+            // Process the captions and relocate footnotes
+            return callback(lines);
+          } else {
+            return undefined;
+          }
+      }
+    };
+  };
+};
+const longTableSidenoteProcessor = sideNoteProcessor(
+  /^\\begin{longtable}.*$/,
+  /^\\end{longtable}%*$/,
+  processLongTableSidenotes,
+);
+
+const tableSidenoteProcessor = sideNoteProcessor(
+  /^\\begin{table}.*$/,
+  /^\\end{table}%*$/,
+  processTableSidenotes,
+);
 
 const calloutFloatHoldLineProcessor = () => {
   let state: "scanning" | "replacing" = "scanning";
@@ -839,7 +971,10 @@ const longtableBottomCaptionProcessor = () => {
         capturing = !line.match(/\\tabularnewline$/);
         return undefined;
       } else {
-        if (line.match(/^\\caption.*?\\tabularnewline$/)) {
+        if (
+          line.match(/^\\caption.*?\\tabularnewline$/) ||
+          line.match(/^\\caption{.*}\\\\$/)
+        ) {
           caption = line;
           return undefined;
         } else if (line.match(/^\\caption.*?/)) {
@@ -863,32 +998,53 @@ const longtableBottomCaptionProcessor = () => {
   };
 };
 
+const kChapterRefNameRegex = /^\\chapter\*?{(.*?)}\\label{references.*?}$/;
+const cleanReferencesChapter = () => {
+  let refChapterName: string | undefined;
+  let refChapterContentsRegex: RegExp | undefined;
+  let refChapterMarkRegex: RegExp | undefined;
+
+  return (line: string): string | undefined => {
+    const chapterRefMatch = line.match(kChapterRefNameRegex);
+    if (chapterRefMatch) {
+      refChapterName = chapterRefMatch[1];
+      refChapterContentsRegex = new RegExp(
+        `\\\\addcontentsline{toc}{chapter}{${refChapterName}}`,
+      );
+      refChapterMarkRegex = new RegExp(
+        `\\\\markboth{${refChapterName}}{${refChapterName}}`,
+      );
+      // Eat this line
+      return undefined;
+    } else if (refChapterContentsRegex && line.match(refChapterContentsRegex)) {
+      // Eat this line
+      return undefined;
+    } else if (refChapterMarkRegex && line.match(refChapterMarkRegex)) {
+      // Eat this line
+      return undefined;
+    }
+    return line;
+  };
+};
+
 const indexAndSuppressPandocBibliography = (
   renderedCites: Record<string, string[]>,
 ) => {
-  let consuming = false;
+  let readingBibliography = false;
   let currentCiteKey: string | undefined = undefined;
 
   return (line: string): string | undefined => {
-    if (!consuming && line.match(/^\\hypertarget{refs}{}$/)) {
-      consuming = true;
+    if (!readingBibliography && line.match(/^\\phantomsection\\label{refs}$/)) {
+      readingBibliography = true;
       return undefined;
-    } else if (consuming && line.match(/^\\end{CSLReferences}$/)) {
-      consuming = false;
+    } else if (readingBibliography && line.match(/^\\end{CSLReferences}$/)) {
+      readingBibliography = false;
       return undefined;
-    } else if (consuming) {
-      const matches = line.match(/pre{\\hypertarget{ref\-(.*?)}{}}\%/);
+    } else if (readingBibliography) {
+      const matches = line.match(/\\bibitem\[\\citeproctext\]{ref\-(.*?)}/);
       if (matches && matches[1]) {
         currentCiteKey = matches[1];
-
-        // protect the hypertarget command and the save this line
-        // protect is useful if the reference appears in a caption
-        renderedCites[currentCiteKey] = [
-          line.replace(
-            "pre{\\hypertarget{ref",
-            "pre{\\protect\\hypertarget{ref",
-          ),
-        ];
+        renderedCites[currentCiteKey] = [line];
       } else if (line.length === 0) {
         currentCiteKey = undefined;
       } else if (currentCiteKey) {
@@ -896,7 +1052,7 @@ const indexAndSuppressPandocBibliography = (
       }
     }
 
-    if (consuming) {
+    if (readingBibliography) {
       return undefined;
     } else {
       return line;
@@ -904,14 +1060,69 @@ const indexAndSuppressPandocBibliography = (
   };
 };
 
+const kInSideCaptionRegex = /^\\sidecaption{/;
+const kBeginFigureRegex = /^\\begin{figure}\[.*?\]$/;
+const kEndFigureRegex = /^\\end{figure}\%?$/;
+
 const placePandocBibliographyEntries = (
   renderedCites: Record<string, string[]>,
 ) => {
+  let biblioEntryState: "scanning" | "in-figure" | "in-sidecaption" =
+    "scanning";
+  let pendingCiteKeys: string[] = [];
+
   return (line: string): string | undefined => {
+    switch (biblioEntryState) {
+      case "scanning": {
+        if (line.match(kBeginFigureRegex)) {
+          biblioEntryState = "in-figure";
+        }
+        break;
+      }
+      case "in-figure": {
+        if (line.match(kInSideCaptionRegex)) {
+          biblioEntryState = "in-sidecaption";
+        } else {
+          if (line.match(kEndFigureRegex)) {
+            biblioEntryState = "scanning";
+          }
+        }
+        break;
+      }
+      case "in-sidecaption": {
+        if (line.match(kEndFigureRegex)) {
+          biblioEntryState = "scanning";
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    if (biblioEntryState === "scanning" && pendingCiteKeys.length > 0) {
+      const result = [
+        line,
+        "\n\\begin{CSLReferences}{2}{0}",
+        ...pendingCiteKeys,
+        "\\end{CSLReferences}\n",
+      ].join("\n");
+      pendingCiteKeys = [];
+      return result;
+    }
+
     return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       const citeLines = renderedCites[citeKey];
       if (citeLines) {
-        return citeLines.join("\n");
+        if (biblioEntryState === "in-sidecaption" && citeLines.length > 0) {
+          pendingCiteKeys.push(citeLines[0]);
+          return ["", ...citeLines.slice(1)].join("\n");
+        } else {
+          return [
+            "\n\\begin{CSLReferences}{2}{0}",
+            ...citeLines,
+            "\\end{CSLReferences}\n",
+          ].join("\n");
+        }
       } else {
         return citeKey;
       }
@@ -920,7 +1131,7 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{.* \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+  /(.*)\\CommentTok\{(.*?)[^\s]+? +\\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
 const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;
@@ -933,9 +1144,14 @@ const codeAnnotationPostProcessor = () => {
     // Replace colorized code
     line = line.replaceAll(
       kCodeAnnotationRegex,
-      (_match, prefix: string, annotationNumber: string) => {
+      (_match, prefix: string, comment: string, annotationNumber: string) => {
         if (annotationNumber !== lastAnnotation) {
           lastAnnotation = annotationNumber;
+          if (comment.length > 0) {
+            // There is something else inside the comment line so
+            // We need to recreate the comment line without the annotation
+            prefix = `${prefix}\\CommentTok\{${comment}\}`;
+          }
           return `${prefix}\\hspace*{\\fill}\\NormalTok{\\circled{${annotationNumber}}}`;
         } else {
           return `${prefix}`;
@@ -967,7 +1183,7 @@ const codeAnnotationPostProcessor = () => {
   };
 };
 
-const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d)(.*)/g;
+const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d+)(.*)/g;
 const codeListAnnotationPostProcessor = () => {
   return (line: string): string | undefined => {
     return line.replaceAll(

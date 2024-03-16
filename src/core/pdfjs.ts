@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, join } from "path/mod.ts";
+import { basename, join } from "../deno_ral/path.ts";
 import { md5Hash } from "./hash.ts";
 import { viewerIFrameURL } from "./http-devserver.ts";
 import { FileResponse } from "./http-types.ts";

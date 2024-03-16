@@ -83,6 +83,9 @@ $input-bg:                              $gray-200 !default;
 $input-disabled-bg:                     $gray-300 !default;
 $input-group-addon-bg:                  $gray-300 !default;
 
+$form-select-disabled-color:        $gray-600 !default;
+$form-select-disabled-bg:           $input-disabled-bg !default;
+
 // Navbar
 
 $navbar-padding-y:                  1.5rem !default;
@@ -113,8 +116,8 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;6
 
 .navbar {
   font-size: $font-size-sm;
-  text-transform: uppercase;
   font-weight: 600;
+  text-transform: uppercase;
 
   &-nav {
     .nav-link {
@@ -126,10 +129,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;6
   &-brand {
     margin-right: 2rem;
   }
-}
-
-.bg-primary {
-  background-color: theme-color("primary") !important;
 }
 
 .bg-light {
@@ -169,15 +168,15 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;6
 }
 
 .btn-outline-secondary {
-  border-color: $gray-600;
   color: $gray-600;
+  border-color: $gray-600;
 
   &:not([disabled]):not(.disabled):hover,
   &:not([disabled]):not(.disabled):focus,
   &:not([disabled]):not(.disabled):active {
+    color: $white;
     background-color: $gray-400;
     border-color: $gray-400;
-    color: $white;
   }
 
   &:not([disabled]):not(.disabled):focus {
@@ -259,7 +258,8 @@ th {
 
 // Containers
 
-.list-group-item {
+.list-group-item,
+.card {
   h1,
   h2,
   h3,
@@ -272,13 +272,6 @@ th {
   .h4,
   .h5,
   .h6 {
-    color: inherit;
-  }
-}
-
-.card {
-  &-title,
-  &-header {
     color: inherit;
   }
 }

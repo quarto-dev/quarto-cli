@@ -21,14 +21,14 @@ import {
   RenderType,
 } from "./notebook-types.ts";
 
-import { basename, dirname, isAbsolute, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { jatsContributor } from "./notebook-contributor-jats.ts";
 import { htmlNotebookContributor } from "./notebook-contributor-html.ts";
 import { outputNotebookContributor } from "./notebook-contributor-ipynb.ts";
 import { Format } from "../../config/types.ts";
 import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
 import { qmdNotebookContributor } from "./notebook-contributor-qmd.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
@@ -57,7 +57,7 @@ export function notebookContext(): NotebookContext {
     nbAbsPath: string,
     renderType: RenderType,
     result: NotebookRenderResult,
-    context?: ProjectContext,
+    context: ProjectContext,
     cached?: boolean,
   ) => {
     debug(`[NotebookContext]: Add Rendering (${renderType}):${nbAbsPath}`);
@@ -146,9 +146,11 @@ export function notebookContext(): NotebookContext {
   function reviveOutput(
     nbAbsPath: string,
     renderType: RenderType,
-    context?: ProjectContext,
+    context: ProjectContext,
   ) {
-    debug(`[NotebookContext]: Reviving Rendering (${renderType}):${nbAbsPath}`);
+    debug(
+      `[NotebookContext]: Attempting to Revive Rendering (${renderType}):${nbAbsPath}`,
+    );
     const contrib = contributor(renderType);
 
     if (contrib.cachedPath) {
@@ -172,7 +174,7 @@ export function notebookContext(): NotebookContext {
                   files: [],
                 },
               },
-              undefined,
+              context,
               true,
             );
           }
@@ -255,8 +257,8 @@ export function notebookContext(): NotebookContext {
       format: Format,
       renderType: RenderType,
       services: RenderServices,
-      notebookMetadata?: NotebookMetadata,
-      project?: ProjectContext,
+      notebookMetadata: NotebookMetadata | undefined,
+      project: ProjectContext,
     ) => {
       debug(`[NotebookContext]: Rendering (${renderType}):${nbAbsPath}`);
 

@@ -1,0 +1,19 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - ["centering"]
+        - []
+---
+
+## Radiator Widths
+
+::: {layout-ncol=3 layout-valign="bottom"}
+![A logo](https://placehold.co/50x40.png){height=30mm}
+
+![Another logo](https://placehold.co/50x40.png)
+
+![Look at that, another logo!](https://placehold.co/50x40.png)
+:::

@@ -1,0 +1,43 @@
+---
+title: My First Dashboard
+format: 
+  dashboard:
+    theme: lux
+    orientation: columns
+    fill: true
+---
+
+
+This is loose content above the fold
+
+Row
+---------------------------
+
+### Column
+
+:::{.valuebox}
+
+#### Title
+
+1,203
+
+:::
+
+### Column
+
+```{r}
+#| layout: "[50,50]"
+plot(iris)
+plot(mtcars)
+```
+
+### Column
+
+This is another card
+
+## Hello World
+
+```{r}
+#| title: card
+plot(cars)
+```

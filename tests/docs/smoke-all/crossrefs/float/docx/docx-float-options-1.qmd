@@ -1,0 +1,35 @@
+---
+title: "My Document"
+crossref:
+  fig-prefix: F.   # (default is "fig.")
+  tbl-prefix: T.    # (default is "tbl.")
+  title-delim: —     # (default is ":")
+  ref-hyperlink: false # (default is true)
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:p//w:r//w:t[contains(text(), \"See T.\u00a01\")]"
+          - "//w:p//w:r//w:t[contains(text(), \"See F.\u00a01\")]"
+          - "//w:t[contains(text(), \"Table\u00a01\")]"
+        -
+          - "//w:hyperlink[@w:anchor=\"tbl-foo\"]//w:t[contains(text(), \"Table\u00a01\")]" # ref-hyperlink: false
+---
+
+# Introduction
+
+![Elephant](img/painter.jpg){#fig-elephant}
+
+See @fig-elephant for an illustration.
+
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | F    | G    |
+| A    | G    | G    |
+
+: My Caption {#tbl-letters}
+
+See @tbl-letters.

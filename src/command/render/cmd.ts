@@ -4,10 +4,10 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, relative } from "path/mod.ts";
+import { dirname, relative } from "../../deno_ral/path.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { Command } from "cliffy/command/mod.ts";
-import { debug, info, warning } from "log/mod.ts";
+import { debug, info, warning } from "../../deno_ral/log.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
@@ -18,6 +18,7 @@ import { renderServices } from "./render-services.ts";
 import { RenderResult } from "./types.ts";
 import { kCliffyImplicitCwd } from "../../config/constants.ts";
 import { InternalError } from "../../core/lib/error.ts";
+import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -36,7 +37,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--output-dir",
-    "Write project output to DIR (path is project relative)",
+    "Write output to DIR (path is input/project relative)",
   )
   .option(
     "-M, --metadata",
@@ -72,7 +73,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--execute-debug",
-    "Show debug output for Jupyter kernel.",
+    "Show debug output when executing computations.",
   )
   .option(
     "--use-freezer",
@@ -181,11 +182,46 @@ export const renderCommand = new Command()
       args = args.slice(firstPandocArg);
     }
 
+    // found by
+    // $ pandoc --help | grep '\[='
+    // cf https://github.com/jgm/pandoc/issues/8013#issuecomment-1094162866
+
+    const pandocArgsWithOptionalValues = [
+      "--file-scope",
+      "--sandbox",
+      "--standalone",
+      "--ascii",
+      "--toc",
+      "--preserve-tabs",
+      "--self-contained",
+      "--embed-resources",
+      "--no-check-certificate",
+      "--strip-comments",
+      "--reference-links",
+      "--list-tables",
+      "--listings",
+      "--incremental",
+      "--section-divs",
+      "--html-q-tags",
+      "--epub-title-page",
+      "--webtex",
+      "--mathjax",
+      "--katex",
+      "--trace",
+      "--dump-args",
+      "--ignore-args",
+      "--fail-if-warnings",
+      "--list-extensions",
+    ];
+
     // normalize args (to deal with args like --foo=bar)
     const normalizedArgs = [];
     for (const arg of args) {
       const equalSignIndex = arg.indexOf("=");
-      if (equalSignIndex > 0 && arg.startsWith("-")) {
+      if (
+        equalSignIndex > 0 && arg.startsWith("-") &&
+        !pandocArgsWithOptionalValues.includes(arg.slice(0, equalSignIndex))
+      ) {
         // Split the arg at the first equal sign
         normalizedArgs.push(arg.slice(0, equalSignIndex));
         normalizedArgs.push(arg.slice(equalSignIndex + 1));
@@ -206,7 +242,7 @@ export const renderCommand = new Command()
     let renderResultInput: string | undefined;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
-        const services = renderServices();
+        const services = renderServices(notebookContext());
         try {
           renderResultInput = relative(Deno.cwd(), walk.path) || ".";
           renderResult = await render(renderResultInput, {

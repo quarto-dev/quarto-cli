@@ -5,6 +5,10 @@
 
 local data = {}
 
+-- don't test coverage for filter tracing
+-- TODO but maybe we should?
+-- 
+-- luacov: disable
 if os.getenv("QUARTO_TRACE_FILTERS") then
   function init_trace(doc)
     table.insert(data, {
@@ -67,3 +71,5 @@ else
   function end_trace()
   end
 end
+
+-- luacov: enable

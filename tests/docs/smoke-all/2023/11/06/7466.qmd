@@ -1,0 +1,25 @@
+---
+title: Test conditional combination
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['span#only-html']
+        - ['span#only-revealjs']
+    revealjs: 
+      ensureHtmlElements:
+        - ['span#only-revealjs']
+        - ['span#only-html']
+---
+
+::: {.content-visible when-format="html" unless-format="revealjs"}
+
+[Will only appear in HTML and not in Reveal.js]{#only-html}
+
+:::
+
+::: {.content-visible when-format="revealjs"}
+
+[Will only appear in Reveal.js and not in HTML or other formats.]{#only-revealjs}
+
+:::

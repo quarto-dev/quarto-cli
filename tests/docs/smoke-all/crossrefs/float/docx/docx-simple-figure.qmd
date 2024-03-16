@@ -1,0 +1,15 @@
+---
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        - 
+          - "//w:document"
+          - "//w:bookmarkStart[@w:name=\"fig-1\"]"
+        - []
+---
+
+![A caption](../img/surus.jpg){#fig-1}
+
+A reference to @fig-1.

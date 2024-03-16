@@ -11,21 +11,6 @@ function getLocalPath(filename) {
   return result.toString();
 }
 
-// ../external/colors.ts
-var Deno2;
-try {
-  Deno2 = globalThis.Deno;
-} catch (_e) {
-}
-var noColor = typeof (Deno2 && Deno2.noColor) === "boolean" ? Deno2.noColor : true;
-var ANSI_PATTERN = new RegExp(
-  [
-    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
-  ].join("|"),
-  "g"
-);
-
 // ../error.ts
 var InternalError = class extends Error {
   constructor(message, printName = true, printStack = true) {
@@ -34,6 +19,8 @@ var InternalError = class extends Error {
     this.printName = printName;
     this.printStack = printStack;
   }
+  printName;
+  printStack;
 };
 
 // web-worker-manager.ts
@@ -47,6 +34,10 @@ function clientStubs(calls, worker) {
       const thisId = nextId();
       worker.postMessage({
         callName,
+        // The IDE sends some arrays with funky functions in the
+        // prototype, so the web worker API tries to clone those and
+        // fails. We strip them in a potentially slow way, so we
+        // should watch out for performance here.
         args: JSON.parse(JSON.stringify(args)),
         id: thisId
       });
@@ -82,6 +73,18 @@ function ensureStubs(path) {
   stubs = clientStubs(["getCompletions", "getLint"], worker);
 }
 var QuartoYamlEditorTools = {
+  // helpers to facilitate repro'ing in the browser
+  // getAutomation: function (
+  //   params: { context: YamlIntelligenceContext; kind: AutomationKind },
+  // ) {
+  //   const {
+  //     context,
+  //     kind,
+  //   } = params;
+  //   return getAutomation(kind, context);
+  // },
+  // exportSmokeTest,
+  // entry points required by the IDE
   getCompletions: async function(context, path) {
     ensureStubs(path);
     return await stubs["getCompletions"](context, path);

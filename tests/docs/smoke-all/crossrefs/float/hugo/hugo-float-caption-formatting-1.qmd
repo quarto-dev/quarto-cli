@@ -1,0 +1,18 @@
+---
+title: caption-formatting-test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<div id=\"lst-customers\">"
+          - "Listing 1: Customers \\*query\\*"
+          - "``` sql"
+---
+
+```{#lst-customers .sql lst-cap="Customers _query_"}
+SELECT * FROM Customers
+```
+
+Then we query the customers database (@lst-customers).

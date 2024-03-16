@@ -1,0 +1,20 @@
+---
+title: issue-7187
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["table.table", "div[data-html-table-processing]"]
+---
+
+::: {html-table-processing="none"}
+
+```{=html}
+<table>
+  <thead><tr><th>header</th></tr></thead>
+  <tbody><tr><td>body</td></tr></tbody>
+</table>
+```
+
+:::

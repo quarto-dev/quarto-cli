@@ -1,0 +1,23 @@
+---
+title: Position citation
+bibliography: ref.bib
+cite-method: biblatex
+_quarto:
+  tests: 
+    latex:
+      ensureFileRegexMatches:
+        - ['\\subsection\{References\}[\s\S]+\\printbibliography\[heading=none\][\s\S]+\\subsection\{Appendix\}']
+        - []
+    pdf: null 
+---
+
+@Lovelace1842
+
+## References {#references}
+
+::: {#refs}
+:::
+
+## Appendix {#appendix}
+
+Blah.
