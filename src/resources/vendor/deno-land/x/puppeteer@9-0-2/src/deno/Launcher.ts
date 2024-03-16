@@ -591,7 +591,7 @@ function resolveExecutablePath(
 
   const revisionInfo = browserFetcher.revisionInfo(launcher._preferredRevision);
   const missingText = !revisionInfo.local
-    ? `Could not find browser revision ${launcher._preferredRevision}. Run "PUPPETEER_PRODUCT=${launcher.product} deno run -A --unstable ${new URL(
+    ? `Could not find browser revision ${launcher._preferredRevision}. Run "PUPPETEER_PRODUCT=${launcher.product} deno run -A --unstable-ffi ${new URL(
       "../../vendor/puppeteer-core/puppeteer/../../../install.ts",
       import.meta.url,
     )}" to download a supported browser binary.`

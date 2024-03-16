@@ -37,7 +37,7 @@ import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { kPageLayout, kPageLayoutCustom } from "../html/format-html-shared.ts";
 import { htmlFormat } from "../html/format-html.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import {
   DashboardMeta,
   dashboardMeta,
@@ -78,13 +78,6 @@ export function dashboardFormat() {
       },
       metadata: {
         [kPageLayout]: kPageLayoutCustom,
-        [kTemplatePartials]: formatResourcePath(
-          "dashboard",
-          "title-block.html",
-        ),
-      },
-      pandoc: {
-        [kTemplate]: formatResourcePath("dashboard", "template.html"),
       },
     },
   );
@@ -138,6 +131,25 @@ export function dashboardFormat() {
           dashboardHtmlPostProcessor(dashboard),
         );
 
+        extras.metadata = extras.metadata || {};
+        extras.metadata[kTemplatePartials] = [
+          "title-block.html",
+          "_nav-container.html",
+        ].map(
+          (file) => {
+            return formatResourcePath(
+              "dashboard",
+              file,
+            );
+          },
+        );
+
+        extras.pandoc = extras.pandoc || {};
+        extras.pandoc[kTemplate] = formatResourcePath(
+          "dashboard",
+          "template.html",
+        );
+
         extras[kFilterParams] = extras[kFilterParams] || {};
         extras[kFilterParams][kDashboard] = {
           orientation: dashboard.orientation,
@@ -147,7 +159,7 @@ export function dashboardFormat() {
         if (!isWebsiteProject) {
           // If this is a website project, it will inject the scss for dashboards
           extras.html[kSassBundles] = extras.html[kSassBundles] || [];
-          extras.html[kSassBundles].push(dashboardScssLayer());
+          extras.html[kSassBundles].unshift(dashboardScssLayer());
         }
 
         const scripts: DependencyHtmlFile[] = [];
@@ -348,7 +360,7 @@ function dashboardHtmlPostProcessor(
     processNavigation(doc);
 
     // Process pages that may be present in the document
-    processPages(doc);
+    processPages(doc, dashboardMeta);
 
     // Process Navbar buttons
     processNavButtons(doc, dashboardMeta);

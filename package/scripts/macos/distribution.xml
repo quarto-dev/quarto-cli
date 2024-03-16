@@ -8,6 +8,7 @@
   <conclusion file="conclusion.html" mime-type="text/html" />
   <license file="LICENSE.txt" />
   -->
+  <options hostArchitectures="arm64,x86_64" />
   <options customize="never" allow-external-scripts="no" />
   <domains enable_currentUserHome="true" enable_localSystem="true" />
   <choices-outline>

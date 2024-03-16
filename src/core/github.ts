@@ -7,7 +7,7 @@
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { isHttpUrl } from "./url.ts";
 import { GitHubContext } from "./github-types.ts";

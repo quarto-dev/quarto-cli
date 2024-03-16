@@ -8,6 +8,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         - 
           - "Customers #emph\\[query\\]"
+          - '#figure\(\[[\s]+#set align\(left\)' # FIXME: change if we manage center in typst's template
 
 ---
 

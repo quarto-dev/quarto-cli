@@ -3,12 +3,14 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
+import { warning } from "../../deno_ral/log.ts";
 import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
 import { gitHubContext } from "../../core/github.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sassLayer } from "../../core/sass.ts";
+import { formatDarkMode } from "../html/format-html-info.ts";
 import { kBootstrapDependencyName } from "../html/format-html-shared.ts";
 
 export const kDashboard = "dashboard";
@@ -17,6 +19,7 @@ export const kDTTableSentinel = "data-dt-support";
 
 // Carries the layout for a given row or column
 export const kLayoutAttr = "data-layout";
+export const kFillAttr = "data-fill";
 export const kLayoutFill = "fill";
 export const kLayoutFlow = "flow";
 export type Layout = "fill" | "flow" | string;
@@ -43,6 +46,7 @@ export interface DashboardMeta {
   orientation: "rows" | "columns";
   scrolling: boolean;
   expandable: boolean;
+  hasDarkMode: boolean;
   [kNavButtons]: NavButton[];
 }
 
@@ -102,10 +106,13 @@ export async function dashboardMeta(format: Format): Promise<DashboardMeta> {
     }
   }
 
+  const hasDarkMode = formatDarkMode(format) !== undefined;
+
   return {
     orientation,
     scrolling,
     expandable,
+    hasDarkMode,
     [kNavButtons]: navbarButtons,
   };
 }
@@ -272,6 +279,9 @@ const kNavButtonAliases: Record<
         href: context.repoUrl,
       } as NavButton;
     } else {
+      warning(
+        "Unable to determine GitHub repository for the `github` nav-button. Is this directory a GitHub repository?",
+      );
       return undefined;
     }
   },

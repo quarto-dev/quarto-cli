@@ -21,8 +21,13 @@ function quarto_ast_pipeline()
       name = "normalize-combine-2", 
       filter = combineFilters({
         parse_md_in_html_rawblocks(),
-        parse_reftargets(),
+        parse_floatreftargets(),
+        parse_blockreftargets()
       }),
     },
+    {
+      name = "normalize-3",
+      filter = handle_subfloatreftargets(),
+    }
   }
 end

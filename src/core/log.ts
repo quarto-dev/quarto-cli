@@ -5,20 +5,22 @@
  */
 
 import { ensureDirSync } from "fs/mod.ts";
-import { dirname } from "path/mod.ts";
+import { dirname } from "../deno_ral/path.ts";
 import * as colors from "fmt/colors.ts";
-import * as log from "log/mod.ts";
+import * as log from "../deno_ral/log.ts";
 import { LogRecord } from "log/logger.ts";
-import { BaseHandler, FileHandler } from "log/handlers.ts";
+import { BaseHandler } from "log/base_handler.ts";
+import { FileHandler } from "log/file_handler.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
-import { error, getLogger, setup, warning } from "log/mod.ts";
+import { debug, error, getLogger, setup, warning } from "../deno_ral/log.ts";
 import { asErrorEx, InternalError } from "./lib/error.ts";
+import { onCleanup } from "./cleanup.ts";
 
-export type LogLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR";
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 export interface LogOptions {
   log?: string;
@@ -39,33 +41,50 @@ export interface LogMessageOptions {
 
 // deno-lint-ignore no-explicit-any
 export function appendLogOptions(cmd: Command<any>): Command<any> {
-  return cmd.option(
-    "--log <file>",
-    "Path to log file",
-    {
-      global: true,
-    },
-  ).option(
-    "--log-level <level>",
-    "Log level (info, warning, error, critical)",
-    {
-      global: true,
-    },
-  )
-    .option(
-      "--log-format <format>",
-      "Log format (plain, json-stream)",
+  const addLogOptions = (cmd: Command<any>) => {
+    return cmd.option(
+      "--log <file>",
+      "Path to log file",
+      {
+        global: true,
+      },
+    ).option(
+      "--log-level <level>",
+      "Log level (info, warning, error, critical)",
       {
         global: true,
       },
     )
-    .option(
-      "--quiet",
-      "Suppress console output.",
-      {
-        global: true,
-      },
-    );
+      .option(
+        "--log-format <format>",
+        "Log format (plain, json-stream)",
+        {
+          global: true,
+        },
+      )
+      .option(
+        "--quiet",
+        "Suppress console output.",
+        {
+          global: true,
+        },
+      );
+  };
+
+  // If there are subcommands, forward the log options
+  // directly to the subcommands. Otherwise, just attach
+  // to the outer command
+  //
+  // Fixes https://github.com/quarto-dev/quarto-cli/issues/8438
+  const subCommands = cmd.getCommands();
+  if (subCommands.length > 0) {
+    subCommands.forEach((command) => {
+      addLogOptions(command);
+    });
+    return cmd;
+  } else {
+    return addLogOptions(cmd);
+  }
 }
 
 export function logOptions(args: Args) {
@@ -99,7 +118,7 @@ export class StdErrOutputHandler extends BaseHandler {
 
     let msg = super.format(logRecord);
 
-    if (prefix && (logRecord.level >= log.LogLevels.WARNING)) {
+    if (prefix && (logRecord.level >= log.LogLevels.WARN)) {
       msg = `${logRecord.levelName}: ${msg}`;
     }
 
@@ -109,7 +128,7 @@ export class StdErrOutputHandler extends BaseHandler {
       case log.LogLevels.DEBUG:
         msg = applyMsgOptions(msg, options);
         break;
-      case log.LogLevels.WARNING:
+      case log.LogLevels.WARN:
         if (options.colorize) {
           msg = colors.yellow(msg);
         }
@@ -145,7 +164,7 @@ export class StdErrOutputHandler extends BaseHandler {
 export class LogEventsHandler extends StdErrOutputHandler {
   constructor(levelName: log.LevelName) {
     super(levelName, {
-      formatter: "{msg}",
+      formatter: (({ msg }) => `${msg}`),
     });
   }
   handle(logRecord: LogRecord) {
@@ -195,7 +214,7 @@ export class LogFileHandler extends FileHandler {
       }
 
       // Error formatting
-      if (logRecord.level >= log.LogLevels.WARNING) {
+      if (logRecord.level >= log.LogLevels.WARN) {
         return `(${logRecord.levelName}) ${msg}`;
       } else {
         return msg;
@@ -206,13 +225,22 @@ export class LogFileHandler extends FileHandler {
     }
   }
 
-  log(msg: string): void {
+  async log(msg: string) {
     // Ignore any messages that are blank
     if (msg !== "") {
       // Strip any color information that may have been applied
       msg = colors.stripColor(msg);
-      this._buf.writeSync(this._encoder.encode(msg));
-      this._buf.flush();
+      if (!this._file) {
+        throw new Error("Internal error: logging file not open");
+      }
+      let buf = this._encoder.encode(msg);
+      let total = 0;
+      while (total < buf.length) {
+        const offset = this._file.writeSync(buf);
+        total += offset;
+        buf = buf.subarray(offset);
+      }
+      Deno.fsyncSync(this._file.rid);
     }
   }
 }
@@ -239,7 +267,7 @@ export async function initializeLogger(logOptions: LogOptions) {
     handlers["console"] = new StdErrOutputHandler(
       logLevel(),
       {
-        formatter: "{msg}",
+        formatter: (({ msg }) => `${msg}`),
       },
     );
     defaultHandlers.push("console");
@@ -268,6 +296,8 @@ export async function initializeLogger(logOptions: LogOptions) {
       },
     },
   });
+
+  onCleanup(cleanupLogger);
 }
 
 export async function cleanupLogger() {
@@ -335,6 +365,14 @@ export function warnOnce(msg: string) {
 }
 const warnings: Record<string, boolean> = {};
 
+export function debugOnce(msg: string) {
+  if (!debugs[msg]) {
+    debugs[msg] = true;
+    debug(msg);
+  }
+}
+const debugs: Record<string, boolean> = {};
+
 function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {
     const pad = " ".repeat(options.indent);
@@ -377,7 +415,7 @@ function parseLevel(
   if (lvl) {
     return lvl;
   } else {
-    return "WARNING";
+    return "WARN";
   }
 }
 const levelMap: Record<
@@ -386,6 +424,6 @@ const levelMap: Record<
 > = {
   debug: "DEBUG",
   info: "INFO",
-  warning: "WARNING",
+  warning: "WARN",
   error: "ERROR",
 };

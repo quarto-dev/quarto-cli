@@ -2062,7 +2062,8 @@ quarto = {
     end,
 
     output_file = outputFile(),
-    input_file = inputFile()
+    input_file = inputFile(),
+    crossref = {}
   },
   project = {
    directory = projectDirectory(),

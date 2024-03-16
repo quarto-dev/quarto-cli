@@ -388,6 +388,10 @@ $valuebox-colors: (
 
 // Dashboards
 .quarto-dashboard {
+  &.nav-fixed.dashboard-sidebar #quarto-content.quarto-dashboard-content {
+    padding: 0em;
+  }
+
   #quarto-content.quarto-dashboard-content {
     padding: 1em;
     > * {
@@ -426,7 +430,6 @@ $valuebox-colors: (
         padding-left: 0;
       }
     }
-
     .navbar-toggler {
       margin-right: 0;
     }
@@ -467,7 +470,12 @@ $valuebox-colors: (
         }
       }
 
+      .quarto-color-scheme-toggle {
+        order: 9;
+      }
+
       .navbar-toggler {
+        margin-left: 0.5em;
         order: 10;
       }
 
@@ -477,9 +485,6 @@ $valuebox-colors: (
           height: 100%;
           display: flex;
           align-items: center;
-          .nav-link-text {
-            white-space: nowrap;
-          }
         }
         & .active {
           background-color: theme-dim($navbar-bg, 8%);
@@ -771,6 +776,7 @@ $valuebox-colors: (
     padding-left: 1em;
     padding-right: 1em;
     background-color: $card-cap-bg;
+    color: $card-cap-color or $body-color;
   }
 
   .bslib-sidebar-layout {
@@ -953,7 +959,7 @@ $valuebox-colors: (
     // This ensures that elements in the card body (notably the expansion toggle)
     // appear above the elements inside of it (notably itables, which cause issues)
     .card-body {
-      z-index: 1000;
+      z-index: 4;
 
       // Customize appearance of elements within cards
       @include itables();
@@ -993,4 +999,20 @@ $valuebox-colors: (
   .card-body > table > thead {
     border-top: none;
   }
+
+  .card-body > .table > :not(caption) > * > * {
+    background-color: $card-bg;
+    color: $card-color;
+  }
+}
+
+/*-- itables --*/
+.tableFloatingHeaderOriginal {
+  background-color: $card-bg;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+.dashboard-data-table {
+  margin-top: -1px;
 }

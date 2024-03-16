@@ -8,7 +8,7 @@ kLayoutNrow = "layout-nrow"
 kLayout = "layout"
 
 function layout_align_attribute(el_with_attr, default)
-  return validatedAlign(el_with_attr.attributes[kLayoutAlign] or default)
+  return validatedAlign(el_with_attr.attributes[kLayoutAlign], default)
 end
 
 -- now unused. Remove?

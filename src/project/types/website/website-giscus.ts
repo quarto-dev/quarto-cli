@@ -6,7 +6,7 @@
 */
 
 import { ensureDirSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 import { Format } from "../../../config/types.ts";
 import {
   getDiscussionCategoryId,

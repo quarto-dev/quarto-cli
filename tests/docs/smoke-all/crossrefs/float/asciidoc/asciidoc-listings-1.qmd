@@ -8,7 +8,7 @@ _quarto:
         - 
           - "<<lst-customers>>"
           - "\\[\\[lst-customers\\]\\]"
-          - "\\. Customers Query"
+          - "\\.Customers Query"
 ---
 
 ```{#lst-customers .sql lst-cap="Customers Query"}

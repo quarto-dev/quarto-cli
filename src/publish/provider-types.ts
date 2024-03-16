@@ -76,4 +76,9 @@ export interface PublishProvider {
   ) => Promise<[PublishRecord | undefined, URL | undefined]>;
   isUnauthorized: (error: Error) => boolean;
   isNotFound: (error: Error) => boolean;
+
+  // if the provider has a quarto project path that is not the top level
+  // of the overall project (currently, huggingface spaces only),
+  // this function should return the path to the quarto project root
+  resolveProjectPath?: (path: string) => string;
 }

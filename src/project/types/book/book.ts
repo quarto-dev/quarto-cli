@@ -6,7 +6,7 @@
 
 import { Document, Element } from "../../../core/deno-dom.ts";
 
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 
@@ -152,20 +152,22 @@ export const bookProjectType: ProjectType = {
   },
 
   filterParams: async (options: PandocOptions) => {
-    const bookExt = options.format.extensions?.book as BookExtension;
-    const filterParams = bookExt.filterParams
-      ? bookExt.filterParams(options)
-      : {};
-    if (isMultiFileBookFormat(options.format)) {
-      return {
-        ...filterParams,
-        [kCrossrefResolveRefs]: false,
-      };
-    } else {
-      return {
-        ...filterParams,
-        [kSingleFileBook]: true,
-      };
+    if (options.format.extensions?.book) {
+      const bookExt = options.format.extensions?.book as BookExtension;
+      const filterParams = bookExt.filterParams
+        ? bookExt.filterParams(options)
+        : {};
+      if (isMultiFileBookFormat(options.format)) {
+        return {
+          ...filterParams,
+          [kCrossrefResolveRefs]: false,
+        };
+      } else {
+        return {
+          ...filterParams,
+          [kSingleFileBook]: true,
+        };
+      }
     }
   },
   pandocRenderer: bookPandocRenderer,
@@ -178,11 +180,12 @@ export const bookProjectType: ProjectType = {
   ) => {
     const chapterInfo = chapterInfoForInput(context, input);
     if (chapterInfo && number) {
-      return Promise.resolve(
-        numberChapterHtmlNav(text, chapterInfo),
-      );
+      return Promise.resolve({
+        text,
+        html: numberChapterHtmlNav(text, chapterInfo),
+      });
     } else {
-      return Promise.resolve(text);
+      return Promise.resolve({ html: text, text: text });
     }
   },
 

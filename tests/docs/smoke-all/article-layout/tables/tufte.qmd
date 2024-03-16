@@ -1,0 +1,267 @@
+---
+title: "A Quarto Page Layout Example"
+subtitle: "Inspired by Tufte Handout, Using Quarto"
+date: "`r Sys.Date()`"
+format:
+    pdf:
+      keep-tex: true
+    html: 
+      self-contained: true
+      grid: 
+        margin-width: 350px
+execute: 
+  echo: fenced
+reference-location: margin
+citation-location: margin
+bibliography: skeleton.bib
+---
+
+# Introduction
+
+This document demonstrates the use of a number of advanced page layout features to produce an attractive and usable document inspired by the Tufte handout style and the use of Tufte's styles in RMarkdown documents [@xie2018]. The Tufte handout style is a style that Edward Tufte uses in his books and handouts. Tufte's style is known for its extensive use of sidenotes, tight integration of graphics with text, and well-set typography. Quarto[^1] supports most of the layout techniques that are used in the Tufte handout style for both HTML and LaTeX/PDF output.
+
+[^1]: To learn more, you can read more about [Quarto](https://www.quarto.org) or visit [Quarto's Github repository](https://www.github.com/quarto-dev/quarto-cli).
+
+``` yaml
+---
+title: "An Example Using the Tufte Style"
+author: "John Smith"
+format:
+  html:
+    grid:
+      margin-width: 350px         # <1>
+  pdf: default
+reference-location: margin        # <2>
+citation-location: margin         # <2>
+---
+```
+
+1.  Increases the width of the margin to make more room for sidenotes and margin figures (HTML only).
+2.  Places footnotes and cited sources in the margin. Other layout options (for example placing a figure in the margin) will be set per element in examples below.
+
+These layout features are designed with two important goals in mind:
+
+1.  To produce both PDF and HTML output with similar styles from the same Quarto document;
+2.  To provide simple syntax to write elements of the Tufte style such as side notes and margin figures. If you'd like a figure placed in the margin, just set the option `fig-column: margin` for your code chunk, and we will take care of the details for you[^2].
+
+[^2]: You never need to think about `\begin{marginfigure}` or `<span class="marginfigure">`; the LaTeX and HTML code under the hood may be complicated, but you never need to learn or write such code.
+
+If you have any feature requests or find bugs in these capabilities, please do not hesitate to file them to <https://github.com/quarto-dev/quarto-cli/issues>.
+
+# Figures
+
+## Margin Figures
+
+Images and graphics play an integral role in Tufte's work. To place figures in the margin you can use the **Quarto** chunk option `column: margin`. For example:
+
+```{r}
+#| label: fig-margin
+#| fig-cap: "MPG vs horsepower, colored by transmission."
+#| column: margin
+#| message: false
+library(ggplot2)
+mtcars2 <- mtcars
+mtcars2$am <- factor(
+  mtcars$am, labels = c('automatic', 'manual')
+)
+ggplot(mtcars2, aes(hp, mpg, color = am)) +
+  geom_point() + geom_smooth() +
+  theme(legend.position = 'bottom')
+```
+
+Note the use of the `fig-cap` chunk option to provide a figure caption. You can adjust the proportions of figures using the `fig-width` and `fig-height` chunk options. These are specified in inches, and will be automatically scaled down to fit within the handout margin.
+
+## Arbitrary Margin Content
+
+You can include anything in the margin by places the class `.column-margin` on the element. See an example on the right about the first fundamental theorem of calculus.
+
+::: column-margin
+We know from *the first fundamental theorem of calculus* that for $x$ in $[a, b]$:
+
+$$\frac{d}{dx}\left( \int_{a}^{x} f(u)\,du\right)=f(x).$$
+:::
+
+## Full Width Figures
+
+You can arrange for figures to span across the entire page by using the chunk option `fig-column: page-right`.
+
+```{r}
+#| label: fig-fullwidth
+#| fig-cap: "A full width figure."
+#| fig-width: 11
+#| fig-height: 3
+#| fig-column: page-right
+#| warning: false
+ggplot(diamonds, aes(carat, price)) + geom_smooth() +
+  facet_grid(~ cut)
+```
+
+Other chunk options related to figures can still be used, such as `fig-width`, `fig-cap`, and so on. For full width figures, usually `fig-width` is large and `fig-height` is small. In the above example, the plot size is $11 \times 3$.
+
+## Arbitrary Full Width Content
+
+Any content can span to the full width of the page, simply place the element in a `div` and add the class `column-page-right`. For example, the following code will display its contents as full width.
+
+``` md
+::: {.fullwidth}
+Any _full width_ content here.
+:::
+```
+
+Below is an example:
+
+::: column-page-right
+*R is free software and comes with ABSOLUTELY NO WARRANTY.* You are welcome to redistribute it under the terms of the GNU General Public License versions 2 or 3. For more information about these matters see <https://www.gnu.org/licenses/>.
+:::
+
+## Main Column Figures
+
+Besides margin and full width figures, you can of course also include figures constrained to the main column. This is the default type of figures in the LaTeX/HTML output.
+
+```{r}
+#| label: fig-main
+#| fig-cap: "A figure in the main column."
+ggplot(diamonds, aes(cut, price)) + geom_boxplot()
+```
+
+## Margin Captions
+
+When you include a figure constrained to the main column, you can choose to place the figure's caption in the margin by using the `cap-location` chunk option. For example:
+
+```{r}
+#| label: fig-main-margin-cap
+#| fig-cap: "A figure with a longer caption. The figure appears in the main column, but the caption is placed in the margin. Captions can even contain elements like a citation such as @xie2018."
+#| cap-location: margin
+ggplot(diamonds, aes(cut, price)) + geom_boxplot()
+```
+
+# Sidenotes
+
+One of the most prominent and distinctive features of this style is the extensive use of sidenotes. There is a wide margin to provide ample room for sidenotes and small figures. Any use of a footnote will automatically be converted to a sidenote.
+
+[This is a span that has the class `column-margin` which places it in the margin without the sidenote mark.]{.column-margin} If you'd like to place ancillary information in the margin without the sidenote mark (the superscript number), you can use apply the `column-margin` class to the element.
+
+# References
+
+References can be displayed as margin notes for HTML output. For example, we can cite R here [@R-base].
+
+::: {.callout-note appearance="simple"}
+This feature depends upon `link-citations` to locate and place references in the margin. This is enabled by default, but if you disable `link-citations` then references in the HTML output will be placed at the end of the output document as they normally are.
+:::
+
+# Tables
+
+You can use the `kable()` function from the **knitr** package to format tables that integrate well with the rest of the Tufte handout style. The table captions are placed in the margin like figures in the HTML output.
+
+```{r}
+#| tbl-cap-location: margin
+knitr::kable(
+  mtcars[1:6, 1:6], caption = 'A subset of mtcars.'
+)
+```
+
+# Responsiveness
+
+The HTML page layout is responsive- as the page width shrinks, elements will automatically adjust their position. Elements that appear in the margins will move inline with the content and elements that span the body and margin will automatically span only the body.
+
+# More Examples
+
+The rest of this document consists of a few test cases to make sure everything still works well in slightly more complicated scenarios. First we generate two plots in one figure environment with the chunk option `fig-show: hold`:
+
+```{r}
+#| label: fig-two-together
+#| fig-cap: "Two plots in one figure environment."
+#| fig-show: hold
+#| warning: false
+#| cap-location: margin
+p <- ggplot(mtcars2, aes(hp, mpg, color = am)) +
+  geom_point()
+p
+p + geom_smooth()
+```
+
+Then two plots in separate figure environments (the code is identical to the previous code chunk, but the chunk option is the default `fig-show: asis` now):
+
+```{r fig-two-separate, ref.label='fig-two-together', fig.cap=sprintf("Two plots in separate figure environments (the %s plot).", c("first", "second")), message=FALSE}
+#| cap-location: margin
+```
+
+You may have noticed that the two figures have different captions, and that is because we used a character vector of length 2 for the chunk option `fig.cap` (something like `fig.cap = c('first plot', 'second plot')`).
+
+::: {.callout-tip}
+## Using R within Chunk Options
+If you wish to use raw R expressions as part of the chunk options (like above), then you need to define those in the `tag=value` format within the curly brackets `{r label, tag=value}` instead of the `tag: value` YAML syntax on a new line starting with the hashpipe `#|`. The former approach is documented on [knitr's website](https://yihui.org/knitr/options/) while the latter is explained in [Quarto's documentation](https://quarto.org/docs/reference/cells/cells-knitr.html).
+:::
+
+Next we show multiple plots in margin figures. Similarly, two plots in the same figure environment in the margin:
+
+```{r}
+#| label: fig-margin-together
+#| fig-cap: "Two plots in one figure environment in the margin."
+#| fig-width: 3.5
+#| fig-height: 2
+#| fig-show: hold
+#| column: margin
+#| warning: false
+#| echo: false
+p
+p + geom_smooth(method = 'lm')
+```
+
+Then two plots from the same code chunk placed in different figure environments:
+
+```{r}
+#| echo: false
+knitr::kable(head(iris[,c(1,2,3,4)], 13))
+```
+
+```{r}
+#| label: fig-margin-separate-a
+#| fig-cap: "Two plots in separate figure environments in the margin"
+#| fig-width: 3.5
+#| fig-height: 2
+#| column: margin
+#| warning: false
+#| echo: false
+p
+p + geom_smooth(method = 'lm')
+```
+
+```{r}
+#| echo: false
+knitr::kable(head(iris[,c(1,2,3,4)], 11))
+```
+
+We blended some tables in the above code chunk only as *placeholders* to make sure there is enough vertical space among the margin figures, otherwise they will be stacked tightly together. For a practical document, you should not insert too many margin figures consecutively and make the margin crowded.
+
+You do not have to assign captions to figures. We show three figures with no captions below in the margin, in the main column, and in full width, respectively.
+
+```{r}
+#| fig-width: 3.5
+#| fig-height: 2
+#| column: margin
+# a boxplot of weight vs transmission; this figure
+# will be placed in the margin
+ggplot(mtcars2, aes(am, wt)) + geom_boxplot() +
+  coord_flip()
+```
+
+```{r}
+#| warning: false
+# a figure in the main column
+p <- ggplot(mtcars, aes(wt, hp)) + geom_point()
+p
+```
+
+```{r}
+#| fig-width: 11
+#| fig-height: 4
+#| column: page-right
+#| warning: false
+# a fullwidth figure
+p + geom_smooth(method = 'lm') + facet_grid(~ gear)
+```
+
+# Some Notes on Page Layout
+
+To see the Quarto markdown source of this example document, you may follow [this link to Github](https://raw.githubusercontent.com/quarto-dev/quarto-gallery/main/page-layout/tufte.qmd).

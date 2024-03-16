@@ -9,7 +9,7 @@ import { breakQuartoMd } from "../lib/break-quarto-md.ts";
 import { mappedString } from "../mapped-text.ts";
 import { rangedLines } from "../ranged-text.ts";
 import { readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 import { partitionCellOptionsMapped } from "../lib/partition-cell-options.ts";
 import { withValidator } from "../lib/yaml-validation/validator-queue.ts";
 import { ValidationError } from "./validated-yaml.ts";
@@ -44,11 +44,22 @@ export async function validateDocumentFromSource(
   if (firstCell.source.value.startsWith("---")) {
     firstContentCellIndex = 1;
     if (!firstCell.source.value.trimEnd().endsWith("---")) {
-      throw new Error("Expected front matter to end with '---'");
+      throw new Error("Expected YAML front matter to end with '---'");
     }
     // validate the YAML front matter in the document
 
     const lineRanges = rangedLines(firstCell.source.value.trimEnd());
+    if (lineRanges.length < 2) {
+      if (src.map(0)?.originalString?.fileName) {
+        throw new Error(
+          `${
+            src.map(0)?.originalString?.fileName
+          }: Expected YAML front matter to contain at least 2 lines`,
+        );
+      } else {
+        throw new Error("Expected front matter to have at least 2 lines");
+      }
+    }
     const frontMatterText = mappedString(
       firstCell.source,
       [{

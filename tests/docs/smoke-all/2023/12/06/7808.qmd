@@ -1,0 +1,12 @@
+---
+title: figures
+format: typst
+---
+
+::: {layout-ncol=2}
+
+![Caption](elephant.jpg)
+
+![Caption](elephant.jpg)
+
+::: 

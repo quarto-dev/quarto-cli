@@ -1,0 +1,17 @@
+---
+title: foo
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.quarto-layout-panel > div.quarto-layout-row:nth-child(2)"] # this panel should have 2 children
+        - ["div.quarto-layout-panel > div.quarto-layout-row:nth-child(5)"] # this panel should not have 5 children
+---
+
+```{r}
+#| layout: [[45,-10, 45], [100]]
+
+plot(cars)
+plot(pressure)
+plot(mtcars)
+```

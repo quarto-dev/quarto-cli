@@ -6,7 +6,7 @@
  * Copyright (c) 2022 Posit Software, PBC.
  */
 
-import { decode } from "encoding/base64.ts";
+import { decodeBase64 as decode } from "encoding/base64.ts";
 import cdp from "./deno-cri/index.js";
 import { getBrowserExecutablePath } from "../puppeteer.ts";
 import { Semaphore } from "../lib/semaphore.ts";

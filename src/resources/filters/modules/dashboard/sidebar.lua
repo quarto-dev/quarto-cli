@@ -18,8 +18,8 @@ local kSidebarWidthAttr = "width"
 local kSidebarWidthAttrs = pandoc.List({kSidebarWidthAttr, kSidebarWidthOutAttr})
 
 local kSidebarPositionAttr = "position"
-local kSidebarPositionStart = "start"
-local kSidebarPositionEnd = "end"
+local kSidebarPositionStart = "left"
+local kSidebarPositionEnd = "right"
 
 local function isSidebar(el) 
   return el.classes ~= nil and el.classes:includes(kSidebarClass)

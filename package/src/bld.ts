@@ -28,6 +28,7 @@ import {
 } from "./common/archive-binary-dependencies.ts";
 import { updatePandoc } from "./common/update-pandoc.ts";
 import { validateBundle } from "./common/validate-bundle.ts";
+import { makeInstallerExternal } from "./ext/installer.ts";
 
 // Core command dispatch
 export async function quartoBld(args: string[]) {
@@ -107,6 +108,11 @@ function getCommands() {
     packageCommand(makeInstallerWindows)
       .name("make-installer-win")
       .description("Builds Windows installer"),
+  );
+  commands.push(
+    packageCommand(makeInstallerExternal)
+      .name("make-installer-dir")
+      .description("Copies Quarto-only files, omitting dependencies, to specified location (for use in third party packaging)"),
   );
   commands.push(
     compileQuartoLatexmkCommand(),

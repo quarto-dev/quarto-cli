@@ -49,7 +49,6 @@ export type PageColumn =
   | "screen"
   | "screen-left"
   | "screen-right"
-  | "screen-rightcolumn"
   | "screen-inset"
   | "screen-inset-shaded"
   | "screen-inset-left"
@@ -92,6 +91,24 @@ for details. */;
   url?: string; /* Alias for href */
 };
 
+export type GiscusThemes =
+  | "light"
+  | "light_high_contrast"
+  | "light_protanopia"
+  | "light_tritanopia"
+  | "dark"
+  | "dark_high_contrast"
+  | "dark_protanopia"
+  | "dark_tritanopia"
+  | "dark_dimmed"
+  | "transparent_dark"
+  | "cobalt"
+  | "purple_dark"
+  | "noborder_light"
+  | "noborder_dark"
+  | "noborder_gray"
+  | "preferred_color_scheme";
+
 export type Comments = false | {
   giscus?: {
     "repo-id"?: string /* The Github repository identifier.
@@ -129,25 +146,22 @@ as a discussion number and automatic discussion creation is not supported. */;
 
 In order to work correctly, the repo must be public, with the giscus app installed, and
 the discussions feature must be enabled. */;
-    theme?:
-      | string
-      | (
-        | "light"
-        | "light_high_contrast"
-        | "light_protanopia"
-        | "dark"
-        | "dark_high_contrast"
-        | "dark_protanopia"
-        | "dark_dimmed"
-        | "transparent_dark"
-        | "preferred_color_scheme"
-      )
-      | {
-        dark?: string /* The dark theme name. */;
-        light?: string; /* The light theme name. */
-      }; /* The giscus theme to use when displaying comments. */
+    theme?: string | GiscusThemes | {
+      dark?: string | GiscusThemes /* The dark theme name. */;
+      light?: string | GiscusThemes; /* The light theme name. */
+    }; /* The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key:
+
+```yaml
+website:
+  comments:
+    giscus:
+      light: light # giscus theme used for light website theme
+      dark: dark_dimmed # giscus theme used for dark website theme
+``` */
   };
   hypothesis?: boolean | {
+    "client-url"?:
+      string /* Override the default hypothesis client url with a custom client url. */;
     assetRoot?: string /* The root URL from which assets are loaded. */;
     branding?: {
       accentColor?:
@@ -330,6 +344,9 @@ export type BaseWebsite = {
   "site-path"?:
     string /* Path to site (defaults to `/`). Not required if you specify `site-url`. */;
   "repo-url"?: string /* Base URL for website source code repository */;
+  "repo-link-target"?:
+    string /* The value of the target attribute for repo links */;
+  "repo-link-rel"?: string /* The value of the rel attribute for repo links */;
   "repo-subdir"?: string /* Subdirectory of repository containing website */;
   "repo-branch"?:
     string /* Branch of website source code (defaults to `main`) */;
@@ -410,14 +427,33 @@ The user’s cookie preferences will automatically control Google Analytics (if 
   "bread-crumbs"?:
     boolean /* Whether to show navigation breadcrumbs for pages more than 1 level deep */;
   "page-footer"?: string | PageFooter /* Shared page footer */;
+  "image-alt"?:
+    string /* Default site thumbnail image alt text for `twitter` /`open-graph` */;
   "open-graph"?: boolean | OpenGraphConfig /* Publish open graph metadata */;
   "twitter-card"?:
     | boolean
     | TwitterCardConfig /* Publish twitter card metadata */;
   "other-links"?: OtherLinks;
   "code-links"?: boolean | CodeLinksSchema;
+  "draft-mode"?: "visible" | "unlinked" | "gone";
+  announcement?: string | {
+    content?: string;
+    dismissable?: boolean;
+    icon?: string;
+    position?: "above-navbar" | "below-navbar";
+    type?:
+      | "primary"
+      | "secondary"
+      | "success"
+      | "danger"
+      | "warning"
+      | "info"
+      | "light"
+      | "dark";
+  } /* Provides an announcement displayed at the top of the page. */;
   comments?: Comments;
   description?: string /* Website description */;
+  drafts?: MaybeArrayOf<string>;
   favicon?: string /* The path to the favicon for this website */;
   image?: string /* Default site thumbnail image for `twitter` /`open-graph` */;
   navbar?: boolean | {
@@ -430,6 +466,9 @@ The user’s cookie preferences will automatically control Google Analytics (if 
       | "lg"
       | "xl"
       | "xxl" /* The responsive breakpoint below which the navbar will collapse into a menu (`sm`, `md`, `lg` (default), `xl`, `xxl`). */;
+    "toggle-position"?: "left" | "right";
+    "tools-collapse"?:
+      boolean /* Collapse tools into the navbar menu when the display becomes narrow. */;
     background?:
       | (
         | "primary"
@@ -504,6 +543,9 @@ The user’s cookie preferences will automatically control Google Analytics (if 
     | boolean
     | MaybeArrayOf<
       {
+        "logo-alt"?: string /* Alternate text for the logo image. */;
+        "logo-href"?:
+          string /* Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html). */;
         "collapse-level"?:
           number /* The depth at which the sidebar contents should be collapsed by default. */;
         alignment?:
@@ -664,6 +706,7 @@ export type FormatLanguage = {
   "search-more-match-text"?: string;
   "search-more-matches-text"?: string;
   "search-clear-button-title"?: string;
+  "search-text-placeholder"?: string;
   "search-detached-cancel-button-title"?: string;
   "search-submit-button-title"?: string;
   "crossref-fig-title"?: string;
@@ -698,6 +741,8 @@ export type FormatLanguage = {
 };
 
 export type WebsiteAbout = {
+  "image-alt"?: string /* The alt text for the main image on the about page. */;
+  "image-title"?: string /* The title for the main image on the about page. */;
   "image-width"?: string /* A valid CSS width for the about page image. */;
   "image-shape"?:
     | "rectangle"
@@ -832,10 +877,12 @@ See [https://www.rssboard.org/rss-language-codes](https://www.rssboard.org/rss-l
 for a list of valid language codes. */;
     type?:
       | "full"
-      | "partial" /* Whether to include full or partial content in the feed.
+      | "partial"
+      | "metadata" /* Whether to include full or partial content in the feed.
 
 - `full` (default): Include the complete content of the document in the feed.
-- `partial`: Include only the first paragraph of the document in the feed. */;
+- `partial`: Include only the first paragraph of the document in the feed.
+- `metadata`: Use only the title, description, and other document metadata in the feed. */;
     title?:
       string; /* The title for this feed. Defaults to the site title provided the Quarto project. */
   } /* Enables an RSS feed for the listing. */;
@@ -844,7 +891,7 @@ for a list of valid language codes. */;
 place the contents into a `div` with this id. If no such `div` is defined on the
 page, a `div` with this id will be created and appended to the end of the page.
 
-In no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
+If no `id` is provided for a listing, Quarto will synthesize one when rendering the page. */;
   include?: MaybeArrayOf<
     SchemaObject
   > /* Items with matching field values will be included in the listing. */;
@@ -879,7 +926,11 @@ export type WebsiteListingContentsObject = {
   title?: string;
 };
 
-export type CslDate = string | MaybeArrayOf<number>;
+export type CslDate = string | MaybeArrayOf<number> | {
+  day?: number /* The day */;
+  month?: number /* The month */;
+  year?: number; /* The year */
+};
 
 export type CslPerson =
   | MaybeArrayOf<string>
@@ -1107,6 +1158,9 @@ export type CslItem = {
     string /* Abstract of the item (e.g. the abstract of a journal article) */;
   author?: CslPerson;
   doi?: string /* Digital Object Identifier (e.g. "10.1128/AEM.02591-07") */;
+  id?:
+    | string
+    | number /* Citation identifier for the item (e.g. "item1"). Will be autogenerated if not provided. */;
   references?:
     string /* Resources related to the procedural history of a legal case or legislation;
 

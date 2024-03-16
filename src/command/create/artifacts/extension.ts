@@ -15,7 +15,8 @@ import { ejsData, renderAndCopyArtifacts } from "./artifact-shared.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
 import { Input, Select } from "cliffy/prompt/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
+import { existsSync } from "fs/mod.ts";
 
 const kType = "type";
 const kSubType = "subtype";
@@ -210,6 +211,13 @@ async function createExtension(
 
   // The target directory
   const target = createDirective.directory;
+
+  if (existsSync(target)) {
+    // The target directory already exists
+    throw new Error(
+      `The directory ${target} already exists. Quarto extensions must have unique names - please modify the existing extension or use a unique name.`,
+    );
+  }
 
   // Data for this extension
   const data = await ejsData(createDirective);

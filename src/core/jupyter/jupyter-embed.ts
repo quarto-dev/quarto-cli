@@ -43,17 +43,15 @@ import {
   JupyterCellOutput,
 } from "../jupyter/types.ts";
 
-import { dirname, extname, join } from "path/mod.ts";
+import { dirname, extname, join, basename, isAbsolute } from "../../deno_ral/path.ts";
 import { languages } from "../handlers/base.ts";
 import {
   extractJupyterWidgetDependencies,
   includesForJupyterWidgetDependencies,
 } from "./widgets.ts";
 import { globalTempContext } from "../temp.ts";
-import { isAbsolute } from "path/mod.ts";
 import { partitionMarkdown } from "../pandoc/pandoc-partition.ts";
-import { normalizePath, safeExistsSync } from "../path.ts";
-import { basename } from "path/mod.ts";
+import { dirAndStem, normalizePath, safeExistsSync } from "../path.ts";
 import { InternalError } from "../lib/error.ts";
 import { ipynbFormat } from "../../format/ipynb/format-ipynb.ts";
 import {
@@ -63,6 +61,7 @@ import {
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../log.ts";
 import * as ld from "../../../src/core/lodash.ts";
+import { texSafeFilename } from "../tex.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -156,7 +155,7 @@ function unsupportedEmbed(path: string) {
 export async function ensureNotebookContext(
   markdown: string,
   services: RenderServices,
-  context?: ProjectContext,
+  context: ProjectContext,
 ) {
   const regex = placeholderRegex();
   let match = regex.exec(markdown);
@@ -352,9 +351,9 @@ export async function replaceNotebookPlaceholders(
   };
 }
 
-function resolveNbPath(input: string, path: string, context?: ProjectContext) {
+function resolveNbPath(input: string, path: string, context: ProjectContext) {
   // If this is a project, absolute means project relative
-  if (context) {
+  if (!context.isSingleFile) {
     const projectMatch = path.match(/^[\\/](.*)/);
     if (projectMatch) {
       return join(context.dir, projectMatch[1]);
@@ -367,8 +366,9 @@ function resolveNbPath(input: string, path: string, context?: ProjectContext) {
     if (isAbsolute(input)) {
       return join(dirname(input), path);
     } else {
-      const baseDir = context ? context.dir : Deno.cwd();
-      return join(baseDir, dirname(input), path);
+      const baseDir = context.isSingleFile ? Deno.cwd() : context.dir;
+      const result = join(baseDir, dirname(input), path);
+      return result;
     }
   }
 }
@@ -597,6 +597,11 @@ async function getCachedNotebookInfo(
       previewServer: context.options.previewServer,
       handledLanguages: languages(),
     };
+
+    const [dir, stem] = dirAndStem(nbAddress.path);
+    const outputPrefix = texSafeFilename(
+      `${dir !== "." ? dir + "-" : ""}${stem}`,
+    );
     const result = await jupyterToMarkdown(
       notebook,
       {
@@ -615,6 +620,7 @@ async function getCachedNotebookInfo(
         figDpi: format.execute[kFigDpi],
         figPos: format.render[kFigPos],
         fixups: "minimal",
+        outputPrefix,
       },
     );
 
@@ -796,7 +802,7 @@ function resolveRange(rangeRaw?: string) {
 function jupyterFromNotebookOrQmd(
   nbAbsPath: string,
   services: RenderServices,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) {
   // See if we can resolve non-notebooks. Note that this
   // requires that we have pre-rendered any notebooks that we discover

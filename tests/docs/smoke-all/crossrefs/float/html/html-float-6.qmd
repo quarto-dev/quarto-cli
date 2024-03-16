@@ -6,7 +6,7 @@ _quarto:
       ensureHtmlElements:
         - 
           - "div#fig-simple figure.quarto-float-fig img"
-          - "figcaption.figure"
+          - "figcaption.quarto-float-fig"
           - "a[href='#fig-simple'].quarto-xref"
         - []
 

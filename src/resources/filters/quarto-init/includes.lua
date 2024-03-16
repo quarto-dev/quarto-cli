@@ -49,7 +49,7 @@ function readIncludeFiles(meta, includes, target)
 
     local status, err = pcall(function () 
       -- read file contents
-      local f = io.open(pandoc.utils.stringify(file), "r")
+      local f = io.open(pandoc.utils.stringify(file), "rb")
       if f == nil then 
         fail("Error resolving " .. target .. "- unable to open file " .. file)
       end

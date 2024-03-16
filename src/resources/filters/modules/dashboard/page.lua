@@ -13,9 +13,9 @@ local kOrientationRowsClass = "rows"
 local kOrientationColumnsClass = "columns"
 
 local kPageAttr = "data-title"
+local kScrollingAttr = "scrolling"
 
 local function readOptions(el)
-
   local orientation = el.attributes[kOrientationAttr] or document.orientation;
   if el.classes ~= nil and el.classes:includes(kOrientationColumnsClass) then
     orientation = kOrientationColumnsClass
@@ -23,9 +23,12 @@ local function readOptions(el)
     orientation = kOrientationRowsClass
   end
 
-  return {
-    [kOrientationAttr] = orientation
+  local options = {
+    [kOrientationAttr] = orientation,
+    [kScrollingAttr] = el.attributes[kScrollingAttr]
   }
+
+  return options
 end
 
 local function makePage(id, headerEl, contents, options) 

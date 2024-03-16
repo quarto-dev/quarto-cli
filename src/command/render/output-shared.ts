@@ -4,7 +4,7 @@
  * Copyright (C) 2023 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, relative } from "path/mod.ts";
+import { dirname, isAbsolute, relative } from "../../deno_ral/path.ts";
 
 export function normalizeOutputPath(input: string, output: string) {
   if (isAbsolute(output)) {

@@ -1,5 +1,11 @@
-import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+/*
+* git.ts
+*
+* Copyright (C) 2020-2024 Posit Software, PBC
+*
+*/
+import { join } from "../../../src/deno_ral/path.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 
 export interface Repo {

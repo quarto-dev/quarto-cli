@@ -1,4 +1,4 @@
-import { expandGlobSync } from "https://deno.land/std@0.204.0/fs/mod.ts";
+import { expandGlobSync } from "fs/mod.ts";
 
 const json = JSON.parse(
   Deno.readTextFileSync("package/src/common/deno-meta.json"),

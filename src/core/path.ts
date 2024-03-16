@@ -12,14 +12,12 @@ import {
   isAbsolute,
   join,
   normalize,
-} from "path/mod.ts";
+} from "../deno_ral/path.ts";
 
-import {
-  globToRegExp,
-  isGlob,
-} from "https://deno.land/std@0.204.0/path/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
+import { isGlob } from "path/mod.ts";
 
-import { warning } from "log/mod.ts";
+import { warning } from "../deno_ral/log.ts";
 
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
@@ -45,6 +43,17 @@ export function safeRemoveIfExists(file: string) {
   }
 }
 
+export function safeRemoveSync(
+  file: string,
+  options: Deno.RemoveOptions = {},
+) {
+  try {
+    Deno.removeSync(file, options);
+  } catch (e) {
+    if (existsSync(file)) throw e;
+  }
+}
+
 export function removeIfEmptyDir(dir: string): boolean {
   if (existsSync(dir)) {
     let empty = true;
@@ -53,7 +62,7 @@ export function removeIfEmptyDir(dir: string): boolean {
       break;
     }
     if (empty) {
-      Deno.removeSync(dir, { recursive: true });
+      safeRemoveSync(dir, { recursive: true });
       return true;
     }
     return false;

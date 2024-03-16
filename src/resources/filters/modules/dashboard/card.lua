@@ -30,10 +30,10 @@ local kWidth = "width"
 local kMinHeight = "min-height"
 local kMaxHeight = "max-height"
 local kTitle = "title"
-local kLayout = "layout"
+local kFill = "fill"
 
 -- Card explicit attributes
-local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable})
+local kCardAttributes = pandoc.List({kTitle, kPadding, kHeight, kWidth, kMinHeight, kMaxHeight, kExpandable, kFill})
 
 -- Card Body Explicit Attributes
 local kCardBodyAttributes = pandoc.List({kTitle, kHeight, kMinHeight, kMaxHeight})
@@ -134,9 +134,9 @@ local function readOptions(el)
     end
 
     if el.classes:includes(kFlowClass) then
-      options[kLayout] = kFlowClass
+      options[kFill] = false
     elseif el.classes:includes(kFillClass) then
-      options[kLayout] = kFillClass
+      options[kFill] = true
     end
   end
 
@@ -414,10 +414,7 @@ return {
   addToHeader = addToHeader,
   hasCardDecoration = hasCardDecoration,
   optionKeys = {
-    layout = kLayout,
+    fill = kFill,
     expandable = kExpandable
-  },
-  optionValues = {
-    flow = kFlowClass
   }
 }

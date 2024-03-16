@@ -2,94 +2,130 @@
 -- Copyright (C) 2021-2022 Posit Software, PBC
 
 -- slightly fancy code here to make two operations work in a single pass
+function render_folded_block(block)
+  local make_code_fold_html = function(fold, summary)
+    local div = pandoc.Div({}, pandoc.Attr("", { 
+      "quarto-scaffold" 
+    }))
+    quarto_global_state.codeFoldingCss = _quarto.format.isHtmlOutput()
+    local open = ""
+    if fold == "show" then
+      open = " open"
+    end
+    local style = ""
+    local clz = 'code-fold'
+    if block.attr.classes:includes("hidden") then
+      clz = clz .. " hidden"
+    end
 
-local pass_uuid = "8c6b3915-b784-4ce5-8e73-59b368a9f289"
+    style = ' class="' .. clz .. '"'
+    local beginPara = pandoc.Plain({
+      pandoc.RawInline("html", "<details" .. open .. style .. ">\n<summary>"),
+    })
+    
+    if not isEmpty(summary) then
+      tappend(beginPara.content, markdownToInlines(summary))
+    end
+    beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
+    div.content:insert(beginPara)
+    div.content:insert(block)
+    div.content:insert(pandoc.RawBlock("html", "</details>"))
+    return div
+  end
+  if (not block.attr.classes:includes("cell-code") or
+     (not (_quarto.format.isHtmlOutput() or 
+           _quarto.format.isMarkdownWithHtmlOutput()))) then
+    return block, false
+  end
+  local fold = foldAttribute(block)
+  local summary = summaryAttribute(block)
+  if fold ~= nil or summary ~= nil then
+    block.attr.attributes["code-fold"] = nil
+    block.attr.attributes["code-summary"] = nil
+    if fold ~= "none" then 
+      return make_code_fold_html(fold, summary), true
+    else
+      return block, false
+    end
+  else
+    return block, false
+  end
+end
 
 function fold_code_and_lift_codeblocks()
   return {
+    traverse = "topdown",
     FloatRefTarget = function(float, float_node)
-      -- we need some special case logic to not lift code blocks
-      -- from listing floats that have no other content.
-      local other_content_found = false
-      _quarto.ast.walk(float.content, {
-        Div = function(div)
-          if not div.classes:includes(pass_uuid) then
-            other_content_found = true
-          end
-        end,
-      })
-      if not other_content_found then
+      -- we need to not lift code blocks from listing floats
+      if float.type == "Listing" then
         return nil
       end
 
       local blocks = pandoc.Blocks({})
+      local prev_annotated_code_block_scaffold = nil
+      local prev_annotated_code_block = nil
       -- ok to lift codeblocks
       float.content = _quarto.ast.walk(float.content, {
+        traverse = "topdown",
+        DecoratedCodeBlock = function(block)
+          -- defer the folding of code blocks to the DecoratedCodeBlock renderer
+          -- so that we can handle filename better
+          return nil, false
+        end,
+        CodeBlock = function(block)
+          local folded_block, did_fold = render_folded_block(block)
+          local need_to_lift = did_fold or block.classes:includes("code-annotation-code")
+          if need_to_lift then
+            folded_block = make_scaffold(pandoc.Div, { folded_block } )
+          end
+          if block.classes:includes("code-annotation-code") then
+            prev_annotated_code_block_scaffold = folded_block
+            prev_annotated_code_block = block
+          else
+            prev_annotated_code_block_scaffold = nil
+          end
+          if need_to_lift then
+            blocks:insert(folded_block)
+            return {}
+          else
+            return nil
+          end
+        end,
         Div = function(div)
-          if div.classes:includes(pass_uuid) then
-            blocks:insert(div)
+          if not div.classes:includes("cell-annotation") then
+            return nil
+          end
+          local need_to_move_dl = false
+          _quarto.ast.walk(div, {
+            Span = function(span)
+              if (prev_annotated_code_block and 
+                prev_annotated_code_block.identifier == span.attributes["data-code-cell"]) then
+                need_to_move_dl = true
+              end
+            end,
+          })
+          if need_to_move_dl then
+            assert(prev_annotated_code_block_scaffold)
+            print(prev_annotated_code_block_scaffold)
+            prev_annotated_code_block_scaffold.content:insert(div)
             return {}
           end
-        end
+        end,
       })
       if #blocks > 0 then
         blocks:insert(float_node)
-        return blocks
+        return blocks, false
       end
     end,
 
-    CodeBlock = function(block)
-      local make_code_fold_html = function(fold, summary)
-        local div = pandoc.Div({}, pandoc.Attr("", { 
-          "quarto-scaffold", pass_uuid 
-        }))
-        quarto_global_state.codeFoldingCss = _quarto.format.isHtmlOutput()
-        local open = ""
-        if fold == "show" then
-          open = " open"
-        end
-        local style = ""
-        local clz = 'code-fold'
-        if block.attr.classes:includes("hidden") then
-          clz = clz .. " hidden"
-        end
+    DecoratedCodeBlock = function(block)
+      -- defer the folding of code blocks to the DecoratedCodeBlock renderer
+      -- so that we can handle filename better
+      return nil, false
+    end,
 
-        style = ' class="' .. clz .. '"'
-        local beginPara = pandoc.Plain({
-          pandoc.RawInline("html", "<details" .. open .. style .. ">\n<summary>"),
-        })
-        
-        if not isEmpty(summary) then
-          tappend(beginPara.content, markdownToInlines(summary))
-        end
-        beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
-        div.content:insert(beginPara)
-        div.content:insert(block)
-        div.content:insert(pandoc.RawBlock("html", "</details>"))
-        return div
-      end
-      local make_code_cell_scaffold = function(div)
-        return pandoc.Div({ block }, pandoc.Attr("", { "quarto-scaffold", pass_uuid }))
-      end
-      if not block.attr.classes:includes("cell-code") then
-        return nil
-      end
-      if not (_quarto.format.isHtmlOutput() or _quarto.format.isMarkdownWithHtmlOutput()) then
-        return make_code_cell_scaffold(block)
-      end
-      local fold = foldAttribute(block)
-      local summary = summaryAttribute(block)
-      if fold ~= nil or summary ~= nil then
-        block.attr.attributes["code-fold"] = nil
-        block.attr.attributes["code-summary"] = nil
-        if fold ~= "none" then 
-          return make_code_fold_html(fold, summary)
-        else
-          return make_code_cell_scaffold(block)
-        end
-      else
-        return make_code_cell_scaffold(block)
-      end
+    CodeBlock = function(block)
+      return render_folded_block(block), false
     end
   }
 end

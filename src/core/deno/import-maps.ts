@@ -5,7 +5,7 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join } from "../../deno_ral/path.ts";
 import { mergeConfigs } from "../config.ts";
 
 const fixPath = (path: string, prefix: string) => {

@@ -52,7 +52,7 @@ function init(options: Options) {
     if (options.isPresentation) {
       handleRevealMessages(disconnect)
     } else {
-      handleViewerMessages();
+      handleViewerMessages(options.inputFile);
     }
 
   } catch (error) {

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { Document } from "../../../core/deno-dom.ts";
-import { join } from "path/mod.ts";
+import { join } from "../../../deno_ral/path.ts";
 import { kLang, kTitle } from "../../../config/constants.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";

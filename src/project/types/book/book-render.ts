@@ -4,9 +4,9 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 
-import { encode as base64Encode } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 
 import * as ld from "../../../core/lodash.ts";
 
@@ -705,8 +705,8 @@ function bookItemMetadata(
     bookItemDepth: item.depth,
   };
 
-  const inlineMetadataEncoded = base64Encode(JSON.stringify(inlineMetadata));
-  const blockMetadataEncoded = base64Encode(JSON.stringify(blockMetadata));
+  const inlineMetadataEncoded = encodeBase64(JSON.stringify(inlineMetadata));
+  const blockMetadataEncoded = encodeBase64(JSON.stringify(blockMetadata));
   return `\n\n\`<!-- quarto-file-metadata: ${inlineMetadataEncoded} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${blockMetadataEncoded} -->\n\`\`\`\n\n`;
 }
 

@@ -26,6 +26,13 @@
                   description: The dark theme name, theme scss file, or a mix of both.
   description: Theme name, theme scss file, or a mix of both.
 
+- name: body-classes
+  tags:
+    formats: [$html-doc]
+  schema: string
+  description: |
+    Classes to apply to the body of the document.
+
 - name: minimal
   schema: boolean
   default: false
@@ -129,18 +136,21 @@
   tags:
     formats: [$pdf-all, ms, context]
   schema:
-    string:
-      completions:
-        - pdflatex
-        - lualatex
-        - xelatex
-        - latexmk
-        - tectonic
-        - wkhtmltopdf
-        - weasyprint
-        - prince
-        - context
-        - pdfroff
+    enum:
+      [
+        pdflatex,
+        lualatex,
+        xelatex,
+        latexmk,
+        tectonic,
+        wkhtmltopdf,
+        weasyprint,
+        pagedjs-cli,
+        prince,
+        context,
+        pdfroff,
+        typst,
+      ]
   description:
     short: "Use the specified engine when producing PDF output."
     long: |
@@ -152,10 +162,11 @@
       - `latex`: `xelatex` (other options: `pdflatex`, `lualatex`,
         `tectonic`, `latexmk`)
       - `context`: `context`
-      - `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;
+      - `html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`, `pagedjs-cli`;
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS.)
       - `ms`:  `pdfroff`
+      - `typst`: `typst`
 
 - name: pdf-engine-opt
   tags:
@@ -169,10 +180,21 @@
       files, use `pdf-engine-opt: -outdir=foo`. Note that no check for 
       duplicate options is done.
 
+- name: pdf-engine-opts
+  tags:
+    formats: [$pdf-all, ms, context]
+  schema:
+    arrayOf: string
+  description:
+    short: "Pass multiple command-line arguments to the `pdf-engine`."
+    long: |
+      Use the given strings passed as a array as command-line arguments to the pdf-engine.
+      This is an alternative to `pdf-engine-opt` for passing multiple options.
+
 - name: beamerarticle
   schema: boolean
   tags:
-    formats: [beamer]
+    formats: [pdf]
   description: Whether to produce a Beamer article from this presentation.
 
 - name: beameroption
@@ -276,13 +298,6 @@
     Specify whether to use `atx` (`#`-prefixed) or
     `setext` (underlined) headings for level 1 and 2
     headings (`atx` or `setext`).
-
-- name: keep-yaml
-  tags:
-    formats: [$markdown-all]
-  schema: boolean
-  default: false
-  description: "Preserve the original YAML front matter in rendered markdown"
 
 - name: ipynb-output
   tags:

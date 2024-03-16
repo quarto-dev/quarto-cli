@@ -4,8 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
-import { isAbsolute, join } from "path/mod.ts";
+import { isAbsolute, join } from "../../deno_ral/path.ts";
 import { existsSync, expandGlobSync } from "fs/mod.ts";
 
 import { isWindows } from "../platform.ts";
@@ -15,6 +14,7 @@ import { readYamlFromString } from "../yaml.ts";
 import { which } from "../path.ts";
 
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
+import { warnOnce } from "../log.ts";
 
 // cache capabilities per language
 const kNoLanguage = "(none)";
@@ -153,9 +153,11 @@ async function getQuartoJupyterCapabilities() {
       if (quartoJupyterBin) {
         return getJupyterCapabilities([quartoJupyterBin]);
       }
+    } else {
+      warnOnce(`Specified QUARTO_PYTHON '${quartoJupyter}' does not exist`);
     }
-    warning(
-      "Specified QUARTO_PYTHON '" + quartoJupyter + "' does not exist.",
+    warnOnce(
+      `No python binary found in specified QUARTO_PYTHON location '${quartoJupyter}'`,
     );
     return undefined;
   } else {

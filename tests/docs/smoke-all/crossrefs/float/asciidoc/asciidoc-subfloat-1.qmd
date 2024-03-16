@@ -8,7 +8,7 @@ _quarto:
         -
           - "\\.Surus"
           - "\\.Abbas"
-          - "\\. Famous Elephants" # TODO We should try to understand why some captions have spaces in front of them and others don't
+          - "\\.Famous Elephants"
           - "\\[#fig-elephants\\]"
           - "\\[#fig-surus\\]"
           - "\\[#fig-abbas\\]"

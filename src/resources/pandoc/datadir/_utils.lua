@@ -392,9 +392,19 @@ local function match(...)
 
   local function process_nth_child(n, capture_fun)
     table.insert(result, function(node)
-      return node.content ~= nil and 
-        node.content[n] and 
-        capture_fun(node.content[n])
+      if node == nil then
+        return false
+      end
+      local pt = pandoc.utils.type(node)
+      local content
+      if pt == "Blocks" or pt == "Inlines" then
+        content = node
+      else
+        content = node.content
+      end
+      return content ~= nil and 
+        content[n] and 
+        capture_fun(content[n])
     end)
   end
 

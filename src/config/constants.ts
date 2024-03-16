@@ -54,6 +54,7 @@ export const kNotebookPreserveCells = "notebook-preserve-cells";
 export const kClearCellOptions = "clear-cell-options";
 export const kDownloadUrl = "download-url";
 export const kLightbox = "lightbox";
+export const kCanonicalUrl = "canonical-url";
 
 export const kMath = "math";
 
@@ -107,6 +108,7 @@ export const kPreserveYaml = "preserve-yaml";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
 export const kBiblioConfig = "biblio-config";
+export const kBodyClasses = "body-classes";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -134,6 +136,8 @@ export const kPreviewModeRaw = "raw";
 export const kFontPaths = "font-paths";
 
 export const kHtmlTableProcessing = "html-table-processing";
+export const kUseRsvgConvert = "use-rsvg-convert";
+export const kValidateYaml = "validate-yaml";
 
 export const kIdentifierDefaultsKeys = [
   kTargetFormat,
@@ -221,6 +225,9 @@ export const kRenderDefaultsKeys = [
   kNotebookPreserveCells,
   kClearCellOptions,
   kHtmlTableProcessing,
+  kValidateYaml,
+  kCanonicalUrl,
+  kBodyClasses,
 ];
 
 // language fields
@@ -247,6 +254,7 @@ export const kSectionTitleCopyright = "section-title-copyright";
 export const kSectionTitleCitation = "section-title-citation";
 export const kAppendixAttributionBibTex = "appendix-attribution-bibtex";
 export const kAppendixAttributionCiteAs = "appendix-attribution-cite-as";
+export const kAppendixViewLicense = "appendix-view-license";
 export const kTitleBlockAuthorSingle = "title-block-author-single";
 export const kTitleBlockAuthorPlural = "title-block-author-plural";
 export const kTitleBlockAffiliationSingle = "title-block-affiliation-single";
@@ -264,6 +272,8 @@ export const kCodeToolsViewSource = "code-tools-view-source";
 export const kCodeToolsSourceCode = "code-tools-source-code";
 export const kSearchNoResultsText = "search-no-results-text";
 export const kSearchLabel = "search-label";
+export const kToolsShare = "tools-share";
+export const kToolsDownload = "tools-download";
 
 export const kToggleSection = "toggle-section";
 export const kToggleSidebar = "toggle-sidebar";
@@ -283,6 +293,7 @@ export const kSearchHideMatchesText = "search-hide-matches-text";
 export const kSearchMoreMatchText = "search-more-match-text";
 export const kSearchMoreMatchesText = "search-more-matches-text";
 export const kSearchClearButtonTitle = "search-clear-button-title";
+export const kSearchTextPlaceholder = "search-text-placeholder";
 export const kSearchDetatchedCancelButtonTitle =
   "search-detached-cancel-button-title";
 export const kSearchSubmitButtonTitle = "search-submit-button-title";
@@ -319,6 +330,7 @@ export const kEnvironmentProofTitle = "environment-proof-title";
 export const kEnvironmentRemarkTitle = "environment-remark-title";
 export const kEnvironmentSolutionTitle = "environment-solution-title";
 export const kListingPageOrderBy = "listing-page-order-by";
+export const kListingPageFilter = "listing-page-filter";
 export const kListingPageOrderByDefault = "listing-page-order-by-default";
 export const kListingPageOrderByDateAsc = "listing-page-order-by-date-asc";
 export const kListingPageOrderByDateDesc = "listing-page-order-by-date-desc";
@@ -344,6 +356,7 @@ export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
 export const kArticleNotebookLabel = "article-notebook-label";
 export const kManuscriptMecaBundle = "manuscript-meca-bundle";
+export const kDraftLabel = "draft";
 
 export const kLanguageDefaultsKeys = [
   kTocTitleDocument,
@@ -369,6 +382,7 @@ export const kLanguageDefaultsKeys = [
   kSectionTitleCitation,
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kTitleBlockAuthorSingle,
   kTitleBlockPublished,
   kTitleBlockModified,
@@ -381,6 +395,8 @@ export const kLanguageDefaultsKeys = [
   kCodeToolsHideAllCode,
   kCodeToolsViewSource,
   kCodeToolsSourceCode,
+  kToolsShare,
+  kToolsDownload,
   kSearchNoResultsText,
   kSearchLabel,
   kToggleDarkMode,
@@ -400,6 +416,7 @@ export const kLanguageDefaultsKeys = [
   kSearchMoreMatchText,
   kSearchMoreMatchesText,
   kSearchClearButtonTitle,
+  kSearchTextPlaceholder,
   kSearchDetatchedCancelButtonTitle,
   kSearchSubmitButtonTitle,
   kCrossrefFigTitle,
@@ -434,6 +451,7 @@ export const kLanguageDefaultsKeys = [
   kEnvironmentProofTitle,
   kEnvironmentRemarkTitle,
   kEnvironmentSolutionTitle,
+  kListingPageFilter,
   kListingPageOrderBy,
   kListingPageOrderByDefault,
   kListingPageOrderByDateAsc,
@@ -465,6 +483,7 @@ export const kLanguageDefaultsKeys = [
   kNotebookPreviewDownloadSrc,
   kNotebookPreviewBack,
   kArticleNotebookLabel,
+  kDraftLabel,
   kManuscriptMecaBundle,
 ];
 

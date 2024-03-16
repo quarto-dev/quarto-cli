@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { warning } from "log/mod.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import { Select } from "cliffy/prompt/select.ts";
 import { Confirm } from "cliffy/prompt/confirm.ts";
@@ -26,6 +26,7 @@ import {
   publishRecordIdentifier,
   readAccountsPublishedTo,
 } from "../../publish/common/data.ts";
+import { kGhpages } from "../../publish/gh-pages/gh-pages.ts";
 
 export async function resolveDeployment(
   options: PublishOptions,
@@ -84,7 +85,7 @@ export async function resolveDeployment(
         }
       } else {
         return await chooseDeployment(deployments);
-      } 
+      }
     } else if (deployments.length === 1) {
       return deployments[0];
     } else {
@@ -95,7 +96,12 @@ export async function resolveDeployment(
   } else if (!options.prompt) {
     // if we get this far then an existing deployment has not been chosen,
     // if --no-prompt is specified then this is an error state
-    if (!options.prompt) {
+    if (providerFilter === kGhpages) {
+      // special case for gh-pages where no _publish.yml is required but a gh-pages branch is
+      throw new Error(
+        `Unable to publish to GitHub Pages (the remote origin does not have a branch named "gh-pages". Use first \`quarto publish gh-pages\` locally to initialize the remote repository for publishing.)`,
+      );
+    } else {
       throw new Error(
         `No _publish.yml file available (_publish.yml specifying a destination required for non-interactive publish)`,
       );
@@ -226,9 +232,10 @@ export async function chooseDeployment(
     options,
   });
 
-  if (confirm !== kOther) {
+  if (confirm.value !== kOther) {
     return depoyments.find((deployment) =>
-      publishRecordIdentifier(deployment.target, deployment.account) === confirm
+      publishRecordIdentifier(deployment.target, deployment.account) ===
+        confirm.value
     );
   } else {
     return undefined;

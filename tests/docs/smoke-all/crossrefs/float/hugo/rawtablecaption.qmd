@@ -7,7 +7,7 @@ _quarto:
       ensureFileRegexMatches:
         - 
           - "<div id=\"tbl-1\">"
-          - "Table 1: This is a caption."
+          - "Table 1: This is a caption." # NB there's a non-breaking space here 
           - "<a href=\"#tbl-1\" class=\"quarto-xref\">"
         - []
 ---

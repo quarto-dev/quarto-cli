@@ -4,7 +4,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { info } from "log/mod.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 import { Configuration } from "../common/config.ts";
 
 export async function bundle(
@@ -20,7 +20,7 @@ export async function bundle(
   }
   denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("bundle");
-  denoBundleCmd.push("--unstable");
+  denoBundleCmd.push("--unstable-ffi");
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );
@@ -54,7 +54,7 @@ export async function compile(
   }
   denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("compile");
-  denoBundleCmd.push("--unstable");
+  denoBundleCmd.push("--unstable-ffi");
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );
@@ -85,7 +85,7 @@ export async function install(
   }
   denoBundleCmd.push(denoExecPath);
   denoBundleCmd.push("install");
-  denoBundleCmd.push("--unstable");
+  denoBundleCmd.push("--unstable-ffi");
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );

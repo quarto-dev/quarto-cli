@@ -6,7 +6,7 @@
 
 import { docs } from "../../utils.ts";
 
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "../../../src/deno_ral/path.ts";
 import { ensureHtmlElements } from "../../verify.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrors } from "../../verify.ts";

@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2023 Posit Software, PBC
  */
 
-import { extname } from "path/mod.ts";
+import { extname } from "../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { projectType } from "../project/types/project-types.ts";
 import {
@@ -22,6 +22,20 @@ import { withRenderServices } from "../command/render/render-services.ts";
 import { NotebookContext } from "../render/notebook/notebook-types.ts";
 
 const kDefaultContainerTitle = "Default Container";
+
+export const makeProjectEnvironmentMemoizer = (
+  notebookContext: NotebookContext,
+) => {
+  let cachedEnv: ProjectEnvironment | undefined = undefined;
+  return async (project: ProjectContext) => {
+    if (cachedEnv) {
+      return Promise.resolve(cachedEnv);
+    } else {
+      cachedEnv = await computeProjectEnvironment(notebookContext, project);
+      return cachedEnv;
+    }
+  };
+};
 
 export const computeProjectEnvironment = async (
   notebookContext: NotebookContext,

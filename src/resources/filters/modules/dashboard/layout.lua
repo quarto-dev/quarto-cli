@@ -23,8 +23,6 @@ local kOrientationColumns = "columns"
 
 local kOptionClasses = "classes"
 
-
-
 local function isRowContainer(el)
   return el.classes ~= nil and el.classes:includes(kRowsClass)
 end

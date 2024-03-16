@@ -1,0 +1,21 @@
+---
+title: "Ojs Test"
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        -
+          - "ojs-cell-1"
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+```{ojs}
+viewof bill_length_min = Inputs.range(
+  [32, 50], 
+  {value: 35, step: 1, label: "Bill length (min):"}
+)
+```
+
+Nulla at varius turpis. Ut nec purus efficitur, dictum urna eget, molestie ante.

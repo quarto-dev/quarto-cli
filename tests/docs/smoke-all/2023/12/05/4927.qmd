@@ -1,0 +1,31 @@
+---
+title: "repr"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "summary1"
+          - "summary2"
+        - []
+---
+
+This is R code.
+
+```{r}
+#| code-fold: true
+#| code-summary: summary1
+
+1 + 1
+```
+
+This is OJS code.
+
+```{ojs}
+//| code-fold: true
+//| code-summary: 'summary2'
+
+1 + 1
+```
+
+End.

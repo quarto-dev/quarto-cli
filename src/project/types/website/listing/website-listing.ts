@@ -6,7 +6,7 @@
 *
 */
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "../../../../deno_ral/path.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { existsSync } from "fs/mod.ts";
 
@@ -67,7 +67,7 @@ import {
 } from "./website-listing-index.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import { formatHasBootstrap } from "../../../../format/html/format-html-info.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../../../../deno_ral/log.ts";
 
 export function listingSupplementalFiles(
   project: ProjectContext,

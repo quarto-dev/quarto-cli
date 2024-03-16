@@ -1,0 +1,13 @@
+---
+title: Equations
+format: docusaurus-md
+---
+
+
+
+
+$$
+price = \hat{\beta}_0 + \hat{\beta}_1 \times area + \epsilon
+$$
+
+Inline equations as well: $e = mc^2$.

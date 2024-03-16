@@ -1,0 +1,19 @@
+---
+title: "Table stuff"
+format: pdf
+---
+
+See @tbl-cars-gt
+
+```{r}
+#| label: tbl-cars-gt
+#| tbl-cap: "This is a test"
+#| echo: false
+mtcars |>
+  head() |>
+  gt::gt() |> 
+  gt::tab_footnote(
+    footnote = "Here's a note",
+    locations = gt::cells_body(columns = cyl, rows = 2)
+  )
+```

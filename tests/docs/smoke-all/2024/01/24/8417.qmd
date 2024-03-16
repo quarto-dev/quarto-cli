@@ -1,0 +1,26 @@
+---
+pagetitle: "test"
+format:
+  html:
+    embed-resources: true
+execute:
+  echo: false
+filters:
+  - at: post-fold-code-and-lift-codeblocks-from-floats
+    path: 8417_test_ast.lua
+---
+
+```{r libraries}
+#| warning: false
+library(gt)
+m <- mtcars[1:3,] |> 
+  gt()
+i <- iris[1:3,] |> 
+  gt()
+```
+
+```{r tables}
+#| layout: [[50, 50]]
+m
+i
+```

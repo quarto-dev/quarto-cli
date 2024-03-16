@@ -5,6 +5,8 @@ format:
 title: Quarto Filter Trace Viewer
 execute: 
   echo: false
+filters:
+  - load_trace.lua
 ---
 
 ```{ojs}
@@ -16,13 +18,35 @@ dz = htl.html`<div id="dropzone">
 
 
 ```{ojs}
+b64Data = (docId) => {
+  const el = document.querySelector(`#${docId}`);
+  if (!el) {
+    return;
+  }
+  return atob(el.textContent);
+}
+jsonb64Data = (docId) => {
+  const d = b64Data(docId);
+  if (!d) {
+    return;
+  }
+  return JSON.parse(d)
+}
 // Based on 
 // - https://observablehq.com/@triptych/loading-a-file-via-drag-and-drop-in-observable
 // - https://observablehq.com/@tuner/using-event-listeners
 trace = Generators.observe((change) => {
   let traces = {
-    trace1: undefined,
-    trace2: undefined
+    trace1: jsonb64Data("trace_1_data"),
+    trace2: jsonb64Data("trace_2_data")
+  }
+  const t1Name = b64Data("trace_1_name")
+  const t2Name = b64Data("trace_2_name")
+  if (t1Name) {
+      dz.querySelector("#trace1").textContent = `Trace 1: ${t1Name}`;    
+  }
+  if (t2Name) {
+      dz.querySelector("#trace2").textContent = `Trace 2: ${t2Name}`;    
   }
 
   const emitChange = () => {
@@ -103,7 +127,7 @@ trace = Generators.observe((change) => {
     el.addEventListener("drop", dropped);
     el.addEventListener("dragover", (ev) => ev.preventDefault());
   }
-  change(undefined);
+  emitChange();
   return () => {};
 })
 ```

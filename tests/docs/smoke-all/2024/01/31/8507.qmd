@@ -1,0 +1,17 @@
+---
+title: Hello World
+author: Charles Teague
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureSnapshotMatches: true
+---
+
+## A simple callout
+
+:::{.callout-note}
+
+What up dog?
+
+:::
