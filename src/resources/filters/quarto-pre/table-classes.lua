@@ -41,21 +41,20 @@ function table_classes()
   -- in either case. Cursed code follows...
   return {
     Table = function(tbl)
-      -- if there is no caption then return tbl unchanged
-      if tbl.caption.long == nil or #tbl.caption.long < 1 then
-        return nil
-      end
-
       -- determine if we have any supplied classes, these should always begin with a `.` and
       -- consist of alphanumeric characters
       local caption = tbl.caption.long[#tbl.caption.long]
       local caption_parsed, attr = parseTableCaption(pandoc.utils.blocks_to_inlines({caption}))
+      tbl.classes = tbl.classes:map(normalize_class)
       local normalized_classes = attr.classes:map(normalize_class)
 
       process_table(tbl, normalized_classes)
 
       attr.classes = pandoc.List()
       tbl.caption.long[#tbl.caption.long] = pandoc.Plain(createTableCaption(caption_parsed, attr))
+      if #quarto.utils.as_inlines(tbl.caption.long) == 0 then
+        tbl.caption.long = nil
+      end
       return tbl
     end,
     FloatRefTarget = function(float)
@@ -64,18 +63,23 @@ function table_classes()
         return nil
       end
 
-      if float.caption_long == nil or (#float.caption_long.content and #float.caption_long.content < 1) then
+      if (float.caption_long == nil or 
+          float.caption_long.content == nil or 
+          #float.caption_long.content < 1) then
         return nil
       end
 
       local caption_content = float.caption_long.content
       local caption_parsed, attr = parseTableCaption(caption_content)
-      local normalized_classes = attr.classes:map(normalize_class)
+      local unnormalized_classes = float.classes
+      tappend(unnormalized_classes, attr.classes)
+      local normalized_classes = unnormalized_classes:map(normalize_class)
 
       if float.content.t == "Table" then
         float.content = process_table(float.content, normalized_classes)
       else
         float.content = _quarto.ast.walk(float.content, {
+          traverse = "topdown",
           FloatRefTarget = function()
             return nil, false -- do not descend into subfloats
           end,

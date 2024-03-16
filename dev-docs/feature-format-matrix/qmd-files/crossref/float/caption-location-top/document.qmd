@@ -1,0 +1,9 @@
+---
+format:
+  docusaurus-md: {}
+cap-location: top
+---
+
+![This is the caption](image.jpg){#fig-1}
+
+See @fig-1.

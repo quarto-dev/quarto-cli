@@ -1,6 +1,8 @@
 // ensure this is treated as a module
 export {};
 
+const args = Deno.args;
+
 // establish target js build time
 const kQuartoPreviewJs = "../../resources/preview/quarto-preview.js";
 let jsBuildTime: number;
@@ -11,7 +13,7 @@ try {
 }
 
 // check if any of our repo files have a later time
-let build = false;
+let build = args.length > 0 && args.includes("--force");
 try {
   const command = new Deno.Command("git", { args: ["ls-files"] });
   const cmdOutput = await command.output();
@@ -21,7 +23,7 @@ try {
     build = files.some((file) =>
       Deno.statSync(file).mtime!.valueOf() > jsBuildTime
     );
-  } else { 
+  } else {
     // not in a git repo, rebuild
     build = true;
   }

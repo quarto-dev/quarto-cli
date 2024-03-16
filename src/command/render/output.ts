@@ -12,11 +12,13 @@ import {
   join,
   relative,
   SEP_PATTERN,
-} from "path/mod.ts";
+} from "../../deno_ral/path.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
+
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml/mod.ts";
 
 import {
   kOutputExt,
@@ -82,7 +84,13 @@ export function outputRecipe(
   } else if (useContextPdfOutputRecipe(format, options.flags)) {
     return contextPdfOutputRecipe(input, output, options, format);
   } else if (useTypstPdfOutputRecipe(format)) {
-    return typstPdfOutputRecipe(input, output, options, format);
+    return typstPdfOutputRecipe(
+      input,
+      output,
+      options,
+      format,
+      context.project,
+    );
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
@@ -152,10 +160,20 @@ export function outputRecipe(
           const outputMd = partitionYamlFrontMatter(
             Deno.readTextFileSync(outputFile),
           );
+          // remove _quarto metadata
+          //
+          // this is required to avoid tests breaking due to the
+          // _quarto regexp tests finding themselves in the output
+          const yaml = parseYaml(
+            inputMd.yaml.replace(/^---+\n/m, "").replace(/\n---+\n*$/m, "\n"),
+          ) as Record<string, unknown>;
+          delete yaml._quarto;
+          const yamlString = `---\n${stringifyYaml(yaml)}---\n`;
+
           const markdown = outputMd?.markdown || output;
           Deno.writeTextFileSync(
             outputFile,
-            inputMd.yaml + "\n\n" + markdown,
+            yamlString + "\n\n" + markdown,
           );
         }
       });
@@ -201,17 +219,6 @@ export function outputRecipe(
 
     // return
     return recipe;
-  }
-}
-
-export function normalizeOutputPath(input: string, output: string) {
-  if (isAbsolute(output)) {
-    return output;
-  } else {
-    return relative(
-      dirname(input),
-      output,
-    );
   }
 }
 

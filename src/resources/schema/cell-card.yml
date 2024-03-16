@@ -1,0 +1,70 @@
+- name: title
+  tags:
+    formats: [dashboard]
+  schema: string
+  description:
+    short: "Title displayed in dashboard card header"
+
+- name: padding
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - number
+  description:
+    short: "Padding around dashboard card content (default `8px`)"
+
+- name: expandable
+  tags:
+    formats: [dashboard]
+  schema: boolean
+  default: true
+  description:
+    short: "Make dashboard card content expandable (default: `true`)"
+
+- name: width
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - number
+  description:
+    short: "Percentage or absolute pixel width for dashboard card (defaults to evenly spaced across row)"
+
+- name: height
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - number
+  description:
+    short: "Percentage or absolute pixel height for dashboard card (defaults to evenly spaced across column)"
+
+- name: context
+  tags:
+    formats: [dashboard]
+    engine: [jupyter]
+  schema: string
+  description:
+    short: "Context to execute cell within."
+
+- name: content
+  tags:
+    formats: [dashboard]
+  schema:
+    enum: [valuebox, sidebar, toolbar, card-sidebar, card-toolbar]
+  description:
+    short: "The type of dashboard element being produced by this code cell."
+
+- name: color
+  tags:
+    formats: [dashboard]
+  schema:
+    anyOf:
+      - string
+      - enum: [primary, secondary, success, info, warning, danger, light, dark]
+  description:
+    short: "For code cells that produce a valuebox, the color of the valuebox.s"

@@ -1,0 +1,11 @@
+---
+title: "failing table"
+format: pdf
+---
+
+```{r}
+#| label: tbl-label1
+
+library(kableExtra)
+kable(head(cars)) %>% kable_styling()
+```

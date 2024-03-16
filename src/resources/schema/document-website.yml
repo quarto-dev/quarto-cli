@@ -27,7 +27,10 @@
   description: URLs that alias this document, when included in a website.
 
 - name: image
-  schema: path
+  schema:
+    anyOf:
+      - path
+      - boolean
   tags:
     formats: [$html-doc]
   description:

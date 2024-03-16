@@ -1,0 +1,38 @@
+---
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        # all marginfigures here
+        - ["\\{marginfigure\\}"]
+        - ["\\{figure\\}"] 
+---
+
+![What if it's a reftarget](elephant.jpg){#fig-1 .column-margin}
+
+![](elephant.jpg){.column-margin offset="15em"}
+
+See @fig-1.
+
+::: {.column-margin  offset="25em"}
+
+More margin content
+
+![](elephant.jpg)
+
+Stuff.
+
+:::
+
+::: {.column-margin offset="35em"}
+
+More margin content
+
+Stuff.
+
+:::
+
+:::{.column-margin  offset="40em"}
+![](elephant.jpg)
+:::

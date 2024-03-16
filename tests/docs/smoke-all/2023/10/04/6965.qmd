@@ -1,0 +1,16 @@
+---
+format: typst
+title: issue-6965
+---
+
+:::: {layout="[15,85]"}
+
+::: {custom-style="Image"}
+![](mark.jpg){width="100%" fig-alt="Image of an exclamation mark"}
+:::
+
+::: {custom-style="Safety Body"}
+**WARNING** -- Do not ingest battery, chemical burn hazard. This product contains a coin/button cell battery.
+:::
+
+::::

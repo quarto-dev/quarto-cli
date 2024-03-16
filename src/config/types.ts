@@ -8,15 +8,18 @@ import { Document } from "../core/deno-dom.ts";
 import {
   kAppendixAttributionBibTex,
   kAppendixAttributionCiteAs,
+  kAppendixViewLicense,
   kArticleNotebookLabel,
   kBackToTop,
   kBaseFormat,
+  kBodyClasses,
   kCache,
   kCalloutCautionCaption,
   kCalloutImportantCaption,
   kCalloutNoteCaption,
   kCalloutTipCaption,
   kCalloutWarningCaption,
+  kCanonicalUrl,
   kCiteMethod,
   kCiteproc,
   kClearCellOptions,
@@ -56,6 +59,7 @@ import {
   kDfPrint,
   kDisplayName,
   kDownloadUrl,
+  kDraftLabel,
   kEcho,
   kEmbedResources,
   kEngine,
@@ -87,6 +91,7 @@ import {
   kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -94,6 +99,7 @@ import {
   kInlineIncludes,
   kIpynbFilters,
   kIpynbProduceSourceNotebook,
+  kIpynbShellInteractivity,
   kKatex,
   kKeepHidden,
   kKeepIpynb,
@@ -128,6 +134,7 @@ import {
   kListingPageFieldSubtitle,
   kListingPageFieldTitle,
   kListingPageFieldWordCount,
+  kListingPageFilter,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
   kListingPageOrderBy,
@@ -164,6 +171,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPlotlyConnected,
   kPreferHtml,
   kPreserveYaml,
   kQuartoFilters,
@@ -183,6 +191,7 @@ import {
   kSearchMoreMatchText,
   kSearchNoResultsText,
   kSearchSubmitButtonTitle,
+  kSearchTextPlaceholder,
   kSectionDivs,
   kSectionTitleAbstract,
   kSectionTitleAppendices,
@@ -220,7 +229,11 @@ import {
   kToggleReaderMode,
   kToggleSection,
   kToggleSidebar,
+  kToolsDownload,
+  kToolsShare,
   kTopLevelDivision,
+  kUseRsvgConvert,
+  kValidateYaml,
   kVariables,
   kVariant,
   kWarning,
@@ -312,10 +325,21 @@ export type PandocFilter = {
   path: string;
 };
 
-export type QuartoFilter = string | PandocFilter;
+export type QuartoFilterEntryPoint = PandocFilter & { "at": string };
+
+export type QuartoFilter = string | PandocFilter | QuartoFilterEntryPoint;
 
 export function isPandocFilter(filter: QuartoFilter): filter is PandocFilter {
   return (<PandocFilter> filter).path !== undefined;
+}
+
+export function isFilterEntryPoint(
+  filter: QuartoFilter,
+): filter is QuartoFilterEntryPoint {
+  if (typeof filter === "string") {
+    return false;
+  }
+  return (<QuartoFilterEntryPoint> filter).at !== undefined;
 }
 
 export interface NotebookPreviewDescriptor {
@@ -323,6 +347,7 @@ export interface NotebookPreviewDescriptor {
   url?: string;
   title?: string;
   [kDownloadUrl]?: string;
+  order?: number;
 }
 
 export interface FormatExtras {
@@ -459,6 +484,11 @@ export interface FormatRender {
   [kNotebookPreserveCells]?: boolean;
   [kClearCellOptions]?: boolean;
   [kIpynbProduceSourceNotebook]?: boolean;
+  [kHtmlTableProcessing]?: "none";
+  [kUseRsvgConvert]?: boolean;
+  [kValidateYaml]?: boolean;
+  [kCanonicalUrl]?: boolean | string;
+  [kBodyClasses]?: string;
 }
 
 export interface FormatExecute {
@@ -487,6 +517,14 @@ export interface FormatExecute {
   [kKeepMd]?: boolean;
   [kKeepIpynb]?: boolean;
   [kIpynbFilters]?: string[];
+  [kIpynbShellInteractivity]?:
+    | null
+    | "all"
+    | "last"
+    | "last_expr"
+    | "none"
+    | "last_expr_or_assign";
+  [kPlotlyConnected]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -601,6 +639,7 @@ export interface FormatLanguage {
   [kSectionTitleReferences]?: string;
   [kSectionTitleAppendices]?: string;
   [kSectionTitleReuse]?: string;
+  [kAppendixViewLicense]?: string;
   [kSectionTitleCopyright]?: string;
   [kCodeSummary]?: string;
   [kCodeLine]?: string;
@@ -610,6 +649,8 @@ export interface FormatLanguage {
   [kCodeToolsHideAllCode]?: string;
   [kCodeToolsViewSource]?: string;
   [kCodeToolsSourceCode]?: string;
+  [kToolsDownload]?: string;
+  [kToolsShare]?: string;
   [kRepoActionLinksEdit]?: string;
   [kRepoActionLinksSource]?: string;
   [kRepoActionLinksIssue]?: string;
@@ -628,6 +669,7 @@ export interface FormatLanguage {
   [kSearchMoreMatchText]?: string;
   [kSearchHideMatchesText]?: string;
   [kSearchClearButtonTitle]?: string;
+  [kSearchTextPlaceholder]?: string;
   [kSearchDetatchedCancelButtonTitle]?: string;
   [kSearchSubmitButtonTitle]?: string;
   [kCrossrefFigTitle]?: string;
@@ -649,6 +691,7 @@ export interface FormatLanguage {
   [kEnvironmentRemarkTitle]?: string;
   [kEnvironmentSolutionTitle]?: string;
   [kListingPageOrderBy]?: string;
+  [kListingPageFilter]?: string;
   [kListingPageOrderByDateAsc]?: string;
   [kListingPageOrderByDefault]?: string;
   [kListingPageOrderByDateDesc]?: string;
@@ -672,6 +715,7 @@ export interface FormatLanguage {
   [kNotebookPreviewDownloadSrc]?: string;
   [kNotebookPreviewBack]?: string;
   [kArticleNotebookLabel]?: string;
+  [kDraftLabel]?: string;
   [kManuscriptMecaBundle]?: string;
 
   // langauge variations e.g. eg, fr, etc.
@@ -688,6 +732,13 @@ export interface FormatLink {
   text: string;
   href: string;
   order?: number;
+  attr?: Record<string, string>;
+}
+
+export interface FormatAliasLink {
+  icon?: string;
+  text: string;
+  format: string;
   attr?: Record<string, string>;
 }
 

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { basename, dirname } from "path/mod.ts";
+import { basename, dirname } from "../../deno_ral/path.ts";
 import { formatResourcePath, pandocBinaryPath } from "../../core/resources.ts";
 import { execProcess } from "../../core/process.ts";
 

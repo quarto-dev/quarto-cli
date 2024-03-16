@@ -1,0 +1,30 @@
+---
+title: Knitr Crossref Test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "id=\"fig-plot\""
+          - "alt=\"Figure 1: Fancy caption with math: e=mc\\^2\""
+          - "<a href=\"#fig-plot\" class=\"quarto-xref\">"
+
+---
+
+
+This tests:
+
+- float figures from knitr
+- Markdown support for captions from knitr
+
+## Knitr Crossref Figure
+
+```{r}
+#| label: fig-plot
+#| fig-cap: "Fancy _caption_ with math: $e=mc^2$"
+
+plot(cars)
+```
+
+For example, see @fig-plot.

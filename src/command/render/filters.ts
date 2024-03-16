@@ -23,6 +23,7 @@ import {
   kFormatIdentifier,
   kHeaderIncludes,
   kHtmlMathMethod,
+  kHtmlTableProcessing,
   kIncludeAfter,
   kIncludeAfterBody,
   kIncludeBefore,
@@ -37,19 +38,25 @@ import {
   kOutputLocation,
   kPdfEngine,
   kQuartoFilters,
+  kQuartoPost,
+  kQuartoPre,
   kReferenceLocation,
   kReferences,
   kRemoveHidden,
+  kResourcePath,
   kShortcodes,
   kTblColwidths,
   kTocTitleDocument,
   kUnrollMarkdownCells,
+  kUseRsvgConvert,
 } from "../../config/constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
-  FormatLanguage,
+  Format,
   FormatPandoc,
+  isFilterEntryPoint,
   QuartoFilter,
+  QuartoFilterEntryPoint,
 } from "../../config/types.ts";
 import { QuartoFilterSpec } from "./types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -73,11 +80,13 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { metadataNormalizationFilterActive } from "./normalize.ts";
 import { kCodeAnnotations } from "../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { relative } from "path/mod.ts";
+import { relative } from "../../deno_ral/path.ts";
 import { citeIndexFilterParams } from "../../project/project-cites.ts";
-import { debug } from "log/mod.ts";
+import { debug } from "../../deno_ral/log.ts";
 import { kJatsSubarticle } from "../../format/jats/format-jats-types.ts";
 import { shortUuid } from "../../core/uuid.ts";
+import { isServerShinyPython } from "../../core/render.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -98,7 +107,14 @@ const kQuartoVersion = "quarto-version";
 
 const kQuartoSource = "quarto-source";
 
+const kHasResourcePath = "has-resource-path";
+
 const kQuartoCustomFormat = "quarto-custom-format";
+
+const kIsShinyPython = "is-shiny-python";
+const kShinyPythonExec = "shiny-python-exec";
+
+const kExecutionEngine = "execution-engine";
 
 export async function filterParamsJson(
   args: string[],
@@ -134,6 +150,11 @@ export async function filterParamsJson(
     options.format.metadata,
   );
 
+  const isShinyPython = isServerShinyPython(
+    options.format,
+    options.executionEngine,
+  );
+
   const params: Metadata = {
     ...includes,
     ...initFilterParams(dependenciesFile),
@@ -144,7 +165,7 @@ export async function filterParamsJson(
     ...crossrefFilterParams(options, defaults),
     ...citeIndexFilterParams(options, defaults),
     ...layoutFilterParams(options.format, defaults),
-    ...languageFilterParams(options.format.language),
+    ...languageFilterParams(options.format),
     ...jatsFilterParams(options),
     ...notebookContextFilterParams(options),
     ...filterParams,
@@ -158,6 +179,9 @@ export async function filterParamsJson(
       jats_subarticle: options.format.metadata[kJatsSubarticle],
     },
     [kFormatIdentifier]: options.format.identifier,
+    [kIsShinyPython]: isShinyPython,
+    [kShinyPythonExec]: isShinyPython ? await pythonExec() : undefined,
+    [kExecutionEngine]: options.executionEngine,
   };
   return JSON.stringify(params);
 }
@@ -414,9 +438,10 @@ function referenceLocationArg(args: string[]) {
   }
 }
 
-function languageFilterParams(language: FormatLanguage) {
+function languageFilterParams(format: Format) {
+  const language = format.language;
   const params: Metadata = {
-    [kCodeSummary]: language[kCodeSummary],
+    [kCodeSummary]: format.metadata[kCodeSummary] || language[kCodeSummary],
     [kTocTitleDocument]: language[kTocTitleDocument],
   };
   Object.keys(language).forEach((key) => {
@@ -537,6 +562,15 @@ async function quartoFilterParams(
   if (foldCode) {
     params[kCodeFold] = foldCode;
   }
+  const htmlTableProcessing = format.render[kHtmlTableProcessing];
+  if (htmlTableProcessing) {
+    params[kHtmlTableProcessing] = htmlTableProcessing;
+  }
+  const useRsvgConvert = format.render[kUseRsvgConvert];
+  if (useRsvgConvert !== undefined) {
+    params[kUseRsvgConvert] = useRsvgConvert;
+  }
+
   const tblColwidths = format.render[kTblColwidths];
   if (tblColwidths !== undefined) {
     params[kTblColwidths] = tblColwidths;
@@ -595,6 +629,11 @@ async function quartoFilterParams(
   params[kCiteMethod] = citeMethod(options);
   params[kPdfEngine] = pdfEngine(options);
   params[kHasBootstrap] = formatHasBootstrap(options.format);
+
+  // has resource params
+  const hasResourcePath = options.format.pandoc[kResourcePath] !== undefined ||
+    options.args.includes("--resource-path");
+  params[kHasResourcePath] = hasResourcePath;
 
   // The source document
   params[kQuartoSource] = options.source;
@@ -657,29 +696,45 @@ export async function resolveFilters(
 ): Promise<QuartoFilterSpec | undefined> {
   // build list of quarto filters
 
-  const beforeQuartoFilters: QuartoFilter[] = [];
-  const afterQuartoFilters: QuartoFilter[] = [];
+  // const beforeQuartoFilters: QuartoFilter[] = [];
+  // const afterQuartoFilters: QuartoFilter[] = [];
 
   const quartoFilters: string[] = [];
   quartoFilters.push(quartoMainFilter());
 
   // Resolve any filters that are provided by an extension
   filters = await resolveFilterExtension(options, filters);
-
-  // if 'quarto' is in the filters, inject our filters at that spot,
-  // otherwise inject them at the beginning so user filters can take
-  // advantage of e.g. resourceeRef resolution (note that citeproc
-  // will in all cases run last)
-  const quartoLoc = filters.findIndex((filter) =>
-    filter === kQuartoFilterMarker
-  );
-  if (quartoLoc !== -1) {
-    beforeQuartoFilters.push(...filters.slice(0, quartoLoc));
-    afterQuartoFilters.push(...filters.slice(quartoLoc + 1));
-  } else {
-    beforeQuartoFilters.push(...filters);
-    // afterQuartoFilters remains empty.
+  let quartoLoc = filters.findIndex((filter) => filter === kQuartoFilterMarker);
+  if (quartoLoc === -1) {
+    quartoLoc = Infinity; // if no quarto marker, put our filters at the beginning
   }
+
+  // if 'quarto' is in the filters, old-style filter declarations
+  // before 'quarto' go to the kQuartoPre entry point, and old-style
+  // filter declarations after 'quarto' go to the kQuartoPost entry point.
+  //
+  // if 'quarto' is not in the filter, all declarations go to the kQuartoPre entry point
+  //
+  // (note that citeproc will in all cases run last)
+  const entryPoints: QuartoFilterEntryPoint[] = filters
+    .filter((f) => f !== "quarto") // remove quarto marker
+    .map((filter, i) => {
+      if (isFilterEntryPoint(filter)) {
+        return filter; // send entry-point-style filters unchanged
+      }
+      const at = quartoLoc > i ? kQuartoPre : kQuartoPost;
+      const result: QuartoFilterEntryPoint = typeof filter === "string"
+        ? {
+          "at": at,
+          "type": filter.endsWith(".lua") ? "lua" : "json",
+          "path": filter,
+        }
+        : {
+          "at": at,
+          ...filter,
+        };
+      return result;
+    });
 
   // citeproc at the very end so all other filters can interact with citations
   filters = filters.filter((filter) => filter !== kQuartoCiteProcMarker);
@@ -699,14 +754,15 @@ export async function resolveFilters(
   if (
     [
       quartoFilters,
-      beforeQuartoFilters,
-      afterQuartoFilters,
     ].some((x) => x.length)
   ) {
+    // temporarily return empty before/after filters
+    // until we refactor them out entirely.
     return {
       quartoFilters,
-      beforeQuartoFilters,
-      afterQuartoFilters,
+      beforeQuartoFilters: [],
+      afterQuartoFilters: [],
+      entryPoints,
     };
   } else {
     return undefined;
@@ -773,9 +829,13 @@ async function resolveFilterExtension(
     // into the filters provided by the extension
     if (
       filter !== kQuartoFilterMarker && filter !== kQuartoCiteProcMarker &&
-      typeof (filter) === "string" &&
-      !existsSync(filter)
+      typeof filter === "string"
     ) {
+      // The filter string points to an executable file which exists
+      if (existsSync(filter) && !Deno.statSync(filter).isDirectory) {
+        return filter;
+      }
+
       const extensions = await options.services.extension?.find(
         filter,
         options.source,

@@ -1,11 +1,10 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 
-import { error } from "log/mod.ts";
+import { error } from "../../deno_ral/log.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { check, Target } from "./check.ts";

@@ -8,20 +8,22 @@ function bootstrap_panel_sidebar()
 
         -- functions to determine if an element has a layout class
         local function isSidebar(el)
-          return el ~= nil and el.t == "Div" and el.attr.classes:includes("panel-sidebar")
+          return el ~= nil and is_regular_node(el, "Div") and el.attr.classes:includes("panel-sidebar")
         end
+        local function isTabset(el) return is_custom_node(el, "Tabset") end
+        local function fillPanel(el) return pandoc.Div({ el }, pandoc.Attr("", {"panel-fill"})) end
         local function isContainer(el)
           return el ~= nil and
-                 el.t == "Div" and 
+                 is_regular_node(el, "Div") and 
                  (el.attr.classes:includes("panel-fill") or 
                   el.attr.classes:includes("panel-center") or
-                  el.attr.classes:includes("panel-tabset"))
+                  isTabset(el))
         end
         local function isHeader(el)
           return el ~= nil and el.t == "Header"
         end
         local function isQuartoHiddenDiv(el)
-          return el ~= nil and el.t == "Div" and
+          return el ~= nil and is_regular_node(el, "Div") and
                  string.find(el.attr.identifier, "^quarto%-") and
                  el.attr.classes:includes("hidden")
         end
@@ -59,6 +61,9 @@ function bootstrap_panel_sidebar()
           if isContainer(blocks[sidebarIdx - 1]) then
             blocks:remove(sidebarIdx)
             local container = blocks:remove(sidebarIdx - 1)
+            if isTabset(container) then
+              container = fillPanel(container)
+            end
             transferAttr(containerAttr, container.attr)
             blocks:insert(sidebarIdx - 1, 
               pandoc.Div({ container, sidebar }, sidebarHandler.rowAttr({"layout-sidebar-right"}))
@@ -66,6 +71,9 @@ function bootstrap_panel_sidebar()
           -- sidebar before container
           elseif isContainer(blocks[sidebarIdx + 1]) then
             local container = blocks:remove(sidebarIdx + 1)
+            if isTabset(container) then
+              container = fillPanel(container)
+            end
             transferAttr(containerAttr, container.attr)
             blocks:remove(sidebarIdx)
             blocks:insert(sidebarIdx, 

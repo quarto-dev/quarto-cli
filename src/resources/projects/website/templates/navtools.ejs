@@ -19,7 +19,7 @@ const isWide = toolCount > 2; %>
 
 <% toolCount = 0 %>
 <% tools = tools || [] %>
-<div class="<%- className %><%- isWide ? ' tools-wide' : ''%>">
+<div class="<%- className %><%- isWide ? ' tools-wide' : ''%><%- align === 'end' ? ' tools-end' : '' %>">
 <% tools.forEach(tool => {  %>
 
   <% if (tool.menu) { %>

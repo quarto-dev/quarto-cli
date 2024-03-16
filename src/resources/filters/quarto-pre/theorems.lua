@@ -6,7 +6,7 @@ function quarto_pre_theorems()
   
   return {
     Div = function(el)
-      if hasTheoremRef(el) then
+      if has_theorem_ref(el) then
         local capEl = el.content[1]
         if capEl ~= nil and capEl.t == 'Header' then
           capEl.attr.classes:insert("unnumbered")

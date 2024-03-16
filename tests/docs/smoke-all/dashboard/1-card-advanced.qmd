@@ -1,0 +1,41 @@
+---
+title: Card Advanced
+format: dashboard
+---
+
+
+:::{.card .expandable height=475px}
+
+## This is a filling plot that shouldn't go to zero
+
+Adipiscing pharetra faucibus hac quisque cum consequat, praesent ut ad ac? Velit ad fermentum congue sodales fermentum pretium sem. Justo libero imperdiet tortor pretium fringilla eros, vivamus, vivamus class vehicula lacinia. Sodales luctus ullamcorper, sed nibh sem ultrices. Tortor fermentum nostra nostra sagittis, eros, dictum facilisis montes nostra penatibus imperdiet purus ornare aliquam torquent morbi convallis quam.
+
+
+
+:::{.card-body min-height=200px}
+```{r}
+plot(cars)
+```
+:::
+
+
+Adipiscing pharetra faucibus hac quisque cum consequat, praesent ut ad ac? Velit ad fermentum congue sodales fermentum pretium sem. Justo libero imperdiet tortor pretium fringilla eros, vivamus, vivamus class vehicula lacinia. Sodales luctus ullamcorper, sed nibh sem ultrices. Tortor fermentum nostra nostra sagittis, eros, dictum facilisis montes nostra penatibus imperdiet purus ornare aliquam torquent morbi convallis quam.
+
+
+:::
+
+:::{.card .expandable}
+
+:::{.columns}
+
+```{r}
+plot(cars)
+```
+
+```{r}
+plot(mtcars)
+```
+
+:::
+
+:::

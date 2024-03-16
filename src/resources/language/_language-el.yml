@@ -26,6 +26,7 @@ title-block-keywords: "Λέξεις-κλειδιά"
 
 appendix-attribution-cite-as: "Για απόδοση ευγνωμοσύνης, παρακαλούμε αναφερθείτε σε αυτό το έργο ως:"
 appendix-attribution-bibtex: "Αναφορά BibTeX:"
+appendix-view-license: "Προβολή Άδειας"
 
 title-block-author-single: "Συγγραφέας"
 title-block-author-plural: "Συγγραφείς"
@@ -67,6 +68,7 @@ search-hide-matches-text: "Απόκρυψη επιπλέον αντιστοιχ�
 search-more-match-text: "επιπλέον αντιστοιχία σε αυτό το έγγραφο"
 search-more-matches-text: "επιπλέον αντιστοιχίες σε αυτό το έγγραφο"
 search-clear-button-title: "Καθαρισμός"
+search-text-placeholder: ""
 search-detached-cancel-button-title: "Ακύρωση"
 search-submit-button-title: "Υποβολή"
 search-label: "Αναζήτηση"
@@ -120,3 +122,6 @@ listing-page-category-all: "Όλα"
 listing-page-no-matches: "Δεν υπάρχουν αντιστοιχίες"
 listing-page-field-wordcount: "Μέτρηση Λέξεων"
 listing-page-words: "{0} λέξεις"
+listing-page-filter: "Φίλτρο"
+
+draft: "Σχέδιο"

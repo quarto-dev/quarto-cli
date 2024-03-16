@@ -15,3 +15,7 @@ function descaffold()
     end
   }
 end
+
+function make_scaffold(ctor, node)
+  return ctor(node or {}, pandoc.Attr("", {"quarto-scaffold", "hidden"}, {}))
+end

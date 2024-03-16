@@ -14,15 +14,18 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, order, with_delimiter)
-  if with_delimiter == nil then
-    with_delimiter = true
+function titlePrefix(ref_type, default, order, with_title_delimiter)
+  if with_title_delimiter == nil then
+    with_title_delimiter = true
   end
 
-  local prefix = title(type, default)
-  table.insert(prefix, nbspString())
-  tappend(prefix, numberOption(type, order))
-  if with_delimiter then
+  local prefix = title(ref_type, default)
+  local category = crossref.categories.by_ref_type[ref_type]
+  if category == nil or category.space_before_numbering ~= false then
+    table.insert(prefix, nbspString())
+  end
+  tappend(prefix, numberOption(ref_type, order))
+  if with_title_delimiter then
     tappend(prefix, titleDelim())
     table.insert(prefix, pandoc.Space())
   end
@@ -182,12 +185,18 @@ function formatNumberOption(type, order, default)
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
     -- to start the numbering with (e.g. alpha a vs. alpha A)
-    local startIndexChar = string.sub(numberStyle, -1)
-    if (startIndexChar == " ") then
+    local s = split(numberStyle, " ") 
+    local startIndexChar = s[2]
+    if (startIndexChar == nil or startIndexChar == " ") then
       startIndexChar = "a"
     end
+    -- local startIndexChar = string.sub(numberStyle, -1)
+    -- if (startIndexChar == " ") then
+    --   startIndexChar = "a"
+    -- end
+    -- print(numberStyle)
     local startIndex = utf8.codepoint(startIndexChar)
-    return resolve(string.char(startIndex + num - 1))
+    return resolve(utf8.char(startIndex + num - 1))
   elseif (string.match(numberStyle, "^roman")) then
     -- permits the user to express `roman` or `roman i` or `roman I` to
     -- use lower / uppper case roman numerals

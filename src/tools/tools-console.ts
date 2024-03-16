@@ -1,13 +1,12 @@
 /*
-* cmd.ts
-*
-* Copyright (C) 2021-2022 Posit Software, PBC
-*
-*/
+ * cmd.ts
+ *
+ * Copyright (C) 2021-2022 Posit Software, PBC
+ */
 import * as colors from "fmt/colors.ts";
 import { Confirm, Select } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { info, warning } from "../deno_ral/log.ts";
 
 import {
   allTools,
@@ -238,7 +237,7 @@ export async function selectTool(
     }
   };
 
-  const toolTarget: string = await Select.prompt({
+  const toolTarget: string = (await Select.prompt({
     message: `Select a tool to ${action}`,
     options: toolsInfo.map((toolInfo) => {
       return {
@@ -249,6 +248,6 @@ export async function selectTool(
           : !toolInfo.installed,
       };
     }),
-  });
+  })).value;
   return toolTarget;
 }

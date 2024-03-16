@@ -20,7 +20,7 @@ import {
   textHighlightThemePath,
 } from "../core/resources.ts";
 
-import { basename, extname, join } from "path/mod.ts";
+import { basename, extname, join } from "../deno_ral/path.ts";
 
 export const jatsStaticResources = () => {
   return [

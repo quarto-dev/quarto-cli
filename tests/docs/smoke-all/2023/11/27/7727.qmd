@@ -1,0 +1,32 @@
+---
+title: issue-7727
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["div[style='height: 30px']"]      
+---
+
+::: {#tbl-1}
+
+```{=html}
+<table>
+  <tr>
+    <th>header 1</th>
+    <th>header 2</th>
+  </tr>
+  <tr>
+    <td>row 1, cell 1</td>
+    <td>row 1, cell 2</td>
+  </tr>
+  <tr>
+    <td>row 2, cell 1 <img src="foo.png" style="height: 30px"></td>
+    <td>row 2, cell 2</td>
+  </tr>
+</table>
+```
+
+A bad table.
+
+:::

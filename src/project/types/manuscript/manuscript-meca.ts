@@ -21,7 +21,7 @@ import {
   join,
   relative,
   SEP,
-} from "path/mod.ts";
+} from "../../../deno_ral/path.ts";
 import { copySync, ensureDirSync, moveSync, walkSync } from "fs/mod.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
@@ -40,7 +40,7 @@ import * as ld from "../../../core/lodash.ts";
 import { projectType } from "../project-types.ts";
 import { engineIgnoreDirs } from "../../../execute/engine.ts";
 import { lsFiles } from "../../../core/git.ts";
-import { info } from "log/mod.ts";
+import { info } from "../../../deno_ral/log.ts";
 import {
   isDevContainerFile,
   isReesEnvronmentFile,
@@ -70,7 +70,7 @@ export const shouldMakeMecaBundle = (
 
     // See if we're producing JATS, then enable it
     return formats.find((format) => {
-      if (typeof (format) === "string") {
+      if (typeof format === "string") {
         return isJatsOutput(format);
       } else {
         return isJatsOutput(format.pandoc);

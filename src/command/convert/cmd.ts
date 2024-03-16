@@ -5,8 +5,8 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { join } from "../../deno_ral/path.ts";
+import { info } from "../../deno_ral/log.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";

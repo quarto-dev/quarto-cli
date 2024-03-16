@@ -1,0 +1,23 @@
+---
+title: Testing
+format: 
+  dashboard:
+    fill: false
+---
+
+### Tabset {.tabset title="Cool"}
+
+```{r}
+#| title: Cars
+plot(cars)
+```
+
+```{r}
+#| title: MT Cars
+plot(mtcars)
+```
+
+```{r}
+#| title: Iris3
+plot(iris3)
+```

@@ -87,21 +87,19 @@ function table_colwidth_cell(float)
     return
   end
       
-  if tcontains(float.classes, "cell") then
-    local tblColwidths = float.attributes[kTblColwidths]
+  local tblColwidths = float.attributes[kTblColwidths]
+  local function process_table(tbl)
+    tbl.attributes[kTblColwidths] = tblColwidths
+    return tbl
+  end
+  if tblColwidths ~= nil then
     float.attributes[kTblColwidths] = nil
-    local function process_table(tbl)
-      tbl.attributes[kTblColwidths] = tblColwidths
-      return tbl
-    end
-    if tblColwidths ~= nil then
-      if float.content.t == "Table" then
-        float.content = process_table(float.content)
-      else            
-        float.content = _quarto.ast.walk(float.content, {
-          Table = process_table
-        })
-      end
+    if float.content.t == "Table" then
+      float.content = process_table(float.content)
+    else            
+      float.content = _quarto.ast.walk(float.content, {
+        Table = process_table
+      })
     end
   end
 end

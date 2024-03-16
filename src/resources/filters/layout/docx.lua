@@ -33,18 +33,23 @@ end
 _quarto.ast.add_renderer("PanelLayout", function(_)
   return _quarto.format.isDocxOutput() or _quarto.format.isOdtOutput()
 end, function(layout)
-  decorate_caption_with_crossref(layout.float)
-
+  local rendered_panel
   local div = pandoc.Div({})
 
   local layout_attr = pandoc.Attr(layout.identifier or "", layout.classes or {}, layout.attributes or {})
-  local float_attr = pandoc.Attr(layout.float.identifier or "", layout.float.classes or {}, layout.float.attributes or {})
-  div.attr = merge_attrs(float_attr, layout_attr)
-
   local rows = layout.rows.content:map(function(div) return div.content end)
-  local rendered_panel = tableDocxPanel(div, rows, layout.float.caption_long)
-  local align = align_attribute(layout.float)
-  rendered_panel = docx_content_fixups(rendered_panel, align)
+  if layout.is_float_reftarget then
+    decorate_caption_with_crossref(layout.float)
+    local float_attr = pandoc.Attr(layout.float.identifier or "", layout.float.classes or {}, layout.float.attributes or {})
+    div.attr = merge_attrs(float_attr, layout_attr)
+
+    rendered_panel = tableDocxPanel(div, rows, layout.float.caption_long)
+    local align = align_attribute(layout.float)
+    rendered_panel = docx_content_fixups(rendered_panel, align)
+  else
+    div.attr = layout_attr
+    rendered_panel = tableDocxPanel(div, rows, nil)
+  end 
 
   local preamble = layout.preamble
   if preamble == nil then

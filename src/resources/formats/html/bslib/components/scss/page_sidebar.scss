@@ -1,0 +1,19 @@
+$bslib-page-sidebar-title-bg: if($navbar-bg, $navbar-bg, $dark) !default;
+$bslib-page-sidebar-title-color: color-contrast($bslib-page-sidebar-title-bg) !default;
+$bslib-sidebar-padding: $spacer * 1.5 !default;
+
+:root {
+  --bslib-page-sidebar-title-bg: #{$bslib-page-sidebar-title-bg};
+  --bslib-page-sidebar-title-color: #{$bslib-page-sidebar-title-color};
+}
+
+.bslib-page-title {
+  background-color: var(--bslib-page-sidebar-title-bg);
+  color: var(--bslib-page-sidebar-title-color);
+  font-size: $h4-font-size;
+  font-weight: 300;
+  padding: var(--bslib-spacer, 1rem);
+  padding-left: $bslib-sidebar-padding;
+  margin-bottom: 0;
+  border-bottom: $border-width solid $border-color;
+}

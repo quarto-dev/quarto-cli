@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { existsSync } from "fs/exists.ts";
-import { extname, join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { extname, join } from "../deno_ral/path.ts";
+import { info } from "../deno_ral/log.ts";
 import * as colors from "fmt/colors.ts";
 import { load as config, LoadOptions as ConfigOptions } from "dotenv/mod.ts";
 
@@ -15,6 +15,8 @@ import { onActiveProfileChanged } from "../project/project-profile.ts";
 import { onDotenvChanged } from "../quarto-core/dotenv.ts";
 import { normalizePath } from "./path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
+import { parse } from "flags/mod.ts";
+import { initializeLogger, logError, logOptions } from "./log.ts";
 
 export const kLocalDevelopment = "99.9.9";
 

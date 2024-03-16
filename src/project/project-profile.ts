@@ -1,12 +1,11 @@
 /*
-* profile.ts
-*
-* Copyright (C) 2022 Posit Software, PBC
-*
-*/
+ * profile.ts
+ *
+ * Copyright (C) 2022 Posit Software, PBC
+ */
 
-import { error } from "log/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { error } from "../deno_ral/log.ts";
+import { basename, join } from "../deno_ral/path.ts";
 
 import { ProjectConfig } from "../project/types.ts";
 import * as ld from "../core/lodash.ts";
@@ -200,7 +199,7 @@ function readProfileGroups(
   const configGroup = profileConfig?.group as unknown;
   if (Array.isArray(configGroup)) {
     // array of strings is a single group
-    if (configGroup.every((value) => typeof (value) === "string")) {
+    if (configGroup.every((value) => typeof value === "string")) {
       groups.push(configGroup);
     } else if (configGroup.every(Array.isArray)) {
       groups.push(...configGroup);

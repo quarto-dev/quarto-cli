@@ -1,13 +1,12 @@
 /*
-* website-about.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * website-about.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "../../../../deno_ral/path.ts";
 import { HtmlPostProcessResult } from "../../../../command/render/types.ts";
-import { kToc } from "../../../../config/constants.ts";
+import { kToc, kTocLocation } from "../../../../config/constants.ts";
 import {
   Format,
   FormatExtras,
@@ -32,7 +31,8 @@ import {
   MarkdownPipeline,
   MarkdownPipelineHandler,
   PipelineMarkdown,
-} from "../website-pipeline-md.ts";
+} from "../../../../core/markdown-pipeline.ts";
+import { mdSafeHref } from "../website-navigation-md.ts";
 
 const kAbout = "about";
 const kTemplate = "template";
@@ -86,6 +86,10 @@ interface AboutPageEjsData {
   options: Record<string, unknown>;
 }
 
+export function isAboutPage(format: Format) {
+  return !!format.metadata[kAbout];
+}
+
 export async function aboutHtmlDependencies(
   source: string,
   project: ProjectContext,
@@ -99,6 +103,7 @@ export async function aboutHtmlDependencies(
   if (aboutPage) {
     // About pages do not allow TOCs
     format.pandoc[kToc] = false;
+    format.metadata[kTocLocation] = "right";
     format.metadata[kAnchorSections] = false;
   }
 
@@ -192,7 +197,7 @@ async function readAbout(
       return aboutPage;
     };
 
-    if (typeof (about) === "string") {
+    if (typeof about === "string") {
       // A string only about represents the template
       const [template, custom] = templatePath(about, source);
       const aboutPage: AboutPage = {
@@ -215,7 +220,7 @@ async function readAbout(
       // Resolve any options
       resolveOptions(about, {}, aboutPage);
       return aboutPage;
-    } else if (typeof (about) === "object") {
+    } else if (typeof about === "object") {
       // This is an object, read the fields out of it
       const aboutObj = about as Record<string, unknown>;
       const aboutTemplate = aboutObj[kType] as string ||
@@ -312,7 +317,6 @@ const aboutPagePostProcessor = (
     }
 
     const body = aboutEl?.outerHTML || "";
-
     const ejsData: AboutPageEjsData = {
       title,
       body,
@@ -356,14 +360,27 @@ const aboutLinksMarkdownHandler = (aboutPage: AboutPage) => {
   return {
     getUnrendered: (): PipelineMarkdown | undefined => {
       const pipelineMarkdown: PipelineMarkdown = {};
+      let count = 1;
       aboutPage.links?.forEach((link) => {
         if (typeof link === "string") {
           pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
           pipelineMarkdown.inlines[link] = link;
-        } else if (link.text) {
-          pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
-          pipelineMarkdown.inlines[link.text] = link.text;
+        } else {
+          if (link.text) {
+            pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
+            pipelineMarkdown.inlines[link.text] = link.text;
+          }
+          // process href
+          if (link.href) {
+            // NOTE: this is pretty gross - we purposely are mutating the link
+            // href to hide it from pandoc
+            const newId = `8B1E46B7-render-about-link-${count}`;
+            pipelineMarkdown.inlines = pipelineMarkdown.inlines || {};
+            pipelineMarkdown.inlines[newId] = mdSafeHref(link.href);
+            // link.href = newId;
+          }
         }
+        count++;
       });
       return pipelineMarkdown;
     },
@@ -372,13 +389,25 @@ const aboutLinksMarkdownHandler = (aboutPage: AboutPage) => {
       doc: Document,
     ): void => {
       const aboutLinkNodes = doc.querySelectorAll(
-        ".about-links .about-link .about-link-text",
+        ".about-links .about-link",
       );
       for (const aboutLinkNode of aboutLinkNodes) {
         const aboutLinkEl = aboutLinkNode as Element;
-        const aboutLinkRendered = rendered[aboutLinkEl.innerText.trim()];
-        if (aboutLinkRendered) {
-          aboutLinkEl.innerHTML = aboutLinkRendered.innerHTML;
+        const aboutLinkTextNode = aboutLinkEl.querySelector(".about-link-text");
+        if (aboutLinkTextNode) {
+          const aboutLinkTextEl = aboutLinkTextNode as Element;
+          const aboutLinkRendered = rendered[aboutLinkTextEl.innerText.trim()];
+          if (aboutLinkRendered) {
+            aboutLinkTextEl.innerHTML = aboutLinkRendered.innerHTML;
+          }
+        }
+
+        const href = aboutLinkEl.getAttribute("href");
+        if (href !== null) {
+          const aboutLinkHref = rendered[href];
+          if (aboutLinkHref) {
+            aboutLinkEl.setAttribute("href", aboutLinkHref.innerText);
+          }
         }
       }
     },

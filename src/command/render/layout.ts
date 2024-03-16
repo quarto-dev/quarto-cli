@@ -53,6 +53,9 @@ export function overflowXPostprocessor(
     const noOverflowX =
       // select inputs end up having their drop down truncated
       !!output.querySelector("select") ||
+      // shiny can inject select boxes (for example) which will be truncated
+      // see https://github.com/quarto-dev/quarto-cli/issues/8091
+      !!output.querySelector(".shiny-html-output") ||
       // the rgl htmlwidget barely overflows the container and gets scrollbars
       // see https://github.com/quarto-dev/quarto-cli/issues/1800
       !!output.querySelector(".rglWebGL");

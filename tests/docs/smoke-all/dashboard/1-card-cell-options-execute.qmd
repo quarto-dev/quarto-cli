@@ -1,0 +1,25 @@
+---
+title: "Column Orientation"
+format:
+  dashboard:
+    orientation: rows
+---
+    
+```{r}
+#| title: Testing
+#| echo: true
+plot(cars)
+```
+
+```{r}
+#| title: No Output
+#| error: true
+plot(cars)
+foo <- bar
+```
+
+```{r}
+#| title: No Output
+#| output: false
+plot(cars)
+```

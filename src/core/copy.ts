@@ -1,14 +1,21 @@
 /*
-* copy.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * copy.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { basename, dirname, join, relative, resolve } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  join,
+  relative,
+  resolve,
+} from "../deno_ral/path.ts";
 
 import { CopyOptions, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { getFileInfoType, isSubdir } from "fs/_util.ts";
+import { getFileInfoType } from "fs/_get_file_info_type.ts";
+import { isSubdir } from "fs/_is_subdir.ts";
+
 import { isWindows } from "./platform.ts";
 
 // emulate the Deno copySync funnction but read and write files manually

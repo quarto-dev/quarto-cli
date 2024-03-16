@@ -1,0 +1,15 @@
+---
+format:
+  docusaurus-md: {}
+cap-location: bottom
+---
+
+::: {#tbl-1}
+
+|foo|bar|
+|---|---|
+|v1 |v2 |
+
+This is the table caption.
+
+:::

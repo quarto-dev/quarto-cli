@@ -14,6 +14,7 @@
   tags:
     contexts: [document-tables]
     engine: [knitr, jupyter]
+    formats: [$pdf-all, $html-all]
   schema:
     anyOf:
       - boolean
@@ -44,3 +45,8 @@
       - `false`: Never apply markdown table widths.
 
       - An array of numbers (e.g. `[40, 30, 30]`): Array of explicit width percentages.
+
+- name: html-table-processing
+  schema:
+    enum: [none]
+  description: If `none`, do not process raw HTML table in cell output and leave it as-is

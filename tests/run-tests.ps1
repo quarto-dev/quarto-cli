@@ -55,8 +55,8 @@ $Env:QUARTO_DEBUG = "true"
 
 # Preparing running Deno with default arguments
 
-$QUARTO_IMPORT_ARGMAP="--importmap=$(Join-Path $QUARTO_SRC_DIR "dev_import_map.json")"
-$QUARTO_DENO_OPTIONS="--config test-conf.json --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --check"
+$QUARTO_IMPORT_MAP_ARG="--importmap=$(Join-Path $QUARTO_SRC_DIR "dev_import_map.json")"
+$QUARTO_DENO_OPTIONS="--config test-conf.json --unstable-ffi --allow-read --allow-write --allow-run --allow-env --allow-net --check"
 
 # Parsing argument passed to the script
 
@@ -98,13 +98,14 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   $TESTS_TO_RUN=@()
 
   ForEach ($file in $customArgs) {
-    If ($file -Like "*.qmd" -Or $file -Like "*.ipynb") {
+    $filename=$(Split-Path -Path $file -Leaf)
+    If ($filename -match "^^[^_].*[.]qmd$" -Or $filename -match "^[^_].*[.]ipynb$" -Or $filename -match "^[^_].*[.]md$") {
       $SMOKE_ALL_FILES+=$file
     } elseif ($file -Like "*.ts") {
       $TESTS_TO_RUN+=$file
     } else {
       Write-Host -ForegroundColor red "#### ERROR"
-      Write-Host -ForegroundColor red "Only .ts, or .qmd and .ipynb passed to smoke-all.test.ts are accepted"
+      Write-Host -ForegroundColor red "Only .ts, or .qmd, .md and .ipynb passed to smoke-all.test.ts are accepted (file starting with _ are ignored)."
       Write-Host -ForegroundColor red "####"
       Exit 1
     }
@@ -113,7 +114,7 @@ If ($customArgs[0] -notlike "*smoke-all.test.ts") {
   If ($SMOKE_ALL_FILES.count -ne 0) {
     if ($TESTS_TO_RUN.count -ne 0) {
       Write-Host "#### WARNING"
-      Write-Host "  When passing .qmd and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
+      Write-Host "  When passing .qmd, .md and/or .ipynb, only ./smoke/smoke-all.test.ts will be run. Other tests files are ignored."
       Write-Host "  Ignoring $($TESTS_TO_RUN -join ' ')"
       Write-Host "####"
     }
@@ -133,7 +134,7 @@ $DENO_ARGS += -split $QUARTO_DENO_OPTIONS
 If ($QUARTO_DENO_EXTRA_OPTIONS -ne $null) { 
   $DENO_ARGS += -split $QUARTO_DENO_EXTRA_OPTIONS
 }
-$DENO_ARGS += -split $QUARTO_IMPORT_ARGMAP
+$DENO_ARGS += -split $QUARTO_IMPORT_MAP_ARG
 $DENO_ARGS += $TESTS_TO_RUN
 
 # Activate python virtualenv

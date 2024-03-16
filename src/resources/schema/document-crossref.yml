@@ -11,25 +11,38 @@
                 object:
                   description: A custom cross reference type.
                   closed: true
+                  required: ["kind", "reference-prefix", "key"]
                   properties:
                     kind:
                       enum: [float]
                       description: The kind of cross reference (currently only "float" is supported).
-                    prefix:
+                    reference-prefix:
                       string:
-                        description: The prefix used in rendered citations when referencing this type.
-                    name:
+                        description: The prefix used in rendered references when referencing this type.
+                    caption-prefix:
                       string:
-                        description: The prefix used in captions when referencing this type.
-                    ref-type:
+                        description: The prefix used in rendered captions when referencing this type. If omitted, the field `reference-prefix` is used.
+                    space-before-numbering:
+                      default: true
+                      boolean:
+                        description: If false, use no space between crossref prefixes and numbering.
+                    key:
                       string:
-                        description: The prefix string used in references ("dia-", etc.) when referencing this type.
+                        description: The key used to prefix reference labels of this type, such as "fig", "tbl", "lst", etc.
                     latex-env:
                       string:
-                        description: The name of the custom LaTeX environment that quarto will use to create this type of crossreferenceable object in LaTeX output.
-                    latex-list-of-name:
+                        description: In LaTeX output, the name of the custom environment to be used.
+                    latex-list-of-file-extension:
                       string:
-                        description: The name of the custom LaTeX "list of" command that quarto will use to create this type of crossreferenceable object in LaTeX output.
+                        description: In LaTeX output, the extension of the auxiliary file used by LaTeX to collect names to be used in the custom "list of" command. If omitted, a string with prefix `lo` and suffix with the value of `ref-type` is used.
+                    latex-list-of-description:
+                      string:
+                        description: The description of the crossreferenceable object to be used in the title of the "list of" command. If omitted, the field `reference-prefix` is used.
+                    caption-location:
+                      enum: [top, bottom, margin]
+                      default: bottom
+                      description: The location of the caption relative to the crossreferenceable content.
+
             chapters:
               boolean:
                 description: Use top level sections (H1) in this document as chapters.

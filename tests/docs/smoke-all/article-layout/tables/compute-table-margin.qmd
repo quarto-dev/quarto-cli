@@ -1,0 +1,19 @@
+---
+format: 
+  pdf:
+    geometry:
+      - showframe
+---
+
+{{< lipsum 1 >}}
+
+```{r}
+#| label: tbl-cars
+#| tbl-cap: "Cars"
+#| tbl-colwidths: [60,40]
+#| column: margin
+
+knitr::kable(head(cars))
+```
+
+{{< lipsum 1 >}}

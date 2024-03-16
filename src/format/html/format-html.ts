@@ -5,8 +5,8 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "path/mod.ts";
-import { warning } from "log/mod.ts";
+import { join } from "../../deno_ral/path.ts";
+import { warning } from "../../deno_ral/log.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -19,6 +19,7 @@ import { TempContext } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kBodyClasses,
   kCodeLink,
   kFigResponsive,
   kFilterParams,
@@ -46,7 +47,10 @@ import {
   SassBundle,
 } from "../../config/types.ts";
 
-import { formatHasCodeTools } from "../../command/render/codetools.ts";
+import {
+  formatHasCodeTools,
+  kEmbeddedSourceModalId,
+} from "../../command/render/codetools.ts";
 
 import { createHtmlFormat } from "./../formats-shared.ts";
 
@@ -56,7 +60,7 @@ import {
   formatHasBootstrap,
 } from "./format-html-info.ts";
 
-import { boostrapExtras } from "./format-html-bootstrap.ts";
+import { bootstrapExtras } from "./format-html-bootstrap.ts";
 
 import {
   clipboardDependency,
@@ -411,7 +415,8 @@ export async function htmlFormatExtras(
   }
 
   // add quarto sass bundle of we aren't in bootstrap
-  if (!bootstrap) {
+  const minimal = format.metadata[kMinimal] === true;
+  if (!bootstrap && !minimal) {
     if (scssOptions.quartoBase) {
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
@@ -639,8 +644,19 @@ function htmlFormatPostprocessor(
     : format.metadata[kAnchorSections] || false;
 
   return (doc: Document): Promise<HtmlPostProcessResult> => {
+    // Add body class, if present
+    if (format.render[kBodyClasses]) {
+      const clz = format.render[kBodyClasses].split(" ");
+      clz.forEach((cls) => {
+        doc.body.classList.add(cls);
+      });
+    }
+
     // process all of the code blocks
     const codeBlocks = doc.querySelectorAll("pre.sourceCode");
+    const EmbedSourceModal = doc.querySelector(
+      `#${kEmbeddedSourceModalId}`,
+    );
     for (let i = 0; i < codeBlocks.length; i++) {
       const code = codeBlocks[i] as Element;
 
@@ -660,10 +676,13 @@ function htmlFormatPostprocessor(
         code.parentElement?.classList.add("hidden");
       }
 
-      // insert code copy button
+      // insert code copy button (with specfic attribute when inside a modal)
       if (codeCopy) {
         code.classList.add("code-with-copy");
         const copyButton = createCodeCopyButton(doc, format);
+        if (EmbedSourceModal && EmbedSourceModal.contains(code)) {
+          copyButton.setAttribute("data-in-quarto-modal", "");
+        }
         code.appendChild(copyButton);
       }
 
@@ -758,6 +777,34 @@ function htmlFormatPostprocessor(
           }
         }
       });
+    }
+
+    // Process drafts, if needed
+    const metadraftEl = doc.querySelector("meta[name='quarto:status']");
+    if (metadraftEl !== null) {
+      const status = metadraftEl.getAttribute("content");
+      if (status === "draft") {
+        const draftDivEl = doc.createElement("DIV");
+
+        const iconEl = doc.createElement("I");
+        iconEl.classList.add("bi");
+        iconEl.classList.add("bi-pencil-square");
+        const textNode = doc.createTextNode(format.language.draft || "Draft");
+
+        draftDivEl.appendChild(iconEl);
+        draftDivEl.appendChild(textNode);
+        draftDivEl.setAttribute("id", "quarto-draft-alert");
+        draftDivEl.classList.add("alert");
+        draftDivEl.classList.add("alert-warning");
+
+        // Find the header and place it there
+        let targetEl = doc.body;
+        const headerEl = doc.getElementById("quarto-header");
+        if (headerEl !== null) {
+          targetEl = headerEl;
+        }
+        targetEl.insertBefore(draftDivEl, targetEl.firstChild);
+      }
     }
 
     // no resource refs
@@ -953,8 +1000,8 @@ function themeFormatExtras(
   flags: PandocFlags,
   format: Format,
   sevices: RenderServices,
-  offset?: string,
-  project?: ProjectContext,
+  offset: string | undefined,
+  project: ProjectContext,
   quiet?: boolean,
 ) {
   const theme = format.metadata[kTheme];
@@ -967,7 +1014,7 @@ function themeFormatExtras(
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(
+    return bootstrapExtras(
       input,
       flags,
       format,

@@ -1,0 +1,14 @@
+---
+title: Test Document
+format:
+  html: 
+    body-classes: cool-beans
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ['body.cool-beans']
+---
+
+## Hello World
+

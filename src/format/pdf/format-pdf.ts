@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { basename, extname, join } from "path/mod.ts";
+import { basename, extname, join } from "../../deno_ral/path.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
@@ -76,6 +76,7 @@ export function beamerFormat(): Format {
         [kEcho]: false,
         [kWarning]: false,
       },
+      classoption: ["notheorems"],
     },
   );
 }
@@ -240,6 +241,7 @@ function createPdfFormat(
           "pandoc",
           "tables",
           "tightlist",
+          "before-title",
           "title",
           "toc",
         ];
@@ -317,6 +319,8 @@ function pdfLatexPostProcessor(
     const lineProcessors: LineProcessor[] = [
       sidecaptionLineProcessor(),
       calloutFloatHoldLineProcessor(),
+      tableColumnMarginLineProcessor(),
+      guidsProcessor(),
     ];
 
     if (format.pandoc[kCiteMethod] === "biblatex") {
@@ -350,6 +354,7 @@ function pdfLatexPostProcessor(
         // to replace cites with the rendered versions.
         lineProcessors.push(
           indexAndSuppressPandocBibliography(renderedCites),
+          cleanReferencesChapter(),
         );
       }
     }
@@ -598,6 +603,99 @@ const processElementCaptionFootnotes = (latexFigure: string) => {
     // No caption means just let it go
     return latexFigure;
   }
+};
+
+const kMatchLongTableSize = /^(.*)p{\(\\columnwidth - (\d+\\tabcolsep\).*$)/;
+
+const kStartLongTable = /^\\begin{longtable}/;
+const kEndLongTable = /^\\end{longtable}/;
+
+const guidsProcessor = () => {
+  let state: "looking-for-definition-start" | "looking-for-definition-end" =
+    "looking-for-definition-start";
+  const guidDefinitions: [string, string][] = [];
+  let guidBeingProcessed: string | undefined;
+  let guidContents: string[] = [];
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-definition-start": {
+        if (line.startsWith("%quarto-define-uuid: ")) {
+          state = "looking-for-definition-end";
+          line = line.replace(/^%quarto-define-uuid:\s*/, "");
+          guidBeingProcessed = line.trim();
+          return undefined;
+        }
+        for (const [key, value] of guidDefinitions) {
+          line = line.replaceAll(key, value);
+        }
+        return line;
+      }
+      case "looking-for-definition-end": {
+        if (line === "%quarto-end-define-uuid") {
+          state = "looking-for-definition-start";
+          if (guidBeingProcessed === undefined) {
+            throw new Error("guidBeingProcessed is undefined");
+          }
+          guidDefinitions.push([
+            guidBeingProcessed,
+            guidContents.join("").trim(),
+          ]);
+          guidContents = [];
+          guidBeingProcessed = undefined;
+          return undefined;
+        } else {
+          guidContents.push(line);
+          return undefined;
+        }
+      }
+    }
+  };
+};
+
+const tableColumnMarginLineProcessor = () => {
+  let state: "looking-for-boundaries" | "looking-for-tables" | "processing" =
+    "looking-for-boundaries";
+  return (line: string): string | undefined => {
+    switch (state) {
+      case "looking-for-boundaries": {
+        if (line === "% quarto-tables-in-margin-AB1927C9:begin") {
+          state = "looking-for-tables";
+          return undefined;
+        }
+        return line;
+      }
+      case "looking-for-tables": {
+        if (line.match(kStartLongTable)) {
+          state = "processing";
+          return line;
+        } else if (line === "% quarto-tables-in-margin-AB1927C9:end") {
+          state = "looking-for-boundaries";
+          return undefined;
+        }
+        return line;
+      }
+      case "processing": {
+        if (line.match(kEndLongTable)) {
+          state = "looking-for-tables";
+          return line;
+        } else {
+          const match = line.match(kMatchLongTableSize);
+          if (match) {
+            return `${
+              match[1]
+            }p{(\\marginparwidth + \\marginparsep + \\columnwidth - ${
+              match[2]
+            }`;
+          } else {
+            return line;
+          }
+        }
+      }
+      default: {
+        return line;
+      }
+    }
+  };
 };
 
 const captionFootnoteLineProcessor = () => {
@@ -900,32 +998,53 @@ const longtableBottomCaptionProcessor = () => {
   };
 };
 
+const kChapterRefNameRegex = /^\\chapter\*?{(.*?)}\\label{references.*?}$/;
+const cleanReferencesChapter = () => {
+  let refChapterName: string | undefined;
+  let refChapterContentsRegex: RegExp | undefined;
+  let refChapterMarkRegex: RegExp | undefined;
+
+  return (line: string): string | undefined => {
+    const chapterRefMatch = line.match(kChapterRefNameRegex);
+    if (chapterRefMatch) {
+      refChapterName = chapterRefMatch[1];
+      refChapterContentsRegex = new RegExp(
+        `\\\\addcontentsline{toc}{chapter}{${refChapterName}}`,
+      );
+      refChapterMarkRegex = new RegExp(
+        `\\\\markboth{${refChapterName}}{${refChapterName}}`,
+      );
+      // Eat this line
+      return undefined;
+    } else if (refChapterContentsRegex && line.match(refChapterContentsRegex)) {
+      // Eat this line
+      return undefined;
+    } else if (refChapterMarkRegex && line.match(refChapterMarkRegex)) {
+      // Eat this line
+      return undefined;
+    }
+    return line;
+  };
+};
+
 const indexAndSuppressPandocBibliography = (
   renderedCites: Record<string, string[]>,
 ) => {
-  let consuming = false;
+  let readingBibliography = false;
   let currentCiteKey: string | undefined = undefined;
 
   return (line: string): string | undefined => {
-    if (!consuming && line.match(/^\\hypertarget{refs}{}$/)) {
-      consuming = true;
+    if (!readingBibliography && line.match(/^\\phantomsection\\label{refs}$/)) {
+      readingBibliography = true;
       return undefined;
-    } else if (consuming && line.match(/^\\end{CSLReferences}$/)) {
-      consuming = false;
+    } else if (readingBibliography && line.match(/^\\end{CSLReferences}$/)) {
+      readingBibliography = false;
       return undefined;
-    } else if (consuming) {
-      const matches = line.match(/pre{\\hypertarget{ref\-(.*?)}{}}\%/);
+    } else if (readingBibliography) {
+      const matches = line.match(/\\bibitem\[\\citeproctext\]{ref\-(.*?)}/);
       if (matches && matches[1]) {
         currentCiteKey = matches[1];
-
-        // protect the hypertarget command and the save this line
-        // protect is useful if the reference appears in a caption
-        renderedCites[currentCiteKey] = [
-          line.replace(
-            "pre{\\hypertarget{ref",
-            "pre{\\protect\\hypertarget{ref",
-          ),
-        ];
+        renderedCites[currentCiteKey] = [line];
       } else if (line.length === 0) {
         currentCiteKey = undefined;
       } else if (currentCiteKey) {
@@ -933,7 +1052,7 @@ const indexAndSuppressPandocBibliography = (
       }
     }
 
-    if (consuming) {
+    if (readingBibliography) {
       return undefined;
     } else {
       return line;
@@ -941,14 +1060,69 @@ const indexAndSuppressPandocBibliography = (
   };
 };
 
+const kInSideCaptionRegex = /^\\sidecaption{/;
+const kBeginFigureRegex = /^\\begin{figure}\[.*?\]$/;
+const kEndFigureRegex = /^\\end{figure}\%?$/;
+
 const placePandocBibliographyEntries = (
   renderedCites: Record<string, string[]>,
 ) => {
+  let biblioEntryState: "scanning" | "in-figure" | "in-sidecaption" =
+    "scanning";
+  let pendingCiteKeys: string[] = [];
+
   return (line: string): string | undefined => {
+    switch (biblioEntryState) {
+      case "scanning": {
+        if (line.match(kBeginFigureRegex)) {
+          biblioEntryState = "in-figure";
+        }
+        break;
+      }
+      case "in-figure": {
+        if (line.match(kInSideCaptionRegex)) {
+          biblioEntryState = "in-sidecaption";
+        } else {
+          if (line.match(kEndFigureRegex)) {
+            biblioEntryState = "scanning";
+          }
+        }
+        break;
+      }
+      case "in-sidecaption": {
+        if (line.match(kEndFigureRegex)) {
+          biblioEntryState = "scanning";
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    if (biblioEntryState === "scanning" && pendingCiteKeys.length > 0) {
+      const result = [
+        line,
+        "\n\\begin{CSLReferences}{2}{0}",
+        ...pendingCiteKeys,
+        "\\end{CSLReferences}\n",
+      ].join("\n");
+      pendingCiteKeys = [];
+      return result;
+    }
+
     return line.replaceAll(kQuartoCiteRegex, (_match, citeKey) => {
       const citeLines = renderedCites[citeKey];
       if (citeLines) {
-        return citeLines.join("\n");
+        if (biblioEntryState === "in-sidecaption" && citeLines.length > 0) {
+          pendingCiteKeys.push(citeLines[0]);
+          return ["", ...citeLines.slice(1)].join("\n");
+        } else {
+          return [
+            "\n\\begin{CSLReferences}{2}{0}",
+            ...citeLines,
+            "\\end{CSLReferences}\n",
+          ].join("\n");
+        }
       } else {
         return citeKey;
       }
@@ -957,7 +1131,7 @@ const placePandocBibliographyEntries = (
 };
 
 const kCodeAnnotationRegex =
-  /(.*)\\CommentTok\{.* \\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
+  /(.*)\\CommentTok\{(.*?)[^\s]+? +\\textless\{\}(\d+)\\textgreater\{\}.*\}$/gm;
 const kCodePlainAnnotationRegex = /(.*)% \((\d+)\)$/g;
 const codeAnnotationPostProcessor = () => {
   let lastAnnotation: string | undefined;
@@ -970,9 +1144,14 @@ const codeAnnotationPostProcessor = () => {
     // Replace colorized code
     line = line.replaceAll(
       kCodeAnnotationRegex,
-      (_match, prefix: string, annotationNumber: string) => {
+      (_match, prefix: string, comment: string, annotationNumber: string) => {
         if (annotationNumber !== lastAnnotation) {
           lastAnnotation = annotationNumber;
+          if (comment.length > 0) {
+            // There is something else inside the comment line so
+            // We need to recreate the comment line without the annotation
+            prefix = `${prefix}\\CommentTok\{${comment}\}`;
+          }
           return `${prefix}\\hspace*{\\fill}\\NormalTok{\\circled{${annotationNumber}}}`;
         } else {
           return `${prefix}`;
@@ -1004,7 +1183,7 @@ const codeAnnotationPostProcessor = () => {
   };
 };
 
-const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d)(.*)/g;
+const kListAnnotationRegex = /(.*)5CB6E08D-list-annote-(\d+)(.*)/g;
 const codeListAnnotationPostProcessor = () => {
   return (line: string): string | undefined => {
     return line.replaceAll(

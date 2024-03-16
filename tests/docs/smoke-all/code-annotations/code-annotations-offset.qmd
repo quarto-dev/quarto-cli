@@ -1,0 +1,24 @@
+---
+title: Hello World
+code-annotations: true
+format:
+  html: default
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - 
+          - 'span[data-code-cell="annotated-cell-1"][data-code-lines="5"][data-code-annotation="1"]'
+          - 'span[data-code-cell="annotated-cell-1"][data-code-lines="7"][data-code-annotation="2"]'
+        - []
+---
+
+```{.r code-line-numbers="true" startFrom=5}
+1 + 1 # <1>
+2 + 2
+3 + 3 # <2>
+```
+
+1. displaying
+2. displaying
+

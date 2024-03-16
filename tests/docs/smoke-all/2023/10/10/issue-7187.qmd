@@ -1,0 +1,18 @@
+---
+title: issue-7187
+html-table-processing: none
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ["table.table"]
+---
+
+
+```{=html}
+<table>
+  <thead><tr><th>header</th></tr></thead>
+  <tbody><tr><td>body</td></tr></tbody>
+</table>
+```

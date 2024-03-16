@@ -54,7 +54,7 @@ $h3-font-size:                2rem !default;
 
 // Tables
 
-$table-bg-scale:              0 !default;
+$table-bg-scale:              0% !default;
 
 // Dropdowns
 
@@ -64,9 +64,9 @@ $dropdown-link-hover-bg:            $primary !default;
 
 // Navs
 
-$nav-link-padding-y:                .5rem !default !default;
+$nav-link-padding-y:                .5rem !default;
 $nav-link-padding-x:                2rem !default;
-$nav-link-disabled-color:           $gray-600 !default !default;
+$nav-link-disabled-color:           $gray-600 !default;
 $nav-tabs-border-color:             $gray-200 !default;
 
 // Navbar
@@ -129,10 +129,6 @@ $btn-close-hover-opacity:    1 !default;
 $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&display=swap" !default;
 @if $web-font-path {
   @import url($web-font-path);
-}
-
-:root {
-  color-scheme: light;
 }
 
 // Navbar

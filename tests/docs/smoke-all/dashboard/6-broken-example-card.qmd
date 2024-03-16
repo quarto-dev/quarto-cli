@@ -1,0 +1,35 @@
+---
+title: Broken Card Example
+format: dashboard
+---
+
+:::{.card}
+
+### Yo dawg
+
+What is up
+
+### What about this?
+
+What does that even mean?
+
+#### And this?
+
+I don't know
+
+:::
+
+
+:::{.card}
+
+:::{.card-header}
+What up trey
+:::
+
+This is the content
+
+:::{.card-footer}
+This is the footer
+:::
+
+:::

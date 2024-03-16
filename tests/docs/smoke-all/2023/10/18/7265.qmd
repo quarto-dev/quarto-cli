@@ -1,0 +1,43 @@
+---
+title: "Proof, Remarks, Solution env"
+_quarto:
+  tests: 
+    pdf: null
+    html: 
+      ensureHtmlElements:
+        - 
+          - "#solution-1 div.solution span.proof-title > em"
+          - "#solution-2 div.solution span.proof-title > em + strong"
+        - []
+    latex:
+      ensureFileRegexMatches:
+        - 
+          - '\\begin{solution}\[Solution 1\]'
+          - '\\begin{solution}\[\\textbf{Solution} 2\]'
+          - '\\begin{solution}\[Solution 3\]\n\\leavevmode'
+        - []
+---
+
+### Solution 1
+
+::: {.solution name="Solution 1"}
+The solution
+:::
+
+### Solution 2
+
+::: {.solution}
+
+# **Solution** 2 
+
+The solution
+:::
+
+### Solution 3
+
+::: {.solution name="Solution 3"}
+
+* List 
+* List 
+
+:::

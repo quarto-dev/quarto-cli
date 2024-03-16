@@ -5,7 +5,7 @@ _quarto:
   tests:
     latex:
       ensureFileRegexMatches:
-        - ["marginfigure"]
+        - ["\\marginnote{\\\\begin{"] # captionless figures live inside marginnotes
         - []
 ---
 

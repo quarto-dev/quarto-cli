@@ -7,10 +7,10 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 import { walkSync } from "fs/walk.ts";
 import * as colors from "fmt/colors.ts";
-import { decode as base64decode } from "encoding/base64.ts";
+import { decodeBase64 as base64decode } from "encoding/base64.ts";
 import { DumpOptions as StringifyOptions, stringify } from "yaml/mod.ts";
 import { partitionCellOptions } from "../lib/partition-cell-options.ts";
 import * as ld from "../lodash.ts";
@@ -109,6 +109,7 @@ import {
   kError,
   kEval,
   kFigCapLoc,
+  kHtmlTableProcessing,
   kInclude,
   kLayout,
   kLayoutAlign,
@@ -125,6 +126,7 @@ import {
   isJupyterKernelspec,
   jupyterDefaultPythonKernelspec,
   jupyterKernelspec,
+  jupyterKernelspecForLanguage,
   jupyterKernelspecs,
 } from "./kernels.ts";
 import {
@@ -150,15 +152,19 @@ import {
   removeIfEmptyDir,
 } from "../path.ts";
 import { convertToHtmlSpans, hasAnsiEscapeCodes } from "../ansi-colors.ts";
-import { ProjectContext } from "../../project/types.ts";
+import { kProjectType, ProjectContext } from "../../project/types.ts";
 import { mergeConfigs } from "../config.ts";
-import { encode as encodeBase64 } from "encoding/base64.ts";
+import { encodeBase64 } from "encoding/base64.ts";
 import {
   isHtmlOutput,
   isIpynbOutput,
   isJatsOutput,
 } from "../../config/format.ts";
-import { bookFixups, fixupJupyterNotebook } from "./jupyter-fixups.ts";
+import {
+  bookFixups,
+  fixupJupyterNotebook,
+  minimalFixups,
+} from "./jupyter-fixups.ts";
 import {
   resolveUserExpressions,
   userExpressionsFromCell,
@@ -210,6 +216,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCodeLineNumbers,
   kCodeSummary,
   kCodeOverflow,
+  kHtmlTableProcessing,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -487,14 +494,13 @@ export async function jupyterKernelspecFromMarkdown(
   if (!yamlJupyter) {
     const languages = languagesInMarkdown(markdown);
     languages.add("python"); // python as a default/failsafe
-    const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
-      for (const kernelspec of kernelspecs.values()) {
-        if (kernelspec.language.toLowerCase() === language) {
-          return [kernelspec, {}];
-        }
+      const kernelspec = await jupyterKernelspecForLanguage(language);
+      if (kernelspec) {
+        return [kernelspec, {}];
       }
     }
+    const kernelspecs = await jupyterKernelspecs();
     return Promise.reject(
       new Error(
         `No kernel found for any language checked (${
@@ -504,17 +510,22 @@ export async function jupyterKernelspecFromMarkdown(
         }).`,
       ),
     );
-  } else if (typeof (yamlJupyter) === "string") {
+  } else if (typeof yamlJupyter === "string") {
     const kernel = yamlJupyter;
     const kernelspec = await jupyterKernelspec(kernel);
     if (kernelspec) {
       return [kernelspec, {}];
     } else {
       return Promise.reject(
-        new Error("Jupyter kernel '" + kernel + "' not found."),
+        new Error(
+          `Jupyter kernel '${kernel}' not found. Known kernels: ${
+            Array.from((await jupyterKernelspecs()).values())
+              .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+          }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+        ),
       );
     }
-  } else if (typeof (yamlJupyter) === "object") {
+  } else if (typeof yamlJupyter === "object") {
     const jupyter = { ...yamlJupyter } as Record<string, unknown>;
     if (isJupyterKernelspec(jupyter.kernelspec)) {
       const kernelspec = jupyter.kernelspec;
@@ -527,7 +538,12 @@ export async function jupyterKernelspecFromMarkdown(
         return [kernelspec, jupyter];
       } else {
         return Promise.reject(
-          new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
+          new Error(
+            `Jupyter kernel '${jupyter.kernel}' not found. Known kernels: ${
+              Array.from((await jupyterKernelspecs()).values())
+                .map((kernel: JupyterKernelspec) => kernel.name).join(", ")
+            }. Run 'quarto check jupyter' with your python environment activated to check python version used.`,
+          ),
         );
       }
     } else {
@@ -673,11 +689,22 @@ export async function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): Promise<JupyterToMarkdownResult> {
   // perform fixups
-  const fixups = options.executeOptions.projectType === "book"
-    ? bookFixups
-    : undefined;
 
-  nb = fixupJupyterNotebook(nb, options.fixups || "default", fixups);
+  const project = options.executeOptions.project;
+  const projType = project?.config?.project?.[kProjectType];
+
+  if (projType === "book") {
+    nb = fixupJupyterNotebook(nb, bookFixups);
+  } else if (project?.isSingleFile) {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  } else if (
+    (project?.config?.title !== undefined &&
+      (projType === "default" || projType === undefined))
+  ) {
+    nb = fixupJupyterNotebook(nb, minimalFixups);
+  } else {
+    nb = fixupJupyterNotebook(nb, options.fixups || "default");
+  }
 
   // optional content injection / html preservation for html output
   // that isn't an ipynb
@@ -1154,6 +1181,8 @@ const kLangCommentChars: Record<string, string | string[]> = {
   dot: "//",
   mermaid: "%%",
   apl: "⍝",
+  ocaml: ["(*", "*)"],
+  rust: "//",
 };
 
 function cleanJupyterOutputDisplayData(
@@ -1203,6 +1232,9 @@ async function mdFromCodeCell(
     return [];
   }
 
+  // check if we have any image output
+  const haveImage = !!cell.outputs?.some((output) => isImage(output, options));
+
   // filter and transform outputs as needed
   const outputs = (cell.outputs || []).filter((output) => {
     // filter warnings if requested
@@ -1215,7 +1247,7 @@ async function mdFromCodeCell(
     }
 
     // filter matplotlib intermediate vars
-    if (isDiscadableTextExecuteResult(output)) {
+    if (isDiscadableTextExecuteResult(output, haveImage)) {
       return false;
     }
 
@@ -1325,19 +1357,31 @@ async function mdFromCodeCell(
     ...cell.options,
   };
 
+  let forwardedAttrs = false;
   for (const key of Object.keys(cellOptions)) {
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       let value = (cellOptions as any)[key];
-      if (value) {
-        if (typeof (value) !== "string") {
+      if (value !== undefined) {
+        if (typeof value !== "string") {
           value = JSON.stringify(value);
         }
         value = value.replaceAll("'", `\\'`);
         divMd.push(`${key}='${value}' `);
+        forwardedAttrs = true;
       }
     }
   }
+
+  // in analogy to src/resources/rmd/hooks.R:403--406
+  //
+  // if there is a label, additional classes, a forwardAttr, or a cell.cap
+  // then the user is deemed to have implicitly overridden results = "asis"
+  // (as those features don't work w/o an enclosing div)
+  const needCell = (label && labelCellContainer) || // isTRUE(nzchar(label))
+    classes.length > 0 || // length(classes) > 1
+    forwardedAttrs || // isTRUE(nzchar(forwardAttr))
+    (cellCaption !== undefined || outputCaptions.length > 0); // isTRUE(nzchar(cell.cap))
 
   // add execution_count if we have one
   if (typeof (cell.execution_count) === "number") {
@@ -1349,7 +1393,7 @@ async function mdFromCodeCell(
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
-  if (includeCode(cell, options)) {
+  if (includeCode(cell, options) || options.preserveCodeCellYaml) {
     const fenced = echoFenced(cell, options);
     const ticks = "`".repeat(
       Math.max(countTicks(cell.source) + 1, fenced ? 4 : 3),
@@ -1423,8 +1467,9 @@ async function mdFromCodeCell(
       : ("cell-" + (cellIndex + 1));
 
     // strip spaces, special characters, etc. for latex friendly paths
-    const outputName = pandocAutoIdentifier(labelName, true) + "-output";
-
+    const outputName = `${
+      options.outputPrefix ? options.outputPrefix + "-" : ""
+    }${pandocAutoIdentifier(labelName, true)}-output`;
     let nextOutputSuffix = 1;
     const sortedOutputs = outputs.map((value, index) => ({
       index,
@@ -1475,6 +1520,11 @@ async function mdFromCodeCell(
           md.push(`.${outputTypeCssClass(output.output_type)}`);
         }
 
+        // if this is markdown output then include a special class for that
+        if (isMarkdown(output, options)) {
+          md.push(` .${outputTypeCssClass("markdown")}`);
+        }
+
         // add hidden if necessary
         if (
           hideOutput(cell, options) ||
@@ -1486,6 +1536,10 @@ async function mdFromCodeCell(
         // add execution count if we have one
         if (typeof (output.execution_count) === "number") {
           md.push(` execution_count=${output.execution_count}`);
+        }
+
+        if (cell.options[kHtmlTableProcessing] === "none") {
+          md.push(" html-table-processing=none");
         }
 
         md.push("}\n");
@@ -1543,7 +1597,7 @@ async function mdFromCodeCell(
           md.push(mdOutputStream(stream));
         }
       } else if (output.output_type === "error") {
-        md.push(mdOutputError(output as JupyterOutputError));
+        md.push(await mdOutputError(output as JupyterOutputError, options));
       } else if (isDisplayData(output)) {
         const fixedOutput = cleanJupyterOutputDisplayData(output);
         if (Object.keys(fixedOutput.data).length > 0) {
@@ -1590,7 +1644,7 @@ async function mdFromCodeCell(
   }
 
   // write md w/ div enclosure (if there is any md to write)
-  if (md.length > 0 && !asis) {
+  if (md.length > 0 && (needCell || !asis)) {
     // begin
     md.unshift(divBeginMd);
 
@@ -1621,18 +1675,25 @@ async function mdFromCodeCell(
   return md;
 }
 
-function isDiscadableTextExecuteResult(output: JupyterOutput) {
+function isDiscadableTextExecuteResult(
+  output: JupyterOutput,
+  haveImage: boolean,
+) {
   if (output.output_type === "execute_result") {
     const data = (output as JupyterOutputDisplayData).data;
     if (Object.keys(data).length === 1) {
       const textPlain = data?.[kTextPlain] as string[] | undefined;
       if (textPlain && textPlain.length) {
-        return [
-          "[<matplotlib",
-          "<matplotlib",
-          "<seaborn.",
-          "<ggplot:",
-        ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        if (haveImage && textPlain.length === 1) {
+          return /^([<(\[]).*?([>)\]])$/.test(textPlain[0].trim());
+        } else {
+          return [
+            "[<matplotlib",
+            "<matplotlib",
+            "<seaborn.",
+            "<ggplot:",
+          ].some((startsWith) => textPlain[0].startsWith(startsWith));
+        }
       }
     }
   }
@@ -1666,7 +1727,6 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsImage);
 }
 
-// deno-lint-ignore no-unused-vars
 function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
   return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
@@ -1689,8 +1749,21 @@ function mdOutputStream(output: JupyterOutputStream) {
   return mdCodeOutput(output.text.map(colors.stripColor));
 }
 
-function mdOutputError(output: JupyterOutputError) {
-  return mdCodeOutput([output.ename + ": " + output.evalue]);
+async function mdOutputError(
+  output: JupyterOutputError,
+  options: JupyterToMarkdownOptions,
+) {
+  if (!options.toHtml || !hasAnsiEscapeCodes(output.evalue)) {
+    return mdCodeOutput([output.ename + ": " + output.evalue]);
+  }
+  const html = await convertToHtmlSpans(output.evalue);
+  return mdMarkdownOutput(
+    [
+      "\n::: {.ansi-escaped-output}\n```{=html}\n<pre>",
+      html,
+      "</pre>\n```\n:::\n",
+    ],
+  );
 }
 
 async function mdOutputDisplayData(

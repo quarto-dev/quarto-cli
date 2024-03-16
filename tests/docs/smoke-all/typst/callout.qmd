@@ -1,0 +1,85 @@
+---
+title: Callouts
+format: typst
+keep-typ: true
+---
+
+## With titles
+
+::: {#nte-1 .callout-note}
+
+## A title for a Typst callout
+
+Some content for Quarto callouts in Typst format. 
+
+:::
+
+See @nte-1, @tip-1.
+
+::: {#tip-1 .callout-tip}
+
+## A title for a Typst callout
+
+Some content for Quarto callouts in Typst format. 
+:::
+
+::: {.callout-caution}
+
+## A title for a Typst callout
+
+Some content for Quarto callouts in Typst format. 
+:::
+
+::: {.callout-warning}
+
+## A title for a Typst callout
+
+Some content for Quarto callouts in Typst format. 
+:::
+
+::: {.callout-important}
+
+## A title for a Typst callout
+
+Some content for Quarto callouts in Typst format. 
+:::
+
+Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. Some content for Quarto callouts in Typst format. 
+## Without titles
+
+::: {.callout-note}
+
+A note without a title.
+
+:::
+
+::: {#tip-2 .callout-tip}
+
+A tip without a title.
+
+:::
+
+::: {.callout-caution}
+
+A caution without a title.
+
+:::
+
+::: {.callout-warning}
+
+A warning without a title.
+
+:::
+
+::: {.callout-important}
+
+An important callout without a title.
+
+:::
+
+Check here that we're now including font awesome, which is required
+for Typst callouts.
+
+```{=typst}
+#fa-info()
+```

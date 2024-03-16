@@ -21,8 +21,8 @@ import { quartoConfig } from "../../../core/quarto.ts";
 import { crypto } from "crypto/mod.ts";
 
 import {
-  decode as base64Decode,
-  encode as base64Encode,
+  decodeBase64 as base64Decode,
+  encodeBase64 as base64Encode,
 } from "encoding/base64.ts";
 
 interface FetchOpts {

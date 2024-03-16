@@ -1,0 +1,41 @@
+---
+format: 
+  dashboard:
+    fill: true   
+    orientation: rows 
+---
+
+Column
+---------------------------------
+
+```{r}
+#| title: Hello World
+#| layout-ncol: 2
+plot(cars)
+plot(mtcars)
+```
+
+Column {width=50%}
+---------------------------------
+
+
+```{r}
+#| title: Hello World 1
+#| width: 50%
+#| height: 50%
+plot(cars)
+```
+
+
+```{r}
+#| title: Hello World 2
+plot(mtcars)
+```
+
+
+```{r}
+#| title: Hello World 2
+plot(mtcars)
+```
+
+

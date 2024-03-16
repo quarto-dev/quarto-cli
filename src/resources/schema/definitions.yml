@@ -28,9 +28,26 @@
   arrayOf:
     anyOf:
       - path
-      - record:
-          type: string
-          path: path
+      - object:
+          properties:
+            type: string
+            path: path
+          required: [path]
+      - object:
+          properties:
+            type: string
+            path: path
+            at:
+              enum:
+                [
+                  pre-ast,
+                  post-ast,
+                  pre-quarto,
+                  post-quarto,
+                  pre-render,
+                  post-render,
+                ]
+          required: [path, at]
       - record:
           type:
             enum: [citeproc]
@@ -53,7 +70,6 @@
       screen,
       screen-left,
       screen-right,
-      screen-rightcolumn,
       screen-inset,
       screen-inset-shaded,
       screen-inset-left,
@@ -138,6 +154,28 @@
             Value for target attribute.
             See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
             for details.
+
+- id: giscus-themes
+  enum:
+    values:
+      [
+        light,
+        light_high_contrast,
+        light_protanopia,
+        light_tritanopia,
+        dark,
+        dark_high_contrast,
+        dark_protanopia,
+        dark_tritanopia,
+        dark_dimmed,
+        transparent_dark,
+        cobalt,
+        purple_dark,
+        noborder_light,
+        noborder_dark,
+        noborder_gray,
+        preferred_color_scheme,
+      ]
 
 - id: comments
   anyOf:
@@ -253,29 +291,33 @@
                 theme:
                   anyOf:
                     - string
-                    - enum:
-                        [
-                          light,
-                          light_high_contrast,
-                          light_protanopia,
-                          dark,
-                          dark_high_contrast,
-                          dark_protanopia,
-                          dark_dimmed,
-                          transparent_dark,
-                          preferred_color_scheme,
-                        ]
+                    - ref: giscus-themes
                     - object:
                         closed: true
                         properties:
                           light:
-                            string:
-                              description: The light theme name.
+                            anyOf:
+                              - string
+                              - ref: giscus-themes
+                            description: The light theme name.
                           dark:
-                            string:
-                              description: The dark theme name.
+                            anyOf:
+                              - string
+                              - ref: giscus-themes
+                            description: The dark theme name.
 
-                  description: The giscus theme to use when displaying comments.
+                  description:
+                    short: The giscus theme to use when displaying comments.
+                    long: |
+                      The giscus theme to use when displaying comments. Light and dark themes are supported. If a single theme is provided by name, it will be used as light and dark theme. To use different themes, use `light` and `dark` key: 
+
+                      ```yaml
+                      website:
+                        comments:
+                          giscus:
+                            light: light # giscus theme used for light website theme
+                            dark: dark_dimmed # giscus theme used for dark website theme
+                      ```
                 language:
                   string:
                     description: The language that should be used when displaying the commenting interface.
@@ -286,6 +328,9 @@
               - object:
                   closed: true
                   properties:
+                    client-url:
+                      string:
+                        description: Override the default hypothesis client url with a custom client url.
                     openSidebar:
                       boolean:
                         default: false
@@ -628,6 +673,12 @@
       repo-url:
         string:
           description: "Base URL for website source code repository"
+      repo-link-target:
+        string:
+          description: "The value of the target attribute for repo links"
+      repo-link-rel:
+        string:
+          description: "The value of the rel attribute for repo links"
       repo-subdir:
         string:
           description: "Subdirectory of repository containing website"
@@ -686,6 +737,40 @@
 
                       This is automatically detected based upon the `tracking-id`, but you may specify it.
         description: "Enable Google Analytics for this website"
+      announcement:
+        anyOf:
+          - string
+          - object:
+              properties:
+                content:
+                  schema: string
+                  description: "The content of the announcement"
+                dismissable:
+                  schema: boolean
+                  description: "Whether this announcement may be dismissed by the user."
+                icon:
+                  schema: string
+                  description: "The icon to display in the annoucement"
+                position:
+                  schema:
+                    enum: ["above-navbar", "below-navbar"]
+                  description: "The position of the announcement."
+                type:
+                  schema:
+                    enum:
+                      [
+                        primary,
+                        secondary,
+                        success,
+                        danger,
+                        warning,
+                        info,
+                        light,
+                        dark,
+                      ]
+                  description: "The type of announcement. Affects the appearance of the announcement."
+
+        description: Provides an announcement displayed at the top of the page.
       cookie-consent:
         anyOf:
           - enum: [express, implied]
@@ -884,6 +969,16 @@
                   arrayOf:
                     ref: navigation-item
                   description: "List of items for the right side of the navbar."
+                toggle-position:
+                  schema:
+                    enum: [left, right]
+                  description: "The position of the collapsed navbar toggle when in responsive mode"
+                  default: "left"
+                tools-collapse:
+                  boolean:
+                    description: "Collapse tools into the navbar menu when the display becomes narrow."
+                    default: false
+
         description: "Top navigation options"
 
       sidebar:
@@ -903,6 +998,12 @@
                   logo:
                     path:
                       description: "Path to a logo image that will be displayed in the sidebar."
+                  logo-alt:
+                    string:
+                      description: "Alternate text for the logo image."
+                  logo-href:
+                    string:
+                      description: "Target href from navbar logo / title. By default, the logo and title link to the root page of the site (/index.html)."
                   search:
                     boolean:
                       description: "Include a search control in the sidebar."
@@ -997,7 +1098,10 @@
         path:
           description: |
             Default site thumbnail image for `twitter` /`open-graph`
-
+      image-alt:
+        path:
+          description: |
+            Default site thumbnail image alt text for `twitter` /`open-graph`
       comments:
         schema:
           ref: comments
@@ -1025,7 +1129,22 @@
             - ref: code-links-schema
         tags:
           formats: [$html-doc]
-        description: "A list of codes links to appear with this document."
+        description: "A list of code links to appear with this document."
+      drafts:
+        schema:
+          maybeArrayOf: path
+        description: "A list of input documents that should be treated as drafts"
+      draft-mode:
+        schema:
+          enum: ["visible", "unlinked", "gone"]
+        description:
+          short: "How to handle drafts that are encountered."
+          long: |
+            How to handle drafts that are encountered.
+
+            `visible` - the draft will visible and fully available
+            `unlinked` - the draft will be rendered, but will not appear in navigation, search, or listings.
+            `gone` - the draft will have no content and will not be linked to (default).
 
 - id: book-schema
   schema:
@@ -1203,6 +1322,7 @@
       search-more-match-text: string
       search-more-matches-text: string
       search-clear-button-title: string
+      search-text-placeholder: string
       search-detached-cancel-button-title: string
       search-submit-button-title: string
       crossref-fig-title: string
@@ -1272,6 +1392,12 @@
             long: |
               The path to the main image on the about page. If not specified, 
               the `image` provided for the document itself will be used.
+      image-alt:
+        path:
+          description: "The alt text for the main image on the about page."
+      image-title:
+        path:
+          description: "The title for the main image on the about page."
       image-width:
         string:
           description:
@@ -1305,7 +1431,7 @@
               place the contents into a `div` with this id. If no such `div` is defined on the 
               page, a `div` with this id will be created and appended to the end of the page.
 
-              In no `id` is provided for a listing, Quarto will synthesize one when rendering the page.
+              If no `id` is provided for a listing, Quarto will synthesize one when rendering the page.
       type:
         enum: [default, table, grid, custom]
         description:
@@ -1388,7 +1514,7 @@
                     description: |
                       The number of items to include in your feed. Defaults to 20.
                 type:
-                  enum: [full, partial]
+                  enum: [full, partial, metadata]
                   description:
                     short: Whether to include full or partial content in the feed.
                     long: |
@@ -1396,6 +1522,7 @@
 
                       - `full` (default): Include the complete content of the document in the feed.
                       - `partial`: Include only the first paragraph of the document in the feed.
+                      - `metadata`: Use only the title, description, and other document metadata in the feed.
                 title:
                   string:
                     description:
@@ -1565,6 +1692,17 @@
   anyOf:
     - string
     - maybeArrayOf: number
+    - object:
+        properties:
+          year:
+            number:
+              description: The year
+          month:
+            number:
+              description: The month
+          day:
+            number:
+              description: The day
 
 - id: csl-person
   anyOf:
@@ -2090,6 +2228,11 @@
       title:
         string:
           description: The primary title of the item.
+      id:
+        anyOf:
+          - string
+          - number
+        description: Citation identifier for the item (e.g. "item1"). Will be autogenerated if not provided.
 
 - id: citation-item
   object:

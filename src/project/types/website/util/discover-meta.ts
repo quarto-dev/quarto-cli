@@ -78,7 +78,9 @@ export function findPreviewImgEl(
   for (let i = 0; i < imgs.length; i++) {
     const img = imgs[i] as Element;
     const src = getDecodedAttribute(img, "src");
-    if (src !== null && kNamedFileRegex.test(src)) {
+    if (
+      src !== null && (src.startsWith("data:") || kNamedFileRegex.test(src))
+    ) {
       return img;
     }
   }

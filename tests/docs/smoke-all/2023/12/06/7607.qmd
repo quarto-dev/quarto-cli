@@ -1,0 +1,19 @@
+---
+title: "`panel: tabset`"
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ["div.panel-tabset"]
+---
+
+```{python}
+#| panel: tabset
+#| output: asis
+from IPython.display import display, Markdown
+for i in ['a', 'b', 'c']:
+  display(Markdown(f'## Heading {i}\n\n'))
+  display(Markdown(f'content {i}\n\n'))
+```
+

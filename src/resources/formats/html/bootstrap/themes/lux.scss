@@ -83,6 +83,9 @@ $input-bg:                              $gray-200 !default;
 $input-disabled-bg:                     $gray-300 !default;
 $input-group-addon-bg:                  $gray-300 !default;
 
+$form-select-disabled-color:        $gray-600 !default;
+$form-select-disabled-bg:           $input-disabled-bg !default;
+
 // Navbar
 
 $navbar-padding-y:                  1.5rem !default;
@@ -107,10 +110,6 @@ $pagination-disabled-border-color:  $pagination-border-color !default;
 $web-font-path: "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&display=swap" !default;
 @if $web-font-path {
   @import url($web-font-path);
-}
-
-:root {
-  color-scheme: light;
 }
 
 // Navbar

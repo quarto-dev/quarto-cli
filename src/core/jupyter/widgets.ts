@@ -1,9 +1,8 @@
 /*
-* widgets.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * widgets.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
 // deno-lint-ignore-file camelcase
 
@@ -105,7 +104,7 @@ export function includesForJupyterWidgetDependencies(
       '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
     );
     head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>',
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous" data-relocate-top="true"></script>',
     );
     head.push(
       "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
@@ -124,12 +123,25 @@ export function includesForJupyterWidgetDependencies(
 
   // write jupyter widget state after body if it exists
   const afterBody: string[] = [];
+
   if (haveJupyterWidgets && widgetsState) {
-    afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
-    afterBody.push(
-      JSON.stringify(widgetsState),
-    );
-    afterBody.push("</script>");
+    const stateStr = JSON.stringify(widgetsState);
+    // https://github.com/quarto-dev/quarto-cli/issues/8433
+    if (stateStr.includes("</script>")) {
+      afterBody.push(`<script>
+      (() => {
+        const scriptTag = document.createElement("script");
+        const base64State = "${btoa(encodeURIComponent(stateStr))}";
+        scriptTag.type = "${kApplicationJupyterWidgetState}";
+        scriptTag.textContent = decodeURIComponent(atob(base64State));
+        document.body.appendChild(scriptTag);
+      })();
+      </script>`);
+    } else {
+      afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
+      afterBody.push(JSON.stringify(widgetsState));
+      afterBody.push("</script>");
+    }
   }
 
   // create pandoc includes for our head and afterBody

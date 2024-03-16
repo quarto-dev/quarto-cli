@@ -1,9 +1,7 @@
 $if(title)$
 # $title$
 $endif$
-$if(author)$
-$author$
-$endif$
+$for(by-author)$$it.name.literal$$sep$, $endfor$
 $if(date)$
 $date$
 $endif$

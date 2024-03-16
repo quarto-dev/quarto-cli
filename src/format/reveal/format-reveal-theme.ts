@@ -4,7 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { kTheme } from "../../config/constants.ts";
@@ -28,7 +28,7 @@ import {
   sassVariable,
 } from "../../core/sass.ts";
 
-import { kRevealJsUrl } from "./constants.ts";
+import { kCodeBlockHeight, kRevealJsUrl } from "./constants.ts";
 import { resolveTextHighlightingLayer } from "../html/format-html-scss.ts";
 import { quartoBaseLayer } from "../html/format-html-shared.ts";
 import { TempContext } from "../../core/temp.ts";
@@ -248,6 +248,8 @@ function pandocVariablesToRevealDefaults(
   );
   add(explicitVars, "code-block-bg", metadata["monobackgroundcolor"]);
   add(explicitVars, "code-block-color", metadata["monoforegroundcolor"]);
+  // Non-pandoc options from front matter
+  add(explicitVars, "code-block-height", metadata[kCodeBlockHeight]);
   return explicitVars;
 }
 

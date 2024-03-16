@@ -1,0 +1,17 @@
+---
+title: External file test
+engine: knitr
+format: html
+_quarto:
+  tests: 
+    html:
+      ensureHtmlElements:
+        - ['div.cell div.code-with-filename']
+        - []
+---
+
+```{r}
+#| filename: plot.R
+# Here's some R code
+plot(1:10)
+```

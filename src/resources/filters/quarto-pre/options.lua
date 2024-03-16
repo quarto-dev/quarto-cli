@@ -45,6 +45,7 @@ function parseOption(name, options, def)
     if value == nil then
       value = readOption(options, key, nil)
     else
+      key = tonumber(key) or key
       value = value[key]
     end
 
@@ -60,7 +61,7 @@ function parseOption(name, options, def)
   end
 end
 
-function capLocation(scope, default)
+function cap_location_from_option(scope, default)
   local loc = option(scope .. '-cap-location', option('cap-location', nil))
   if loc ~= nil then
     return inlinesToString(loc)

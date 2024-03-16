@@ -74,11 +74,6 @@ $nav-tabs-link-hover-border-color:  $primary !default;
 // Navbar
 
 $navbar-padding-y:                  1.2rem !default;
-$navbar-dark-hover-color:           rgba($white, .9) !default;
-$navbar-dark-active-color:          rgba($white, .9) !default;
-$navbar-light-color:                rgba($black, .4) !default;
-$navbar-light-active-color:         rgba($black, .7) !default;
-$navbar-light-disabled-color:       rgba($black, .2) !default;
 
 // Progress bars
 
@@ -100,10 +95,6 @@ $list-group-disabled-color:         lighten($list-group-bg, 30%) !default;
 
 
 // Variables
-
-:root {
-  color-scheme: light;
-}
 
 // Buttons
 

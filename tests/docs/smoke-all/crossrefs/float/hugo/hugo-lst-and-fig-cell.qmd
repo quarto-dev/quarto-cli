@@ -1,0 +1,25 @@
+---
+title: listing within R chunks
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<div id=\"lst-code-source\">"
+          - "id=\"fig-code-source\""
+          - "alt=\"Figure 1: Some code source\""
+          - "<a href=\"#fig-code-source\" class=\"quarto-xref\">"
+          - "<a href=\"#lst-code-source\" class=\"quarto-xref\">"
+        - []
+---
+
+```{r}
+#| label: fig-code-source
+#| lst-label: lst-code-source
+#| lst-cap: A listing
+#| fig-cap: Some code source
+plot(cars)
+```
+
+See @fig-code-source and @lst-code-source.

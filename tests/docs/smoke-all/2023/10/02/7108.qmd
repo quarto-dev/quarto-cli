@@ -1,0 +1,16 @@
+---
+title: "Test"
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - ["{{< noticeowl \"learn\" >}}", "{{< noticeowl2 \"learn2\" >}}"]
+        - []
+---
+
+The below shortcode is not known and should be passed as-is
+
+{{< noticeowl "learn" >}}
+
+This inline shortcode should also be preserved {{< noticeowl2 "learn2" >}} and not touched.

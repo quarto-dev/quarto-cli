@@ -1,0 +1,15 @@
+---
+title: foo
+format: docusaurus-md
+_quarto:
+  tests:
+    docusaurus-md:
+      ensureFileRegexMatches:
+        - ["```python title=\"Python\""]
+        - []
+---
+
+```{python}
+#| filename: Python
+print("Hello, world.")
+```

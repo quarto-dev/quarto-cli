@@ -72,6 +72,7 @@ $nav-tabs-link-active-bg:           $white !default;
 $nav-pills-link-active-color:       $gray-600 !default;
 $nav-pills-link-active-bg:          $gray-200 !default;
 
+// Navbar
 
 // Pagination
 
@@ -142,10 +143,6 @@ $btn-close-hover-opacity:    1 !default;
 $web-font-path: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" !default;
 @if $web-font-path {
   @import url($web-font-path);
-}
-
-:root {
-  color-scheme: light;
 }
 
 // Navbar

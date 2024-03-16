@@ -1,0 +1,33 @@
+---
+title: ValueBoxes
+format: 
+  dashboard:
+    orientation: rows
+    fill: false
+    theme: minty
+---
+
+:::{.valuebox bg-color="#00009933" fg-color="#ffffff"}
+56
+:::
+
+:::{.valuebox color="warning"}
+Number of things
+
+56
+:::
+
+:::{.valuebox fg-color="green"}
+Number of things
+
+56
+
+Other content
+:::
+
+:::{.valuebox title="What up trey"}
+56
+
+What up dog
+:::
+

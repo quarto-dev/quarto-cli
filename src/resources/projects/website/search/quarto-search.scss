@@ -40,10 +40,19 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 }
 
+.navbar.navbar-expand-sm #quarto-search,
+.navbar.navbar-expand-md #quarto-search {
+  order: 999;
+}
+
 .navbar .quarto-navbar-tools {
   @include media-breakpoint-up(lg) {
-    margin-left: 0.25rem;
     order: 900;
+  }
+  &.tools-end {
+    @include media-breakpoint-up(lg) {
+      margin-left: auto !important;
+    }
   }
 }
 

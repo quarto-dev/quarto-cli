@@ -33,9 +33,12 @@ function lightbox()
   -- whether we need lightbox dependencies added
   local needsLightbox = false
 
+  -- accumulate any description elements that we see to be emitted later in the document
+  local descriptions = pandoc.List()
+
   -- a counter used to ensure each image is in its own gallery
   local imgCount = 0
-  local function lightboxImage(imgEl, description, gallery)
+  local function lightboxImage(imgEl, caption, gallery)
     -- note that we need to include the dependency for lightbox
     needsLightbox = true
     imgCount = imgCount + 1
@@ -52,11 +55,11 @@ function lightbox()
     linkAttributes.class = kLightboxClass
   
     -- get the alt text from image and use that as title
-    local title = nil
-    if imgEl.caption ~= nil and #imgEl.caption > 0 then
+    local title = caption
+    if title == nil and imgEl.caption ~= nil and #imgEl.caption > 0 then
       title = pandoc.utils.stringify(imgEl.caption)
-    elseif imgEl.attributes['fig-alt'] ~= nil and #imgEl.attributes['fig-alt'] > 0 then
-      title = pandoc.utils.stringify(imgEl.attributes['fig-alt'])
+    elseif title ~= nil then
+      title = pandoc.utils.stringify(title)
     end
   
     -- move a group attribute to the link, if present
@@ -70,9 +73,17 @@ function lightbox()
     end
   
     -- write a description, if provided
+    local descEl = nil
+    local description = imgEl.attr.attributes[kDescription]
+    imgEl.attr.attributes[kDescription] = nil
     if description ~= nil then
-      linkAttributes[kDescription] = inlinesToString(quarto.utils.as_inlines(description))
-    end
+      local descId = "lightbox-desc-" .. imgCount
+      descEl = pandoc.Div(pandoc.read(description).blocks, pandoc.Attr("", {"glightbox-desc", descId}))
+      linkAttributes["data-glightbox"] = "description: ." .. descId .. ";"
+      if title ~= nil then
+        linkAttributes["data-glightbox"] = linkAttributes["data-glightbox"] .. "title:" .. title .. ";"
+      end
+   end
   
     -- forward any other known attributes
     for i, v in ipairs(kForwardedAttr) do
@@ -93,6 +104,9 @@ function lightbox()
   
     -- wrap decorated images in a link with appropriate attrs
     local link = pandoc.Link({imgEl}, imgEl.src, title, linkAttributes)
+    if descEl ~= nil then
+      descriptions:insert(descEl)
+    end
     return link
   end
 
@@ -100,6 +114,10 @@ function lightbox()
     local automatic = options.automatic
     local caption = options.caption
     local gallery = options.gallery
+
+    if pandoc.utils.type(caption) == "Blocks" then
+      caption = pandoc.utils.stringify(caption)
+    end
   
     local autolightbox = automatic and auto and not imgEl.classes:includes(kNoLightboxClass)
     if autolightbox or imgEl.classes:includes('lightbox') then
@@ -108,11 +126,17 @@ function lightbox()
   end
   
   local function processFigure(figEl)
-    return _quarto.ast.walk(figEl, {
+    local inMargin  = false
+   local resolvedFigEl = _quarto.ast.walk(figEl, {
       Image = function(imgEl)
-        return processImg(imgEl, { automatic = true, caption = figEl.caption })
+        inMargin = imgEl.classes:includes("column-margin")
+        return processImg(imgEl, { automatic = true, caption = figEl.caption.long })
       end
     })
+    if resolvedFigEl and inMargin then
+      resolvedFigEl.attr.classes:insert("column-margin")
+    end
+    return resolvedFigEl;
   end
 
   local function processSubFloat(subFloatEl, gallery, parentFloat) 
@@ -140,6 +164,7 @@ function lightbox()
   end
 
   if quarto.doc.is_format("html:js") then
+
     return {{
       traverse = "topdown",
 
@@ -200,13 +225,32 @@ function lightbox()
         end
         return div
       end,
+
+      -- this catches images in paragraphs by themselves
+      -- without captions, since Pandoc doesn't convert those to Figures
+      Para = function(para)
+        local image = discoverFigure(para, false)
+        if image ~= nil then
+          local lightboxedFigEl = processImg(image, { automatic = true })
+          if lightboxedFigEl ~= nil then
+            return pandoc.Para({lightboxedFigEl}), false
+          end
+        end
+      end,
+
+      -- This catches inline images
       Image = function(imgEl)
         -- look only for explicitly targeted images
         return processImg(imgEl, { automatic = false } ), false
       end,
+
+      -- figures are "Block images" with captions: images in a para
+      -- by themselves with a caption
       Figure = function(figEl)
         return processFigure(figEl), false
       end,
+
+      -- these are ref targets
       FloatRefTarget = function(floatEl)
 
         if floatEl.parent_id == nil then
@@ -252,6 +296,14 @@ function lightbox()
       end,    
     },
     {
+      Pandoc = function(doc)
+        if #descriptions > 0 then
+          local descContainer = pandoc.Div(descriptions, pandoc.Attr("", {"hidden"}, {["aria-hidden"]="true"}))
+          doc.blocks:extend({descContainer})
+          return doc
+        end
+      end,
+
       Meta = function(meta)
         -- If we discovered lightbox-able images
         -- we need to include the dependencies
@@ -282,7 +334,7 @@ function lightbox()
           --   class: <class-name>
           local effect = "zoom"
           local descPosition = "bottom" 
-          local loop = true
+          local loop = false
           local skin = nil
           
           -- The selector controls which elements are targeted.
@@ -322,7 +374,33 @@ function lightbox()
           local optionsJson = quarto.json.encode(options)
 
           -- generate the initialization script with the correct options
-          local scriptTag = "<script>var lightboxQuarto = GLightbox(" .. optionsJson .. ");</script>"
+          local scriptContents = "var lightboxQuarto = GLightbox(" .. optionsJson .. ");\n"
+          scriptContents = scriptContents .. [[
+window.onload = () => {
+  lightboxQuarto.on('slide_before_load', (data) => {
+    const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+    const href = trigger.getAttribute('href');
+    if (href !== null) {
+      const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+      if (imgEl !== null) {
+        const srcAttr = imgEl.getAttribute("src");
+        if (srcAttr && srcAttr.startsWith("data:")) {
+          slideConfig.href = srcAttr;
+        }
+      }
+    } 
+  });
+
+  lightboxQuarto.on('slide_after_load', (data) => {
+    const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+    if (window.Quarto?.typesetMath) {
+      window.Quarto.typesetMath(slideNode);
+    }
+  });
+
+};
+          ]]
+          local scriptTag = "<script>" .. scriptContents .. "</script>"
 
           -- inject the rendering code
           quarto.doc.include_text("after-body", scriptTag)

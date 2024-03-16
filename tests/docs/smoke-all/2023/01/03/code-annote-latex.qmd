@@ -8,7 +8,11 @@ _quarto:
   tests: 
     latex:
       ensureFileRegexMatches:
-        - ["\\\\item\\[\\\\circled\\{1\\}\\]"]
+        - 
+          - '\\item\[\\circled\{1\}\]'
+          - '\\NormalTok\{\\circled\{1\}\}'
+          - '\\item\[\\circled\{11\}\]'
+          - '\\NormalTok\{\\circled\{11\}\}'
 ---
 
 ## Hi There
@@ -21,3 +25,35 @@ if (foo === "bar") {
 ```
 
 1. This is a console output
+
+
+## Using multiple number 
+
+From https://github.com/quarto-dev/quarto-cli/issues/7175
+
+```{julia}
+line1 = "a" # <1>
+line2 = "b" # <2>
+line3 = "c" # <3>
+line4 = "d" # <4>
+line5 = "e" # <5>
+line6 = "f" # <6>
+line7 = "g" # <7>
+line8 = "h" # <8>
+line9 = "i" # <9>
+line10 = "j" # <10>
+line11 = "k" # <11>
+line12 = "l" # <12>
+```
+1. Annotation Displayed Correctly
+2. Annotation Displayed Correctly
+3. Annotation Displayed Correctly
+4. Annotation Displayed Correctly
+5. Annotation Displayed Correctly
+6. Annotation Displayed Correctly
+7. Annotation Displayed Correctly
+8. Annotation Displayed Correctly
+9. Annotation Displayed Correctly
+10. Annotation Displayed Incorrectly
+11. Annotation Displayed Incorrectly
+12. Annotation Displayed Incorrectly

@@ -12,7 +12,7 @@
     }
   },
   "private": true,
-  "license": "gpl-2.0",
+  "license": "mit",
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "dev": "tsc --noEmit && vite build --mode=development"

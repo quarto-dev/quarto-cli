@@ -11,7 +11,7 @@ import { crossref } from "./utils.ts";
 const chaptersQmd = crossref("chapters.qmd", "html");
 testRender(chaptersQmd.input, "html", false, [
   ensureHtmlElements(chaptersQmd.output.outputPath, [
-    "div#fig-elephant > figure > figcaption.figure.quarto-float-caption",
+    "div#fig-elephant > figure > figcaption.quarto-float-fig.quarto-float-caption",
   ]),
   ensureFileRegexMatches(chaptersQmd.output.outputPath, [
     /Figure&nbsp;1.1/,

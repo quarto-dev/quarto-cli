@@ -1,0 +1,17 @@
+
+
+Other content before
+
+compilation failed- tlmgr needs to be updated, but the update failed
+
+
+    LaTeX Error: Mismatched LaTeX support files detected.
+    (LaTeX)        Loading 'expl3.sty' aborted!
+    (LaTeX)        
+    (LaTeX)        The L3 programming layer in the LaTeX format
+    (LaTeX)        is dated 2023-08-29, but in your TeX tree the files require
+    (LaTeX)        at least 2023-10-10.
+    
+    For immediate help type H <return>.
+
+Other content after

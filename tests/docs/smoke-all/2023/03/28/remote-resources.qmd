@@ -6,7 +6,7 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ["#remote-resource > :nth-child(2) figure img", "#remote-resource > p:nth-child(4) > img", "#data-uri > div > figure img"]
+        - ["#remote-resource > :nth-child(2) img", "#remote-resource > p:nth-child(4) > img", "#data-uri > div > figure img"]
 ---
 
 ## Remote Resource

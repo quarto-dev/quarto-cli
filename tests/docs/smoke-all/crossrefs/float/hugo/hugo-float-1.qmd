@@ -1,0 +1,44 @@
+---
+title: float crossref test
+format: hugo-md
+_quarto:
+  tests:
+    hugo-md:
+      ensureFileRegexMatches:
+        - 
+          - "<div id=\"fig-1\">"
+          - "<div id=\"tbl-1\">"
+          - "<a href=\"#fig-1\" class=\"quarto-xref\">"
+          - "<a href=\"#tbl-1\" class=\"quarto-xref\">"
+        - []
+---
+
+This tests:
+
+- custom content in floats
+- classes of float captions
+
+::: {#fig-1}
+
+::: {.figure-content}
+This is the figure content.
+:::
+
+This is a caption.
+
+:::
+
+See @fig-1.
+
+
+::: {#tbl-1}
+
+::: {.table-content}
+This is the table content.
+:::
+
+This is a table.
+
+:::
+
+See @tbl-1.

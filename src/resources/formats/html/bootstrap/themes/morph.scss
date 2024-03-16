@@ -240,10 +240,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;70
 
 $btn-box-shadow-inset: inset 2px 3px 6px rgba($black, .2), inset -3px -2px 6px rgba($white, .2) !default;
 
-:root {
-  color-scheme: light;
-}
-
 // Mixins
 
 @mixin shadow($shadow: $box-shadow) {
@@ -552,14 +548,25 @@ $btn-box-shadow-inset: inset 2px 3px 6px rgba($black, .2), inset -3px -2px 6px r
   box-shadow: $box-shadow-inset;
 
   > .form-control {
-    padding-right: 0;
-    padding-left: 0;
     background: none;
     box-shadow: none;
   }
 
   .input-group-text {
     background: none;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 0;
+
+    &:first-child {
+      border-radius: $border-radius 0 0 $border-radius;
+    }
+
+    &:last-child {
+      border-radius: 0 $border-radius $border-radius 0;
+    }
   }
 }
 
@@ -608,12 +615,12 @@ $btn-box-shadow-inset: inset 2px 3px 6px rgba($black, .2), inset -3px -2px 6px r
 // Indicators
 
 .alert {
-  box-shadow: $dropdown-box-shadow;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   -moz-backdrop-filter: blur(3px);
   -ms-backdrop-filter: blur(3px);
   -o-backdrop-filter: blur(3px);
+  box-shadow: $dropdown-box-shadow;
 
   @each $color, $value in $theme-colors {
     &-#{$color} {
@@ -637,24 +644,24 @@ $btn-box-shadow-inset: inset 2px 3px 6px rgba($black, .2), inset -3px -2px 6px r
 
   &-inner,
   .arrow {
-    box-shadow: $dropdown-box-shadow;
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
     -moz-backdrop-filter: blur(3px);
     -ms-backdrop-filter: blur(3px);
     -o-backdrop-filter: blur(3px);
+    box-shadow: $dropdown-box-shadow;
   }
 }
 
 .popover,
 .toast,
 .modal-content {
-  box-shadow: $dropdown-box-shadow;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   -moz-backdrop-filter: blur(3px);
   -ms-backdrop-filter: blur(3px);
   -o-backdrop-filter: blur(3px);
+  box-shadow: $dropdown-box-shadow;
 }
 
 .progress {

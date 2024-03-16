@@ -1,0 +1,49 @@
+---
+title: "Table subcaption issue"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - 
+          - "\\(a\\) first Cars"
+          - "\\(b\\) first Pressure"
+          - "\\(a\\) second Cars"
+          - "\\(b\\) second Pressure"
+        - []
+      ensureHtmlElements:
+        -
+          - "a[href=\"#tbl-example-1\"].quarto-xref"
+          - "a[href=\"#tbl-example-2\"].quarto-xref"
+          - "a[href=\"#tbl-example-1-1\"].quarto-xref"
+          - "a[href=\"#tbl-example-1-2\"].quarto-xref"
+          - "a[href=\"#tbl-example-2-1\"].quarto-xref"
+          - "a[href=\"#tbl-example-2-2\"].quarto-xref"
+---
+
+```{r}
+#| label: tbl-example-1
+#| tbl-cap: "Example"
+#| tbl-subcap: 
+#|   - "first Cars"
+#|   - "first Pressure"
+
+library(knitr)
+kable(head(cars))
+kable(head(pressure))
+```
+
+A harder example: will we put captions inside images?
+
+```{r}
+#| label: tbl-example-2
+#| tbl-cap: "Example"
+#| tbl-subcap: 
+#|   - "second Cars"
+#|   - "second Pressure"
+
+library(knitr)
+plot(1:10)
+plot(11:20)
+```
+
+See @tbl-example-1, @tbl-example-2, @tbl-example-1-1, @tbl-example-1-2, @tbl-example-2-1, @tbl-example-2-2.

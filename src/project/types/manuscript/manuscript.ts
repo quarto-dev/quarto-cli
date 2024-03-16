@@ -7,7 +7,13 @@
 import { resourcePath } from "../../../core/resources.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import { basename, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+} from "../../../deno_ral/path.ts";
 import {
   Format,
   FormatExtras,
@@ -93,26 +99,17 @@ import {
 import { logProgress } from "../../../core/log.ts";
 import { formatLanguage } from "../../../core/language.ts";
 import { manuscriptRenderer } from "./manuscript-render.ts";
-import { isRStudioPreview } from "../../../core/platform.ts";
 import { outputFile } from "../../../render/notebook/notebook-contributor-html.ts";
 import { Document } from "../../../core/deno-dom.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
-import { resolveProjectInputLinks } from "../project-utilities.ts";
 import { isQmdFile } from "../../../execute/qmd.ts";
 
 import * as ld from "../../../core/lodash.ts";
-import {
-  binderUrl,
-  codeSpacesUrl,
-  hasBinderCompatibleEnvironment,
-  hasDevContainer,
-} from "../../../core/container.ts";
-import { computeProjectEnvironment } from "../../project-environment.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
-import { dirname, isAbsolute } from "path/mod.ts";
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
+import { resolveProjectInputLinks } from "../website/website-utils.ts";
 
 const kMecaIcon = "archive";
 const kOutputDir = "_manuscript";
@@ -131,20 +128,12 @@ const kTexOutputBundle = "tex-bundle";
 export const manuscriptProjectType: ProjectType = {
   type: kManuscriptType,
   libDir: "site_libs",
-  filterOutputFile: (file: string) => {
-    if (isRStudioPreview()) {
-      // HACK: RStudio doesn't know about the `_manuscript` directory
-      // so this hack hides it specifically from RStudio
-      return basename(file);
-    } else {
-      return file;
-    }
-  },
   config: async (
-    projectDir: string,
+    project: ProjectContext,
     config: ProjectConfig,
     flags?: RenderFlags,
   ): Promise<ProjectConfig> => {
+    const projectDir = project.dir;
     const manuscriptConfig =
       (config[kManuscriptType] || {}) as ManuscriptConfig;
 
@@ -168,18 +157,18 @@ export const manuscriptProjectType: ProjectType = {
       flags,
     );
 
-    const inputs = projectInputFiles(projectDir, config);
+    const inputs = await projectInputFiles(project, config);
 
     // Compute the article path
     const article = computeProjectArticleFile(projectDir, manuscriptConfig);
 
     // Go through project inputs and use any of these as notebooks
-    const notebooks: Record<string, NotebookPreviewDescriptor> = {};
+    const notebooks: NotebookPreviewDescriptor[] = [];
 
     const explicitNotebooks = manuscriptConfig[kNotebooks];
     if (explicitNotebooks) {
-      resolveNotebookDescriptors(explicitNotebooks).forEach((nb) => {
-        notebooks[nb.notebook] = nb;
+      resolveNotebookDescriptors(explicitNotebooks, true).forEach((nb) => {
+        notebooks.push(nb);
       });
     } else {
       const inputNotebooks = inputs.files.map((input) => {
@@ -208,7 +197,7 @@ export const manuscriptProjectType: ProjectType = {
 
       if (inputNotebooks) {
         resolveNotebookDescriptors(inputNotebooks).forEach((nb) => {
-          notebooks[nb.notebook] = nb;
+          notebooks.push(nb);
         });
       }
     }
@@ -236,10 +225,17 @@ export const manuscriptProjectType: ProjectType = {
     // If there are computations in the main article, the add
     // it as a notebook to be rendered with computations intact
     if (await hasComputations(join(projectDir, article))) {
-      notebooks[article] = {
-        notebook: article,
-        title: language[kArticleNotebookLabel],
-      };
+      if (
+        !notebooks.find((nb) => {
+          return nb.notebook === article;
+        })
+      ) {
+        notebooks.unshift({
+          notebook: article,
+          title: language[kArticleNotebookLabel],
+          order: 9999,
+        });
+      }
       jatsNotebooks.unshift({
         input: join(projectDir, article),
         token: `nb-article`,
@@ -249,6 +245,7 @@ export const manuscriptProjectType: ProjectType = {
 
     // Determine the notebooks that are being declared explicitly in
     // in the manuscript configuration
+    /*
     if (manuscriptConfig.notebooks !== undefined) {
       const specifiedNotebooks = Array.isArray(manuscriptConfig.notebooks)
         ? manuscriptConfig.notebooks
@@ -257,6 +254,7 @@ export const manuscriptProjectType: ProjectType = {
         notebooks[nb.notebook] = nb;
       });
     }
+    */
 
     // Note JATS subarticles for the JATS format
     config[kQuartoInternal] = {
@@ -280,7 +278,7 @@ export const manuscriptProjectType: ProjectType = {
     const resolvedManuscriptOptions: ResolvedManuscriptConfig = {
       ...manuscriptConfig,
       article,
-      notebooks: Object.values(notebooks),
+      notebooks: notebooks,
       mecaFile: mecaFileOutput,
       [kEnvironmentFiles]: environmentFiles,
     };
@@ -522,8 +520,8 @@ export const manuscriptProjectType: ProjectType = {
       // If the user isn't explicitly providing a notebook list
       // then automatically create notebooks for the other items in
       // the project
-      const outputNbs: Record<string, NotebookPreviewDescriptor> = {};
       const notebooks = manuscriptConfig.notebooks || [];
+      const orderedNbs: NotebookPreviewDescriptor[] = [];
       for (const notebook of notebooks) {
         // Use the input to create a title for the notebook
         // if needed
@@ -538,12 +536,12 @@ export const manuscriptProjectType: ProjectType = {
           }
         };
 
-        outputNbs[notebook.notebook] = {
+        orderedNbs.push({
           ...notebook,
           title: notebook.title || await createTitle(),
-        };
+        });
       }
-      extras[kNotebooks] = Object.values(outputNbs);
+      extras[kNotebooks] = orderedNbs;
     } else if (isArticle && isLatexOutput(format.pandoc)) {
       if (isLatexOutput(format.pandoc)) {
         // By default, keep tex and clean things up ourselves
@@ -670,7 +668,7 @@ export const manuscriptProjectType: ProjectType = {
       );
       if (mecaBundle) {
         const target = projectOutputDir(context);
-        Deno.renameSync(
+        Deno.copyFileSync(
           mecaBundle,
           join(target, mecaFileName),
         );
@@ -704,19 +702,25 @@ const hasComputations = async (file: string) => {
 
 const resolveNotebookDescriptor = (
   nb: string | NotebookPreviewDescriptor,
+  order?: number,
 ): NotebookPreviewDescriptor => {
-  if (typeof (nb) === "string") {
-    nb = { notebook: nb };
+  if (typeof nb === "string") {
+    nb = { notebook: nb, order };
   }
   return nb;
 };
 
 const resolveNotebookDescriptors = (
   nbs: Array<string | NotebookPreviewDescriptor>,
+  orderNotebooks = false,
 ) => {
   const resolvedNbs: NotebookPreviewDescriptor[] = [];
+  let order = 0;
   for (const nb of nbs) {
-    resolvedNbs.push(resolveNotebookDescriptor(nb));
+    resolvedNbs.push(
+      resolveNotebookDescriptor(nb, orderNotebooks ? order : undefined),
+    );
+    order++;
   }
   return resolvedNbs;
 };

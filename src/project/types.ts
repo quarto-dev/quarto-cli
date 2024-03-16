@@ -5,15 +5,19 @@
  */
 
 import { RenderServices } from "../command/render/types.ts";
-import { PandocFlags } from "../config/types.ts";
+import { Metadata, PandocFlags } from "../config/types.ts";
 import { Format, FormatExtras } from "../config/types.ts";
+import { MappedString } from "../core/mapped-text.ts";
+import { PartitionedMarkdown } from "../core/pandoc/types.ts";
+import { ExecutionEngine, ExecutionTarget } from "../execute/types.ts";
+import { NotebookContext } from "../render/notebook/notebook-types.ts";
 import {
   NavigationItem as NavItem,
   NavigationItemObject,
   NavigationItemObject as SidebarTool,
   ProjectConfig as ProjectConfig_Project,
 } from "../resources/types/schema-types.ts";
-import { ProjectEnvironment } from "./project-environment.ts";
+import { ProjectEnvironment } from "./project-environment-types.ts";
 export {
   type NavigationItem as NavItem,
   type NavigationItemObject,
@@ -34,27 +38,62 @@ export const kProjectResources = "resources";
 
 export const kProjectWatchInputs = "watch-inputs";
 
+export interface FileInformation {
+  fullMarkdown?: MappedString;
+  includeMap?: Record<string, string>;
+}
+
 export interface ProjectContext {
   dir: string;
   engines: string[];
   files: ProjectFiles;
   config?: ProjectConfig;
+  notebookContext: NotebookContext;
+  outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
+
+  // This is a cache of the engine and target for a given filename
+  engineAndTargetCache?: Map<
+    string,
+    { engine: ExecutionEngine; target: ExecutionTarget }
+  >;
+
+  fileInformationCache: Map<string, FileInformation>;
+
+  // expands markdown for a file
+  // input file doesn't have to be markdown; it can be, for example, a knitr spin file
+  // output file is always markdown, though, and it is cached in the project
+
+  resolveFullMarkdownForFile: (
+    engine: ExecutionEngine | undefined,
+    file: string,
+    markdown?: MappedString,
+    force?: boolean,
+  ) => Promise<MappedString>;
+
+  fileExecutionEngineAndTarget: (
+    file: string,
+    force?: boolean,
+  ) => Promise<{ engine: ExecutionEngine; target: ExecutionTarget }>;
+
   formatExtras?: (
-    project: ProjectContext,
     source: string,
     flags: PandocFlags,
     format: Format,
     services: RenderServices,
   ) => Promise<FormatExtras>;
 
+  // declaring renderFormats here is a relatively ugly hack to avoid a circular import chain
+  // that causes a deno bundler bug
   renderFormats: (
     file: string,
-    to?: string,
-    project?: ProjectContext,
+    services: RenderServices,
+    to: string | undefined,
+    project: ProjectContext,
   ) => Promise<Record<string, Format>>;
 
-  outputNameIndex?: Map<string, { file: string; format: Format } | undefined>;
-  environment: (project: ProjectContext) => Promise<ProjectEnvironment>;
+  environment: () => Promise<ProjectEnvironment>;
+
+  isSingleFile: boolean;
 }
 
 export interface ProjectFiles {
@@ -76,6 +115,7 @@ export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
 export const kCollapseBelow = "collapse-below";
+export const kToolsCollapse = "tools-collapse";
 export const kLogoAlt = "logo-alt";
 export const kLogoHref = "logo-href";
 
@@ -105,6 +145,7 @@ export interface Navbar {
   [kSidebarMenus]?: boolean;
   darkToggle?: boolean;
   readerToggle?: boolean;
+  [kToolsCollapse]?: boolean;
 }
 
 /* export interface NavItem {
@@ -129,7 +170,10 @@ export interface Sidebar {
   title?: string;
   subtitle?: string;
   logo?: string;
-  aligment?: "left" | "right" | "center";
+  [kLogoAlt]?: string;
+  [kLogoHref]?: string;
+  alignment?: "left" | "right" | "center";
+  align?: "left" | "right" | "center"; // This is here only because older versions of Quarto used to use it even though it wasn't documented
   background?:
     | "none"
     | "primary"
@@ -164,6 +208,20 @@ export type SidebarItem = NavigationItemObject & {
   // transient properties used for expanding 'auto'
   auto?: boolean | string | string[];
 };
+
+export interface InputTargetIndex extends Metadata {
+  title?: string;
+  markdown: PartitionedMarkdown;
+  formats: Record<string, Format>;
+  draft?: boolean;
+}
+
+export interface InputTarget {
+  input: string;
+  title?: string;
+  outputHref: string;
+  draft: boolean;
+}
 
 /*export interface SidebarTool {
   // label/contents

@@ -5,7 +5,7 @@
 * Copyright (C) 2020-2022 Posit Software, PBC
 *
 */
-import { debug, warning } from "log/mod.ts";
+import { debug, warning } from "../../../../deno_ral/log.ts";
 import {
   basename,
   dirname,
@@ -13,8 +13,8 @@ import {
   isAbsolute,
   join,
   relative,
-} from "path/mod.ts";
-import { cloneDeep, orderBy } from "../../../../core/lodash.ts";
+} from "../../../../deno_ral/path.ts";
+import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
@@ -107,10 +107,16 @@ import {
   projectOutputDir,
 } from "../../../project-shared.ts";
 import { mergeConfigs } from "../../../../core/config.ts";
-import { globToRegExp } from "../../../../core/lib/glob.ts";
+import { globToRegExp } from "path/glob_to_regexp.ts";
 import { cslNames } from "../../../../core/csl.ts";
 import { isHttpUrl } from "../../../../core/url.ts";
 import { InternalError } from "../../../../core/lib/error.ts";
+import { isHtmlOutput } from "../../../../config/format.ts";
+import {
+  isDraftVisible,
+  isProjectDraft,
+  projectDraftMode,
+} from "../website-utils.ts";
 
 // Defaults (a card listing that contains everything
 // in the source document's directory)
@@ -203,7 +209,7 @@ export async function readListings(
   const categories = firstListingValue(kFieldCategories, false);
 
   const parseCategoryStyle = (categories: unknown) => {
-    if (typeof (categories) === "string") {
+    if (typeof categories === "string") {
       switch (categories) {
         case "unnumbered":
           return "category-unnumbered";
@@ -226,7 +232,7 @@ export async function readListings(
 
   const feed = firstListingValue(kFeed, undefined);
   if (feed !== undefined) {
-    if (typeof (feed) === "object") {
+    if (typeof feed === "object") {
       // If is an object, forward it along
       sharedOptions[kFeed] = feed as ListingFeedOptions;
     } else if (feed) {
@@ -296,16 +302,22 @@ export function completeListingItems(
   outputFiles: ProjectOutputFile[],
   _incremental: boolean,
 ) {
+  debug(`[listing] Completing listing items for ${outputFiles.length} files`);
   const options = {
     remove: { links: true, images: true },
   };
 
+  debug(`[listing] Creating content reader`);
   const contentReader = renderedContentReader(context, options);
 
   // Go through any output files and fix up any feeds associated with them
   outputFiles.forEach((outputFile) => {
+    debug(`[listing] Completing listing items ${outputFile.input}`);
     // Does this output file contain a listing?
-    if (outputFile.format.metadata[kListing]) {
+    if (
+      outputFile.format.metadata[kListing] &&
+      isHtmlOutput(outputFile.format.pandoc, true)
+    ) {
       // Read the listing page
       let fileContents = Deno.readTextFileSync(outputFile.file);
 
@@ -314,7 +326,8 @@ export function completeListingItems(
         : [outputFile.format.metadata[kListing]];
 
       listings.forEach((listing) => {
-        if (typeof (listing) === "object") {
+        if (typeof listing === "object") {
+          debug(`[listing] Processing listing`);
           const listingMetadata = listing as Metadata;
           // See if there is a default image
           const listingDefaultImage = listingMetadata !== undefined &&
@@ -327,6 +340,7 @@ export function completeListingItems(
           regex.lastIndex = 0;
           let match = regex.exec(fileContents);
           while (match) {
+            debug(`[listing] Processing description match`);
             // For each placeholder, get its target href, then read the contents of that
             // file and inject the contents.
             const maxDescLength = parseInt(match[1]);
@@ -369,6 +383,7 @@ export function completeListingItems(
           imgRegex.lastIndex = 0;
           let imgMatch = imgRegex.exec(fileContents);
           while (imgMatch) {
+            debug(`[listing] Processing image match`);
             const progressive = imgMatch[1] === "true";
             const imgHeight = imgMatch[2];
             const docRelativePath = imgMatch[3];
@@ -378,12 +393,17 @@ export function completeListingItems(
               progressive,
               imgHeight,
             );
+            debug(`[listing] ${docAbsPath}`);
+            debug(`[listing] ${imgPlaceholder}`);
+
             if (existsSync(docAbsPath)) {
+              debug(`[listing] exists: ${docAbsPath}`);
               const contents = contentReader(docAbsPath, {
                 remove: { links: true },
               });
 
               if (contents.previewImage) {
+                debug(`[listing] previewImage: ${docAbsPath}`);
                 const resolveUrl = (path: string) => {
                   if (isHttpUrl(path)) {
                     return path;
@@ -408,11 +428,13 @@ export function completeListingItems(
                   imgHeight,
                 );
 
+                debug(`[listing] replacing: ${docAbsPath}`);
                 fileContents = fileContents.replace(
                   imgPlaceholder,
                   imgHtml,
                 );
               } else if (listingDefaultImage) {
+                debug(`[listing] using default image: ${docAbsPath}`);
                 const imagePreview: PreviewImage = {
                   src: listingDefaultImage,
                 };
@@ -421,12 +443,14 @@ export function completeListingItems(
                   imageSrc(imagePreview, progressive, imgHeight),
                 );
               } else {
+                debug(`[listing] using empty div: ${docAbsPath}`);
                 fileContents = fileContents.replace(
                   imgPlaceholder,
                   emptyDiv(imgHeight),
                 );
               }
             } else {
+              debug(`[listing] does not exist: ${docAbsPath}`);
               fileContents = fileContents.replace(
                 imgPlaceholder,
                 emptyDiv(imgHeight),
@@ -575,8 +599,8 @@ function hydrateListing(
 
   const listingHydrated: Listing = cloneDeep({
     fields: hydratedFields,
-    [kFieldDisplayNames]: {},
-    [kFieldTypes]: kDefaultFieldTypes,
+    [kFieldDisplayNames]: {}, // default values are merged later
+    [kFieldTypes]: {}, // default values are merged later
     [kFieldLinks]: defaultLinks,
     [kFieldSort]: defaultSort,
     [kFieldFilter]: hydratedFields,
@@ -641,7 +665,7 @@ function hydrateListing(
 
   // Merge column types
   listingHydrated[kFieldTypes] = {
-    ...listingHydrated[kFieldTypes],
+    ...kDefaultFieldTypes,
     ...listing[kFieldTypes] as Record<string, ColumnType>,
   };
 
@@ -662,7 +686,7 @@ async function readContents(
   debug(`[listing] Reading listing '${listing.id}' from ${source}`);
   debug(`[listing] Contents: ${
     listing.contents.map((lst) => {
-      return typeof (lst) === "string" ? lst : "<yaml>";
+      return typeof lst === "string" ? lst : "<yaml>";
     }).join(",")
   }`);
 
@@ -701,6 +725,12 @@ async function readContents(
       return expanded.glob;
     });
 
+    // push a glob excluding the project output directory
+    const outDir = project.config?.project["output-dir"];
+    if (outDir) {
+      finalGlobs.push(`!/${outDir}/**`);
+    }
+
     // Convert a bare directory path into a consumer
     // of everything in the directory
     if (hasInputs || hasDefaultGlob) {
@@ -732,11 +762,11 @@ async function readContents(
   };
 
   const contentGlobs = listing.contents.filter((content) => {
-    return typeof (content) === "string";
+    return typeof content === "string";
   }) as string[];
 
   const contentMetadatas = listing.contents.filter((content) => {
-    return typeof (content) !== "string";
+    return typeof content !== "string";
   }) as Metadata[];
 
   if (contentGlobs.length > 0) {
@@ -748,7 +778,7 @@ async function readContents(
     });
     if (readFiles.length === 0) {
       const projRelativePath = relative(project.dir, source);
-      throw new Error(
+      warning(
         `The listing in '${projRelativePath}' using the following contents:\n- ${
           contentGlobs.join("\n- ")
         }\ndoesn't match any files or folders.`,
@@ -762,36 +792,42 @@ async function readContents(
         if (Array.isArray(yaml)) {
           const items = yaml as Array<unknown>;
           for (const yamlItem of items) {
-            if (typeof (yamlItem) === "object") {
-              const { item, source } = await listItemFromMeta(
+            if (typeof yamlItem === "object") {
+              const result = await listItemFromMeta(
                 yamlItem as Metadata,
                 project,
                 listing,
                 dirname(file),
               );
-              validateItem(listing, item, (field: string) => {
-                return `An item from the file '${file}' is missing the required field '${field}'.`;
-              });
-              listingItemSources.add(source);
-              listingItems.push(item);
+              if (result) {
+                const { item, source } = result;
+                validateItem(listing, item, (field: string) => {
+                  return `An item from the file '${file}' is missing the required field '${field}'.`;
+                });
+                listingItemSources.add(source);
+                listingItems.push(item);
+              }
             } else {
               throw new Error(
                 `Unexpected listing contents in file ${file}. The array may only contain listing items, not paths or other types of data.`,
               );
             }
           }
-        } else if (typeof (yaml) === "object") {
-          const { item, source } = await listItemFromMeta(
+        } else if (typeof yaml === "object") {
+          const result = await listItemFromMeta(
             yaml as Metadata,
             project,
             listing,
             dirname(file),
           );
-          validateItem(listing, item, (field: string) => {
-            return `The item defined in file '${file}' is missing the required field '${field}'.`;
-          });
-          listingItemSources.add(source);
-          listingItems.push(item);
+          if (result) {
+            const { item, source } = result;
+            validateItem(listing, item, (field: string) => {
+              return `The item defined in file '${file}' is missing the required field '${field}'.`;
+            });
+            listingItemSources.add(source);
+            listingItems.push(item);
+          }
         } else {
           throw new Error(
             `Unexpected listing contents in file ${file}. The file should contain only one more listing items.`,
@@ -822,17 +858,20 @@ async function readContents(
   // Process any metadata that appears in contents
   if (contentMetadatas.length > 0) {
     for (const content of contentMetadatas) {
-      const { item, source: itemSource } = await listItemFromMeta(
+      const result = await listItemFromMeta(
         content,
         project,
         listing,
         dirname(source),
       );
-      validateItem(listing, item, (field: string) => {
-        return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
-      });
-      listingItemSources.add(itemSource);
-      listingItems.push(item);
+      if (result) {
+        const { item, source: itemSource } = result;
+        validateItem(listing, item, (field: string) => {
+          return `An item in the listing '${listing.id}' is missing the required field '${field}'.`;
+        });
+        listingItemSources.add(itemSource);
+        listingItems.push(item);
+      }
     }
   }
 
@@ -842,7 +881,7 @@ async function readContents(
       listingValue: unknown,
     ) => {
       if (
-        typeof (itemValue) === "string" && typeof (listingValue) === "string"
+        typeof itemValue === "string" && typeof listingValue === "string"
       ) {
         const regex = globToRegExp(listingValue);
         return itemValue.match(regex);
@@ -945,7 +984,7 @@ async function listItemFromMeta(
   project: ProjectContext,
   listing: ListingDehydrated,
   baseDir: string,
-): Promise<{ item: ListingItem; source: ListingItemSource }> {
+): Promise<{ item: ListingItem; source: ListingItemSource } | undefined> {
   let listingItem: ListingItem = cloneDeep(meta);
   let source = ListingItemSource.metadata;
 
@@ -965,14 +1004,24 @@ async function listItemFromMeta(
 
       const fileListing = await listItemFromFile(inputPath, project, listing);
       if (fileListing === undefined) {
-        warning(
-          `Draft document ${meta.path} found in a custom listing: item will not have computed metadata.`,
-        );
+        // Since a draft document was found in this listing,
+        // go ahead and exclude it. This is acceptable because the draft
+        // list should be independent of YAML / front matter since
+        // we don't way users to have to coordinate their front matter with
+        // document draft status.
+        return undefined;
       } else {
         listingItem = {
           ...(fileListing.item || {}),
           ...listingItem,
         };
+        // If the file itself provides a path (e.g. it is an input with an
+        // output path), that should be used rather than the path in the metadata
+        // which was literally just used to get the path to the file that
+        // we're now reading.
+        if (fileListing.item.path) {
+          listingItem.path = fileListing.item.path;
+        }
         source = ListingItemSource.metadataDocument;
       }
     }
@@ -1011,11 +1060,11 @@ async function listItemFromFile(
   const projectRelativePath = relative(project.dir, input);
   const target = await inputTargetIndex(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
   );
   const inputTarget = await resolveInputTarget(
     project,
-    projectRelativePath,
+    pathWithForwardSlashes(projectRelativePath),
     false,
   );
 
@@ -1030,7 +1079,12 @@ async function listItemFromFile(
     docRawMetadata,
   ) as Metadata;
 
-  if (documentMeta?.draft) {
+  // Consult the website project draft list directly here
+  // since this is occuring before the input index
+  // is populated.
+  const projectDraft = isProjectDraft(projectRelativePath, project);
+  const draftMode = projectDraftMode(project);
+  if (!isDraftVisible(draftMode) && (documentMeta?.draft || projectDraft)) {
     // This is a draft, don't include it in the listing
     return undefined;
   } else {
@@ -1055,8 +1109,8 @@ async function listItemFromFile(
       documentMeta?.abstract as string ||
       descriptionPlaceholder(inputTarget?.outputHref, maxDescLength);
 
-    const imageRaw = documentMeta?.image as string;
-    const image = imageRaw !== undefined
+    const imageRaw = documentMeta?.image as string | boolean;
+    const image = imageRaw !== undefined && typeof imageRaw === "string"
       ? pathWithForwardSlashes(
         listingItemHref(imageRaw, dirname(projectRelativePath)),
       )
@@ -1082,8 +1136,10 @@ async function listItemFromFile(
       );
     }
     const author = structuredAuthors
-      ? structuredAuthors.map((auth) =>
-        auth.literal || `${auth.given} ${auth.family}`
+      ? uniq(
+        structuredAuthors.map((auth) =>
+          auth.literal || `${auth.given} ${auth.family}`
+        ),
       )
       : [];
 
@@ -1147,7 +1203,7 @@ function readDehydratedListings(
 ): ListingDehydrated[] {
   const listingConfig = format.metadata[kListing];
   const listings: ListingDehydrated[] = [];
-  if (typeof (listingConfig) == "string") {
+  if (typeof listingConfig == "string") {
     // Resolve this string
     const listing = listingForType(listingType(listingConfig));
     if (listing) {
@@ -1156,7 +1212,7 @@ function readDehydratedListings(
   } else if (Array.isArray(listingConfig)) {
     // Process an array of listings
     const listingConfigs = listingConfig.filter((listing) =>
-      typeof (listing) === "object"
+      typeof listing === "object"
     );
     let count = 0;
     listings.push(...listingConfigs.map((listing) => {
@@ -1169,7 +1225,7 @@ function readDehydratedListings(
         source,
       );
     }));
-  } else if (listingConfig && typeof (listingConfig) === "object") {
+  } else if (listingConfig && typeof listingConfig === "object") {
     // Process an individual listing
     listings.push(
       listingForMetadata(
@@ -1242,7 +1298,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
       return undefined;
     }
 
-    if (typeof (sortValue) === "string") {
+    if (typeof sortValue === "string") {
       const sortStr = sortValue as string;
       const parts = sortStr.split(" ");
       if (parts.length === 2) {
@@ -1259,7 +1315,7 @@ function computeListingSort(rawValue: unknown): ListingSort[] | undefined {
     }
   };
 
-  if (typeof (rawValue) === "boolean") {
+  if (typeof rawValue === "boolean") {
     if (rawValue) {
       // Apply default sorting behavior
       return undefined;

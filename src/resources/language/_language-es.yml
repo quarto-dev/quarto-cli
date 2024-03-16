@@ -25,6 +25,7 @@ section-title-citation: "Cómo citar"
 
 appendix-attribution-bibtex: "BibTeX"
 appendix-attribution-cite-as: "Por favor, cita este trabajo como:"
+appendix-view-license: "Ver Licencia"
 
 title-block-author-single: "Autor/a"
 title-block-author-plural: "Autores/as"
@@ -51,6 +52,9 @@ code-tools-hide-all-code: "Ocultar todo el código"
 code-tools-view-source: "Ver el código fuente"
 code-tools-source-code: "Ejecutar el código"
 
+tools-share: "Compartir"
+tools-download: "Descargar"
+
 copy-button-tooltip: "Copiar al portapapeles"
 copy-button-tooltip-success: "Copiado"
 
@@ -67,6 +71,7 @@ search-hide-matches-text: "Ocultar resultados adicionales"
 search-more-match-text: "resultado adicional en este documento"
 search-more-matches-text: "resultados adicionales en este documento"
 search-clear-button-title: "Borrar"
+search-text-placeholder: ""
 search-detached-cancel-button-title: "Cancelar"
 search-submit-button-title: "Enviar"
 search-label: "Buscar"
@@ -120,3 +125,6 @@ listing-page-category-all: "Todas"
 listing-page-no-matches: "No hay resultados"
 listing-page-field-wordcount: "Conteo de Palabras"
 listing-page-words: "{0} palabras"
+listing-page-filter: "Filtro"
+
+draft: "Borrador"

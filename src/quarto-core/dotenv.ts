@@ -5,7 +5,7 @@
  */
 
 import { load as config, stringify } from "dotenv/mod.ts";
-import { join } from "path/mod.ts";
+import { join } from "../deno_ral/path.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { isEqual } from "../core/lodash.ts";
 import { globalTempContext } from "../core/temp.ts";

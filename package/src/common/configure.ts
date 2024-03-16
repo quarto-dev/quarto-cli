@@ -3,10 +3,10 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { dirname, join, SEP } from "path/mod.ts";
+import { dirname, join, SEP } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "fs/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { info, warning } from "../../../src/deno_ral/log.ts";
 
 import { expandPath } from "../../../src/core/path.ts";
 import {
@@ -19,7 +19,7 @@ import {
   configureDependency,
   kDependencies,
 } from "./dependencies/dependencies.ts";
-import { suggestUserBinPaths } from "../../../src/core/env.ts";
+import { suggestUserBinPaths } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "../../../src/core/previewjs.ts";
 
 export async function configure(
@@ -27,23 +27,11 @@ export async function configure(
 ) {
   // Download dependencies
   for (const dependency of kDependencies) {
-    try {
-      const targetDir = join(
-        config.directoryInfo.bin,
-        "tools",
-      );
-      await configureDependency(dependency, targetDir, config);
-    } catch (e) {
-      if (
-        e.message ===
-          "The architecture aarch64 is missing the dependency deno_dom"
-      ) {
-        info("\nIgnoring deno_dom dependency on Apple Silicon");
-        continue;
-      } else {
-        throw e;
-      }
-    }
+    const targetDir = join(
+      config.directoryInfo.bin,
+      "tools",
+    );
+    await configureDependency(dependency, targetDir, config);
   }
 
   info("Building quarto-preview.js...");
@@ -58,7 +46,15 @@ export async function configure(
   copyQuartoScript(config, config.directoryInfo.bin);
 
   info("Creating architecture specific Pandoc link");
-  copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
+  const vendor = Deno.env.get("QUARTO_VENDOR_BINARIES");
+  if (vendor === undefined || vendor === "true") {
+    // Quarto tools may look right in the bin/tools directory for Pandoc
+    // so make a symlink that points to the architecture specific version.
+    // Note that if we are being instructed not to vendor binaries,
+    // Pandoc won't be present in the architecture specific directory, so 
+    // just skip this step.
+    copyPandocScript(config, join(config.directoryInfo.bin, "tools"));
+  }
 
   // record dev config. These are versions as defined in the root configuration file.
   const devConfig = createDevConfig(

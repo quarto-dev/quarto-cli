@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { info, warning } from "log/mod.ts";
+import { info, warning } from "../deno_ral/log.ts";
 import { withSpinner } from "../core/console.ts";
 import { logError } from "../core/log.ts";
 

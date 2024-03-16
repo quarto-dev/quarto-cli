@@ -28,7 +28,7 @@ function columns()
           el.classes = el.classes:filter(function(attr) 
             return attr ~= "aside"
           end)
-          tappend(el.classes, {'column-margin'})
+          tappend(el.classes, {'column-margin', 'margin-aside'})
           return el
         end
       end
@@ -66,7 +66,7 @@ function renderDivColumn(el)
       el.classes = el.classes:filter(function(attr) 
         return attr ~= "aside"
       end)
-      tappend(el.classes, {'column-margin'})
+      tappend(el.classes, {'column-margin', "margin-aside"})
       return el
     end
 
@@ -108,6 +108,7 @@ function renderDivColumn(el)
       if el.classes:includes('cell-output-display') and #el.content > 0 then
         -- this could be a code-display-cell
         local figOrTable = false
+        local floatRefTarget = false
         for j=1,#el.content do
           local contentEl = el.content[j]
 
@@ -116,24 +117,65 @@ function renderDivColumn(el)
           if figure ~= nil then
             applyFigureColumns(columnClasses, figure)
             figOrTable = true
-          elseif contentEl.t == 'Div' and hasTableRef(contentEl) then
+          elseif is_regular_node(contentEl, "Div") and hasTableRef(contentEl) then
             -- wrap table divs
             latexWrapEnvironment(contentEl, latexTableEnv(el), false)
             figOrTable = true
+            el.classes = el.classes:filter(function(clz) 
+              return not isStarEnv(clz)
+            end)
           elseif contentEl.attr ~= nil and hasFigureRef(contentEl) then
             -- wrap figure divs
             latexWrapEnvironment(contentEl, latexFigureEnv(el), false)
             figOrTable = true
+            el.classes = el.classes:filter(function(clz) 
+              return not isStarEnv(clz)
+            end)
           elseif contentEl.t == 'Table' then
-            -- wrap the table in a div and wrap the table environment around it
-            local tableDiv = pandoc.Div({contentEl})
-            latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
-            el.content[j] = tableDiv
-            figOrTable = true
+            -- TODO do-not-create-environment is hack we add on parsefiguredivs.lua
+            -- to handle floatreftarget that have layout elements. we need
+            -- this to not doubly-emit table* environments, because in this
+            -- specific case, the floatreftarget renderer will handle the
+            -- environment creation.
+            --
+            -- it's likely that the lines around here which create environments also
+            -- need to get the same treatment
+            if contentEl.classes:includes("do-not-create-environment") then
+              contentEl.classes = contentEl.classes:filter(function(clz) 
+                return clz ~= "do-not-create-environment"
+              end)
+            else
+              -- wrap the table in a div and wrap the table environment around it
+              contentEl.classes:insert("render-as-tabular")
+              local tableDiv = pandoc.Div({contentEl})
+              latexWrapEnvironment(tableDiv, latexTableEnv(el), false)
+              el.content[j] = tableDiv
+              figOrTable = true
+
+              -- In this case, we need to remove the class from the parent element
+              -- It also means that divs that want to be both a figure* and a table*
+              -- will never work and we won't get the column-* treatment for 
+              -- everything, just for the table.
+              el.classes = el.classes:filter(function(clz) 
+                return not isStarEnv(clz)
+              end)
+              print(el)
+            end
+          elseif is_custom_node(contentEl, "FloatRefTarget") then
+            -- forward the columns class from the output div
+            -- onto the float ref target, which prevents
+            -- the general purpose `sidenote` processing from capturing this
+            -- element (since floats know how to deal with margin positioning)
+            local custom = _quarto.ast.resolve_custom_data(contentEl)
+            if custom ~= nil then  
+              floatRefTarget = true
+              removeColumnClasses(el)
+              addColumnClasses(columnClasses, custom)
+            end
           end 
         end
 
-        if not figOrTable then
+        if not figOrTable and not floatRefTarget then
           processOtherContent(el.content)
         end
       else

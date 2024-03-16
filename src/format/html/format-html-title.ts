@@ -5,16 +5,14 @@
  */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kDateFormat, kTocLocation } from "../../config/constants.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
 import { Document } from "../../core/deno-dom.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { sassLayer } from "../../core/sass.ts";
 import { TempContext } from "../../core/temp-types.ts";
-import {
-  MarkdownPipeline,
-} from "../../project/types/website/website-pipeline-md.ts";
+import { MarkdownPipeline } from "../../core/markdown-pipeline.ts";
 
 export const kTitleBlockStyle = "title-block-style";
 const kTitleBlockBanner = "title-block-banner";
@@ -203,13 +201,19 @@ export function processDocumentTitle(
     if (isBannerImage(input, banner)) {
       resources.push(banner as string);
     }
+
+    // Decorate the header
+    const quartoHeaderEl = doc.getElementById("quarto-header");
+    if (quartoHeaderEl) {
+      quartoHeaderEl.classList.add("quarto-banner");
+    }
   }
 
   return resources;
 }
 
 function isBannerImage(input: string, banner: unknown) {
-  if (typeof (banner) === "string") {
+  if (typeof banner === "string") {
     let path;
 
     if (isAbsolute(banner)) {

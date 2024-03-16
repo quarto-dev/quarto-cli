@@ -1,5 +1,11 @@
-  ---
-  title: 3159
-  ---
+---
+title: "3159"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches: 
+        - ['This is some content']
+        - []
+---
 
-  {{< include "file with spaces.md" >}}
+{{< include "_file with spaces.md" >}}

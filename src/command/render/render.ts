@@ -6,7 +6,7 @@
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 
 import { Document, parseHtml } from "../../core/deno-dom.ts";
 
@@ -184,6 +184,7 @@ export async function renderPandoc(
     mediabagDir,
     libDir: context.libDir,
     format,
+    executionEngine: executeResult.engine,
     project: context.project,
     args: recipe.args,
     services: context.options.services,

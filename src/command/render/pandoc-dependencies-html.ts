@@ -1,11 +1,10 @@
 /*
-* pandoc-dependencies-html.ts
-*
-* Copyright (C) 2020-2022 Posit Software, PBC
-*
-*/
+ * pandoc-dependencies-html.ts
+ *
+ * Copyright (C) 2020-2022 Posit Software, PBC
+ */
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join } from "../../deno_ral/path.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -36,7 +35,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { insecureHash } from "../../core/hash.ts";
 
-export function writeDependencies(
+export async function writeDependencies(
   dependenciesFile: string,
   extras: FormatExtras,
 ) {
@@ -49,7 +48,7 @@ export function writeDependencies(
         };
       });
 
-    appendDependencies(dependenciesFile, dependencies);
+    await appendDependencies(dependenciesFile, dependencies);
   }
 }
 
@@ -109,6 +108,24 @@ export function readAndInjectDependencies(
           attachment.content.file,
           directoryInfo.absolute,
           !!parentDependency.external,
+        );
+      }
+    }
+  }
+
+  // See if there are any script elements that must be relocated
+  // If so, they will be relocated to the top of the list of scripts that
+  // are present in the document
+  const relocateScripts = doc.querySelectorAll("script[data-relocate-top]");
+  if (relocateScripts.length > 0) {
+    // find the idea insertion point
+    const nextSiblingEl = doc.querySelector("head script:first-of-type");
+    if (nextSiblingEl) {
+      for (const relocateScript of relocateScripts) {
+        (relocateScript as Element).removeAttribute("data-relocate-top");
+        nextSiblingEl.parentElement?.insertBefore(
+          relocateScript,
+          nextSiblingEl,
         );
       }
     }

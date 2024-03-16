@@ -1,17 +1,18 @@
 ---
 title: "Citeproc and Typst"
-format: typst
-output-ext: typ
+format: 
+  typst:
+    keep-typ: true
 bibliography: refs.bib
 citeproc: true
 _quarto:
   tests: 
     typst:
-      ensureFileRegexMatches:
+      ensureTypstFileRegexMatches:
       - ['<refs>', '<ref-Cronbach_1951>']
       - ['\#bibliography\([^)]*\)']
 ---
 
-Hello [@Cronbach_1951]
+Hello [@Cronbach_1951, @Cronbach_1952]
 
 # References

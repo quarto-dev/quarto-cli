@@ -3,8 +3,8 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { join } from "path/mod.ts";
-import { info } from "log/mod.ts";
+import { join } from "../../../src/deno_ral/path.ts";
+import { info } from "../../../src/deno_ral/log.ts";
 
 import { execProcess } from "../../../src/core/process.ts";
 import { Configuration, withWorkingDir } from "./config.ts";
@@ -114,9 +114,16 @@ export async function archiveBinaryDependency(
     ];
     for (const platformDep of platformDeps) {
       if (platformDep) {
+        
         const dependencyAwsPath =
           `${kBucket}/${dependencyBucketPath}/${platformDep.filename}`;
+        info(`Checking ${dependencyAwsPath}`);
         const response = await s3cmd("ls", [dependencyAwsPath]);
+        if (response?.includes('Unable to locate credentials')) {
+          throw new Error("Unable to locate S3 credentials, please try again.");
+        }
+        
+
         if (!response) {
           // This dependency doesn't exist, archive it
           info(
@@ -131,12 +138,15 @@ export async function archiveBinaryDependency(
 
           // Sync to S3
           info(`Copying to ${dependencyAwsPath}\n`);
-          await s3cmd("cp", [
+          const result = await s3cmd("cp", [
             localPath,
             dependencyAwsPath,
             "--acl",
             "public-read",
           ]);
+          
+          info(`(Reponse): ${result}`);
+
         } else {
           info(`${dependencyAwsPath} already archived.`);
         }

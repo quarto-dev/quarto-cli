@@ -54,6 +54,7 @@ export function mappedSubstring(
   const mappedSource: MappedString = source;
   return {
     value,
+    fileName: mappedSource.fileName,
     map: (index: number, closest?: boolean) => {
       if (closest) {
         index = Math.max(0, Math.min(value.length, index - 1));

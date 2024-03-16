@@ -4,7 +4,7 @@
  * Copyright (C) 2020 by Posit, PBC
  */
 
-import { encode as base64encode } from "encoding/base64.ts";
+import { encodeBase64 as base64encode } from "encoding/base64.ts";
 import { ensureTrailingSlash } from "../../../core/path.ts";
 
 import { AccountToken } from "../../provider-types.ts";

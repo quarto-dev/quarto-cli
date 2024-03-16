@@ -4,11 +4,23 @@
 function columns_preprocess() 
   return {
     FloatRefTarget = function(float)
+      if float.parent_id ~= nil then
+        return nil
+      end
       local location = cap_location(float)
       if location == 'margin' then
         float.classes:insert('margin-caption')
         noteHasColumns()
         return float
+      end
+    end,
+
+    Figure = function(figure)
+      local location = cap_location(figure)
+      if location == 'margin' then
+        figure.classes:insert('margin-caption')
+        noteHasColumns()
+        return figure
       end
     end,
 
@@ -55,7 +67,7 @@ function resolveColumnClassesForCodeCell(el)
     local ref_type = v.ref_type
     float_classes[ref_type] = computeClassesForScopedColumns(el, ref_type)
     float_caption_classes[ref_type] = computeClassesForScopedCaption(el, ref_type)
-    found = #float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0
+    found = found or (#float_classes[ref_type] > 0 or #float_caption_classes[ref_type] > 0)
   end
 
   -- read the classes that should be forwarded
@@ -84,7 +96,7 @@ function resolveColumnClassesForCodeCell(el)
               local custom_classes = float_classes[ref_type]
               local custom_caption_classes = float_caption_classes[ref_type]
               -- applyClasses(colClasses, captionClasses, containerEl, colEl, captionEl, scope)
-              applyClasses(custom_classes, custom_caption_classes, el, custom, custom, ref_type)
+              applyClasses(custom_classes, custom_caption_classes, el, childEl, custom, ref_type)
             else
               local figure = discoverFigure(figOrTableEl, false)
               if figure ~= nil then
@@ -95,13 +107,17 @@ function resolveColumnClassesForCodeCell(el)
                 -- forward to figure divs
                 applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
                 forwarded = true
-              elseif (figOrTableEl.t == 'Div' and hasTableRef(figOrTableEl)) then
+              elseif (is_regular_node(figOrTableEl, "Div") and hasTableRef(figOrTableEl)) then
                 -- for a table div, apply the classes to the figOrTableEl itself
                 applyClasses(tblClasses, tblCaptionClasses, el, childEl, figOrTableEl, 'tbl')
                 forwarded = true
               elseif figOrTableEl.t == 'Table' then
                 -- the figOrTableEl is a table, just apply the classes to the div around it
                 applyClasses(tblClasses, tblCaptionClasses, el, childEl, childEl, 'tbl')
+                forwarded = true
+              elseif figOrTableEl.t == "Figure" then
+                -- the figOrTableEl is a table, just apply the classes to the div around it
+                applyClasses(figClasses, figCaptionClasses, el, childEl, figOrTableEl, 'fig')
                 forwarded = true
               end
             end
@@ -243,7 +259,7 @@ function columnOption(key)
   if value == nil or #value < 1 then
     return {}
   else
-    return {'column-' .. inlinesToString(value[1])}
+    return {'column-' .. inlinesToString(quarto.utils.as_inlines(value[1]))}
   end
 end
 

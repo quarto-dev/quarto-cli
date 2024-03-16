@@ -3,6 +3,7 @@
 --
 -- renders AST nodes to docx
 
+local constants = require("modules/constants")
 
 local function calloutDocxDefault(node, type, hasIcon)
   local title = quarto.utils.as_inlines(node.title)
@@ -45,8 +46,11 @@ local function calloutDocxDefault(node, type, hasIcon)
   })
 
   -- Create a title if there isn't already one
-  if title == nil then
-    title = pandoc.List({pandoc.Str(displayName(type))})
+  -- if title == nil then
+  --   title = pandoc.List({pandoc.Str(displayName(type))})
+  -- end
+  if pandoc.utils.stringify(title) == "" then
+    title = quarto.utils.as_inlines(pandoc.Plain(displayName(node.type)))
   end
 
   -- add the image to the title, if needed
@@ -90,7 +94,7 @@ local function calloutDocxDefault(node, type, hasIcon)
 
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
-    return el.t == "Div" and el.attr.classes:find_if(isDocxCallout) ~= nil 
+    return is_regular_node(el, "Div") and el.attr.classes:find_if(isDocxCallout) ~= nil 
   end) ~= nil then
     fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
@@ -175,7 +179,7 @@ local function calloutDocxSimple(node, type, hasIcon)
   
   -- ensure there are no nested callouts
   if contents:find_if(function(el) 
-    return el.t == "Div" and el.attr.classes:find_if(isDocxCallout) ~= nil 
+    return is_regular_node(el, "Div") and el.attr.classes:find_if(isDocxCallout) ~= nil 
   end) ~= nil then
     fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
@@ -187,24 +191,15 @@ local function calloutDocxSimple(node, type, hasIcon)
   return callout
 end
 
-local function calloutDocx(node)
+function calloutDocx(node)
+  node = decorate_callout_title_with_crossref(node)
   local type = node.type
   local appearance = node.appearance
   local hasIcon = node.icon 
 
-  if appearance == kCalloutAppearanceDefault then
+  if appearance == constants.kCalloutAppearanceDefault then
     return calloutDocxDefault(node, type, hasIcon)
   else
     return calloutDocxSimple(node, type, hasIcon)
   end
-end
-
-function render_docx()
-  if not _quarto.format.isDocxOutput() then
-    return {}
-  end
-
-  return {
-    Callout = calloutDocx
-  }
 end

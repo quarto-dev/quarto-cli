@@ -1,0 +1,56 @@
+---
+title: Card Examples
+format: dashboard
+---
+
+Row (Cards with Title)
+---------------------------------
+
+```{r}
+#| title: Hello World
+plot(cars)
+```
+
+:::{.card}
+
+### Hello World
+
+```{r}
+plot(cars)
+```
+ 
+:::
+
+
+:::{.card title="Hello World"}
+
+```{r}
+plot(cars)
+```
+
+:::
+
+Row (Cards with no title)
+---------------------------------
+
+
+```{r}
+plot(cars)
+```
+
+:::{.card}
+
+```{r}
+plot(cars)
+```
+ 
+:::
+
+
+:::{.card}
+
+```{r}
+plot(cars)
+```
+
+:::
