@@ -100,7 +100,8 @@
 
 #show ref: it => locate(loc => {
   let target = query(it.target, loc).first()
-  if it.at("supplement", default: none) == none {
+  let suppl = it.at("supplement", default: none)
+  if suppl == none or suppl == auto {
     it
     return
   }
