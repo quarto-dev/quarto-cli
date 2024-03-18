@@ -10,10 +10,10 @@ import IJulia
 # clear console history
 IJulia.clear_history()
 
-fig_width = {0}
-fig_height = {1}
-fig_format = :{2}
-fig_dpi = {3}
+fig_width = {fig_width}
+fig_height = {fig_height}
+fig_format = :{fig_format}
+fig_dpi = {fig_dpi}
 
 # no retina format type, use svg for high quality type/marks
 if fig_format == :retina
@@ -62,7 +62,7 @@ end
   
 # Set run_path if specified
 try
-  run_path = raw"{4}"
+  run_path = raw"{run_path}"
   if !isempty(run_path)
     cd(run_path)
   end

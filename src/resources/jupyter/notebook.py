@@ -11,7 +11,7 @@ import copy
 
 from pathlib import Path
 
-from yaml import safe_load
+from yaml import safe_load as parse_string
 
 from log import trace
 import nbformat
@@ -38,45 +38,13 @@ NB_FORMAT_VERSION = 4
 class RestartKernel(Exception):
    pass
 
-def parse_string(yaml_string):
-   return safe_load(yaml_string)
-
-# execute a notebook
-def notebook_execute(options, status):
-
-   trace('inside notebook_execute')
-   # if this is a re-execution of a previously loaded kernel,
-   # make sure the underlying python version hasn't changed
-   python_cmd = options.get("python_cmd", None)
-   if python_cmd:
-      if hasattr(notebook_execute, "python_cmd"):
-         if notebook_execute.python_cmd != python_cmd:
-            raise RestartKernel  
-      else:
-         notebook_execute.python_cmd = python_cmd
-
-   # if there is a supervisor_id then abort if it has changed
-   supervisor_pid = options.get("supervisor_pid", None)
-   if supervisor_pid:
-      if hasattr(notebook_execute, "supervisor_pid"):
-         if notebook_execute.supervisor_pid != supervisor_pid:
-            raise RestartKernel  
-      else:
-         notebook_execute.supervisor_pid = supervisor_pid
-   
-
+def build_kernel_options(options):
    # unpack options
-   input = options["target"]["input"]
    format = options["format"]
    resource_dir = options["resourceDir"]
    params = options.get("params", None)
    run_path = options.get("cwd", "")
    quiet = options.get('quiet', False)
-
-   # change working directory and strip dir off of paths
-   original_input = input
-   os.chdir(Path(input).parent)
-   input = Path(input).name
 
    # read variables out of format
    execute = format["execute"]
@@ -114,28 +82,38 @@ def notebook_execute(options, status):
    else:
       cache = "user"
 
-   # set environment variables
-   os.environ["QUARTO_FIG_WIDTH"] = str(fig_width)
-   os.environ["QUARTO_FIG_HEIGHT"] = str(fig_height)
-   if fig_format == "retina":
-      os.environ["QUARTO_FIG_DPI"] = str(fig_dpi * 2)
+   return {
+      "format": format,
+      "resource_dir": resource_dir,
+      "params": params,
+      "run_path": run_path,
+      "quiet": quiet,
+      "execute": execute,
+      "eval": eval,
+      "allow_errors": allow_errors,
+      "fig_width": fig_width,
+      "fig_height": fig_height,
+      "fig_format": fig_format,
+      "fig_dpi": fig_dpi,
+      "interactivity": interactivity,
+      "plotly_connected": plotly_connected,
+      "is_shiny": is_shiny,
+      "is_dashboard": is_dashboard,
+      "cache": cache      
+   }
+
+def set_env_vars(options):
+   os.environ["QUARTO_FIG_WIDTH"] = str(options["fig_width"])
+   os.environ["QUARTO_FIG_HEIGHT"] = str(options["fig_height"])
+   if options["fig_format"] == "retina":
+      os.environ["QUARTO_FIG_DPI"] = str(options["fig_dpi"] * 2)
       os.environ["QUARTO_FIG_FORMAT"] = "png"
    else:
-      os.environ["QUARTO_FIG_DPI"] = str(fig_dpi)
-      os.environ["QUARTO_FIG_FORMAT"] = fig_format
+      os.environ["QUARTO_FIG_DPI"] = str(options["fig_dpi"])
+      os.environ["QUARTO_FIG_FORMAT"] = options["fig_format"]
 
-   # read the notebook
-   nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
-
-   trace('read notebook')
-   # inject parameters if provided
-   if params:
-      nb_parameterize(nb, params)
-
-   # insert setup cell
-   setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny, is_dashboard, plotly_connected)
-   nb.cells.insert(0, setup_cell)
-
+def retrieve_nb_from_cache(nb, status, **kwargs):
+   cache = kwargs["cache"]
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
    # (forced re-execution) mode then try to satisfy the execution request from the cache
    if cache == True or cache == "refresh":
@@ -155,6 +133,68 @@ def notebook_execute(options, status):
    else:
       trace('not using cache')
       nb_cache = None
+   return nb_cache
+
+# check if the kernel needs to be restarted
+# and records necessary state for the next execution
+#
+# TODO why is the state here set on the function?
+def check_for_kernel_restart(options):
+   # if this is a re-execution of a previously loaded kernel,
+   # make sure the underlying python version hasn't changed
+   python_cmd = options.get("python_cmd", None)
+   if python_cmd:
+      if hasattr(notebook_execute, "python_cmd"):
+         if notebook_execute.python_cmd != python_cmd:
+            return True
+      else:
+         notebook_execute.python_cmd = python_cmd
+
+   # if there is a supervisor_id then abort if it has changed
+   supervisor_pid = options.get("supervisor_pid", None)
+   if supervisor_pid:
+      if hasattr(notebook_execute, "supervisor_pid"):
+         if notebook_execute.supervisor_pid != supervisor_pid:
+            return True
+      else:
+         notebook_execute.supervisor_pid = supervisor_pid
+
+# execute a notebook
+def notebook_execute(options, status):
+   trace('inside notebook_execute')
+   if check_for_kernel_restart(options):
+      raise RestartKernel
+   
+   # change working directory and strip dir off of paths
+   original_input = options["target"]["input"]
+   os.chdir(Path(original_input).parent)
+   input = Path(original_input).name
+
+   quarto_kernel_setup_options = build_kernel_options(options)
+   quarto_kernel_setup_options["input"] = input
+   allow_errors = quarto_kernel_setup_options["allow_errors"]
+   quiet = quarto_kernel_setup_options["quiet"]
+   resource_dir = quarto_kernel_setup_options["resource_dir"]
+   eval = quarto_kernel_setup_options["eval"]
+
+   # set environment variables
+   set_env_vars(quarto_kernel_setup_options)
+
+   # read the notebook
+   nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
+
+   trace('notebook was read')
+   # inject parameters if provided
+   if quarto_kernel_setup_options["params"]:
+      nb_parameterize(nb, quarto_kernel_setup_options["params"])
+
+   # insert setup cell
+   setup_cell = nb_setup_cell(nb.metadata.kernelspec, quarto_kernel_setup_options)
+   nb.cells.insert(0, setup_cell)
+
+   nb_cache = retrieve_nb_from_cache(nb, status, **quarto_kernel_setup_options)
+   if nb_cache == True:
+      return True # True indicates notebook read from cache, and hence kernel can be persisted
       
    # create resources for execution
    resources = dict({
@@ -162,8 +202,8 @@ def notebook_execute(options, status):
          "input": original_input,
       }
    })
-   if run_path:
-      resources["metadata"]["path"] = run_path
+   if quarto_kernel_setup_options["run_path"]:
+      resources["metadata"]["path"] = quarto_kernel_setup_options["run_path"]
 
    trace("Will attempt to create notebook")
    # create NotebookClient
@@ -179,6 +219,8 @@ def notebook_execute(options, status):
    total_code_cells = 0
    cell_labels = []
    max_label_len = 0
+   
+   kernel_supports_daemonization = False
 
    for cell in client.nb.cells:
       # compute total code cells (for progress)
@@ -230,14 +272,21 @@ def notebook_execute(options, status):
       if index == 0:
          # confirm kernel_deps haven't changed (restart if they have)
          if hasattr(notebook_execute, "kernel_deps"):
-            kernel_deps = nb_kernel_depenencies(cell)
+            kernel_deps = nb_kernel_dependencies(cell)
             if kernel_deps:
+               kernel_supports_daemonization = True
                for path in kernel_deps.keys():
                   if path in notebook_execute.kernel_deps.keys():
                      if notebook_execute.kernel_deps[path] != kernel_deps[path]:
                         raise RestartKernel
                   else:
                      notebook_execute.kernel_deps[path] = kernel_deps[path]
+         elif hasattr(cell["metadata"], "quarto"):
+            qm = cell["metadata"]["quarto"]
+            if qm.get("restart_kernel"):
+               raise RestartKernel
+            if qm.get("daemonize"):
+               kernel_supports_daemonization = True
 
          # we are done w/ setup (with no restarts) so it's safe to print 'Executing...'
          if not quiet:
@@ -277,6 +326,7 @@ def notebook_execute(options, status):
    # execute cleanup cell
    cleanup_cell = nb_cleanup_cell(nb.metadata.kernelspec, resource_dir)
    if cleanup_cell:
+      kernel_supports_daemonization = True
       nb.cells.append(cleanup_cell)
       client.execute_cell(
          cell = cleanup_cell, 
@@ -287,7 +337,7 @@ def notebook_execute(options, status):
 
       # record kernel deps after execution (picks up imports that occurred
       # witihn the notebook cells)
-      kernel_deps = nb_kernel_depenencies(cleanup_cell)
+      kernel_deps = nb_kernel_dependencies(cleanup_cell)
       if kernel_deps:
          notebook_execute.kernel_deps = kernel_deps
       else:
@@ -298,8 +348,7 @@ def notebook_execute(options, status):
       status("\n")
 
    # return flag indicating whether we should persist 
-   persist = hasattr(notebook_execute, "kernel_deps")
-   return persist
+   return kernel_supports_daemonization
 
 def notebook_init(nb, resources, allow_errors):
 
@@ -350,25 +399,38 @@ def notebook_init(nb, resources, allow_errors):
 def nb_write(nb, input):
    nbformat.write(nb, input, version = NB_FORMAT_VERSION)
 
-def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny, is_dashboard, plotly_connected):
-   return nb_language_cell('setup', kernelspec, resource_dir, True, fig_width, fig_height, fig_format, fig_dpi, run_path, interactivity, is_shiny, is_dashboard, plotly_connected)
+def nb_setup_cell(kernelspec, options):
+   options = dict(options)
+   options["allow_empty"] = True
+   return nb_language_cell('setup', kernelspec, **options)
 
 def nb_cleanup_cell(kernelspec, resource_dir):
    return nb_language_cell('cleanup', kernelspec, resource_dir, False)
 
-def nb_language_cell(name, kernelspec, resource_dir, allow_empty, *args):
+def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
+   trace(json.dumps(kernelspec, indent=2))
    source = ''
    lang_dir = os.path.join(resource_dir, 'jupyter', 'lang',  kernelspec.language)
    if os.path.isdir(lang_dir):
       cell_file = glob.glob(os.path.join(lang_dir, name + '.*'))
       if len(cell_file) > 0:
          with open(cell_file[0], 'r') as file:
-            source = file.read().format(*args)  
+            source = file.read().format(**args)
+   else:
+      trace(f'No {kernelspec.language} directory found in {lang_dir}')
+      trace(f'Will look for explicit quarto setup cell information in kernelspec dir')
+      try:
+         with open(os.path.join(kernelspec.path, f"quarto_{name}_cell"), 'r') as file:
+            source = file.read()
+      except FileNotFoundError:
+         trace(f'No quarto_setup_cell file found in {kernelspec.path}')
+         pass
 
    # create cell
    if source != '' or allow_empty:
       return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
-         source = source
+         source = source,
+         metadata = {"quarto": { name: args } }
       )
    else:
       return None
@@ -395,11 +457,11 @@ def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widge
    except KeyError:
       return None
 
-def nb_kernel_depenencies(cell):
-   for index, output in enumerate(cell.outputs):
+# This function is only called on setup cells
+def nb_kernel_dependencies(setup_cell):
+   for index, output in enumerate(setup_cell.outputs):
       if output.name == 'stdout' and output.output_type == 'stream':
          return json.loads(output.text)
-   return None
 
 def cell_execute(client, cell, index, execution_count, eval_default, store_history):
 
@@ -410,6 +472,8 @@ def cell_execute(client, cell, index, execution_count, eval_default, store_histo
    eval = cell_options.get('eval', eval_default)
    allow_errors = cell_options.get('error', False)
      
+   trace(f"cell_execute with eval={eval}")
+
    # execute if eval is active
    if eval == True:
       
