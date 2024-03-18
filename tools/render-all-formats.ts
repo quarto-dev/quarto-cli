@@ -1,18 +1,7 @@
 #!/usr/bin/env -S deno run --unstable
 
-// import { existsSync, ensureDir, move } from 'fs/mod.ts';
 import * as fs from 'https://deno.land/std/fs/mod.ts';
-
-// x import yaml from 'yaml/mod.ts';
-// x import 'node:yaml;
-
 import * as yaml from 'https://deno.land/std/yaml/mod.ts';
-
-// Relative import path "yaml/schema/failsafe.ts" not prefixed with / or ./ or ../
-// and not in import map from "file:///Users/gordon/src/quarto-cli/src/core/yaml.ts"
-// import readYamlFromMarkdownFile from "../src/core/yaml.ts";
-
-// import { dirname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
 import * as path from 'https://deno.land/std/path/mod.ts';
 
 const formatKeep: Record<string, string> = {
@@ -33,8 +22,8 @@ interface Metadata {
   [key: string]: any;
 }
 
-function extractMetadataFromFile(file: string): Metadata {
-  const fileContents = Deno.readTextFileSync(file);
+async function extractMetadataFromFile(file: string): Metadata {
+  const fileContents = await Deno.readTextFile(file);
   const lines = fileContents.split('\n');
   let start: number | null = null;
   let end: number | null = null;
@@ -85,8 +74,7 @@ if (import.meta.main) {
 
     console.log(qmdFile);
     const qmdbase = path.basename(qmdFile).slice(0, -4);
-    const meta = extractMetadataFromFile(qmdFile);
-    //const meta = readYamlFromMarkdownFile(qmdFile);
+    const meta = await extractMetadataFromFile(qmdFile);
 
     for (const [format, spec] of Object.entries(meta['format'])) {
       const outext = formatOutput[format];
@@ -96,7 +84,7 @@ if (import.meta.main) {
       }
       const outdir = path.join(outputRoot, qmdbase, format);
       console.log(`mkdir -p ${outdir}`);
-      if (!dryRun && !fs.existsSync(outdir)) {
+      if (!dryRun && !await fs.exists(outdir)) {
         await Deno.mkdir(outdir, { recursive: true });
       }
       const metadata: string[] = [];
@@ -118,7 +106,7 @@ if (import.meta.main) {
         const cmd = new Deno.Command('quarto', {
             args: qcmd
         });
-        const output = cmd.outputSync();
+        const output = await cmd.output();
         if (!output.success) {
             console.log(new TextDecoder().decode(output.stderr));
             Deno.exit(1);
@@ -137,7 +125,7 @@ if (import.meta.main) {
         console.log(`mv ${movefile} ${dest}`);
         if (!dryRun) {
           try {
-            fs.moveSync('./' + movefile, dest);
+            await fs.move('./' + movefile, dest);
           } catch (error) {
             if(error instanceof Deno.errors.NotFound) {
                 console.log('... not found');
