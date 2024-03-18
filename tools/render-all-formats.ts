@@ -18,11 +18,7 @@ const formatOutput: Record<string, string> = {
   'pptx': 'pptx'
 };
 
-interface Metadata {
-  [key: string]: any;
-}
-
-async function extractMetadataFromFile(file: string): Metadata {
+async function extractMetadataFromFile(file: string): Promise<any> {
   const fileContents = await Deno.readTextFile(file);
   const lines = fileContents.split('\n');
   let start: number | null = null;
@@ -43,9 +39,82 @@ async function extractMetadataFromFile(file: string): Metadata {
   throw new Error(`No metadata found in file ${file}`);
 }
 
+async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFile : string) {
+  if (!qmdFile.endsWith('.qmd')) {
+    console.log('expecting only .qmd files, skipping', qmdFile);
+    return null;
+  }
+
+  console.log(qmdFile);
+  const qmdbase = path.basename(qmdFile).slice(0, -4);
+  const meta = await extractMetadataFromFile(qmdFile);
+
+  for (const [format, spec] of Object.entries(meta['format'])) {
+    const outext = formatOutput[format];
+    if (!outext) {
+      console.log(`unsupported format ${format}, skipping`);
+      continue;
+    }
+    const outdir = path.join(outputRoot, qmdbase, format);
+    console.log(`mkdir -p ${outdir}`);
+    if (!dryRun && !await fs.exists(outdir)) {
+      await Deno.mkdir(outdir, { recursive: true });
+    }
+    const metadata: string[] = [];
+    const keepext = formatKeep[format];
+    if (keepext) {
+      metadata.push('-M', `keep-${keepext}:true`);
+    }
+    const qcmd = [
+      'render',
+      qmdFile,
+      '-t',
+      format,
+      '-M',
+      'keep-md:true',
+      ...metadata
+    ];
+    console.log('quarto', ...qcmd);
+    if (!dryRun) {
+      const cmd = new Deno.Command('quarto', {
+          args: qcmd
+      });
+      const output = await cmd.output();
+      if (!output.success) {
+          console.log(new TextDecoder().decode(output.stderr));
+          Deno.exit(1);
+      }
+    }
+    const movefiles = [
+      `${qmdbase}.${outext}`,
+      `${qmdbase}.${format}.md`
+    ];
+    if (keepext) {
+      movefiles.push(`${qmdbase}.${keepext}`);
+    }
+    movefiles.push(`${qmdbase}_files`);
+    for (const movefile of movefiles) {
+      const dest = path.join(outdir, movefile);
+      console.log(`mv ${movefile} ${dest}`);
+      if (!dryRun) {
+        try {
+          await fs.move('./' + movefile, dest);
+        } catch (error) {
+          if(error instanceof Deno.errors.NotFound) {
+              console.log('... not found');
+          }
+          else {
+              console.error(error);
+              Deno.exit(1);
+          }
+        }
+      }
+    }
+  }
+}
+
 if (import.meta.main) {
   const args = Deno.args;
-  console.log(Deno.args);
   if (args.length < 2) {
     console.log('usage: render-all-formats.ts [--dryrun] output-root doc.qmd ...');
     console.log('  creates output-root/doc/format/...');
@@ -66,77 +135,6 @@ if (import.meta.main) {
   const outputRoot = args[argc];
   const qmdFiles = args.slice(argc + 1);
 
-  for (const qmdFile of qmdFiles) {
-    if (!qmdFile.endsWith('.qmd')) {
-      console.log('expecting only .qmd files, skipping', qmdFile);
-      continue;
-    }
-
-    console.log(qmdFile);
-    const qmdbase = path.basename(qmdFile).slice(0, -4);
-    const meta = await extractMetadataFromFile(qmdFile);
-
-    for (const [format, spec] of Object.entries(meta['format'])) {
-      const outext = formatOutput[format];
-      if (!outext) {
-        console.log(`unsupported format ${format}, skipping`);
-        continue;
-      }
-      const outdir = path.join(outputRoot, qmdbase, format);
-      console.log(`mkdir -p ${outdir}`);
-      if (!dryRun && !await fs.exists(outdir)) {
-        await Deno.mkdir(outdir, { recursive: true });
-      }
-      const metadata: string[] = [];
-      const keepext = formatKeep[format];
-      if (keepext) {
-        metadata.push('-M', `keep-${keepext}:true`);
-      }
-      const qcmd = [
-        'render',
-        qmdFile,
-        '-t',
-        format,
-        '-M',
-        'keep-md:true',
-        ...metadata
-      ];
-      console.log('quarto', ...qcmd);
-      if (!dryRun) {
-        const cmd = new Deno.Command('quarto', {
-            args: qcmd
-        });
-        const output = await cmd.output();
-        if (!output.success) {
-            console.log(new TextDecoder().decode(output.stderr));
-            Deno.exit(1);
-        }
-      }
-      const movefiles = [
-        `${qmdbase}.${outext}`,
-        `${qmdbase}.${format}.md`
-      ];
-      if (keepext) {
-        movefiles.push(`${qmdbase}.${keepext}`);
-      }
-      movefiles.push(`${qmdbase}_files`);
-      for (const movefile of movefiles) {
-        const dest = path.join(outdir, movefile);
-        console.log(`mv ${movefile} ${dest}`);
-        if (!dryRun) {
-          try {
-            await fs.move('./' + movefile, dest);
-          } catch (error) {
-            if(error instanceof Deno.errors.NotFound) {
-                console.log('... not found');
-            }
-            else {
-                console.error(error);
-                Deno.exit(1);
-            }
-          }
-        }
-      }
-    }
-  }
+  const promises = qmdFiles.map(renderAndMoveArtifacts.bind(null, dryRun, outputRoot));
+  await Promise.all(promises);
 }
