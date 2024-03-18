@@ -1,17 +1,19 @@
 #!/usr/bin/env -S deno run --unstable
 
 // import { existsSync, ensureDir, move } from 'fs/mod.ts';
-import fs from 'node:fs';
+import * as fs from 'https://deno.land/std/fs/mod.ts';
 
 // x import yaml from 'yaml/mod.ts';
 // x import 'node:yaml;
+
+import * as yaml from 'https://deno.land/std/yaml/mod.ts';
 
 // Relative import path "yaml/schema/failsafe.ts" not prefixed with / or ./ or ../
 // and not in import map from "file:///Users/gordon/src/quarto-cli/src/core/yaml.ts"
 // import readYamlFromMarkdownFile from "../src/core/yaml.ts";
 
 // import { dirname, fromFileUrl, join } from 'https://deno.land/std/path/mod.ts';
-import path from 'node:path';
+import * as path from 'https://deno.land/std/path/mod.ts';
 
 const formatKeep: Record<string, string> = {
   'pdf': 'tex',
@@ -54,7 +56,8 @@ function extractMetadataFromFile(file: string): Metadata {
 
 if (import.meta.main) {
   const args = Deno.args;
-  if (args.length < 3) {
+  console.log(Deno.args);
+  if (args.length < 2) {
     console.log('usage: render-all-formats.ts [--dryrun] output-root doc.qmd ...');
     console.log('  creates output-root/doc/format/...');
     console.log('  output-root should be empty');
@@ -62,7 +65,7 @@ if (import.meta.main) {
   }
 
   let dryRun = false;
-  let argc = 1;
+  let argc = 0;
   if (args[argc] === '--dryrun') {
     dryRun = true;
     argc += 1;
@@ -82,7 +85,7 @@ if (import.meta.main) {
 
     console.log(qmdFile);
     const qmdbase = path.basename(qmdFile).slice(0, -4);
-    const meta = extractMetadataFromFile(qmdFilePath);
+    const meta = extractMetadataFromFile(qmdFile);
     //const meta = readYamlFromMarkdownFile(qmdFile);
 
     for (const [format, spec] of Object.entries(meta['format'])) {
@@ -93,14 +96,13 @@ if (import.meta.main) {
       }
       const outdir = path.join(outputRoot, qmdbase, format);
       console.log(`mkdir -p ${outdir}`);
-      if (!dryRun) {
-        fs.ensureDir(outdir);
+      if (!dryRun && !fs.existsSync(outdir)) {
+        await Deno.mkdir(outdir, { recursive: true });
       }
       const metadata: string[] = [];
       const keepext = formatKeep[format];
       if (keepext) {
-        metadata.push(`-M keep-${keepext}:true`);
-        metadata.push('-M output-ext:pdf');
+        metadata.push('-M', `keep-${keepext}:true`);
       }
       const qcmd = [
         'render',
@@ -111,9 +113,9 @@ if (import.meta.main) {
         'keep-md:true',
         ...metadata
       ];
-      console.log(qcmd.join(' '));
+      console.log('quarto', ...qcmd);
       if (!dryRun) {
-        const cmd = Deno.Command('quarto', {
+        const cmd = new Deno.Command('quarto', {
             args: qcmd
         });
         const output = cmd.outputSync();
@@ -135,9 +137,15 @@ if (import.meta.main) {
         console.log(`mv ${movefile} ${dest}`);
         if (!dryRun) {
           try {
-            await fs.move(movefile, dest);
+            fs.moveSync('./' + movefile, dest);
           } catch (error) {
-            console.log('... not found');
+            if(error instanceof Deno.errors.NotFound) {
+                console.log('... not found');
+            }
+            else {
+                console.error(error);
+                Deno.exit(1);
+            }
           }
         }
       }
