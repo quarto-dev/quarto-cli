@@ -42,17 +42,25 @@ async function extractMetadataFromFile(file: string): Promise<any> {
 async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFile : string) {
   if (!qmdFile.endsWith('.qmd')) {
     console.log('expecting only .qmd files, skipping', qmdFile);
-    return null;
+    return;
   }
 
   console.log(qmdFile);
   const qmdbase = path.basename(qmdFile).slice(0, -4);
+  const qmddir = path.dirname(qmdFile);
   const meta = await extractMetadataFromFile(qmdFile);
 
-  for (const [format, spec] of Object.entries(meta['format'])) {
+  const mdformat = meta['format'];
+  if (!mdformat) {
+    console.log(`does not contain format, skipping`, qmdFile);
+    return;
+  }
+  const formats = typeof mdformat === 'string' ? [mdformat] : Object.keys(mdformat);
+
+  for (const format of formats) {
     const outext = formatOutput[format];
     if (!outext) {
-      console.log(`unsupported format ${format}, skipping`);
+      console.log(`unsupported format ${format}, skipping`, qmdFile);
       continue;
     }
     const outdir = path.join(outputRoot, qmdbase, format);
@@ -94,11 +102,12 @@ async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFi
     }
     movefiles.push(`${qmdbase}_files`);
     for (const movefile of movefiles) {
+      const src = path.join(qmddir, movefile);
       const dest = path.join(outdir, movefile);
-      console.log(`mv ${movefile} ${dest}`);
+      console.log(`mv ${src} ${dest}`);
       if (!dryRun) {
         try {
-          await fs.move('./' + movefile, dest);
+          await fs.move(src, dest);
         } catch (error) {
           if(error instanceof Deno.errors.NotFound) {
               console.log('... not found');
@@ -115,7 +124,7 @@ async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFi
 
 if (import.meta.main) {
   const args = Deno.args;
-  if (args.length < 2) {
+  if (args.includes('--help') || args.includes('-h') || args.filter(arg => !arg.startsWith('-')).length < 2) {
     console.log('usage: render-all-formats.ts [--dryrun] output-root doc.qmd ...');
     console.log('  creates output-root/doc/format/...');
     console.log('  output-root should be empty');
