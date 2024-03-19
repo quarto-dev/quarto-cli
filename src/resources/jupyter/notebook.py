@@ -88,7 +88,6 @@ def build_kernel_options(options):
       "params": params,
       "run_path": run_path,
       "quiet": quiet,
-      "execute": execute,
       "eval": eval,
       "allow_errors": allow_errors,
       "fig_width": fig_width,
