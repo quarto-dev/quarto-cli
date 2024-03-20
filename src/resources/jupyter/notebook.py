@@ -208,6 +208,16 @@ def notebook_execute(options, status):
    # create NotebookClient
    trace("type of notebook: {0}".format(type(nb)))
    client, created = notebook_init(nb, resources, allow_errors)
+
+   msg = client.kc.session.msg("comm_open", {
+      'comm_id': 'quarto_comm',
+      'target_name': 'quarto_kernel_setup',
+      'data': {
+         "options": quarto_kernel_setup_options
+      }
+   })
+   client.kc.shell_channel.send(msg)
+
    trace("NotebookClient created")
 
    # complete progress if necessary
@@ -220,6 +230,20 @@ def notebook_execute(options, status):
    max_label_len = 0
    
    kernel_supports_daemonization = False
+
+   def handle_quarto_metadata(cell):
+      def handle_meta_object(obj):
+         nonlocal kernel_supports_daemonization
+         if hasattr(obj, "quarto"):
+            qm = obj["quarto"]
+            if qm.get("restart_kernel"):
+               raise RestartKernel
+            if qm.get("daemonize"):
+               kernel_supports_daemonization = True
+               trace("Kernel is daemonizable from cell metadata")
+      handle_meta_object(cell.get("metadata", {}))
+      for output in cell.get("outputs", []):
+         handle_meta_object(output.get("metadata", {}))
 
    for cell in client.nb.cells:
       # compute total code cells (for progress)
@@ -280,12 +304,11 @@ def notebook_execute(options, status):
                         raise RestartKernel
                   else:
                      notebook_execute.kernel_deps[path] = kernel_deps[path]
-         elif hasattr(cell["metadata"], "quarto"):
-            qm = cell["metadata"]["quarto"]
-            if qm.get("restart_kernel"):
-               raise RestartKernel
-            if qm.get("daemonize"):
-               kernel_supports_daemonization = True
+
+         trace("Handling quarto metadata")
+         trace(json.dumps(cell, indent=2))
+         # also do it through cell metadata
+         handle_quarto_metadata(cell)
 
          # we are done w/ setup (with no restarts) so it's safe to print 'Executing...'
          if not quiet:
@@ -420,16 +443,18 @@ def nb_language_cell(name, kernelspec, resource_dir, allow_empty, **args):
       trace(f'Will look for explicit quarto setup cell information in kernelspec dir')
       try:
          with open(os.path.join(kernelspec.path, f"quarto_{name}_cell"), 'r') as file:
+            trace(f'Quarto_{name}_cell file found in {kernelspec.path}')
+            trace(os.path.join(kernelspec.path, f"quarto_{name}_cell"))
             source = file.read()
       except FileNotFoundError:
-         trace(f'No quarto_setup_cell file found in {kernelspec.path}')
+         trace(f'No quarto_{name}_cell file found in {kernelspec.path}')
+         trace(os.path.join(kernelspec.path, f"quarto_{name}_cell"))
          pass
 
    # create cell
    if source != '' or allow_empty:
       return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
-         source = source,
-         metadata = {"quarto": { name: args } }
+         source = source
       )
    else:
       return None
