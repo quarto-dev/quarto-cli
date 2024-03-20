@@ -13034,7 +13034,7 @@ var require_yaml_intelligence_resources = __commonJS({
           schema: "string",
           description: {
             short: "Text describing the specialized type of this publication.",
-            long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub3/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
+            long: "Text describing the specialized type of this publication.\n\nAn informative registry of specialized EPUB Publication \ntypes for use with this element is maintained in the \n[TypesRegistry](https://www.w3.org/publishing/epub32/epub-packages.html#bib-typesregistry), \nbut Authors may use any text string as a value.\n"
           }
         },
         {
@@ -22934,12 +22934,12 @@ var require_yaml_intelligence_resources = __commonJS({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 182259,
+        _internalId: 182264,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 182251,
+            _internalId: 182256,
             type: "enum",
             enum: [
               "png",
@@ -22955,7 +22955,7 @@ var require_yaml_intelligence_resources = __commonJS({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 182258,
+            _internalId: 182263,
             type: "anyOf",
             anyOf: [
               {
