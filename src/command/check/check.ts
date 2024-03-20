@@ -71,7 +71,7 @@ export async function check(target: Target): Promise<void> {
 }
 
 async function checkVersions(_services: RenderServices) {
-  const checkVersion = (
+  const checkVersion = async (
     version: string | undefined,
     constraint: string,
     name: string,
@@ -133,6 +133,17 @@ async function checkVersions(_services: RenderServices) {
 async function checkInstall(services: RenderServices) {
   completeMessage("Checking Quarto installation......OK");
   info(`      Version: ${quartoConfig.version()}`);
+  if (quartoConfig.version() === "99.9.9") {
+    // if they're running a dev version, we assume git is installed
+    // print the output of git rev-parse HEAD
+    const gitHead = await execProcess({
+      cmd: ["git", "rev-parse", "HEAD"],
+      stdout: "piped",
+    });
+    if (gitHead.stdout) {
+      info(`      commit: ${gitHead.stdout.trim()}`);
+    }
+  }
   info(`      Path: ${quartoConfig.binPath()}`);
   if (Deno.build.os === "windows") {
     try {
