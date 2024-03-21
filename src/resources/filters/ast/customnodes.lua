@@ -79,6 +79,7 @@ function run_emulated_filter(doc, filter)
         return node
       else
         -- luacov: disable
+        quarto.utils.dump(node)
         internal_error()
         -- luacov: enable
       end
@@ -257,6 +258,42 @@ function create_emulated_node(t, tbl, context, forwarder)
 
   custom_node_data[id] = _quarto.ast.create_proxy_accessor(result, tbl, forwarder)
   return result, custom_node_data[id]
+end
+
+-- walk_meta walks a Pandoc Meta object, applying the filter to each node
+-- and recursing on lists and objects. It mutates the meta object in place
+-- and returns it.
+--
+-- It performs slightly more work than a regular walk filter because of the
+-- ambiguity around single-element lists and objects.
+function walk_meta(meta, filter)
+  local skip = {
+    ["nil"] = true,
+    number = true,
+    boolean = true,
+    string = true,
+    ["function"] = true,
+  }
+  local iterate = {
+    Meta = true,
+    List = true,
+  }
+  local function walk(obj)
+    local t = type(obj)
+    if skip[t] then
+      return obj
+    end
+    local pt = quarto.utils.type(obj)
+    if iterate[pt] then
+      for k, v in pairs(obj) do
+        obj[k] = walk(v)
+      end
+    else
+      return _quarto.ast.walk(obj, filter)
+    end
+    return obj
+  end
+  return walk(meta)
 end
 
 _quarto.ast = {
@@ -494,6 +531,8 @@ _quarto.ast = {
   end,
 
   walk = run_emulated_filter,
+
+  walk_meta = walk_meta,
 
   writer_walk = function(doc, filter)
     local old_custom_walk = filter.Custom
