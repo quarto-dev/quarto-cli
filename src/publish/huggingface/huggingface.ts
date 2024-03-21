@@ -179,8 +179,12 @@ async function publish(
   // warn users about latency between push and remote publish
   info(colors.yellow(
     "NOTE: Hugging Face Space sites build the content remotely and use caching.\n" +
-      "You might need to wait a moment for Hugging Face to rebuild your site, and\n" +
-      "then click the refresh button within your web browser to see changes after deployment.\n",
+      "You will need to wait a moment for Hugging Face to rebuild your site, and\n" +
+      "then click the refresh button within your web browser to see changes after deployment.\n\n" +
+      "Specifically, you need to:\n" +
+      "- wait for your space's status to go from 'Building' to 'Running'\n" +
+      "  (this is visible in the status bar above the space)\n" +
+      "- force-reload the web page by holding Shift and hitting the reload button in your browser.\n",
   ));
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
