@@ -1,6 +1,7 @@
 ---
 format: 
-  docusaurus-md: {}
+  docusaurus-md: 
+    quality: 1
   pdf:
     quality: na
   html:
