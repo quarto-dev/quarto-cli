@@ -6,14 +6,14 @@ import types
 import json
 
 # figure size/format
-fig_width = {0}
-fig_height = {1}
-fig_format = '{2}'
-fig_dpi = {3}
-interactivity = '{5}'
-is_shiny = {6}
-is_dashboard = {7}
-plotly_connected = {8}
+fig_width = {fig_width}
+fig_height = {fig_height}
+fig_format = '{fig_format}'
+fig_dpi = {fig_dpi}
+interactivity = '{interactivity}'
+is_shiny = {is_shiny}
+is_dashboard = {is_dashboard}
+plotly_connected = {plotly_connected}
 
 # matplotlib defaults / format
 try:
@@ -183,16 +183,16 @@ for module in list(sys.modules.values()):
 print(json.dumps(kernel_deps))
 
 # set run_path if requested
-if r'{4}':
-  os.chdir(r'{4}')
+if r'{run_path}':
+  os.chdir(r'{run_path}')
 
 # reset state
 %reset
 
 # shiny
-# Checking for shiny by using {6} directly because we're after the %reset. We don't want
+# Checking for shiny by using {is_shiny} directly because we're after the %reset. We don't want
 # to set a variable that stays in global scope.
-if {6}:
+if {is_shiny}:
   try:
     import htmltools as _htmltools
     import ast as _ast
