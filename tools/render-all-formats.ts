@@ -6,7 +6,7 @@ import * as path from 'https://deno.land/std/path/mod.ts';
 
 const formatKeep: Record<string, string> = {
   'pdf': 'tex',
-  'typst': 'typ'
+  'typst': 'typ',
 };
 
 const formatOutput: Record<string, string> = {
@@ -15,7 +15,9 @@ const formatOutput: Record<string, string> = {
   'typst': 'pdf',
   'dashboard': 'html',
   'docx': 'docx',
-  'pptx': 'pptx'
+  'pptx': 'pptx',
+  'docusaurus-md': 'mdx',
+  'revealjs': 'html',
 };
 
 async function extractMetadataFromFile(file: string): Promise<any> {
