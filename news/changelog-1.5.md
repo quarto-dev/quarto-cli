@@ -106,6 +106,10 @@ All changes included in 1.5:
 
 - ([#8939](https://github.com/quarto-dev/quarto-cli/pull/8939)): `quarto inspect` now takes an additional optional parameter to specify the output file, and provides the graph of include dependencies for the inspection target.
 
+## Quarto's input format
+
+- Quarto now supports raw block and raw inline elements of types `pandoc-native` and `pandoc-json`, and will use Pandoc's `native` and `json` reader to convert these elements to Pandoc's AST. This is useful in situations where emitting Markdown is not sufficient or convient enough to express the desired structure of a document.
+
 ## Other Fixes and Improvements
 
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.
