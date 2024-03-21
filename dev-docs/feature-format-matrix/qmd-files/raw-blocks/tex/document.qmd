@@ -1,7 +1,8 @@
 ---
 format: 
   docusaurus-md: 
-    quality: 1
+    quality: na
+    comment: "not sure, did not work in codesandbox"
   pdf:
     quality: 1
   html:
