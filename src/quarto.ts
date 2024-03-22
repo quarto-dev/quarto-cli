@@ -14,7 +14,7 @@ import {
 
 import { commands } from "./command/command.ts";
 import { appendLogOptions } from "./core/log.ts";
-import { debug } from "./deno_ral/log.ts";
+import { debug, error } from "./deno_ral/log.ts";
 
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { removeFlags } from "./core/flags.ts";
@@ -75,6 +75,13 @@ export async function quarto(
 
   // passthrough to typst
   if (args[0] === "typst") {
+    if (args[1] === "update") {
+      error(
+        "The 'typst update' command is not supported.\n" +
+          "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
+      );
+      Deno.exit(1);
+    }
     const result = await execProcess({
       cmd: [typstBinaryPath(), ...args.slice(1)],
       env,
