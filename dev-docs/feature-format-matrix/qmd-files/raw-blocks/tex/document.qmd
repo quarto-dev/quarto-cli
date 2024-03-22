@@ -10,9 +10,13 @@ format:
   dashboard:
     quality: 1
   typst:
-    quality: -1
+    quality: na
   revealjs:
     quality: 1
+  docx:
+    quality: na
+  pptx:
+    quality: na
   
 ---
 
