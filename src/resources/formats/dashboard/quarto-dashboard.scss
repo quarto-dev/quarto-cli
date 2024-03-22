@@ -1016,3 +1016,36 @@ $valuebox-colors: (
 .dashboard-data-table {
   margin-top: -1px;
 }
+
+/*-- ojs --*/
+
+div.value-box-area span.observablehq--number {
+  /* the calculation below is pretty horrible, but it's our best effort to match
+     the font sizes of these two different ways of rendering a number in a value-box:
+
+```{ojs}
+//| content: valuebox
+//| title: "Articles per day"
+//| icon: pencil
+//| color: primary
+12
+```
+
+```{python}
+#| content: valuebox
+#| title: "Articles per day"
+#| icon: pencil
+#| color: primary
+dict(
+  value = 12
+)
+```
+
+  See https://github.com/quarto-dev/quarto-cli/issues/8823
+
+     */
+  font-size: calc(clamp(0.1em, 15cqw, 5em) * 1.25);
+  line-height: 1.2;
+  color: inherit;
+  font-family: var(--bs-body-font-family);
+}
