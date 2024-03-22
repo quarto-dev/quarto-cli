@@ -427,9 +427,15 @@ export async function quartoMdToJupyter(
     inCodeCell = false,
     inCode = false,
     backtickCount = 0;
-  for (const line of lines(inputContent)) {
+  let currentLine = 0;
+  const contentLines = lines(inputContent);
+  for (currentLine = 0; currentLine < contentLines.length; ++currentLine) {
+    const line = contentLines[currentLine];
     // yaml front matter
-    if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
+    if (
+      yamlRegEx.test(line) && !inCodeCell && !inCode &&
+      contentLines[currentLine + 1]?.trim() !== "" // https://github.com/quarto-dev/quarto-cli/issues/8998
+    ) {
       if (inYaml) {
         lineBuffer.push(line);
         flushLineBuffer("raw", !parsedFrontMatter);
