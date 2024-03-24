@@ -3,19 +3,39 @@ format:
   docusaurus-md: 
     quality: 1
   pdf:
-    quality: 1
+    quality: 2
+    comment: "example doesn't fit on page"
   html:
-    quality: 1
+    quality: 2
   dashboard:
     quality: 1
   typst:
-    quality: 1
+    output-ext: typ
+    quality: 2
   revealjs:
     quality: 1
+    comment: "layout issues with large table, but this feature is working fine"
   docx:
     quality: 1
   pptx:
     quality: 1
+
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<table class="table">'
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#figure\(\s*align\(center\)\[#table\('
+        - []
+    latex:
+      ensureFileRegexMatches:
+        -
+          - '\\begin\{longtable\}\[\]{@\{\}cclrrrrrrrrl@\{\}\}'
 
 ---
 
