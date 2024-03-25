@@ -94,7 +94,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       if (link.href.indexOf("#") !== -1) {
         const anchor = link.href.split("#")[1];
         const heading = window.document.querySelector(
-          `[data-anchor-id=${anchor}]`
+          `[data-anchor-id="${anchor}"]`
         );
         if (heading) {
           // Add the class

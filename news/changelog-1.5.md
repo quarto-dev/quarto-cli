@@ -7,6 +7,8 @@ All changes included in 1.5:
 - ([#8311](https://github.com/quarto-dev/quarto-cli/issues/8311)): Correct z-order for margins with no contents
 - ([#8862](https://github.com/quarto-dev/quarto-cli/issues/8862)): Properly deal with an `aside` within a definition list.
 - ([#8990](https://github.com/quarto-dev/quarto-cli/issues/8990)): Copy button now works for embedded code source in modal window when optin-in `code-tools` feature.
+- ([#9076](https://github.com/quarto-dev/quarto-cli/issues/9076)): Fix issue with `layout-ncol` and `column` settings in executable code cells.
+- ([#9125](https://github.com/quarto-dev/quarto-cli/issues/9125)): Fix issue in browser console with TOC selection when the document is using ids for headers with specific characters (e.g russian language headers).
 
 ## PDF Format
 
@@ -58,6 +60,7 @@ All changes included in 1.5:
 - When searching for kernelspecs that match `python`, prefer one one that matches an active Python venv.
 - ([#8454](https://github.com/quarto-dev/quarto-cli/issues/8454)): Allow Jupyter engine to handle markdown files with mixed-case extensions.
 - ([#8919](https://github.com/quarto-dev/quarto-cli/issues/8919)): Ensure enough backticks in `quarto convert` from `.ipynb` to `.qmd` files.
+- ([#8998](https://github.com/quarto-dev/quarto-cli/issues/8998)): Interpret slide separation markers `---` correctly when creating the `.ipynb` intermediate notebook from a `.qmd` file.
 
 ## Website Listings
 
@@ -104,6 +107,14 @@ All changes included in 1.5:
 
 - ([#8939](https://github.com/quarto-dev/quarto-cli/pull/8939)): `quarto inspect` now takes an additional optional parameter to specify the output file, and provides the graph of include dependencies for the inspection target.
 
+## `quarto typst`
+
+- ([#9106])(#https://github.com/quarto-dev/quarto-cli/issues/9106)): Do not allow `quarto typst update`.
+
+## Quarto's input format
+
+- Quarto now supports raw block and raw inline elements of types `pandoc-native` and `pandoc-json`, and will use Pandoc's `native` and `json` reader to convert these elements to Pandoc's AST. This is useful in situations where emitting Markdown is not sufficient or convient enough to express the desired structure of a document.
+
 ## Other Fixes and Improvements
 
 - ([#8119](https://github.com/quarto-dev/quarto-cli/issues/8119)): More intelligently detect when ejs templates are modified during development, improving quality of life during preview.
@@ -125,5 +136,6 @@ All changes included in 1.5:
 - Add support for `{{< lipsum >}}` shortcode, which is useful for emitting placeholder text. Provide a specific number of paragraphs (`{{< lipsum 3 >}}`).
 - Resolve data URIs in Pandoc's mediabag when rendering documents.
 - Increase v8's max heap size by default, to avoid out-of-memory errors when rendering large documents (also cf. https://github.com/denoland/deno/issues/18935).
+- When running `quarto check` from a development build (from a git repository), show the git commit hash in addition to the version string.
 - Upgrade Deno to 1.41.0
 - `quarto install tinytex` will now try to set the default CTAN repository to the nearest mirror resolved from https://mirror.ctan.org.

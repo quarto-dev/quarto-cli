@@ -42,7 +42,7 @@ export function crossrefFilterParams(
       // validation
       if (option === kNumberOffset) {
         // coerce scalar number-offset to array
-        if (typeof (value) === "number") {
+        if (typeof value === "number") {
           value = [value];
         }
         // validate we have an array
@@ -66,7 +66,7 @@ export function crossrefFilterParams(
   params[kNumberDepth] = metadata?.[kNumberDepth];
 
   // always create crossref index for projects
-  if (options.project) {
+  if (!options.project?.isSingleFile) {
     // if its a book then only write for multi-file (as otherwise all of the
     // crossref entries will end in a single index file)
     if (

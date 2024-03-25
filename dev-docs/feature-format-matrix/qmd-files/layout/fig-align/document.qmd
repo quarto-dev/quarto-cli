@@ -1,0 +1,32 @@
+---
+format:
+  html:
+    quality: 1
+  pdf:
+    quality: 0
+    comment: "only works with #fig-id, does not work in code"
+  typst:
+    quality: 0
+    comment: "works only if there is no caption, otherwise center"
+  dashboard:
+    quality: -1
+    comment: "always left"
+  docx:
+    quality: -1
+    comment: "always left"
+  pptx:
+    quality: -1
+    comment: "centered or to side of text; caption causes figures to pile up instead of going to new slide"
+keep-typ: true
+_quarto:
+  tests: {} # tests are in the cases, don't count this as #format successes
+
+---
+
+![default `fig-align`](100.png){#fig-1}
+
+![`fig-align` left](100.png){#fig-2 fig-align="left"}
+
+![`fig-align` center](100.png){#fig-3 fig-align="center"}
+
+![`fig-align` right](100.png){#fig-4 fig-align="right"}

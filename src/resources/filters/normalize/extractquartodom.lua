@@ -25,7 +25,35 @@ function parse_md_in_html_rawblocks()
         end
         return make_scaffold(pandoc.Span, inlines)
       end
-    end
+    end,
+    RawBlock = function(raw)
+      local result
+      if raw.format == "pandoc-native" then
+        result = pandoc.read(raw.text, "native").blocks
+      elseif raw.format == "pandoc-json" then
+        result = pandoc.read(raw.text, "json").blocks
+      else
+        return raw
+      end
+      return result
+    end,
+    RawInline = function(raw)
+      local result
+      if raw.format == "pandoc-native" then
+        result = quarto.utils.as_inlines(pandoc.read(raw.text, "native").blocks)
+      elseif raw.format == "pandoc-json" then
+        -- let's try to be minimally smart here, and handle lists differently from a single top-level element
+        result = quarto.utils.as_inlines(pandoc.read(raw.text, "json").blocks)
+      else
+        return raw
+      end
+      return result
+    end,
+    -- Meta = function(meta)
+    --   local filter = parse_md_in_html_rawblocks()
+    --   local result = _quarto.ast.walk_meta(meta, filter)
+    --   return result
+    -- end,
   }
 end
 
