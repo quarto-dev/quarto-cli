@@ -167,9 +167,9 @@ function renderHtmlFigure(el, render)
     end
   end
 
-  local keys = tkeys(el.attr.attributes)
-  for _,k in pairs(keys) do
-    if isFigAttribute(k) then
+  for _, k in pairs(tkeys(el.attr.attributes)) do
+    -- can't strip fig-alt here
+    if isFigAttribute(k) and k ~= kFigAlt then
       el.attr.attributes[k] = nil
     end
   end
