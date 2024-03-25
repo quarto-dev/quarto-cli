@@ -44,28 +44,33 @@ async function extractMetadataFromFile(file: string): Promise<any> {
 async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFile : string) {
   if (!qmdFile.endsWith('.qmd')) {
     console.log('expecting only .qmd files, skipping', qmdFile);
-    return;
+    return 0;
   }
 
   console.log(qmdFile);
   const qmdbase = path.basename(qmdFile).slice(0, -4);
-  const qmddir = path.dirname(qmdFile);
+  let qmddir = path.dirname(qmdFile);
+  if(qmddir.includes('..') || qmdFile.startsWith('/')) {
+    console.warn("Warning: currently unable to replicate absolute or .. paths. Try running from the common root directory of the files if you get AlreadyExists errors.")
+    qmddir = '.'
+  }
   const meta = await extractMetadataFromFile(qmdFile);
 
   const mdformat = meta['format'];
   if (!mdformat) {
     console.log(`does not contain format, skipping`, qmdFile);
-    return;
+    return 0;
   }
   const formats = typeof mdformat === 'string' ? [mdformat] : Object.keys(mdformat);
 
+  let nprocessed = 0;
   for (const format of formats) {
     const outext = formatOutput[format];
     if (!outext) {
       console.log(`unsupported format ${format}, skipping`, qmdFile);
       continue;
     }
-    const outdir = path.join(outputRoot, qmdbase, format);
+    const outdir = path.join(outputRoot, qmddir, qmdbase, format);
     console.log(`mkdir -p ${outdir}`);
     if (!dryRun && !await fs.exists(outdir)) {
       await Deno.mkdir(outdir, { recursive: true });
@@ -106,13 +111,15 @@ async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFi
     for (const movefile of movefiles) {
       const src = path.join(qmddir, movefile);
       const dest = path.join(outdir, movefile);
-      console.log(`mv ${src} ${dest}`);
-      if (!dryRun) {
+      if(dryRun) {
+        console.log(`mv ${src} ${dest}`);
+      } else {
         try {
           await fs.move(src, dest);
+          console.log(`√ mv ${src} ${dest}`);
         } catch (error) {
           if(error instanceof Deno.errors.NotFound) {
-              console.log('... not found');
+            console.log(`x mv ${src} ${dest}`);
           }
           else {
               console.error(error);
@@ -121,10 +128,13 @@ async function renderAndMoveArtifacts(dryRun: boolean, outputRoot: string, qmdFi
         }
       }
     }
+    nprocessed++;
   }
+  return nprocessed;
 }
 
 if (import.meta.main) {
+  const startTime = performance.now();
   const args = Deno.args;
   if (args.includes('--help') || args.includes('-h') || args.filter(arg => !arg.startsWith('-')).length < 2) {
     console.log('usage: render-all-formats.ts [--dryrun] output-root doc.qmd ...');
@@ -147,5 +157,9 @@ if (import.meta.main) {
   const qmdFiles = args.slice(argc + 1);
 
   const promises = qmdFiles.map(renderAndMoveArtifacts.bind(null, dryRun, outputRoot));
-  await Promise.all(promises);
+  const counts = await Promise.all(promises);
+  const count = counts.reduce((a, b) => a+b, 0)
+  const endTime = performance.now();
+  const elapsed = endTime - startTime;
+  console.log(`Rendered ${count} documents in ${(elapsed/1000.).toFixed(2)} seconds`);
 }
