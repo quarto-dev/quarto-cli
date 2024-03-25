@@ -513,7 +513,12 @@ function latexFigurePosition(el, env)
   if env == kMarginFigureEnv then
     return attribute(el, kOffset, nil)
   else
-    local prefix = refType(el.identifier) or "fig"
+    local prefix
+    if el.t == "FloatRefTarget" then
+      prefix = ref_type_from_float(el)
+    else
+      prefix = refType(el.identifier) or "fig"
+    end
     return attribute(el, prefix .. "-pos", nil)
   end
 end

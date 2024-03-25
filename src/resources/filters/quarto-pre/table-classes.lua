@@ -58,7 +58,7 @@ function table_classes()
       return tbl
     end,
     FloatRefTarget = function(float)
-      local kind = refType(float.identifier)
+      local kind = ref_type_from_float(float)
       if kind ~= "tbl" then
         return nil
       end
