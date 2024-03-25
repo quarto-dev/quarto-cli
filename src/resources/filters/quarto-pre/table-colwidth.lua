@@ -83,7 +83,7 @@ end
 
 -- propagate cell level tbl-colwidths to tables
 function table_colwidth_cell(float)
-  if refType(float.identifier) ~= "tbl" then
+  if ref_type_from_float(float) ~= "tbl" then
     return
   end
       

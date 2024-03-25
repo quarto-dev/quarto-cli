@@ -86,7 +86,7 @@ end, function(layout)
     return render_floatless_typst_layout(layout)
   end
 
-  local ref = refType(layout.float.identifier)
+  local ref = ref_type_from_float(layout.float)
   local kind = "quarto-float-" .. ref
   local info = crossref.categories.by_ref_type[ref]
   if info == nil then
