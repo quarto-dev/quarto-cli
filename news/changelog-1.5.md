@@ -53,6 +53,8 @@ All changes included in 1.5:
 
 - ([#8539](https://github.com/quarto-dev/quarto-cli/issues/8539)): Support for Typst theorems and their ilk via [typst-theorems](https://github.com/sahasatvik/typst-theorems).
 
+- The Typst template specificies tables drawn without grid lines by default, in accordance with latest Pandoc.
+
 ## Jupyter
 
 - ([#4802](https://github.com/quarto-dev/quarto-cli/issues/4802)): Change name of temporary input notebook to avoid accidental overwriting.
@@ -107,6 +109,10 @@ All changes included in 1.5:
 ## `quarto inspect`
 
 - ([#8939](https://github.com/quarto-dev/quarto-cli/pull/8939)): `quarto inspect` now takes an additional optional parameter to specify the output file, and provides the graph of include dependencies for the inspection target.
+
+## `quarto check`
+
+- `quarto check` now checks a minimal version of Typst and prints the version, to aid with troubleshooting.
 
 ## `quarto typst`
 
