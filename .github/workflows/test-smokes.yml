@@ -115,7 +115,7 @@ jobs:
         run: |
           if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
           renv::restore()
-          # Install dev versions for our testing 
+          # Install dev versions for our testing
           # Use r-universe to avoid github api calls
           try(install.packages('knitr', repos = 'https://yihui.r-universe.dev'))
           try(install.packages('rmarkdown', repos = 'https://rstudio.r-universe.dev'))
@@ -164,7 +164,7 @@ jobs:
         run: |
           # Setup IJulia with the jupyter from the Python environment
           # https://julialang.github.io/IJulia.jl/stable/manual/installation/
-          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")        
+          export JUPYTER=$(find $(dirname $(pipenv run which jupyter))/ -type f -name "jupyter.exe" -o -name "jupyter")
           pipenv run julia --color=yes --project=. -e "import Pkg; Pkg.instantiate(); Pkg.build(\"IJulia\"); Pkg.precompile()"
           echo "Julia Jupyter:"
           julia --project=. -e "import IJulia;println(IJulia.JUPYTER);println(IJulia.find_jupyter_subcommand(\"notebook\"))"
@@ -173,6 +173,9 @@ jobs:
         if: ${{ matrix.time-test == true }}
         run: |
           echo "QUARTO_TEST_TIMING=timing-for-ci.txt" >> "$GITHUB_ENV"
+
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Run all Smoke Tests Windows
         if: ${{ runner.os == 'Windows' && format('{0}', inputs.buckets) == '' && matrix.time-test == false }}
@@ -197,6 +200,7 @@ jobs:
         env:
           # Useful as TinyTeX latest release is checked in run-test.sh
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QUARTO_LOG_LEVEL: DEBUG
         run: |
           haserror=0
           readarray -t my_array < <(echo '${{ inputs.buckets }}' | jq -rc '.[]')

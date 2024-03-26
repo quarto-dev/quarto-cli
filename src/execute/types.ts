@@ -21,6 +21,7 @@ export const kQmdExtensions = [".qmd"];
 export const kMarkdownEngine = "markdown";
 export const kKnitrEngine = "knitr";
 export const kJupyterEngine = "jupyter";
+export const kJuliaEngine = "julia";
 
 export interface ExecutionEngine {
   name: string;
