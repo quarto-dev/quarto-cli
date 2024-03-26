@@ -19012,9 +19012,6 @@ var require_yaml_intelligence_resources = __commonJS({
                   null: {
                     anyOf: [
                       {
-                        ref: "schema/schema"
-                      },
-                      {
                         ref: "schema/base"
                       }
                     ]
@@ -19036,15 +19033,23 @@ var require_yaml_intelligence_resources = __commonJS({
             },
             properties: {
               schema: {
-                anyOf: [
-                  {
-                    ref: "schema/schema"
-                  },
-                  {
-                    ref: "schema/base"
-                  }
-                ]
+                ref: "schema/schema"
               }
+            }
+          }
+        },
+        {
+          id: "schema/explicit-pattern-string",
+          object: {
+            closed: true,
+            super: {
+              resolveRef: "schema/base"
+            },
+            required: [
+              "pattern"
+            ],
+            properties: {
+              pattern: "string"
             }
           }
         },
@@ -19058,18 +19063,7 @@ var require_yaml_intelligence_resources = __commonJS({
               ]
             },
             {
-              object: {
-                closed: true,
-                super: {
-                  resolveRef: "schema/base"
-                },
-                required: [
-                  "pattern"
-                ],
-                properties: {
-                  pattern: "string"
-                }
-              }
+              ref: "schema/explicit-pattern-string"
             },
             {
               object: {
@@ -19084,7 +19078,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   path: {
                     anyOf: [
                       {
-                        ref: "schema/schema"
+                        ref: "schema/explicit-pattern-string"
                       },
                       {
                         ref: "schema/base"
@@ -19107,7 +19101,7 @@ var require_yaml_intelligence_resources = __commonJS({
                   string: {
                     anyOf: [
                       {
-                        ref: "schema/schema"
+                        ref: "schema/explicit-pattern-string"
                       },
                       {
                         ref: "schema/base"

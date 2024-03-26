@@ -61,7 +61,6 @@
         properties:
           "null":
             anyOf:
-              - ref: schema/schema
               - ref: schema/base
 
 - id: schema/explicit-schema
@@ -73,21 +72,22 @@
       resolveRef: schema/base
     properties:
       schema:
-        anyOf:
-          - ref: schema/schema
-          - ref: schema/base
+        ref: schema/schema
+
+- id: schema/explicit-pattern-string
+  object:
+    closed: true
+    super:
+      resolveRef: schema/base
+    required:
+      - "pattern"
+    properties:
+      pattern: string
 
 - id: schema/string
   anyOf:
     - enum: ["string", "path"]
-    - object:
-        closed: true
-        super:
-          resolveRef: schema/base
-        required:
-          - "pattern"
-        properties:
-          pattern: string
+    - ref: schema/explicit-pattern-string
     - object:
         closed: true
         super:
@@ -97,7 +97,7 @@
         properties:
           path:
             anyOf:
-              - ref: schema/schema
+              - ref: schema/explicit-pattern-string
               - ref: schema/base
     - object:
         closed: true
@@ -108,7 +108,7 @@
         properties:
           string:
             anyOf:
-              - ref: schema/schema
+              - ref: schema/explicit-pattern-string
               - ref: schema/base
 
 - id: schema/number

@@ -19013,9 +19013,6 @@ try {
                     null: {
                       anyOf: [
                         {
-                          ref: "schema/schema"
-                        },
-                        {
                           ref: "schema/base"
                         }
                       ]
@@ -19037,15 +19034,23 @@ try {
               },
               properties: {
                 schema: {
-                  anyOf: [
-                    {
-                      ref: "schema/schema"
-                    },
-                    {
-                      ref: "schema/base"
-                    }
-                  ]
+                  ref: "schema/schema"
                 }
+              }
+            }
+          },
+          {
+            id: "schema/explicit-pattern-string",
+            object: {
+              closed: true,
+              super: {
+                resolveRef: "schema/base"
+              },
+              required: [
+                "pattern"
+              ],
+              properties: {
+                pattern: "string"
               }
             }
           },
@@ -19059,18 +19064,7 @@ try {
                 ]
               },
               {
-                object: {
-                  closed: true,
-                  super: {
-                    resolveRef: "schema/base"
-                  },
-                  required: [
-                    "pattern"
-                  ],
-                  properties: {
-                    pattern: "string"
-                  }
-                }
+                ref: "schema/explicit-pattern-string"
               },
               {
                 object: {
@@ -19085,7 +19079,7 @@ try {
                     path: {
                       anyOf: [
                         {
-                          ref: "schema/schema"
+                          ref: "schema/explicit-pattern-string"
                         },
                         {
                           ref: "schema/base"
@@ -19108,7 +19102,7 @@ try {
                     string: {
                       anyOf: [
                         {
-                          ref: "schema/schema"
+                          ref: "schema/explicit-pattern-string"
                         },
                         {
                           ref: "schema/base"

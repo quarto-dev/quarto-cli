@@ -11984,9 +11984,6 @@
               "null": {
                 "anyOf": [
                   {
-                    "ref": "schema/schema"
-                  },
-                  {
                     "ref": "schema/base"
                   }
                 ]
@@ -12008,15 +12005,23 @@
         },
         "properties": {
           "schema": {
-            "anyOf": [
-              {
-                "ref": "schema/schema"
-              },
-              {
-                "ref": "schema/base"
-              }
-            ]
+            "ref": "schema/schema"
           }
+        }
+      }
+    },
+    {
+      "id": "schema/explicit-pattern-string",
+      "object": {
+        "closed": true,
+        "super": {
+          "resolveRef": "schema/base"
+        },
+        "required": [
+          "pattern"
+        ],
+        "properties": {
+          "pattern": "string"
         }
       }
     },
@@ -12030,18 +12035,7 @@
           ]
         },
         {
-          "object": {
-            "closed": true,
-            "super": {
-              "resolveRef": "schema/base"
-            },
-            "required": [
-              "pattern"
-            ],
-            "properties": {
-              "pattern": "string"
-            }
-          }
+          "ref": "schema/explicit-pattern-string"
         },
         {
           "object": {
@@ -12056,7 +12050,7 @@
               "path": {
                 "anyOf": [
                   {
-                    "ref": "schema/schema"
+                    "ref": "schema/explicit-pattern-string"
                   },
                   {
                     "ref": "schema/base"
@@ -12079,7 +12073,7 @@
               "string": {
                 "anyOf": [
                   {
-                    "ref": "schema/schema"
+                    "ref": "schema/explicit-pattern-string"
                   },
                   {
                     "ref": "schema/base"
